@@ -1,0 +1,2089 @@
+{
+  "version": "2.8",
+  "children": [
+    {
+      "type": "frame",
+      "id": "LyBkj",
+      "x": 0,
+      "y": 0,
+      "name": "Travel AI - Landing Page",
+      "width": 1440,
+      "fill": "#0A0A12",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "NpupK",
+          "name": "Header",
+          "width": "fill_container",
+          "height": 72,
+          "fill": "#0A0A1280",
+          "padding": [
+            0,
+            64
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "BWStj",
+              "name": "Logo",
+              "height": "fill_container",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "WJX49",
+                  "name": "Logo Icon",
+                  "width": 36,
+                  "height": 36,
+                  "fill": "#4F6EF7",
+                  "cornerRadius": 8,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "SrHmT",
+                      "name": "logoText",
+                      "content": "✈",
+                      "fontFamily": "Inter",
+                      "fontSize": 18,
+                      "fontWeight": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "6ZRnS",
+                  "name": "Brand Name",
+                  "content": "VOYAGO",
+                  "fontFamily": "Inter",
+                  "fontSize": 18,
+                  "fontWeight": "bold",
+                  "letterSpacing": 3
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "iNC9J",
+              "name": "Nav Spacer",
+              "width": "fill_container",
+              "height": 1
+            },
+            {
+              "type": "frame",
+              "id": "RMj8q",
+              "name": "Nav Links",
+              "height": "fill_container",
+              "gap": 40,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "bSlmO",
+                  "name": "navItem1",
+                  "content": "How It Works",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "q96Q9",
+                  "name": "navItem2",
+                  "content": "Features",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "MBPmT",
+                  "name": "navItem3",
+                  "content": "Pricing",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "TOh5W",
+              "name": "Header CTA",
+              "fill": "#4F6EF7",
+              "cornerRadius": 6,
+              "gap": 8,
+              "padding": [
+                10,
+                24
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "gA0ur",
+                  "name": "ctaNavText",
+                  "content": "Plan My Trip",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "semibold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "dT72p",
+          "name": "Hero Section",
+          "width": "fill_container",
+          "fill": "#0A0A12",
+          "layout": "vertical",
+          "gap": 40,
+          "padding": [
+            120,
+            120,
+            80,
+            120
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "eUpgx",
+              "name": "Hero Badge",
+              "fill": "#4F6EF720",
+              "cornerRadius": 20,
+              "gap": 8,
+              "padding": [
+                8,
+                16
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "IrGGj",
+                  "name": "Badge Dot",
+                  "width": 6,
+                  "height": 6,
+                  "fill": "#4F6EF7",
+                  "cornerRadius": 3
+                },
+                {
+                  "type": "text",
+                  "id": "UIEOC",
+                  "name": "badgeText",
+                  "fill": "#4F6EF7",
+                  "content": "AI-Powered Travel Planning",
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "semibold",
+                  "letterSpacing": 1
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "b4IVr",
+              "name": "Hero Title",
+              "fill": "#FFFFFF",
+              "content": "Your Dream Trip,\nDesigned by AI.",
+              "lineHeight": 1,
+              "fontFamily": "Inter",
+              "fontSize": 80,
+              "fontWeight": "bold",
+              "letterSpacing": -2
+            },
+            {
+              "type": "text",
+              "id": "ICgJw",
+              "name": "Hero Subtitle",
+              "fill": "#8888AA",
+              "content": "Tell us where you want to go, your budget, and your travel style. Our AI crafts a personalized, day-by-day itinerary built just for you — in seconds.",
+              "lineHeight": 1.6,
+              "fontFamily": "Inter",
+              "fontSize": 20,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "tBIfW",
+              "name": "Hero CTAs",
+              "gap": 16,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "EKtIQ",
+                  "name": "Primary CTA",
+                  "fill": "#4F6EF7",
+                  "cornerRadius": 8,
+                  "gap": 10,
+                  "padding": [
+                    16,
+                    36
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "RSrkd",
+                      "name": "primaryCTAText",
+                      "fill": "#FFFFFF",
+                      "content": "Plan My Trip Free",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "pLatr",
+                  "name": "Secondary CTA",
+                  "fill": "#FFFFFF10",
+                  "cornerRadius": 8,
+                  "gap": 10,
+                  "padding": [
+                    16,
+                    36
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "c4RbV",
+                      "name": "secondaryCTAText",
+                      "fill": "#FFFFFF90",
+                      "content": "See a Sample Trip ↓",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "semibold"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "uTIdK",
+              "name": "Trust Row",
+              "gap": 32,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "5YAzu",
+                  "name": "trust1",
+                  "fill": "#8888AA",
+                  "content": "✓ No credit card required",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "nPpG3",
+                  "name": "trust2",
+                  "fill": "#8888AA",
+                  "content": "✓ 50,000+ trips planned",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "oEB2j",
+                  "name": "trust3",
+                  "fill": "#8888AA",
+                  "content": "✓ 190+ destinations",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "GPRhl",
+              "name": "Hero Image",
+              "metadata": {
+                "type": "unsplash",
+                "username": "biancablah",
+                "link": "https://unsplash.com/@biancablah",
+                "author": "Bianca Ackermann"
+              },
+              "width": "fill_container",
+              "height": 500,
+              "fill": {
+                "type": "image",
+                "enabled": true,
+                "url": "https://images.unsplash.com/photo-1579963333880-5f05a5accea9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3NzMxODExMzN8&ixlib=rb-4.1.0&q=80&w=1080",
+                "mode": "fill"
+              },
+              "cornerRadius": 16
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "IoWjA",
+          "name": "AI Planner Section",
+          "width": "fill_container",
+          "fill": "#0E0E1A",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": [
+            80,
+            120
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "eDRYu",
+              "name": "plannerLabel",
+              "fill": "#4F6EF7",
+              "content": "PLAN YOUR TRIP",
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "bold",
+              "letterSpacing": 3
+            },
+            {
+              "type": "text",
+              "id": "RISY5",
+              "name": "plannerTitle",
+              "fill": "#FFFFFF",
+              "content": "Tell the AI where you want to go",
+              "lineHeight": 1.1,
+              "fontFamily": "Inter",
+              "fontSize": 48,
+              "fontWeight": "bold",
+              "letterSpacing": -1
+            },
+            {
+              "type": "frame",
+              "id": "As3MO",
+              "name": "Planner Card",
+              "width": "fill_container",
+              "fill": "#16162A",
+              "cornerRadius": 20,
+              "layout": "vertical",
+              "gap": 24,
+              "padding": [
+                40,
+                48
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "cLMSi",
+                  "name": "Inputs Row",
+                  "width": "fill_container",
+                  "gap": 16,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "RaLal",
+                      "name": "Destination Input",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "oWQ46",
+                          "name": "input1Label",
+                          "fill": "#8888AA",
+                          "content": "DESTINATION",
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
+                          "fontWeight": "bold",
+                          "letterSpacing": 2
+                        },
+                        {
+                          "type": "frame",
+                          "id": "1oloZ",
+                          "name": "Input Field",
+                          "width": "fill_container",
+                          "height": 52,
+                          "fill": "#0A0A1A",
+                          "cornerRadius": 10,
+                          "padding": [
+                            0,
+                            16
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "LgI94",
+                              "name": "input1Text",
+                              "fill": "#FFFFFF50",
+                              "content": "Where do you want to go?",
+                              "fontFamily": "Inter",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Km33M",
+                      "name": "Dates Input",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "QIzG6",
+                          "name": "input2Label",
+                          "fill": "#8888AA",
+                          "content": "TRAVEL DATES",
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
+                          "fontWeight": "bold",
+                          "letterSpacing": 2
+                        },
+                        {
+                          "type": "frame",
+                          "id": "0tSVF",
+                          "name": "Dates Field",
+                          "width": "fill_container",
+                          "height": 52,
+                          "fill": "#0A0A1A",
+                          "cornerRadius": 10,
+                          "padding": [
+                            0,
+                            16
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "NXQkh",
+                              "name": "input2Text",
+                              "fill": "#FFFFFF50",
+                              "content": "When are you going?",
+                              "fontFamily": "Inter",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "KsacO",
+                      "name": "Budget Input",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "ydfWq",
+                          "name": "input3Label",
+                          "fill": "#8888AA",
+                          "content": "BUDGET",
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
+                          "fontWeight": "bold",
+                          "letterSpacing": 2
+                        },
+                        {
+                          "type": "frame",
+                          "id": "QPdtj",
+                          "name": "Budget Field",
+                          "width": "fill_container",
+                          "height": 52,
+                          "fill": "#0A0A1A",
+                          "cornerRadius": 10,
+                          "padding": [
+                            0,
+                            16
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Zzqoo",
+                              "name": "input3Text",
+                              "fill": "#FFFFFF50",
+                              "content": "Your total budget",
+                              "fontFamily": "Inter",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "eQ640",
+                      "name": "Travelers Input",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "JYKET",
+                          "name": "input4Label",
+                          "fill": "#8888AA",
+                          "content": "TRAVELERS",
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
+                          "fontWeight": "bold",
+                          "letterSpacing": 2
+                        },
+                        {
+                          "type": "frame",
+                          "id": "blInf",
+                          "name": "Travelers Field",
+                          "width": "fill_container",
+                          "height": 52,
+                          "fill": "#0A0A1A",
+                          "cornerRadius": 10,
+                          "padding": [
+                            0,
+                            16
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "rVsRh",
+                              "name": "input4Text",
+                              "fill": "#FFFFFF50",
+                              "content": "How many people?",
+                              "fontFamily": "Inter",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "bHpj7",
+                  "name": "Style Row",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "zcoap",
+                      "name": "styleLabel",
+                      "fill": "#8888AA",
+                      "content": "TRAVEL STYLE",
+                      "fontFamily": "Inter",
+                      "fontSize": 10,
+                      "fontWeight": "bold",
+                      "letterSpacing": 2
+                    },
+                    {
+                      "type": "frame",
+                      "id": "FgyhP",
+                      "name": "Style Pills",
+                      "width": "fill_container",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "YOn4g",
+                          "name": "Pill Adventure",
+                          "fill": "#4F6EF7",
+                          "cornerRadius": 20,
+                          "gap": 6,
+                          "padding": [
+                            10,
+                            20
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "YZVvk",
+                              "name": "pill1Text",
+                              "fill": "#FFFFFF",
+                              "content": "🏔 Adventure",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "semibold"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "tGrAT",
+                          "name": "Pill Relaxation",
+                          "fill": "#FFFFFF10",
+                          "cornerRadius": 20,
+                          "gap": 6,
+                          "padding": [
+                            10,
+                            20
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "rNmLW",
+                              "name": "pill2Text",
+                              "fill": "#FFFFFF80",
+                              "content": "🌴 Relaxation",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "semibold"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "w1b2a",
+                          "name": "Pill Culture",
+                          "fill": "#FFFFFF10",
+                          "cornerRadius": 20,
+                          "gap": 6,
+                          "padding": [
+                            10,
+                            20
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "GOrG7",
+                              "name": "pill3Text",
+                              "fill": "#FFFFFF80",
+                              "content": "🏛 Culture",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "semibold"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "H6hWo",
+                          "name": "Pill Foodie",
+                          "fill": "#FFFFFF10",
+                          "cornerRadius": 20,
+                          "gap": 6,
+                          "padding": [
+                            10,
+                            20
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "rEPBt",
+                              "name": "pill4Text",
+                              "fill": "#FFFFFF80",
+                              "content": "🍜 Foodie",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "semibold"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "qnArk",
+                          "name": "Pill Romance",
+                          "fill": "#FFFFFF10",
+                          "cornerRadius": 20,
+                          "gap": 6,
+                          "padding": [
+                            10,
+                            20
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "XE8dl",
+                              "name": "pill5Text",
+                              "fill": "#FFFFFF80",
+                              "content": "💑 Romance",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "semibold"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Y0lTX",
+                  "name": "Generate Button",
+                  "width": "fill_container",
+                  "height": 64,
+                  "fill": "#4F6EF7",
+                  "cornerRadius": 12,
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "EtFGX",
+                      "name": "generateBtnText",
+                      "fill": "#FFFFFF",
+                      "content": "✨  Generate My Perfect Itinerary",
+                      "fontFamily": "Inter",
+                      "fontSize": 18,
+                      "fontWeight": "bold"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "EUgBh",
+          "name": "How It Works Section",
+          "width": "fill_container",
+          "fill": "#0A0A12",
+          "layout": "vertical",
+          "gap": 60,
+          "padding": [
+            100,
+            120
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "RMOZ2",
+              "name": "howLabel",
+              "fill": "#4F6EF7",
+              "content": "HOW IT WORKS",
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "bold",
+              "letterSpacing": 3
+            },
+            {
+              "type": "text",
+              "id": "IQXC3",
+              "name": "howTitle",
+              "fill": "#FFFFFF",
+              "content": "Three steps to your\nperfect getaway.",
+              "lineHeight": 1.1,
+              "fontFamily": "Inter",
+              "fontSize": 56,
+              "fontWeight": "bold",
+              "letterSpacing": -1.5
+            },
+            {
+              "type": "frame",
+              "id": "oWB3x",
+              "name": "Steps Row",
+              "width": "fill_container",
+              "gap": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "bUfPe",
+                  "name": "Step 1",
+                  "width": "fill_container",
+                  "fill": "#13132A",
+                  "cornerRadius": 16,
+                  "layout": "vertical",
+                  "gap": 20,
+                  "padding": 32,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "sQDj3",
+                      "name": "Step Num 1",
+                      "width": 44,
+                      "height": 44,
+                      "fill": "#4F6EF7",
+                      "cornerRadius": 22,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "YHhdt",
+                          "name": "step1NumText",
+                          "fill": "#FFFFFF",
+                          "content": "1",
+                          "fontFamily": "Inter",
+                          "fontSize": 20,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "7jB1D",
+                      "name": "Step 1 Image",
+                      "width": "fill_container",
+                      "height": 180,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "./images/generated-1773181187959.png",
+                        "mode": "fill"
+                      },
+                      "cornerRadius": 12
+                    },
+                    {
+                      "type": "text",
+                      "id": "6piB4",
+                      "name": "step1Title",
+                      "fill": "#FFFFFF",
+                      "content": "Tell Us Your Dreams",
+                      "fontFamily": "Inter",
+                      "fontSize": 22,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "bv62K",
+                      "name": "step1Desc",
+                      "fill": "#8888AA",
+                      "content": "Enter your destination, travel dates, budget, group size, and travel vibe. Takes less than 60 seconds.",
+                      "lineHeight": 1.6,
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "wVVs6",
+                  "name": "Step 2",
+                  "width": "fill_container",
+                  "fill": "#13132A",
+                  "cornerRadius": 16,
+                  "layout": "vertical",
+                  "gap": 20,
+                  "padding": 32,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "cBCtS",
+                      "name": "Step Num 2",
+                      "width": 44,
+                      "height": 44,
+                      "fill": "#FFFFFF10",
+                      "cornerRadius": 22,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "OL84r",
+                          "name": "step2NumText",
+                          "fill": "#FFFFFF",
+                          "content": "2",
+                          "fontFamily": "Inter",
+                          "fontSize": 20,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "b6vmg",
+                      "name": "Step 2 Image",
+                      "width": "fill_container",
+                      "height": 180,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "./images/generated-1773181201840.png",
+                        "mode": "fill"
+                      },
+                      "cornerRadius": 12
+                    },
+                    {
+                      "type": "text",
+                      "id": "M7KrZ",
+                      "name": "step2Title",
+                      "fill": "#FFFFFF",
+                      "content": "AI Builds Your Itinerary",
+                      "fontFamily": "Inter",
+                      "fontSize": 22,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "uvSmB",
+                      "name": "step2Desc",
+                      "fill": "#8888AA",
+                      "content": "Our AI analyzes thousands of options, reviews, and local insights to craft a day-by-day personalized itinerary.",
+                      "lineHeight": 1.6,
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "YIvlQ",
+                  "name": "Step 3",
+                  "width": "fill_container",
+                  "fill": "#13132A",
+                  "cornerRadius": 16,
+                  "layout": "vertical",
+                  "gap": 20,
+                  "padding": 32,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "Yp6J2",
+                      "name": "Step Num 3",
+                      "width": 44,
+                      "height": 44,
+                      "fill": "#FFFFFF10",
+                      "cornerRadius": 22,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "9X5RJ",
+                          "name": "step3NumText",
+                          "fill": "#FFFFFF",
+                          "content": "3",
+                          "fontFamily": "Inter",
+                          "fontSize": 20,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "gh5SU",
+                      "name": "Step 3 Image",
+                      "metadata": {
+                        "type": "unsplash",
+                        "username": "hoianphotographer",
+                        "link": "https://unsplash.com/@hoianphotographer",
+                        "author": "Hoi An and Da Nang Photographer"
+                      },
+                      "width": "fill_container",
+                      "height": 180,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "https://images.unsplash.com/photo-1768467929648-e0bb5b4c8d51?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3NzMxODEyMjV8&ixlib=rb-4.1.0&q=80&w=1080",
+                        "mode": "fill"
+                      },
+                      "cornerRadius": 12
+                    },
+                    {
+                      "type": "text",
+                      "id": "K7mRb",
+                      "name": "step3Title",
+                      "fill": "#FFFFFF",
+                      "content": "Live the Experience",
+                      "fontFamily": "Inter",
+                      "fontSize": 22,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "lHvML",
+                      "name": "step3Desc",
+                      "fill": "#8888AA",
+                      "content": "Download your itinerary, book directly, or let us handle reservations. Your adventure begins with one click.",
+                      "lineHeight": 1.6,
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "hPYGo",
+          "name": "Features Section",
+          "width": "fill_container",
+          "fill": "#0E0E1A",
+          "layout": "vertical",
+          "gap": 64,
+          "padding": [
+            100,
+            120
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "zus0f",
+              "name": "featLabel",
+              "fill": "#4F6EF7",
+              "content": "WHY CHOOSE VOYAGO",
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "bold",
+              "letterSpacing": 3
+            },
+            {
+              "type": "text",
+              "id": "AKEsw",
+              "name": "featTitle",
+              "fill": "#FFFFFF",
+              "content": "Smarter planning,\nmore memorable moments.",
+              "lineHeight": 1.1,
+              "fontFamily": "Inter",
+              "fontSize": 56,
+              "fontWeight": "bold",
+              "letterSpacing": -1.5
+            },
+            {
+              "type": "frame",
+              "id": "PKH28",
+              "name": "Features Grid",
+              "width": "fill_container",
+              "gap": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "5r13R",
+                  "name": "Feat 1",
+                  "width": "fill_container",
+                  "fill": "#13132A",
+                  "cornerRadius": 16,
+                  "layout": "vertical",
+                  "gap": 16,
+                  "padding": 32,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "2g9jn",
+                      "name": "feat1Icon",
+                      "content": "🧠",
+                      "fontFamily": "Inter",
+                      "fontSize": 32,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Tuytp",
+                      "name": "feat1Title",
+                      "fill": "#FFFFFF",
+                      "content": "Hyper-Personalized AI",
+                      "fontFamily": "Inter",
+                      "fontSize": 18,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "hJeMW",
+                      "name": "feat1Desc",
+                      "fill": "#8888AA",
+                      "content": "Learns your preferences to suggest experiences that genuinely match your style — not just tourist traps.",
+                      "lineHeight": 1.6,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "c67cA",
+                  "name": "Feat 2",
+                  "width": "fill_container",
+                  "fill": "#13132A",
+                  "cornerRadius": 16,
+                  "layout": "vertical",
+                  "gap": 16,
+                  "padding": 32,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "82XNM",
+                      "name": "feat2Icon",
+                      "content": "📅",
+                      "fontFamily": "Inter",
+                      "fontSize": 32,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "YvETT",
+                      "name": "feat2Title",
+                      "fill": "#FFFFFF",
+                      "content": "Day-by-Day Itineraries",
+                      "fontFamily": "Inter",
+                      "fontSize": 18,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "5h8F5",
+                      "name": "feat2Desc",
+                      "fill": "#8888AA",
+                      "content": "Detailed schedules, timings, and logistics for every day of your trip — optimized for minimum travel, maximum fun.",
+                      "lineHeight": 1.6,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "tf96k",
+                  "name": "Feat 3",
+                  "width": "fill_container",
+                  "fill": "#4F6EF715",
+                  "cornerRadius": 16,
+                  "layout": "vertical",
+                  "gap": 16,
+                  "padding": 32,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "54lC2",
+                      "name": "feat3Icon",
+                      "content": "💰",
+                      "fontFamily": "Inter",
+                      "fontSize": 32,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "nK8LY",
+                      "name": "feat3Title",
+                      "fill": "#FFFFFF",
+                      "content": "Smart Budget Control",
+                      "fontFamily": "Inter",
+                      "fontSize": 18,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "gRRl7",
+                      "name": "feat3Desc",
+                      "fill": "#8888AA",
+                      "content": "Set your budget and watch the AI optimize every recommendation — from hotels to restaurants — to your spending limit.",
+                      "lineHeight": 1.6,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "bz7Au",
+              "name": "Features Grid 2",
+              "width": "fill_container",
+              "gap": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "3WGTd",
+                  "name": "Feat 4",
+                  "width": "fill_container",
+                  "fill": "#13132A",
+                  "cornerRadius": 16,
+                  "layout": "vertical",
+                  "gap": 16,
+                  "padding": 32,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "42pG2",
+                      "name": "feat4Icon",
+                      "content": "🗺️",
+                      "fontFamily": "Inter",
+                      "fontSize": 32,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "gMjv9",
+                      "name": "feat4Title",
+                      "fill": "#FFFFFF",
+                      "content": "Interactive Maps",
+                      "fontFamily": "Inter",
+                      "fontSize": 18,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "8W48K",
+                      "name": "feat4Desc",
+                      "fill": "#8888AA",
+                      "content": "Visual maps showing your entire route, hotel locations, and must-see attractions at a glance.",
+                      "lineHeight": 1.6,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "1IxvM",
+                  "name": "Feat 5",
+                  "width": "fill_container",
+                  "fill": "#13132A",
+                  "cornerRadius": 16,
+                  "layout": "vertical",
+                  "gap": 16,
+                  "padding": 32,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "XoqjU",
+                      "name": "feat5Icon",
+                      "content": "🍽️",
+                      "fontFamily": "Inter",
+                      "fontSize": 32,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "vjht9",
+                      "name": "feat5Title",
+                      "fill": "#FFFFFF",
+                      "content": "Local Foodie Guide",
+                      "fontFamily": "Inter",
+                      "fontSize": 18,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "edSun",
+                      "name": "feat5Desc",
+                      "fill": "#8888AA",
+                      "content": "Hand-picked restaurant recommendations for every meal, filtered by cuisine, budget, and location.",
+                      "lineHeight": 1.6,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Olet1",
+                  "name": "Feat 6",
+                  "width": "fill_container",
+                  "fill": "#13132A",
+                  "cornerRadius": 16,
+                  "layout": "vertical",
+                  "gap": 16,
+                  "padding": 32,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "12hv9",
+                      "name": "feat6Icon",
+                      "content": "✏️",
+                      "fontFamily": "Inter",
+                      "fontSize": 32,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "sIlbO",
+                      "name": "feat6Title",
+                      "fill": "#FFFFFF",
+                      "content": "Fully Customizable",
+                      "fontFamily": "Inter",
+                      "fontSize": 18,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "A17e4",
+                      "name": "feat6Desc",
+                      "fill": "#8888AA",
+                      "content": "Not happy with a suggestion? Edit, swap, or regenerate any part of your itinerary with a single click.",
+                      "lineHeight": 1.6,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "joC97",
+          "name": "Social Proof Section",
+          "width": "fill_container",
+          "fill": "#0A0A12",
+          "layout": "vertical",
+          "gap": 64,
+          "padding": [
+            100,
+            120
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "lR8Af",
+              "name": "socialLabel",
+              "fill": "#4F6EF7",
+              "content": "LOVED BY TRAVELERS",
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "bold",
+              "letterSpacing": 3
+            },
+            {
+              "type": "frame",
+              "id": "9uvMR",
+              "name": "Stats Row",
+              "width": "fill_container",
+              "gap": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "0e7bH",
+                  "name": "Stat 1",
+                  "width": "fill_container",
+                  "fill": "#13132A",
+                  "cornerRadius": 16,
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": 32,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "lN3ZP",
+                      "name": "stat1Val",
+                      "fill": "#4F6EF7",
+                      "content": "50,000+",
+                      "fontFamily": "Inter",
+                      "fontSize": 48,
+                      "fontWeight": "bold",
+                      "letterSpacing": -2
+                    },
+                    {
+                      "type": "text",
+                      "id": "abR9t",
+                      "name": "stat1Lab",
+                      "fill": "#8888AA",
+                      "content": "Trips Generated",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "gk1In",
+                  "name": "Stat 2",
+                  "width": "fill_container",
+                  "fill": "#13132A",
+                  "cornerRadius": 16,
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": 32,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "9Pp95",
+                      "name": "stat2Val",
+                      "fill": "#4F6EF7",
+                      "content": "190+",
+                      "fontFamily": "Inter",
+                      "fontSize": 48,
+                      "fontWeight": "bold",
+                      "letterSpacing": -2
+                    },
+                    {
+                      "type": "text",
+                      "id": "QormE",
+                      "name": "stat2Lab",
+                      "fill": "#8888AA",
+                      "content": "Destinations Covered",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "FzlMB",
+                  "name": "Stat 3",
+                  "width": "fill_container",
+                  "fill": "#13132A",
+                  "cornerRadius": 16,
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": 32,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "lSiCi",
+                      "name": "stat3Val",
+                      "fill": "#4F6EF7",
+                      "content": "4.9★",
+                      "fontFamily": "Inter",
+                      "fontSize": 48,
+                      "fontWeight": "bold",
+                      "letterSpacing": -2
+                    },
+                    {
+                      "type": "text",
+                      "id": "omNU0",
+                      "name": "stat3Lab",
+                      "fill": "#8888AA",
+                      "content": "Average Rating",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "1qlIp",
+                  "name": "Stat 4",
+                  "width": "fill_container",
+                  "fill": "#13132A",
+                  "cornerRadius": 16,
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": 32,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "czVZp",
+                      "name": "stat4Val",
+                      "fill": "#4F6EF7",
+                      "content": "30s",
+                      "fontFamily": "Inter",
+                      "fontSize": 48,
+                      "fontWeight": "bold",
+                      "letterSpacing": -2
+                    },
+                    {
+                      "type": "text",
+                      "id": "hDuVV",
+                      "name": "stat4Lab",
+                      "fill": "#8888AA",
+                      "content": "Average Plan Time",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "OogfD",
+              "name": "Testimonials Row",
+              "width": "fill_container",
+              "gap": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "OpJls",
+                  "name": "Testimonial 1",
+                  "width": "fill_container",
+                  "fill": "#13132A",
+                  "cornerRadius": 16,
+                  "layout": "vertical",
+                  "gap": 16,
+                  "padding": 32,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "uM7RI",
+                      "name": "test1Stars",
+                      "fill": "#F5A623",
+                      "content": "★★★★★",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "ENWFq",
+                      "name": "test1Quote",
+                      "fill": "#FFFFFF",
+                      "content": "\"I planned a 2-week Japan trip in under 5 minutes. The AI even found a cherry blossom festival I didn't know about. Absolutely magical.\"",
+                      "lineHeight": 1.6,
+                      "fontFamily": "Inter",
+                      "fontSize": 15,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "4p9Co",
+                      "name": "test1Author",
+                      "fill": "#8888AA",
+                      "content": "— Sofia M., Madrid 🇪🇸",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "8UxQp",
+                  "name": "Testimonial 2",
+                  "width": "fill_container",
+                  "fill": "#4F6EF712",
+                  "cornerRadius": 16,
+                  "layout": "vertical",
+                  "gap": 16,
+                  "padding": 32,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "ZOtUQ",
+                      "name": "test2Stars",
+                      "fill": "#F5A623",
+                      "content": "★★★★★",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "MOLf6",
+                      "name": "test2Quote",
+                      "fill": "#FFFFFF",
+                      "content": "\"We had a tight budget for our honeymoon. VOYAGO found an incredible Santorini package with everything optimized. We saved €800 vs booking manually.\"",
+                      "lineHeight": 1.6,
+                      "fontFamily": "Inter",
+                      "fontSize": 15,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "1mYRW",
+                      "name": "test2Author",
+                      "fill": "#8888AA",
+                      "content": "— Luca & Emma, Milan 🇮🇹",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "eujRP",
+                  "name": "Testimonial 3",
+                  "width": "fill_container",
+                  "fill": "#13132A",
+                  "cornerRadius": 16,
+                  "layout": "vertical",
+                  "gap": 16,
+                  "padding": 32,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "WMFup",
+                      "name": "test3Stars",
+                      "fill": "#F5A623",
+                      "content": "★★★★★",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "pYFrM",
+                      "name": "test3Quote",
+                      "fill": "#FFFFFF",
+                      "content": "\"The day-by-day itinerary for our Costa Rica adventure was perfect. Every activity was close by, timing made sense. No wasted time, pure bliss.\"",
+                      "lineHeight": 1.6,
+                      "fontFamily": "Inter",
+                      "fontSize": 15,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "mfzjf",
+                      "name": "test3Author",
+                      "fill": "#8888AA",
+                      "content": "— James K., London 🇬🇧",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "snaPt",
+          "name": "Final CTA Section",
+          "width": "fill_container",
+          "fill": "#4F6EF7",
+          "layout": "vertical",
+          "gap": 32,
+          "padding": 120,
+          "children": [
+            {
+              "type": "frame",
+              "id": "w3m2x",
+              "name": "CTA BG",
+              "metadata": {
+                "type": "unsplash",
+                "username": "batag_",
+                "link": "https://unsplash.com/@batag_",
+                "author": "Sarmat Batagov"
+              },
+              "width": "fill_container",
+              "height": 400,
+              "fill": {
+                "type": "image",
+                "enabled": true,
+                "url": "https://images.unsplash.com/photo-1737008220049-71fa55e7a21c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3NzMxODEzMDZ8&ixlib=rb-4.1.0&q=80&w=1080",
+                "mode": "fill"
+              },
+              "cornerRadius": 20
+            },
+            {
+              "type": "frame",
+              "id": "lAdG5",
+              "name": "CTA Content",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 24,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "FbXXZ",
+                  "name": "ctaTitle",
+                  "fill": "#FFFFFF",
+                  "content": "Ready to explore the world?",
+                  "lineHeight": 1,
+                  "fontFamily": "Inter",
+                  "fontSize": 64,
+                  "fontWeight": "bold",
+                  "letterSpacing": -2
+                },
+                {
+                  "type": "text",
+                  "id": "VBlLx",
+                  "name": "ctaSubtitle",
+                  "fill": "#FFFFFF90",
+                  "content": "Join thousands of travelers who plan smarter. Your next adventure is just 30 seconds away.",
+                  "lineHeight": 1.5,
+                  "fontFamily": "Inter",
+                  "fontSize": 20,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "8St1p",
+                  "name": "CTA Buttons",
+                  "gap": 16,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "iGtVl",
+                      "name": "CTA Btn Main",
+                      "fill": "#FFFFFF",
+                      "cornerRadius": 10,
+                      "gap": 10,
+                      "padding": [
+                        18,
+                        40
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Ffyxn",
+                          "name": "ctaBtn1Text",
+                          "fill": "#4F6EF7",
+                          "content": "Start Planning Free",
+                          "fontFamily": "Inter",
+                          "fontSize": 18,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "kCZTF",
+                      "name": "CTA Btn Secondary",
+                      "fill": "#FFFFFF20",
+                      "cornerRadius": 10,
+                      "gap": 10,
+                      "padding": [
+                        18,
+                        40
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "WQzsD",
+                          "name": "ctaBtn2Text",
+                          "fill": "#FFFFFF",
+                          "content": "Watch Demo",
+                          "fontFamily": "Inter",
+                          "fontSize": 18,
+                          "fontWeight": "semibold"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "IPvZA",
+          "name": "Footer",
+          "width": "fill_container",
+          "fill": "#070710",
+          "layout": "vertical",
+          "gap": 48,
+          "padding": [
+            64,
+            120,
+            40,
+            120
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "NFJWE",
+              "name": "Footer Top",
+              "width": "fill_container",
+              "gap": 80,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "kFbSZ",
+                  "name": "Footer Brand",
+                  "width": 280,
+                  "layout": "vertical",
+                  "gap": 16,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "ETyoq",
+                      "name": "Footer Logo Row",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "7v9zc",
+                          "name": "Footer Icon",
+                          "width": 32,
+                          "height": 32,
+                          "fill": "#4F6EF7",
+                          "cornerRadius": 6,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "m1xVR",
+                              "name": "footerIconText",
+                              "fill": "#FFFFFF",
+                              "content": "✈",
+                              "fontFamily": "Inter",
+                              "fontSize": 16,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "pIHy5",
+                          "name": "footerBrandName",
+                          "fill": "#FFFFFF",
+                          "content": "VOYAGO",
+                          "fontFamily": "Inter",
+                          "fontSize": 16,
+                          "fontWeight": "bold",
+                          "letterSpacing": 3
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "8Ffcv",
+                      "name": "footerTagline",
+                      "fill": "#8888AA",
+                      "content": "AI-powered travel planning for the modern explorer. From idea to itinerary in 30 seconds.",
+                      "lineHeight": 1.6,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "HZ4tI",
+                  "name": "Footer Links 1",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "75HlF",
+                      "name": "footerCol1Title",
+                      "fill": "#8888AA",
+                      "content": "PRODUCT",
+                      "fontFamily": "Inter",
+                      "fontSize": 10,
+                      "fontWeight": "bold",
+                      "letterSpacing": 2
+                    },
+                    {
+                      "type": "text",
+                      "id": "hp4uc",
+                      "name": "fl1",
+                      "fill": "#FFFFFF80",
+                      "content": "How It Works",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "rLGKi",
+                      "name": "fl2",
+                      "fill": "#FFFFFF80",
+                      "content": "Features",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "fzk4R",
+                      "name": "fl3",
+                      "fill": "#FFFFFF80",
+                      "content": "Pricing",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "bfrYY",
+                      "name": "fl4",
+                      "fill": "#FFFFFF80",
+                      "content": "Sample Trips",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Rliyp",
+                  "name": "Footer Links 2",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "UDbgu",
+                      "name": "footerCol2Title",
+                      "fill": "#8888AA",
+                      "content": "DESTINATIONS",
+                      "fontFamily": "Inter",
+                      "fontSize": 10,
+                      "fontWeight": "bold",
+                      "letterSpacing": 2
+                    },
+                    {
+                      "type": "text",
+                      "id": "mYFAU",
+                      "name": "fl5",
+                      "fill": "#FFFFFF80",
+                      "content": "Europe",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "EPnyx",
+                      "name": "fl6",
+                      "fill": "#FFFFFF80",
+                      "content": "Asia",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "ZhD1l",
+                      "name": "fl7",
+                      "fill": "#FFFFFF80",
+                      "content": "Americas",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "wtDi2",
+                      "name": "fl8",
+                      "fill": "#FFFFFF80",
+                      "content": "All Destinations",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "CMcPh",
+                  "name": "Footer Links 3",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "dBgOP",
+                      "name": "footerCol3Title",
+                      "fill": "#8888AA",
+                      "content": "COMPANY",
+                      "fontFamily": "Inter",
+                      "fontSize": 10,
+                      "fontWeight": "bold",
+                      "letterSpacing": 2
+                    },
+                    {
+                      "type": "text",
+                      "id": "yz6AC",
+                      "name": "fl9",
+                      "fill": "#FFFFFF80",
+                      "content": "About",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "yKsGv",
+                      "name": "fl10",
+                      "fill": "#FFFFFF80",
+                      "content": "Blog",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "DUrIV",
+                      "name": "fl11",
+                      "fill": "#FFFFFF80",
+                      "content": "Privacy Policy",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "fsWiX",
+                      "name": "fl12",
+                      "fill": "#FFFFFF80",
+                      "content": "Terms of Service",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "W5RUJ",
+              "name": "Footer Divider",
+              "width": "fill_container",
+              "height": 1,
+              "fill": "#FFFFFF10"
+            },
+            {
+              "type": "frame",
+              "id": "EQWcU",
+              "name": "Footer Bottom",
+              "width": "fill_container",
+              "gap": 32,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "AOwQj",
+                  "name": "footerCopy",
+                  "fill": "#8888AA",
+                  "content": "© 2025 VOYAGO. All rights reserved.",
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "7aXVN",
+                  "name": "Footer Spacer",
+                  "width": "fill_container",
+                  "height": 1
+                },
+                {
+                  "type": "frame",
+                  "id": "WSqog",
+                  "name": "Footer Socials",
+                  "gap": 24,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "ON6qz",
+                      "name": "soc1",
+                      "fill": "#8888AA",
+                      "content": "Twitter",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "kzqoK",
+                      "name": "soc2",
+                      "fill": "#8888AA",
+                      "content": "Instagram",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "5gvAN",
+                      "name": "soc3",
+                      "fill": "#8888AA",
+                      "content": "LinkedIn",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
