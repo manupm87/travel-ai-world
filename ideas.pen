@@ -54,11 +54,11 @@
                   "type": "text",
                   "id": "6ZRnS",
                   "name": "Brand Name",
-                  "content": "VOYAGO",
+                  "content": "TRAVEL AI WORLD",
                   "fontFamily": "Inter",
-                  "fontSize": 18,
+                  "fontSize": 14,
                   "fontWeight": "bold",
-                  "letterSpacing": 3
+                  "letterSpacing": 2
                 }
               ]
             },
@@ -102,6 +102,85 @@
                   "fontFamily": "Inter",
                   "fontSize": 14,
                   "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "v0uq3",
+              "name": "Language Switcher",
+              "fill": "#FFFFFF08",
+              "cornerRadius": 8,
+              "gap": 2,
+              "padding": 4,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "odvN3",
+                  "name": "EN Button",
+                  "fill": "#4F6EF7",
+                  "cornerRadius": 6,
+                  "gap": 6,
+                  "padding": [
+                    6,
+                    12
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Rowz4",
+                      "name": "enFlag",
+                      "content": "🇬🇧",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "kgyWE",
+                      "name": "enLabel",
+                      "fill": "#FFFFFF",
+                      "content": "EN",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "bold",
+                      "letterSpacing": 1
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "lRMnb",
+                  "name": "ES Button",
+                  "fill": "#FFFFFF00",
+                  "cornerRadius": 6,
+                  "gap": 6,
+                  "padding": [
+                    6,
+                    12
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "QklDm",
+                      "name": "esFlag",
+                      "content": "🇪🇸",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "jc8Xu",
+                      "name": "esLabel",
+                      "fill": "#8888AA",
+                      "content": "ES",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "semibold",
+                      "letterSpacing": 1
+                    }
+                  ]
                 }
               ]
             },
