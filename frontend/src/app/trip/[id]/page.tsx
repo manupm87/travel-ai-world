@@ -1,26 +1,16 @@
-"use client";
+// Server component — can export generateStaticParams.
+// All client-side work is delegated to TripClientPage.
+import TripClientPage from "./TripClientPage";
 
-import { useLanguage } from "@/context/LanguageContext";
+// dynamicParams = false + generateStaticParams([]) together mean:
+// "generate one static HTML shell; reject unknown params at the routing level
+// and let client-side JavaScript handle the actual ID at runtime."
+export const dynamicParams = false;
 
-export default function TripPage({ params }: { params: { id: string } }) {
-  const { t } = useLanguage();
-  const p = t.tripPage;
+export async function generateStaticParams() {
+  return [{ id: "_" }]; // single shell; real IDs resolved client-side via useParams()
+}
 
-  return (
-    <main className="min-h-screen bg-[#0A0A12] flex items-center justify-center">
-      <div className="text-center flex flex-col gap-6 px-8">
-        <div className="text-6xl">✈️</div>
-        <h1 className="text-4xl font-bold text-white tracking-[-1px]">
-          {p.title} #{params.id}
-        </h1>
-        <p className="text-[#8888AA] text-lg max-w-md">{p.description}</p>
-        <a
-          href="/"
-          className="inline-flex items-center justify-center bg-[#4F6EF7] hover:bg-[#3B5BDB] text-white font-semibold px-8 py-3 rounded-lg transition-colors w-fit mx-auto"
-        >
-          {p.back}
-        </a>
-      </div>
-    </main>
-  );
+export default function TripPage() {
+  return <TripClientPage />;
 }

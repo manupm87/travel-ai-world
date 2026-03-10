@@ -1,0 +1,68 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  # Allow manual deploys from the Actions tab
+  workflow_dispatch:
+
+# Grant GITHUB_TOKEN the permissions needed by the Pages deploy action
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one concurrent deployment; cancel any in-progress run
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build (static export)
+        working-directory: frontend
+        env:
+          # Project GitHub Pages URL: https://<owner>.github.io/<repo>/
+          # The basePath must match the repo name exactly.
+          NEXT_PUBLIC_BASE_PATH: /travel-ai-world
+          NODE_ENV: production
+        run: npm run build
+        # Output lands in frontend/out/
+
+      - name: SPA fallback — copy index.html → 404.html
+        # GitHub Pages serves 404.html for unknown paths.
+        # This lets client-side routing handle /trip/<id> at runtime.
+        run: cp frontend/out/index.html frontend/out/404.html
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend/out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
