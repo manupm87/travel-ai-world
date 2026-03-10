@@ -1,36 +1,116 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Travel AI World — Frontend
+
+Next.js 15 (App Router) + Tailwind CSS v4 landing page for the Travel AI World project.
+
+## Tech Stack
+
+| Tool | Version | Purpose |
+|---|---|---|
+| [Next.js](https://nextjs.org/) | 16 (App Router) | Framework, routing, image optimization |
+| [Tailwind CSS](https://tailwindcss.com/) | v4 | Styling via CSS custom properties |
+| [TypeScript](https://www.typescriptlang.org/) | 5 | Type safety |
+| [Inter](https://fonts.google.com/specimen/Inter) | via `next/font` | Typography |
+
+---
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev      # http://localhost:3000
+npm run build    # production build check
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+├── app/
+│   ├── layout.tsx            # Root layout — wraps app with LanguageProvider
+│   ├── page.tsx              # Landing page — assembles all section components
+│   ├── globals.css           # Design tokens (colors, fonts) as CSS custom properties
+│   ├── plan/
+│   │   └── page.tsx          # /plan — stub (AI planner form, coming soon)
+│   └── trip/[id]/
+│       └── page.tsx          # /trip/:id — stub (itinerary viewer, coming soon)
+│
+├── components/
+│   ├── layout/
+│   │   ├── Header.tsx        # Sticky nav with logo + language switcher
+│   │   └── Footer.tsx        # Footer with link columns and copyright
+│   └── sections/
+│       ├── HeroSection.tsx   # Hero — headline, CTAs, hero image
+│       ├── PlannerCard.tsx   # AI planner form — inputs + travel style pills
+│       ├── HowItWorks.tsx    # 3-step explainer
+│       ├── FeaturesSection.tsx  # 6 feature cards
+│       ├── SocialProof.tsx   # Stats + testimonials
+│       └── FinalCTA.tsx      # Bottom call-to-action section
+│
+├── context/
+│   └── LanguageContext.tsx   # Language state provider + useLanguage() hook
+│
+└── i18n/
+    ├── types.ts              # Translations interface (shared contract)
+    ├── en.ts                 # 🇬🇧 English strings
+    ├── es.ts                 # 🇪🇸 Spanish strings
+    └── index.ts              # Barrel — assembles locales map, re-exports types
+```
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## Internationalization (i18n)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The app supports **English** and **Spanish**, switchable at runtime via the language toggle in the header. No page reload or route change is needed.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### How it works
 
-## Deploy on Vercel
+1. `src/i18n/types.ts` defines the `Translations` interface — the contract every locale file must satisfy.
+2. `src/i18n/en.ts` and `src/i18n/es.ts` each export a typed `Translations` object.
+3. `src/i18n/index.ts` assembles the `locales` map (`Record<Language, Translations>`).
+4. `LanguageProvider` (in `layout.tsx`) holds the active language in React state and provides `t` (the current locale's translations) and `setLanguage` to the whole tree.
+5. Every component calls `const { t } = useLanguage()` and uses `t.section.key` — no hardcoded strings anywhere.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Adding a new language (e.g. French)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Create `src/i18n/fr.ts` — copy `en.ts` and translate. TypeScript will tell you if you miss any keys.
+2. Add `"fr"` to the `Language` union in `src/i18n/types.ts`.
+3. Add `fr` to the `locales` map in `src/i18n/index.ts`.
+4. Add the flag + code to the `FLAG` map in `Header.tsx`.
+
+That's it — no other files need to change.
+
+---
+
+## Design Tokens
+
+Defined in `globals.css` as CSS custom properties and consumed directly in Tailwind classes:
+
+| Token | Value | Usage |
+|---|---|---|
+| `--color-bg-primary` | `#0A0A12` | Main page background |
+| `--color-bg-secondary` | `#0E0E1A` | Section alternating background |
+| `--color-bg-card` | `#13132A` | Card / panel backgrounds |
+| `--color-accent` | `#4F6EF7` | Primary blue accent, CTAs |
+| `--color-text-secondary` | `#8888AA` | Muted text, labels |
+
+---
+
+## Pages & Routes
+
+| Route | Status | Description |
+|---|---|---|
+| `/` | ✅ Live | Full landing page |
+| `/plan` | 🔜 Stub | AI trip planner form (needs backend) |
+| `/trip/[id]` | 🔜 Stub | Generated itinerary viewer (needs backend) |
+
+---
+
+## Connecting the Backend
+
+The backend will be a FastAPI service (see root `README.md`). When ready:
+
+1. Add a `.env.local` with `NEXT_PUBLIC_API_URL=http://localhost:8000`
+2. Wire `PlannerCard.tsx`'s form submit to `POST /api/trips` 
+3. Use the returned trip `id` to navigate to `/trip/[id]`
