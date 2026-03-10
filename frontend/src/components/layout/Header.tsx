@@ -2,8 +2,13 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useLanguage } from "@/context/LanguageContext";
+import type { Language } from "@/i18n";
+
+const FLAG: Record<Language, string> = { en: "🇬🇧", es: "🇪🇸" };
 
 export default function Header() {
+  const { t, language, setLanguage } = useLanguage();
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -20,46 +25,56 @@ export default function Header() {
           : "bg-transparent"
       }`}
     >
-      <div className="max-w-[1440px] mx-auto px-16 h-[72px] flex items-center gap-10">
+      <div className="max-w-[1440px] mx-auto px-8 lg:px-16 h-[72px] flex items-center gap-6">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 flex-shrink-0">
           <div className="w-9 h-9 rounded-lg bg-[#4F6EF7] flex items-center justify-center text-lg">
             ✈
           </div>
-          <span className="text-white font-bold text-lg tracking-[3px] uppercase">
+          <span className="text-white font-bold text-sm lg:text-base tracking-[2px] uppercase">
             Travel AI World
           </span>
         </Link>
 
-        {/* Nav */}
         <div className="flex-1" />
-        <nav className="hidden md:flex items-center gap-10">
-          <a
-            href="#how-it-works"
-            className="text-[#8888AA] text-sm hover:text-white transition-colors"
-          >
-            How It Works
+
+        {/* Nav */}
+        <nav className="hidden md:flex items-center gap-8">
+          <a href="#how-it-works" className="text-[#8888AA] text-sm hover:text-white transition-colors">
+            {t.nav.howItWorks}
           </a>
-          <a
-            href="#features"
-            className="text-[#8888AA] text-sm hover:text-white transition-colors"
-          >
-            Features
+          <a href="#features" className="text-[#8888AA] text-sm hover:text-white transition-colors">
+            {t.nav.features}
           </a>
-          <a
-            href="#testimonials"
-            className="text-[#8888AA] text-sm hover:text-white transition-colors"
-          >
-            Reviews
+          <a href="#testimonials" className="text-[#8888AA] text-sm hover:text-white transition-colors">
+            {t.nav.reviews}
           </a>
         </nav>
+
+        {/* Language switcher */}
+        <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg p-1">
+          {(["en", "es"] as Language[]).map((lang) => (
+            <button
+              key={lang}
+              onClick={() => setLanguage(lang)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all duration-200 cursor-pointer ${
+                language === lang
+                  ? "bg-[#4F6EF7] text-white shadow-sm"
+                  : "text-[#8888AA] hover:text-white"
+              }`}
+            >
+              <span>{FLAG[lang]}</span>
+              <span className="uppercase">{lang}</span>
+            </button>
+          ))}
+        </div>
 
         {/* CTA */}
         <Link
           href="#planner"
-          className="ml-8 flex-shrink-0 bg-[#4F6EF7] hover:bg-[#3B5BDB] transition-colors text-white text-sm font-semibold px-6 py-2.5 rounded-md"
+          className="flex-shrink-0 bg-[#4F6EF7] hover:bg-[#3B5BDB] transition-colors text-white text-sm font-semibold px-5 py-2.5 rounded-md"
         >
-          Plan My Trip
+          {t.nav.planMyTrip}
         </Link>
       </div>
     </header>
