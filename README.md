@@ -49,10 +49,39 @@ The FastAPI backend will live in `backend/`. It will expose REST endpoints that 
 
 ## Design
 
-The visual design is maintained in `ideas.pen` using [Pencil](https://pencil.evolus.vn/). It contains:
+The visual design is maintained in `ideas.pen` using [Pencil](https://pencil.dev). It contains:
 - The full landing page layout and design system
 - Color tokens, typography, and spacing rules
 - Component references for the Header, Hero, Planner Card, How It Works, Features, Social Proof, CTA, and Footer sections
+
+---
+
+## Deployment
+
+The frontend is deployed as a **static site on GitHub Pages** at:
+👉 `https://manupm87.github.io/travel-ai-world/`
+
+### How deployment works
+
+Every push to `main` triggers the [`.github/workflows/deploy.yml`](./.github/workflows/deploy.yml) workflow:
+
+1. **Build** — runs `npm run build` inside `frontend/` with `NEXT_PUBLIC_BASE_PATH=/travel-ai-world` to produce a fully static `out/` directory.
+2. **SPA fallback** — copies `out/index.html` → `out/404.html`. GitHub Pages serves `404.html` for unknown paths, which lets client-side routing handle dynamic URLs like `/trip/<id>` at runtime.
+3. **Deploy** — uploads `out/` to GitHub Pages via the official `actions/deploy-pages` action.
+
+### One-time GitHub setup
+
+Done once per repository, nothing to repeat:
+1. **Settings → Pages → Source** → set to **GitHub Actions**
+2. Push to `main` — the workflow fires and the site is live
+
+### Local vs. production differences
+
+| Setting | Local dev | GitHub Pages |
+|---|---|---|
+| `basePath` | *(none)* | `/travel-ai-world` |
+| Image optimization | Enabled | Disabled (`unoptimized: true`) |
+| URL | `http://localhost:3000` | `https://manupm87.github.io/travel-ai-world/` |
 
 ---
 

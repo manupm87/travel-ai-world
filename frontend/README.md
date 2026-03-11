@@ -34,7 +34,8 @@ src/
 │   ├── plan/
 │   │   └── page.tsx          # /plan — stub (AI planner form, coming soon)
 │   └── trip/[id]/
-│       └── page.tsx          # /trip/:id — stub (itinerary viewer, coming soon)
+│       ├── page.tsx          # Server wrapper — exports generateStaticParams
+│       └── TripClientPage.tsx # Client component — reads ID via useParams() at runtime
 │
 ├── components/
 │   ├── layout/
@@ -107,10 +108,34 @@ Defined in `globals.css` as CSS custom properties and consumed directly in Tailw
 
 ---
 
+## Deployment
+
+The site is deployed as a **static export** to **GitHub Pages**. See the root [`README.md`](../README.md#deployment) for full details.
+
+### Static export config (`next.config.ts`)
+
+| Setting | Value | Why |
+|---|---|---|
+| `output` | `'export'` | Generates plain HTML/CSS/JS — no Node.js server needed |
+| `trailingSlash` | `true` | GH Pages serves `path/index.html`, not `path.html` |
+| `basePath` | `/travel-ai-world` (prod only) | Project pages live at `/<repo-name>/` on GH Pages |
+| `images.unoptimized` | `true` | Image optimisation requires a server; disabled for static export |
+
+### Dynamic route: `/trip/[id]`
+
+Next.js App Router can't mix `"use client"` and `generateStaticParams` in the same file, so the route is split:
+
+- **`page.tsx`** — server component; exports `generateStaticParams([{ id: '_' }])` to produce one HTML shell
+- **`TripClientPage.tsx`** — client component; reads the real ID via `useParams()` at runtime and will fetch from the API
+
+GitHub Pages serves `404.html` (a copy of `index.html`) for any unknown path, so navigating to `/trip/real-id` boots the SPA and resolves correctly.
+
+---
+
 ## Connecting the Backend
 
 The backend will be a FastAPI service (see root `README.md`). When ready:
 
 1. Add a `.env.local` with `NEXT_PUBLIC_API_URL=http://localhost:8000`
-2. Wire `PlannerCard.tsx`'s form submit to `POST /api/trips` 
+2. Wire `PlannerCard.tsx`'s form submit to `POST /api/trips`
 3. Use the returned trip `id` to navigate to `/trip/[id]`
