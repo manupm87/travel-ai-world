@@ -2,6 +2,8 @@
 
 import { useLanguage } from "@/context/LanguageContext";
 
+import Link from "next/link";
+
 export default function PlanPage() {
   const { t } = useLanguage();
   const p = t.planPage;
@@ -12,12 +14,12 @@ export default function PlanPage() {
         <div className="text-6xl">🗺️</div>
         <h1 className="text-4xl font-bold text-white tracking-[-1px]">{p.title}</h1>
         <p className="text-[#8888AA] text-lg max-w-md">{p.description}</p>
-        <a
-          href="/"
-          className="inline-flex items-center justify-center bg-[#4F6EF7] hover:bg-[#3B5BDB] text-white font-semibold px-8 py-3 rounded-lg transition-colors w-fit mx-auto"
-        >
-          {p.back}
-        </a>
+          <Link
+            href="/"
+            className="inline-flex items-center justify-center bg-[#4F6EF7] hover:bg-[#3B5BDB] text-white font-semibold px-8 py-3 rounded-lg transition-colors w-fit mx-auto"
+          >
+            ← Back to Dashboard
+          </Link>
       </div>
     </main>
   );

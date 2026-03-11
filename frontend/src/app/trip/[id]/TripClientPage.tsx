@@ -1,28 +1,33 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useLanguage } from "@/context/LanguageContext";
+import tripDataJson from "@/mocks/trip-grand-european-tour.json";
+import { Trip } from "@/types/trip";
+
+import TripHeader from "@/components/trip-viewer/TripHeader";
+import DestinationTimeline from "@/components/trip-viewer/DestinationTimeline";
+import JourneyMap from "@/components/trip-viewer/JourneyMap";
+import TripOverview from "@/components/trip-viewer/TripOverview";
+import AIInsights from "@/components/trip-viewer/AIInsights";
+import Itinerary from "@/components/trip-viewer/Itinerary";
+
+// Cast imported JSON to Trip type
+const mockTrip = tripDataJson as unknown as Trip;
 
 export default function TripClientPage() {
-  const { id } = useParams<{ id: string }>();
-  const { t } = useLanguage();
-  const p = t.tripPage;
+  useParams<{ id: string }>();
+  
+  // Using the mock data regardless of the URL ID for this implementation
+  const trip = mockTrip;
 
   return (
-    <main className="min-h-screen bg-[#0A0A12] flex items-center justify-center">
-      <div className="text-center flex flex-col gap-6 px-8">
-        <div className="text-6xl">✈️</div>
-        <h1 className="text-4xl font-bold text-white tracking-[-1px]">
-          {p.title} #{id}
-        </h1>
-        <p className="text-[#8888AA] text-lg max-w-md">{p.description}</p>
-        <a
-          href="/"
-          className="inline-flex items-center justify-center bg-[#4F6EF7] hover:bg-[#3B5BDB] text-white font-semibold px-8 py-3 rounded-lg transition-colors w-fit mx-auto"
-        >
-          {p.back}
-        </a>
-      </div>
+    <main className="min-h-screen bg-[#0A0A12] flex flex-col font-sans pb-20">
+      <TripHeader trip={trip} />
+      <DestinationTimeline destinations={trip.destinations} />
+      <JourneyMap trip={trip} />
+      <TripOverview trip={trip} />
+      <AIInsights trip={trip} />
+      <Itinerary trip={trip} />
     </main>
   );
 }
