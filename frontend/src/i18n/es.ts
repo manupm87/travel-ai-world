@@ -173,6 +173,14 @@ const es: Translations = {
       "El visualizador de itinerarios generado por IA está en construcción. Una vez que nuestro backend FastAPI esté en funcionamiento, los detalles de tu viaje aparecerán aquí.",
     back: "← Volver al Inicio",
   },
+  dashboard: {
+    heroTitle: "Planifica Tu Próxima Aventura",
+    sections: {
+      planned: "Tu Próxima Aventura",
+      planning: "En Preparación",
+      finished: "Viajes Pasados",
+    },
+  },
 };
 
 export default es;

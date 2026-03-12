@@ -173,6 +173,14 @@ const en: Translations = {
       "The AI-generated itinerary viewer is under construction. Once our FastAPI backend is live, your trip details will appear here.",
     back: "← Back to Home",
   },
+  dashboard: {
+    heroTitle: "Plan Your Next Adventure",
+    sections: {
+      planned: "Your Next Adventure",
+      planning: "In the Works",
+      finished: "Past Journeys",
+    },
+  },
 };
 
 export default en;

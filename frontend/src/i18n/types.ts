@@ -104,4 +104,12 @@ export interface Translations {
     description: string;
     back: string;
   };
+  dashboard: {
+    heroTitle: string;
+    sections: {
+      planned: string;
+      planning: string;
+      finished: string;
+    };
+  };
 }

@@ -7,7 +7,7 @@ interface JourneyMapProps {
 
 export default function JourneyMap({ trip }: JourneyMapProps) {
   return (
-    <section className="w-full bg-[#0E0E1A] px-8 md:px-16 lg:px-[120px] pb-10 flex flex-col gap-5">
+    <section className="w-full bg-transparent px-8 md:px-16 lg:px-[120px] pb-10 flex flex-col gap-5">
       <h2 className="text-[#4F6EF7] text-[10px] font-bold tracking-[2.5px] uppercase">
         Route Overview
       </h2>

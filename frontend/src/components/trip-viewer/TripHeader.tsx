@@ -25,13 +25,13 @@ export default function TripHeader({ trip }: TripHeaderProps) {
   };
 
   return (
-    <section className="w-full bg-[#0E0E1A] px-8 md:px-16 lg:px-[120px] pt-[60px] pb10 flex flex-col gap-8">
+    <section className="w-full bg-transparent px-8 md:px-16 lg:px-[120px] pt-[60px] pb-10 flex flex-col gap-8">
       {/* Header Top Row */}
       <div className="flex justify-between items-start flex-wrap gap-8">
         {/* Header Left */}
         <div className="flex flex-col gap-4">
           <Link
-            href="/trip"
+            href="/dashboard"
             className="flex items-center gap-2 bg-white/10 hover:bg-white/20 transition-colors px-4 py-2.5 rounded-lg w-fit"
           >
             <span className="text-white font-semibold">←</span>

@@ -13,6 +13,12 @@ const nextConfig: NextConfig = {
     // next/image optimisation requires a server; for static export we skip it.
     // Images are still lazy-loaded and sized correctly — just not resized server-side.
     unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+    ],
   },
 };
 

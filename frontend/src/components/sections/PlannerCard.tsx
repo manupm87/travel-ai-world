@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 
-export default function PlannerCard() {
+interface PlannerCardProps {
+  transparent?: boolean;
+}
+
+export default function PlannerCard({ transparent = false }: PlannerCardProps) {
   const { t } = useLanguage();
   const p = t.planner;
 
@@ -29,7 +33,7 @@ export default function PlannerCard() {
   };
 
   return (
-    <section id="planner" className="bg-[#0E0E1A] py-24 px-8 lg:px-16">
+    <section id="planner" className={`${transparent ? "bg-transparent py-12" : "bg-[#0E0E1A] py-24"} px-8 lg:px-16`}>
       <div className="max-w-[1440px] mx-auto flex flex-col gap-10">
         <div className="flex flex-col gap-4">
           <p className="text-[#4F6EF7] text-[11px] font-bold tracking-[3px] uppercase">

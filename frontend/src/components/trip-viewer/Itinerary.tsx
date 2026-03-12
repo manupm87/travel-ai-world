@@ -24,7 +24,7 @@ export default function Itinerary({ trip }: ItineraryProps) {
   });
 
   return (
-    <section className="w-full bg-[#0A0A12] px-8 md:px-16 lg:px-[120px] py-[60px] flex flex-col gap-8">
+    <section className="w-full bg-[#0E0E1A] px-8 md:px-16 lg:px-[120px] py-[60px] flex flex-col gap-8">
       {/* Destination Filters */}
       <div className="flex flex-wrap gap-3 mb-4">
         <button 

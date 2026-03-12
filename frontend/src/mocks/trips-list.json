@@ -1,0 +1,38 @@
+[
+  {
+    "id": "trip_japan_2026",
+    "title": "Japan Explorer",
+    "destinations": ["Tokyo", "Kyoto", "Osaka"],
+    "startDate": "2026-10-01",
+    "endDate": "2026-10-14",
+    "status": "planning",
+    "imageUrl": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "trip_euro_2026",
+    "title": "Grand European Tour",
+    "destinations": ["Paris", "Rome", "Barcelona"],
+    "startDate": "2026-05-10",
+    "endDate": "2026-05-24",
+    "status": "planned",
+    "imageUrl": "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    "id": "trip_ny_2025",
+    "title": "New York Weekend",
+    "destinations": ["New York City"],
+    "startDate": "2025-10-05",
+    "endDate": "2025-10-12",
+    "status": "finished",
+    "imageUrl": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "trip_prague_vienna_budapest_2024",
+    "title": "Prague, Vienna & Budapest",
+    "destinations": ["Prague", "Vienna", "Budapest"],
+    "startDate": "2024-05-01",
+    "endDate": "2024-05-10",
+    "status": "finished",
+    "imageUrl": "https://images.unsplash.com/photo-1616432902940-b7a1acbc60b3?auto=format&fit=crop&q=80"
+  }
+]

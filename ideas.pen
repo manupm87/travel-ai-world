@@ -185,6 +185,16 @@
               ]
             },
             {
+              "type": "text",
+              "id": "Bpdh4",
+              "name": "My Dashboard Link",
+              "fill": "#8888AA",
+              "content": "My Dashboard",
+              "fontFamily": "Inter",
+              "fontSize": 14,
+              "fontWeight": "semibold"
+            },
+            {
               "type": "frame",
               "id": "TOh5W",
               "name": "Header CTA",
@@ -2234,42 +2244,6 @@
             },
             {
               "type": "frame",
-              "id": "BSHRQ",
-              "name": "Nav Links",
-              "height": "fill_container",
-              "gap": 40,
-              "children": [
-                {
-                  "type": "text",
-                  "id": "qefbb",
-                  "name": "navItem1",
-                  "content": "How It Works",
-                  "fontFamily": "Inter",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
-                },
-                {
-                  "type": "text",
-                  "id": "UeKIR",
-                  "name": "navItem2",
-                  "content": "Features",
-                  "fontFamily": "Inter",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
-                },
-                {
-                  "type": "text",
-                  "id": "oxrLb",
-                  "name": "navItem3",
-                  "content": "Pricing",
-                  "fontFamily": "Inter",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
-                }
-              ]
-            },
-            {
-              "type": "frame",
               "id": "0oYmn",
               "name": "Language Switcher",
               "fill": "#FFFFFF08",
@@ -2385,14 +2359,14 @@
               "id": "b1mdN",
               "name": "Trip Header Section",
               "width": "fill_container",
-              "fill": "#0E0E1A",
+              "fill": "#00000000",
               "layout": "vertical",
               "gap": 24,
               "padding": [
                 60,
-                120,
+                0,
                 40,
-                120
+                0
               ],
               "children": [
                 {
@@ -2401,6 +2375,10 @@
                   "name": "Header Top Row",
                   "width": "fill_container",
                   "gap": 24,
+                  "padding": [
+                    0,
+                    120
+                  ],
                   "children": [
                     {
                       "type": "frame",
@@ -2664,6 +2642,10 @@
                   "name": "Budget Overview",
                   "width": "fill_container",
                   "gap": 16,
+                  "padding": [
+                    0,
+                    120
+                  ],
                   "children": [
                     {
                       "type": "frame",
@@ -2812,8 +2794,13 @@
                   "id": "aDUpR",
                   "name": "Destination Timeline",
                   "width": "fill_container",
+                  "fill": "#0E0E1A",
                   "layout": "vertical",
                   "gap": 20,
+                  "padding": [
+                    40,
+                    120
+                  ],
                   "children": [
                     {
                       "type": "text",
@@ -3055,8 +3042,13 @@
                   "id": "jw10N",
                   "name": "Journey Map Section",
                   "width": "fill_container",
+                  "fill": "#00000000",
                   "layout": "vertical",
                   "gap": 16,
+                  "padding": [
+                    40,
+                    120
+                  ],
                   "children": [
                     {
                       "type": "text",
@@ -3334,8 +3326,13 @@
                   "id": "T0Uwv",
                   "name": "Overview Section",
                   "width": "fill_container",
+                  "fill": "#0E0E1A",
                   "layout": "vertical",
                   "gap": 20,
+                  "padding": [
+                    40,
+                    120
+                  ],
                   "children": [
                     {
                       "type": "text",
@@ -4020,7 +4017,7 @@
               "id": "HaCKd",
               "name": "AI Insights Section",
               "width": "fill_container",
-              "fill": "#0E0E1A",
+              "fill": "#00000000",
               "layout": "vertical",
               "gap": 24,
               "padding": [
@@ -4141,7 +4138,7 @@
               "id": "lCQrc",
               "name": "Itinerary Section",
               "width": "fill_container",
-              "fill": "#0A0A12",
+              "fill": "#0E0E1A",
               "layout": "vertical",
               "gap": 32,
               "padding": [
@@ -7248,6 +7245,1208 @@
                       "fontFamily": "Inter",
                       "fontSize": 12,
                       "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "BXtRW",
+          "name": "th",
+          "width": "fill_container",
+          "height": 72,
+          "fill": "#0A0A1280",
+          "padding": [
+            0,
+            64
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "5sXOw",
+              "name": "Logo",
+              "height": "fill_container",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "OVbXT",
+                  "name": "Logo Icon",
+                  "width": 36,
+                  "height": 36,
+                  "fill": "#4F6EF7",
+                  "cornerRadius": 8,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "sopUg",
+                      "name": "logoText",
+                      "content": "✈",
+                      "fontFamily": "Inter",
+                      "fontSize": 18,
+                      "fontWeight": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "2bm6a",
+                  "name": "Brand Name",
+                  "content": "TRAVEL AI WORLD",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "bold",
+                  "letterSpacing": 2
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "0El19",
+              "name": "Nav Spacer",
+              "width": "fill_container",
+              "height": 1
+            },
+            {
+              "type": "frame",
+              "id": "MaoQA",
+              "name": "Language Switcher",
+              "fill": "#FFFFFF08",
+              "cornerRadius": 8,
+              "gap": 2,
+              "padding": 4,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "3AwyE",
+                  "name": "EN Button",
+                  "fill": "#4F6EF7",
+                  "cornerRadius": 6,
+                  "gap": 6,
+                  "padding": [
+                    6,
+                    12
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "JL1fU",
+                      "name": "enFlag",
+                      "content": "🇬🇧",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "XTLFq",
+                      "name": "enLabel",
+                      "fill": "#FFFFFF",
+                      "content": "EN",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "bold",
+                      "letterSpacing": 1
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "BVr1Y",
+                  "name": "ES Button",
+                  "fill": "#FFFFFF00",
+                  "cornerRadius": 6,
+                  "gap": 6,
+                  "padding": [
+                    6,
+                    12
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "GoxOd",
+                      "name": "esFlag",
+                      "content": "🇪🇸",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "KCDkp",
+                      "name": "esLabel",
+                      "fill": "#8888AA",
+                      "content": "ES",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "semibold",
+                      "letterSpacing": 1
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Gfu7X",
+              "name": "Header CTA",
+              "fill": "#4F6EF7",
+              "cornerRadius": 6,
+              "gap": 8,
+              "padding": [
+                10,
+                24
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "tmeo3",
+                  "name": "ctaNavText",
+                  "content": "Plan My Trip",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "semibold"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "8gwmi",
+      "x": 3150,
+      "y": 0,
+      "name": "Dashboard - /dashboard",
+      "width": 1440,
+      "fill": "#0A0A12",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "e7mnl",
+          "name": "header",
+          "width": "fill_container",
+          "height": 72,
+          "fill": "#0A0A1280",
+          "padding": [
+            0,
+            64
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "DSHFs",
+              "name": "Logo",
+              "height": "fill_container",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "mtz31",
+                  "name": "Logo Icon",
+                  "width": 36,
+                  "height": 36,
+                  "fill": "#4F6EF7",
+                  "cornerRadius": 8,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "8BVxg",
+                      "name": "logoText",
+                      "content": "✈",
+                      "fontFamily": "Inter",
+                      "fontSize": 18,
+                      "fontWeight": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "VDnBN",
+                  "name": "Brand Name",
+                  "content": "TRAVEL AI WORLD",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "bold",
+                  "letterSpacing": 2
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "hVMms",
+              "name": "Nav Spacer",
+              "width": "fill_container",
+              "height": 1
+            },
+            {
+              "type": "frame",
+              "id": "yRgjJ",
+              "name": "Nav Links",
+              "height": "fill_container",
+              "gap": 40,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "xlu0a",
+                  "name": "navItem1",
+                  "content": "How It Works",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "QNQUO",
+                  "name": "navItem2",
+                  "content": "Features",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "SG6bF",
+                  "name": "navItem3",
+                  "content": "Pricing",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "22dOn",
+              "name": "Language Switcher",
+              "fill": "#FFFFFF08",
+              "cornerRadius": 8,
+              "gap": 2,
+              "padding": 4,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "itMuk",
+                  "name": "EN Button",
+                  "fill": "#4F6EF7",
+                  "cornerRadius": 6,
+                  "gap": 6,
+                  "padding": [
+                    6,
+                    12
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "cDqnA",
+                      "name": "enFlag",
+                      "content": "🇬🇧",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "P1TFX",
+                      "name": "enLabel",
+                      "fill": "#FFFFFF",
+                      "content": "EN",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "bold",
+                      "letterSpacing": 1
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "hAMUE",
+                  "name": "ES Button",
+                  "fill": "#FFFFFF00",
+                  "cornerRadius": 6,
+                  "gap": 6,
+                  "padding": [
+                    6,
+                    12
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "uX2ff",
+                      "name": "esFlag",
+                      "content": "🇪🇸",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "2jZ6F",
+                      "name": "esLabel",
+                      "fill": "#8888AA",
+                      "content": "ES",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "semibold",
+                      "letterSpacing": 1
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "RxTBd",
+              "name": "Header CTA",
+              "fill": "#4F6EF7",
+              "cornerRadius": 6,
+              "gap": 8,
+              "padding": [
+                10,
+                24
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "0oBq1",
+                  "name": "ctaNavText",
+                  "content": "Plan My Trip",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "semibold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "HPqFU",
+          "name": "pc",
+          "width": "fill_container",
+          "fill": "#00000000",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": [
+            80,
+            120
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "FQQI2",
+              "name": "plannerLabel",
+              "fill": "#4F6EF7",
+              "content": "PLAN YOUR TRIP",
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "bold",
+              "letterSpacing": 3
+            },
+            {
+              "type": "text",
+              "id": "65Y7b",
+              "name": "plannerTitle",
+              "fill": "#FFFFFF",
+              "content": "Tell the AI where you want to go",
+              "lineHeight": 1.1,
+              "fontFamily": "Inter",
+              "fontSize": 48,
+              "fontWeight": "bold",
+              "letterSpacing": -1
+            },
+            {
+              "type": "frame",
+              "id": "OWACM",
+              "name": "Planner Card",
+              "width": "fill_container",
+              "fill": "#16162A",
+              "cornerRadius": 20,
+              "layout": "vertical",
+              "gap": 24,
+              "padding": [
+                40,
+                48
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "msQdy",
+                  "name": "Inputs Row",
+                  "width": "fill_container",
+                  "gap": 16,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "GHDAO",
+                      "name": "Destination Input",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "oeL36",
+                          "name": "input1Label",
+                          "fill": "#8888AA",
+                          "content": "DESTINATION",
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
+                          "fontWeight": "bold",
+                          "letterSpacing": 2
+                        },
+                        {
+                          "type": "frame",
+                          "id": "zRLmg",
+                          "name": "Input Field",
+                          "width": "fill_container",
+                          "height": 52,
+                          "fill": "#0A0A1A",
+                          "cornerRadius": 10,
+                          "padding": [
+                            0,
+                            16
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "yu2gE",
+                              "name": "input1Text",
+                              "fill": "#FFFFFF50",
+                              "content": "Where do you want to go?",
+                              "fontFamily": "Inter",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "AZ5NX",
+                      "name": "Dates Input",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "e6mG4",
+                          "name": "input2Label",
+                          "fill": "#8888AA",
+                          "content": "TRAVEL DATES",
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
+                          "fontWeight": "bold",
+                          "letterSpacing": 2
+                        },
+                        {
+                          "type": "frame",
+                          "id": "pPDxI",
+                          "name": "Dates Field",
+                          "width": "fill_container",
+                          "height": 52,
+                          "fill": "#0A0A1A",
+                          "cornerRadius": 10,
+                          "padding": [
+                            0,
+                            16
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "65wYD",
+                              "name": "input2Text",
+                              "fill": "#FFFFFF50",
+                              "content": "When are you going?",
+                              "fontFamily": "Inter",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "NRJhk",
+                      "name": "Budget Input",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Fw7vf",
+                          "name": "input3Label",
+                          "fill": "#8888AA",
+                          "content": "BUDGET",
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
+                          "fontWeight": "bold",
+                          "letterSpacing": 2
+                        },
+                        {
+                          "type": "frame",
+                          "id": "RXF2h",
+                          "name": "Budget Field",
+                          "width": "fill_container",
+                          "height": 52,
+                          "fill": "#0A0A1A",
+                          "cornerRadius": 10,
+                          "padding": [
+                            0,
+                            16
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "tYE2a",
+                              "name": "input3Text",
+                              "fill": "#FFFFFF50",
+                              "content": "Your total budget",
+                              "fontFamily": "Inter",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "SPqD2",
+                      "name": "Travelers Input",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "2J1rg",
+                          "name": "input4Label",
+                          "fill": "#8888AA",
+                          "content": "TRAVELERS",
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
+                          "fontWeight": "bold",
+                          "letterSpacing": 2
+                        },
+                        {
+                          "type": "frame",
+                          "id": "P0VcD",
+                          "name": "Travelers Field",
+                          "width": "fill_container",
+                          "height": 52,
+                          "fill": "#0A0A1A",
+                          "cornerRadius": 10,
+                          "padding": [
+                            0,
+                            16
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "plt3N",
+                              "name": "input4Text",
+                              "fill": "#FFFFFF50",
+                              "content": "How many people?",
+                              "fontFamily": "Inter",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "bS1Zt",
+                  "name": "Style Row",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "vePUf",
+                      "name": "styleLabel",
+                      "fill": "#8888AA",
+                      "content": "TRAVEL STYLE",
+                      "fontFamily": "Inter",
+                      "fontSize": 10,
+                      "fontWeight": "bold",
+                      "letterSpacing": 2
+                    },
+                    {
+                      "type": "frame",
+                      "id": "yCE0t",
+                      "name": "Style Pills",
+                      "width": "fill_container",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "wlBvq",
+                          "name": "Pill Adventure",
+                          "fill": "#4F6EF7",
+                          "cornerRadius": 20,
+                          "gap": 6,
+                          "padding": [
+                            10,
+                            20
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "yzl4G",
+                              "name": "pill1Text",
+                              "fill": "#FFFFFF",
+                              "content": "🏔 Adventure",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "semibold"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "F9bFu",
+                          "name": "Pill Relaxation",
+                          "fill": "#FFFFFF10",
+                          "cornerRadius": 20,
+                          "gap": 6,
+                          "padding": [
+                            10,
+                            20
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "FegJ5",
+                              "name": "pill2Text",
+                              "fill": "#FFFFFF80",
+                              "content": "🌴 Relaxation",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "semibold"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "vKWkB",
+                          "name": "Pill Culture",
+                          "fill": "#FFFFFF10",
+                          "cornerRadius": 20,
+                          "gap": 6,
+                          "padding": [
+                            10,
+                            20
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "bwOmp",
+                              "name": "pill3Text",
+                              "fill": "#FFFFFF80",
+                              "content": "🏛 Culture",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "semibold"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "s3yPF",
+                          "name": "Pill Foodie",
+                          "fill": "#FFFFFF10",
+                          "cornerRadius": 20,
+                          "gap": 6,
+                          "padding": [
+                            10,
+                            20
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "7EiS1",
+                              "name": "pill4Text",
+                              "fill": "#FFFFFF80",
+                              "content": "🍜 Foodie",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "semibold"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "umrfO",
+                          "name": "Pill Romance",
+                          "fill": "#FFFFFF10",
+                          "cornerRadius": 20,
+                          "gap": 6,
+                          "padding": [
+                            10,
+                            20
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "ezJ1Y",
+                              "name": "pill5Text",
+                              "fill": "#FFFFFF80",
+                              "content": "💑 Romance",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "semibold"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "0Vgx8",
+                  "name": "Generate Button",
+                  "width": "fill_container",
+                  "height": 64,
+                  "fill": "#4F6EF7",
+                  "cornerRadius": 12,
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "ngH1D",
+                      "name": "generateBtnText",
+                      "fill": "#FFFFFF",
+                      "content": "✨  Generate My Perfect Itinerary",
+                      "fontFamily": "Inter",
+                      "fontSize": 18,
+                      "fontWeight": "bold"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "QXq7k",
+          "name": "contentArea",
+          "width": "fill_container",
+          "layout": "vertical",
+          "padding": [
+            0,
+            0,
+            120,
+            0
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "WRobg",
+              "name": "nextAdvSec",
+              "width": "fill_container",
+              "fill": "#0E0E1A",
+              "layout": "vertical",
+              "gap": 32,
+              "padding": [
+                80,
+                120
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "rnTmF",
+                  "name": "nextTitle",
+                  "fill": "#FFFFFF",
+                  "content": "Your Next Adventure",
+                  "fontFamily": "Inter",
+                  "fontSize": 24,
+                  "fontWeight": "bold"
+                },
+                {
+                  "type": "frame",
+                  "id": "WAfkD",
+                  "name": "nextAdvGrid",
+                  "width": "fill_container",
+                  "gap": 32,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "HxKQ2",
+                      "name": "card1",
+                      "width": 400,
+                      "fill": "#1A1A24",
+                      "cornerRadius": 16,
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "5aHta",
+                          "name": "card1Img",
+                          "width": "fill_container",
+                          "height": 200,
+                          "fill": {
+                            "type": "image",
+                            "enabled": true,
+                            "url": "./images/generated-1773324908851.png",
+                            "mode": "fill"
+                          }
+                        },
+                        {
+                          "type": "frame",
+                          "id": "hYths",
+                          "name": "card1Content",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 16,
+                          "padding": 24,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "rVq0e",
+                              "name": "card1Header",
+                              "width": "fill_container",
+                              "justifyContent": "space_between",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "y7Apj",
+                                  "name": "card1Badge",
+                                  "fill": "#4F6EF733",
+                                  "cornerRadius": 100,
+                                  "padding": [
+                                    4,
+                                    12
+                                  ],
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "7nrgp",
+                                      "name": "badgeText1",
+                                      "fill": "#4F6EF7",
+                                      "content": "Planned",
+                                      "fontFamily": "Inter",
+                                      "fontSize": 12,
+                                      "fontWeight": "bold"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "S4ttV",
+                                  "name": "dates1",
+                                  "fill": "#888899",
+                                  "content": "May 10 - May 24, 2026",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "bold"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "Kfq1A",
+                              "name": "title1",
+                              "fill": "#FFFFFF",
+                              "content": "Grand European Tour",
+                              "fontFamily": "Inter",
+                              "fontSize": 24,
+                              "fontWeight": "bold"
+                            },
+                            {
+                              "type": "text",
+                              "id": "4PNT5",
+                              "name": "dest1",
+                              "fill": "#888899",
+                              "content": "Paris, Rome & Barcelona",
+                              "fontFamily": "Inter",
+                              "fontSize": 16,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "DsaQ4",
+              "name": "planSec",
+              "width": "fill_container",
+              "fill": "#00000000",
+              "layout": "vertical",
+              "gap": 32,
+              "padding": [
+                80,
+                120
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Ja7TL",
+                  "name": "title2",
+                  "fill": "#FFFFFF",
+                  "content": "In the Works",
+                  "fontFamily": "Inter",
+                  "fontSize": 24,
+                  "fontWeight": "bold"
+                },
+                {
+                  "type": "frame",
+                  "id": "AeT2W",
+                  "name": "planGrid",
+                  "width": "fill_container",
+                  "gap": 32,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "Ml6fz",
+                      "name": "card2",
+                      "width": 400,
+                      "fill": "#1A1A24",
+                      "cornerRadius": 16,
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "zK70j",
+                          "name": "card2Img",
+                          "width": "fill_container",
+                          "height": 200,
+                          "fill": {
+                            "type": "image",
+                            "enabled": true,
+                            "url": "./images/generated-1773325003125.png",
+                            "mode": "fill"
+                          }
+                        },
+                        {
+                          "type": "frame",
+                          "id": "02UYG",
+                          "name": "card2Content",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 16,
+                          "padding": 24,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "le7Mc",
+                              "name": "card2Header",
+                              "width": "fill_container",
+                              "justifyContent": "space_between",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "m2o6S",
+                                  "name": "card2Badge",
+                                  "fill": "#F78E4F33",
+                                  "cornerRadius": 100,
+                                  "padding": [
+                                    4,
+                                    12
+                                  ],
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "Whivx",
+                                      "name": "badgeText2",
+                                      "fill": "#F78E4F",
+                                      "content": "Planning",
+                                      "fontFamily": "Inter",
+                                      "fontSize": 12,
+                                      "fontWeight": "bold"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "ZsEK4",
+                                  "name": "dates2",
+                                  "fill": "#888899",
+                                  "content": "Fall 2026",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "bold"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "mJObY",
+                              "name": "ctitle2",
+                              "fill": "#FFFFFF",
+                              "content": "Japan Explorer",
+                              "fontFamily": "Inter",
+                              "fontSize": 24,
+                              "fontWeight": "bold"
+                            },
+                            {
+                              "type": "text",
+                              "id": "EA70S",
+                              "name": "cdest2",
+                              "fill": "#888899",
+                              "content": "Tokyo, Kyoto & Osaka",
+                              "fontFamily": "Inter",
+                              "fontSize": 16,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "bq5jU",
+              "name": "pastSec",
+              "width": "fill_container",
+              "fill": "#0E0E1A",
+              "layout": "vertical",
+              "gap": 32,
+              "padding": [
+                80,
+                120
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "yTUac",
+                  "name": "title3",
+                  "fill": "#FFFFFF",
+                  "content": "Past Journeys",
+                  "fontFamily": "Inter",
+                  "fontSize": 24,
+                  "fontWeight": "bold"
+                },
+                {
+                  "type": "frame",
+                  "id": "JZgDQ",
+                  "name": "pastGrid",
+                  "width": "fill_container",
+                  "gap": 32,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "OxZtn",
+                      "name": "card3",
+                      "width": 400,
+                      "fill": "#1A1A24",
+                      "cornerRadius": 16,
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "W2HD8",
+                          "name": "card3Img",
+                          "width": "fill_container",
+                          "height": 200,
+                          "fill": {
+                            "type": "image",
+                            "enabled": true,
+                            "url": "./images/generated-1773325042916.png",
+                            "mode": "fill"
+                          }
+                        },
+                        {
+                          "type": "frame",
+                          "id": "8Ymzt",
+                          "name": "card3Content",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 16,
+                          "padding": 24,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "7udAJ",
+                              "name": "card3Header",
+                              "width": "fill_container",
+                              "justifyContent": "space_between",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "GoFZn",
+                                  "name": "card3Badge",
+                                  "fill": "#2A2A35",
+                                  "cornerRadius": 100,
+                                  "padding": [
+                                    4,
+                                    12
+                                  ],
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "fVgHs",
+                                      "name": "badgeText3",
+                                      "fill": "#888899",
+                                      "content": "Finished",
+                                      "fontFamily": "Inter",
+                                      "fontSize": 12,
+                                      "fontWeight": "bold"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "5brPk",
+                                  "name": "dates3",
+                                  "fill": "#888899",
+                                  "content": "Oct 5 - Oct 12, 2025",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "bold"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "2dsO3",
+                              "name": "ctitle3",
+                              "fill": "#FFFFFF",
+                              "content": "New York Weekend",
+                              "fontFamily": "Inter",
+                              "fontSize": 24,
+                              "fontWeight": "bold"
+                            },
+                            {
+                              "type": "text",
+                              "id": "MIN4H",
+                              "name": "cdest3",
+                              "fill": "#888899",
+                              "content": "New York City",
+                              "fontFamily": "Inter",
+                              "fontSize": 16,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
                     }
                   ]
                 }

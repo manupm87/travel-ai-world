@@ -8,7 +8,12 @@ import TripClientPage from "./TripClientPage";
 export const dynamicParams = false;
 
 export async function generateStaticParams() {
-  return [{ id: "trip_euro_2026" }]; // statically generate the mock trip route
+  return [
+    { id: "trip_euro_2026" },
+    { id: "trip_japan_2026" },
+    { id: "trip_ny_2025" },
+    { id: "trip_prague_vienna_budapest_2024" }
+  ]; 
 }
 
 export default function TripPage() {

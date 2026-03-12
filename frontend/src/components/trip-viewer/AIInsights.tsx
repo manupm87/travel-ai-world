@@ -7,7 +7,7 @@ interface AIInsightsProps {
 
 export default function AIInsights({}: AIInsightsProps) {
   return (
-    <section className="w-full bg-[#0E0E1A] px-8 md:px-16 lg:px-[120px] py-10 flex flex-col gap-6">
+    <section className="w-full bg-transparent px-8 md:px-16 lg:px-[120px] py-10 flex flex-col gap-6">
       <h2 className="text-[#4F6EF7] text-[11px] font-bold tracking-[3px] uppercase">
         AI Insights
       </h2>

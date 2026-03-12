@@ -7,7 +7,11 @@ import type { Language } from "@/i18n";
 
 const FLAG: Record<Language, string> = { en: "🇬🇧", es: "🇪🇸" };
 
-export default function Header() {
+interface HeaderProps {
+  variant?: "landing" | "dashboard";
+}
+
+export default function Header({ variant = "landing" }: HeaderProps) {
   const { t, language, setLanguage } = useLanguage();
   const [scrolled, setScrolled] = useState(false);
 
@@ -39,17 +43,19 @@ export default function Header() {
         <div className="flex-1" />
 
         {/* Nav */}
-        <nav className="hidden md:flex items-center gap-8">
-          <a href="#how-it-works" className="text-[#8888AA] text-sm hover:text-white transition-colors">
-            {t.nav.howItWorks}
-          </a>
-          <a href="#features" className="text-[#8888AA] text-sm hover:text-white transition-colors">
-            {t.nav.features}
-          </a>
-          <a href="#testimonials" className="text-[#8888AA] text-sm hover:text-white transition-colors">
-            {t.nav.reviews}
-          </a>
-        </nav>
+        {variant === "landing" && (
+          <nav className="hidden md:flex items-center gap-8">
+            <a href="#how-it-works" className="text-[#8888AA] text-sm hover:text-white transition-colors">
+              {t.nav.howItWorks}
+            </a>
+            <a href="#features" className="text-[#8888AA] text-sm hover:text-white transition-colors">
+              {t.nav.features}
+            </a>
+            <a href="#testimonials" className="text-[#8888AA] text-sm hover:text-white transition-colors">
+              {t.nav.reviews}
+            </a>
+          </nav>
+        )}
 
         {/* Language switcher */}
         <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg p-1">
@@ -69,9 +75,19 @@ export default function Header() {
           ))}
         </div>
 
+        {/* Dashboard Link (Mock Logged In) */}
+        {variant === "landing" && (
+          <Link
+            href="/dashboard"
+            className="text-[#8888AA] text-sm hover:text-white font-semibold transition-colors ml-4"
+          >
+            My Dashboard
+          </Link>
+        )}
+
         {/* CTA */}
         <Link
-          href="#planner"
+          href={variant === "dashboard" ? "/dashboard#planner" : "#planner"}
           className="flex-shrink-0 bg-[#4F6EF7] hover:bg-[#3B5BDB] transition-colors text-white text-sm font-semibold px-5 py-2.5 rounded-md"
         >
           {t.nav.planMyTrip}
