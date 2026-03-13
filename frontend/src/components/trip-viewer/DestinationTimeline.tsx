@@ -3,17 +3,20 @@ import { Destination } from "@/types/trip";
 import { formatDate } from "@/utils/format";
 import { getFlag } from "@/utils/countryFlag";
 import { Container } from "@/components/ui/Container";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface DestinationTimelineProps {
   destinations: Destination[];
 }
 
 export default function DestinationTimeline({ destinations }: DestinationTimelineProps) {
+  const { t, language } = useLanguage();
+
   return (
     <section className="w-full bg-bg-secondary pb-10">
       <Container className="flex flex-col gap-5">
         <h2 className="text-accent text-[10px] font-bold tracking-[2.5px] uppercase">
-          Journey Map
+          {t.tripViewer.journeyMap}
         </h2>
         
         <div className="flex flex-col md:flex-row gap-4">
@@ -26,14 +29,16 @@ export default function DestinationTimeline({ destinations }: DestinationTimelin
             >
               <div className="flex justify-between items-start">
                 <h3 className="text-white text-xl font-bold">{dest.city}</h3>
-                <span className="text-2xl">{getFlag(dest.countryCode)}</span>
+                <span role="img" aria-label={dest.city} className="text-2xl">
+                  {getFlag(dest.countryCode)}
+                </span>
               </div>
               
               <div className="flex flex-col gap-1 mt-auto pt-2 text-sm text-text-secondary">
                 <div>
-                  {formatDate(dest.arrivalDate, "en-US", { month: "short", day: "numeric" })} - {formatDate(dest.departureDate, "en-US", { month: "short", day: "numeric" })}
+                  {formatDate(dest.arrivalDate, language === "en" ? "en-US" : "es-ES", { month: "short", day: "numeric" })} - {formatDate(dest.departureDate, language === "en" ? "en-US" : "es-ES", { month: "short", day: "numeric" })}
                 </div>
-                <div>{dest.nightsStaying} Nights</div>
+                <div>{dest.nightsStaying} {t.tripViewer.nights}</div>
               </div>
             </div>
           ))}

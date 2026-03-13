@@ -40,6 +40,43 @@ export interface Translations {
     features: string;
     reviews: string;
     planMyTrip: string;
+    myDashboard: string;
+  };
+  common: {
+    planning: string;
+    planned: string;
+    finished: string;
+  };
+  tripViewer: {
+    backToDashboard: string;
+    travelers: string;
+    totalBudget: string;
+    viewBookings: string;
+    exportPdf: string;
+    journeyMap: string;
+    routeOverview: string;
+    tripOverview: string;
+    accommodations: string;
+    transportation: string;
+    aiInsights: string;
+    weatherForecast: string;
+    localTips: string;
+    yourItinerary: string;
+    journeyTitle: string; // "Your {duration}-Day Journey"
+    allDays: string;
+    freeDay: string;
+    travel: string;
+    dining: string;
+    bookingRequired: string;
+    estimated: string;
+    selfPlanned: string;
+    nights: string;
+    budgetBreakdown: {
+      accommodation: string;
+      food: string;
+      activities: string;
+      transport: string;
+    };
   };
   hero: {
     badge: string;

@@ -7,12 +7,14 @@ import { Card } from "@/components/ui/Card";
 import { Trip, ItineraryDay, Activity } from "@/types/trip";
 import { formatDate, formatCurrency } from "@/utils/format";
 import { getFlag } from "@/utils/countryFlag";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface ItineraryProps {
   trip: Trip;
 }
 
 export default function Itinerary({ trip }: ItineraryProps) {
+  const { t, language } = useLanguage();
   const [filter, setFilter] = useState<string>("all");
   
   const getDestinationFlag = (destId: string) => {
@@ -36,7 +38,7 @@ export default function Itinerary({ trip }: ItineraryProps) {
               filter === "all" ? "bg-accent text-white" : "bg-white/10 text-white/90 hover:bg-white/20"
             }`}
           >
-            All Days
+            {t.tripViewer.allDays}
           </button>
           {trip.destinations.map(dest => (
             <button
@@ -46,16 +48,16 @@ export default function Itinerary({ trip }: ItineraryProps) {
                 filter === dest.id ? "bg-accent text-white" : "bg-white/10 text-white/90 hover:bg-white/20"
               }`}
             >
-              <span className="font-normal">{getDestinationFlag(dest.id)}</span>
+              <span className="font-normal" role="img" aria-label={dest.city}>{getDestinationFlag(dest.id)}</span>
               <span>{dest.city}</span>
             </button>
           ))}
         </div>
 
         <div className="flex flex-col gap-3">
-          <SectionLabel>Your Itinerary</SectionLabel>
+          <SectionLabel>{t.tripViewer.yourItinerary}</SectionLabel>
           <h3 className="text-white text-[42px] font-bold tracking-[-1px] leading-[1.1]">
-            Your {trip.dates.durationDays}-Day Journey
+            {t.tripViewer.journeyTitle.replace("{duration}", trip.dates.durationDays.toString())}
           </h3>
         </div>
 
@@ -70,9 +72,10 @@ export default function Itinerary({ trip }: ItineraryProps) {
 }
 
 function DayCard({ day, currency }: { day: ItineraryDay; currency: string }) {
+  const { t, language } = useLanguage();
   const [expanded, setExpanded] = useState(false);
   
-  const isFreeDay = day.title.toLowerCase().includes("free day");
+  const isFreeDay = day.title.toLowerCase().includes("free day") || day.title.toLowerCase().includes("día libre");
   const hasTravel = day.activities.some(a => a.category === "transport");
   
   let primaryColor = "bg-accent";
@@ -82,11 +85,11 @@ function DayCard({ day, currency }: { day: ItineraryDay; currency: string }) {
   if (isFreeDay) {
     primaryColor = "bg-purple";
     textColor = "text-purple";
-    badgeText = "FREE DAY";
+    badgeText = t.tripViewer.freeDay;
   } else if (hasTravel) {
     primaryColor = "bg-gold";
     textColor = "text-gold";
-    badgeText = "TRAVEL";
+    badgeText = t.tripViewer.travel;
   }
 
   return (
@@ -95,6 +98,13 @@ function DayCard({ day, currency }: { day: ItineraryDay; currency: string }) {
       <div 
         className="flex gap-4 cursor-pointer items-start" 
         onClick={() => setExpanded(!expanded)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            setExpanded(!expanded);
+          }
+        }}
       >
         <div className={`${primaryColor} w-12 h-12 rounded-full flex items-center justify-center shrink-0`}>
           <span className="text-white text-xl font-bold">{day.dayNumber}</span>
@@ -109,7 +119,7 @@ function DayCard({ day, currency }: { day: ItineraryDay; currency: string }) {
           
           <h4 className="text-white text-xl font-bold">{day.title}</h4>
           <p className="text-text-secondary text-sm">
-            {formatDate(day.date, "en-US", { weekday: "long", month: "short", day: "numeric" })} • {day.estimatedCost > 0 ? `${formatCurrency(day.estimatedCost, currency)} estimated` : "Self-planned"}
+            {formatDate(day.date, language === "en" ? "en-US" : "es-ES", { weekday: "long", month: "short", day: "numeric" })} • {day.estimatedCost > 0 ? `${formatCurrency(day.estimatedCost, currency, language === "en" ? "en-US" : "es-ES")} ${t.tripViewer.estimated}` : t.tripViewer.selfPlanned}
           </p>
         </div>
         
@@ -133,13 +143,13 @@ function DayCard({ day, currency }: { day: ItineraryDay; currency: string }) {
           
           {day.meals.length > 0 && (
             <div className="flex flex-col gap-3 mt-2">
-              <h5 className="text-text-secondary text-xs font-bold uppercase tracking-wider">Dining</h5>
+              <h5 className="text-text-secondary text-xs font-bold uppercase tracking-wider">{t.tripViewer.dining}</h5>
               {day.meals.map(meal => (
                 <div key={meal.id} className="bg-white/5 rounded-lg p-4 flex gap-4">
                   <div className="text-text-secondary text-sm font-semibold w-16">{meal.time}</div>
                   <div className="flex flex-col">
                     <span className="text-white font-semibold">{meal.restaurantName}</span>
-                    <span className="text-text-secondary text-sm">{meal.cuisine} • {formatCurrency(meal.estimatedCost, currency)}</span>
+                    <span className="text-text-secondary text-sm">{meal.cuisine} • {formatCurrency(meal.estimatedCost, currency, language === "en" ? "en-US" : "es-ES")}</span>
                   </div>
                 </div>
               ))}
@@ -152,6 +162,7 @@ function DayCard({ day, currency }: { day: ItineraryDay; currency: string }) {
 }
 
 function ActivityItem({ activity, currency }: { activity: Activity; currency: string }) {
+  const { t, language } = useLanguage();
   let bgColor = "bg-white/5";
   if (activity.category === "transport") bgColor = "bg-gold/10";
   if (activity.category === "accommodation") bgColor = "bg-accent/10";
@@ -166,7 +177,7 @@ function ActivityItem({ activity, currency }: { activity: Activity; currency: st
           <span className="text-white font-semibold">{activity.title}</span>
           {activity.cost > 0 && (
             <span className="text-white/90 text-sm font-medium shrink-0">
-              {formatCurrency(activity.cost, currency)}
+              {formatCurrency(activity.cost, currency, language === "en" ? "en-US" : "es-ES")}
             </span>
           )}
         </div>
@@ -174,7 +185,7 @@ function ActivityItem({ activity, currency }: { activity: Activity; currency: st
         
         <div className="flex items-center gap-2 mt-2">
           {activity.bookingRequired && (
-            <span className="text-[10px] uppercase font-bold text-red-400 bg-red-400/10 px-2 py-0.5 rounded">Booking Required</span>
+            <span className="text-[10px] uppercase font-bold text-red-400 bg-red-400/10 px-2 py-0.5 rounded">{t.tripViewer.bookingRequired}</span>
           )}
           {activity.rating && (
             <span className="text-[11px] font-bold text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded flex items-center gap-1">

@@ -332,9 +332,11 @@ export function getFlag(countryCode: string): string {
 
 ---
 
-### R5 · Complete i18n for Trip Viewer
+### R5 · Complete i18n for Trip Viewer ✅
  
- **Status:** Pending ⚪  
+ **Status:** Completed 🟢  
+ 
+ Full internationalization support has been implemented across all trip-viewer components through the `useLanguage()` hook. All hardcoded labels, date formats, and accessibility descriptions have been moved to the translation layer (English and Spanish), ensuring a consistent and localized experience.
 
 **Priority:** 🟡 P2  
 **Effort:** Medium

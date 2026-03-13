@@ -81,7 +81,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
             href="/dashboard"
             className="text-text-secondary text-sm hover:text-white font-semibold transition-colors ml-4"
           >
-            My Dashboard
+            {t.nav.myDashboard}
           </Link>
         )}
 

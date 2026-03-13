@@ -4,23 +4,26 @@ import { Container } from "@/components/ui/Container";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Card } from "@/components/ui/Card";
 import { formatDate, formatDuration } from "@/utils/format";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface TripOverviewProps {
   trip: Trip;
 }
 
 export default function TripOverview({ trip }: TripOverviewProps) {
+  const { t, language } = useLanguage();
+
   return (
     <section className="w-full bg-bg-secondary pb-10">
       <Container className="flex flex-col gap-5">
-        <SectionLabel>Trip Overview</SectionLabel>
+        <SectionLabel>{t.tripViewer.tripOverview}</SectionLabel>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Accommodations Card */}
           <Card className="flex flex-col gap-4">
             <div className="flex items-center gap-3 pb-3 border-b border-border-soft">
-              <span className="text-2xl">🏨</span>
-              <h3 className="text-white text-lg font-bold">Accommodations</h3>
+              <span role="img" aria-label="Hotel" className="text-2xl">🏨</span>
+              <h3 className="text-white text-lg font-bold">{t.tripViewer.accommodations}</h3>
             </div>
             
             <div className="flex flex-col gap-4">
@@ -32,7 +35,7 @@ export default function TripOverview({ trip }: TripOverviewProps) {
                   </div>
                   <span className="text-text-secondary text-sm">{acc.city}, {acc.countryCode}</span>
                   <span className="text-text-secondary text-xs">
-                    {formatDate(acc.checkIn, "en-US", { month: "short", day: "numeric" })} - {formatDate(acc.checkOut, "en-US", { month: "short", day: "numeric" })}
+                    {formatDate(acc.checkIn, language === "en" ? "en-US" : "es-ES", { month: "short", day: "numeric" })} - {formatDate(acc.checkOut, language === "en" ? "en-US" : "es-ES", { month: "short", day: "numeric" })}
                   </span>
                 </div>
               ))}
@@ -42,8 +45,8 @@ export default function TripOverview({ trip }: TripOverviewProps) {
           {/* Transportation Card */}
           <Card className="flex flex-col gap-4">
             <div className="flex items-center gap-3 pb-3 border-b border-border-soft">
-              <span className="text-2xl">✈️</span>
-              <h3 className="text-white text-lg font-bold">Transportation</h3>
+              <span role="img" aria-label="Plane" className="text-2xl">✈️</span>
+              <h3 className="text-white text-lg font-bold">{t.tripViewer.transportation}</h3>
             </div>
             
             <div className="flex flex-col gap-4">
