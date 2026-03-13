@@ -12,10 +12,10 @@ export default function FinalCTA() {
     <section className="relative py-24 overflow-hidden">
       {/* Background circles */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[1440px] h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#4F6EF7]/20 rounded-full blur-[120px]" />
-        <div className="absolute top-0 left-1/4 w-[400px] h-[400px] bg-[#3B5BDB]/20 rounded-full blur-[100px]" />
-        <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-[#8888AA]/10 rounded-full blur-[100px]" />
-        <div className="absolute inset-0 bg-[#4F6EF7]/80" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-accent/20 rounded-full blur-[120px]" />
+        <div className="absolute top-0 left-1/4 w-[400px] h-[400px] bg-accent-hover/20 rounded-full blur-[100px]" />
+        <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-text-secondary/10 rounded-full blur-[100px]" />
+        <div className="absolute inset-0 bg-accent/80" />
       </div>
 
       <div className="relative max-w-[1440px] w-full mx-auto px-8 lg:px-16 flex flex-col gap-8">
@@ -28,7 +28,7 @@ export default function FinalCTA() {
         <div className="flex flex-wrap gap-4">
           <Link
             href="#planner"
-            className="bg-white hover:bg-white/90 transition-all duration-200 text-[#4F6EF7] font-bold text-lg px-10 py-[18px] rounded-xl shadow-xl"
+            className="bg-white hover:bg-white/90 transition-all duration-200 text-accent font-bold text-lg px-10 py-[18px] rounded-xl shadow-xl"
           >
             {c.ctaPrimary}
           </Link>

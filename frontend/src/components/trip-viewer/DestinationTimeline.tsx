@@ -13,9 +13,9 @@ export default function DestinationTimeline({ destinations }: DestinationTimelin
   };
 
   return (
-    <section className="w-full bg-[#0E0E1A] pb-10">
+    <section className="w-full bg-bg-secondary pb-10">
       <div className="max-w-[1440px] w-full mx-auto px-8 lg:px-16 flex flex-col gap-5">
-        <h2 className="text-[#4F6EF7] text-[10px] font-bold tracking-[2.5px] uppercase">
+        <h2 className="text-accent text-[10px] font-bold tracking-[2.5px] uppercase">
           Journey Map
         </h2>
         
@@ -24,7 +24,7 @@ export default function DestinationTimeline({ destinations }: DestinationTimelin
             <div 
               key={dest.id}
               className={`flex-1 rounded-2xl p-5 flex flex-col gap-3 ${
-                i === 0 ? "bg-[#4F6EF7]/20 border border-[#4F6EF7]/30" : "bg-[#13132A] border border-white/5"
+                i === 0 ? "bg-accent/20 border border-accent-border" : "bg-bg-card border border-border"
               }`}
             >
               <div className="flex justify-between items-start">
@@ -32,7 +32,7 @@ export default function DestinationTimeline({ destinations }: DestinationTimelin
                 <span className="text-2xl">{dest.countryCode === 'FR' ? '🇫🇷' : dest.countryCode === 'IT' ? '🇮🇹' : '🇪🇸'}</span>
               </div>
               
-              <div className="flex flex-col gap-1 mt-auto pt-2 text-sm text-[#8888AA]">
+              <div className="flex flex-col gap-1 mt-auto pt-2 text-sm text-text-secondary">
                 <div>{formatDateRange(dest.arrivalDate, dest.departureDate)}</div>
                 <div>{dest.nightsStaying} Nights</div>
               </div>

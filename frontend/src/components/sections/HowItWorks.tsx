@@ -14,10 +14,10 @@ export default function HowItWorks() {
   const h = t.howItWorks;
 
   return (
-    <section id="how-it-works" className="bg-[#0A0A12] py-24">
+    <section id="how-it-works" className="bg-bg-primary py-24">
       <div className="max-w-[1440px] w-full mx-auto px-8 lg:px-16 flex flex-col gap-16">
         <div className="flex flex-col gap-4">
-          <p className="text-[#4F6EF7] text-[11px] font-bold tracking-[3px] uppercase">
+          <p className="text-accent text-[11px] font-bold tracking-[3px] uppercase">
             {h.label}
           </p>
           <h2 className="text-4xl lg:text-[56px] font-bold text-white tracking-[-1.5px] leading-tight whitespace-pre-line">
@@ -31,13 +31,13 @@ export default function HowItWorks() {
               key={step.number}
               className={`flex flex-col gap-5 p-8 rounded-2xl border ${
                 i === 0
-                  ? "bg-[#13132A] border-[#4F6EF730]"
-                  : "bg-[#13132A] border-white/5"
+                  ? "bg-bg-card border-accent-border"
+                  : "bg-bg-card border-border"
               }`}
             >
               <div
                 className={`w-11 h-11 rounded-full flex items-center justify-center text-lg font-bold text-white ${
-                  i === 0 ? "bg-[#4F6EF7]" : "bg-white/10"
+                  i === 0 ? "bg-accent" : "bg-white/10"
                 }`}
               >
                 {step.number}
@@ -52,7 +52,7 @@ export default function HowItWorks() {
                 />
               </div>
               <h3 className="text-xl font-bold text-white">{step.title}</h3>
-              <p className="text-sm text-[#8888AA] leading-relaxed">{step.description}</p>
+              <p className="text-sm text-text-secondary leading-relaxed">{step.description}</p>
             </div>
           ))}
         </div>

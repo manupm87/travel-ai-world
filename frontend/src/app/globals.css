@@ -14,6 +14,12 @@
   --color-border: rgba(255, 255, 255, 0.08);
   --color-border-soft: rgba(255, 255, 255, 0.12);
   --color-gold: #F5A623;
+  --color-accent-hover: #3B5BDB;
+  --color-bg-surface: #1A1A24;
+  --color-border-card: #2A2A35;
+  --color-status-planning: #F78E4F;
+  --color-status-finished: #888899;
+  --color-purple: #8B5CF6;
   --font-sans: "Inter", system-ui, sans-serif;
 }
 

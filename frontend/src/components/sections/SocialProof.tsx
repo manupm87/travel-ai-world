@@ -7,9 +7,9 @@ export default function SocialProof() {
   const s = t.socialProof;
 
   return (
-    <section id="testimonials" className="bg-[#0A0A12] py-24">
+    <section id="testimonials" className="bg-bg-primary py-24">
       <div className="max-w-[1440px] w-full mx-auto px-8 lg:px-16 flex flex-col gap-16">
-        <p className="text-[#4F6EF7] text-[11px] font-bold tracking-[3px] uppercase">
+        <p className="text-accent text-[11px] font-bold tracking-[3px] uppercase">
           {s.label}
         </p>
 
@@ -18,12 +18,12 @@ export default function SocialProof() {
           {s.stats.map((stat) => (
             <div
               key={stat.label}
-              className="flex flex-col gap-2 p-8 rounded-2xl bg-[#13132A] border border-white/5"
+              className="flex flex-col gap-2 p-8 rounded-2xl bg-bg-card border border-border"
             >
-              <span className="text-[#4F6EF7] text-4xl lg:text-5xl font-bold tracking-[-2px]">
+              <span className="text-accent text-4xl lg:text-5xl font-bold tracking-[-2px]">
                 {stat.value}
               </span>
-              <span className="text-[#8888AA] text-sm">{stat.label}</span>
+              <span className="text-text-secondary text-sm">{stat.label}</span>
             </div>
           ))}
         </div>
@@ -35,19 +35,19 @@ export default function SocialProof() {
               key={testimonial.author}
               className={`flex flex-col gap-4 p-8 rounded-2xl border ${
                 testimonial.highlight
-                  ? "bg-[#4F6EF712] border-[#4F6EF730]"
-                  : "bg-[#13132A] border-white/5"
+                  ? "bg-accent-soft border-accent-border"
+                  : "bg-bg-card border-border"
               }`}
             >
-              <span className="text-[#F5A623] text-base">
+              <span className="text-gold text-base">
                 {"★".repeat(testimonial.stars)}
               </span>
               <p className="text-white text-[15px] leading-relaxed flex-1">
                 &ldquo;{testimonial.quote}&rdquo;
               </p>
-              <div className="flex flex-col gap-0.5 pt-2 border-t border-white/5">
+              <div className="flex flex-col gap-0.5 pt-2 border-t border-border">
                 <span className="text-white font-semibold text-sm">{testimonial.author}</span>
-                <span className="text-[#8888AA] text-xs">{testimonial.location}</span>
+                <span className="text-text-secondary text-xs">{testimonial.location}</span>
               </div>
             </div>
           ))}

@@ -9,11 +9,11 @@ export default function JourneyMap({ trip }: JourneyMapProps) {
   return (
     <section className="w-full bg-transparent pb-10">
       <div className="max-w-[1440px] w-full mx-auto px-8 lg:px-16 flex flex-col gap-5">
-        <h2 className="text-[#4F6EF7] text-[10px] font-bold tracking-[2.5px] uppercase">
+        <h2 className="text-accent text-[10px] font-bold tracking-[2.5px] uppercase">
           Route Overview
         </h2>
         
-        <div className="bg-[#13132A] rounded-[20px] p-6 md:p-10 border border-white/5 flex flex-col items-center justify-center min-h-[250px] relative overflow-hidden">
+        <div className="bg-bg-card rounded-[20px] p-6 md:p-10 border border-border flex flex-col items-center justify-center min-h-[250px] relative overflow-hidden">
           {/* Simplified conceptual map with connecting lines */}
           <div className="flex flex-col md:flex-row items-center justify-between w-full relative z-10 gap-12 md:gap-4">
             
@@ -22,12 +22,12 @@ export default function JourneyMap({ trip }: JourneyMapProps) {
             
             {trip.destinations.map((dest, i) => (
               <div key={dest.id} className="flex flex-col items-center gap-3 relative">
-                <div className="w-4 h-4 rounded-full bg-[#4F6EF7] border-[3px] border-[#13132A] relative z-10 shadow-[0_0_15px_rgba(79,110,247,0.5)]"></div>
+                <div className="w-4 h-4 rounded-full bg-accent border-[3px] border-bg-card relative z-10 shadow-[0_0_15px_rgba(79,110,247,0.5)]"></div>
                 
-                <div className="bg-[#1A1A2E] border border-white/10 rounded-xl p-3 flex flex-col items-center gap-1 min-w-[120px]">
+                <div className="bg-bg-surface border border-border-soft rounded-xl p-3 flex flex-col items-center gap-1 min-w-[120px]">
                   <span className="text-2xl">{dest.countryCode === 'FR' ? '🇫🇷' : dest.countryCode === 'IT' ? '🇮🇹' : '🇪🇸'}</span>
                   <span className="text-white font-bold">{dest.city}</span>
-                  <span className="text-[#8888AA] text-xs text-center">{dest.nightsStaying} Nights</span>
+                  <span className="text-text-secondary text-xs text-center">{dest.nightsStaying} Nights</span>
                 </div>
                 
                 {/* Connecting line for mobile */}

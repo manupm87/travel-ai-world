@@ -30,7 +30,7 @@ export default function TripClientPage() {
   const trip = tripData as unknown as Trip;
 
   return (
-    <div className="min-h-screen bg-[#0A0A12] flex flex-col font-sans">
+    <div className="min-h-screen bg-bg-primary flex flex-col font-sans">
       <Header variant="dashboard" />
       <main className="flex flex-col flex-1 pb-20 pt-[72px]">
         <TripHeader trip={trip} />

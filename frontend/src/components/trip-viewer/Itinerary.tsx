@@ -24,14 +24,14 @@ export default function Itinerary({ trip }: ItineraryProps) {
   });
 
   return (
-    <section className="w-full bg-[#0E0E1A] py-[60px]">
+    <section className="w-full bg-bg-secondary py-[60px]">
       <div className="max-w-[1440px] w-full mx-auto px-8 lg:px-16 flex flex-col gap-8">
         {/* Destination Filters */}
         <div className="flex flex-wrap gap-3 mb-4">
           <button 
             onClick={() => setFilter("all")}
             className={`px-5 py-2.5 rounded-full text-[13px] font-semibold transition-colors ${
-              filter === "all" ? "bg-[#4F6EF7] text-white" : "bg-white/10 text-white/90 hover:bg-white/20"
+              filter === "all" ? "bg-accent text-white" : "bg-white/10 text-white/90 hover:bg-white/20"
             }`}
           >
             All Days
@@ -41,7 +41,7 @@ export default function Itinerary({ trip }: ItineraryProps) {
               key={dest.id}
               onClick={() => setFilter(dest.id)}
               className={`px-5 py-2.5 rounded-full text-[13px] font-semibold transition-colors flex items-center gap-2 ${
-                filter === dest.id ? "bg-[#4F6EF7] text-white" : "bg-white/10 text-white/90 hover:bg-white/20"
+                filter === dest.id ? "bg-accent text-white" : "bg-white/10 text-white/90 hover:bg-white/20"
               }`}
             >
               <span className="font-normal">{getDestinationFlag(dest.id)}</span>
@@ -51,7 +51,7 @@ export default function Itinerary({ trip }: ItineraryProps) {
         </div>
 
         <div className="flex flex-col gap-3">
-          <h2 className="text-[#4F6EF7] text-[11px] font-bold tracking-[3px] uppercase">
+          <h2 className="text-accent text-[11px] font-bold tracking-[3px] uppercase">
             Your Itinerary
           </h2>
           <h3 className="text-white text-[42px] font-bold tracking-[-1px] leading-[1.1]">
@@ -75,17 +75,17 @@ function DayCard({ day, currency }: { day: ItineraryDay; currency: string }) {
   const isFreeDay = day.title.toLowerCase().includes("free day");
   const hasTravel = day.activities.some(a => a.category === "transport");
   
-  let primaryColor = "bg-[#4F6EF7]";
-  let textColor = "text-[#4F6EF7]";
+  let primaryColor = "bg-accent";
+  let textColor = "text-accent";
   let badgeText = "";
   
   if (isFreeDay) {
-    primaryColor = "bg-[#8B5CF6]";
-    textColor = "text-[#8B5CF6]";
+    primaryColor = "bg-purple";
+    textColor = "text-purple";
     badgeText = "FREE DAY";
   } else if (hasTravel) {
-    primaryColor = "bg-[#F5A623]";
-    textColor = "text-[#F5A623]";
+    primaryColor = "bg-gold";
+    textColor = "text-gold";
     badgeText = "TRAVEL";
   }
 
@@ -98,7 +98,7 @@ function DayCard({ day, currency }: { day: ItineraryDay; currency: string }) {
   };
 
   return (
-    <div className={`bg-[#13132A] rounded-[20px] p-6 flex flex-col gap-4 border border-white/5 transition-all ${expanded ? "ring-1 ring-white/10" : ""}`}>
+    <div className={`bg-bg-card rounded-[20px] p-6 flex flex-col gap-4 border border-border transition-all ${expanded ? "ring-1 ring-border-soft" : ""}`}>
       {/* Header */}
       <div 
         className="flex gap-4 cursor-pointer items-start" 
@@ -110,18 +110,18 @@ function DayCard({ day, currency }: { day: ItineraryDay; currency: string }) {
         
         <div className="flex-1 flex flex-col gap-1">
           {badgeText && (
-            <div className={`text-[9px] font-bold tracking-[1.5px] px-2.5 py-1 rounded-full w-fit mb-1 ${primaryColor.replace('bg-', 'bg-').replace(']', '20]')}`}>
+            <div className={`text-[9px] font-bold tracking-[1.5px] px-2.5 py-1 rounded-full w-fit mb-1 ${primaryColor}/20`}>
               <span className={textColor}>{badgeText}</span>
             </div>
           )}
           
           <h4 className="text-white text-xl font-bold">{day.title}</h4>
-          <p className="text-[#8888AA] text-sm">
+          <p className="text-text-secondary text-sm">
             {formatDate(day.date)} • {day.estimatedCost > 0 ? `${formatCurrency(day.estimatedCost)} estimated` : "Self-planned"}
           </p>
         </div>
         
-        <div className="text-[#8888AA] text-xs pt-2">
+        <div className="text-text-secondary text-xs pt-2">
           {expanded ? "▼" : "▶"}
         </div>
       </div>
@@ -141,13 +141,13 @@ function DayCard({ day, currency }: { day: ItineraryDay; currency: string }) {
           
           {day.meals.length > 0 && (
             <div className="flex flex-col gap-3 mt-2">
-              <h5 className="text-[#8888AA] text-xs font-bold uppercase tracking-wider">Dining</h5>
+              <h5 className="text-text-secondary text-xs font-bold uppercase tracking-wider">Dining</h5>
               {day.meals.map(meal => (
                 <div key={meal.id} className="bg-white/5 rounded-lg p-4 flex gap-4">
-                  <div className="text-[#8888AA] text-sm font-semibold w-16">{meal.time}</div>
+                  <div className="text-text-secondary text-sm font-semibold w-16">{meal.time}</div>
                   <div className="flex flex-col">
                     <span className="text-white font-semibold">{meal.restaurantName}</span>
-                    <span className="text-[#8888AA] text-sm">{meal.cuisine} • {formatCurrency(meal.estimatedCost)}</span>
+                    <span className="text-text-secondary text-sm">{meal.cuisine} • {formatCurrency(meal.estimatedCost)}</span>
                   </div>
                 </div>
               ))}
@@ -161,12 +161,12 @@ function DayCard({ day, currency }: { day: ItineraryDay; currency: string }) {
 
 function ActivityItem({ activity, currency }: { activity: Activity; currency: string }) {
   let bgColor = "bg-white/5";
-  if (activity.category === "transport") bgColor = "bg-[#F5A623]/10";
-  if (activity.category === "accommodation") bgColor = "bg-[#4F6EF7]/10";
+  if (activity.category === "transport") bgColor = "bg-gold/10";
+  if (activity.category === "accommodation") bgColor = "bg-accent/10";
 
   return (
     <div className={`${bgColor} rounded-lg p-4 flex gap-4 items-start`}>
-      <div className="text-[#8888AA] text-sm font-semibold w-16 shrink-0 mt-0.5 whitespace-nowrap">
+      <div className="text-text-secondary text-sm font-semibold w-16 shrink-0 mt-0.5 whitespace-nowrap">
         {activity.time}
       </div>
       <div className="flex flex-col gap-1 flex-1">
@@ -178,7 +178,7 @@ function ActivityItem({ activity, currency }: { activity: Activity; currency: st
             </span>
           )}
         </div>
-        <span className="text-[#8888AA] text-sm leading-relaxed">{activity.description}</span>
+        <span className="text-text-secondary text-sm leading-relaxed">{activity.description}</span>
         
         <div className="flex items-center gap-2 mt-2">
           {activity.bookingRequired && (

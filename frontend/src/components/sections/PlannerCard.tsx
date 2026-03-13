@@ -33,10 +33,10 @@ export default function PlannerCard({ transparent = false }: PlannerCardProps) {
   };
 
   return (
-    <section id="planner" className={`${transparent ? "bg-transparent py-12" : "bg-[#0E0E1A] py-24"}`}>
+    <section id="planner" className={`${transparent ? "bg-transparent py-12" : "bg-bg-secondary py-24"}`}>
       <div className="max-w-[1440px] w-full mx-auto px-8 lg:px-16 flex flex-col gap-10">
         <div className="flex flex-col gap-4">
-          <p className="text-[#4F6EF7] text-[11px] font-bold tracking-[3px] uppercase">
+          <p className="text-accent text-[11px] font-bold tracking-[3px] uppercase">
             {p.label}
           </p>
           <h2 className="text-4xl lg:text-5xl font-bold text-white tracking-[-1px] leading-tight">
@@ -46,7 +46,7 @@ export default function PlannerCard({ transparent = false }: PlannerCardProps) {
 
         <form
           onSubmit={handleSubmit}
-          className="bg-[#13132A] border border-white/5 rounded-2xl p-8 lg:p-12 flex flex-col gap-8"
+          className="bg-bg-card border border-border rounded-2xl p-8 lg:p-12 flex flex-col gap-8"
         >
           {/* Inputs */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -57,7 +57,7 @@ export default function PlannerCard({ transparent = false }: PlannerCardProps) {
               { key: "travelers", label: p.travelers, placeholder: p.travelersPlaceholder },
             ].map(({ key, label, placeholder }) => (
               <div key={key} className="flex flex-col gap-2">
-                <label className="text-[10px] font-bold text-[#8888AA] tracking-[2px] uppercase">
+                <label className="text-[10px] font-bold text-text-secondary tracking-[2px] uppercase">
                   {label}
                 </label>
                 <input
@@ -65,7 +65,7 @@ export default function PlannerCard({ transparent = false }: PlannerCardProps) {
                   placeholder={placeholder}
                   value={form[key as keyof typeof form]}
                   onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                  className="h-[52px] bg-[#0A0A1A] border border-white/10 rounded-xl px-4 text-[15px] text-white placeholder-white/30 focus:outline-none focus:border-[#4F6EF7]/60 transition-colors"
+                  className="h-[52px] bg-bg-primary border border-border-soft rounded-xl px-4 text-[15px] text-white placeholder-white/30 focus:outline-none focus:border-accent/60 transition-colors"
                 />
               </div>
             ))}
@@ -73,7 +73,7 @@ export default function PlannerCard({ transparent = false }: PlannerCardProps) {
 
           {/* Style pills */}
           <div className="flex flex-col gap-3">
-            <label className="text-[10px] font-bold text-[#8888AA] tracking-[2px] uppercase">
+            <label className="text-[10px] font-bold text-text-secondary tracking-[2px] uppercase">
               {p.travelStyle}
             </label>
             <div className="flex flex-wrap gap-3">
@@ -86,8 +86,8 @@ export default function PlannerCard({ transparent = false }: PlannerCardProps) {
                     onClick={() => toggleStyle(label)}
                     className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-[13px] font-semibold transition-all duration-200 cursor-pointer ${
                       active
-                        ? "bg-[#4F6EF7] text-white shadow-lg shadow-[#4F6EF740]"
-                        : "bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 hover:text-white"
+                        ? "bg-accent text-white shadow-lg shadow-accent/40"
+                        : "bg-white/5 border border-border-soft text-white/70 hover:bg-white/10 hover:text-white"
                     }`}
                   >
                     <span>{emoji}</span>
@@ -101,7 +101,7 @@ export default function PlannerCard({ transparent = false }: PlannerCardProps) {
           {/* Submit */}
           <button
             type="submit"
-            className="w-full h-16 bg-[#4F6EF7] hover:bg-[#3B5BDB] text-white font-bold text-lg rounded-xl transition-all duration-200 shadow-lg shadow-[#4F6EF740] flex items-center justify-center gap-3 cursor-pointer"
+            className="w-full h-16 bg-accent hover:bg-accent-hover text-white font-bold text-lg rounded-xl transition-all duration-200 shadow-lg shadow-accent/40 flex items-center justify-center gap-3 cursor-pointer"
           >
             {submitted ? (
               <><span>🎉</span><span>{p.comingSoon}</span></>
@@ -111,7 +111,7 @@ export default function PlannerCard({ transparent = false }: PlannerCardProps) {
           </button>
 
           {submitted && (
-            <p className="text-center text-sm text-[#8888AA]">{p.comingSoonNote}</p>
+            <p className="text-center text-sm text-text-secondary">{p.comingSoonNote}</p>
           )}
         </form>
       </div>

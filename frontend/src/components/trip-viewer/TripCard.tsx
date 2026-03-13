@@ -10,18 +10,18 @@ interface TripCardProps {
 const statusConfig = {
   planning: {
     label: "Planning",
-    bgColor: "bg-[#F78E4F]/20",
-    textColor: "text-[#F78E4F]",
+    bgColor: "bg-status-planning/20",
+    textColor: "text-status-planning",
   },
   planned: {
     label: "Planned",
-    bgColor: "bg-[#4F6EF7]/20",
-    textColor: "text-[#4F6EF7]",
+    bgColor: "bg-accent/20",
+    textColor: "text-accent",
   },
   finished: {
     label: "Finished",
-    bgColor: "bg-[#2A2A35]",
-    textColor: "text-[#888899]",
+    bgColor: "bg-border-card",
+    textColor: "text-text-secondary",
   },
 };
 
@@ -36,9 +36,9 @@ export default function TripCard({ trip }: TripCardProps) {
 
   return (
     <Link href={`/trip/${trip.id}`} className="block group w-full max-w-[400px] md:max-w-none">
-      <div className="flex flex-col rounded-2xl bg-[#1A1A24] border border-[#2A2A35] overflow-hidden transition-all duration-300 group-hover:border-[#4F6EF7] group-hover:-translate-y-1">
+      <div className="flex flex-col rounded-2xl bg-bg-surface border border-border-card overflow-hidden transition-all duration-300 group-hover:border-accent group-hover:-translate-y-1">
         {/* Cover Image Container */}
-        <div className="relative w-full h-[200px] bg-[#2A2A35] overflow-hidden">
+        <div className="relative w-full h-[200px] bg-border-card overflow-hidden">
           <Image
             src={trip.imageUrl}
             alt={trip.title}
@@ -54,7 +54,7 @@ export default function TripCard({ trip }: TripCardProps) {
             <div className={`px-3 py-1 rounded-full text-xs font-bold ${config.bgColor} ${config.textColor}`}>
               {config.label}
             </div>
-            <div className="text-xs font-bold text-[#888899]">
+            <div className="text-xs font-bold text-text-secondary">
               {formatDateRange(trip.startDate, trip.endDate)}
             </div>
           </div>
@@ -63,7 +63,7 @@ export default function TripCard({ trip }: TripCardProps) {
             <h3 className="text-2xl font-bold text-white leading-tight">
               {trip.title}
             </h3>
-            <p className="text-base text-[#888899]">
+            <p className="text-base text-text-secondary">
               {trip.destinations.join(", ")}
             </p>
           </div>

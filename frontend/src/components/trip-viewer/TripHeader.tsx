@@ -44,17 +44,17 @@ export default function TripHeader({ trip }: TripHeaderProps) {
             </h1>
             
             <div className="flex flex-wrap items-center gap-6 mt-2">
-              <div className="flex items-center gap-2 text-[#8888AA]">
+              <div className="flex items-center gap-2 text-text-secondary">
                 <span>📅</span>
                 <span className="text-sm">
                   {formatDate(trip.dates.startDate)} - {formatDate(trip.dates.endDate)} ({trip.dates.durationDays} days)
                 </span>
               </div>
-              <div className="flex items-center gap-2 text-[#8888AA]">
+              <div className="flex items-center gap-2 text-text-secondary">
                 <span>👥</span>
                 <span className="text-sm">{calculateTravelers()} Travelers</span>
               </div>
-              <div className="flex items-center gap-2 text-[#8888AA]">
+              <div className="flex items-center gap-2 text-text-secondary">
                 <span>💰</span>
                 <span className="text-sm">
                   {new Intl.NumberFormat('en-US', { style: 'currency', currency: trip.budget.currency, maximumFractionDigits: 0 }).format(trip.budget.total)} Total Budget
@@ -71,7 +71,7 @@ export default function TripHeader({ trip }: TripHeaderProps) {
             </div>
             
             <div className="flex gap-3 mt-1">
-              <button className="flex items-center gap-2 bg-[#4F6EF7] hover:bg-[#3B5BDB] transition-colors px-5 py-3 rounded-lg text-white">
+              <button className="flex items-center gap-2 bg-accent hover:bg-accent-hover transition-colors px-5 py-3 rounded-lg text-white">
                 <span>📋</span>
                 <span className="text-sm font-semibold">View Bookings</span>
               </button>
@@ -97,8 +97,8 @@ export default function TripHeader({ trip }: TripHeaderProps) {
 
 function BudgetCard({ label, value, currency }: { label: string; value: number; currency: string }) {
   return (
-    <div className="bg-[#13132A] rounded-xl p-5 flex flex-col gap-2 border border-white/5">
-      <h3 className="text-[#8888AA] text-[9px] font-bold tracking-[2px]">{label}</h3>
+    <div className="bg-bg-card rounded-xl p-5 flex flex-col gap-2 border border-border">
+      <h3 className="text-text-secondary text-[9px] font-bold tracking-[2px]">{label}</h3>
       <p className="text-white text-[28px] font-bold tracking-[-1px]">
         {new Intl.NumberFormat('en-US', { style: 'currency', currency: currency, maximumFractionDigits: 0 }).format(value)}
       </p>

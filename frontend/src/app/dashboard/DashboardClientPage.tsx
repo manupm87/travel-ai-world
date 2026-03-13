@@ -19,7 +19,7 @@ export default function DashboardClientPage() {
   const finishedTrips = trips.filter((t) => t.status === "finished");
 
   return (
-    <div className="min-h-screen bg-[#0A0A12] flex flex-col items-center">
+    <div className="min-h-screen bg-bg-primary flex flex-col items-center">
       <Header variant="dashboard" />
       
       {/* Content Area */}
@@ -28,7 +28,7 @@ export default function DashboardClientPage() {
         
         {/* Your Next Adventure (Planned) */}
         {plannedTrips.length > 0 && (
-          <div className="w-full bg-[#0E0E1A] py-20">
+          <div className="w-full bg-bg-secondary py-20">
             <section className="max-w-[1440px] w-full mx-auto px-8 lg:px-16 flex flex-col gap-8">
               <h2 className="text-2xl font-bold text-white">{d.sections.planned}</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-4">
@@ -52,7 +52,7 @@ export default function DashboardClientPage() {
 
         {/* Past Journeys (Finished) */}
         {finishedTrips.length > 0 && (
-          <div className="w-full bg-[#0E0E1A] py-20">
+          <div className="w-full bg-bg-secondary py-20">
             <section className="max-w-[1440px] w-full mx-auto px-8 lg:px-16 flex flex-col gap-8">
               <h2 className="text-2xl font-bold text-white">{d.sections.finished}</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-4">
