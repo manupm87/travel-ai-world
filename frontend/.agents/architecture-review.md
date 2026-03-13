@@ -432,9 +432,11 @@ src/components/trip-viewer/trip-header/
 
 ---
 
-### R8 · Add Unit Testing Framework
+### R8 · Add Unit Testing Framework ✅
  
- **Status:** Pending ⚪  
+ **Status:** Completed 🟢
+
+ Vitest and React Testing Library have been configured. Initial unit test coverage has been added for utility functions (`format`, `countryFlag`), data services (`trips`), and complex UI components (`Itinerary`).
 
 **Priority:** 🟢 P3  
 **Effort:** Medium
