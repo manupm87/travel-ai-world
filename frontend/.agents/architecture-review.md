@@ -473,15 +473,15 @@ src/components/trip-viewer/trip-header/
 
 ### R10 · Error Boundaries & Edge Cases
  
- **Status:** Pending ⚪  
+ **Status:** Completed 🟢  
 
 **Priority:** 🟢 P3  
 **Effort:** Low
 
-- Add a React `ErrorBoundary` component in `src/components/ui/ErrorBoundary.tsx`
-- Wrap trip-viewer page in ErrorBoundary
-- Replace silent fallback to `tripEuro` in `TripClientPage.tsx` L29 with explicit 404 / "Trip not found" UI
-- Add skeleton/loading states for future async data fetching
+- Added global `error.tsx` boundary instead of `src/components/ui/ErrorBoundary.tsx` for wider coverage
+- Added global `loading.tsx` component and generic `src/components/ui/Skeleton.tsx` component
+- Replaced silent fallback in `TripClientPage.tsx` with explicit `not-found.tsx` UI
+- Added skeleton/loading states for future async data fetching
 
 ---
 
