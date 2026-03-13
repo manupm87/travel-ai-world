@@ -1,6 +1,9 @@
 "use client";
 
 import Image from "next/image";
+import { Container } from "@/components/ui/Container";
+import { SectionLabel } from "@/components/ui/SectionLabel";
+import { Card } from "@/components/ui/Card";
 import { useLanguage } from "@/context/LanguageContext";
 
 const STEP_IMAGES = [
@@ -15,11 +18,9 @@ export default function HowItWorks() {
 
   return (
     <section id="how-it-works" className="bg-bg-primary py-24">
-      <div className="max-w-[1440px] w-full mx-auto px-8 lg:px-16 flex flex-col gap-16">
+      <Container className="flex flex-col gap-16">
         <div className="flex flex-col gap-4">
-          <p className="text-accent text-[11px] font-bold tracking-[3px] uppercase">
-            {h.label}
-          </p>
+          <SectionLabel>{h.label}</SectionLabel>
           <h2 className="text-4xl lg:text-[56px] font-bold text-white tracking-[-1.5px] leading-tight whitespace-pre-line">
             {h.title}
           </h2>
@@ -27,13 +28,10 @@ export default function HowItWorks() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {h.steps.map((step, i) => (
-            <div
+            <Card
               key={step.number}
-              className={`flex flex-col gap-5 p-8 rounded-2xl border ${
-                i === 0
-                  ? "bg-bg-card border-accent-border"
-                  : "bg-bg-card border-border"
-              }`}
+              highlight={i === 0}
+              className="flex flex-col gap-5 p-8"
             >
               <div
                 className={`w-11 h-11 rounded-full flex items-center justify-center text-lg font-bold text-white ${
@@ -53,10 +51,10 @@ export default function HowItWorks() {
               </div>
               <h3 className="text-xl font-bold text-white">{step.title}</h3>
               <p className="text-sm text-text-secondary leading-relaxed">{step.description}</p>
-            </div>
+            </Card>
           ))}
         </div>
-      </div>
+      </Container>
     </section>
   );
 }

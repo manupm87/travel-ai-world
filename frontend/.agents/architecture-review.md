@@ -139,7 +139,11 @@ border-white/10  → border-border-soft  (or keep as-is if opacity differs)
 
 ---
 
-### R2 · Extract Shared Layout & UI Components
+### R2 · Extract Shared Layout & UI Components ✅
+ 
+ **Status:** Completed 🟢  
+ 
+ Reusable UI components (`Container`, `SectionLabel`, `Card`, `Button`) have been created and applied across all landing page sections and trip viewer components, ensuring layout consistency and eliminating duplicated code.
 
 **Priority:** 🔴 P0  
 **Effort:** Low
@@ -217,6 +221,8 @@ Variants:
 ---
 
 ### R3 · Create Data Service Layer
+ 
+ **Status:** Pending ⚪  
 
 **Priority:** 🟠 P1  
 **Effort:** Medium
@@ -263,6 +269,8 @@ export async function getTripSummaries(): Promise<TripSummary[]> {
 ---
 
 ### R4 · Extract Shared Utilities
+ 
+ **Status:** Pending ⚪  
 
 **Priority:** 🟡 P2  
 **Effort:** Low
@@ -321,6 +329,8 @@ export function getFlag(countryCode: string): string {
 ---
 
 ### R5 · Complete i18n for Trip Viewer
+ 
+ **Status:** Pending ⚪  
 
 **Priority:** 🟡 P2  
 **Effort:** Medium
@@ -367,6 +377,8 @@ common: {
 ---
 
 ### R6 · Split Large Component Files
+ 
+ **Status:** Pending ⚪  
 
 **Priority:** 🟢 P3  
 **Effort:** Low
@@ -393,6 +405,8 @@ src/components/trip-viewer/trip-header/
 ---
 
 ### R7 · Fix Code Quality Issues
+ 
+ **Status:** Pending ⚪  
 
 **Priority:** 🟢 P3  
 **Effort:** Low
@@ -409,6 +423,8 @@ src/components/trip-viewer/trip-header/
 ---
 
 ### R8 · Add Unit Testing Framework
+ 
+ **Status:** Pending ⚪  
 
 **Priority:** 🟢 P3  
 **Effort:** Medium
@@ -428,6 +444,8 @@ src/components/trip-viewer/trip-header/
 ---
 
 ### R9 · Accessibility Improvements
+ 
+ **Status:** Pending ⚪  
 
 **Priority:** 🟢 P3  
 **Effort:** Medium
@@ -442,6 +460,8 @@ src/components/trip-viewer/trip-header/
 ---
 
 ### R10 · Error Boundaries & Edge Cases
+ 
+ **Status:** Pending ⚪  
 
 **Priority:** 🟢 P3  
 **Effort:** Low

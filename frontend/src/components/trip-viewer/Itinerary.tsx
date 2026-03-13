@@ -1,6 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
+import { Container } from "@/components/ui/Container";
+import { SectionLabel } from "@/components/ui/SectionLabel";
+import { Card } from "@/components/ui/Card";
 import { Trip, ItineraryDay, Activity } from "@/types/trip";
 
 interface ItineraryProps {
@@ -25,7 +28,7 @@ export default function Itinerary({ trip }: ItineraryProps) {
 
   return (
     <section className="w-full bg-bg-secondary py-[60px]">
-      <div className="max-w-[1440px] w-full mx-auto px-8 lg:px-16 flex flex-col gap-8">
+      <Container className="flex flex-col gap-8">
         {/* Destination Filters */}
         <div className="flex flex-wrap gap-3 mb-4">
           <button 
@@ -51,9 +54,7 @@ export default function Itinerary({ trip }: ItineraryProps) {
         </div>
 
         <div className="flex flex-col gap-3">
-          <h2 className="text-accent text-[11px] font-bold tracking-[3px] uppercase">
-            Your Itinerary
-          </h2>
+          <SectionLabel>Your Itinerary</SectionLabel>
           <h3 className="text-white text-[42px] font-bold tracking-[-1px] leading-[1.1]">
             Your {trip.dates.durationDays}-Day Journey
           </h3>
@@ -64,7 +65,7 @@ export default function Itinerary({ trip }: ItineraryProps) {
             <DayCard key={day.dayNumber} day={day} currency={trip.budget.currency} />
           ))}
         </div>
-      </div>
+      </Container>
     </section>
   );
 }
@@ -98,7 +99,7 @@ function DayCard({ day, currency }: { day: ItineraryDay; currency: string }) {
   };
 
   return (
-    <div className={`bg-bg-card rounded-[20px] p-6 flex flex-col gap-4 border border-border transition-all ${expanded ? "ring-1 ring-border-soft" : ""}`}>
+    <Card className={`transition-all rounded-[20px] ${expanded ? "ring-1 ring-border-soft" : ""}`}>
       {/* Header */}
       <div 
         className="flex gap-4 cursor-pointer items-start" 
@@ -155,7 +156,7 @@ function DayCard({ day, currency }: { day: ItineraryDay; currency: string }) {
           )}
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 

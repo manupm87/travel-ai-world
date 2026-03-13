@@ -1,5 +1,8 @@
 import React from "react";
 import { Trip } from "@/types/trip";
+import { Container } from "@/components/ui/Container";
+import { SectionLabel } from "@/components/ui/SectionLabel";
+import { Card } from "@/components/ui/Card";
 
 interface TripOverviewProps {
   trip: Trip;
@@ -8,14 +11,12 @@ interface TripOverviewProps {
 export default function TripOverview({ trip }: TripOverviewProps) {
   return (
     <section className="w-full bg-bg-secondary pb-10">
-      <div className="max-w-[1440px] w-full mx-auto px-8 lg:px-16 flex flex-col gap-5">
-        <h2 className="text-accent text-[10px] font-bold tracking-[2.5px] uppercase">
-          Trip Overview
-        </h2>
+      <Container className="flex flex-col gap-5">
+        <SectionLabel>Trip Overview</SectionLabel>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Accommodations Card */}
-          <div className="bg-bg-card rounded-2xl p-6 flex flex-col gap-4 border border-border">
+          <Card className="flex flex-col gap-4">
             <div className="flex items-center gap-3 pb-3 border-b border-border-soft">
               <span className="text-2xl">🏨</span>
               <h3 className="text-white text-lg font-bold">Accommodations</h3>
@@ -35,10 +36,10 @@ export default function TripOverview({ trip }: TripOverviewProps) {
                 </div>
               ))}
             </div>
-          </div>
+          </Card>
 
           {/* Transportation Card */}
-          <div className="bg-bg-card rounded-2xl p-6 flex flex-col gap-4 border border-border">
+          <Card className="flex flex-col gap-4">
             <div className="flex items-center gap-3 pb-3 border-b border-border-soft">
               <span className="text-2xl">✈️</span>
               <h3 className="text-white text-lg font-bold">Transportation</h3>
@@ -58,9 +59,9 @@ export default function TripOverview({ trip }: TripOverviewProps) {
                 </div>
               ))}
             </div>
-          </div>
+          </Card>
         </div>
-      </div>
+      </Container>
     </section>
   );
 }

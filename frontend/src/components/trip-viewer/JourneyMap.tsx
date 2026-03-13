@@ -1,4 +1,6 @@
-import React from "react";
+import { Container } from "@/components/ui/Container";
+import { SectionLabel } from "@/components/ui/SectionLabel";
+import { Card } from "@/components/ui/Card";
 import { Trip } from "@/types/trip";
 
 interface JourneyMapProps {
@@ -8,12 +10,10 @@ interface JourneyMapProps {
 export default function JourneyMap({ trip }: JourneyMapProps) {
   return (
     <section className="w-full bg-transparent pb-10">
-      <div className="max-w-[1440px] w-full mx-auto px-8 lg:px-16 flex flex-col gap-5">
-        <h2 className="text-accent text-[10px] font-bold tracking-[2.5px] uppercase">
-          Route Overview
-        </h2>
+      <Container className="flex flex-col gap-5">
+        <SectionLabel>Route Overview</SectionLabel>
         
-        <div className="bg-bg-card rounded-[20px] p-6 md:p-10 border border-border flex flex-col items-center justify-center min-h-[250px] relative overflow-hidden">
+        <Card className="p-6 md:p-10 flex flex-col items-center justify-center min-h-[250px] relative overflow-hidden rounded-[20px]">
           {/* Simplified conceptual map with connecting lines */}
           <div className="flex flex-col md:flex-row items-center justify-between w-full relative z-10 gap-12 md:gap-4">
             
@@ -37,8 +37,8 @@ export default function JourneyMap({ trip }: JourneyMapProps) {
               </div>
             ))}
           </div>
-        </div>
-      </div>
+        </Card>
+      </Container>
     </section>
   );
 }

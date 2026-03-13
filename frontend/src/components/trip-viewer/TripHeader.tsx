@@ -1,6 +1,8 @@
 import React from "react";
-import Link from "next/link";
 import { Trip } from "@/types/trip";
+import { Container } from "@/components/ui/Container";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 
 interface TripHeaderProps {
   trip: Trip;
@@ -26,18 +28,19 @@ export default function TripHeader({ trip }: TripHeaderProps) {
 
   return (
     <section className="w-full bg-transparent pt-[60px] pb-10">
-      <div className="max-w-[1440px] w-full mx-auto px-8 lg:px-16 flex flex-col gap-8">
+      <Container className="flex flex-col gap-8">
         {/* Header Top Row */}
         <div className="flex justify-between items-start flex-wrap gap-8">
           {/* Header Left */}
           <div className="flex flex-col gap-4">
-            <Link
+            <Button
               href="/dashboard"
-              className="flex items-center gap-2 bg-white/10 hover:bg-white/20 transition-colors px-4 py-2.5 rounded-lg w-fit"
+              variant="secondary"
+              className="px-4 py-2.5 w-fit"
             >
-              <span className="text-white font-semibold">←</span>
-              <span className="text-white/90 text-[13px]">Back to Dashboard</span>
-            </Link>
+              <span className="mr-2">←</span>
+              <span className="text-[13px]">Back to Dashboard</span>
+            </Button>
             
             <h1 className="text-white text-5xl md:text-[48px] font-bold tracking-[-1.5px] leading-[1.1]">
               {trip.title}
@@ -71,14 +74,14 @@ export default function TripHeader({ trip }: TripHeaderProps) {
             </div>
             
             <div className="flex gap-3 mt-1">
-              <button className="flex items-center gap-2 bg-accent hover:bg-accent-hover transition-colors px-5 py-3 rounded-lg text-white">
-                <span>📋</span>
+              <Button className="px-5 py-3 rounded-lg text-white">
+                <span className="mr-2">📋</span>
                 <span className="text-sm font-semibold">View Bookings</span>
-              </button>
-              <button className="flex items-center gap-2 bg-white/10 hover:bg-white/20 transition-colors px-5 py-3 rounded-lg text-white">
-                <span>📥</span>
+              </Button>
+              <Button variant="secondary" className="px-5 py-3 rounded-lg text-white">
+                <span className="mr-2">📥</span>
                 <span className="text-sm font-semibold text-white/90">Export PDF</span>
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -90,18 +93,18 @@ export default function TripHeader({ trip }: TripHeaderProps) {
           <BudgetCard label="ACTIVITIES" value={trip.budget.breakdown.activities} currency={trip.budget.currency} />
           <BudgetCard label="TRANSPORT" value={trip.budget.breakdown.transportation} currency={trip.budget.currency} />
         </div>
-      </div>
+      </Container>
     </section>
   );
 }
 
 function BudgetCard({ label, value, currency }: { label: string; value: number; currency: string }) {
   return (
-    <div className="bg-bg-card rounded-xl p-5 flex flex-col gap-2 border border-border">
+    <Card className="p-5 flex flex-col gap-2 rounded-xl">
       <h3 className="text-text-secondary text-[9px] font-bold tracking-[2px]">{label}</h3>
       <p className="text-white text-[28px] font-bold tracking-[-1px]">
         {new Intl.NumberFormat('en-US', { style: 'currency', currency: currency, maximumFractionDigits: 0 }).format(value)}
       </p>
-    </div>
+    </Card>
   );
 }

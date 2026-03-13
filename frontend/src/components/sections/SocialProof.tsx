@@ -1,5 +1,8 @@
 "use client";
 
+import { Container } from "@/components/ui/Container";
+import { SectionLabel } from "@/components/ui/SectionLabel";
+import { Card } from "@/components/ui/Card";
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function SocialProof() {
@@ -8,36 +11,31 @@ export default function SocialProof() {
 
   return (
     <section id="testimonials" className="bg-bg-primary py-24">
-      <div className="max-w-[1440px] w-full mx-auto px-8 lg:px-16 flex flex-col gap-16">
-        <p className="text-accent text-[11px] font-bold tracking-[3px] uppercase">
-          {s.label}
-        </p>
+      <Container className="flex flex-col gap-16">
+        <SectionLabel>{s.label}</SectionLabel>
 
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           {s.stats.map((stat) => (
-            <div
+            <Card
               key={stat.label}
-              className="flex flex-col gap-2 p-8 rounded-2xl bg-bg-card border border-border"
+              className="flex flex-col gap-2"
             >
               <span className="text-accent text-4xl lg:text-5xl font-bold tracking-[-2px]">
                 {stat.value}
               </span>
               <span className="text-text-secondary text-sm">{stat.label}</span>
-            </div>
+            </Card>
           ))}
         </div>
 
         {/* Testimonials */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {s.testimonials.map((testimonial) => (
-            <div
+            <Card
               key={testimonial.author}
-              className={`flex flex-col gap-4 p-8 rounded-2xl border ${
-                testimonial.highlight
-                  ? "bg-accent-soft border-accent-border"
-                  : "bg-bg-card border-border"
-              }`}
+              highlight={testimonial.highlight}
+              className="flex flex-col gap-4"
             >
               <span className="text-gold text-base">
                 {"★".repeat(testimonial.stars)}
@@ -49,10 +47,10 @@ export default function SocialProof() {
                 <span className="text-white font-semibold text-sm">{testimonial.author}</span>
                 <span className="text-text-secondary text-xs">{testimonial.location}</span>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
-      </div>
+      </Container>
     </section>
   );
 }

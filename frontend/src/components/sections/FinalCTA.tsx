@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
+import { Container } from "@/components/ui/Container";
+import { Button } from "@/components/ui/Button";
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function FinalCTA() {
@@ -18,7 +18,7 @@ export default function FinalCTA() {
         <div className="absolute inset-0 bg-accent/80" />
       </div>
 
-      <div className="relative max-w-[1440px] w-full mx-auto px-8 lg:px-16 flex flex-col gap-8">
+      <Container className="relative flex flex-col gap-8">
         <h2 className="text-5xl xl:text-[68px] font-bold text-white tracking-[-2px] leading-[1.0] max-w-3xl">
           {c.title}
         </h2>
@@ -26,17 +26,21 @@ export default function FinalCTA() {
           {c.subtitle}
         </p>
         <div className="flex flex-wrap gap-4">
-          <Link
+          <Button 
             href="#planner"
-            className="bg-white hover:bg-white/90 transition-all duration-200 text-accent font-bold text-lg px-10 py-[18px] rounded-xl shadow-xl"
+            variant="white"
+            className="text-lg px-10 py-[18px] rounded-xl"
           >
             {c.ctaPrimary}
-          </Link>
-          <button className="bg-white/10 hover:bg-white/20 border border-white/30 transition-all duration-200 text-white font-semibold text-lg px-10 py-[18px] rounded-xl cursor-pointer">
+          </Button>
+          <Button 
+            variant="secondary"
+            className="text-white border-white/40 bg-white/10 hover:bg-white/20 font-semibold text-lg px-10 py-[18px] rounded-xl"
+          >
             {c.ctaSecondary}
-          </button>
+          </Button>
         </div>
-      </div>
+      </Container>
     </section>
   );
 }

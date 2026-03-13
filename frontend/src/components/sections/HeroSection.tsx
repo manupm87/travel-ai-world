@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import { Container } from "@/components/ui/Container";
+import { Button } from "@/components/ui/Button";
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function HeroSection() {
@@ -10,7 +11,7 @@ export default function HeroSection() {
 
   return (
     <section className="relative min-h-screen flex flex-col bg-bg-primary pt-[72px]">
-      <div className="max-w-[1440px] w-full mx-auto px-8 lg:px-16 pt-20 pb-16 flex flex-col gap-10">
+      <Container className="pt-20 pb-16 flex flex-col gap-10">
         {/* Badge */}
         <div className="flex items-center gap-2 w-fit px-4 py-2 rounded-full bg-accent-soft border border-accent-border">
           <span className="w-1.5 h-1.5 rounded-full bg-accent inline-block" />
@@ -31,18 +32,12 @@ export default function HeroSection() {
 
         {/* CTAs */}
         <div className="flex flex-wrap items-center gap-4">
-          <Link
-            href="#planner"
-            className="bg-accent hover:bg-accent-hover transition-all duration-200 text-white font-bold text-base px-9 py-4 rounded-lg shadow-lg shadow-accent/40"
-          >
+          <Button href="#planner">
             {h.ctaPrimary}
-          </Link>
-          <Link
-            href="#how-it-works"
-            className="bg-white/5 hover:bg-white/10 border border-border-soft transition-all duration-200 text-white/80 font-semibold text-base px-9 py-4 rounded-lg"
-          >
+          </Button>
+          <Button href="#how-it-works" variant="secondary">
             {h.ctaSecondary}
-          </Link>
+          </Button>
         </div>
 
         {/* Trust */}
@@ -64,7 +59,7 @@ export default function HeroSection() {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-bg-primary/60 via-transparent to-transparent" />
         </div>
-      </div>
+      </Container>
     </section>
   );
 }

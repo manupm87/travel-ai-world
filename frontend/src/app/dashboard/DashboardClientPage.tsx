@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import tripsMock from "@/mocks/trips-list.json";
 import { TripSummary } from "@/types/trip-summary";
 import TripCard from "@/components/trip-viewer/TripCard";
