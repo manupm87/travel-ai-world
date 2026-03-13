@@ -3,6 +3,7 @@ import { Trip } from "@/types/trip";
 import { Container } from "@/components/ui/Container";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Card } from "@/components/ui/Card";
+import { formatDate, formatDuration } from "@/utils/format";
 
 interface TripOverviewProps {
   trip: Trip;
@@ -31,7 +32,7 @@ export default function TripOverview({ trip }: TripOverviewProps) {
                   </div>
                   <span className="text-text-secondary text-sm">{acc.city}, {acc.countryCode}</span>
                   <span className="text-text-secondary text-xs">
-                    {new Date(acc.checkIn).toLocaleDateString("en-US", { month: "short", day: "numeric" })} - {new Date(acc.checkOut).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    {formatDate(acc.checkIn, "en-US", { month: "short", day: "numeric" })} - {formatDate(acc.checkOut, "en-US", { month: "short", day: "numeric" })}
                   </span>
                 </div>
               ))}
@@ -54,7 +55,7 @@ export default function TripOverview({ trip }: TripOverviewProps) {
                   </div>
                   <span className="text-text-secondary text-sm">{trans.provider} {trans.flightNumber && `• ${trans.flightNumber}`}</span>
                   <span className="text-text-secondary text-xs text-capitalize">
-                    {trans.departureTime} - {trans.arrivalTime} ({Math.floor(trans.duration / 60)}h {trans.duration % 60}m)
+                    {trans.departureTime} - {trans.arrivalTime} ({formatDuration(trans.duration)})
                   </span>
                 </div>
               ))}

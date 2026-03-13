@@ -5,6 +5,8 @@ import { Container } from "@/components/ui/Container";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Card } from "@/components/ui/Card";
 import { Trip, ItineraryDay, Activity } from "@/types/trip";
+import { formatDate, formatCurrency } from "@/utils/format";
+import { getFlag } from "@/utils/countryFlag";
 
 interface ItineraryProps {
   trip: Trip;
@@ -15,10 +17,7 @@ export default function Itinerary({ trip }: ItineraryProps) {
   
   const getDestinationFlag = (destId: string) => {
     const code = trip.destinations.find(d => d.id === destId)?.countryCode;
-    if (code === "FR") return "🇫🇷";
-    if (code === "IT") return "🇮🇹";
-    if (code === "ES") return "🇪🇸";
-    return "";
+    return code ? getFlag(code) : "";
   };
 
   const filteredItinerary = trip.itinerary.filter(day => {
@@ -90,14 +89,6 @@ function DayCard({ day, currency }: { day: ItineraryDay; currency: string }) {
     badgeText = "TRAVEL";
   }
 
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency, maximumFractionDigits: 0 }).format(amount);
-  };
-
   return (
     <Card className={`transition-all rounded-[20px] ${expanded ? "ring-1 ring-border-soft" : ""}`}>
       {/* Header */}
@@ -118,7 +109,7 @@ function DayCard({ day, currency }: { day: ItineraryDay; currency: string }) {
           
           <h4 className="text-white text-xl font-bold">{day.title}</h4>
           <p className="text-text-secondary text-sm">
-            {formatDate(day.date)} • {day.estimatedCost > 0 ? `${formatCurrency(day.estimatedCost)} estimated` : "Self-planned"}
+            {formatDate(day.date, "en-US", { weekday: "long", month: "short", day: "numeric" })} • {day.estimatedCost > 0 ? `${formatCurrency(day.estimatedCost, currency)} estimated` : "Self-planned"}
           </p>
         </div>
         
@@ -148,7 +139,7 @@ function DayCard({ day, currency }: { day: ItineraryDay; currency: string }) {
                   <div className="text-text-secondary text-sm font-semibold w-16">{meal.time}</div>
                   <div className="flex flex-col">
                     <span className="text-white font-semibold">{meal.restaurantName}</span>
-                    <span className="text-text-secondary text-sm">{meal.cuisine} • {formatCurrency(meal.estimatedCost)}</span>
+                    <span className="text-text-secondary text-sm">{meal.cuisine} • {formatCurrency(meal.estimatedCost, currency)}</span>
                   </div>
                 </div>
               ))}
@@ -175,7 +166,7 @@ function ActivityItem({ activity, currency }: { activity: Activity; currency: st
           <span className="text-white font-semibold">{activity.title}</span>
           {activity.cost > 0 && (
             <span className="text-white/90 text-sm font-medium shrink-0">
-              {new Intl.NumberFormat('en-US', { style: 'currency', currency, maximumFractionDigits: 0 }).format(activity.cost)}
+              {formatCurrency(activity.cost, currency)}
             </span>
           )}
         </div>

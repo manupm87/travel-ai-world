@@ -268,9 +268,11 @@ export async function getTripSummaries(): Promise<TripSummary[]> {
 
 ---
 
-### R4 · Extract Shared Utilities
+### R4 · Extract Shared Utilities ✅
  
- **Status:** Pending ⚪  
+ **Status:** Completed 🟢  
+
+ Shared utilities for formatting (dates, currency, duration) and country flags have been extracted to `src/utils/` and applied across all trip-viewer components, ensuring consistent data representation and cleaner code.
 
 **Priority:** 🟡 P2  
 **Effort:** Low

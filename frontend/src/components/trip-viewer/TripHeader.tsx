@@ -3,20 +3,13 @@ import { Trip } from "@/types/trip";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { formatDate, formatCurrency } from "@/utils/format";
 
 interface TripHeaderProps {
   trip: Trip;
 }
 
 export default function TripHeader({ trip }: TripHeaderProps) {
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric"
-    });
-  };
-
   const calculateTravelers = () => {
     return trip.travelers.adults + trip.travelers.children + trip.travelers.infants;
   };
@@ -60,7 +53,7 @@ export default function TripHeader({ trip }: TripHeaderProps) {
               <div className="flex items-center gap-2 text-text-secondary">
                 <span>💰</span>
                 <span className="text-sm">
-                  {new Intl.NumberFormat('en-US', { style: 'currency', currency: trip.budget.currency, maximumFractionDigits: 0 }).format(trip.budget.total)} Total Budget
+                  {formatCurrency(trip.budget.total, trip.budget.currency)} Total Budget
                 </span>
               </div>
             </div>
@@ -103,7 +96,7 @@ function BudgetCard({ label, value, currency }: { label: string; value: number; 
     <Card className="p-5 flex flex-col gap-2 rounded-xl">
       <h3 className="text-text-secondary text-[9px] font-bold tracking-[2px]">{label}</h3>
       <p className="text-white text-[28px] font-bold tracking-[-1px]">
-        {new Intl.NumberFormat('en-US', { style: 'currency', currency: currency, maximumFractionDigits: 0 }).format(value)}
+        {formatCurrency(value, currency)}
       </p>
     </Card>
   );

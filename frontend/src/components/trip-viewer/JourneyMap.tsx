@@ -2,6 +2,7 @@ import { Container } from "@/components/ui/Container";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Card } from "@/components/ui/Card";
 import { Trip } from "@/types/trip";
+import { getFlag } from "@/utils/countryFlag";
 
 interface JourneyMapProps {
   trip: Trip;
@@ -25,7 +26,7 @@ export default function JourneyMap({ trip }: JourneyMapProps) {
                 <div className="w-4 h-4 rounded-full bg-accent border-[3px] border-bg-card relative z-10 shadow-[0_0_15px_rgba(79,110,247,0.5)]"></div>
                 
                 <div className="bg-bg-surface border border-border-soft rounded-xl p-3 flex flex-col items-center gap-1 min-w-[120px]">
-                  <span className="text-2xl">{dest.countryCode === 'FR' ? '🇫🇷' : dest.countryCode === 'IT' ? '🇮🇹' : '🇪🇸'}</span>
+                  <span className="text-2xl">{getFlag(dest.countryCode)}</span>
                   <span className="text-white font-bold">{dest.city}</span>
                   <span className="text-text-secondary text-xs text-center">{dest.nightsStaying} Nights</span>
                 </div>

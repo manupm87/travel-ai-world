@@ -803,7 +803,7 @@
       "arrival": "2026-05-10T08:45:00+02:00",
       "departureLocal": "6:30 AM",
       "arrivalLocal": "8:45 AM",
-      "duration": "2h 15m",
+      "duration": 135,
       "cost": 120,
       "provider": "Air France",
       "confirmationNumber": "AF4521MAD"
@@ -820,7 +820,7 @@
       "arrival": "2026-05-15T11:30:00+02:00",
       "departureLocal": "9:15 AM",
       "arrivalLocal": "11:30 AM",
-      "duration": "2h 15m",
+      "duration": 135,
       "cost": 180,
       "provider": "Alitalia",
       "confirmationNumber": "AL3421CDG"
@@ -837,7 +837,7 @@
       "arrival": "2026-05-20T18:30:00+02:00",
       "departureLocal": "8:00 AM",
       "arrivalLocal": "6:30 PM",
-      "duration": "10h 30m",
+      "duration": 630,
       "cost": 280,
       "provider": "Renfe-SNCF",
       "confirmationNumber": "RN892045"
@@ -854,7 +854,7 @@
       "arrival": "2026-05-20T19:15:00+02:00",
       "departureLocal": "7:00 PM",
       "arrivalLocal": "7:15 PM",
-      "duration": "15m",
+      "duration": 15,
       "cost": 2.5,
       "provider": "TMB Metro",
       "ticketType": "T-10 Multi-trip"
@@ -885,7 +885,7 @@
       "arrival": "2026-05-24T15:15:00+02:00",
       "departureLocal": "2:00 PM",
       "arrivalLocal": "3:15 PM",
-      "duration": "1h 15m",
+      "duration": 75,
       "cost": 89,
       "provider": "Vueling",
       "confirmationNumber": "VY8234BCN"
