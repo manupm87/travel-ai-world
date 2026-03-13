@@ -8,8 +8,8 @@ export default function Footer() {
   const f = t.footer;
 
   return (
-    <footer className="bg-[#070710] px-8 lg:px-16 pt-16 pb-10">
-      <div className="max-w-[1440px] mx-auto flex flex-col gap-12">
+    <footer className="bg-[#070710] pt-16 pb-10">
+      <div className="max-w-[1440px] w-full mx-auto px-8 lg:px-16 flex flex-col gap-12">
         {/* Top */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
           {/* Brand */}

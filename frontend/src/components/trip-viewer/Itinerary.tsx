@@ -24,44 +24,46 @@ export default function Itinerary({ trip }: ItineraryProps) {
   });
 
   return (
-    <section className="w-full bg-[#0E0E1A] px-8 md:px-16 lg:px-[120px] py-[60px] flex flex-col gap-8">
-      {/* Destination Filters */}
-      <div className="flex flex-wrap gap-3 mb-4">
-        <button 
-          onClick={() => setFilter("all")}
-          className={`px-5 py-2.5 rounded-full text-[13px] font-semibold transition-colors ${
-            filter === "all" ? "bg-[#4F6EF7] text-white" : "bg-white/10 text-white/90 hover:bg-white/20"
-          }`}
-        >
-          All Days
-        </button>
-        {trip.destinations.map(dest => (
-          <button
-            key={dest.id}
-            onClick={() => setFilter(dest.id)}
-            className={`px-5 py-2.5 rounded-full text-[13px] font-semibold transition-colors flex items-center gap-2 ${
-              filter === dest.id ? "bg-[#4F6EF7] text-white" : "bg-white/10 text-white/90 hover:bg-white/20"
+    <section className="w-full bg-[#0E0E1A] py-[60px]">
+      <div className="max-w-[1440px] w-full mx-auto px-8 lg:px-16 flex flex-col gap-8">
+        {/* Destination Filters */}
+        <div className="flex flex-wrap gap-3 mb-4">
+          <button 
+            onClick={() => setFilter("all")}
+            className={`px-5 py-2.5 rounded-full text-[13px] font-semibold transition-colors ${
+              filter === "all" ? "bg-[#4F6EF7] text-white" : "bg-white/10 text-white/90 hover:bg-white/20"
             }`}
           >
-            <span className="font-normal">{getDestinationFlag(dest.id)}</span>
-            <span>{dest.city}</span>
+            All Days
           </button>
-        ))}
-      </div>
+          {trip.destinations.map(dest => (
+            <button
+              key={dest.id}
+              onClick={() => setFilter(dest.id)}
+              className={`px-5 py-2.5 rounded-full text-[13px] font-semibold transition-colors flex items-center gap-2 ${
+                filter === dest.id ? "bg-[#4F6EF7] text-white" : "bg-white/10 text-white/90 hover:bg-white/20"
+              }`}
+            >
+              <span className="font-normal">{getDestinationFlag(dest.id)}</span>
+              <span>{dest.city}</span>
+            </button>
+          ))}
+        </div>
 
-      <div className="flex flex-col gap-3">
-        <h2 className="text-[#4F6EF7] text-[11px] font-bold tracking-[3px] uppercase">
-          Your Itinerary
-        </h2>
-        <h3 className="text-white text-[42px] font-bold tracking-[-1px] leading-[1.1]">
-          Your {trip.dates.durationDays}-Day Journey
-        </h3>
-      </div>
+        <div className="flex flex-col gap-3">
+          <h2 className="text-[#4F6EF7] text-[11px] font-bold tracking-[3px] uppercase">
+            Your Itinerary
+          </h2>
+          <h3 className="text-white text-[42px] font-bold tracking-[-1px] leading-[1.1]">
+            Your {trip.dates.durationDays}-Day Journey
+          </h3>
+        </div>
 
-      <div className="flex flex-col gap-4 mt-4">
-        {filteredItinerary.map(day => (
-          <DayCard key={day.dayNumber} day={day} currency={trip.budget.currency} />
-        ))}
+        <div className="flex flex-col gap-4 mt-4">
+          {filteredItinerary.map(day => (
+            <DayCard key={day.dayNumber} day={day} currency={trip.budget.currency} />
+          ))}
+        </div>
       </div>
     </section>
   );

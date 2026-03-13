@@ -10,7 +10,7 @@ export default function HeroSection() {
 
   return (
     <section className="relative min-h-screen flex flex-col bg-[#0A0A12] pt-[72px]">
-      <div className="max-w-[1440px] mx-auto px-8 lg:px-16 pt-20 pb-16 flex flex-col gap-10">
+      <div className="max-w-[1440px] w-full mx-auto px-8 lg:px-16 pt-20 pb-16 flex flex-col gap-10">
         {/* Badge */}
         <div className="flex items-center gap-2 w-fit px-4 py-2 rounded-full bg-[#4F6EF720] border border-[#4F6EF730]">
           <span className="w-1.5 h-1.5 rounded-full bg-[#4F6EF7] inline-block" />

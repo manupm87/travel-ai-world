@@ -7,8 +7,8 @@ export default function FeaturesSection() {
   const f = t.features;
 
   return (
-    <section id="features" className="bg-[#0E0E1A] py-24 px-8 lg:px-16">
-      <div className="max-w-[1440px] mx-auto flex flex-col gap-16">
+    <section id="features" className="bg-[#0E0E1A] py-24">
+      <div className="max-w-[1440px] w-full mx-auto px-8 lg:px-16 flex flex-col gap-16">
         <div className="flex flex-col gap-4">
           <p className="text-[#4F6EF7] text-[11px] font-bold tracking-[3px] uppercase">
             {f.label}

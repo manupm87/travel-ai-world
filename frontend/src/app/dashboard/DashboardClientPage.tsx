@@ -28,10 +28,10 @@ export default function DashboardClientPage() {
         
         {/* Your Next Adventure (Planned) */}
         {plannedTrips.length > 0 && (
-          <div className="w-full bg-[#0E0E1A] py-20 px-8 lg:px-[120px]">
-            <section className="max-w-[1440px] mx-auto flex flex-col gap-8">
+          <div className="w-full bg-[#0E0E1A] py-20">
+            <section className="max-w-[1440px] w-full mx-auto px-8 lg:px-16 flex flex-col gap-8">
               <h2 className="text-2xl font-bold text-white">{d.sections.planned}</h2>
-              <div className="flex gap-8 overflow-x-auto pb-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-4">
                 {plannedTrips.map(trip => <TripCard key={trip.id} trip={trip} />)}
               </div>
             </section>
@@ -40,10 +40,10 @@ export default function DashboardClientPage() {
 
         {/* In the Works (Planning) */}
         {planningTrips.length > 0 && (
-          <div className="w-full bg-transparent py-20 px-8 lg:px-[120px]">
-            <section className="max-w-[1440px] mx-auto flex flex-col gap-8">
+          <div className="w-full bg-transparent py-20">
+            <section className="max-w-[1440px] w-full mx-auto px-8 lg:px-16 flex flex-col gap-8">
               <h2 className="text-2xl font-bold text-white">{d.sections.planning}</h2>
-              <div className="flex gap-8 overflow-x-auto pb-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-4">
                 {planningTrips.map(trip => <TripCard key={trip.id} trip={trip} />)}
               </div>
             </section>
@@ -52,10 +52,10 @@ export default function DashboardClientPage() {
 
         {/* Past Journeys (Finished) */}
         {finishedTrips.length > 0 && (
-          <div className="w-full bg-[#0E0E1A] py-20 px-8 lg:px-[120px]">
-            <section className="max-w-[1440px] mx-auto flex flex-col gap-8">
+          <div className="w-full bg-[#0E0E1A] py-20">
+            <section className="max-w-[1440px] w-full mx-auto px-8 lg:px-16 flex flex-col gap-8">
               <h2 className="text-2xl font-bold text-white">{d.sections.finished}</h2>
-              <div className="flex gap-8 overflow-x-auto pb-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-4">
                 {finishedTrips.map(trip => <TripCard key={trip.id} trip={trip} />)}
               </div>
             </section>

@@ -35,7 +35,7 @@ export default function TripCard({ trip }: TripCardProps) {
   };
 
   return (
-    <Link href={`/trip/${trip.id}`} className="block group w-[400px]">
+    <Link href={`/trip/${trip.id}`} className="block group w-full max-w-[400px] md:max-w-none">
       <div className="flex flex-col rounded-2xl bg-[#1A1A24] border border-[#2A2A35] overflow-hidden transition-all duration-300 group-hover:border-[#4F6EF7] group-hover:-translate-y-1">
         {/* Cover Image Container */}
         <div className="relative w-full h-[200px] bg-[#2A2A35] overflow-hidden">

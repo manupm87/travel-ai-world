@@ -7,8 +7,8 @@ export default function SocialProof() {
   const s = t.socialProof;
 
   return (
-    <section id="testimonials" className="bg-[#0A0A12] py-24 px-8 lg:px-16">
-      <div className="max-w-[1440px] mx-auto flex flex-col gap-16">
+    <section id="testimonials" className="bg-[#0A0A12] py-24">
+      <div className="max-w-[1440px] w-full mx-auto px-8 lg:px-16 flex flex-col gap-16">
         <p className="text-[#4F6EF7] text-[11px] font-bold tracking-[3px] uppercase">
           {s.label}
         </p>

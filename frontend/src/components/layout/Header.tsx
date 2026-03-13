@@ -29,7 +29,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
           : "bg-transparent"
       }`}
     >
-      <div className="max-w-[1440px] mx-auto px-8 lg:px-16 h-[72px] flex items-center gap-6">
+      <div className="max-w-[1440px] w-full mx-auto px-8 lg:px-16 h-[72px] flex items-center gap-6">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 flex-shrink-0">
           <div className="w-9 h-9 rounded-lg bg-[#4F6EF7] flex items-center justify-center text-lg">

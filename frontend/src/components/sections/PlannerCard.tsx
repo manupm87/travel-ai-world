@@ -33,8 +33,8 @@ export default function PlannerCard({ transparent = false }: PlannerCardProps) {
   };
 
   return (
-    <section id="planner" className={`${transparent ? "bg-transparent py-12" : "bg-[#0E0E1A] py-24"} px-8 lg:px-16`}>
-      <div className="max-w-[1440px] mx-auto flex flex-col gap-10">
+    <section id="planner" className={`${transparent ? "bg-transparent py-12" : "bg-[#0E0E1A] py-24"}`}>
+      <div className="max-w-[1440px] w-full mx-auto px-8 lg:px-16 flex flex-col gap-10">
         <div className="flex flex-col gap-4">
           <p className="text-[#4F6EF7] text-[11px] font-bold tracking-[3px] uppercase">
             {p.label}

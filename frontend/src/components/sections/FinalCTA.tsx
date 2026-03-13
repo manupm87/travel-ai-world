@@ -9,19 +9,16 @@ export default function FinalCTA() {
   const c = t.finalCta;
 
   return (
-    <section className="bg-[#4F6EF7] py-24 px-8 lg:px-16 relative overflow-hidden">
-      <div className="absolute inset-0">
-        <Image
-          src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1440&q=80"
-          alt="Beautiful tropical beach at sunset"
-          fill
-          className="object-cover opacity-20"
-          sizes="100vw"
-        />
+    <section className="relative py-24 overflow-hidden">
+      {/* Background circles */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[1440px] h-full overflow-hidden pointer-events-none">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#4F6EF7]/20 rounded-full blur-[120px]" />
+        <div className="absolute top-0 left-1/4 w-[400px] h-[400px] bg-[#3B5BDB]/20 rounded-full blur-[100px]" />
+        <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-[#8888AA]/10 rounded-full blur-[100px]" />
         <div className="absolute inset-0 bg-[#4F6EF7]/80" />
       </div>
 
-      <div className="relative max-w-[1440px] mx-auto flex flex-col gap-8">
+      <div className="relative max-w-[1440px] w-full mx-auto px-8 lg:px-16 flex flex-col gap-8">
         <h2 className="text-5xl xl:text-[68px] font-bold text-white tracking-[-2px] leading-[1.0] max-w-3xl">
           {c.title}
         </h2>
