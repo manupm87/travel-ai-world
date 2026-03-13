@@ -16,9 +16,9 @@ export default function DashboardClientPage({ initialTrips }: DashboardClientPag
 
   const trips = initialTrips;
 
-  const planningTrips = trips.filter((t) => t.status === "planning");
-  const plannedTrips = trips.filter((t) => t.status === "planned");
-  const finishedTrips = trips.filter((t) => t.status === "finished");
+  const planningTrips = trips.filter((trip) => trip.status === "planning");
+  const plannedTrips = trips.filter((trip) => trip.status === "planned");
+  const finishedTrips = trips.filter((trip) => trip.status === "finished");
 
   return (
     <div className="min-h-screen bg-bg-primary flex flex-col items-center">

@@ -45,13 +45,15 @@ export function DayCard({ day, currency }: DayCardProps) {
           }
         }}
       >
-        <div className={`${primaryColor} w-12 h-12 rounded-full flex items-center justify-center shrink-0`}>
+        <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${primaryColor}`}>
           <span className="text-white text-xl font-bold">{day.dayNumber}</span>
         </div>
         
         <div className="flex-1 flex flex-col gap-1">
           {badgeText && (
-            <div className={`text-[9px] font-bold tracking-[1.5px] px-2.5 py-1 rounded-full w-fit mb-1 ${primaryColor}/20`}>
+            <div className={`text-[9px] font-bold tracking-[1.5px] px-2.5 py-1 rounded-full w-fit mb-1 ${
+              isFreeDay ? "bg-purple/20" : hasTravel ? "bg-gold/20" : "bg-accent/20"
+            }`}>
               <span className={textColor}>{badgeText}</span>
             </div>
           )}

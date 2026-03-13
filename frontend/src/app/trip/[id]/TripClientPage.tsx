@@ -24,7 +24,7 @@ export default function TripClientPage({ trip }: TripClientPageProps) {
         <DestinationTimeline destinations={trip.destinations} />
         <JourneyMap trip={trip} />
         <TripOverview trip={trip} />
-        <AIInsights trip={trip} />
+        <AIInsights />
         <Itinerary trip={trip} />
       </main>
     </div>

@@ -412,9 +412,11 @@ src/components/trip-viewer/trip-header/
 
 ---
 
-### R7 · Fix Code Quality Issues
+### R7 · Fix Code Quality Issues ✅
  
- **Status:** Pending ⚪  
+ **Status:** Completed 🟢  
+
+ Several code quality issues have been addressed, including resolving variable shadowing in the dashboard, removing unused props in AI insights, normalizing design tokens in `globals.css`, and improving the reliability of dynamic class strings in itinerary components.
 
 **Priority:** 🟢 P3  
 **Effort:** Low

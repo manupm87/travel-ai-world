@@ -1,15 +1,10 @@
 import React from "react";
-import { Trip } from "@/types/trip";
 import { Container } from "@/components/ui/Container";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Card } from "@/components/ui/Card";
 import { useLanguage } from "@/context/LanguageContext";
 
-interface AIInsightsProps {
-  trip: Trip;
-}
-
-export default function AIInsights({}: AIInsightsProps) {
+export default function AIInsights() {
   const { t } = useLanguage();
 
   return (
