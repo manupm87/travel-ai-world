@@ -382,9 +382,11 @@ common: {
 
 ---
 
-### R6 · Split Large Component Files
+### R6 · Split Large Component Files ✅
  
- **Status:** Pending ⚪  
+ **Status:** Completed 🟢  
+
+ Large monolithic components (`Itinerary`, `TripHeader`) have been split into smaller, modular sub-components and moved to dedicated directories (`src/components/trip-viewer/itinerary/` and `src/components/trip-viewer/trip-header/`). This improves maintainability, readability, and organization of the codebase.
 
 **Priority:** 🟢 P3  
 **Effort:** Low

@@ -2,13 +2,13 @@
 
 import { Trip } from "@/types/trip";
 
-import TripHeader from "@/components/trip-viewer/TripHeader";
+import TripHeader from "@/components/trip-viewer/trip-header";
 import Header from "@/components/layout/Header";
 import DestinationTimeline from "@/components/trip-viewer/DestinationTimeline";
 import JourneyMap from "@/components/trip-viewer/JourneyMap";
 import TripOverview from "@/components/trip-viewer/TripOverview";
 import AIInsights from "@/components/trip-viewer/AIInsights";
-import Itinerary from "@/components/trip-viewer/Itinerary";
+import Itinerary from "@/components/trip-viewer/itinerary";
 
 interface TripClientPageProps {
   trip: Trip;

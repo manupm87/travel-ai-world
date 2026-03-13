@@ -2,9 +2,9 @@ import React from "react";
 import { Trip } from "@/types/trip";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { formatDate, formatCurrency } from "@/utils/format";
 import { useLanguage } from "@/context/LanguageContext";
+import { BudgetCard } from "./BudgetCard";
 
 interface TripHeaderProps {
   trip: Trip;
@@ -100,16 +100,5 @@ export default function TripHeader({ trip }: TripHeaderProps) {
         </div>
       </Container>
     </section>
-  );
-}
-
-function BudgetCard({ label, value, currency, language }: { label: string; value: number; currency: string; language: string }) {
-  return (
-    <Card className="p-5 flex flex-col gap-2 rounded-xl">
-      <h3 className="text-text-secondary text-[9px] font-bold tracking-[2px]">{label}</h3>
-      <p className="text-white text-[28px] font-bold tracking-[-1px]">
-        {formatCurrency(value, currency, language === "en" ? "en-US" : "es-ES")}
-      </p>
-    </Card>
   );
 }
