@@ -1,18 +1,20 @@
 "use client";
 
-import { useState } from "react";
-import tripsMock from "@/mocks/trips-list.json";
 import { TripSummary } from "@/types/trip-summary";
 import TripCard from "@/components/trip-viewer/TripCard";
 import Header from "@/components/layout/Header";
 import PlannerCard from "@/components/sections/PlannerCard";
 import { useLanguage } from "@/context/LanguageContext";
 
-export default function DashboardClientPage() {
+interface DashboardClientPageProps {
+  initialTrips: TripSummary[];
+}
+
+export default function DashboardClientPage({ initialTrips }: DashboardClientPageProps) {
   const { t } = useLanguage();
   const d = t.dashboard;
 
-  const [trips] = useState<TripSummary[]>(tripsMock as TripSummary[]);
+  const trips = initialTrips;
 
   const planningTrips = trips.filter((t) => t.status === "planning");
   const plannedTrips = trips.filter((t) => t.status === "planned");

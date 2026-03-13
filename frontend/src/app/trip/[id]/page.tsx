@@ -1,4 +1,6 @@
-// Server component — can export generateStaticParams.
+import { getAllTripIds, getTripById } from "@/services/trips";
+import { notFound } from "next/navigation";
+
 // All client-side work is delegated to TripClientPage.
 import TripClientPage from "./TripClientPage";
 
@@ -7,15 +9,22 @@ import TripClientPage from "./TripClientPage";
 // and let client-side JavaScript handle the actual ID at runtime."
 export const dynamicParams = false;
 
-export async function generateStaticParams() {
-  return [
-    { id: "trip_euro_2026" },
-    { id: "trip_japan_2026" },
-    { id: "trip_ny_2025" },
-    { id: "trip_prague_vienna_budapest_2024" }
-  ]; 
+interface PageProps {
+  params: Promise<{ id: string }>;
 }
 
-export default function TripPage() {
-  return <TripClientPage />;
+export async function generateStaticParams() {
+  const ids = getAllTripIds();
+  return ids.map((id) => ({ id }));
+}
+
+export default async function TripPage({ params }: PageProps) {
+  const { id } = await params;
+  const trip = await getTripById(id);
+  
+  if (!trip) {
+    notFound();
+  }
+
+  return <TripClientPage trip={trip} />;
 }

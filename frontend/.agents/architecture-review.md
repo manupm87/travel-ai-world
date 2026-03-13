@@ -220,9 +220,11 @@ Variants:
 
 ---
 
-### R3 · Create Data Service Layer
+### R3 · Create Data Service Layer ✅
  
- **Status:** Pending ⚪  
+ **Status:** Completed 🟢  
+
+ Centralized trip data fetching has been implemented in `src/services/trips.ts`. Consumers (Dashboard and Trip Detail pages) have been refactored to fetch data server-side and receive it as props, eliminating direct JSON imports and decoupling the UI from the data source.
 
 **Priority:** 🟠 P1  
 **Effort:** Medium
