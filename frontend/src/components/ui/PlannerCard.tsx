@@ -56,7 +56,7 @@ export default function PlannerCard({ transparent = false }: PlannerCardProps) {
       <div className="max-w-[1440px] w-full mx-auto px-8 lg:px-16 flex flex-col gap-10">
         <div className="flex flex-col gap-4">
           <SectionLabel>{p.label}</SectionLabel>
-          <h2 className="text-4xl lg:text-5xl font-bold text-white tracking-[-1px] leading-tight">
+          <h2 className="text-4xl lg:text-5xl font-medium text-white tracking-[-1px] leading-tight">
             {p.title}
           </h2>
         </div>
@@ -74,7 +74,7 @@ export default function PlannerCard({ transparent = false }: PlannerCardProps) {
               { key: "travelers", label: p.travelers, placeholder: p.travelersPlaceholder },
             ].map(({ key, label, placeholder }) => (
               <div key={key} className="flex flex-col gap-2.5">
-                <label className="text-[12px] font-bold text-text-secondary tracking-[0.1em] uppercase">
+                <label className="text-[12px] font-medium text-text-secondary tracking-[0.1em] uppercase">
                   {label}
                 </label>
                 <input
@@ -90,7 +90,7 @@ export default function PlannerCard({ transparent = false }: PlannerCardProps) {
 
           {/* Style pills */}
           <div className="flex flex-col gap-4">
-            <label className="text-[12px] font-bold text-text-secondary tracking-[0.1em] uppercase">
+            <label className="text-[12px] font-medium text-text-secondary tracking-[0.1em] uppercase">
               {p.travelStyle}
             </label>
             <div className="flex flex-wrap gap-3">
@@ -102,7 +102,7 @@ export default function PlannerCard({ transparent = false }: PlannerCardProps) {
                     type="button"
                     onClick={() => toggleStyle(label)}
                     aria-pressed={active}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-xl text-[13.5px] font-semibold transition-all duration-300 cursor-pointer ${
+                    className={`flex items-center gap-2 px-6 py-3 rounded-xl text-[13.5px] font-medium transition-all duration-300 cursor-pointer ${
                       active
                         ? "bg-accent text-white shadow-lg shadow-accent/40"
                         : "bg-white/5 border border-border-soft text-white/70 hover:bg-white/10 hover:text-white"
@@ -120,7 +120,7 @@ export default function PlannerCard({ transparent = false }: PlannerCardProps) {
           <button
             type="submit"
             disabled={isLoading || submitted}
-            className={`w-full h-16 bg-accent hover:bg-accent-hover text-white font-bold text-lg rounded-xl transition-all duration-300 shadow-lg shadow-accent/40 flex items-center justify-center gap-3 cursor-pointer disabled:cursor-not-allowed disabled:opacity-80 active:scale-[0.98] ${
+            className={`w-full h-16 bg-accent hover:bg-accent-hover text-white font-medium text-lg rounded-xl transition-all duration-300 shadow-lg shadow-accent/40 flex items-center justify-center gap-3 cursor-pointer disabled:cursor-not-allowed disabled:opacity-80 active:scale-[0.98] ${
               isLoading ? "animate-pulse" : ""
             }`}
           >

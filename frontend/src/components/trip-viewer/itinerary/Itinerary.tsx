@@ -45,7 +45,7 @@ export default function Itinerary({ trip }: ItineraryProps) {
             <button 
               onClick={() => setFilter("all")}
               aria-pressed={filter === "all"}
-              className={`px-5 py-2.5 rounded-full text-[13px] font-semibold transition-colors ${
+              className={`px-5 py-2.5 rounded-full text-[13px] font-medium transition-colors ${
                 filter === "all" ? "bg-accent text-white" : "bg-white/10 text-white/90 hover:bg-white/20"
               }`}
             >
@@ -56,7 +56,7 @@ export default function Itinerary({ trip }: ItineraryProps) {
                 key={dest.id}
                 onClick={() => setFilter(dest.id)}
                 aria-pressed={filter === dest.id}
-                className={`px-5 py-2.5 rounded-full text-[13px] font-semibold transition-colors flex items-center gap-2 ${
+                className={`px-5 py-2.5 rounded-full text-[13px] font-medium transition-colors flex items-center gap-2 ${
                   filter === dest.id ? "bg-accent text-white" : "bg-white/10 text-white/90 hover:bg-white/20"
                 }`}
               >
@@ -69,7 +69,7 @@ export default function Itinerary({ trip }: ItineraryProps) {
 
         <div className="flex flex-col gap-3">
           <SectionLabel>{t.tripViewer.yourItinerary}</SectionLabel>
-          <h3 className="text-white text-[42px] font-bold tracking-[-1px] leading-[1.1]">
+          <h3 className="text-white text-[42px] font-medium tracking-[-1px] leading-[1.1]">
             {t.tripViewer.journeyTitle.replace("{duration}", trip.dates.durationDays.toString())}
           </h3>
         </div>

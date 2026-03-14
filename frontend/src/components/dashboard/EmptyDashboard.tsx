@@ -21,7 +21,7 @@ export default function EmptyDashboard() {
         <PlaneTakeoff size={48} strokeWidth={1.5} />
       </div>
       
-      <h2 className="text-3xl font-bold text-white mb-4 tracking-tight">
+      <h2 className="text-3xl font-medium text-white mb-4 tracking-tight">
         {t.dashboard?.emptyTitle || "Your atlas is waiting"}
       </h2>
       

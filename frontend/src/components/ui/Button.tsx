@@ -30,7 +30,7 @@ export function Button({
   className = "", 
   ...props 
 }: ButtonProps) {
-  const baseStyles = "inline-flex items-center justify-center transition-all duration-200 cursor-pointer rounded-lg font-semibold";
+  const baseStyles = "inline-flex items-center justify-center transition-all duration-200 cursor-pointer rounded-lg font-medium";
   
   const sizes = {
     sm: "px-5 py-2 text-[13px]",
@@ -42,7 +42,7 @@ export function Button({
     primary: "bg-accent hover:bg-accent-hover text-white shadow-lg shadow-accent/40",
     secondary: "bg-white/5 hover:bg-white/10 border border-border-soft text-white/80",
     ghost: "bg-transparent hover:bg-white/5 text-text-secondary hover:text-white",
-    white: "bg-white hover:bg-white/90 text-accent font-bold shadow-xl"
+    white: "bg-white hover:bg-white/90 text-accent font-medium shadow-xl"
   };
 
   const combinedClasses = `${baseStyles} ${sizes[size]} ${variants[variant]} ${className}`;

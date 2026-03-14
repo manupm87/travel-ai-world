@@ -23,13 +23,13 @@ export default function HeroSection() {
         {/* Badge */}
         <div className="flex items-center gap-2 w-fit px-4 py-2 rounded-full bg-accent-soft border border-accent-border">
           <span className="w-1.5 h-1.5 rounded-full bg-accent inline-block" />
-          <span className="text-accent text-xs font-semibold tracking-[1px]">
+          <span className="text-accent text-xs font-medium tracking-[2px] uppercase">
             {h.badge}
           </span>
         </div>
 
         {/* Headline */}
-        <h1 className="text-4xl md:text-6xl lg:text-[88px] font-bold text-white leading-[1.1] md:leading-[1.0] tracking-[-1px] md:tracking-[-2px] max-w-4xl whitespace-pre-line">
+        <h1 className="text-4xl md:text-6xl lg:text-[88px] font-medium text-white leading-[1.1] md:leading-[1.0] tracking-[-0.03em] max-w-4xl whitespace-pre-line">
           {h.title}
         </h1>
 

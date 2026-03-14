@@ -15,7 +15,7 @@ export default function DestinationTimeline({ destinations }: DestinationTimelin
   return (
     <section className="w-full bg-bg-secondary pb-10">
       <Container className="flex flex-col gap-5">
-        <h2 className="text-accent text-[10px] font-bold tracking-[2.5px] uppercase">
+        <h2 className="text-accent text-[10px] font-medium tracking-[2.5px] uppercase">
           {t.tripViewer.journeyMap}
         </h2>
         
@@ -28,7 +28,7 @@ export default function DestinationTimeline({ destinations }: DestinationTimelin
               }`}
             >
               <div className="flex justify-between items-start">
-                <h3 className="text-white text-xl font-bold">{dest.city}</h3>
+                <h3 className="text-white text-xl font-medium">{dest.city}</h3>
                 <span role="img" aria-label={dest.city} className="text-2xl">
                   {getFlag(dest.countryCode)}
                 </span>

@@ -27,7 +27,7 @@ export default function FinalCTA() {
       </div>
 
       <Container className="relative flex flex-col gap-8">
-        <h2 className="text-5xl xl:text-[68px] font-bold text-white tracking-[-2px] leading-[1.0] max-w-3xl">
+        <h2 className="text-5xl xl:text-[68px] font-medium text-white tracking-[-2px] leading-[1.0] max-w-3xl">
           {c.title}
         </h2>
         <p className="text-xl text-white/80 leading-relaxed max-w-[600px]">
@@ -43,7 +43,7 @@ export default function FinalCTA() {
           </Button>
           <Button 
             variant="secondary"
-            className="text-white border-white/40 bg-white/10 hover:bg-white/20 font-semibold text-lg px-10 py-[18px] rounded-xl"
+            className="text-white border-white/40 bg-white/10 hover:bg-white/20 text-lg px-10 py-[18px] rounded-xl"
           >
             {c.ctaSecondary}
           </Button>

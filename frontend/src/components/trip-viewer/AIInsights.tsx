@@ -54,7 +54,7 @@ export default function AIInsights({ trip }: AIInsightsProps) {
           <Card highlight={true} className="flex items-start gap-4 border-none shadow-none">
             <div role="img" aria-label="Sun" className="text-4xl">🌤️</div>
             <div className="flex flex-col gap-2">
-              <h3 className="text-white text-base font-bold">{t.tripViewer.weatherForecast}</h3>
+              <h3 className="text-white text-base font-medium">{t.tripViewer.weatherForecast}</h3>
               <p className="text-text-secondary text-[13px] leading-relaxed">
                 {weatherText}
               </p>
@@ -65,7 +65,7 @@ export default function AIInsights({ trip }: AIInsightsProps) {
           <Card className="flex items-start gap-4 h-full">
             <div role="img" aria-label="Lightbulb" className="text-4xl">💡</div>
             <div className="flex flex-col gap-2 w-full">
-              <h3 className="text-white text-base font-bold">{t.tripViewer.localTips}</h3>
+              <h3 className="text-white text-base font-medium">{t.tripViewer.localTips}</h3>
               {renderTips()}
             </div>
           </Card>

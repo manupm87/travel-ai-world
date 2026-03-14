@@ -49,7 +49,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
             <div className="w-8 h-8 md:w-9 md:h-9 rounded-lg bg-accent flex items-center justify-center text-lg">
               ✈
             </div>
-            <span className="text-white font-bold text-xs md:text-sm lg:text-base tracking-[2px] uppercase whitespace-nowrap">
+            <span className="text-white font-medium text-xs md:text-sm lg:text-base tracking-[2px] uppercase whitespace-nowrap">
               Travel AI World
             </span>
           </Link>
@@ -79,7 +79,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
                 <button
                   key={lang}
                   onClick={() => setLanguage(lang)}
-                  className={`relative flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[11px] font-bold transition-all duration-300 cursor-pointer overflow-hidden group ${
+                  className={`relative flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-300 cursor-pointer overflow-hidden group ${
                     language === lang
                       ? "text-white active-lang"
                       : "text-text-secondary hover:text-white"
@@ -97,7 +97,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
             {/* Dashboard / Home Link */}
             <Link
               href={variant === "landing" ? "/dashboard" : "/"}
-              className="text-text-secondary text-sm hover:text-white font-semibold transition-colors nav-link"
+              className="text-text-secondary text-sm hover:text-white font-medium transition-colors nav-link"
             >
               {variant === "landing" ? t.nav.myDashboard : t.nav.home}
             </Link>
@@ -116,7 +116,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
             {/* Mobile CTA (Compact) */}
             <Link
               href={variant === "dashboard" ? "/dashboard#planner" : "#planner"}
-              className="bg-accent hover:bg-accent-hover transition-colors text-white text-[10px] font-bold px-3 py-1.5 rounded-md uppercase tracking-wider"
+              className="bg-accent hover:bg-accent-hover transition-colors text-white text-[10px] font-medium px-3 py-1.5 rounded-md uppercase tracking-wider"
             >
               {t.nav.planMyTrip}
             </Link>
@@ -146,7 +146,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
               <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center text-lg">
                 ✈
               </div>
-              <span className="text-white font-bold text-xs tracking-[2px] uppercase">
+              <span className="text-white font-medium text-xs tracking-[2px] uppercase">
                 Travel AI World
               </span>
             </div>
@@ -168,21 +168,21 @@ export default function Header({ variant = "landing" }: HeaderProps) {
                 <a
                   href="#how-it-works"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-2xl font-bold text-white hover:text-accent transition-colors"
+                  className="text-2xl font-medium text-white hover:text-accent transition-colors"
                 >
                   {t.nav.howItWorks}
                 </a>
                 <a
                   href="#features"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-2xl font-bold text-white hover:text-accent transition-colors"
+                  className="text-2xl font-medium text-white hover:text-accent transition-colors"
                 >
                   {t.nav.features}
                 </a>
                 <a
                   href="#testimonials"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-2xl font-bold text-white hover:text-accent transition-colors"
+                  className="text-2xl font-medium text-white hover:text-accent transition-colors"
                 >
                   {t.nav.reviews}
                 </a>
@@ -191,7 +191,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
             <Link
               href={variant === "landing" ? "/dashboard" : "/"}
               onClick={() => setMobileMenuOpen(false)}
-              className="text-2xl font-bold text-white hover:text-accent transition-colors"
+              className="text-2xl font-medium text-white hover:text-accent transition-colors"
             >
               {variant === "landing" ? t.nav.myDashboard : t.nav.home}
             </Link>
@@ -199,7 +199,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
 
           {/* Mobile Language Switcher (Pill style) */}
           <div className="mt-auto pt-8 border-t border-border">
-            <p className="text-xs text-text-secondary uppercase tracking-widest font-semibold mb-4">
+            <p className="text-xs text-text-secondary uppercase tracking-widest font-medium mb-4">
               Select Language
             </p>
             <div className="flex items-center gap-2 bg-white/5 border border-border-soft rounded-2xl p-1.5 w-fit relative overflow-hidden">
@@ -207,7 +207,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
                 <button
                   key={lang}
                   onClick={() => setLanguage(lang)}
-                  className={`relative flex items-center gap-2 px-6 py-2.5 rounded-xl text-[13px] font-bold transition-all duration-500 cursor-pointer overflow-hidden group ${
+                  className={`relative flex items-center gap-2 px-6 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-500 cursor-pointer overflow-hidden group ${
                     language === lang
                       ? "text-white"
                       : "text-text-secondary hover:text-white"

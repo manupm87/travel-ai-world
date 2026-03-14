@@ -62,16 +62,16 @@ export default function TripCard({ trip }: TripCardProps) {
         {/* Content Container */}
         <div className="flex flex-col p-6 gap-4">
           <div className="flex items-center justify-between">
-            <div className={`px-3 py-1 rounded-full text-xs font-bold ${config.bgColor} ${config.textColor}`}>
+            <div className={`px-3 py-1 rounded-full text-xs font-medium ${config.bgColor} ${config.textColor}`}>
               {config.label}
             </div>
-            <div className="text-xs font-bold text-text-secondary">
+            <div className="text-xs font-medium text-text-secondary">
               {formatDateRange(trip.startDate, trip.endDate)}
             </div>
           </div>
 
           <div className="flex flex-col gap-1">
-            <h3 className="text-2xl font-bold text-white leading-tight">
+            <h3 className="text-2xl font-medium text-white leading-tight">
               {trip.title}
             </h3>
             <p className="text-base text-text-secondary">

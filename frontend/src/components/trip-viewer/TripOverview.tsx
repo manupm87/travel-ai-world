@@ -33,14 +33,14 @@ export default function TripOverview({ trip }: TripOverviewProps) {
           <Card className="flex flex-col gap-4">
             <div className="flex items-center gap-3 pb-3 border-b border-border-soft">
               <span role="img" aria-label="Hotel" className="text-2xl">🏨</span>
-              <h3 className="text-white text-lg font-bold">{t.tripViewer.accommodations}</h3>
+              <h3 className="text-white text-lg font-medium">{t.tripViewer.accommodations}</h3>
             </div>
             
             <div className="flex flex-col gap-4">
               {trip.accommodation.map(acc => (
                 <div key={acc.id} className="flex flex-col gap-1">
                   <div className="flex justify-between items-start">
-                    <span className="text-white font-semibold">{acc.name}</span>
+                    <span className="text-white font-medium">{acc.name}</span>
                     <span className="text-white/80 text-sm">{acc.rating} ★</span>
                   </div>
                   <span className="text-text-secondary text-sm">{acc.city}, {acc.countryCode}</span>
@@ -56,14 +56,14 @@ export default function TripOverview({ trip }: TripOverviewProps) {
           <Card className="flex flex-col gap-4">
             <div className="flex items-center gap-3 pb-3 border-b border-border-soft">
               <span role="img" aria-label="Plane" className="text-2xl">✈️</span>
-              <h3 className="text-white text-lg font-bold">{t.tripViewer.transportation}</h3>
+              <h3 className="text-white text-lg font-medium">{t.tripViewer.transportation}</h3>
             </div>
             
             <div className="flex flex-col gap-4">
               {trip.transportation.map(trans => (
                 <div key={trans.id} className="flex flex-col gap-1">
                   <div className="flex justify-between items-start">
-                    <span className="text-white font-semibold">{trans.fromCity} → {trans.toCity}</span>
+                    <span className="text-white font-medium">{trans.fromCity} → {trans.toCity}</span>
                     <span className="bg-white/10 text-white/90 text-[10px] px-2 py-0.5 rounded capitalize">{trans.type}</span>
                   </div>
                   <span className="text-text-secondary text-sm">{trans.provider} {trans.flightNumber && `• ${trans.flightNumber}`}</span>

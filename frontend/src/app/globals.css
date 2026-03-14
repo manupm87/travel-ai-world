@@ -20,7 +20,14 @@
   --color-status-planning: #F78E4F;
   --color-status-finished: #8888AA;
   --color-purple: #8B5CF6;
-  --font-sans: "Inter", system-ui, sans-serif;
+  --font-sans: var(--font-sans), system-ui, sans-serif;
+  --font-heading: var(--font-heading), system-ui, sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  letter-spacing: -0.02em;
 }
 
 * {

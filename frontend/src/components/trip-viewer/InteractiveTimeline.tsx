@@ -36,7 +36,7 @@ export default function InteractiveTimeline({ trip }: InteractiveTimelineProps) 
         <div className="flex justify-between items-end">
           <div className="flex flex-col gap-4">
             <SectionLabel>{t.tripViewer.journeyMap}</SectionLabel>
-            <h2 className="text-white text-3xl font-bold tracking-tight">
+            <h2 className="text-white text-3xl font-medium tracking-tight">
               {t.tripViewer.routeOverview}
             </h2>
           </div>
@@ -73,7 +73,7 @@ export default function InteractiveTimeline({ trip }: InteractiveTimelineProps) 
                   </button>
                   
                   <div className="flex flex-col items-center gap-0.5">
-                    <span className={`font-bold transition-colors ${isActive ? "text-white" : "text-text-secondary"}`}>
+                    <span className={`font-medium transition-colors ${isActive ? "text-white" : "text-text-secondary"}`}>
                       {dest.city}
                     </span>
                     <span className="text-text-secondary text-[11px] uppercase tracking-wider font-medium">
@@ -99,7 +99,7 @@ export default function InteractiveTimeline({ trip }: InteractiveTimelineProps) 
                     <Navigation size={24} />
                   </div>
                   <div className="flex flex-col">
-                    <h4 className="text-white text-xl font-bold">{activeDestData.city}</h4>
+                    <h4 className="text-white text-xl font-medium">{activeDestData.city}</h4>
                     <p className="text-text-secondary text-sm">
                       {formatDate(activeDestData.arrivalDate, language === "en" ? "en-US" : "es-ES", { month: "long", day: "numeric" })} - {formatDate(activeDestData.departureDate, language === "en" ? "en-US" : "es-ES", { month: "long", day: "numeric" })}
                     </p>
@@ -108,15 +108,15 @@ export default function InteractiveTimeline({ trip }: InteractiveTimelineProps) 
                 
                 <div className="flex gap-3">
                   <div className="px-4 py-2 rounded-lg bg-white/5 border border-white/5 flex flex-col">
-                    <span className="text-[10px] text-text-secondary uppercase tracking-widest font-bold mb-1">{t.tripViewer.nights}</span>
-                    <span className="text-white font-bold">{activeDestData.nightsStaying}</span>
+                    <span className="text-[10px] text-text-secondary uppercase tracking-widest font-medium mb-1">{t.tripViewer.nights}</span>
+                    <span className="text-white font-medium">{activeDestData.nightsStaying}</span>
                   </div>
                   <button 
                     onClick={() => {
                       const el = document.getElementById(`dest-${activeDestData.id}`);
                       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }}
-                    className="px-6 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-bold transition-all shadow-lg shadow-accent/20 cursor-pointer"
+                    className="px-6 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-medium transition-all shadow-lg shadow-accent/20 cursor-pointer"
                   >
                     {t.tripViewer.viewItinerary || "View Itinerary"}
                   </button>
