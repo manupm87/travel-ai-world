@@ -8,8 +8,8 @@ Based on a thorough audit of the site by a frontend user experience expert, the 
 - [x] **Floating "Mouse" Icon Positioning:** The decorative mouse scroll icon uses absolute/fixed positioning incorrectly, causing it to overlap with section titles on mobile. **Task:** Fix its positioning to respect document flow, or remove it entirely to reduce visual noise.
 
 ## 2. Navigation & User Flow
-- [ ] **Recursive Dashboard Navigation:** The "My Dashboard" link remains visible in the navbar even when the user is already on the dashboard. **Task:** Change "My Dashboard" to "Home" or "Explore" when the user is on the `/dashboard` route.
-- [ ] **Anchor Link Smoothness & Offset:** Anchor links ("How It Works", "Features") sometimes land between sections. **Task:** Ensure `scroll-behavior: smooth` is applied globally and add `scroll-margin-top` to section IDs to account for the sticky navbar height.
+- [x] **Recursive Dashboard Navigation:** The "My Dashboard" link remains visible in the navbar even when the user is already on the dashboard. **Task:** Change "My Dashboard" to "Home" or "Explore" when the user is on the `/dashboard` route.
+- [x] **Anchor Link Smoothness & Offset:** Anchor links ("How It Works", "Features") sometimes land between sections. **Task:** Ensure `scroll-behavior: smooth` is applied globally and add `scroll-margin-top` to section IDs to account for the sticky navbar height.
 
 ## 3. Visual Design & Consistency
 - [ ] **Professional Iconography:** The "Features" section uses emojis (🧠, 📅, 💰), which looks unpolished and varies by OS. **Task:** Replace emojis with professional SVG icons from a library like Lucide-React or Heroicons.

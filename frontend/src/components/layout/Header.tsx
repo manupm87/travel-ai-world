@@ -79,15 +79,13 @@ export default function Header({ variant = "landing" }: HeaderProps) {
               ))}
             </div>
 
-            {/* Dashboard Link */}
-            {variant === "landing" && (
-              <Link
-                href="/dashboard"
-                className="text-text-secondary text-sm hover:text-white font-semibold transition-colors nav-link"
-              >
-                {t.nav.myDashboard}
-              </Link>
-            )}
+            {/* Dashboard / Home Link */}
+            <Link
+              href={variant === "landing" ? "/dashboard" : "/"}
+              className="text-text-secondary text-sm hover:text-white font-semibold transition-colors nav-link"
+            >
+              {variant === "landing" ? t.nav.myDashboard : t.nav.home}
+            </Link>
 
             {/* CTA */}
             <Link
@@ -180,11 +178,11 @@ export default function Header({ variant = "landing" }: HeaderProps) {
               </>
             )}
             <Link
-              href="/dashboard"
+              href={variant === "landing" ? "/dashboard" : "/"}
               onClick={() => setMobileMenuOpen(false)}
               className="text-2xl font-bold text-white hover:text-accent transition-colors"
             >
-              {t.nav.myDashboard}
+              {variant === "landing" ? t.nav.myDashboard : t.nav.home}
             </Link>
           </nav>
 

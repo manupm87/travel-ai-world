@@ -31,6 +31,10 @@ html {
   scroll-behavior: smooth;
 }
 
+section {
+  scroll-margin-top: 72px;
+}
+
 body {
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
