@@ -457,7 +457,9 @@ src/components/trip-viewer/trip-header/
 
 ### R9 · Accessibility Improvements
  
- **Status:** Pending ⚪  
+ **Status:** Completed 🟢  
+ 
+ All identified accessibility issues have been resolved. The `DayCard` header was refactored to use a semantic `<button>`, `aria-pressed` states were added to toggle filters in `PlannerCard` and `Itinerary`, and landmark and aria-label updates were verified from prior refactoring phases.
 
 **Priority:** 🟢 P3  
 **Effort:** Medium

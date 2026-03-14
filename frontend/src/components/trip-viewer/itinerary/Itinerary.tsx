@@ -33,6 +33,7 @@ export default function Itinerary({ trip }: ItineraryProps) {
         <div className="flex flex-wrap gap-3 mb-4">
           <button 
             onClick={() => setFilter("all")}
+            aria-pressed={filter === "all"}
             className={`px-5 py-2.5 rounded-full text-[13px] font-semibold transition-colors ${
               filter === "all" ? "bg-accent text-white" : "bg-white/10 text-white/90 hover:bg-white/20"
             }`}
@@ -43,6 +44,7 @@ export default function Itinerary({ trip }: ItineraryProps) {
             <button
               key={dest.id}
               onClick={() => setFilter(dest.id)}
+              aria-pressed={filter === dest.id}
               className={`px-5 py-2.5 rounded-full text-[13px] font-semibold transition-colors flex items-center gap-2 ${
                 filter === dest.id ? "bg-accent text-white" : "bg-white/10 text-white/90 hover:bg-white/20"
               }`}

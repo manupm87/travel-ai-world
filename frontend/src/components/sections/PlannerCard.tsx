@@ -84,6 +84,7 @@ export default function PlannerCard({ transparent = false }: PlannerCardProps) {
                     key={label}
                     type="button"
                     onClick={() => toggleStyle(label)}
+                    aria-pressed={active}
                     className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-[13px] font-semibold transition-all duration-200 cursor-pointer ${
                       active
                         ? "bg-accent text-white shadow-lg shadow-accent/40"

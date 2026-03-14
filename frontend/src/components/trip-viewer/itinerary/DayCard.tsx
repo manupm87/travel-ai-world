@@ -34,16 +34,10 @@ export function DayCard({ day, currency }: DayCardProps) {
   return (
     <Card className={`transition-all rounded-[20px] ${expanded ? "ring-1 ring-border-soft" : ""}`}>
       {/* Header */}
-      <div 
-        className="flex gap-4 cursor-pointer items-start" 
+      <button 
+        type="button"
+        className="w-full flex gap-4 cursor-pointer items-start text-left bg-transparent border-none p-0 outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-xl" 
         onClick={() => setExpanded(!expanded)}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            setExpanded(!expanded);
-          }
-        }}
       >
         <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${primaryColor}`}>
           <span className="text-white text-xl font-bold">{day.dayNumber}</span>
@@ -67,7 +61,7 @@ export function DayCard({ day, currency }: DayCardProps) {
         <div className="text-text-secondary text-xs pt-2">
           {expanded ? "▼" : "▶"}
         </div>
-      </div>
+      </button>
 
       {/* Expanded Content */}
       {expanded && (
