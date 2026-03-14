@@ -10,7 +10,7 @@ The project is split into two independent services:
 
 | Service | Stack | Status |
 |---|---|---|
-| **`frontend/`** | Next.js 15 · Tailwind CSS v4 · TypeScript | ✅ In development |
+| **`frontend/`** | Next.js 16 · Tailwind CSS v4 · TypeScript | ✅ In development |
 | **`backend/`** | FastAPI · Python · LLM integration | 🔜 Planned |
 
 ---
@@ -44,6 +44,15 @@ Open [http://localhost:3000](http://localhost:3000). See [`frontend/README.md`](
 The FastAPI backend will live in `backend/`. It will expose REST endpoints that the frontend calls to:
 - Generate itineraries via an LLM
 - Store and retrieve trip data
+
+---
+
+## Branding & Assets
+
+Travel AI World uses a custom branding system designed to feel professional and reliable:
+- **Logo:** A white airplane silhouette on a rounded indigo square (#4F6EF7).
+- **Custom Favicon:** A dedicated `icon.png` is used to provide a consistent brand identity in browser tabs.
+- **Iconography:** Professional SVG icons from [Lucide](https://lucide.dev/) are used throughout the application to enhance visual scanning and accessibility.
 
 ---
 
@@ -89,7 +98,9 @@ Done once per repository, nothing to repeat:
 
 - [x] Landing page (`/`)
 - [x] EN 🇬🇧 / ES 🇪🇸 i18n
-- [ ] AI trip planner form (`/plan`)
-- [ ] Trip itinerary viewer (`/trip/[id]`)
+- [x] AI trip planner form (`/plan`)
+- [x] Trip itinerary viewer (`/trip/[id]`)
 - [ ] FastAPI backend with LLM integration
 - [ ] User accounts & saved trips
+- [ ] PDF Export for itineraries
+- [ ] Dark mode toggle customization

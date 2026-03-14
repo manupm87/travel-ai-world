@@ -6,10 +6,11 @@ Next.js 15 (App Router) + Tailwind CSS v4 landing page for the Travel AI World p
 
 | Tool | Version | Purpose |
 |---|---|---|
-| [Next.js](https://nextjs.org/) | 16 (App Router) | Framework, routing, image optimization |
+| [Next.js](https://nextjs.org/) | 16.1.6 (App Router) | Framework, routing, image optimization |
 | [Tailwind CSS](https://tailwindcss.com/) | v4 | Styling via CSS custom properties |
 | [TypeScript](https://www.typescriptlang.org/) | 5 | Type safety |
 | [Inter](https://fonts.google.com/specimen/Inter) | via `next/font` | Typography |
+| [Lucide](https://lucide.dev/) | 0.577.0 | Professional SVG iconography |
 
 ---
 
@@ -31,32 +32,30 @@ src/
 │   ├── layout.tsx            # Root layout — wraps app with LanguageProvider
 │   ├── page.tsx              # Landing page — assembles all section components
 │   ├── globals.css           # Design tokens (colors, fonts) as CSS custom properties
+│   ├── dashboard/
+│   │   ├── page.tsx          # Dashboard — trip management
+│   │   └── DashboardClientPage.tsx # List of planned trips + empty states
 │   ├── plan/
-│   │   └── page.tsx          # /plan — stub (AI planner form, coming soon)
+│   │   └── page.tsx          # /plan — AI planner form
 │   └── trip/[id]/
 │       ├── page.tsx          # Server wrapper — exports generateStaticParams
-│       └── TripClientPage.tsx # Client component — reads ID via useParams() at runtime
+│       └── TripClientPage.tsx # Client component — interactive itinerary viewer
 │
 ├── components/
-│   ├── layout/
-│   │   ├── Header.tsx        # Sticky nav with logo + language switcher
-│   │   └── Footer.tsx        # Footer with link columns and copyright
-│   └── sections/
-│       ├── HeroSection.tsx   # Hero — headline, CTAs, hero image
-│       ├── PlannerCard.tsx   # AI planner form — inputs + travel style pills
-│       ├── HowItWorks.tsx    # 3-step explainer
-│       ├── FeaturesSection.tsx  # 6 feature cards
-│       ├── SocialProof.tsx   # Stats + testimonials
-│       └── FinalCTA.tsx      # Bottom call-to-action section
+│   ├── layout/               # Global components (Header, Footer)
+│   ├── sections/             # Landing page sections (Hero, Features, SocialProof, etc.)
+│   ├── trip-viewer/          # Trip-specific UI
+│   │   ├── trip-header/      # Trip titles, budget, actions
+│   │   ├── itinerary/        # DayCard, ActivityItem components
+│   │   ├── InteractiveTimeline.tsx # Consistently merged map and timeline
+│   │   └── EmptyDashboard.tsx # First-trip experience
+│   └── ui/                   # Shared UI primitives (Button, Card, Container, etc.)
 │
-├── context/
-│   └── LanguageContext.tsx   # Language state provider + useLanguage() hook
-│
-└── i18n/
-    ├── types.ts              # Translations interface (shared contract)
-    ├── en.ts                 # 🇬🇧 English strings
-    ├── es.ts                 # 🇪🇸 Spanish strings
-    └── index.ts              # Barrel — assembles locales map, re-exports types
+├── context/                  # Language state provider
+├── i18n/                     # Internationalization (EN, ES) locales
+├── services/                 # API service layer (Trips service)
+├── types/                    # Shared TypeScript interfaces
+└── utils/                    # Formatting, country flags, and core utilities
 ```
 
 ---
@@ -103,8 +102,9 @@ Defined in `globals.css` as CSS custom properties and consumed directly in Tailw
 | Route | Status | Description |
 |---|---|---|
 | `/` | ✅ Live | Full landing page |
-| `/plan` | 🔜 Stub | AI trip planner form (needs backend) |
-| `/trip/[id]` | 🔜 Stub | Generated itinerary viewer (needs backend) |
+| `/dashboard` | ✅ Live | Planned trips overview & status |
+| `/plan` | ✅ Live | AI trip planner (form submission) |
+| `/trip/[id]` | ✅ Live | Interactive itinerary viewer |
 
 ---
 
@@ -132,10 +132,31 @@ GitHub Pages serves `404.html` (a copy of `index.html`) for any unknown path, so
 
 ---
 
+## Testing
+
+The project uses a two-tier testing strategy to ensure reliability:
+
+### Unit & Component Testing
+Powered by **Vitest** and **React Testing Library**.
+```bash
+npm run test:unit
+```
+Focuses on utility functions (formatting, date logic) and individual React components.
+
+### End-to-End (E2E) Testing
+Powered by **Playwright**.
+```bash
+npm run test:e2e
+```
+Verifies complete user flows, like creating a trip and navigating the dashboard.
+
+---
+
 ## Connecting the Backend
 
-The backend will be a FastAPI service (see root `README.md`). When ready:
+The backend will be a FastAPI service (see root `README.md`). Currently:
 
-1. Add a `.env.local` with `NEXT_PUBLIC_API_URL=http://localhost:8000`
-2. Wire `PlannerCard.tsx`'s form submit to `POST /api/trips`
-3. Use the returned trip `id` to navigate to `/trip/[id]`
+1. `services/trips.ts` provides a data layer for the frontend.
+2. `PlannerCard.tsx` simulates the AI generation process with loading feedback.
+3. In production, `NEXT_PUBLIC_API_URL` will be used to fetch real itineraries.
+
