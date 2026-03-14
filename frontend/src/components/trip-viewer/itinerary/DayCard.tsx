@@ -65,14 +65,16 @@ export function DayCard({ day, currency }: DayCardProps) {
 
       {/* Expanded Content */}
       {expanded && (
-        <div className="pl-16 flex flex-col gap-6 mt-2 pb-2">
+        <div className="pl-6 md:pl-16 flex flex-col gap-4 mt-2 pb-2">
           <p className="text-white/80 text-sm leading-relaxed">{day.description}</p>
           
           {day.activities.length > 0 && (
             <div className="flex flex-col gap-3">
-              {day.activities.map(act => (
-                <ActivityItem key={act.id} activity={act} currency={currency} />
-              ))}
+              {[...day.activities]
+                .sort((a, b) => a.time.localeCompare(b.time))
+                .map(act => (
+                  <ActivityItem key={act.id} activity={act} currency={currency} />
+                ))}
             </div>
           )}
           

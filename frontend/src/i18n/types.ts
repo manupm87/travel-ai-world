@@ -54,6 +54,7 @@ export interface Translations {
     totalBudget: string;
     viewBookings: string;
     exportPdf: string;
+    viewItinerary: string;
     journeyMap: string;
     routeOverview: string;
     tripOverview: string;
@@ -149,5 +150,7 @@ export interface Translations {
       planning: string;
       finished: string;
     };
+    emptyTitle: string;
+    emptyDescription: string;
   };
 }

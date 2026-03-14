@@ -20,6 +20,7 @@ const en: Translations = {
     totalBudget: "Total Budget",
     viewBookings: "View Bookings",
     exportPdf: "Export PDF",
+    viewItinerary: "View Itinerary",
     journeyMap: "Journey Map",
     routeOverview: "Route Overview",
     tripOverview: "Trip Overview",
@@ -215,9 +216,11 @@ const en: Translations = {
     heroTitle: "Plan Your Next Adventure",
     sections: {
       planned: "Your Next Adventure",
-      planning: "In the Works",
-      finished: "Past Journeys",
+      planning: "In the works",
+      finished: "Past journeys",
     },
+    emptyTitle: "Your atlas is waiting",
+    emptyDescription: "You haven't planned any journeys yet. Start your next adventure with our AI planner.",
   },
 };
 

@@ -20,6 +20,7 @@ const es: Translations = {
     totalBudget: "Presupuesto Total",
     viewBookings: "Ver Reservas",
     exportPdf: "Exportar PDF",
+    viewItinerary: "Ver Itinerario",
     journeyMap: "Mapa de la Ruta",
     routeOverview: "Resumen de la Ruta",
     tripOverview: "Resumen del Viaje",
@@ -215,9 +216,11 @@ const es: Translations = {
     heroTitle: "Planifica Tu Próxima Aventura",
     sections: {
       planned: "Tu Próxima Aventura",
-      planning: "En Preparación",
-      finished: "Viajes Pasados",
+      planning: "En planificación",
+      finished: "Viajes pasados",
     },
+    emptyTitle: "Tu atlas está esperando",
+    emptyDescription: "Aún no has planificado ningún viaje. Comienza tu próxima aventura con nuestro planificador IA.",
   },
 };
 
