@@ -1,10 +1,10 @@
 "use client";
 
 import { TripSummary } from "@/types/trip-summary";
-import TripCard from "@/components/trip-viewer/TripCard";
-import EmptyDashboard from "@/components/trip-viewer/EmptyDashboard";
+import TripCard from "@/components/ui/TripCard";
+import EmptyDashboard from "@/components/dashboard/EmptyDashboard";
 import Header from "@/components/layout/Header";
-import PlannerCard from "@/components/sections/PlannerCard";
+import PlannerCard from "@/components/ui/PlannerCard";
 import { useLanguage } from "@/context/LanguageContext";
 
 interface DashboardClientPageProps {

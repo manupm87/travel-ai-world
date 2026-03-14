@@ -28,34 +28,15 @@ npm run build    # production build check
 
 ```
 src/
-├── app/
-│   ├── layout.tsx            # Root layout — wraps app with LanguageProvider
-│   ├── page.tsx              # Landing page — assembles all section components
-│   ├── globals.css           # Design tokens (colors, fonts) as CSS custom properties
-│   ├── dashboard/
-│   │   ├── page.tsx          # Dashboard — trip management
-│   │   └── DashboardClientPage.tsx # List of planned trips + empty states
-│   ├── plan/
-│   │   └── page.tsx          # /plan — AI planner form
-│   └── trip/[id]/
-│       ├── page.tsx          # Server wrapper — exports generateStaticParams
-│       └── TripClientPage.tsx # Client component — interactive itinerary viewer
-│
-├── components/
-│   ├── layout/               # Global components (Header, Footer)
-│   ├── sections/             # Landing page sections (Hero, Features, SocialProof, etc.)
-│   ├── trip-viewer/          # Trip-specific UI
-│   │   ├── trip-header/      # Trip titles, budget, actions
-│   │   ├── itinerary/        # DayCard, ActivityItem components
-│   │   ├── InteractiveTimeline.tsx # Consistently merged map and timeline
-│   │   └── EmptyDashboard.tsx # First-trip experience
-│   └── ui/                   # Shared UI primitives (Button, Card, Container, etc.)
-│
-├── context/                  # Language state provider
-├── i18n/                     # Internationalization (EN, ES) locales
-├── services/                 # API service layer (Trips service)
-├── types/                    # Shared TypeScript interfaces
-└── utils/                    # Formatting, country flags, and core utilities
+├── app/                      # Next.js App Router (pages, layouts, routing) -> [README](src/app/README.md)
+├── components/               # Reusable React UI building blocks -> [README](src/components/README.md)
+├── context/                  # Global state providers (Language) -> [README](src/context/README.md)
+├── i18n/                     # Internationalization setup and locales -> [README](src/i18n/README.md)
+├── mocks/                    # Fake data for testing and offline dev -> [README](src/mocks/README.md)
+├── services/                 # Centralized API communication layer -> [README](src/services/README.md)
+├── test/                     # Global test setup and utilities -> [README](src/test/README.md)
+├── types/                    # Shared TypeScript interfaces -> [README](src/types/README.md)
+└── utils/                    # Pure JS/TS helper functions -> [README](src/utils/README.md)
 ```
 
 ---

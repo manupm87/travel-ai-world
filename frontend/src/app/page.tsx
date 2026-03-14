@@ -1,11 +1,11 @@
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import HeroSection from "@/components/sections/HeroSection";
-import PlannerCard from "@/components/sections/PlannerCard";
-import HowItWorks from "@/components/sections/HowItWorks";
-import FeaturesSection from "@/components/sections/FeaturesSection";
-import SocialProof from "@/components/sections/SocialProof";
-import FinalCTA from "@/components/sections/FinalCTA";
+import HeroSection from "@/components/landing/HeroSection";
+import PlannerCard from "@/components/ui/PlannerCard";
+import HowItWorks from "@/components/landing/HowItWorks";
+import FeaturesSection from "@/components/landing/FeaturesSection";
+import SocialProof from "@/components/landing/SocialProof";
+import FinalCTA from "@/components/landing/FinalCTA";
 
 export default function HomePage() {
   return (
