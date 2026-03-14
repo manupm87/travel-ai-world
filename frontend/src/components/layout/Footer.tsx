@@ -29,14 +29,14 @@ export default function Footer() {
 
           {/* Link columns */}
           {Object.entries(f.links).map(([category, links]) => (
-            <div key={category} className="flex flex-col gap-3">
-              <h4 className="text-[10px] font-bold text-text-secondary tracking-[2px] uppercase">
+            <div key={category} className="flex flex-col gap-4">
+              <h4 className="text-[11px] font-black text-white tracking-[2px] uppercase opacity-90">
                 {category}
               </h4>
-              <ul className="flex flex-col gap-2.5">
+              <ul className="flex flex-col gap-3">
                 {(links as readonly string[]).map((label) => (
                   <li key={label}>
-                    <a href="#" className="text-white/50 text-sm hover:text-white transition-colors">
+                    <a href="#" className="text-text-secondary text-sm hover:text-white transition-all duration-200">
                       {label}
                     </a>
                   </li>

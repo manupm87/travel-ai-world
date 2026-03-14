@@ -61,20 +61,23 @@ export default function Header({ variant = "landing" }: HeaderProps) {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-4 lg:gap-6">
-            {/* Language switcher */}
-            <div className="flex items-center gap-1 bg-white/5 border border-border-soft rounded-lg p-1">
+            {/* Language switcher (Segmented Control) */}
+            <div className="flex items-center gap-1 bg-white/5 border border-border-soft rounded-xl p-1 relative">
               {(["en", "es"] as Language[]).map((lang) => (
                 <button
                   key={lang}
                   onClick={() => setLanguage(lang)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all duration-200 cursor-pointer ${
+                  className={`relative flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[11px] font-bold transition-all duration-300 cursor-pointer overflow-hidden group ${
                     language === lang
-                      ? "bg-accent text-white shadow-sm"
+                      ? "text-white active-lang"
                       : "text-text-secondary hover:text-white"
                   }`}
                 >
-                  <span>{FLAG[lang]}</span>
-                  <span className="uppercase">{lang}</span>
+                  {language === lang && (
+                    <div className="absolute inset-0 bg-accent shadow-[0_0_15px_rgba(79,110,247,0.4)] z-0" />
+                  )}
+                  <span className="relative z-10">{FLAG[lang]}</span>
+                  <span className="relative z-10 uppercase tracking-wider">{lang}</span>
                 </button>
               ))}
             </div>
@@ -191,19 +194,22 @@ export default function Header({ variant = "landing" }: HeaderProps) {
             <p className="text-xs text-text-secondary uppercase tracking-widest font-semibold mb-4">
               Select Language
             </p>
-            <div className="flex items-center gap-2 bg-white/5 border border-border-soft rounded-xl p-1.5 w-fit">
+            <div className="flex items-center gap-2 bg-white/5 border border-border-soft rounded-2xl p-1.5 w-fit relative overflow-hidden">
               {(["en", "es"] as Language[]).map((lang) => (
                 <button
                   key={lang}
                   onClick={() => setLanguage(lang)}
-                  className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-bold transition-all duration-300 cursor-pointer ${
+                  className={`relative flex items-center gap-2 px-6 py-2.5 rounded-xl text-[13px] font-bold transition-all duration-500 cursor-pointer overflow-hidden group ${
                     language === lang
-                      ? "bg-accent text-white shadow-lg"
+                      ? "text-white"
                       : "text-text-secondary hover:text-white"
                   }`}
                 >
-                  <span className="text-base">{FLAG[lang]}</span>
-                  <span className="uppercase">{lang}</span>
+                  {language === lang && (
+                    <div className="absolute inset-0 bg-accent shadow-[0_0_20px_rgba(79,110,247,0.5)] z-0" />
+                  )}
+                  <span className="relative z-10 text-base">{FLAG[lang]}</span>
+                  <span className="relative z-10 uppercase tracking-widest">{lang}</span>
                 </button>
               ))}
             </div>

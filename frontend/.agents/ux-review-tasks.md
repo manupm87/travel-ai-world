@@ -12,9 +12,9 @@ Based on a thorough audit of the site by a frontend user experience expert, the 
 - [x] **Anchor Link Smoothness & Offset:** Anchor links ("How It Works", "Features") sometimes land between sections. **Task:** Ensure `scroll-behavior: smooth` is applied globally and add `scroll-margin-top` to section IDs to account for the sticky navbar height.
 
 ## 3. Visual Design & Consistency
-- [ ] **Professional Iconography:** The "Features" section uses emojis (🧠, 📅, 💰), which looks unpolished and varies by OS. **Task:** Replace emojis with professional SVG icons from a library like Lucide-React or Heroicons.
-- [ ] **Language Switcher UI:** The current language switcher uses two separate buttons with flags, which is non-standard. **Task:** Implement a Segmented Control (pill-shaped toggle) where the background slides between "EN" and "ES" to clearly indicate the active state.
-- [ ] **Footer Hierarchy:** Footer category headers lack visual weight. **Task:** Bold the category headers and increase their color contrast to distinguish them from the links below.
+- [x] **Professional Iconography:** The "Features" section uses emojis (🧠, 📅, 💰), which looks unpolished and varies by OS. **Task:** Replace emojis with professional SVG icons from a library like Lucide-React or Heroicons.
+- [x] **Language Switcher UI:** The current language switcher uses two separate buttons with flags, which is non-standard. **Task:** Implement a Segmented Control (pill-shaped toggle) where the background slides between "EN" and "ES" to clearly indicate the active state.
+- [x] **Footer Hierarchy:** Footer category headers lack visual weight. **Task:** Bold the category headers and increase their color contrast to distinguish them from the links below.
 
 ## 4. Accessibility & Typography
 - [ ] **Illegible Label Sizes:** Small labels (e.g., "PLAN YOUR TRIP", "TRAVEL STYLE") are set to 10px. **Task:** Increase minimum font size for labels to at least 12px and ensure a minimum letter-spacing of 0.05em for uppercase text.
