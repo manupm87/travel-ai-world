@@ -1,11 +1,11 @@
 "use client";
 
 import { TripSummary } from "@/types/trip-summary";
-import TripCard from "@/components/ui/TripCard";
 import EmptyDashboard from "@/components/dashboard/EmptyDashboard";
 import Header from "@/components/layout/Header";
 import PlannerCard from "@/components/ui/PlannerCard";
 import { useLanguage } from "@/context/LanguageContext";
+import { TripSection } from "@/components/dashboard/TripSection";
 
 interface DashboardClientPageProps {
   initialTrips: TripSummary[];
@@ -34,40 +34,13 @@ export default function DashboardClientPage({ initialTrips }: DashboardClientPag
         ) : (
           <>
             {/* Your Next Adventure (Planned) */}
-            {plannedTrips.length > 0 && (
-              <div className="w-full bg-bg-secondary py-20">
-                <section className="max-w-[1440px] w-full mx-auto px-8 lg:px-16 flex flex-col gap-8">
-                  <h2 className="text-2xl font-bold text-white">{d.sections.planned}</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-4">
-                    {plannedTrips.map(trip => <TripCard key={trip.id} trip={trip} />)}
-                  </div>
-                </section>
-              </div>
-            )}
+            <TripSection title={d.sections.planned} trips={plannedTrips} />
 
             {/* In the Works (Planning) */}
-            {planningTrips.length > 0 && (
-              <div className="w-full bg-transparent py-20">
-                <section className="max-w-[1440px] w-full mx-auto px-8 lg:px-16 flex flex-col gap-8">
-                  <h2 className="text-2xl font-bold text-white">{d.sections.planning}</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-4">
-                    {planningTrips.map(trip => <TripCard key={trip.id} trip={trip} />)}
-                  </div>
-                </section>
-              </div>
-            )}
+            <TripSection title={d.sections.planning} trips={planningTrips} transparent />
 
             {/* Past Journeys (Finished) */}
-            {finishedTrips.length > 0 && (
-              <div className="w-full bg-bg-secondary py-20">
-                <section className="max-w-[1440px] w-full mx-auto px-8 lg:px-16 flex flex-col gap-8">
-                  <h2 className="text-2xl font-bold text-white">{d.sections.finished}</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-4">
-                    {finishedTrips.map(trip => <TripCard key={trip.id} trip={trip} />)}
-                  </div>
-                </section>
-              </div>
-            )}
+            <TripSection title={d.sections.finished} trips={finishedTrips} />
           </>
         )}
       </main>
