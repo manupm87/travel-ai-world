@@ -21,7 +21,7 @@ export default function HowItWorks() {
       <Container className="flex flex-col gap-16">
         <div className="flex flex-col gap-4">
           <SectionLabel>{h.label}</SectionLabel>
-          <h2 className="text-4xl lg:text-[56px] font-bold text-white tracking-[-1.5px] leading-tight whitespace-pre-line">
+          <h2 className="text-3xl md:text-4xl lg:text-[56px] font-bold text-white tracking-[-1px] md:tracking-[-1.5px] leading-tight whitespace-pre-line">
             {h.title}
           </h2>
         </div>

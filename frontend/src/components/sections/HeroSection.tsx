@@ -21,12 +21,12 @@ export default function HeroSection() {
         </div>
 
         {/* Headline */}
-        <h1 className="text-[64px] xl:text-[88px] font-bold text-white leading-[1.0] tracking-[-2px] max-w-4xl whitespace-pre-line">
+        <h1 className="text-4xl md:text-6xl lg:text-[88px] font-bold text-white leading-[1.1] md:leading-[1.0] tracking-[-1px] md:tracking-[-2px] max-w-4xl whitespace-pre-line">
           {h.title}
         </h1>
 
         {/* Subtitle */}
-        <p className="text-xl text-text-secondary leading-relaxed max-w-[640px]">
+        <p className="text-lg md:text-xl text-text-secondary leading-relaxed max-w-[640px]">
           {h.subtitle}
         </p>
 

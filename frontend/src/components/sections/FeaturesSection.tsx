@@ -14,7 +14,7 @@ export default function FeaturesSection() {
       <Container className="flex flex-col gap-16">
         <div className="flex flex-col gap-4">
           <SectionLabel>{f.label}</SectionLabel>
-          <h2 className="text-4xl lg:text-[56px] font-bold text-white tracking-[-1.5px] leading-tight whitespace-pre-line">
+          <h2 className="text-3xl md:text-4xl lg:text-[56px] font-bold text-white tracking-[-1px] md:tracking-[-1.5px] leading-tight whitespace-pre-line">
             {f.title}
           </h2>
         </div>
