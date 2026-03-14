@@ -5,6 +5,13 @@ import { Button } from "@/components/ui/Button";
 import { useLanguage } from "@/context/LanguageContext";
 import { PlaneTakeoff } from "lucide-react";
 
+
+/**
+ * Dashboard Empty State.
+ * 
+ * Renders a friendly prompt when a user has no trips in their account.
+ * Encourages them to scroll down or click the CTA to use the AI Planner.
+ */
 export default function EmptyDashboard() {
   const { t } = useLanguage();
 

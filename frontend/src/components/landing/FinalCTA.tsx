@@ -4,6 +4,14 @@ import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 import { useLanguage } from "@/context/LanguageContext";
 
+
+/**
+ * Bottom Call-to-Action (`landing`).
+ * 
+ * Renders the final conversion block at the bottom of the landing page.
+ * Uses robust background gradients and blurred circles to create a dramatic,
+ * high-contrast visual to encourage users to start planning a trip.
+ */
 export default function FinalCTA() {
   const { t } = useLanguage();
   const c = t.finalCta;

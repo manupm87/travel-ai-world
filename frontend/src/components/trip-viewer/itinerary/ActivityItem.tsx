@@ -8,6 +8,16 @@ interface ActivityItemProps {
   currency: string;
 }
 
+
+/**
+ * Individual Itinerary Activity Item.
+ * 
+ * Renders a single event within a day (e.g., a museum visit, a flight, a hotel check-in).
+ * Dynamically adjusts its icon and background color based on the `activity.category`.
+ * 
+ * @param activity - The Activity data object containing time, title, cost, etc.
+ * @param currency - The currency code to format costs.
+ */
 export function ActivityItem({ activity, currency }: ActivityItemProps) {
   const { t, language } = useLanguage();
   let bgColor = "bg-white/5";

@@ -12,6 +12,16 @@ interface ItineraryProps {
   trip: Trip;
 }
 
+
+/**
+ * Daily Itinerary Container (`trip-viewer`).
+ * 
+ * Renders the full day-by-day itinerary of the trip. Includes a sticky filter
+ * header that allows users to seamlessly filter days by destination.
+ * Maps over the filtered days and renders a `DayCard` for each.
+ * 
+ * @param trip - The complete Trip data object.
+ */
 export default function Itinerary({ trip }: ItineraryProps) {
   const { t } = useLanguage();
   const [filter, setFilter] = useState<string>("all");

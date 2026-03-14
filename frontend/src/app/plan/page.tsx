@@ -4,6 +4,15 @@ import { useLanguage } from "@/context/LanguageContext";
 
 import Link from "next/link";
 
+
+/**
+ * Trip Planner (`/plan`) Route.
+ * 
+ * This Client Component represents the AI travel planner form page.
+ * Currently, it acts as a placeholder or full-page entry point for the form.
+ * 
+ * @returns The planner page interface.
+ */
 export default function PlanPage() {
   const { t } = useLanguage();
   const p = t.planPage;

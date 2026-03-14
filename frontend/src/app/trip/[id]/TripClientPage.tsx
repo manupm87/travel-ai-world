@@ -13,6 +13,16 @@ interface TripClientPageProps {
   trip: Trip;
 }
 
+
+/**
+ * Client-Side Trip Viewer (`/trip/[id]`).
+ * 
+ * This Client Component renders the fully interactive trip view. It is responsible
+ * for assembling all the specific trip-viewer UI components (Timeline, Overview, 
+ * Itinerary, AI Insights) and passing down the fetched Trip data.
+ * 
+ * @param trip - The complete Trip data object fetched by the Server Component.
+ */
 export default function TripClientPage({ trip }: TripClientPageProps) {
 
   return (

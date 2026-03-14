@@ -8,6 +8,15 @@ import { Brain, Calendar, Banknote, Map, Utensils, Edit3 } from "lucide-react";
 
 const ICON_MAP = [Brain, Calendar, Banknote, Map, Utensils, Edit3];
 
+
+/**
+ * Marketing Value Propositions (`landing`).
+ * 
+ * Renders the "Features" section of the landing page, displaying a grid of cards
+ * that highlight the core capabilities of the Travel AI product.
+ * Integrates an `ICON_MAP` to dynamically render Lucide icons based on the
+ * translated feature data.
+ */
 export default function FeaturesSection() {
   const { t } = useLanguage();
   const f = t.features;

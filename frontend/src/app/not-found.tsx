@@ -2,6 +2,13 @@
 
 import Link from "next/link";
 
+
+/**
+ * Global 404 Fallback (`not-found.tsx`).
+ * 
+ * Rendered when a user navigates to a URL that doesn't exist, or when a Server Component
+ * explicitly calls the `notFound()` Next.js function (e.g., when a trip ID isn't found in DB).
+ */
 export default function NotFound() {
   return (
     <main className="flex min-h-[50vh] flex-col items-center justify-center p-8 text-center text-white">

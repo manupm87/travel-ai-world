@@ -25,6 +25,17 @@ const statusConfig = {
   },
 };
 
+
+/**
+ * Trip Summary Card.
+ * 
+ * Renders a high-level preview of a Trip for lists/grids. Displays the trip's
+ * cover image, status (Planning/Planned/Finished), dates, title, and destinations.
+ * 
+ * Includes built-in hover states and links directly to the full Trip Viewer route.
+ * 
+ * @param trip - The TripSummary object containing preview data.
+ */
 export default function TripCard({ trip }: TripCardProps) {
   const config = statusConfig[trip.status];
 

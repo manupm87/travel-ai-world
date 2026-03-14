@@ -5,6 +5,14 @@ import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Card } from "@/components/ui/Card";
 import { useLanguage } from "@/context/LanguageContext";
 
+
+/**
+ * Testimonials & Metrics (`landing`).
+ * 
+ * Renders the "Social Proof" section on the landing page. Includes a grid of
+ * overarching platform statistics (users, locations) followed by a grid of
+ * user quote testimonials.
+ */
 export default function SocialProof() {
   const { t } = useLanguage();
   const s = t.socialProof;

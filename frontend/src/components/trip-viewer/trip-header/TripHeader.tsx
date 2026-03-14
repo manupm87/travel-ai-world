@@ -11,6 +11,16 @@ interface TripHeaderProps {
   trip: Trip;
 }
 
+
+/**
+ * Trip Viewer Hero Section.
+ * 
+ * Renders the top section of a trip detail page. It displays the primary title,
+ * overall dates, traveler count, total budget, and current status of the trip.
+ * It also includes the high-level calls to action (exporting to PDF, viewing bookings).
+ * 
+ * @param trip - The complete Trip data object.
+ */
 export default function TripHeader({ trip }: TripHeaderProps) {
   const { t, language } = useLanguage();
 

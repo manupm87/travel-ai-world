@@ -4,6 +4,13 @@ import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Card } from "@/components/ui/Card";
 import { useLanguage } from "@/context/LanguageContext";
 
+
+/**
+ * AI Insights Section (`trip-viewer`).
+ * 
+ * Renders an AI-generated summary of helpful tips and weather forecasts for the
+ * currently viewed trip. It uses standard `Card` components to display the data.
+ */
 export default function AIInsights() {
   const { t } = useLanguage();
 

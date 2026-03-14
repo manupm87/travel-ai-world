@@ -8,6 +8,19 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement | HTM
   href?: string;
 }
 
+
+/**
+ * Shared Button / Anchor Primitive.
+ * 
+ * A highly reusable UI component that standardizes button styling across the app.
+ * It automatically polymorphic: if an `href` prop is provided, it renders as an 
+ * `<a>` or `<Link>` element. Otherwise, it renders as a standard `<button>`.
+ * 
+ * @param variant - Stylistic variation (`primary`, `secondary`, `ghost`, `white`).
+ * @param size - Size variation (`sm`, `md`, `lg`).
+ * @param as - Override the underlying HTML element/component.
+ * @param href - If provided, transforms the button into an interactive link.
+ */
 export function Button({ 
   children, 
   variant = "primary", 

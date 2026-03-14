@@ -10,6 +10,17 @@ interface DayCardProps {
   currency: string;
 }
 
+
+/**
+ * Daily Itinerary Expandable Card.
+ * 
+ * Renders a high-level overview of a single day within the trip timeline.
+ * Users can click the card to expand it and reveal the full chronological list
+ * of `ActivityItem`s and dining reservations for that specific day.
+ * 
+ * @param day - The ItineraryDay data object containing activities and meals.
+ * @param currency - The currency code used for formatting estimated costs.
+ */
 export function DayCard({ day, currency }: DayCardProps) {
   const { t, language } = useLanguage();
   const [expanded, setExpanded] = useState(false);

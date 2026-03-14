@@ -2,6 +2,18 @@
 
 import { useEffect } from "react";
 
+
+/**
+ * Global Error Boundary (`error.tsx`).
+ * 
+ * This Client Component acts as the ultimate fallback for any unhandled
+ * runtime errors that occur anywhere in the React tree (excluding layout).
+ * It prevents the application from completely crashing and shows a user-friendly
+ * error message with a recovery button.
+ * 
+ * @param error - The Error object that was caught.
+ * @param reset - A function to try re-rendering the segment that threw the error.
+ */
 export default function ErrorBoundary({
   error,
   reset,

@@ -14,6 +14,16 @@ interface InteractiveTimelineProps {
   trip: Trip;
 }
 
+
+/**
+ * Interactive Route Timeline (`trip-viewer`).
+ * 
+ * Renders a visual "subway map" style timeline of the trip's destinations.
+ * Users can click on a specific destination node to shift the active state,
+ * which dynamically updates the "Active Destination Info Panel" below it.
+ * 
+ * @param trip - The complete Trip data object.
+ */
 export default function InteractiveTimeline({ trip }: InteractiveTimelineProps) {
   const { t, language } = useLanguage();
   const [activeDest, setActiveDest] = useState<string>(trip.destinations[0]?.id || "");

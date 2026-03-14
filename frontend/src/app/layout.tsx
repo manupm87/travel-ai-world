@@ -21,6 +21,18 @@ export const metadata: Metadata = {
   },
 };
 
+
+/**
+ * Root Layout for the Next.js App Router.
+ * 
+ * This layout wraps every page in the application. It establishes the foundational
+ * HTML document structure (`<html>`, `<body>`) and injects the global font (Inter).
+ * 
+ * It also wraps the application in the `LanguageProvider` Context, ensuring
+ * internationalization state is available to all descendant components.
+ * 
+ * @param children - The active page or nested layout to render.
+ */
 export default function RootLayout({
   children,
 }: Readonly<{

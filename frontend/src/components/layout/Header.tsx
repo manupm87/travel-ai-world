@@ -13,6 +13,16 @@ interface HeaderProps {
   variant?: "landing" | "dashboard";
 }
 
+
+/**
+ * Global Navigation Header.
+ * 
+ * Renders the top navigation bar containing the branding, main navigation links,
+ * the language switcher, and primary call-to-actions.
+ * 
+ * @param variant - Controls the appearance and links shown. `landing` shows scroll-reveals 
+ * and marketing links. `dashboard` is static and removes marketing links.
+ */
 export default function Header({ variant = "landing" }: HeaderProps) {
   const { t, language, setLanguage } = useLanguage();
   const [scrolled, setScrolled] = useState(false);

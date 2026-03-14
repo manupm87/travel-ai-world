@@ -3,6 +3,13 @@
 import Link from "next/link";
 import { useLanguage } from "@/context/LanguageContext";
 
+
+/**
+ * Global Footer.
+ * 
+ * Renders the standard site footer containing static links, copyright information,
+ * and social media references. Uses translation dictionaries for content.
+ */
 export default function Footer() {
   const { t } = useLanguage();
   const f = t.footer;

@@ -12,6 +12,13 @@ const STEP_IMAGES = [
   { src: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=600&q=80", alt: "Happy couple traveling" },
 ];
 
+
+/**
+ * Guided Process Section (`landing`).
+ * 
+ * Renders the "How It Works" 1-2-3 step guide on the landing page.
+ * Displays a grid of cards outlining the user journey from input to trip generation.
+ */
 export default function HowItWorks() {
   const { t } = useLanguage();
   const h = t.howItWorks;

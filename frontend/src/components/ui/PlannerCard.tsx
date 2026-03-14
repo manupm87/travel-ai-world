@@ -8,6 +8,17 @@ interface PlannerCardProps {
   transparent?: boolean;
 }
 
+
+/**
+ * AI Trip Planner Form.
+ * 
+ * This shared component renders the interactive form where users input their desired
+ * destination, dates, budget, and travel style to generate a new itinerary.
+ * It is used both as the main hero CTAs on the landing page and as the top
+ * action block in the user Dashboard.
+ * 
+ * @param transparent - If true, removes the background color and reduces padding.
+ */
 export default function PlannerCard({ transparent = false }: PlannerCardProps) {
   const { t } = useLanguage();
   const p = t.planner;

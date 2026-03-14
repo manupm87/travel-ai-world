@@ -10,6 +10,16 @@ interface TripOverviewProps {
   trip: Trip;
 }
 
+
+/**
+ * Trip Logistics Overview (`trip-viewer`).
+ * 
+ * A split-pane section that displays the core logistical arrangements for the trip.
+ * Currently renders two main `Card` blocks: Accommodations (hotels/stays) and
+ * Transportation (flights/trains).
+ * 
+ * @param trip - The complete Trip data object.
+ */
 export default function TripOverview({ trip }: TripOverviewProps) {
   const { t, language } = useLanguage();
 

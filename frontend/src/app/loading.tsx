@@ -1,3 +1,11 @@
+
+/**
+ * Global Loading UI (`loading.tsx`).
+ * 
+ * This Component is automatically rendered by Next.js while the content of a route segment
+ * (e.g. `page.tsx`) is resolving its asynchronous data fetching. It provides
+ * instant feedback to the user on navigation.
+ */
 export default function Loading() {
   return (
     <div className="flex min-h-[50vh] flex-col items-center justify-center p-8">

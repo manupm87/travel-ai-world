@@ -7,6 +7,16 @@ import FeaturesSection from "@/components/landing/FeaturesSection";
 import SocialProof from "@/components/landing/SocialProof";
 import FinalCTA from "@/components/landing/FinalCTA";
 
+
+/**
+ * Root URL (`/`) Landing Page Component.
+ * 
+ * This Server Component acts as the main entry point to the application.
+ * It assembles all the separate UI sections (Hero, Features, SocialProof, etc.)
+ * located in `src/components/landing` to construct the marketing landing page.
+ * 
+ * @returns The composed landing page.
+ */
 export default function HomePage() {
   return (
     <main>

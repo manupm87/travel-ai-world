@@ -8,6 +8,13 @@ interface BudgetCardProps {
   language: string;
 }
 
+
+/**
+ * Micro UI: Budget Breakdown Metric.
+ * 
+ * A small, self-contained stat card used within the `TripHeader` to display
+ * specific budget allocations (e.g., specifically how much was spent on Food).
+ */
 export function BudgetCard({ label, value, currency, language }: BudgetCardProps) {
   return (
     <div className="bg-white/5 border border-white/5 rounded-xl p-3 md:p-4 flex flex-col gap-1">

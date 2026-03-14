@@ -5,6 +5,14 @@ import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 import { useLanguage } from "@/context/LanguageContext";
 
+
+/**
+ * Primary Landing Hero (`landing`).
+ * 
+ * The main hero block displayed "above the fold" on the root URL.
+ * It contains the primary H1 headline, the highest-priority CTAs, trust markers,
+ * and a large hero image illustrating the core value proposition.
+ */
 export default function HeroSection() {
   const { t } = useLanguage();
   const h = t.hero;
