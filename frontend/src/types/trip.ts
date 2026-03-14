@@ -104,6 +104,11 @@ export interface Transportation {
   bookingReference?: string;
 }
 
+export interface AIInsights {
+  weatherForecast: string;
+  localTips: string | string[];
+}
+
 export interface Trip {
   id: string;
   userId: string;
@@ -132,4 +137,5 @@ export interface Trip {
   itinerary: ItineraryDay[];
   accommodation: Accommodation[];
   transportation: Transportation[];
+  aiInsights?: AIInsights;
 }

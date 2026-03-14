@@ -32,7 +32,7 @@ export default function TripClientPage({ trip }: TripClientPageProps) {
         <TripHeader trip={trip} />
         <InteractiveTimeline trip={trip} />
         <TripOverview trip={trip} />
-        <AIInsights />
+        <AIInsights trip={trip} />
         <Itinerary trip={trip} />
       </main>
     </div>

@@ -340,5 +340,9 @@
       "duration": 159,
       "cost": 45
     }
-  ]
+  ],
+  "aiInsights": {
+    "weatherForecast": "Mild May weather! Prague 12-18°C, Vienna 13-19°C, Budapest 14-20°C. Great for city walking.",
+    "localTips": "Try Trdelník in Prague, Sachertorte in Vienna, and Langos in Budapest. Don't forget to validate your train tickets!"
+  }
 }

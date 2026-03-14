@@ -3,7 +3,11 @@ import { Container } from "@/components/ui/Container";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Card } from "@/components/ui/Card";
 import { useLanguage } from "@/context/LanguageContext";
+import type { Trip } from "@/types/trip";
 
+interface AIInsightsProps {
+  trip: Trip;
+}
 
 /**
  * AI Insights Section (`trip-viewer`).
@@ -11,8 +15,34 @@ import { useLanguage } from "@/context/LanguageContext";
  * Renders an AI-generated summary of helpful tips and weather forecasts for the
  * currently viewed trip. It uses standard `Card` components to display the data.
  */
-export default function AIInsights() {
+export default function AIInsights({ trip }: AIInsightsProps) {
   const { t } = useLanguage();
+  const insights = trip.aiInsights;
+
+  // Fallback content if insights are missing
+  const weatherText = insights?.weatherForecast || "Weather information currently unavailable for this trip.";
+  
+  const renderTips = () => {
+    if (!insights?.localTips) {
+      return <p className="text-text-secondary text-[13px] leading-relaxed">No local tips available yet.</p>;
+    }
+    
+    if (Array.isArray(insights.localTips)) {
+      return (
+        <ul className="text-text-secondary text-[13px] leading-relaxed list-disc pl-4 flex flex-col gap-1">
+          {insights.localTips.map((tip, index) => (
+            <li key={index}>{tip}</li>
+          ))}
+        </ul>
+      );
+    }
+    
+    return (
+      <p className="text-text-secondary text-[13px] leading-relaxed">
+        {insights.localTips}
+      </p>
+    );
+  };
 
   return (
     <section className="w-full bg-transparent py-10">
@@ -26,19 +56,17 @@ export default function AIInsights() {
             <div className="flex flex-col gap-2">
               <h3 className="text-white text-base font-bold">{t.tripViewer.weatherForecast}</h3>
               <p className="text-text-secondary text-[13px] leading-relaxed">
-                Perfect spring weather across all cities! Paris 18-22°C, Rome 20-25°C, Barcelona 19-24°C.
+                {weatherText}
               </p>
             </div>
           </Card>
 
           {/* Local Tips Card */}
-          <Card className="flex items-start gap-4">
+          <Card className="flex items-start gap-4 h-full">
             <div role="img" aria-label="Lightbulb" className="text-4xl">💡</div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 w-full">
               <h3 className="text-white text-base font-bold">{t.tripViewer.localTips}</h3>
-              <p className="text-text-secondary text-[13px] leading-relaxed">
-                Buy a Paris Museum Pass for skip-the-line access. Book Colosseum tickets 2 weeks in advance.
-              </p>
+              {renderTips()}
             </div>
           </Card>
         </div>

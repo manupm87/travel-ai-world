@@ -188,5 +188,9 @@
       "duration": 660,
       "cost": 1200
     }
-  ]
+  ],
+  "aiInsights": {
+    "weatherForecast": "Pleasant autumn weather! Tokyo 15-22°C, Kyoto 14-20°C. Perfect for walking and seeing the foliage.",
+    "localTips": "Get a Suica or Pasmo card for easy travel. Remember to keep left on escalators in Tokyo, but right in Osaka!"
+  }
 }

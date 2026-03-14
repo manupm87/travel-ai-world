@@ -185,5 +185,9 @@
       "duration": 480,
       "cost": 600
     }
-  ]
+  ],
+  "aiInsights": {
+    "weatherForecast": "Crisp autumn air in NYC! Temperatures range from 10-18°C. Bring a light jacket for evening walks in Central Park.",
+    "localTips": "The Subway is your best friend; get an OMNY-compatible card. For the best views, consider 'Top of the Rock' during sunset."
+  }
 }
