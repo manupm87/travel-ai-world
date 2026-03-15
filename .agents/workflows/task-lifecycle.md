@@ -40,8 +40,5 @@ Run this command when the task implementation and verification are complete.
      - `head`: The current branch name.
      - `base`: "main"
 
-3. **Move issue to "In Review"**
-   - Use `mcp_linear-mcp-server_save_issue` with the issue ID and set `state` to "In Review".
-
-4. **Summarize completion**
+3. **Summarize completion**
    - Update the user that the PR is created and the Linear ticket is updated.
