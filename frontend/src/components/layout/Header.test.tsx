@@ -52,6 +52,7 @@ describe('Header', () => {
     expect(screen.getAllByText('How it works')[0]).toBeInTheDocument()
     expect(screen.getAllByText('Features')[0]).toBeInTheDocument()
     expect(screen.getAllByText('Reviews')[0]).toBeInTheDocument()
+    expect(screen.getAllByText('My Dashboard')[0]).toBeInTheDocument()
   })
 
   it('renders dashboard variant navigation links', () => {
