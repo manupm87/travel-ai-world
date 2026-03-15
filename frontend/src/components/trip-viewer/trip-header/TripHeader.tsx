@@ -49,14 +49,7 @@ export default function TripHeader({ trip }: TripHeaderProps) {
         <div className="flex flex-col lg:flex-row justify-between items-start gap-8">
           {/* Header Left */}
           <div className="flex flex-col gap-5 w-full lg:w-3/4">
-            <Button
-              href="/dashboard"
-              variant="secondary"
-              className="px-5 py-3 w-fit text-white bg-white/5 hover:bg-white/10 ring-1 ring-white/10"
-            >
-              <ArrowLeft size={16} className="mr-2" />
-              <span className="text-[14px] font-medium">{t.tripViewer.backToDashboard}</span>
-            </Button>
+
             
             <div className="flex flex-col gap-3">
               <h1 className="text-white text-3xl md:text-5xl font-medium tracking-[-1.5px] leading-[1.1]">

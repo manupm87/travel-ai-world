@@ -94,12 +94,25 @@ export default function Header({ variant = "landing" }: HeaderProps) {
               ))}
             </div>
 
+            {variant === "dashboard" && (
+              <Link
+                href="/dashboard"
+                className={`text-sm font-medium transition-colors nav-link ${
+                  language === "en" ? "active-nav" : "text-text-secondary hover:text-white"
+                }`}
+              >
+                {t.nav.myDashboard}
+              </Link>
+            )}
+
             {/* Dashboard / Home Link */}
             <Link
-              href={variant === "landing" ? "/dashboard" : "/"}
-              className="text-text-secondary text-sm hover:text-white font-medium transition-colors nav-link"
+              href="/"
+              className={`text-sm font-medium transition-colors nav-link ${
+                variant === "landing" ? "text-text-secondary hover:text-white" : "text-text-secondary hover:text-white"
+              }`}
             >
-              {variant === "landing" ? t.nav.myDashboard : t.nav.home}
+              {t.nav.home}
             </Link>
 
             {/* CTA */}
@@ -188,12 +201,21 @@ export default function Header({ variant = "landing" }: HeaderProps) {
                 </a>
               </>
             )}
+            {variant === "dashboard" && (
+              <Link
+                href="/dashboard"
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-2xl font-medium text-white hover:text-accent transition-colors"
+              >
+                {t.nav.myDashboard}
+              </Link>
+            )}
             <Link
-              href={variant === "landing" ? "/dashboard" : "/"}
+              href="/"
               onClick={() => setMobileMenuOpen(false)}
               className="text-2xl font-medium text-white hover:text-accent transition-colors"
             >
-              {variant === "landing" ? t.nav.myDashboard : t.nav.home}
+              {t.nav.home}
             </Link>
           </nav>
 
