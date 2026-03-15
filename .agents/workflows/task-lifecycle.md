@@ -35,13 +35,10 @@ Run this command when the task implementation and verification are complete.
    - Use `mcp_github-mcp-server_create_pull_request` with:
      - `owner`: "manupm87" (or use `mcp_github-mcp-server_get_me` to find)
      - `repo`: "travel-ai-world"
-     - `title`: The title of the Linear issue (e.g., `TRA-21: Add unit tests for frontend components`).
-     - `body`: `Fixes <Issue ID>` (e.g., `Fixes TRA-21`).
-     - `head`: The current branch name (`feat/TRA-21/add-frontend-unit-tests`).
+     - `title`: The title of the Linear issue.
+     - `body`: `Closes <Issue ID>` (e.g., `Closes TRA-123`).
+     - `head`: The current branch name.
      - `base`: "main"
 
-3. **Move issue to "In Review"**
-   - Use `mcp_linear-mcp-server_save_issue` with the issue ID and set `state` to "In Review".
-
-4. **Summarize completion**
+3. **Summarize completion**
    - Update the user that the PR is created and the Linear ticket is updated.
