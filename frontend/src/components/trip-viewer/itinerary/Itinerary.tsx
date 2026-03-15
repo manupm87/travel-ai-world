@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Container } from "@/components/ui/Container";
+import { Section } from "@/components/ui/Section";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Trip } from "@/types/trip";
 import { getFlag } from "@/utils/countryFlag";
@@ -37,8 +37,8 @@ export default function Itinerary({ trip }: ItineraryProps) {
   });
 
   return (
-    <section className="w-full bg-bg-secondary py-[60px]">
-      <Container className="flex flex-col gap-8">
+    <Section variant="secondary" padding="large">
+      <div className="flex flex-col gap-8">
         {/* Destination Filters (Sticky) */}
         <div className="sticky top-[72px] z-30 py-4 bg-bg-secondary/80 backdrop-blur-md -mx-4 px-4 border-b border-white/5">
           <div className="flex flex-wrap gap-3">
@@ -90,7 +90,7 @@ export default function Itinerary({ trip }: ItineraryProps) {
             );
           })}
         </div>
-      </Container>
-    </section>
+      </div>
+    </Section>
   );
 }

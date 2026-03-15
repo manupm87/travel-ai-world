@@ -14,6 +14,8 @@ interface TripClientPageProps {
 }
 
 
+import TripViewLayout from "@/components/trip-viewer/TripViewLayout";
+
 /**
  * Client-Side Trip Viewer (`/trip/[id]`).
  * 
@@ -26,15 +28,12 @@ interface TripClientPageProps {
 export default function TripClientPage({ trip }: TripClientPageProps) {
 
   return (
-    <div className="min-h-screen bg-bg-primary flex flex-col font-sans">
-      <Header variant="dashboard" />
-      <main className="flex flex-col flex-1 pb-20 pt-[72px]">
-        <TripHeader trip={trip} />
-        <InteractiveTimeline trip={trip} />
-        <TripOverview trip={trip} />
-        <AIInsights trip={trip} />
-        <Itinerary trip={trip} />
-      </main>
-    </div>
+    <TripViewLayout>
+      <TripHeader trip={trip} />
+      <InteractiveTimeline trip={trip} />
+      <TripOverview trip={trip} />
+      <AIInsights trip={trip} />
+      <Itinerary trip={trip} />
+    </TripViewLayout>
   );
 }

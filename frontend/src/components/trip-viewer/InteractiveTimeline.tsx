@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Container } from "@/components/ui/Container";
+import { Section } from "@/components/ui/Section";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Card } from "@/components/ui/Card";
 import { Trip } from "@/types/trip";
@@ -31,8 +31,8 @@ export default function InteractiveTimeline({ trip }: InteractiveTimelineProps) 
   const activeDestData = trip.destinations.find(d => d.id === activeDest);
 
   return (
-    <section className="w-full bg-transparent pb-10">
-      <Container className="flex flex-col gap-6">
+    <Section variant="transparent" padding="medium">
+      <div className="flex flex-col gap-6">
         <div className="flex justify-between items-end">
           <div className="flex flex-col gap-4">
             <SectionLabel>{t.tripViewer.journeyMap}</SectionLabel>
@@ -125,7 +125,7 @@ export default function InteractiveTimeline({ trip }: InteractiveTimelineProps) 
             </div>
           )}
         </Card>
-      </Container>
-    </section>
+      </div>
+    </Section>
   );
 }

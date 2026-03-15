@@ -1,6 +1,6 @@
 import React from "react";
 import { Trip } from "@/types/trip";
-import { Container } from "@/components/ui/Container";
+import { Section } from "@/components/ui/Section";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Card } from "@/components/ui/Card";
 import { formatDate, formatDuration } from "@/utils/format";
@@ -24,9 +24,8 @@ export default function TripOverview({ trip }: TripOverviewProps) {
   const { t, language } = useLanguage();
 
   return (
-    <section className="w-full bg-bg-secondary pb-10">
-      <Container className="flex flex-col gap-5">
-        <SectionLabel>{t.tripViewer.tripOverview}</SectionLabel>
+    <Section variant="secondary">
+      <SectionLabel>{t.tripViewer.tripOverview}</SectionLabel>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Accommodations Card */}
@@ -75,7 +74,6 @@ export default function TripOverview({ trip }: TripOverviewProps) {
             </div>
           </Card>
         </div>
-      </Container>
-    </section>
+    </Section>
   );
 }

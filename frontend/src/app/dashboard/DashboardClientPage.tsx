@@ -11,6 +11,8 @@ interface DashboardClientPageProps {
   initialTrips: TripSummary[];
 }
 
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
+
 export default function DashboardClientPage({ initialTrips }: DashboardClientPageProps) {
   const { t } = useLanguage();
   const d = t.dashboard;
@@ -22,28 +24,23 @@ export default function DashboardClientPage({ initialTrips }: DashboardClientPag
   const finishedTrips = trips.filter((trip) => trip.status === "finished");
 
   return (
-    <div className="min-h-screen bg-bg-primary flex flex-col items-center">
-      <Header variant="dashboard" />
+    <DashboardLayout>
+      <PlannerCard transparent />
       
-      {/* Content Area */}
-      <main className="w-full pt-[72px] flex flex-col">
-        <PlannerCard transparent />
-        
-        {trips.length === 0 ? (
-          <EmptyDashboard />
-        ) : (
-          <>
-            {/* Your Next Adventure (Planned) */}
-            <TripSection title={d.sections.planned} trips={plannedTrips} />
+      {trips.length === 0 ? (
+        <EmptyDashboard />
+      ) : (
+        <>
+          {/* Your Next Adventure (Planned) */}
+          <TripSection title={d.sections.planned} trips={plannedTrips} />
 
-            {/* In the Works (Planning) */}
-            <TripSection title={d.sections.planning} trips={planningTrips} transparent />
+          {/* In the Works (Planning) */}
+          <TripSection title={d.sections.planning} trips={planningTrips} transparent />
 
-            {/* Past Journeys (Finished) */}
-            <TripSection title={d.sections.finished} trips={finishedTrips} />
-          </>
-        )}
-      </main>
-    </div>
+          {/* Past Journeys (Finished) */}
+          <TripSection title={d.sections.finished} trips={finishedTrips} />
+        </>
+      )}
+    </DashboardLayout>
   );
 }

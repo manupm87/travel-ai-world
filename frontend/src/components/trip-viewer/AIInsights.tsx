@@ -1,5 +1,5 @@
 import React from "react";
-import { Container } from "@/components/ui/Container";
+import { Section } from "@/components/ui/Section";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Card } from "@/components/ui/Card";
 import { useLanguage } from "@/context/LanguageContext";
@@ -45,9 +45,8 @@ export default function AIInsights({ trip }: AIInsightsProps) {
   };
 
   return (
-    <section className="w-full bg-transparent py-10">
-      <Container className="flex flex-col gap-6">
-        <SectionLabel>{t.tripViewer.aiInsights}</SectionLabel>
+    <Section variant="transparent" padding="medium">
+      <SectionLabel>{t.tripViewer.aiInsights}</SectionLabel>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Weather Card */}
@@ -70,7 +69,6 @@ export default function AIInsights({ trip }: AIInsightsProps) {
             </div>
           </Card>
         </div>
-      </Container>
-    </section>
+    </Section>
   );
 }
