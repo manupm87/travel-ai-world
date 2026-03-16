@@ -230,6 +230,12 @@ const es: Translations = {
     signingIn: "Iniciando sesión...",
     loggedIn: "Sesión iniciada"
   },
+  notFound: {
+    title: "404",
+    subtitle: "404 - Perdido en el Paraíso",
+    description: "Incluso los mejores planes de viaje pueden desviarse. Parece que has descubierto una isla que no está en nuestros mapas.",
+    cta: "Volver a la Civilización"
+  }
 };
 
 

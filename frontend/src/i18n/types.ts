@@ -161,5 +161,11 @@ export interface Translations {
     signingIn: string;
     loggedIn: string;
   };
+  notFound: {
+    title: string;
+    subtitle: string;
+    description: string;
+    cta: string;
+  };
 }
 

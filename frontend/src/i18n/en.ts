@@ -230,6 +230,12 @@ const en: Translations = {
     signingIn: "Signing in...",
     loggedIn: "Logged In"
   },
+  notFound: {
+    title: "404",
+    subtitle: "404 - Lost in Paradise",
+    description: "Even the best travel plans can go off-course. It seems you've discovered an island that isn't on our maps.",
+    cta: "Return to Civilization"
+  }
 };
 
 
