@@ -26,19 +26,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const savedTheme = localStorage.getItem("theme") as Theme | null;
     if (savedTheme === "light" || savedTheme === "dark") {
       setThemeState(savedTheme);
-      document.documentElement.setAttribute("data-theme", savedTheme);
-    } else if (window.matchMedia("(prefers-color-scheme: light)").matches) {
-      // Optional: follow system preference if no saved theme
-      // But the user said "current one is dark, keep it as is", so maybe default to dark is better.
-      // Let's stick to default dark unless saved.
-      document.documentElement.setAttribute("data-theme", "dark");
     }
   }, []);
 
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
   const setTheme = useCallback((newTheme: Theme) => {
     setThemeState(newTheme);
-    localStorage.setItem("theme", newTheme);
-    document.documentElement.setAttribute("data-theme", newTheme);
   }, []);
 
   const toggleTheme = useCallback(() => {
