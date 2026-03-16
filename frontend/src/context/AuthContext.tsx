@@ -23,42 +23,76 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    // Load persisted user session from localStorage
-    const savedUser = localStorage.getItem("travel_ai_user");
-    if (savedUser) {
-      try {
-        setUser(JSON.parse(savedUser));
-      } catch (error) {
-        console.error("Failed to parse saved user:", error);
-        localStorage.removeItem("travel_ai_user");
-      }
-    }
-    setIsLoading(false);
-  }, []);
+  const isProd = process.env.NODE_ENV === "production";
 
-  const login = (credential: string) => {
+  /**
+   * Validates a JWT credential and returns the decoded user if valid.
+   */
+  const validateAndDecode = (credential: string): User | null => {
     try {
       const decoded: any = jwtDecode(credential);
-      const newUser: User = {
+      
+      // Check for expiration (exp is in seconds)
+      const currentTime = Date.now() / 1000;
+      if (decoded.exp && decoded.exp < currentTime) {
+        console.warn("Token expired");
+        return null;
+      }
+
+      return {
         id: decoded.sub,
         email: decoded.email,
         name: decoded.name,
         picture: decoded.picture,
       };
-
-      setUser(newUser);
-      localStorage.setItem("travel_ai_user", JSON.stringify(newUser));
     } catch (error) {
-      console.error("Login failed:", error);
+      console.error("Invalid token format:", error);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    const savedToken = localStorage.getItem("travel_ai_token");
+    const savedUserJson = localStorage.getItem("travel_ai_user");
+
+    if (savedToken) {
+      const decodedUser = validateAndDecode(savedToken);
+      if (decodedUser) {
+        setUser(decodedUser);
+      } else {
+        // Token is invalid or expired
+        localStorage.removeItem("travel_ai_token");
+        localStorage.removeItem("travel_ai_user");
+      }
+    } else if (!isProd && savedUserJson) {
+      // In Development, allow plain JSON injection for testing/browser agent
+      try {
+        setUser(JSON.parse(savedUserJson));
+      } catch (e) {
+        localStorage.removeItem("travel_ai_user");
+      }
+    }
+    
+    setIsLoading(false);
+  }, [isProd]);
+
+  const login = (credential: string) => {
+    const decodedUser = validateAndDecode(credential);
+    if (decodedUser) {
+      setUser(decodedUser);
+      localStorage.setItem("travel_ai_token", credential);
+      // We still store user for quick UI access, but token is the source of truth
+      localStorage.setItem("travel_ai_user", JSON.stringify(decodedUser));
     }
   };
 
   const logout = () => {
     setUser(null);
+    localStorage.removeItem("travel_ai_token");
     localStorage.removeItem("travel_ai_user");
     router.push("/");
   };
+
 
   return (
     <AuthContext.Provider
