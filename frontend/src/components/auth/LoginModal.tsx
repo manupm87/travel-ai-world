@@ -65,6 +65,8 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 const redirect = searchParams.get("redirect");
                 if (redirect) {
                   router.push(decodeURIComponent(redirect));
+                } else {
+                  router.push("/dashboard");
                 }
               }
             }}
