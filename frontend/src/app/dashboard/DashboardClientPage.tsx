@@ -11,7 +11,9 @@ interface DashboardClientPageProps {
   initialTrips: TripSummary[];
 }
 
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
+
 
 export default function DashboardClientPage({ initialTrips }: DashboardClientPageProps) {
   const { t } = useLanguage();
@@ -24,7 +26,9 @@ export default function DashboardClientPage({ initialTrips }: DashboardClientPag
   const finishedTrips = trips.filter((trip) => trip.status === "finished");
 
   return (
+    <ProtectedRoute>
     <DashboardLayout>
+
       <PlannerCard transparent />
       
       {trips.length === 0 ? (
@@ -42,5 +46,7 @@ export default function DashboardClientPage({ initialTrips }: DashboardClientPag
         </>
       )}
     </DashboardLayout>
+    </ProtectedRoute>
   );
 }
+

@@ -222,6 +222,15 @@ const es: Translations = {
     emptyTitle: "Tu atlas está esperando",
     emptyDescription: "Aún no has planificado ningún viaje. Comienza tu próxima aventura con nuestro planificador IA.",
   },
+  auth: {
+    login: "Iniciar Sesión",
+    logout: "Cerrar Sesión",
+    loginWithGoogle: "Continuar con Google",
+    welcomeBack: "Bienvenido de nuevo",
+    signingIn: "Iniciando sesión...",
+    loggedIn: "Sesión iniciada"
+  },
 };
+
 
 export default es;

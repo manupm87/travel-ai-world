@@ -153,4 +153,13 @@ export interface Translations {
     emptyTitle: string;
     emptyDescription: string;
   };
+  auth: {
+    login: string;
+    logout: string;
+    loginWithGoogle: string;
+    welcomeBack: string;
+    signingIn: string;
+    loggedIn: string;
+  };
 }
+

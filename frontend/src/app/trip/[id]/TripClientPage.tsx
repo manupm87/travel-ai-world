@@ -14,7 +14,9 @@ interface TripClientPageProps {
 }
 
 
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import TripViewLayout from "@/components/trip-viewer/TripViewLayout";
+
 
 /**
  * Client-Side Trip Viewer (`/trip/[id]`).
@@ -28,6 +30,7 @@ import TripViewLayout from "@/components/trip-viewer/TripViewLayout";
 export default function TripClientPage({ trip }: TripClientPageProps) {
 
   return (
+    <ProtectedRoute>
     <TripViewLayout>
       <TripHeader trip={trip} />
       <InteractiveTimeline trip={trip} />
@@ -35,5 +38,7 @@ export default function TripClientPage({ trip }: TripClientPageProps) {
       <AIInsights trip={trip} />
       <Itinerary trip={trip} />
     </TripViewLayout>
+    </ProtectedRoute>
   );
 }
+
