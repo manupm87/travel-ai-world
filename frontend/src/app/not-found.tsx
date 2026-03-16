@@ -4,6 +4,8 @@ import Link from "next/link";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { useLanguage } from "@/context/LanguageContext";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 /**
  * Global 404 Fallback (`not-found.tsx`).
@@ -12,8 +14,39 @@ import { useLanguage } from "@/context/LanguageContext";
  * Includes the official Header and Footer for easy navigation.
  */
 export default function NotFound() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const nt = t.notFound;
+  const pathname = usePathname();
+  const router = useRouter();
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
+  // Smart check for dynamic routes on static export (GH Pages fallback)
+  useEffect(() => {
+    const isDynamicRoute = pathname.includes('/trip/') || pathname.includes('/dashboard/');
+    
+    if (isDynamicRoute) {
+      setIsRedirecting(true);
+      // Wait a moment for the SPA to potentially mount and handle the route
+      // If it doesn't, we redirect to home as a safer fallback than 404
+      const timer = setTimeout(() => {
+        router.push('/');
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [pathname, router]);
+
+  if (isRedirecting) {
+    return (
+      <div className="flex flex-col min-h-screen bg-bg-primary text-white font-sans items-center justify-center">
+        <div className="animate-pulse flex flex-col items-center gap-4">
+          <div className="text-4xl">✈️</div>
+          <p className="text-text-secondary">
+            {language === 'en' ? 'Preparing your adventure...' : 'Preparando tu aventura...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-bg-primary text-white font-sans">

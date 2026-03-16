@@ -48,10 +48,10 @@ jobs:
         run: npm run build
         # Output lands in frontend/out/
 
-      - name: SPA fallback — copy index.html → 404.html
-        # GitHub Pages serves 404.html for unknown paths.
-        # This lets client-side routing handle /trip/<id> at runtime.
-        run: cp frontend/out/index.html frontend/out/404.html
+      # - name: SPA fallback — copy index.html → 404.html
+      #   # GitHub Pages serves 404.html for unknown paths.
+      #   # This lets client-side routing handle /trip/<id> at runtime.
+      #   run: cp frontend/out/index.html frontend/out/404.html
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
