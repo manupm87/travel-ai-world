@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { useLanguage } from "@/context/LanguageContext";
@@ -62,10 +63,13 @@ export default function NotFound() {
             
             <div className="relative overflow-hidden rounded-3xl border border-white/10 shadow-2xl transition-transform duration-500 hover:scale-[1.02]">
               <div className="absolute inset-0 bg-gradient-to-t from-bg-primary/80 via-transparent to-transparent z-10" />
-              <img 
+              <Image 
                 src="/images/404-paradise.png" 
                 alt="Lost Paradise Island"
+                width={600}
+                height={375}
                 className="w-full max-w-[600px] h-auto object-cover aspect-[16/10]"
+                priority
               />
             </div>
           </div>
