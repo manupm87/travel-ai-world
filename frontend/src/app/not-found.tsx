@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import paradiseImage from "../../../public/images/404-paradise.png";
+import paradiseImage from "../../public/images/404-paradise.png";
 import { useLanguage } from "@/context/LanguageContext";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
