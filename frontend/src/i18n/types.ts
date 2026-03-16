@@ -40,7 +40,7 @@ export interface Translations {
     features: string;
     reviews: string;
     planMyTrip: string;
-    myDashboard: string;
+    dashboard: string;
     home: string;
   };
   common: {

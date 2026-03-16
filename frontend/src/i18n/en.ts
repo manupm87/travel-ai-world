@@ -6,7 +6,7 @@ const en: Translations = {
     features: "Features",
     reviews: "Reviews",
     planMyTrip: "Plan My Trip",
-    myDashboard: "My Dashboard",
+    dashboard: "Dashboard",
     home: "Home",
   },
   common: {

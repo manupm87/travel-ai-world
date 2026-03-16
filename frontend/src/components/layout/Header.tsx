@@ -7,7 +7,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
 import { LoginModal } from "@/components/auth/LoginModal";
 import { Button } from "@/components/ui/Button";
-import { Menu, X, LogOut, User as UserIcon } from "lucide-react";
+import { Menu, X, LogOut, User as UserIcon, ChevronDown, LogIn } from "lucide-react";
 import type { Language } from "@/i18n";
 
 const FLAG: Record<Language, string> = { en: "🇬🇧", es: "🇪🇸" };
@@ -34,11 +34,26 @@ export default function Header({ variant = "landing" }: HeaderProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [langDropdownOpen, setLangDropdownOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest(".dropdown-container")) {
+        setUserDropdownOpen(false);
+        setLangDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
 
@@ -80,83 +95,37 @@ export default function Header({ variant = "landing" }: HeaderProps) {
           <div className="flex-1 hidden lg:block" />
 
           {/* Desktop Actions */}
+          {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-4 lg:gap-6">
-            {/* Language switcher (Segmented Control) */}
-            <div className="flex items-center gap-1 bg-white/5 border border-border-soft rounded-xl p-1 relative">
-              {(["en", "es"] as Language[]).map((lang) => (
-                <button
-                  key={lang}
-                  onClick={() => setLanguage(lang)}
-                  className={`relative flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-300 cursor-pointer overflow-hidden group ${
-                    language === lang
-                      ? "text-white active-lang"
-                      : "text-text-secondary hover:text-white"
-                  }`}
-                >
-                  {language === lang && (
-                    <div className="absolute inset-0 bg-accent shadow-[0_0_15px_rgba(79,110,247,0.4)] z-0" />
-                  )}
-                  <span className="relative z-10">{FLAG[lang]}</span>
-                  <span className="relative z-10 uppercase tracking-wider">{lang}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* Dashboard Link */}
-            {isAuthenticated && (
-              <Link
-                href="/dashboard"
-                className={`text-sm font-medium transition-colors nav-link ${
-                  pathname.replace(/\/$/, "") === "/dashboard" ? "active-nav" : "text-text-secondary hover:text-white"
-                }`}
+            {/* Language dropdown */}
+            <div className="relative dropdown-container">
+              <button
+                onClick={() => setLangDropdownOpen(!langDropdownOpen)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border-soft bg-white/5 hover:bg-white/10 transition-all text-[11px] font-medium text-white cursor-pointer"
               >
-                {t.nav.myDashboard}
-              </Link>
-            )}
+                <span>{FLAG[language]}</span>
+                <span className="uppercase tracking-wider">{language}</span>
+                <ChevronDown size={12} className={`transition-transform duration-300 ${langDropdownOpen ? "rotate-180" : ""}`} />
+              </button>
 
-
-
-            {/* Auth Actions */}
-            <div className="flex items-center gap-4">
-              {isAuthenticated ? (
-                <div className="flex items-center gap-3 bg-white/5 border border-border-soft rounded-full pl-1 pr-1 py-1 group transition-all hover:bg-white/10 hover:border-accent/30">
-                  <div className="flex items-center gap-2.5 pl-2 pr-1">
-                    {user?.picture ? (
-                      <img 
-                        src={user.picture} 
-                        alt={user.name} 
-                        className="w-7 h-7 rounded-full object-cover border border-accent/30"
-                      />
-                    ) : (
-                      <div className="w-7 h-7 rounded-full bg-accent/20 flex items-center justify-center text-accent">
-                        <UserIcon size={14} />
-                      </div>
-                    )}
-                    <div className="flex flex-col">
-                      <span className="text-[12px] font-semibold text-white leading-none">
-                        {user?.name.split(' ')[0]}
-                      </span>
-                      <span className="text-[10px] text-text-secondary leading-tight mt-0.5">
-                        {t.auth.loggedIn || "Logged In"}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="w-px h-8 bg-border-soft mx-1" />
-                  <button 
-                    onClick={logout}
-                    className="p-2 text-text-secondary hover:text-error transition-colors rounded-full hover:bg-error/10"
-                    title={t.auth.logout}
-                  >
-                    <LogOut size={14} />
-                  </button>
+              {langDropdownOpen && (
+                <div className="absolute top-full right-0 mt-2 w-32 bg-bg-primary/95 backdrop-blur-md border border-border rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
+                  {(["en", "es"] as Language[]).map((lang) => (
+                    <button
+                      key={lang}
+                      onClick={() => {
+                        setLanguage(lang);
+                        setLangDropdownOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-[11px] font-medium transition-colors hover:bg-white/5 cursor-pointer ${
+                        language === lang ? "text-accent bg-accent/5" : "text-text-secondary hover:text-white"
+                      }`}
+                    >
+                      <span>{FLAG[lang]}</span>
+                      <span className="uppercase tracking-widest">{lang === 'en' ? 'English' : 'Español'}</span>
+                    </button>
+                  ))}
                 </div>
-              ) : (
-                <button
-                  onClick={() => setLoginModalOpen(true)}
-                  className="text-sm font-medium text-text-secondary hover:text-white transition-colors px-4 py-2"
-                >
-                  {t.auth.login}
-                </button>
               )}
             </div>
 
@@ -165,9 +134,57 @@ export default function Header({ variant = "landing" }: HeaderProps) {
               href={isAuthenticated ? "/dashboard" : "#planner"}
               size="sm"
             >
-              {t.nav.planMyTrip}
+              {isAuthenticated ? t.nav.dashboard : t.nav.planMyTrip}
             </Button>
 
+            {/* User Auth / Profile Dropdown */}
+            <div className="relative dropdown-container">
+              {isAuthenticated ? (
+                <button
+                  onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                  className="flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                >
+                  {user?.picture ? (
+                    <img 
+                      src={user.picture} 
+                      alt={user.name} 
+                      className="w-9 h-9 rounded-full object-cover border border-accent/30 shadow-[0_0_15px_rgba(79,110,247,0.2)]"
+                    />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-accent/20 flex items-center justify-center text-accent border border-accent/30">
+                      <UserIcon size={18} />
+                    </div>
+                  )}
+                </button>
+              ) : (
+                <button
+                  onClick={() => setLoginModalOpen(true)}
+                  className="w-9 h-9 rounded-full bg-white/5 border border-border-soft flex items-center justify-center text-text-secondary hover:text-white hover:border-accent/30 transition-all hover:bg-white/10 cursor-pointer"
+                  title={t.auth.login}
+                >
+                  <LogIn size={18} />
+                </button>
+              )}
+
+              {isAuthenticated && userDropdownOpen && (
+                <div className="absolute top-full right-0 mt-2 w-48 bg-bg-primary/95 backdrop-blur-md border border-border rounded-xl shadow-2xl py-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="px-4 py-2 border-b border-border mb-1">
+                    <p className="text-[12px] font-semibold text-white truncate">{user?.name}</p>
+                    <p className="text-[10px] text-text-secondary truncate">{user?.email}</p>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      logout();
+                      setUserDropdownOpen(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-[12px] font-medium text-text-secondary hover:text-error hover:bg-error/5 transition-colors cursor-pointer"
+                  >
+                    <LogOut size={14} />
+                    {t.auth.logout}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
 
@@ -178,7 +195,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
               href={isAuthenticated ? "/dashboard" : "#planner"}
               className="bg-accent hover:bg-accent-hover transition-colors text-white text-[10px] font-medium px-3 py-1.5 rounded-md uppercase tracking-wider"
             >
-              {t.nav.planMyTrip}
+              {isAuthenticated ? t.nav.dashboard : t.nav.planMyTrip}
             </Link>
 
             {/* Hamburger Button */}
@@ -226,6 +243,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
           </div>
 
           {/* Mobile Nav Links */}
+            {/* Mobile Nav Links are now just marketing links */}
           <nav className="flex flex-col gap-8 mb-auto">
             {variant === "landing" && (
               <>
@@ -252,15 +270,6 @@ export default function Header({ variant = "landing" }: HeaderProps) {
                 </a>
               </>
             )}
-            <Link
-              href="/dashboard"
-              onClick={() => setMobileMenuOpen(false)}
-              className={`text-2xl font-medium transition-colors ${
-                pathname.replace(/\/$/, "") === "/dashboard" ? "text-accent" : "text-white hover:text-accent"
-              }`}
-            >
-              {t.nav.myDashboard}
-            </Link>
           </nav>
 
           {/* Mobile Auth */}
@@ -289,7 +298,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
                     logout();
                     setMobileMenuOpen(false);
                   }}
-                  className="flex items-center gap-3 text-xl font-medium text-white hover:text-accent transition-colors"
+                  className="flex items-center gap-3 text-xl font-medium text-white hover:text-accent transition-colors cursor-pointer"
                 >
                   <LogOut size={24} />
                   {t.auth.logout}
@@ -301,7 +310,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
                   setMobileMenuOpen(false);
                   setLoginModalOpen(true);
                 }}
-                className="text-2xl font-medium text-white hover:text-accent transition-colors"
+                className="text-2xl font-medium text-white hover:text-accent transition-colors cursor-pointer"
               >
                 {t.auth.login}
               </button>
