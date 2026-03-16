@@ -6,8 +6,7 @@ const es: Translations = {
     features: "Funcionalidades",
     reviews: "Opiniones",
     planMyTrip: "Planificar Viaje",
-    myDashboard: "Mi Panel",
-    dashboard: "Panel",
+    dashboard: "Dashboard",
     home: "Inicio",
   },
   common: {
