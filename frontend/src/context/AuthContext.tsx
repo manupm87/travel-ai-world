@@ -3,10 +3,12 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { User } from "@/types/user";
 import { jwtDecode } from "jwt-decode";
+import { useRouter } from "next/navigation";
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
+  isLoading: boolean;
   login: (credential: string) => void;
   logout: () => void;
 }
@@ -18,6 +20,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
  */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     // Load persisted user session from localStorage
@@ -30,6 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem("travel_ai_user");
       }
     }
+    setIsLoading(false);
   }, []);
 
   const login = (credential: string) => {
@@ -52,6 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     setUser(null);
     localStorage.removeItem("travel_ai_user");
+    router.push("/");
   };
 
   return (
@@ -59,6 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         isAuthenticated: !!user,
+        isLoading,
         login,
         logout,
       }}
@@ -67,6 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     </AuthContext.Provider>
   );
 }
+
 
 /**
  * Hook to use the Auth context.

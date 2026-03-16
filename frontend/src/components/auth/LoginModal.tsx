@@ -11,12 +11,16 @@ interface LoginModalProps {
   onClose: () => void;
 }
 
+import { useRouter, useSearchParams } from "next/navigation";
+
 /**
  * A modal that provides Google Sign-In options.
  */
 export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const { login } = useAuth();
   const { t } = useLanguage();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   if (!isOpen) return null;
 
@@ -56,8 +60,15 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
               if (credentialResponse.credential) {
                 login(credentialResponse.credential);
                 onClose();
+                
+                // Handle redirection
+                const redirect = searchParams.get("redirect");
+                if (redirect) {
+                  router.push(decodeURIComponent(redirect));
+                }
               }
             }}
+
             onError={() => {
               console.error("Login Failed");
             }}

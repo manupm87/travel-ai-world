@@ -228,6 +228,7 @@ const en: Translations = {
     loginWithGoogle: "Continue with Google",
     welcomeBack: "Welcome back",
     signingIn: "Signing in...",
+    loggedIn: "Logged In"
   },
 };
 

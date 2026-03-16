@@ -159,6 +159,7 @@ export interface Translations {
     loginWithGoogle: string;
     welcomeBack: string;
     signingIn: string;
+    loggedIn: string;
   };
 }
 

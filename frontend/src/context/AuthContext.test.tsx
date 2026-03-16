@@ -3,6 +3,14 @@ import { renderHook, act } from "@testing-library/react";
 import { AuthProvider, useAuth } from "./AuthContext";
 import React from "react";
 
+// Mock next/navigation
+const mockPush = vi.fn();
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: mockPush,
+  }),
+}));
+
 // Mock jwt-decode
 vi.mock("jwt-decode", () => ({
   jwtDecode: vi.fn(() => ({
@@ -12,6 +20,7 @@ vi.mock("jwt-decode", () => ({
     picture: "https://example.com/pic.jpg",
   })),
 }));
+
 
 // Mock localStorage
 const localStorageMock = (function() {
@@ -39,11 +48,13 @@ describe("AuthContext", () => {
     <AuthProvider>{children}</AuthProvider>
   );
 
-  it("should initialize with no user", () => {
+  it("should initialize with no user and stop loading", () => {
     const { result } = renderHook(() => useAuth(), { wrapper });
     expect(result.current.user).toBeNull();
     expect(result.current.isAuthenticated).toBe(false);
+    expect(result.current.isLoading).toBe(false);
   });
+
 
   it("should login and persist user", () => {
     const { result } = renderHook(() => useAuth(), { wrapper });
@@ -76,5 +87,7 @@ describe("AuthContext", () => {
     expect(result.current.user).toBeNull();
     expect(result.current.isAuthenticated).toBe(false);
     expect(localStorage.getItem("travel_ai_user")).toBeNull();
+    expect(mockPush).toHaveBeenCalledWith("/");
   });
 });
+

@@ -100,16 +100,18 @@ export default function Header({ variant = "landing" }: HeaderProps) {
               ))}
             </div>
 
-            <Link
-              href="/dashboard"
-              className={`text-sm font-medium transition-colors nav-link ${
-                variant === "dashboard" ? "active-nav" : "text-text-secondary hover:text-white"
-              }`}
-            >
-              {t.nav.myDashboard}
-            </Link>
-
             {/* Dashboard / Home Link */}
+            {isAuthenticated && (
+              <Link
+                href="/dashboard"
+                className={`text-sm font-medium transition-colors nav-link ${
+                  variant === "dashboard" ? "active-nav" : "text-text-secondary hover:text-white"
+                }`}
+              >
+                {t.nav.myDashboard}
+              </Link>
+            )}
+
             <Link
               href="/"
               className={`text-sm font-medium transition-colors nav-link ${
@@ -122,24 +124,32 @@ export default function Header({ variant = "landing" }: HeaderProps) {
             {/* Auth Actions */}
             <div className="flex items-center gap-4">
               {isAuthenticated ? (
-                <div className="flex items-center gap-3 bg-white/5 border border-border-soft rounded-full pl-1 pr-3 py-1 group transition-all hover:bg-white/10">
-                  {user?.picture ? (
-                    <img 
-                      src={user.picture} 
-                      alt={user.name} 
-                      className="w-7 h-7 rounded-full object-cover border border-accent/30"
-                    />
-                  ) : (
-                    <div className="w-7 h-7 rounded-full bg-accent/20 flex items-center justify-center text-accent">
-                      <UserIcon size={14} />
+                <div className="flex items-center gap-3 bg-white/5 border border-border-soft rounded-full pl-1 pr-1 py-1 group transition-all hover:bg-white/10 hover:border-accent/30">
+                  <div className="flex items-center gap-2.5 pl-2 pr-1">
+                    {user?.picture ? (
+                      <img 
+                        src={user.picture} 
+                        alt={user.name} 
+                        className="w-7 h-7 rounded-full object-cover border border-accent/30"
+                      />
+                    ) : (
+                      <div className="w-7 h-7 rounded-full bg-accent/20 flex items-center justify-center text-accent">
+                        <UserIcon size={14} />
+                      </div>
+                    )}
+                    <div className="flex flex-col">
+                      <span className="text-[12px] font-semibold text-white leading-none">
+                        {user?.name.split(' ')[0]}
+                      </span>
+                      <span className="text-[10px] text-text-secondary leading-tight mt-0.5">
+                        {t.auth.loggedIn || "Logged In"}
+                      </span>
                     </div>
-                  )}
-                  <span className="text-[13px] font-medium text-white max-w-[100px] truncate">
-                    {user?.name.split(' ')[0]}
-                  </span>
+                  </div>
+                  <div className="w-px h-8 bg-border-soft mx-1" />
                   <button 
                     onClick={logout}
-                    className="p-1.5 text-text-secondary hover:text-accent transition-colors"
+                    className="p-2 text-text-secondary hover:text-error transition-colors rounded-full hover:bg-error/10"
                     title={t.auth.logout}
                   >
                     <LogOut size={14} />
@@ -157,11 +167,12 @@ export default function Header({ variant = "landing" }: HeaderProps) {
 
             {/* CTA */}
             <Button
-              href={variant === "dashboard" ? "/dashboard#planner" : "#planner"}
+              href={isAuthenticated ? "/plan" : "#planner"}
               size="sm"
             >
               {t.nav.planMyTrip}
             </Button>
+
           </div>
 
 
