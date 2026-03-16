@@ -117,7 +117,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
                         setLanguage(lang);
                         setLangDropdownOpen(false);
                       }}
-                      className={`w-full flex items-center gap-3 px-4 py-3 text-[11px] font-medium transition-colors hover:bg-white/5 ${
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-[11px] font-medium transition-colors hover:bg-white/5 cursor-pointer ${
                         language === lang ? "text-accent bg-accent/5" : "text-text-secondary hover:text-white"
                       }`}
                     >
@@ -177,7 +177,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
                       logout();
                       setUserDropdownOpen(false);
                     }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-[12px] font-medium text-text-secondary hover:text-error hover:bg-error/5 transition-colors"
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-[12px] font-medium text-text-secondary hover:text-error hover:bg-error/5 transition-colors cursor-pointer"
                   >
                     <LogOut size={14} />
                     {t.auth.logout}
