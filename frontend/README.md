@@ -71,10 +71,15 @@ The app uses **Google OAuth 2.0** for frontend authentication. User state is man
 
 ### How it works
 
-1. `src/context/AuthContext.tsx` provides the `AuthContext` which manages the `user` object and `isAuthenticated` status.
+1. `src/context/AuthContext.tsx` provides the `AuthContext` which manages the `user` object and `isAuthenticated` status. It uses a raw JWT `credential` as the source of truth.
 2. `@react-oauth/google` handles the Google Sign-In button and token retrieval.
-3. Upon successful login, the JWT is decoded (via `jwt-decode`) to extract user profile info (name, email, picture), which is then stored in `localStorage`.
-4. The `Header` component reacts to the `user` state to switch between "Login" and "Profile/Logout" views.
+3. **Environment-Aware Validation**:
+    - **Production**: Strictly requires a valid, non-expired Google JWT. Plain JSON objects in `localStorage` are rejected.
+    - **Development**: Allows "mocking" by injecting a plain JSON object into `localStorage.travel_ai_user`, facilitating E2E testing and AI agent interaction.
+4. Upon login, the JWT is stored in `localStorage.travel_ai_token` and decoded (via `jwt-decode`) to extract user profile info for the UI.
+5. The `Header` component reacts to the `user` state to switch between "Login" and "Profile/Logout" views.
+6. **Auto-Logout**: The app automatically clears session data and redirects to the home page if the stored token is detected as expired.
+
 
 ### Configuration
 
