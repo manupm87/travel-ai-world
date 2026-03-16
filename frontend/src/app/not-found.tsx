@@ -64,7 +64,7 @@ export default function NotFound() {
             <div className="relative overflow-hidden rounded-3xl border border-white/10 shadow-2xl transition-transform duration-500 hover:scale-[1.02]">
               <div className="absolute inset-0 bg-gradient-to-t from-bg-primary/80 via-transparent to-transparent z-10" />
               <Image 
-                src="/images/404-paradise.png" 
+                src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/images/404-paradise.png`} 
                 alt="Lost Paradise Island"
                 width={600}
                 height={375}
