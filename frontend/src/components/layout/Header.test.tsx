@@ -31,6 +31,8 @@ vi.mock('lucide-react', () => ({
   User: () => <div data-testid="user-icon" />,
   ChevronDown: () => <div data-testid="chevron-down-icon" />,
   LogIn: () => <div data-testid="log-in-icon" />,
+  Sun: () => <div data-testid="sun-icon" />,
+  Moon: () => <div data-testid="moon-icon" />,
 }))
 
 vi.mock('@/context/AuthContext', () => ({
@@ -61,8 +63,22 @@ vi.mock('@/context/LanguageContext', () => ({
         login: 'Login',
         logout: 'Logout',
         loggedIn: 'Logged In'
+      },
+      theme: {
+        toggle: 'Toggle theme',
+        light: 'Light mode',
+        dark: 'Dark mode'
       }
     }
+  })
+}))
+
+// Mock ThemeContext
+vi.mock('@/context/ThemeContext', () => ({
+  useTheme: () => ({
+    theme: 'dark',
+    toggleTheme: vi.fn(),
+    setTheme: vi.fn(),
   })
 }))
 

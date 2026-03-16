@@ -48,11 +48,11 @@ export default function SocialProof() {
               <span className="text-gold text-base">
                 {"★".repeat(testimonial.stars)}
               </span>
-              <p className="text-white text-[15px] leading-relaxed flex-1">
+              <p className="text-text-primary text-[15px] leading-relaxed flex-1">
                 &ldquo;{testimonial.quote}&rdquo;
               </p>
               <div className="flex flex-col gap-0.5 pt-2 border-t border-border">
-                <span className="text-white font-semibold text-sm">{testimonial.author}</span>
+                <span className="text-text-primary font-semibold text-sm">{testimonial.author}</span>
                 <span className="text-text-secondary text-xs">{testimonial.location}</span>
               </div>
             </Card>

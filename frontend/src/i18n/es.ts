@@ -235,6 +235,11 @@ const es: Translations = {
     subtitle: "404 - Perdido en el Paraíso",
     description: "Incluso los mejores planes de viaje pueden desviarse. Parece que has descubierto una isla que no está en nuestros mapas.",
     cta: "Volver a la Civilización"
+  },
+  theme: {
+    toggle: "Cambiar tema",
+    light: "Modo claro",
+    dark: "Modo oscuro"
   }
 };
 

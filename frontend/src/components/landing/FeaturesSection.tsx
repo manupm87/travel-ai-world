@@ -26,7 +26,7 @@ export default function FeaturesSection() {
       <Container className="flex flex-col gap-16">
         <div className="flex flex-col gap-4">
           <SectionLabel>{f.label}</SectionLabel>
-          <h2 className="text-3xl md:text-4xl lg:text-[56px] font-medium text-white tracking-[-1px] md:tracking-[-1.5px] leading-tight whitespace-pre-line">
+          <h2 className="text-3xl md:text-4xl lg:text-[56px] font-medium text-text-primary tracking-[-1px] md:tracking-[-1.5px] leading-tight whitespace-pre-line">
             {f.title}
           </h2>
         </div>
@@ -44,7 +44,7 @@ export default function FeaturesSection() {
                   return <Icon size={24} strokeWidth={2} />;
                 })()}
               </div>
-              <h3 className="text-lg font-medium text-white group-hover:text-accent transition-colors duration-300">
+              <h3 className="text-lg font-medium text-text-primary group-hover:text-accent transition-colors duration-300">
                 {feat.title}
               </h3>
               <p className="text-[13px] text-text-secondary leading-relaxed">

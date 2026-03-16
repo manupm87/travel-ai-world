@@ -167,5 +167,10 @@ export interface Translations {
     description: string;
     cta: string;
   };
+  theme: {
+    toggle: string;
+    light: string;
+    dark: string;
+  };
 }
 

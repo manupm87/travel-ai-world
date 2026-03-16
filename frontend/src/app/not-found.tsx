@@ -39,7 +39,7 @@ export default function NotFound() {
 
   if (isRedirecting) {
     return (
-      <div className="flex flex-col min-h-screen bg-bg-primary text-white font-sans items-center justify-center">
+      <div className="flex flex-col min-h-screen bg-bg-primary text-text-primary font-sans items-center justify-center">
         <div className="animate-pulse flex flex-col items-center gap-4">
           <div className="text-4xl">✈️</div>
           <p className="text-text-secondary">
@@ -51,7 +51,7 @@ export default function NotFound() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-bg-primary text-white font-sans">
+    <div className="flex flex-col min-h-screen bg-bg-primary text-text-primary font-sans">
       <Header variant="landing" />
       
       <main className="flex-1 flex flex-col items-center justify-center pt-24 pb-12 px-6 text-center animate-in fade-in duration-700">
@@ -75,7 +75,7 @@ export default function NotFound() {
 
           {/* Text section */}
           <div className="flex flex-col items-center gap-4 md:gap-6 max-w-xl">
-            <h1 className="text-4xl md:text-6xl font-heading font-bold tracking-tight bg-gradient-to-r from-white via-white to-white/40 bg-clip-text text-transparent">
+            <h1 className="text-4xl md:text-6xl font-heading font-bold tracking-tight bg-gradient-to-r from-text-primary via-text-primary to-text-primary/40 bg-clip-text text-transparent">
               {nt.subtitle}
             </h1>
             

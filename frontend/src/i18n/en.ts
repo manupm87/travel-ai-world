@@ -235,6 +235,11 @@ const en: Translations = {
     subtitle: "404 - Lost in Paradise",
     description: "Even the best travel plans can go off-course. It seems you've discovered an island that isn't on our maps.",
     cta: "Return to Civilization"
+  },
+  theme: {
+    toggle: "Toggle theme",
+    light: "Light mode",
+    dark: "Dark mode"
   }
 };
 

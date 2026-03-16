@@ -29,7 +29,7 @@ export default function HeroSection() {
         </div>
 
         {/* Headline */}
-        <h1 className="text-4xl md:text-6xl lg:text-[88px] font-medium text-white leading-[1.1] md:leading-[1.0] tracking-[-0.03em] max-w-4xl whitespace-pre-line">
+        <h1 className="text-4xl md:text-6xl lg:text-[88px] font-medium text-text-primary leading-[1.1] md:leading-[1.0] tracking-[-0.03em] max-w-4xl whitespace-pre-line">
           {h.title}
         </h1>
 

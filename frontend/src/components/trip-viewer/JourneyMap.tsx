@@ -22,23 +22,23 @@ export default function JourneyMap({ trip }: JourneyMapProps) {
           <div className="flex flex-col md:flex-row items-center justify-between w-full relative z-10 gap-12 md:gap-4">
             
             {/* Connecting line background */}
-            <div className="hidden md:block absolute top-[40%] left-[10%] right-[10%] h-0.5 bg-white/10 -z-10"></div>
+            <div className="hidden md:block absolute top-[40%] left-[10%] right-[10%] h-0.5 bg-accent/20 -z-10"></div>
             
             {trip.destinations.map((dest, i) => (
               <div key={dest.id} className="flex flex-col items-center gap-3 relative">
                 <div className="w-4 h-4 rounded-full bg-accent border-[3px] border-bg-card relative z-10 shadow-[0_0_15px_rgba(79,110,247,0.5)]"></div>
                 
-                <div className="bg-bg-surface border border-border-soft rounded-xl p-3 flex flex-col items-center gap-1 min-w-[120px]">
+                <div className="bg-bg-surface border border-border rounded-xl p-3 flex flex-col items-center gap-1 min-w-[120px]">
                   <span role="img" aria-label={dest.city} className="text-2xl">
                     {getFlag(dest.countryCode)}
                   </span>
-                  <span className="text-white font-bold">{dest.city}</span>
-                  <span className="text-text-secondary text-xs text-center">{dest.nightsStaying} {t.tripViewer.nights}</span>
+                  <span className="text-text-primary font-bold">{dest.city}</span>
+                  <span className="text-text-secondary text-xs text-center font-medium">{dest.nightsStaying} {t.tripViewer.nights}</span>
                 </div>
                 
                 {/* Connecting line for mobile */}
                 {i < trip.destinations.length - 1 && (
-                  <div className="md:hidden absolute top-[100%] h-12 w-0.5 bg-white/10 -z-10 mt-[2px]"></div>
+                  <div className="md:hidden absolute top-[100%] h-12 w-0.5 bg-accent/20 -z-10 mt-[2px]"></div>
                 )}
               </div>
             ))}

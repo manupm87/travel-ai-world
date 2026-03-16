@@ -40,8 +40,8 @@ export function Button({
 
   const variants = {
     primary: "bg-accent hover:bg-accent-hover text-white shadow-lg shadow-accent/40",
-    secondary: "bg-white/5 hover:bg-white/10 border border-border-soft text-white/80",
-    ghost: "bg-transparent hover:bg-white/5 text-text-secondary hover:text-white",
+    secondary: "bg-bg-secondary hover:opacity-80 border border-border-soft text-text-primary",
+    ghost: "bg-transparent hover:bg-bg-secondary text-text-secondary hover:text-text-primary",
     white: "bg-white hover:bg-white/90 text-accent font-medium shadow-xl"
   };
 

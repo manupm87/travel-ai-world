@@ -28,7 +28,7 @@ export default function HowItWorks() {
       <Container className="flex flex-col gap-16">
         <div className="flex flex-col gap-4">
           <SectionLabel>{h.label}</SectionLabel>
-          <h2 className="text-3xl md:text-4xl lg:text-[56px] font-medium text-white tracking-[-1px] md:tracking-[-1.5px] leading-tight whitespace-pre-line">
+          <h2 className="text-3xl md:text-4xl lg:text-[56px] font-medium text-text-primary tracking-[-1px] md:tracking-[-1.5px] leading-tight whitespace-pre-line">
             {h.title}
           </h2>
         </div>
@@ -56,7 +56,7 @@ export default function HowItWorks() {
                   sizes="(max-width: 768px) 100vw, 33vw"
                 />
               </div>
-              <h3 className="text-xl font-medium text-white">{step.title}</h3>
+              <h3 className="text-xl font-medium text-text-primary">{step.title}</h3>
               <p className="text-sm text-text-secondary leading-relaxed">{step.description}</p>
             </Card>
           ))}
