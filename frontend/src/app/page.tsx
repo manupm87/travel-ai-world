@@ -6,6 +6,7 @@ import HowItWorks from "@/components/landing/HowItWorks";
 import FeaturesSection from "@/components/landing/FeaturesSection";
 import SocialProof from "@/components/landing/SocialProof";
 import FinalCTA from "@/components/landing/FinalCTA";
+import LandingRedirect from "@/components/landing/LandingRedirect";
 
 
 /**

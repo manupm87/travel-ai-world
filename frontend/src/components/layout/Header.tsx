@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
 import { LoginModal } from "@/components/auth/LoginModal";
@@ -29,6 +30,7 @@ interface HeaderProps {
 export default function Header({ variant = "landing" }: HeaderProps) {
   const { t, language, setLanguage } = useLanguage();
   const { user, isAuthenticated, logout } = useAuth();
+  const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
@@ -100,26 +102,19 @@ export default function Header({ variant = "landing" }: HeaderProps) {
               ))}
             </div>
 
-            {/* Dashboard / Home Link */}
+            {/* Dashboard Link */}
             {isAuthenticated && (
               <Link
                 href="/dashboard"
                 className={`text-sm font-medium transition-colors nav-link ${
-                  variant === "dashboard" ? "active-nav" : "text-text-secondary hover:text-white"
+                  pathname.replace(/\/$/, "") === "/dashboard" ? "active-nav" : "text-text-secondary hover:text-white"
                 }`}
               >
                 {t.nav.myDashboard}
               </Link>
             )}
 
-            <Link
-              href="/"
-              className={`text-sm font-medium transition-colors nav-link ${
-                variant === "landing" ? "text-text-secondary hover:text-white" : "text-text-secondary hover:text-white"
-              }`}
-            >
-              {t.nav.home}
-            </Link>
+
 
             {/* Auth Actions */}
             <div className="flex items-center gap-4">
@@ -167,7 +162,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
 
             {/* CTA */}
             <Button
-              href={isAuthenticated ? "/plan" : "#planner"}
+              href={isAuthenticated ? "/dashboard" : "#planner"}
               size="sm"
             >
               {t.nav.planMyTrip}
@@ -180,7 +175,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
           <div className="flex md:hidden items-center gap-3">
             {/* Mobile CTA (Compact) */}
             <Link
-              href={variant === "dashboard" ? "/dashboard#planner" : "#planner"}
+              href={isAuthenticated ? "/dashboard" : "#planner"}
               className="bg-accent hover:bg-accent-hover transition-colors text-white text-[10px] font-medium px-3 py-1.5 rounded-md uppercase tracking-wider"
             >
               {t.nav.planMyTrip}
@@ -207,14 +202,18 @@ export default function Header({ variant = "landing" }: HeaderProps) {
         <div className="flex flex-col h-full px-6 py-8">
           <div className="flex items-center justify-between mb-12">
             {/* Logo */}
-            <div className="flex items-center gap-2.5">
+            <Link 
+              href="/" 
+              className="flex items-center gap-2.5"
+              onClick={() => setMobileMenuOpen(false)}
+            >
               <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center text-lg">
                 ✈
               </div>
               <span className="text-white font-medium text-xs tracking-[2px] uppercase">
                 Travel AI World
               </span>
-            </div>
+            </Link>
 
             {/* Close Button */}
             <button
@@ -257,17 +256,10 @@ export default function Header({ variant = "landing" }: HeaderProps) {
               href="/dashboard"
               onClick={() => setMobileMenuOpen(false)}
               className={`text-2xl font-medium transition-colors ${
-                variant === "dashboard" ? "text-accent" : "text-white hover:text-accent"
+                pathname.replace(/\/$/, "") === "/dashboard" ? "text-accent" : "text-white hover:text-accent"
               }`}
             >
               {t.nav.myDashboard}
-            </Link>
-            <Link
-              href="/"
-              onClick={() => setMobileMenuOpen(false)}
-              className="text-2xl font-medium text-white hover:text-accent transition-colors"
-            >
-              {t.nav.home}
             </Link>
           </nav>
 
