@@ -55,12 +55,11 @@ describe("AuthContext", () => {
     expect(result.current.isLoading).toBe(false);
   });
 
-
-  it("should login and persist user", () => {
+  it("should login and persist user with token", () => {
     const { result } = renderHook(() => useAuth(), { wrapper });
 
     act(() => {
-      result.current.login("fake-token");
+      result.current.login("fake-jwt-token");
     });
 
     expect(result.current.user).toEqual({
@@ -70,14 +69,43 @@ describe("AuthContext", () => {
       picture: "https://example.com/pic.jpg",
     });
     expect(result.current.isAuthenticated).toBe(true);
-    expect(localStorage.getItem("travel_ai_user")).toBeTruthy();
+    expect(localStorage.getItem("travel_ai_token")).toBe("fake-jwt-token");
   });
 
-  it("should logout and remove persisted user", () => {
+  it("should reject plain JSON in production environment", () => {
+    // Mock production environment
+    vi.stubEnv("NODE_ENV", "production");
+    
+    localStorage.setItem("travel_ai_user", JSON.stringify({ name: "Hacker" }));
+    
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    
+    expect(result.current.user).toBeNull();
+    expect(result.current.isAuthenticated).toBe(false);
+    
+    vi.unstubAllEnvs();
+  });
+
+  it("should allow plain JSON in development environment", () => {
+    // Mock development environment
+    vi.stubEnv("NODE_ENV", "development");
+    
+    const mockUser = { id: "mock-1", name: "Mock User", email: "mock@example.com", picture: "" };
+    localStorage.setItem("travel_ai_user", JSON.stringify(mockUser));
+    
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    
+    expect(result.current.user).toEqual(mockUser);
+    expect(result.current.isAuthenticated).toBe(true);
+    
+    vi.unstubAllEnvs();
+  });
+
+  it("should logout and remove all storage items", () => {
     const { result } = renderHook(() => useAuth(), { wrapper });
 
     act(() => {
-      result.current.login("fake-token");
+      result.current.login("fake-jwt-token");
     });
 
     act(() => {
@@ -85,9 +113,10 @@ describe("AuthContext", () => {
     });
 
     expect(result.current.user).toBeNull();
-    expect(result.current.isAuthenticated).toBe(false);
+    expect(localStorage.getItem("travel_ai_token")).toBeNull();
     expect(localStorage.getItem("travel_ai_user")).toBeNull();
     expect(mockPush).toHaveBeenCalledWith("/");
   });
 });
+
 
