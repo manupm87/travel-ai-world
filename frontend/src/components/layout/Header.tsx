@@ -298,7 +298,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
                     logout();
                     setMobileMenuOpen(false);
                   }}
-                  className="flex items-center gap-3 text-xl font-medium text-white hover:text-accent transition-colors"
+                  className="flex items-center gap-3 text-xl font-medium text-white hover:text-accent transition-colors cursor-pointer"
                 >
                   <LogOut size={24} />
                   {t.auth.logout}
@@ -310,7 +310,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
                   setMobileMenuOpen(false);
                   setLoginModalOpen(true);
                 }}
-                className="text-2xl font-medium text-white hover:text-accent transition-colors"
+                className="text-2xl font-medium text-white hover:text-accent transition-colors cursor-pointer"
               >
                 {t.auth.login}
               </button>
