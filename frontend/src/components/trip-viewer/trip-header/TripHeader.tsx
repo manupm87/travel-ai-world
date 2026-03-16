@@ -52,7 +52,7 @@ export default function TripHeader({ trip }: TripHeaderProps) {
 
             
             <div className="flex flex-col gap-3">
-              <h1 className="text-white text-3xl md:text-5xl font-medium tracking-[-1.5px] leading-[1.1]">
+              <h1 className="text-text-primary text-3xl md:text-5xl font-medium tracking-[-1.5px] leading-[1.1]">
                 {trip.title}
               </h1>
               
@@ -89,7 +89,7 @@ export default function TripHeader({ trip }: TripHeaderProps) {
                 <ClipboardList size={18} className="mr-2" />
                 <span className="text-sm font-medium">{t.tripViewer.viewBookings}</span>
               </Button>
-              <Button variant="secondary" className="px-5 py-3.5 rounded-xl text-white/90 bg-white/5 ring-1 ring-white/10 flex-1 md:flex-none">
+              <Button variant="secondary" className="px-5 py-3.5 rounded-xl text-text-primary bg-bg-secondary border border-border-soft flex-1 md:flex-none">
                 <Download size={18} className="mr-2" />
                 <span className="text-sm font-medium">{t.tripViewer.exportPdf}</span>
               </Button>

@@ -40,13 +40,13 @@ export default function Itinerary({ trip }: ItineraryProps) {
     <Section variant="secondary" padding="large">
       <div className="flex flex-col gap-8">
         {/* Destination Filters (Sticky) */}
-        <div className="sticky top-[72px] z-30 py-4 bg-bg-secondary/80 backdrop-blur-md -mx-4 px-4 border-b border-white/5">
+        <div className="sticky top-[72px] z-30 py-4 bg-bg-secondary/80 backdrop-blur-md -mx-4 px-4 border-b border-border-soft">
           <div className="flex flex-wrap gap-3">
             <button 
               onClick={() => setFilter("all")}
               aria-pressed={filter === "all"}
               className={`px-5 py-2.5 rounded-full text-[13px] font-medium transition-colors ${
-                filter === "all" ? "bg-accent text-white" : "bg-white/10 text-white/90 hover:bg-white/20"
+                filter === "all" ? "bg-accent text-white" : "bg-bg-surface border border-border-soft text-text-secondary hover:bg-bg-card hover:text-text-primary"
               }`}
             >
               {t.tripViewer.allDays}
@@ -57,7 +57,7 @@ export default function Itinerary({ trip }: ItineraryProps) {
                 onClick={() => setFilter(dest.id)}
                 aria-pressed={filter === dest.id}
                 className={`px-5 py-2.5 rounded-full text-[13px] font-medium transition-colors flex items-center gap-2 ${
-                  filter === dest.id ? "bg-accent text-white" : "bg-white/10 text-white/90 hover:bg-white/20"
+                  filter === dest.id ? "bg-accent text-white" : "bg-bg-surface border border-border-soft text-text-secondary hover:bg-bg-card hover:text-text-primary"
                 }`}
               >
                 <span className="font-normal" role="img" aria-label={dest.city}>{getDestinationFlag(dest.id)}</span>
@@ -69,7 +69,7 @@ export default function Itinerary({ trip }: ItineraryProps) {
 
         <div className="flex flex-col gap-3">
           <SectionLabel>{t.tripViewer.yourItinerary}</SectionLabel>
-          <h3 className="text-white text-[42px] font-medium tracking-[-1px] leading-[1.1]">
+          <h3 className="text-text-primary text-[42px] font-medium tracking-[-1px] leading-[1.1]">
             {t.tripViewer.journeyTitle.replace("{duration}", trip.dates.durationDays.toString())}
           </h3>
         </div>

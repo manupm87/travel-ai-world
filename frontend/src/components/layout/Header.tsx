@@ -5,9 +5,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
 import { LoginModal } from "@/components/auth/LoginModal";
 import { Button } from "@/components/ui/Button";
-import { Menu, X, LogOut, User as UserIcon, ChevronDown, LogIn } from "lucide-react";
+import { Menu, X, LogOut, User as UserIcon, ChevronDown, LogIn, Sun, Moon } from "lucide-react";
 import type { Language } from "@/i18n";
 
 const FLAG: Record<Language, string> = { en: "🇬🇧", es: "🇪🇸" };
@@ -30,6 +31,7 @@ interface HeaderProps {
 export default function Header({ variant = "landing" }: HeaderProps) {
   const { t, language, setLanguage } = useLanguage();
   const { user, isAuthenticated, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -72,7 +74,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
             <div className="w-8 h-8 md:w-9 md:h-9 rounded-lg bg-accent flex items-center justify-center text-lg">
               ✈
             </div>
-            <span className="text-white font-medium text-xs md:text-sm lg:text-base tracking-[2px] uppercase whitespace-nowrap">
+            <span className="text-text-primary font-medium text-xs md:text-sm lg:text-base tracking-[2px] uppercase whitespace-nowrap">
               Travel AI World
             </span>
           </Link>
@@ -80,13 +82,13 @@ export default function Header({ variant = "landing" }: HeaderProps) {
           {/* Desktop Nav */}
           {variant === "landing" && (
             <nav className="hidden lg:flex items-center gap-8">
-              <a href="#how-it-works" className="text-text-secondary text-sm hover:text-white transition-colors">
+              <a href="#how-it-works" className="text-text-secondary text-sm hover:text-text-primary transition-colors">
                 {t.nav.howItWorks}
               </a>
-              <a href="#features" className="text-text-secondary text-sm hover:text-white transition-colors">
+              <a href="#features" className="text-text-secondary text-sm hover:text-text-primary transition-colors">
                 {t.nav.features}
               </a>
-              <a href="#testimonials" className="text-text-secondary text-sm hover:text-white transition-colors">
+              <a href="#testimonials" className="text-text-secondary text-sm hover:text-text-primary transition-colors">
                 {t.nav.reviews}
               </a>
             </nav>
@@ -95,13 +97,20 @@ export default function Header({ variant = "landing" }: HeaderProps) {
           <div className="flex-1 hidden lg:block" />
 
           {/* Desktop Actions */}
-          {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-4 lg:gap-6">
+              <button
+                onClick={toggleTheme}
+                className="flex items-center justify-center w-9 h-9 rounded-xl border border-border-soft bg-white/5 hover:bg-white/10 transition-all text-text-primary cursor-pointer"
+                title={t.theme.toggle}
+              >
+                {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+              </button>
+
             {/* Language dropdown */}
             <div className="relative dropdown-container">
               <button
                 onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border-soft bg-white/5 hover:bg-white/10 transition-all text-[11px] font-medium text-white cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border-soft bg-white/5 hover:bg-white/10 transition-all text-[11px] font-medium text-text-primary cursor-pointer"
               >
                 <span>{FLAG[language]}</span>
                 <span className="uppercase tracking-wider">{language}</span>
@@ -118,7 +127,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
                         setLangDropdownOpen(false);
                       }}
                       className={`w-full flex items-center gap-3 px-4 py-3 text-[11px] font-medium transition-colors hover:bg-white/5 cursor-pointer ${
-                        language === lang ? "text-accent bg-accent/5" : "text-text-secondary hover:text-white"
+                        language === lang ? "text-accent bg-accent/5" : "text-text-secondary hover:text-text-primary"
                       }`}
                     >
                       <span>{FLAG[lang]}</span>
@@ -232,10 +241,9 @@ export default function Header({ variant = "landing" }: HeaderProps) {
               </span>
             </Link>
 
-            {/* Close Button */}
             <button
               onClick={() => setMobileMenuOpen(false)}
-              className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center"
+              className="p-2 text-text-primary hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center"
               aria-label="Close menu"
             >
               <X size={24} />
@@ -250,7 +258,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
                 <a
                   href="#how-it-works"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-2xl font-medium text-white hover:text-accent transition-colors"
+                  className="text-2xl font-medium text-text-primary hover:text-accent transition-colors"
                 >
                   {t.nav.howItWorks}
                 </a>
@@ -298,7 +306,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
                     logout();
                     setMobileMenuOpen(false);
                   }}
-                  className="flex items-center gap-3 text-xl font-medium text-white hover:text-accent transition-colors cursor-pointer"
+                  className="flex items-center gap-3 text-xl font-medium text-text-primary hover:text-accent transition-colors cursor-pointer"
                 >
                   <LogOut size={24} />
                   {t.auth.logout}
@@ -310,7 +318,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
                   setMobileMenuOpen(false);
                   setLoginModalOpen(true);
                 }}
-                className="text-2xl font-medium text-white hover:text-accent transition-colors cursor-pointer"
+                className="text-2xl font-medium text-text-primary hover:text-accent transition-colors cursor-pointer"
               >
                 {t.auth.login}
               </button>
@@ -318,11 +326,19 @@ export default function Header({ variant = "landing" }: HeaderProps) {
           </div>
 
 
-          {/* Mobile Language Switcher (Pill style) */}
           <div className="mt-auto pt-8 border-t border-border">
-            <p className="text-xs text-text-secondary uppercase tracking-widest font-medium mb-4">
-              Select Language
-            </p>
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-xs text-text-secondary uppercase tracking-widest font-medium">
+                Select Language
+              </p>
+              <button
+                onClick={toggleTheme}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border-soft bg-white/5 text-xs text-white"
+              >
+                {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
+                {theme === "dark" ? t.theme.light : t.theme.dark}
+              </button>
+            </div>
             <div className="flex items-center gap-2 bg-white/5 border border-border-soft rounded-2xl p-1.5 w-fit relative overflow-hidden">
               {(["en", "es"] as Language[]).map((lang) => (
                 <button

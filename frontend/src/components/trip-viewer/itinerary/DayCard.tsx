@@ -56,14 +56,12 @@ export function DayCard({ day, currency }: DayCardProps) {
         
         <div className="flex-1 flex flex-col gap-1">
           {badgeText && (
-            <div className={`text-[9px] font-medium tracking-[1.5px] px-2.5 py-1 rounded-full w-fit mb-1 ${
-              isFreeDay ? "bg-purple/20" : hasTravel ? "bg-gold/20" : "bg-accent/20"
-            }`}>
-              <span className={textColor}>{badgeText}</span>
-            </div>
+            <span className="text-[10px] font-bold tracking-[0.1em] uppercase text-text-primary">
+              {badgeText}
+            </span>
           )}
           
-          <h4 className="text-white text-xl font-medium">{day.title}</h4>
+          <h4 className="text-text-primary text-xl font-medium">{day.title}</h4>
           <p className="text-text-secondary text-sm">
             {formatDate(day.date, language === "en" ? "en-US" : "es-ES", { weekday: "long", month: "short", day: "numeric" })} • {day.estimatedCost > 0 ? `${formatCurrency(day.estimatedCost, currency, language === "en" ? "en-US" : "es-ES")} ${t.tripViewer.estimated}` : t.tripViewer.selfPlanned}
           </p>
@@ -77,7 +75,7 @@ export function DayCard({ day, currency }: DayCardProps) {
       {/* Expanded Content */}
       {expanded && (
         <div className="pl-6 md:pl-16 flex flex-col gap-4 mt-2 pb-2">
-          <p className="text-white/80 text-sm leading-relaxed">{day.description}</p>
+          <p className="text-text-secondary text-sm leading-relaxed">{day.description}</p>
           
           {day.activities.length > 0 && (
             <div className="flex flex-col gap-3">
@@ -91,12 +89,12 @@ export function DayCard({ day, currency }: DayCardProps) {
           
           {day.meals.length > 0 && (
             <div className="flex flex-col gap-3 mt-2">
-              <h5 className="text-text-secondary text-xs font-medium uppercase tracking-wider">{t.tripViewer.dining}</h5>
+              <h5 className="text-text-primary text-xs font-bold uppercase tracking-wider">{t.tripViewer.dining}</h5>
               {day.meals.map(meal => (
-                <div key={meal.id} className="bg-white/5 rounded-lg p-4 flex gap-4">
+                <div key={meal.id} className="bg-bg-secondary border border-border-soft rounded-lg p-4 flex gap-4">
                   <div className="text-text-secondary text-sm font-medium w-16">{meal.time}</div>
                   <div className="flex flex-col">
-                    <span className="text-white font-medium">{meal.restaurantName}</span>
+                    <span className="text-text-primary font-medium">{meal.restaurantName}</span>
                     <span className="text-text-secondary text-sm">{meal.cuisine} • {formatCurrency(meal.estimatedCost, currency, language === "en" ? "en-US" : "es-ES")}</span>
                   </div>
                 </div>

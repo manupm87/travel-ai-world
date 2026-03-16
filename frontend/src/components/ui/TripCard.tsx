@@ -71,7 +71,7 @@ export default function TripCard({ trip }: TripCardProps) {
           </div>
 
           <div className="flex flex-col gap-1">
-            <h3 className="text-2xl font-medium text-white leading-tight">
+            <h3 className="text-2xl font-medium text-text-primary leading-tight">
               {trip.title}
             </h3>
             <p className="text-base text-text-secondary">

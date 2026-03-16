@@ -1,0 +1,55 @@
+
+> frontend@0.1.0 test:unit
+> vitest run Header.test.tsx
+
+
+[1m[46m RUN [49m[22m [36mv4.1.0 [39m[90m/home/manu/dev/github.com/manupm87/travel-ai-world/frontend[39m
+
+ [31m❯[39m src/components/layout/Header.test.tsx [2m([22m[2m9 tests[22m[2m | [22m[31m9 failed[39m[2m)[22m[32m 24[2mms[22m[39m
+[31m     [31m×[31m renders branding correctly and links to home[39m[32m 11[2mms[22m[39m
+[31m     [31m×[31m does not render home link (it was removed)[39m[32m 2[2mms[22m[39m
+[31m     [31m×[31m renders landing variant navigation links correctly[39m[32m 2[2mms[22m[39m
+[31m     [31m×[31m renders consolidated CTA as Dashboard when authenticated[39m[32m 1[2mms[22m[39m
+[31m     [31m×[31m renders consolidated CTA as Plan my trip when not authenticated[39m[32m 2[2mms[22m[39m
+[31m     [31m×[31m calls setLanguage when language is selected from dropdown[39m[32m 1[2mms[22m[39m
+[31m     [31m×[31m opens login modal when clicking login icon while unauthenticated[39m[32m 1[2mms[22m[39m
+[31m     [31m×[31m applies scrolled styles when window is scrolled[39m[32m 1[2mms[22m[39m
+[31m     [31m×[31m opens mobile menu on hamburger click[39m[32m 1[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 9 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/components/layout/Header.test.tsx[2m > [22mHeader[2m > [22mrenders branding correctly and links to home
+[41m[1m FAIL [22m[49m src/components/layout/Header.test.tsx[2m > [22mHeader[2m > [22mdoes not render home link (it was removed)
+[41m[1m FAIL [22m[49m src/components/layout/Header.test.tsx[2m > [22mHeader[2m > [22mrenders landing variant navigation links correctly
+[41m[1m FAIL [22m[49m src/components/layout/Header.test.tsx[2m > [22mHeader[2m > [22mrenders consolidated CTA as Dashboard when authenticated
+[41m[1m FAIL [22m[49m src/components/layout/Header.test.tsx[2m > [22mHeader[2m > [22mrenders consolidated CTA as Plan my trip when not authenticated
+[41m[1m FAIL [22m[49m src/components/layout/Header.test.tsx[2m > [22mHeader[2m > [22mcalls setLanguage when language is selected from dropdown
+[41m[1m FAIL [22m[49m src/components/layout/Header.test.tsx[2m > [22mHeader[2m > [22mopens login modal when clicking login icon while unauthenticated
+[41m[1m FAIL [22m[49m src/components/layout/Header.test.tsx[2m > [22mHeader[2m > [22mapplies scrolled styles when window is scrolled
+[41m[1m FAIL [22m[49m src/components/layout/Header.test.tsx[2m > [22mHeader[2m > [22mopens mobile menu on hamburger click
+[31m[1mTypeError[22m: Cannot read properties of undefined (reading 'toggle')[39m
+[36m [2m❯[22m Header src/components/layout/Header.tsx:[2m104:32[22m[39m
+    [90m102|[39m                 [33monClick[39m[33m=[39m[33m{[39mtoggleTheme[33m}[39m
+    [90m103|[39m                 className="flex items-center justify-center w-9 h-9 ro…
+    [90m104|[39m                 [33mtitle[39m[33m=[39m[33m{[39mt[33m.[39mtheme[33m.[39mtoggle[33m}[39m
+    [90m   |[39m                                [31m^[39m
+    [90m105|[39m               [33m>[39m
+    [90m106|[39m                 {theme === "dark" ? <Sun size={18} /> : <Moon size={18…
+[90m [2m❯[22m Object.react_stack_bottom_frame node_modules/react-dom/cjs/react-dom-client.development.js:[2m25904:20[22m[39m
+[90m [2m❯[22m renderWithHooks node_modules/react-dom/cjs/react-dom-client.development.js:[2m7662:22[22m[39m
+[90m [2m❯[22m updateFunctionComponent node_modules/react-dom/cjs/react-dom-client.development.js:[2m10166:19[22m[39m
+[90m [2m❯[22m beginWork node_modules/react-dom/cjs/react-dom-client.development.js:[2m11778:18[22m[39m
+[90m [2m❯[22m runWithFiberInDEV node_modules/react-dom/cjs/react-dom-client.development.js:[2m874:13[22m[39m
+[90m [2m❯[22m performUnitOfWork node_modules/react-dom/cjs/react-dom-client.development.js:[2m17641:22[22m[39m
+[90m [2m❯[22m workLoopSync node_modules/react-dom/cjs/react-dom-client.development.js:[2m17469:41[22m[39m
+[90m [2m❯[22m renderRootSync node_modules/react-dom/cjs/react-dom-client.development.js:[2m17450:11[22m[39m
+[90m [2m❯[22m performWorkOnRoot node_modules/react-dom/cjs/react-dom-client.development.js:[2m16583:35[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m9 failed[39m[22m[90m (9)[39m
+[2m   Start at [22m 19:22:12
+[2m   Duration [22m 628ms[2m (transform 56ms, setup 36ms, import 110ms, tests 24ms, environment 220ms)[22m
+

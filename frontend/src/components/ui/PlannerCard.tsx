@@ -56,7 +56,7 @@ export default function PlannerCard({ transparent = false }: PlannerCardProps) {
       <div className="max-w-[1440px] w-full mx-auto px-8 lg:px-16 flex flex-col gap-10">
         <div className="flex flex-col gap-4">
           <SectionLabel>{p.label}</SectionLabel>
-          <h2 className="text-4xl lg:text-5xl font-medium text-white tracking-[-1px] leading-tight">
+          <h2 className="text-4xl lg:text-5xl font-medium text-text-primary tracking-[-1px] leading-tight">
             {p.title}
           </h2>
         </div>
@@ -82,7 +82,7 @@ export default function PlannerCard({ transparent = false }: PlannerCardProps) {
                   placeholder={placeholder}
                   value={form[key as keyof typeof form]}
                   onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                  className="h-[52px] bg-bg-primary border border-border-soft rounded-xl px-4 text-[15px] text-white placeholder-white/50 focus:outline-none focus:border-accent/60 transition-colors"
+                  className="h-[52px] bg-bg-primary border border-border-soft rounded-xl px-4 text-[15px] text-text-primary placeholder-text-secondary/50 focus:outline-none focus:border-accent/60 transition-colors"
                 />
               </div>
             ))}
@@ -105,7 +105,7 @@ export default function PlannerCard({ transparent = false }: PlannerCardProps) {
                     className={`flex items-center gap-2 px-6 py-3 rounded-xl text-[13.5px] font-medium transition-all duration-300 cursor-pointer ${
                       active
                         ? "bg-accent text-white shadow-lg shadow-accent/40"
-                        : "bg-white/5 border border-border-soft text-white/70 hover:bg-white/10 hover:text-white"
+                        : "bg-bg-secondary border border-border-soft text-text-secondary hover:bg-bg-card hover:text-text-primary"
                     }`}
                   >
                     <span>{emoji}</span>

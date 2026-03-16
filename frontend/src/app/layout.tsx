@@ -33,6 +33,8 @@ export const metadata: Metadata = {
 };
 
 
+import { ThemeProvider } from "@/context/ThemeContext";
+
 /**
  * Root Layout for the Next.js App Router.
  * 
@@ -54,7 +56,9 @@ export default function RootLayout({
       <body className="font-sans">
         <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "PLACEHOLDER_CLIENT_ID"}>
           <AuthProvider>
-            <LanguageProvider>{children}</LanguageProvider>
+            <ThemeProvider>
+              <LanguageProvider>{children}</LanguageProvider>
+            </ThemeProvider>
           </AuthProvider>
         </GoogleOAuthProvider>
       </body>

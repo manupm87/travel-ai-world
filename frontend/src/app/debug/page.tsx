@@ -36,7 +36,7 @@ export default function DebugPage() {
   };
 
   return (
-    <main className="min-h-screen bg-bg-primary text-white">
+    <main className="min-h-screen bg-bg-primary text-text-primary">
       <Header />
       <div className="pt-32 pb-20 px-6 max-w-4xl mx-auto">
         <h1 className="text-4xl font-heading mb-8">Debug & Verification</h1>
@@ -48,7 +48,7 @@ export default function DebugPage() {
               {isAuthenticated ? "Authenticated" : "Guest"}
             </span></p>
             {isAuthenticated && (
-              <pre className="bg-black/30 p-4 rounded-lg mt-2 overflow-x-auto text-xs">
+              <pre className="bg-bg-secondary p-4 rounded-lg mt-2 overflow-x-auto text-xs text-text-primary border border-border-soft">
                 {JSON.stringify(user, null, 2)}
               </pre>
             )}
@@ -63,7 +63,7 @@ export default function DebugPage() {
             </button>
             <button
               onClick={handleClearAuth}
-              className="px-6 py-3 bg-transparent border border-border hover:bg-white/5 text-white rounded-xl transition-all"
+              className="px-6 py-3 bg-transparent border border-border hover:bg-bg-secondary text-text-primary rounded-xl transition-all"
             >
               🧹 Clear Session
             </button>
