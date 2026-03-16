@@ -222,6 +222,14 @@ const en: Translations = {
     emptyTitle: "Your atlas is waiting",
     emptyDescription: "You haven't planned any journeys yet. Start your next adventure with our AI planner.",
   },
+  auth: {
+    login: "Log In",
+    logout: "Log Out",
+    loginWithGoogle: "Continue with Google",
+    welcomeBack: "Welcome back",
+    signingIn: "Signing in...",
+  },
 };
+
 
 export default en;

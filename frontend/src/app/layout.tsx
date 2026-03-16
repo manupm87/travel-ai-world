@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "@/context/LanguageContext";
+import { AuthProvider } from "@/context/AuthContext";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -50,7 +52,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${outfit.variable} ${plusJakartaSans.variable}`}>
       <body className="font-sans">
-        <LanguageProvider>{children}</LanguageProvider>
+        <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "PLACEHOLDER_CLIENT_ID"}>
+          <AuthProvider>
+            <LanguageProvider>{children}</LanguageProvider>
+          </AuthProvider>
+        </GoogleOAuthProvider>
       </body>
     </html>
   );

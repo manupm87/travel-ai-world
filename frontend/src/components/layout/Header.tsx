@@ -3,8 +3,10 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/context/LanguageContext";
+import { useAuth } from "@/context/AuthContext";
+import { LoginModal } from "@/components/auth/LoginModal";
 import { Button } from "@/components/ui/Button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogOut, User as UserIcon } from "lucide-react";
 import type { Language } from "@/i18n";
 
 const FLAG: Record<Language, string> = { en: "🇬🇧", es: "🇪🇸" };
@@ -12,6 +14,7 @@ const FLAG: Record<Language, string> = { en: "🇬🇧", es: "🇪🇸" };
 interface HeaderProps {
   variant?: "landing" | "dashboard";
 }
+
 
 
 /**
@@ -25,14 +28,17 @@ interface HeaderProps {
  */
 export default function Header({ variant = "landing" }: HeaderProps) {
   const { t, language, setLanguage } = useLanguage();
+  const { user, isAuthenticated, logout } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
 
   return (
     <>
@@ -113,6 +119,42 @@ export default function Header({ variant = "landing" }: HeaderProps) {
               {t.nav.home}
             </Link>
 
+            {/* Auth Actions */}
+            <div className="flex items-center gap-4">
+              {isAuthenticated ? (
+                <div className="flex items-center gap-3 bg-white/5 border border-border-soft rounded-full pl-1 pr-3 py-1 group transition-all hover:bg-white/10">
+                  {user?.picture ? (
+                    <img 
+                      src={user.picture} 
+                      alt={user.name} 
+                      className="w-7 h-7 rounded-full object-cover border border-accent/30"
+                    />
+                  ) : (
+                    <div className="w-7 h-7 rounded-full bg-accent/20 flex items-center justify-center text-accent">
+                      <UserIcon size={14} />
+                    </div>
+                  )}
+                  <span className="text-[13px] font-medium text-white max-w-[100px] truncate">
+                    {user?.name.split(' ')[0]}
+                  </span>
+                  <button 
+                    onClick={logout}
+                    className="p-1.5 text-text-secondary hover:text-accent transition-colors"
+                    title={t.auth.logout}
+                  >
+                    <LogOut size={14} />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setLoginModalOpen(true)}
+                  className="text-sm font-medium text-text-secondary hover:text-white transition-colors px-4 py-2"
+                >
+                  {t.auth.login}
+                </button>
+              )}
+            </div>
+
             {/* CTA */}
             <Button
               href={variant === "dashboard" ? "/dashboard#planner" : "#planner"}
@@ -121,6 +163,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
               {t.nav.planMyTrip}
             </Button>
           </div>
+
 
           {/* Mobile Right Actions */}
           <div className="flex md:hidden items-center gap-3">
@@ -217,6 +260,52 @@ export default function Header({ variant = "landing" }: HeaderProps) {
             </Link>
           </nav>
 
+          {/* Mobile Auth */}
+          <div className="mt-8 pt-8 border-t border-border">
+            {isAuthenticated ? (
+              <div className="flex flex-col gap-6">
+                <div className="flex items-center gap-4">
+                  {user?.picture ? (
+                    <img 
+                      src={user.picture} 
+                      alt={user.name} 
+                      className="w-12 h-12 rounded-full border border-accent/30"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center text-accent">
+                      <UserIcon size={24} />
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-white font-medium">{user?.name}</p>
+                    <p className="text-text-secondary text-sm">{user?.email}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    logout();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="flex items-center gap-3 text-xl font-medium text-white hover:text-accent transition-colors"
+                >
+                  <LogOut size={24} />
+                  {t.auth.logout}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setLoginModalOpen(true);
+                }}
+                className="text-2xl font-medium text-white hover:text-accent transition-colors"
+              >
+                {t.auth.login}
+              </button>
+            )}
+          </div>
+
+
           {/* Mobile Language Switcher (Pill style) */}
           <div className="mt-auto pt-8 border-t border-border">
             <p className="text-xs text-text-secondary uppercase tracking-widest font-medium mb-4">
@@ -244,6 +333,12 @@ export default function Header({ variant = "landing" }: HeaderProps) {
           </div>
         </div>
       </div>
+
+      <LoginModal 
+        isOpen={loginModalOpen} 
+        onClose={() => setLoginModalOpen(false)} 
+      />
     </>
   );
 }
+
