@@ -41,6 +41,7 @@ export interface Translations {
     reviews: string;
     planMyTrip: string;
     myDashboard: string;
+    dashboard: string;
     home: string;
   };
   common: {

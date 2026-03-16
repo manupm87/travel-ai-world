@@ -29,10 +29,17 @@ vi.mock('lucide-react', () => ({
   X: () => <div data-testid="x-icon" />,
   LogOut: () => <div data-testid="logout-icon" />,
   User: () => <div data-testid="user-icon" />,
+  ChevronDown: () => <div data-testid="chevron-down-icon" />,
 }))
 
 vi.mock('@/context/AuthContext', () => ({
   useAuth: vi.fn(),
+}))
+
+vi.mock('@react-oauth/google', () => ({
+  GoogleLogin: () => <div data-testid="google-login" />,
+  GoogleOAuthProvider: ({ children }: any) => <>{children}</>,
+  useGoogleLogin: () => vi.fn(),
 }))
 
 // Mock LanguageContext
@@ -46,9 +53,8 @@ vi.mock('@/context/LanguageContext', () => ({
         howItWorks: 'How it works',
         features: 'Features',
         reviews: 'Reviews',
-        myDashboard: 'My Dashboard',
-        home: 'Home',
-        planMyTrip: 'Plan my trip'
+        planMyTrip: 'Plan my trip',
+        dashboard: 'Dashboard'
       },
       auth: {
         login: 'Login',
@@ -91,8 +97,7 @@ describe('Header', () => {
     expect(screen.getAllByText('Reviews')[0]).toBeInTheDocument()
   })
 
-  it('highlights dashboard link when on /dashboard with or without trailing slash', () => {
-    vi.mocked(usePathname).mockReturnValue('/dashboard/')
+  it('renders consolidated CTA as Dashboard when authenticated', () => {
     vi.mocked(useAuth).mockReturnValue({
       isAuthenticated: true,
       user: { id: '1', name: 'Test', email: 'test@example.com' },
@@ -102,31 +107,37 @@ describe('Header', () => {
     })
 
     render(<Header />)
-    const dashboardLink = screen.getAllByText('My Dashboard')[0]
-    expect(dashboardLink.closest('a')).toHaveClass('active-nav')
+    const ctaButtons = screen.getAllByText('Dashboard')
+    expect(ctaButtons.length).toBeGreaterThan(0)
+    expect(ctaButtons[0].closest('a')).toHaveAttribute('href', '/dashboard')
   })
 
-  it('does not highlight dashboard link when on other pages', () => {
-    vi.mocked(usePathname).mockReturnValue('/trip/123')
-    vi.mocked(useAuth).mockReturnValue({
-      isAuthenticated: true,
-      user: { id: '1', name: 'Test', email: 'test@example.com' },
-      logout: vi.fn(),
-      login: vi.fn(),
-      isLoading: false
-    })
-
+  it('renders consolidated CTA as Plan my trip when not authenticated', () => {
     render(<Header />)
-    const dashboardLink = screen.getAllByText('My Dashboard')[0]
-    expect(dashboardLink.closest('a')).not.toHaveClass('active-nav')
+    const ctaButtons = screen.getAllByText('Plan my trip')
+    expect(ctaButtons.length).toBeGreaterThan(0)
+    expect(ctaButtons[0].closest('a')).toHaveAttribute('href', '#planner')
   })
 
-  it('calls setLanguage when language button is clicked', () => {
+  it('calls setLanguage when language is selected from dropdown', () => {
     render(<Header />)
-    // Buttons exist in both desktop and mobile nav
-    const esButtons = screen.getAllByRole('button', { name: /es/i })
-    fireEvent.click(esButtons[0])
+    const langButtons = screen.getAllByText(/en/i)
+    fireEvent.click(langButtons[0]) // Click the desktop one
+    
+    const esOption = screen.getByText(/español/i)
+    fireEvent.click(esOption)
     expect(mockSetLanguage).toHaveBeenCalledWith('es')
+  })
+
+  it('opens login modal when clicking user icon while unauthenticated', () => {
+    const { container } = render(<Header />)
+    // Find User icon by the data-testid from mock
+    const userIcon = screen.getByTestId('user-icon')
+    fireEvent.click(userIcon.parentElement!)
+    
+    // LoginModal mock should be called, but since it's a real component in our tests 
+    // we check if it's "open" (usually by checking for its content)
+    expect(screen.getByText('Login')).toBeInTheDocument() 
   })
 
   it('applies scrolled styles when window is scrolled', () => {
