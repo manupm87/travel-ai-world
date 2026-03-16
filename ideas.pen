@@ -8455,6 +8455,109 @@
           ]
         }
       ]
+    },
+    {
+      "type": "frame",
+      "id": "S08jr",
+      "x": 4690,
+      "y": 0,
+      "name": "Refined 404 Page",
+      "width": 1440,
+      "height": 1024,
+      "fill": "#0B0E14",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "BeNv9",
+          "name": "Header Placeholder",
+          "width": "fill_container",
+          "height": 72,
+          "fill": "#161B22"
+        },
+        {
+          "type": "frame",
+          "id": "vKOar",
+          "name": "Main Content",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 24,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "7txmm",
+              "name": "Content Box",
+              "width": 600,
+              "layout": "vertical",
+              "gap": 32,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "gShsT",
+                  "name": "Paradise Island Image",
+                  "width": 500,
+                  "height": 300,
+                  "fill": "#1C2128",
+                  "cornerRadius": 16
+                },
+                {
+                  "type": "text",
+                  "id": "nkUcr",
+                  "name": "title",
+                  "fill": "#FFFFFF",
+                  "content": "404 - Lost in Paradise",
+                  "fontFamily": "Inter",
+                  "fontSize": 48,
+                  "fontWeight": "bold"
+                },
+                {
+                  "type": "text",
+                  "id": "BbQOE",
+                  "name": "desc",
+                  "fill": "#8B949E",
+                  "content": "Even the best travel plans can go off-course. It seems you've discovered an island that isn't on our maps.",
+                  "textAlign": "center",
+                  "fontFamily": "Inter",
+                  "fontSize": 18,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "If53A",
+                  "name": "CTA Button",
+                  "fill": "#4F6EF7",
+                  "cornerRadius": 8,
+                  "padding": 16,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "mv69h",
+                      "name": "ctaText",
+                      "fill": "#FFFFFF",
+                      "content": "Return to Civilization",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "semibold"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "RTLyT",
+          "name": "Footer Placeholder",
+          "width": "fill_container",
+          "height": 140,
+          "fill": "#0B0E14"
+        }
+      ]
     }
   ]
 }
