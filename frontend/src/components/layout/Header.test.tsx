@@ -30,6 +30,7 @@ vi.mock('lucide-react', () => ({
   LogOut: () => <div data-testid="logout-icon" />,
   User: () => <div data-testid="user-icon" />,
   ChevronDown: () => <div data-testid="chevron-down-icon" />,
+  LogIn: () => <div data-testid="log-in-icon" />,
 }))
 
 vi.mock('@/context/AuthContext', () => ({
@@ -129,14 +130,12 @@ describe('Header', () => {
     expect(mockSetLanguage).toHaveBeenCalledWith('es')
   })
 
-  it('opens login modal when clicking user icon while unauthenticated', () => {
+  it('opens login modal when clicking login icon while unauthenticated', () => {
     const { container } = render(<Header />)
-    // Find User icon by the data-testid from mock
-    const userIcon = screen.getByTestId('user-icon')
-    fireEvent.click(userIcon.parentElement!)
+    // Find LogIn icon by the data-testid from mock
+    const loginIcon = screen.getByTestId('log-in-icon')
+    fireEvent.click(loginIcon.parentElement!)
     
-    // LoginModal mock should be called, but since it's a real component in our tests 
-    // we check if it's "open" (usually by checking for its content)
     expect(screen.getByText('Login')).toBeInTheDocument() 
   })
 

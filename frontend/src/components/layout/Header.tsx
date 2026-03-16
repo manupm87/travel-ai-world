@@ -7,7 +7,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
 import { LoginModal } from "@/components/auth/LoginModal";
 import { Button } from "@/components/ui/Button";
-import { Menu, X, LogOut, User as UserIcon, ChevronDown } from "lucide-react";
+import { Menu, X, LogOut, User as UserIcon, ChevronDown, LogIn } from "lucide-react";
 import type { Language } from "@/i18n";
 
 const FLAG: Record<Language, string> = { en: "🇬🇧", es: "🇪🇸" };
@@ -101,7 +101,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
             <div className="relative dropdown-container">
               <button
                 onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border-soft bg-white/5 hover:bg-white/10 transition-all text-[11px] font-medium text-white"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border-soft bg-white/5 hover:bg-white/10 transition-all text-[11px] font-medium text-white cursor-pointer"
               >
                 <span>{FLAG[language]}</span>
                 <span className="uppercase tracking-wider">{language}</span>
@@ -142,7 +142,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
               {isAuthenticated ? (
                 <button
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                  className="flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+                  className="flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer"
                 >
                   {user?.picture ? (
                     <img 
@@ -159,10 +159,10 @@ export default function Header({ variant = "landing" }: HeaderProps) {
               ) : (
                 <button
                   onClick={() => setLoginModalOpen(true)}
-                  className="w-9 h-9 rounded-full bg-white/5 border border-border-soft flex items-center justify-center text-text-secondary hover:text-white hover:border-accent/30 transition-all hover:bg-white/10"
+                  className="w-9 h-9 rounded-full bg-white/5 border border-border-soft flex items-center justify-center text-text-secondary hover:text-white hover:border-accent/30 transition-all hover:bg-white/10 cursor-pointer"
                   title={t.auth.login}
                 >
-                  <UserIcon size={18} />
+                  <LogIn size={18} />
                 </button>
               )}
 
