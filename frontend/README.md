@@ -64,6 +64,29 @@ That's it — no other files need to change.
 
 ---
 
+
+## Authentication
+
+The app uses **Google OAuth 2.0** for frontend authentication. User state is managed via React Context and persisted in `localStorage`.
+
+### How it works
+
+1. `src/context/AuthContext.tsx` provides the `AuthContext` which manages the `user` object and `isAuthenticated` status.
+2. `@react-oauth/google` handles the Google Sign-In button and token retrieval.
+3. Upon successful login, the JWT is decoded (via `jwt-decode`) to extract user profile info (name, email, picture), which is then stored in `localStorage`.
+4. The `Header` component reacts to the `user` state to switch between "Login" and "Profile/Logout" views.
+
+### Configuration
+
+| Environment Variable | Required | Description |
+|---|---|---|
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Yes | Google Cloud Console OAuth Client ID |
+
+- **Local**: Add to `.env.local` (ignored by git).
+- **Production**: Configured as a **GitHub Repository Secret** named `GOOGLE_CLIENT_ID`, which is injected during the build step in `.github/workflows/deploy.yml`.
+
+---
+
 ## Design Tokens
 
 Defined in `globals.css` as CSS custom properties and consumed directly in Tailwind classes:
