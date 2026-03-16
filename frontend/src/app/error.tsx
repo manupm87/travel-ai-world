@@ -28,8 +28,8 @@ export default function ErrorBoundary({
   }, [error]);
 
   return (
-    <main className="flex min-h-[50vh] flex-col items-center justify-center p-8 text-center text-white">
-      <div className="bg-bg-card max-w-md rounded-2xl border border-white/5 p-8 shadow-2xl">
+    <main className="flex min-h-[50vh] flex-col items-center justify-center p-8 text-center text-text-primary">
+      <div className="bg-bg-card max-w-md rounded-2xl border border-border-soft p-8 shadow-2xl">
         <div className="mb-6 flex justify-center">
           <span className="text-4xl text-red-500">⚠️</span>
         </div>

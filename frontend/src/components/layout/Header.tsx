@@ -100,7 +100,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
           <div className="hidden md:flex items-center gap-4 lg:gap-6">
               <button
                 onClick={toggleTheme}
-                className="flex items-center justify-center w-9 h-9 rounded-xl border border-border-soft bg-white/5 hover:bg-white/10 transition-all text-text-primary cursor-pointer"
+                className="flex items-center justify-center w-9 h-9 rounded-xl border border-border-soft bg-bg-secondary hover:bg-bg-surface transition-all text-text-primary cursor-pointer"
                 title={t.theme.toggle}
               >
                 {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
@@ -110,7 +110,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
             <div className="relative dropdown-container">
               <button
                 onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border-soft bg-white/5 hover:bg-white/10 transition-all text-[11px] font-medium text-text-primary cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border-soft bg-bg-secondary hover:bg-bg-surface transition-all text-[11px] font-medium text-text-primary cursor-pointer"
               >
                 <span>{FLAG[language]}</span>
                 <span className="uppercase tracking-wider">{language}</span>
@@ -126,7 +126,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
                         setLanguage(lang);
                         setLangDropdownOpen(false);
                       }}
-                      className={`w-full flex items-center gap-3 px-4 py-3 text-[11px] font-medium transition-colors hover:bg-white/5 cursor-pointer ${
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-[11px] font-medium transition-colors hover:bg-bg-secondary cursor-pointer ${
                         language === lang ? "text-accent bg-accent/5" : "text-text-secondary hover:text-text-primary"
                       }`}
                     >
@@ -168,7 +168,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
               ) : (
                 <button
                   onClick={() => setLoginModalOpen(true)}
-                  className="w-9 h-9 rounded-full bg-white/5 border border-border-soft flex items-center justify-center text-text-secondary hover:text-white hover:border-accent/30 transition-all hover:bg-white/10 cursor-pointer"
+                  className="w-9 h-9 rounded-full bg-bg-secondary border border-border-soft flex items-center justify-center text-text-secondary hover:text-text-primary hover:border-accent/30 transition-all hover:bg-bg-surface cursor-pointer"
                   title={t.auth.login}
                 >
                   <LogIn size={18} />
@@ -178,7 +178,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
               {isAuthenticated && userDropdownOpen && (
                 <div className="absolute top-full right-0 mt-2 w-48 bg-bg-primary/95 backdrop-blur-md border border-border rounded-xl shadow-2xl py-2 animate-in fade-in slide-in-from-top-2 duration-300">
                   <div className="px-4 py-2 border-b border-border mb-1">
-                    <p className="text-[12px] font-semibold text-white truncate">{user?.name}</p>
+                    <p className="text-[12px] font-semibold text-text-primary truncate">{user?.name}</p>
                     <p className="text-[10px] text-text-secondary truncate">{user?.email}</p>
                   </div>
                   <button 
@@ -210,7 +210,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
             {/* Hamburger Button */}
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center"
+              className="p-2 text-text-primary hover:bg-bg-surface rounded-lg transition-colors flex items-center justify-center"
               aria-label="Open menu"
             >
               <Menu size={24} />
@@ -236,14 +236,14 @@ export default function Header({ variant = "landing" }: HeaderProps) {
               <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center text-lg">
                 ✈
               </div>
-              <span className="text-white font-medium text-xs tracking-[2px] uppercase">
+              <span className="text-text-primary font-medium text-xs tracking-[2px] uppercase">
                 Travel AI World
               </span>
             </Link>
 
             <button
               onClick={() => setMobileMenuOpen(false)}
-              className="p-2 text-text-primary hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center"
+              className="p-2 text-text-primary hover:bg-bg-surface rounded-lg transition-colors flex items-center justify-center"
               aria-label="Close menu"
             >
               <X size={24} />
@@ -265,14 +265,14 @@ export default function Header({ variant = "landing" }: HeaderProps) {
                 <a
                   href="#features"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-2xl font-medium text-white hover:text-accent transition-colors"
+                  className="text-2xl font-medium text-text-primary hover:text-accent transition-colors"
                 >
                   {t.nav.features}
                 </a>
                 <a
                   href="#testimonials"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-2xl font-medium text-white hover:text-accent transition-colors"
+                  className="text-2xl font-medium text-text-primary hover:text-accent transition-colors"
                 >
                   {t.nav.reviews}
                 </a>
@@ -297,7 +297,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
                     </div>
                   )}
                   <div>
-                    <p className="text-white font-medium">{user?.name}</p>
+                    <p className="text-text-primary font-medium">{user?.name}</p>
                     <p className="text-text-secondary text-sm">{user?.email}</p>
                   </div>
                 </div>
@@ -333,13 +333,13 @@ export default function Header({ variant = "landing" }: HeaderProps) {
               </p>
               <button
                 onClick={toggleTheme}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border-soft bg-white/5 text-xs text-white"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border-soft bg-bg-secondary text-xs text-text-primary"
               >
                 {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
                 {theme === "dark" ? t.theme.light : t.theme.dark}
               </button>
             </div>
-            <div className="flex items-center gap-2 bg-white/5 border border-border-soft rounded-2xl p-1.5 w-fit relative overflow-hidden">
+            <div className="flex items-center gap-2 bg-bg-secondary border border-border-soft rounded-2xl p-1.5 w-fit relative overflow-hidden">
               {(["en", "es"] as Language[]).map((lang) => (
                 <button
                   key={lang}
@@ -347,7 +347,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
                   className={`relative flex items-center gap-2 px-6 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-500 cursor-pointer overflow-hidden group ${
                     language === lang
                       ? "text-white"
-                      : "text-text-secondary hover:text-white"
+                      : "text-text-secondary hover:text-text-primary"
                   }`}
                 >
                   {language === lang && (
