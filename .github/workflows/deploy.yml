@@ -42,7 +42,9 @@ jobs:
           # Project GitHub Pages URL: https://<owner>.github.io/<repo>/
           # The basePath must match the repo name exactly.
           NEXT_PUBLIC_BASE_PATH: /travel-ai-world
+          NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           NODE_ENV: production
+
         run: npm run build
         # Output lands in frontend/out/
 
