@@ -42,7 +42,9 @@ jobs:
           NEXT_PUBLIC_BASE_PATH: /travel-ai-world/${{ github.ref_name }}
           NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           NODE_ENV: production
-        run: npm run build
+        run: |
+          npm run build
+          touch out/.nojekyll
 
       - name: Debug: List build output
         run: ls -R frontend/out
