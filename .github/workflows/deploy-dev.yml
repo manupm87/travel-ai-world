@@ -46,7 +46,7 @@ jobs:
           npm run build
           touch out/.nojekyll
 
-      - name: Debug: List build output
+      - name: Debug List build output
         run: ls -R frontend/out
 
       - name: Deploy to GitHub Pages
