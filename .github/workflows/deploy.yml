@@ -59,10 +59,13 @@ jobs:
           NODE_ENV: production
         run: npm run build
 
+      - name: Debug Output
+        run: ls -R frontend/out
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./frontend/out
+          publish_dir: frontend/out
           destination_dir: ${{ steps.vars.outputs.dest_dir }}
           keep_files: true
