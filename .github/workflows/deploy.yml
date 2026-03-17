@@ -4,22 +4,25 @@ on:
   push:
     branches:
       - main
+      - manu
+      - alex
+      - joaquin
   # Allow manual deploys from the Actions tab
   workflow_dispatch:
 
-# Grant GITHUB_TOKEN the permissions needed by the Pages deploy action
+# Grant GITHUB_TOKEN the permissions needed for deployment
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
-# Only one concurrent deployment; cancel any in-progress run
+# Allow separate concurrent deployments for each dev branch
 concurrency:
-  group: "pages"
+  group: "pages-${{ github.ref_name }}"
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -32,6 +35,18 @@ jobs:
           cache: "npm"
           cache-dependency-path: frontend/package-lock.json
 
+      - name: Setup Deployment Variables
+        id: vars
+        shell: bash
+        run: |
+          if [ "${{ github.ref_name }}" == "main" ]; then
+            echo "base_path=/travel-ai-world" >> $GITHUB_OUTPUT
+            echo "dest_dir=." >> $GITHUB_OUTPUT
+          else
+            echo "base_path=/${{ github.ref_name }}/travel-ai-world" >> $GITHUB_OUTPUT
+            echo "dest_dir=${{ github.ref_name }}/travel-ai-world" >> $GITHUB_OUTPUT
+          fi
+
       - name: Install dependencies
         working-directory: frontend
         run: npm ci
@@ -39,32 +54,15 @@ jobs:
       - name: Build (static export)
         working-directory: frontend
         env:
-          # Project GitHub Pages URL: https://<owner>.github.io/<repo>/
-          # The basePath must match the repo name exactly.
-          NEXT_PUBLIC_BASE_PATH: /travel-ai-world
+          NEXT_PUBLIC_BASE_PATH: ${{ steps.vars.outputs.base_path }}
           NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           NODE_ENV: production
-
         run: npm run build
-        # Output lands in frontend/out/
 
-      # - name: SPA fallback — copy index.html → 404.html
-      #   # GitHub Pages serves 404.html for unknown paths.
-      #   # This lets client-side routing handle /trip/<id> at runtime.
-      #   run: cp frontend/out/index.html frontend/out/404.html
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: frontend/out
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
       - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./frontend/out
+          destination_dir: ${{ steps.vars.outputs.dest_dir }}
+          keep_files: true
