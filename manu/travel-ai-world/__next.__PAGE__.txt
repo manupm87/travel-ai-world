@@ -9,5 +9,5 @@
 9:I[58234,["/manu/travel-ai-world/_next/static/chunks/17ed5a0ce99b42cc.js","/manu/travel-ai-world/_next/static/chunks/bcc49231de16d7e4.js"],"default"]
 a:I[97367,["/manu/travel-ai-world/_next/static/chunks/ff1a16fafef87110.js","/manu/travel-ai-world/_next/static/chunks/d2be314c3ece3fbe.js"],"OutletBoundary"]
 b:"$Sreact.suspense"
-0:{"buildId":"SAm2RMzRYdweBJxrrdgaj","rsc":["$","$1","c",{"children":[["$","main",null,{"children":[["$","$L2",null,{}],["$","$L3",null,{}],["$","$L4",null,{}],["$","$L5",null,{}],["$","$L6",null,{}],["$","$L7",null,{}],["$","$L8",null,{}],["$","$L9",null,{}]]}],[["$","script","script-0",{"src":"/manu/travel-ai-world/_next/static/chunks/bcc49231de16d7e4.js","async":true}]],["$","$La",null,{"children":["$","$b",null,{"name":"Next.MetadataOutlet","children":"$@c"}]}]]}],"loading":null,"isPartial":false}
+0:{"buildId":"bUj0eGkVx6OqqX1SUN2kO","rsc":["$","$1","c",{"children":[["$","main",null,{"children":[["$","$L2",null,{}],["$","$L3",null,{}],["$","$L4",null,{}],["$","$L5",null,{}],["$","$L6",null,{}],["$","$L7",null,{}],["$","$L8",null,{}],["$","$L9",null,{}]]}],[["$","script","script-0",{"src":"/manu/travel-ai-world/_next/static/chunks/bcc49231de16d7e4.js","async":true}]],["$","$La",null,{"children":["$","$b",null,{"name":"Next.MetadataOutlet","children":"$@c"}]}]]}],"loading":null,"isPartial":false}
 c:null
