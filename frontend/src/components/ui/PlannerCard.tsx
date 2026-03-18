@@ -62,7 +62,7 @@ export default function PlannerCard({ transparent = false }: PlannerCardProps) {
         </div>
 
 {/* PROMPT MODE — replacing the old form */}
-<div className="bg-bg-card border border-border rounded-2xl p-8 lg:p-12 flex flex-col gap-8">
+<div className="bg-bg-card border border-border rounded-2xl p-8 lg:p-12 flex flex-col gap-6">
 
   {/* Label */}
   <label className="text-[12px] font-medium text-text-secondary tracking-[0.1em] uppercase">
@@ -76,6 +76,28 @@ export default function PlannerCard({ transparent = false }: PlannerCardProps) {
     placeholder="Crea un itinerario de 7 días en París o Japon para una escapada de ensueño!!!"
     className="w-full h-40 bg-bg-primary border border-border-soft rounded-xl p-4 text-[15px] text-text-primary placeholder-text-secondary/50 focus:outline-none focus:border-accent/60 transition-colors"
   />
+
+{/* Category quick actions — centrados */}
+<div className="flex flex-wrap justify-center gap-3 mt-2">
+
+  {[
+    { label: "Vuelos", icon: "✈️" },
+    { label: "Hoteles", icon: "🏨" },
+    { label: "Restaurantes", icon: "🍽️" },
+    { label: "Atracciones", icon: "🎡" },
+  ].map(({ label, icon }) => (
+    <button
+      key={label}
+      type="button"
+      className="flex items-center gap-2 px-5 py-2 bg-bg-secondary hover:bg-bg-card border border-border-soft text-text-primary rounded-xl text-sm font-medium transition-all"
+    >
+      <span>{icon}</span>
+      {label}
+    </button>
+  ))}
+
+</div>
+
 
   {/* Main button */}
   <button
@@ -97,45 +119,27 @@ export default function PlannerCard({ transparent = false }: PlannerCardProps) {
     </p>
   )}
 
-  {/* Category quick actions */}
-  <div className="flex flex-wrap gap-3 mt-6">
+{/* Bottom action bar — izquierda y derecha */}
+<div className="flex items-center justify-between mt-4 border border-border-soft bg-bg-primary rounded-xl px-4 py-3">
 
-    {[
-      { label: "Vuelos", icon: "✈️" },
-      { label: "Hoteles", icon: "🏨" },
-      { label: "Restaurantes", icon: "🍽️" },
-      { label: "Atracciones", icon: "🎡" },
-    ].map(({ label, icon }) => (
-      <button
-        key={label}
-        type="button"
-        className="flex items-center gap-2 px-5 py-2.5 bg-bg-secondary hover:bg-bg-card border border-border-soft text-text-primary rounded-xl text-sm font-medium transition-all"
-      >
-        <span>{icon}</span>
-        {label}
-      </button>
-    ))}
+  {/* Left: Attach */}
+  <button
+    type="button"
+    className="text-text-secondary hover:text-text-primary transition text-xl"
+  >
+    📎
+  </button>
 
-  </div>
+  {/* Right: Microphone */}
+  <button
+    type="button"
+    className="text-text-secondary hover:text-text-primary transition text-xl"
+  >
+    🎤
+  </button>
 
-  {/* Bottom action bar */}
-  <div className="flex items-center justify-between mt-6 border border-border-soft bg-bg-primary rounded-xl px-4 py-3">
+</div>
 
-    <button
-      type="button"
-      className="text-text-secondary hover:text-text-primary transition text-xl"
-    >
-      📎
-    </button>
-
-    <button
-      type="button"
-      className="text-text-secondary hover:text-text-primary transition text-xl"
-    >
-      🎤
-    </button>
-
-  </div>
 
 </div>
 
