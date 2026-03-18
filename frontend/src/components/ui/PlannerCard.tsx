@@ -64,17 +64,20 @@ export default function PlannerCard({ transparent = false }: PlannerCardProps) {
 {/* PROMPT MODE — replacing the old form */}
 <div className="bg-bg-card border border-border rounded-2xl p-8 lg:p-12 flex flex-col gap-8">
 
+  {/* Label */}
   <label className="text-[12px] font-medium text-text-secondary tracking-[0.1em] uppercase">
     Escribe tu viaje
   </label>
 
+  {/* Textarea */}
   <textarea
     value={form.destination}
     onChange={(e) => setForm({ ...form, destination: e.target.value })}
-    placeholder="Crea un itinerario de 7 días en París o Japon para una escapada de cumpleaños"
+    placeholder="Crea un itinerario de 7 días en París o Japon para una escapada de ensueño!!!"
     className="w-full h-40 bg-bg-primary border border-border-soft rounded-xl p-4 text-[15px] text-text-primary placeholder-text-secondary/50 focus:outline-none focus:border-accent/60 transition-colors"
   />
 
+  {/* Main button */}
   <button
     type="button"
     onClick={() => {
@@ -87,13 +90,55 @@ export default function PlannerCard({ transparent = false }: PlannerCardProps) {
     <span>Planificar viaje</span>
   </button>
 
+  {/* Temporary message */}
   {submitted && (
     <p className="text-center text-sm text-text-secondary">
       Estamos trabajando en ello. ¡Próximamente tendremos más avances!
     </p>
   )}
 
+  {/* Category quick actions */}
+  <div className="flex flex-wrap gap-3 mt-6">
+
+    {[
+      { label: "Vuelos", icon: "✈️" },
+      { label: "Hoteles", icon: "🏨" },
+      { label: "Restaurantes", icon: "🍽️" },
+      { label: "Atracciones", icon: "🎡" },
+    ].map(({ label, icon }) => (
+      <button
+        key={label}
+        type="button"
+        className="flex items-center gap-2 px-5 py-2.5 bg-bg-secondary hover:bg-bg-card border border-border-soft text-text-primary rounded-xl text-sm font-medium transition-all"
+      >
+        <span>{icon}</span>
+        {label}
+      </button>
+    ))}
+
+  </div>
+
+  {/* Bottom action bar */}
+  <div className="flex items-center justify-between mt-6 border border-border-soft bg-bg-primary rounded-xl px-4 py-3">
+
+    <button
+      type="button"
+      className="text-text-secondary hover:text-text-primary transition text-xl"
+    >
+      📎
+    </button>
+
+    <button
+      type="button"
+      className="text-text-secondary hover:text-text-primary transition text-xl"
+    >
+      🎤
+    </button>
+
+  </div>
+
 </div>
+
       </div>
     </section>
   );
