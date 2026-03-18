@@ -61,85 +61,39 @@ export default function PlannerCard({ transparent = false }: PlannerCardProps) {
           </h2>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="bg-bg-card border border-border rounded-2xl p-8 lg:p-12 flex flex-col gap-8"
-        >
-          {/* Inputs */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              { key: "destination", label: p.destination, placeholder: p.destinationPlaceholder },
-              { key: "dates", label: p.dates, placeholder: p.datesPlaceholder },
-              { key: "budget", label: p.budget, placeholder: p.budgetPlaceholder },
-              { key: "travelers", label: p.travelers, placeholder: p.travelersPlaceholder },
-            ].map(({ key, label, placeholder }) => (
-              <div key={key} className="flex flex-col gap-2.5">
-                <label className="text-[12px] font-medium text-text-secondary tracking-[0.1em] uppercase">
-                  {label}
-                </label>
-                <input
-                  type="text"
-                  placeholder={placeholder}
-                  value={form[key as keyof typeof form]}
-                  onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                  className="h-[52px] bg-bg-primary border border-border-soft rounded-xl px-4 text-[15px] text-text-primary placeholder-text-secondary/50 focus:outline-none focus:border-accent/60 transition-colors"
-                />
-              </div>
-            ))}
-          </div>
+{/* PROMPT MODE — replacing the old form */}
+<div className="bg-bg-card border border-border rounded-2xl p-8 lg:p-12 flex flex-col gap-8">
 
-          {/* Style pills */}
-          <div className="flex flex-col gap-4">
-            <label className="text-[12px] font-medium text-text-secondary tracking-[0.1em] uppercase">
-              {p.travelStyle}
-            </label>
-            <div className="flex flex-wrap gap-3">
-              {p.styles.map(({ emoji, label }) => {
-                const active = selectedStyles.includes(label);
-                return (
-                  <button
-                    key={label}
-                    type="button"
-                    onClick={() => toggleStyle(label)}
-                    aria-pressed={active}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-xl text-[13.5px] font-medium transition-all duration-300 cursor-pointer ${
-                      active
-                        ? "bg-accent text-white shadow-lg shadow-accent/40"
-                        : "bg-bg-secondary border border-border-soft text-text-secondary hover:bg-bg-card hover:text-text-primary"
-                    }`}
-                  >
-                    <span>{emoji}</span>
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+  <label className="text-[12px] font-medium text-text-secondary tracking-[0.1em] uppercase">
+    Escribe tu viaje
+  </label>
 
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={isLoading || submitted}
-            className={`w-full h-16 bg-accent hover:bg-accent-hover text-white font-medium text-lg rounded-xl transition-all duration-300 shadow-lg shadow-accent/40 flex items-center justify-center gap-3 cursor-pointer disabled:cursor-not-allowed disabled:opacity-80 active:scale-[0.98] ${
-              isLoading ? "animate-pulse" : ""
-            }`}
-          >
-            {isLoading ? (
-              <>
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                <span>{p.comingSoon || "AI is thinking..."}</span>
-              </>
-            ) : submitted ? (
-              <><span>🎉</span><span>{p.comingSoon}</span></>
-            ) : (
-              <><span>✨</span><span>{p.generate}</span></>
-            )}
-          </button>
+  <textarea
+    value={form.destination}
+    onChange={(e) => setForm({ ...form, destination: e.target.value })}
+    placeholder="Crea un itinerario de 7 días en París o Japon para una escapada de cumpleaños"
+    className="w-full h-40 bg-bg-primary border border-border-soft rounded-xl p-4 text-[15px] text-text-primary placeholder-text-secondary/50 focus:outline-none focus:border-accent/60 transition-colors"
+  />
 
-          {submitted && (
-            <p className="text-center text-sm text-text-secondary">{p.comingSoonNote}</p>
-          )}
-        </form>
+  <button
+    type="button"
+    onClick={() => {
+      setSubmitted(true);
+      setTimeout(() => setSubmitted(false), 4000);
+    }}
+    className="w-full h-16 bg-accent hover:bg-accent-hover text-white font-medium text-lg rounded-xl transition-all duration-300 shadow-lg shadow-accent/40 flex items-center justify-center gap-3 active:scale-[0.98]"
+  >
+    <span>✨</span>
+    <span>Planificar viaje</span>
+  </button>
+
+  {submitted && (
+    <p className="text-center text-sm text-text-secondary">
+      Estamos trabajando en ello. ¡Próximamente tendremos más avances!
+    </p>
+  )}
+
+</div>
       </div>
     </section>
   );
