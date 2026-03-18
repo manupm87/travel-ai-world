@@ -61,8 +61,29 @@ export default function PlannerCard({ transparent = false }: PlannerCardProps) {
           </h2>
         </div>
 
-{/* PROMPT MODE — replacing the old form */}
-<div className="bg-bg-card border border-border rounded-2xl p-8 lg:p-12 flex flex-col gap-6">
+{/* PROMPT MODE — estilo Layla.ai con categorías arriba */}
+<div className="bg-bg-card border border-border rounded-2xl p-8 lg:p-10 flex flex-col gap-6">
+
+  {/* Category quick actions — arriba */}
+  <div className="flex flex-wrap justify-center gap-3">
+
+    {[
+      { label: "Vuelos", icon: "✈️" },
+      { label: "Hoteles", icon: "🏨" },
+      { label: "Restaurantes", icon: "🍽️" },
+      { label: "Atracciones", icon: "🎡" },
+    ].map(({ label, icon }) => (
+      <button
+        key={label}
+        type="button"
+        className="flex items-center gap-2 px-4 py-2 bg-bg-secondary hover:bg-bg-card border border-border-soft text-text-primary rounded-xl text-sm font-medium transition-all"
+      >
+        <span>{icon}</span>
+        {label}
+      </button>
+    ))}
+
+  </div>
 
   {/* Label */}
   <label className="text-[12px] font-medium text-text-secondary tracking-[0.1em] uppercase">
@@ -73,31 +94,28 @@ export default function PlannerCard({ transparent = false }: PlannerCardProps) {
   <textarea
     value={form.destination}
     onChange={(e) => setForm({ ...form, destination: e.target.value })}
-    placeholder="Crea un itinerario de 7 días en París o Japon para una escapada de ensueño!!!"
-    className="w-full h-40 bg-bg-primary border border-border-soft rounded-xl p-4 text-[15px] text-text-primary placeholder-text-secondary/50 focus:outline-none focus:border-accent/60 transition-colors"
+    placeholder="Crea un itinerario de 7 días en París o Japón para una escapada de ensueño"
+    className="w-full h-32 bg-bg-primary border border-border-soft rounded-xl p-4 text-[15px] text-text-primary placeholder-text-secondary/50 focus:outline-none focus:border-accent/60 transition-colors"
   />
 
-{/* Category quick actions — centrados */}
-<div className="flex flex-wrap justify-center gap-3 mt-2">
+  {/* Bottom action bar */}
+  <div className="flex items-center justify-between border border-border-soft bg-bg-primary rounded-xl px-4 py-3">
 
-  {[
-    { label: "Vuelos", icon: "✈️" },
-    { label: "Hoteles", icon: "🏨" },
-    { label: "Restaurantes", icon: "🍽️" },
-    { label: "Atracciones", icon: "🎡" },
-  ].map(({ label, icon }) => (
     <button
-      key={label}
       type="button"
-      className="flex items-center gap-2 px-5 py-2 bg-bg-secondary hover:bg-bg-card border border-border-soft text-text-primary rounded-xl text-sm font-medium transition-all"
+      className="text-text-secondary hover:text-text-primary transition text-xl"
     >
-      <span>{icon}</span>
-      {label}
+      📎
     </button>
-  ))}
 
-</div>
+    <button
+      type="button"
+      className="text-text-secondary hover:text-text-primary transition text-xl"
+    >
+      🎤
+    </button>
 
+  </div>
 
   {/* Main button */}
   <button
@@ -106,40 +124,11 @@ export default function PlannerCard({ transparent = false }: PlannerCardProps) {
       setSubmitted(true);
       setTimeout(() => setSubmitted(false), 4000);
     }}
-    className="w-full h-16 bg-accent hover:bg-accent-hover text-white font-medium text-lg rounded-xl transition-all duration-300 shadow-lg shadow-accent/40 flex items-center justify-center gap-3 active:scale-[0.98]"
+    className="w-full h-14 bg-accent hover:bg-accent-hover text-white font-medium text-lg rounded-xl transition-all duration-300 shadow-lg shadow-accent/40 flex items-center justify-center gap-3 active:scale-[0.98]"
   >
     <span>✨</span>
     <span>Planificar viaje</span>
   </button>
-
-  {/* Temporary message */}
-  {submitted && (
-    <p className="text-center text-sm text-text-secondary">
-      Estamos trabajando en ello. ¡Próximamente tendremos más avances!
-    </p>
-  )}
-
-{/* Bottom action bar — izquierda y derecha */}
-<div className="flex items-center justify-between mt-4 border border-border-soft bg-bg-primary rounded-xl px-4 py-3">
-
-  {/* Left: Attach */}
-  <button
-    type="button"
-    className="text-text-secondary hover:text-text-primary transition text-xl"
-  >
-    📎
-  </button>
-
-  {/* Right: Microphone */}
-  <button
-    type="button"
-    className="text-text-secondary hover:text-text-primary transition text-xl"
-  >
-    🎤
-  </button>
-
-</div>
-
 
 </div>
 
