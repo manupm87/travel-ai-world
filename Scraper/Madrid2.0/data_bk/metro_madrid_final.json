@@ -1,0 +1,1507 @@
+{
+    "city": "Madrid",
+    "category": "metro",
+    "count": 62,
+    "items": [
+        {
+            "id": "ChIJA-pTRiQmQg0RSaADkNa57tI",
+            "nombre": "Atocha",
+            "direccion": "Arganzuela, 28007 Madrid, Spain",
+            "lat": 40.4065972,
+            "lon": -3.6894071,
+            "rating": 4.1,
+            "reviews": 8244,
+            "lineas": [
+                "L1",
+                "L11"
+            ],
+            "amenities": [
+                "transit_station",
+                "train_station",
+                "subway_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#00A1E0",
+                "#006400"
+            ]
+        },
+        {
+            "id": "ChIJQRclnkEoQg0Rp1azo5iACag",
+            "nombre": "Moncloa",
+            "direccion": "Moncloa - Aravaca, 28008 Madrid, Spain",
+            "lat": 40.4345298,
+            "lon": -3.7190834,
+            "rating": 4.3,
+            "reviews": 2427,
+            "lineas": [
+                "L3",
+                "L6"
+            ],
+            "amenities": [
+                "transit_station",
+                "subway_station",
+                "bus_stop",
+                "transit_stop",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#FFD700",
+                "#808080"
+            ]
+        },
+        {
+            "id": "ChIJn_Hd820oQg0RgOhjR0WLNbk",
+            "nombre": "Príncipe Pío",
+            "direccion": "Moncloa - Aravaca, 28008 Madrid, Spain",
+            "lat": 40.421467299999996,
+            "lon": -3.7189925,
+            "rating": 4.2,
+            "reviews": 2164,
+            "lineas": [
+                "L6",
+                "L10",
+                "R"
+            ],
+            "amenities": [
+                "transit_station",
+                "train_station",
+                "subway_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#808080",
+                "#00008B",
+                "#000000"
+            ]
+        },
+        {
+            "id": "ChIJf-YYGX4oQg0RRvnJ0KBzhDM",
+            "nombre": "Sol",
+            "direccion": "Centro, 28013 Madrid, Spain",
+            "lat": 40.41685,
+            "lon": -3.7029199999999998,
+            "rating": 4.5,
+            "reviews": 2480,
+            "lineas": [
+                "L1",
+                "L2",
+                "L3"
+            ],
+            "amenities": [
+                "transit_station",
+                "train_station",
+                "subway_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#00A1E0",
+                "#E41A1C",
+                "#FFD700"
+            ]
+        },
+        {
+            "id": "ChIJ0ZiXfxUpQg0RAW0xyx-572s",
+            "nombre": "Chamartín",
+            "direccion": "Chamartín, 28036 Madrid, Spain",
+            "lat": 40.4720989,
+            "lon": -3.6827224,
+            "rating": 3.1,
+            "reviews": 230,
+            "lineas": [
+                "L1",
+                "L10"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#00A1E0",
+                "#00008B"
+            ]
+        },
+        {
+            "id": "ChIJaQ2CjxQmQg0RtI6VRGNCR-s",
+            "nombre": "Méndez Álvaro",
+            "direccion": "Arganzuela, 28045 Madrid, Spain",
+            "lat": 40.395739999999996,
+            "lon": -3.67784,
+            "rating": 3.5,
+            "reviews": 1091,
+            "lineas": [
+                "L6"
+            ],
+            "amenities": [
+                "transit_station",
+                "subway_station",
+                "bus_stop",
+                "transit_stop",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#808080"
+            ]
+        },
+        {
+            "id": "ChIJ13MlfLwnQg0R-YH9kWAiRgU",
+            "nombre": "Plaza Elíptica",
+            "direccion": "Carabanchel, 28025 Madrid, Spain",
+            "lat": 40.3844911,
+            "lon": -3.7183262999999998,
+            "rating": 4,
+            "reviews": 940,
+            "lineas": [
+                "L6",
+                "L11"
+            ],
+            "amenities": [
+                "transit_station",
+                "subway_station",
+                "bus_stop",
+                "transit_stop",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#808080",
+                "#006400"
+            ]
+        },
+        {
+            "id": "ChIJ6UwBkI4oQg0RVy4yDVJ-i-M",
+            "nombre": "Alonso Martínez",
+            "direccion": "Plaza de Sta. Barbara, Chamberí, 28004 Madrid, Spain",
+            "lat": 40.4277841,
+            "lon": -3.695923799999999,
+            "rating": 4.1,
+            "reviews": 468,
+            "lineas": [
+                "L4",
+                "L5",
+                "L10"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#8B4513",
+                "#008000",
+                "#00008B"
+            ]
+        },
+        {
+            "id": "ChIJ_5NFsIkoQg0RfAXGpzkK-AM",
+            "nombre": "Tribunal",
+            "direccion": "Centro, 28004 Madrid, Spain",
+            "lat": 40.42614940000001,
+            "lon": -3.7011779999999996,
+            "rating": 4.2,
+            "reviews": 438,
+            "lineas": [
+                "L1",
+                "L10"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#00A1E0",
+                "#00008B"
+            ]
+        },
+        {
+            "id": "ChIJAcDjuMYoQg0R0OxZxZtospU",
+            "nombre": "Avenida de América",
+            "direccion": "Chamartín, 28002 Madrid, Spain",
+            "lat": 40.4381048,
+            "lon": -3.6766079000000005,
+            "rating": 3.9,
+            "reviews": 1163,
+            "lineas": [
+                "L4",
+                "L6",
+                "L7",
+                "L9"
+            ],
+            "amenities": [
+                "transit_station",
+                "subway_station",
+                "bus_stop",
+                "transit_stop",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#8B4513",
+                "#808080",
+                "#FF7F00",
+                "#FF1493"
+            ]
+        },
+        {
+            "id": "ChIJm4wp3HsoQg0R5JKPIWVkVxQ",
+            "nombre": "Ópera",
+            "direccion": "Centro, 28013 Madrid, Spain",
+            "lat": 40.418234399999996,
+            "lon": -3.7093407,
+            "rating": 4.5,
+            "reviews": 905,
+            "lineas": [
+                "L2",
+                "L5",
+                "R"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#E41A1C",
+                "#008000",
+                "#000000"
+            ]
+        },
+        {
+            "id": "ChIJhcovUJInQg0Rp-Pkzh2-i-E",
+            "nombre": "Oporto",
+            "direccion": "Carabanchel, 28019 Madrid, Spain",
+            "lat": 40.38843550000001,
+            "lon": -3.7312261,
+            "rating": 4,
+            "reviews": 742,
+            "lineas": [
+                "L5",
+                "L6"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#008000",
+                "#808080"
+            ]
+        },
+        {
+            "id": "ChIJ6XJ0VHwoQg0RDLS-_d-7IfY",
+            "nombre": "Callao",
+            "direccion": "Centro, 28013 Madrid, Spain",
+            "lat": 40.4202472,
+            "lon": -3.7057397,
+            "rating": 4.6,
+            "reviews": 1436,
+            "lineas": [
+                "L3",
+                "L5"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#FFD700",
+                "#008000"
+            ]
+        },
+        {
+            "id": "ChIJM1FWdNYnQg0RqexuceK8OVI",
+            "nombre": "La Latina",
+            "direccion": "Centro, 28005 Madrid, Spain",
+            "lat": 40.4113845,
+            "lon": -3.7083021000000005,
+            "rating": 4.5,
+            "reviews": 428,
+            "lineas": [
+                "L5"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#008000"
+            ]
+        },
+        {
+            "id": "ChIJT-R8TEgmQg0RJfAxGhoDUtY",
+            "nombre": "Legazpi",
+            "direccion": "Arganzuela, 28045 Madrid, Spain",
+            "lat": 40.391129,
+            "lon": -3.6951562000000004,
+            "rating": 4.3,
+            "reviews": 456,
+            "lineas": [
+                "L3",
+                "L6"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#FFD700",
+                "#808080"
+            ]
+        },
+        {
+            "id": "ChIJ06xU_uIoQg0RPrL8BqES33s",
+            "nombre": "Santiago Bernabeu",
+            "direccion": "Tetuán, 28046 Madrid, Spain",
+            "lat": 40.4521893,
+            "lon": -3.6906589999999997,
+            "rating": 4.4,
+            "reviews": 1250,
+            "lineas": [
+                "L10"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#00008B"
+            ]
+        },
+        {
+            "id": "ChIJ6eQxKi0mQg0RpzPMa8LPjJc",
+            "nombre": "Embajadores",
+            "direccion": "C. de Martín de Vargas, 7-I, n. 5, Arganzuela, 28005 Madrid, Spain",
+            "lat": 40.4046198,
+            "lon": -3.7025916,
+            "rating": 4.2,
+            "reviews": 602,
+            "lineas": [
+                "L3"
+            ],
+            "amenities": [
+                "transit_station",
+                "train_station",
+                "subway_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#FFD700"
+            ]
+        },
+        {
+            "id": "ChIJ58gOMGUoQg0RD5cSITd7USc",
+            "nombre": "Plaza de España",
+            "direccion": "Centro, 28013 Madrid, Spain",
+            "lat": 40.423669,
+            "lon": -3.7109528000000003,
+            "rating": 4.4,
+            "reviews": 590,
+            "lineas": [
+                "L3",
+                "L10"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#FFD700",
+                "#00008B"
+            ]
+        },
+        {
+            "id": "ChIJD1Y70z6IQQ0Rod6ykz1wisc",
+            "nombre": "Aluche",
+            "direccion": "Latina, 28047 Madrid, Spain",
+            "lat": 40.38574,
+            "lon": -3.7613399999999992,
+            "rating": 4.2,
+            "reviews": 457,
+            "lineas": [
+                "L5"
+            ],
+            "amenities": [
+                "transit_station",
+                "train_station",
+                "subway_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#008000"
+            ]
+        },
+        {
+            "id": "ChIJI5kBZdUnQg0RsfDJDrfChEQ",
+            "nombre": "Tirso de Molina",
+            "direccion": "Centro, 28012 Madrid, Spain",
+            "lat": 40.4123686,
+            "lon": -3.7043242000000003,
+            "rating": 3.9,
+            "reviews": 305,
+            "lineas": [
+                "L1"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#00A1E0"
+            ]
+        },
+        {
+            "id": "ChIJofJecocoQg0RSPXAS2CmrzI",
+            "nombre": "Gran Vía",
+            "direccion": "Centro, 28013 Madrid, Spain",
+            "lat": 40.419852399999996,
+            "lon": -3.7016061999999996,
+            "rating": 4.5,
+            "reviews": 1039,
+            "lineas": [
+                "L1",
+                "L5"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#00A1E0",
+                "#008000"
+            ]
+        },
+        {
+            "id": "ChIJAWqVEYooQg0RF_BtWEOFyEg",
+            "nombre": "Bilbao",
+            "direccion": "Chamberí, 28004 Madrid, Spain",
+            "lat": 40.42906,
+            "lon": -3.7021800000000002,
+            "rating": 4.1,
+            "reviews": 324,
+            "lineas": [
+                "L1",
+                "L4"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#00A1E0",
+                "#8B4513"
+            ]
+        },
+        {
+            "id": "ChIJjXCKHhEpQg0RrYhMTPp19Bg",
+            "nombre": "Plaza de Castilla",
+            "direccion": "Tetuán, 28046 Madrid, Spain",
+            "lat": 40.466892099999995,
+            "lon": -3.6891328000000003,
+            "rating": 4.4,
+            "reviews": 1026,
+            "lineas": [
+                "L1",
+                "L9",
+                "L10"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#00A1E0",
+                "#FF1493",
+                "#00008B"
+            ]
+        },
+        {
+            "id": "ChIJTWzkFFYoQg0RlnOOjyWeBDY",
+            "nombre": "Cuatro Caminos",
+            "direccion": "Gta. de Cuatro Caminos, 5, Tetuán, 28020 Madrid, Spain",
+            "lat": 40.446982,
+            "lon": -3.7039234,
+            "rating": 4.1,
+            "reviews": 525,
+            "lineas": [
+                "L1",
+                "L2",
+                "L6"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#00A1E0",
+                "#E41A1C",
+                "#808080"
+            ]
+        },
+        {
+            "id": "ChIJc2ymMLsoQg0RtRQ6-3Bm5a8",
+            "nombre": "Goya",
+            "direccion": "Salamanca, 28009 Madrid, Spain",
+            "lat": 40.424549999999996,
+            "lon": -3.6759099999999996,
+            "rating": 4.1,
+            "reviews": 628,
+            "lineas": [
+                "L2",
+                "L4"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#E41A1C",
+                "#8B4513"
+            ]
+        },
+        {
+            "id": "ChIJGYydKcQnQg0R0hynIjjKnF8",
+            "nombre": "Marqués de Vadillo",
+            "direccion": "Carabanchel, 28019 Madrid, Spain",
+            "lat": 40.397510499999996,
+            "lon": -3.7162550999999997,
+            "rating": 4.1,
+            "reviews": 302,
+            "lineas": [
+                "L5"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#008000"
+            ]
+        },
+        {
+            "id": "ChIJ0RqVaMUxQg0RzmEGI0b6uFs",
+            "nombre": "Aeropuerto T1-T2-T3",
+            "direccion": "Barajas, 28042 Madrid, Spain",
+            "lat": 40.468266199999995,
+            "lon": -3.5711005,
+            "rating": 4,
+            "reviews": 1597,
+            "lineas": [
+                "L5",
+                "L8"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#008000",
+                "#800080"
+            ]
+        },
+        {
+            "id": "ChIJ-3KYFekuQg0RJRA6LI_jzCg",
+            "nombre": "Mar de Cristal",
+            "direccion": "Hortaleza, 28043 Madrid, Spain",
+            "lat": 40.469429999999996,
+            "lon": -3.63832,
+            "rating": 4.3,
+            "reviews": 333,
+            "lineas": [
+                "L4",
+                "L8"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#8B4513",
+                "#800080"
+            ]
+        },
+        {
+            "id": "ChIJrSuAGbEvQg0Rxvswre-3j-c",
+            "nombre": "Canillejas",
+            "direccion": "San Blas, 28022 Madrid, Spain",
+            "lat": 40.449402,
+            "lon": -3.6081127,
+            "rating": 4.3,
+            "reviews": 269,
+            "lineas": [
+                "L5"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#008000"
+            ]
+        },
+        {
+            "id": "ChIJR3W5qg4vQg0RmunnxjHJaZA",
+            "nombre": "Suanzes",
+            "direccion": "C. Alcalá, 527, San Blas-Canillejas, 28027 Madrid, Spain",
+            "lat": 40.440878,
+            "lon": -3.6271229000000003,
+            "rating": 3.9,
+            "reviews": 135,
+            "lineas": [
+                "L5"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#008000"
+            ]
+        },
+        {
+            "id": "ChIJFeRYXSAuQg0RALpdT6amn2U",
+            "nombre": "Barajas",
+            "direccion": "Av. de Logroño, 347, Barajas, 28042 Madrid, Spain",
+            "lat": 40.4758132,
+            "lon": -3.5825997999999997,
+            "rating": 4.3,
+            "reviews": 215,
+            "lineas": [
+                "L8"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#800080"
+            ]
+        },
+        {
+            "id": "ChIJK5RGGOsvQg0RIfL1-A2P_jo",
+            "nombre": "Estadio Metropolitano",
+            "direccion": "San Blas, 28022 Madrid, Spain",
+            "lat": 40.43297,
+            "lon": -3.6015699999999997,
+            "rating": 4.3,
+            "reviews": 350,
+            "lineas": [
+                "L7"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#FF7F00"
+            ]
+        },
+        {
+            "id": "ChIJ4XVtHmovQg0RjxjghBc6obo",
+            "nombre": "Ascao",
+            "direccion": "Ciudad Lineal, 28017 Madrid, Spain",
+            "lat": 40.430175399999996,
+            "lon": -3.6411175,
+            "rating": 3.9,
+            "reviews": 137,
+            "lineas": [
+                "L7"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#FF7F00"
+            ]
+        },
+        {
+            "id": "ChIJJ-LWDn8vQg0R16VMSFKQSU4",
+            "nombre": "Alsacia",
+            "direccion": "San Blas, 28032 Madrid, Spain",
+            "lat": 40.4186182,
+            "lon": -3.6231951,
+            "rating": 4.4,
+            "reviews": 177,
+            "lineas": [
+                "L2"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#E41A1C"
+            ]
+        },
+        {
+            "id": "ChIJv2dK8D8vQg0Ro2HfO63SD2Q",
+            "nombre": "Pueblo Nuevo",
+            "direccion": "Ciudad Lineal, 28027 Madrid, Spain",
+            "lat": 40.43569,
+            "lon": -3.6428200000000004,
+            "rating": 4,
+            "reviews": 266,
+            "lineas": [
+                "L5",
+                "L7"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#008000",
+                "#FF7F00"
+            ]
+        },
+        {
+            "id": "ChIJebEwKFEuQg0Rng0gj_bl5s8",
+            "nombre": "Feria de Madrid",
+            "direccion": "Barajas, 28042 Madrid, Spain",
+            "lat": 40.463983,
+            "lon": -3.6163108,
+            "rating": 4.4,
+            "reviews": 213,
+            "lineas": [
+                "L8"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#800080"
+            ]
+        },
+        {
+            "id": "ChIJj0QFF9YuQg0RNIev60iWpAA",
+            "nombre": "Arturo Soria",
+            "direccion": "Ciudad Lineal, 28043 Madrid, Spain",
+            "lat": 40.45583,
+            "lon": -3.65618,
+            "rating": 4,
+            "reviews": 99,
+            "lineas": [
+                "L4"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#8B4513"
+            ]
+        },
+        {
+            "id": "ChIJ82DrtywuQg0RzwS3jb5qcjI",
+            "nombre": "Alameda de Osuna",
+            "direccion": "Barajas, 28042 Madrid, Spain",
+            "lat": 40.4574487,
+            "lon": -3.5880338999999997,
+            "rating": 4.5,
+            "reviews": 134,
+            "lineas": [
+                "L5"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#008000"
+            ]
+        },
+        {
+            "id": "ChIJuz16SG4vQg0RPcOfdNFqEG4",
+            "nombre": "García Noblejas",
+            "direccion": "Ciudad Lineal, 28017 Madrid, Spain",
+            "lat": 40.4290994,
+            "lon": -3.6319893,
+            "rating": 3.8,
+            "reviews": 99,
+            "lineas": [
+                "L7"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#FF7F00"
+            ]
+        },
+        {
+            "id": "ChIJS1jsYBQvQg0RJ1t611jfq0o",
+            "nombre": "Ciudad Lineal",
+            "direccion": "Ciudad Lineal, 28027 Madrid, Spain",
+            "lat": 40.437908,
+            "lon": -3.6380602,
+            "rating": 4,
+            "reviews": 167,
+            "lineas": [
+                "L5"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#008000"
+            ]
+        },
+        {
+            "id": "ChIJMUtI7ZYvQg0R99j2u3C3fak",
+            "nombre": "Las Musas",
+            "direccion": "San Blas, 28022 Madrid, Spain",
+            "lat": 40.4325981,
+            "lon": -3.6077169,
+            "rating": 4.1,
+            "reviews": 96,
+            "lineas": [
+                "L7"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#FF7F00"
+            ]
+        },
+        {
+            "id": "ChIJSQtStuUuQg0R9_1vzL1X_pw",
+            "nombre": "Canillas",
+            "direccion": "Hortaleza, 28043 Madrid, Spain",
+            "lat": 40.4643447,
+            "lon": -3.6354227999999997,
+            "rating": 4.2,
+            "reviews": 85,
+            "lineas": [
+                "L4"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#8B4513"
+            ]
+        },
+        {
+            "id": "ChIJZ5AJLg8wQg0RYxqDCzChLuw",
+            "nombre": "Barrio del Puerto",
+            "direccion": "28821 Coslada, Madrid, Spain",
+            "lat": 40.422505699999995,
+            "lon": -3.5691902,
+            "rating": 4.1,
+            "reviews": 75,
+            "lineas": [
+                "L7"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#FF7F00"
+            ]
+        },
+        {
+            "id": "ChIJizn69cQuQg0RMeoBWIgCSiE",
+            "nombre": "Pinar del Rey",
+            "direccion": "Hortaleza, 28043 Madrid, Spain",
+            "lat": 40.4681053,
+            "lon": -3.6480647000000004,
+            "rating": 4.1,
+            "reviews": 105,
+            "lineas": [
+                "L8"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#800080"
+            ]
+        },
+        {
+            "id": "ChIJHzJoS8wvQg0RCDYvC6Y8EC8",
+            "nombre": "El Capricho",
+            "direccion": "Barajas, 28042 Madrid, Spain",
+            "lat": 40.4532769,
+            "lon": -3.5942671,
+            "rating": 4.4,
+            "reviews": 121,
+            "lineas": [
+                "L5"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#008000"
+            ]
+        },
+        {
+            "id": "ChIJLdDI4eouQg0R7p6AonsTC2Y",
+            "nombre": "San Lorenzo",
+            "direccion": "Hortaleza, 28033 Madrid, Spain",
+            "lat": 40.4744289,
+            "lon": -3.6394699000000004,
+            "rating": 4.1,
+            "reviews": 65,
+            "lineas": [
+                "L4"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#8B4513"
+            ]
+        },
+        {
+            "id": "ChIJp5S0GIQwQg0R52Qge9Mt_9U",
+            "nombre": "San Fernando",
+            "direccion": "Puerta del Sol, 28013 Madrid, Spain",
+            "lat": 40.424409999999995,
+            "lon": -3.5354099999999997,
+            "rating": 4.1,
+            "reviews": 94,
+            "lineas": [
+                "L7"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#FF7F00"
+            ]
+        },
+        {
+            "id": "ChIJs0c7ciomQg0RESKWt1XSy4g",
+            "nombre": "Antón Martín",
+            "direccion": "Centro, 28012 Madrid, Spain",
+            "lat": 40.412478899999996,
+            "lon": -3.6994377,
+            "rating": 4.2,
+            "reviews": 339,
+            "lineas": [
+                "L1"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#00A1E0"
+            ]
+        },
+        {
+            "id": "ChIJI5YAnnwoQg0R14wi5dk6UmI",
+            "nombre": "Santo Domingo",
+            "direccion": "Centro, 28013 Madrid, Spain",
+            "lat": 40.421462999999996,
+            "lon": -3.7078894000000004,
+            "rating": 4.1,
+            "reviews": 169,
+            "lineas": [
+                "L2"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#E41A1C"
+            ]
+        },
+        {
+            "id": "ChIJ4QgoNYEoQg0RWruWQ3Ec1dI",
+            "nombre": "Sevilla",
+            "direccion": "Centro, 28014 Madrid, Spain",
+            "lat": 40.4179081,
+            "lon": -3.6993395000000002,
+            "rating": 4.2,
+            "reviews": 202,
+            "lineas": [
+                "L2"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#E41A1C"
+            ]
+        },
+        {
+            "id": "ChIJofgF-EspQg0RFaHEBttIl48",
+            "nombre": "Pinar de Chamartín",
+            "direccion": "C. de Arturo Soria, Cdad. Lineal, 28033 Madrid, Spain",
+            "lat": 40.4801868,
+            "lon": -3.6667992,
+            "rating": 4.3,
+            "reviews": 374,
+            "lineas": [
+                "L1",
+                "L4"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#00A1E0",
+                "#8B4513"
+            ]
+        },
+        {
+            "id": "ChIJkfISHY0vQg0RyuMLGG_ou6A",
+            "nombre": "Las Rosas",
+            "direccion": "San Blas, 28022 Madrid, Spain",
+            "lat": 40.423755199999995,
+            "lon": -3.6030524999999995,
+            "rating": 4.6,
+            "reviews": 77,
+            "lineas": [
+                "L2"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#E41A1C"
+            ]
+        },
+        {
+            "id": "ChIJ4Ut95-0oQg0Rb9ofbHZH6jk",
+            "nombre": "Gregorio Marañón",
+            "direccion": "Chamberí, 28003 Madrid, Spain",
+            "lat": 40.4380397,
+            "lon": -3.691241899999999,
+            "rating": 4.2,
+            "reviews": 359,
+            "lineas": [
+                "L7",
+                "L10"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#FF7F00",
+                "#00008B"
+            ]
+        },
+        {
+            "id": "ChIJp7dQI3Y6Qg0RCOLxg5-YXOc",
+            "nombre": "Henares",
+            "direccion": "28830 San Fernando de Henares, Madrid, Spain",
+            "lat": 40.41777,
+            "lon": -3.5271800000000004,
+            "rating": 3.5,
+            "reviews": 26,
+            "lineas": [
+                "L7"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#FF7F00"
+            ]
+        },
+        {
+            "id": "ChIJBYoGkK0pQg0Rm6MmlZ8awPs",
+            "nombre": "Francos Rodríguez",
+            "direccion": "Moncloa - Aravaca, 28039 Madrid, Spain",
+            "lat": 40.456528399999996,
+            "lon": -3.7121634,
+            "rating": 4.3,
+            "reviews": 105,
+            "lineas": [
+                "L7"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#FF7F00"
+            ]
+        },
+        {
+            "id": "ChIJNbSXHCYmQg0RUhUT2ytPcTM",
+            "nombre": "Estación del Arte",
+            "direccion": "Centro, 28012 Madrid, Spain",
+            "lat": 40.408989,
+            "lon": -3.6924959,
+            "rating": 4.2,
+            "reviews": 390,
+            "lineas": [
+                "L1"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#00A1E0"
+            ]
+        },
+        {
+            "id": "ChIJ_6Lbrxg3Qg0RpMFr5i3bXzc",
+            "nombre": "Torrejón de Ardoz",
+            "direccion": "P.º de la Estación, 2, 28850 Torrejón de Ardoz, Madrid, Spain",
+            "lat": 40.45479,
+            "lon": -3.47973,
+            "rating": 4.3,
+            "reviews": 560,
+            "lineas": [],
+            "amenities": [
+                "train_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": []
+        },
+        {
+            "id": "ChIJJXeXgscoQg0Ro9X684_Tcso",
+            "nombre": "Diego de León",
+            "direccion": "Salamanca, 28006 Madrid, Spain",
+            "lat": 40.4346327,
+            "lon": -3.6750627,
+            "rating": 3.4,
+            "reviews": 178,
+            "lineas": [
+                "L4",
+                "L5",
+                "L6"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#8B4513",
+                "#008000",
+                "#808080"
+            ]
+        },
+        {
+            "id": "ChIJF9jNRSQmQg0RWwNljcL5Rzk",
+            "nombre": "Madrid Puerta de Atocha - Almudena Grandes",
+            "direccion": "Pl. del Emperador Carlos V, Arganzuela, 28045 Madrid, Spain",
+            "lat": 40.4064905,
+            "lon": -3.6909091,
+            "rating": 4,
+            "reviews": 25738,
+            "lineas": [],
+            "amenities": [
+                "train_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": []
+        },
+        {
+            "id": "ChIJ8VMZqXswQg0RBCfQynIBspU",
+            "nombre": "La Rambla",
+            "direccion": "28822 Coslada, Madrid, Spain",
+            "lat": 40.42514,
+            "lon": -3.54792,
+            "rating": 4,
+            "reviews": 77,
+            "lineas": [
+                "L7"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#FF7F00"
+            ]
+        },
+        {
+            "id": "ChIJ7_WTong6Qg0Ry9Bgc_hZfOo",
+            "nombre": "Hospital del Henares",
+            "direccion": "28822 Coslada, Madrid, Spain",
+            "lat": 40.4175997,
+            "lon": -3.5344968999999997,
+            "rating": 3.4,
+            "reviews": 39,
+            "lineas": [
+                "L7"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#FF7F00"
+            ]
+        },
+        {
+            "id": "ChIJDWKXGZkoQg0RIBjUTC-p43s",
+            "nombre": "Retiro",
+            "direccion": "C. Alcalá, 83, Salamanca, 28009 Madrid, Spain",
+            "lat": 40.420763199999996,
+            "lon": -3.6858233,
+            "rating": 4.6,
+            "reviews": 241,
+            "lineas": [
+                "L2"
+            ],
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "colores": [
+                "#E41A1C"
+            ]
+        }
+    ],
+    "source": "Google Places + Wikipedia"
+}

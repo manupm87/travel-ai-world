@@ -1,0 +1,1803 @@
+{
+    "city": "Madrid",
+    "category": "bares",
+    "count": 79,
+    "items": [
+        {
+            "id": "ChIJD9GKIn8oQg0RdhelKaP9Ac4",
+            "nombre": "Restaurant La Campana",
+            "direccion": "C. de Botoneras, 6, Centro, 28012 Madrid, Spain",
+            "lat": 40.4149117,
+            "lon": -3.7068219,
+            "rating": 4.5,
+            "reviews": 19739,
+            "tipo_comida": [
+                "Bar"
+            ],
+            "amenities": [
+                "restaurant",
+                "bar",
+                "spanish_restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJu_erQjImQg0RSGdXtET1-HU",
+            "nombre": "Mercado de San Fernando",
+            "direccion": "C. de Embajadores, 41, Centro, 28012 Madrid, Spain",
+            "lat": 40.407523499999996,
+            "lon": -3.7039824,
+            "rating": 4.4,
+            "reviews": 13949,
+            "tipo_comida": [
+                "Brewpub",
+                "Pub",
+                "Bar"
+            ],
+            "amenities": [
+                "market",
+                "farmers_market",
+                "tourist_attraction",
+                "book_store",
+                "brewpub",
+                "pub",
+                "chinese_restaurant",
+                "bar",
+                "store",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJIavhhYYoQg0R8qc-scMcEuM",
+            "nombre": "El Tigre Sidra Bar",
+            "direccion": "C. de las Infantas, 23, Centro, 28004 Madrid, Spain",
+            "lat": 40.4203579,
+            "lon": -3.6978537,
+            "rating": 4.2,
+            "reviews": 26327,
+            "tipo_comida": [
+                "Bar"
+            ],
+            "amenities": [
+                "bar",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJnx_fKOApQg0RlDK1xQwDUBI",
+            "nombre": "La Taberna de Peñalver",
+            "direccion": "C. del Conde de Peñalver, 90, Salamanca, 28006 Madrid, Spain",
+            "lat": 40.4337811,
+            "lon": -3.6747194999999997,
+            "rating": 4.8,
+            "reviews": 18424,
+            "tipo_comida": [
+                "Bar"
+            ],
+            "amenities": [
+                "mediterranean_restaurant",
+                "tapas_restaurant",
+                "bistro",
+                "korean_restaurant",
+                "bar",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJazaQ3JkoQg0RHZE5D9yhKM4",
+            "nombre": "Amazónico",
+            "direccion": "C. de Jorge Juan, 20, Salamanca, 28001 Madrid, Spain",
+            "lat": 40.423715,
+            "lon": -3.6850997,
+            "rating": 4.1,
+            "reviews": 11587,
+            "tipo_comida": [
+                "Bar"
+            ],
+            "amenities": [
+                "restaurant",
+                "mediterranean_restaurant",
+                "brazilian_restaurant",
+                "bar",
+                "japanese_restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ310hFmMoQg0R7V6AHaJmcz4",
+            "nombre": "Pez Tortilla",
+            "direccion": "C. del Pez, 36, Centro, 28004 Madrid, Spain",
+            "lat": 40.4242754,
+            "lon": -3.7065235000000003,
+            "rating": 4.5,
+            "reviews": 10745,
+            "tipo_comida": [
+                "Brewpub",
+                "Pub",
+                "Bar"
+            ],
+            "amenities": [
+                "mediterranean_restaurant",
+                "brewpub",
+                "pub",
+                "bar",
+                "spanish_restaurant",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJxVk6uQIpQg0R1Q3b5rnMXaw",
+            "nombre": "The Irish Rover",
+            "direccion": "Av. de Brasil, 7, Tetuán, 28020 Madrid, Spain",
+            "lat": 40.4547539,
+            "lon": -3.693954599999999,
+            "rating": 4.3,
+            "reviews": 11773,
+            "tipo_comida": [
+                "Pub",
+                "Bar"
+            ],
+            "amenities": [
+                "irish_pub",
+                "bar_and_grill",
+                "sports_bar",
+                "pub",
+                "meal_takeaway",
+                "bar",
+                "service",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJjSaUBCYmQg0R4hssYfNoRcw",
+            "nombre": "Bar El Brillante",
+            "direccion": "Pl. del Emperador Carlos V, 8, Centro, 28012 Madrid, Spain",
+            "lat": 40.4086125,
+            "lon": -3.6928462000000004,
+            "rating": 3.6,
+            "reviews": 25912,
+            "tipo_comida": [
+                "Bar"
+            ],
+            "amenities": [
+                "spanish_restaurant",
+                "european_restaurant",
+                "bar",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ_cSBSNopQg0RdQccod3flf0",
+            "nombre": "Vinitus Gran Via Restaurant",
+            "direccion": "Gran Vía, 4, Centro, 28013 Madrid, Spain",
+            "lat": 40.4193514,
+            "lon": -3.697675099999999,
+            "rating": 4.6,
+            "reviews": 7996,
+            "tipo_comida": [
+                "Bar"
+            ],
+            "amenities": [
+                "spanish_restaurant",
+                "mediterranean_restaurant",
+                "bar",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJX49LGHkpQg0RBnuy0awfNLA",
+            "nombre": "Mercado de Vallehermoso",
+            "direccion": "C. de Vallehermoso, 36, Chamberí, 28015 Madrid, Spain",
+            "lat": 40.434169499999996,
+            "lon": -3.7082257000000003,
+            "rating": 4.4,
+            "reviews": 6780,
+            "tipo_comida": [
+                "Bar"
+            ],
+            "amenities": [
+                "market",
+                "mexican_restaurant",
+                "bar",
+                "japanese_restaurant",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ8xKGEogoQg0REcIj5XURiIU",
+            "nombre": "Bodega de la Ardosa",
+            "direccion": "C. de Colón, 13, Centro, 28004 Madrid, Spain",
+            "lat": 40.4237683,
+            "lon": -3.7017596000000004,
+            "rating": 4.3,
+            "reviews": 7448,
+            "tipo_comida": [
+                "Bar"
+            ],
+            "amenities": [
+                "winery",
+                "manufacturer",
+                "farm",
+                "bar",
+                "service",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJOUSjm9UnQg0REM8w3bLwivI",
+            "nombre": "SALA EQUIS",
+            "direccion": "C. del Duque de Alba, 4, Centro, 28012 Madrid, Spain",
+            "lat": 40.4119879,
+            "lon": -3.7058726,
+            "rating": 4.5,
+            "reviews": 6967,
+            "tipo_comida": [
+                "Bar"
+            ],
+            "amenities": [
+                "bar",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJdWjcdYEoQg0R8huusXh-WWo",
+            "nombre": "Arrocería Marina Ventura",
+            "direccion": "C. de Ventura de la Vega, 13, Centro, 28014 Madrid, Spain",
+            "lat": 40.4153751,
+            "lon": -3.6988119999999998,
+            "rating": 4.5,
+            "reviews": 8420,
+            "tipo_comida": [
+                "Bar"
+            ],
+            "amenities": [
+                "mediterranean_restaurant",
+                "seafood_restaurant",
+                "korean_restaurant",
+                "bar",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJaWxHNf4uQg0ROHq7kpPkPaE",
+            "nombre": "La Gran Pulpería",
+            "direccion": "Av. de Machupichu, 14, Hortaleza, 28043 Madrid, Spain",
+            "lat": 40.457110799999995,
+            "lon": -3.6241155999999997,
+            "rating": 4.3,
+            "reviews": 13045,
+            "tipo_comida": [
+                "Bar"
+            ],
+            "amenities": [
+                "bar_and_grill",
+                "bar",
+                "spanish_restaurant",
+                "restaurant",
+                "point_of_interest",
+                "food",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJSZl1cQAvQg0RMUIaUwKHabY",
+            "nombre": "Orgaz Mediterranean Cuisine",
+            "direccion": "Avda. de los Andes, esquina, Av. del Arroyo del Santo, s/n, Hortaleza, 28042 Madrid, Spain",
+            "lat": 40.4542679,
+            "lon": -3.6220581,
+            "rating": 4.5,
+            "reviews": 3405,
+            "tipo_comida": [
+                "Bar"
+            ],
+            "amenities": [
+                "restaurant",
+                "mediterranean_restaurant",
+                "bar_and_grill",
+                "bar",
+                "spanish_restaurant",
+                "korean_restaurant",
+                "dessert_restaurant",
+                "point_of_interest",
+                "food",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ5wb9NnovQg0R-YVzCLZA508",
+            "nombre": "Restaurante Sapama",
+            "direccion": "C. de José del Hierro, 60, Cdad. Lineal, 28027 Madrid, Spain",
+            "lat": 40.4407034,
+            "lon": -3.6423888000000004,
+            "rating": 4,
+            "reviews": 1776,
+            "tipo_comida": [
+                "Wine Bar",
+                "Bar"
+            ],
+            "amenities": [
+                "restaurant",
+                "wine_bar",
+                "seafood_restaurant",
+                "tapas_restaurant",
+                "brewery",
+                "bakery",
+                "bar",
+                "spanish_restaurant",
+                "food_store",
+                "liquor_store",
+                "manufacturer",
+                "store",
+                "service",
+                "point_of_interest",
+                "food",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJSRmRj9gxQg0RYsxygYmVAXA",
+            "nombre": "La General",
+            "direccion": "C. del Planeta, 3, Barajas, 28042 Madrid, Spain",
+            "lat": 40.4706386,
+            "lon": -3.5806837,
+            "rating": 4.6,
+            "reviews": 2958,
+            "tipo_comida": [
+                "Bar"
+            ],
+            "amenities": [
+                "restaurant",
+                "coffee_shop",
+                "cafe",
+                "bar",
+                "breakfast_restaurant",
+                "food_store",
+                "store",
+                "point_of_interest",
+                "food",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJJ08kzLovQg0ReR1RIox778E",
+            "nombre": "Mad Brewing",
+            "direccion": "C. de Julián Camarillo, 19, San Blas-Canillejas, 28037 Madrid, Spain",
+            "lat": 40.4350684,
+            "lon": -3.6313193,
+            "rating": 4.4,
+            "reviews": 1654,
+            "tipo_comida": [
+                "Brewpub",
+                "Pub",
+                "Bar"
+            ],
+            "amenities": [
+                "brewpub",
+                "pub",
+                "bar",
+                "restaurant",
+                "point_of_interest",
+                "food",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ3esH8DUvQg0Rp2pyEPSQcxc",
+            "nombre": "Restaurant - El Perro y la galleta",
+            "direccion": "Av. de Juan Antonio Samaranch, 30, Hortaleza, 28055 Madrid, Spain",
+            "lat": 40.4884159,
+            "lon": -3.6118352000000002,
+            "rating": 4.5,
+            "reviews": 1255,
+            "tipo_comida": [
+                "Bar"
+            ],
+            "amenities": [
+                "fusion_restaurant",
+                "bar",
+                "restaurant",
+                "point_of_interest",
+                "food",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJXZM-9wsmQg0RXPfHnOtHngA",
+            "nombre": "CALLAO24 by Jhosef Arias | Arturo Soria",
+            "direccion": "C. de Agastia, 76, Cdad. Lineal, 28043 Madrid, Spain",
+            "lat": 40.450258999999996,
+            "lon": -3.6547049,
+            "rating": 4.6,
+            "reviews": 4649,
+            "tipo_comida": [
+                "Coctelería",
+                "Bar"
+            ],
+            "amenities": [
+                "peruvian_restaurant",
+                "cocktail_bar",
+                "bar",
+                "american_restaurant",
+                "restaurant",
+                "point_of_interest",
+                "food",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ2W3L9zAwQg0RBx9aD4BOJww",
+            "nombre": "Los 5 Pinos",
+            "direccion": "Av. de Aragón, 370, San Blas-Canillejas, 28022 Madrid, Spain",
+            "lat": 40.449302599999996,
+            "lon": -3.5685235,
+            "rating": 4.1,
+            "reviews": 2041,
+            "tipo_comida": [
+                "Bar"
+            ],
+            "amenities": [
+                "restaurant",
+                "cafe",
+                "bar",
+                "spanish_restaurant",
+                "point_of_interest",
+                "food",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJF08JkU8wQg0Rp435vGgP2Jw",
+            "nombre": "Restaurante Los Galeones",
+            "direccion": "C. de Tauro, 8, Barajas, 28042 Madrid, Spain",
+            "lat": 40.4500312,
+            "lon": -3.5722,
+            "rating": 3.9,
+            "reviews": 1244,
+            "tipo_comida": [
+                "Wine Bar",
+                "Bar"
+            ],
+            "amenities": [
+                "restaurant",
+                "wine_bar",
+                "vegetarian_restaurant",
+                "cake_shop",
+                "ice_cream_shop",
+                "bakery",
+                "dessert_shop",
+                "confectionery",
+                "bar",
+                "spanish_restaurant",
+                "food_store",
+                "liquor_store",
+                "wholesaler",
+                "manufacturer",
+                "store",
+                "point_of_interest",
+                "food",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJP_WW05UvQg0RyVm70pk-ltQ",
+            "nombre": "EVA Madrid",
+            "direccion": "C/ de Campezo, 3, San Blas-Canillejas, 28022 Madrid, Spain",
+            "lat": 40.4464525,
+            "lon": -3.5823084,
+            "rating": 4.9,
+            "reviews": 552,
+            "tipo_comida": [
+                "Bar"
+            ],
+            "amenities": [
+                "amusement_center",
+                "video_arcade",
+                "bar",
+                "restaurant",
+                "point_of_interest",
+                "food",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJhX7xRwcvQg0RgyIawfwzQ7I",
+            "nombre": "La Llanera Madrid",
+            "direccion": "C. de Julián Camarillo, 48, San Blas-Canillejas, 28037 Madrid, Spain",
+            "lat": 40.437868900000005,
+            "lon": -3.6188235000000004,
+            "rating": 4.7,
+            "reviews": 1756,
+            "tipo_comida": [
+                "Bar"
+            ],
+            "amenities": [
+                "bar_and_grill",
+                "bar",
+                "restaurant",
+                "point_of_interest",
+                "food",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJCwpF4EcvQg0RJFRrpo2dVsw",
+            "nombre": "La Txulapona",
+            "direccion": "C. de Arturo Soria, 126, Cdad. Lineal, 28043 Madrid, Spain",
+            "lat": 40.4499968,
+            "lon": -3.6507593,
+            "rating": 4.4,
+            "reviews": 3833,
+            "tipo_comida": [
+                "Bar"
+            ],
+            "amenities": [
+                "restaurant",
+                "mediterranean_restaurant",
+                "bar_and_grill",
+                "fusion_restaurant",
+                "sports_bar",
+                "basque_restaurant",
+                "bar",
+                "spanish_restaurant",
+                "point_of_interest",
+                "food",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJIaDjRJEoQg0RFBxY4toFsEw",
+            "nombre": "Restaurante Ten Con Ten",
+            "direccion": "Cl. de Ayala, 6, Salamanca, 28001 Madrid, Spain",
+            "lat": 40.4278455,
+            "lon": -3.6885095999999997,
+            "rating": 4.3,
+            "reviews": 8220,
+            "tipo_comida": [
+                "Coctelería",
+                "Bar"
+            ],
+            "amenities": [
+                "mediterranean_restaurant",
+                "cocktail_bar",
+                "spanish_restaurant",
+                "bar",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJxaAzu4EoQg0RtvLumbkqOe4",
+            "nombre": "Salmon Guru - A CONTRACORRIENTE",
+            "direccion": "Calle de Echegaray, 21, Centro, 28014 Madrid, Spain",
+            "lat": 40.4148932,
+            "lon": -3.6995196000000004,
+            "rating": 4.6,
+            "reviews": 4821,
+            "tipo_comida": [
+                "Coctelería",
+                "Bar"
+            ],
+            "amenities": [
+                "cocktail_bar",
+                "bar",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJzcBIPmMoQg0RS14oUaREHZo",
+            "nombre": "1862 Dry Bar",
+            "direccion": "C. del Pez, 27, Centro, 28004 Madrid, Spain",
+            "lat": 40.4241331,
+            "lon": -3.7064797,
+            "rating": 4.6,
+            "reviews": 2485,
+            "tipo_comida": [
+                "Coctelería",
+                "Bar"
+            ],
+            "amenities": [
+                "cocktail_bar",
+                "bar",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJjZV_cGspQg0RT4n0JZ_knrw",
+            "nombre": "Bad Company 1920",
+            "direccion": "C de Miguel Moya 8, Puerta de Madera, 1920, Centro, 28004 Madrid, Spain",
+            "lat": 40.421003299999995,
+            "lon": -3.7055426000000002,
+            "rating": 4.8,
+            "reviews": 1890,
+            "tipo_comida": [
+                "Coctelería",
+                "Bar"
+            ],
+            "amenities": [
+                "cocktail_bar",
+                "bar",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJC_xCjIopQg0RRZ4ts897JLs",
+            "nombre": "La Santoría Cocktail Bar",
+            "direccion": "C. de Lope de Vega, 30, Centro, 28014 Madrid, Spain",
+            "lat": 40.4135922,
+            "lon": -3.696250799999999,
+            "rating": 4.8,
+            "reviews": 1272,
+            "tipo_comida": [
+                "Coctelería",
+                "Bar"
+            ],
+            "amenities": [
+                "cocktail_bar",
+                "bar",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ84o58oYoQg0Rilg8RvZQaN8",
+            "nombre": "Del Diego Cocktail Bar",
+            "direccion": "C. de la Reina, 12, Centro, 28004 Madrid, Spain",
+            "lat": 40.420013999999995,
+            "lon": -3.6992749999999996,
+            "rating": 4.5,
+            "reviews": 1776,
+            "tipo_comida": [
+                "Coctelería",
+                "Pub",
+                "Bar"
+            ],
+            "amenities": [
+                "cocktail_bar",
+                "pub",
+                "bar",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJc3jLb7opQg0RevFGdx4QQ0M",
+            "nombre": "Planta Baja Cocktail Bar",
+            "direccion": "C/ del Marqués del Duero, 8, Salamanca, 28001 Madrid, Spain",
+            "lat": 40.4202787,
+            "lon": -3.6910767999999994,
+            "rating": 4.8,
+            "reviews": 234,
+            "tipo_comida": [
+                "Coctelería",
+                "Bar"
+            ],
+            "amenities": [
+                "cocktail_bar",
+                "bar",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJmTgISHwpQg0R9nXyeNYvFGc",
+            "nombre": "Devil’s Cut",
+            "direccion": "C. del León, 3, Centro, 28014 Madrid, Spain",
+            "lat": 40.4145846,
+            "lon": -3.6984776,
+            "rating": 4.8,
+            "reviews": 490,
+            "tipo_comida": [
+                "Coctelería",
+                "Wine Bar",
+                "Pub",
+                "Bar"
+            ],
+            "amenities": [
+                "cocktail_bar",
+                "wine_bar",
+                "pub",
+                "bar",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJiwYwmJkpQg0RpBnMZdYEbYI",
+            "nombre": "Alchemist 1967",
+            "direccion": "C. de las Veneras, 1, Centro, 28013 Madrid, Spain",
+            "lat": 40.4191999,
+            "lon": -3.7074667999999993,
+            "rating": 4.9,
+            "reviews": 483,
+            "tipo_comida": [
+                "Coctelería",
+                "Bar"
+            ],
+            "amenities": [
+                "cocktail_bar",
+                "bar",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJIevUIjIpQg0RJWsryHSH0No",
+            "nombre": "Lovo Cocktail Bar Madrid",
+            "direccion": "Calle de Echegaray, 20, Centro, 28014 Madrid, Spain",
+            "lat": 40.4150097,
+            "lon": -3.6996145000000005,
+            "rating": 4.7,
+            "reviews": 2298,
+            "tipo_comida": [
+                "Coctelería",
+                "Bar"
+            ],
+            "amenities": [
+                "cocktail_bar",
+                "bar",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJH-mF4MkpQg0RkJ5ij2lfI04",
+            "nombre": "D-Sunset Madrid",
+            "direccion": "C. de Espoz y Mina, 14, Centro, 28012 Madrid, Spain",
+            "lat": 40.4156335,
+            "lon": -3.7023858,
+            "rating": 4.9,
+            "reviews": 1132,
+            "tipo_comida": [
+                "Coctelería",
+                "Bar"
+            ],
+            "amenities": [
+                "restaurant",
+                "tapas_restaurant",
+                "cocktail_bar",
+                "brunch_restaurant",
+                "breakfast_restaurant",
+                "diner",
+                "dessert_restaurant",
+                "bar",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJmTO7VGEpQg0Rg3NMSb-QgkM",
+            "nombre": "Jack´s Library",
+            "direccion": "C. de Santo Tomé, 6, Centro, 28004 Madrid, Spain",
+            "lat": 40.423534,
+            "lon": -3.6950200000000004,
+            "rating": 4.7,
+            "reviews": 617,
+            "tipo_comida": [
+                "Coctelería",
+                "Bar"
+            ],
+            "amenities": [
+                "cocktail_bar",
+                "bar",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ6VbynoIpQg0RDrA1QgbuAho",
+            "nombre": "Viva Madrid",
+            "direccion": "C. de Manuel Fernández y González, nº 7, Centro, 28014 Madrid, Spain",
+            "lat": 40.415186399999996,
+            "lon": -3.6998424,
+            "rating": 4.5,
+            "reviews": 2418,
+            "tipo_comida": [
+                "Coctelería",
+                "Bar"
+            ],
+            "amenities": [
+                "bistro",
+                "cocktail_bar",
+                "bar",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJY21JWYgoQg0RhcYLo1NYfRA",
+            "nombre": "Harvey's Cocktail Bar",
+            "direccion": "C. de San Lorenzo, 5, Centro, 28004 Madrid, Spain",
+            "lat": 40.425283400000005,
+            "lon": -3.6991807,
+            "rating": 4.5,
+            "reviews": 1724,
+            "tipo_comida": [
+                "Coctelería",
+                "Bar"
+            ],
+            "amenities": [
+                "cocktail_bar",
+                "american_restaurant",
+                "bar",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJJ6-lFZsoQg0RB41S0osPelY",
+            "nombre": "James Joyce Irish Pub Madrid",
+            "direccion": "C. Alcalá, 59, Salamanca, 28014 Madrid, Spain",
+            "lat": 40.419919,
+            "lon": -3.6913139999999998,
+            "rating": 4.3,
+            "reviews": 6115,
+            "tipo_comida": [
+                "Pub",
+                "Bar"
+            ],
+            "amenities": [
+                "irish_pub",
+                "irish_restaurant",
+                "pub",
+                "sports_bar",
+                "bar",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJf4_VhXsoQg0RIIPiAlAds4s",
+            "nombre": "Beer Station",
+            "direccion": "Cuesta de Sto. Domingo, 22, Centro, 28013 Madrid, Spain",
+            "lat": 40.4196872,
+            "lon": -3.7084797999999997,
+            "rating": 4.4,
+            "reviews": 4145,
+            "tipo_comida": [
+                "Pub",
+                "Bar"
+            ],
+            "amenities": [
+                "irish_pub",
+                "pub",
+                "bar",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ81JV1xspQg0Rr_bk40SGggQ",
+            "nombre": "Covent Garden Craic Pub",
+            "direccion": "Calle del Dr. Fleming, 31, Chamartín, 28036 Madrid, Spain",
+            "lat": 40.460947999999995,
+            "lon": -3.6880252,
+            "rating": 4.3,
+            "reviews": 1341,
+            "tipo_comida": [
+                "Pub",
+                "Bar"
+            ],
+            "amenities": [
+                "pub",
+                "bar",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJY4KPo2UoQg0RJHVUMCkDw9M",
+            "nombre": "El Jardín Secreto Madrid",
+            "direccion": "C. del Conde Duque, 2, Centro, 28015 Madrid, Spain",
+            "lat": 40.4258057,
+            "lon": -3.7115025000000004,
+            "rating": 4.3,
+            "reviews": 4886,
+            "tipo_comida": [
+                "Coctelería",
+                "Bar"
+            ],
+            "amenities": [
+                "restaurant",
+                "cocktail_bar",
+                "coffee_shop",
+                "dessert_restaurant",
+                "cafe",
+                "bar",
+                "food_store",
+                "store",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ_1P3k3koQg0R6wERy49Jo70",
+            "nombre": "The Cavern Irish Pub",
+            "direccion": "Calle de Santiago, 1, Centro, 28013 Madrid, Spain",
+            "lat": 40.4160969,
+            "lon": -3.7097734,
+            "rating": 4.2,
+            "reviews": 768,
+            "tipo_comida": [
+                "Bar"
+            ],
+            "amenities": [
+                "bar",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJL8opQnkoQg0RWKIpgnr4RxM",
+            "nombre": "Wanderlust Bar",
+            "direccion": "C. del Bonetillo, 14, Centro, Centro, Centro, 28013 Madrid, Spain",
+            "lat": 40.4168847,
+            "lon": -3.7090647000000003,
+            "rating": 4.6,
+            "reviews": 879,
+            "tipo_comida": [
+                "Bar",
+                "Coctelería",
+                "Pub"
+            ],
+            "amenities": [
+                "bar",
+                "hookah_bar",
+                "cocktail_bar",
+                "pub",
+                "sports_bar",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ9Q8FyoEoQg0Rsn2v12EcZWI",
+            "nombre": "El Parnasillo del Príncipe",
+            "direccion": "C. del Príncipe, 33, Centro, 28012 Madrid, Spain",
+            "lat": 40.414133799999995,
+            "lon": -3.7000075,
+            "rating": 4.3,
+            "reviews": 1784,
+            "tipo_comida": [
+                "Pub",
+                "Bar"
+            ],
+            "amenities": [
+                "irish_pub",
+                "pub",
+                "bar",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJxaAzu4EoQg0RCk-CooQeOws",
+            "nombre": "Brew Wild Pizza Bar",
+            "direccion": "Calle de Echegaray, 23, Centro, 28014 Madrid, Spain",
+            "lat": 40.414817899999996,
+            "lon": -3.6995115000000003,
+            "rating": 4.7,
+            "reviews": 3268,
+            "tipo_comida": [
+                "Brewpub",
+                "Pub",
+                "Bar"
+            ],
+            "amenities": [
+                "pizza_restaurant",
+                "pizza_delivery",
+                "liquor_store",
+                "brewpub",
+                "pub",
+                "meal_delivery",
+                "meal_takeaway",
+                "bar",
+                "food_delivery",
+                "store",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJs80Nex8pQg0Rt_vYDTxxS58",
+            "nombre": "El Jardín de Diana",
+            "direccion": "Gran Vía, 31, Planta 10, Centro, 28013 Madrid, Spain",
+            "lat": 40.420016,
+            "lon": -3.7036336999999997,
+            "rating": 4.2,
+            "reviews": 2673,
+            "tipo_comida": [
+                "Bar"
+            ],
+            "amenities": [
+                "bar",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ_z5UpMwpQg0R6psk-OZl0ew",
+            "nombre": "Satán Cocktail Bar",
+            "direccion": "C. de los Libreros, 18, Centro, 28004 Madrid, Spain",
+            "lat": 40.4220344,
+            "lon": -3.7063579,
+            "rating": 4.8,
+            "reviews": 469,
+            "tipo_comida": [
+                "Coctelería",
+                "Bar"
+            ],
+            "amenities": [
+                "cocktail_bar",
+                "bar",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ2xU1wYgpQg0RfEOBRhOkiQ4",
+            "nombre": "Bunker Cocktail Bar",
+            "direccion": "C. de Antonio Flores, 5, Centro, 28004 Madrid, Spain",
+            "lat": 40.4279789,
+            "lon": -3.6981417000000003,
+            "rating": 4.8,
+            "reviews": 465,
+            "tipo_comida": [
+                "Coctelería",
+                "Bar"
+            ],
+            "amenities": [
+                "cocktail_bar",
+                "bar",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJP1WAUtYpQg0R8AdiFQ4mPQU",
+            "nombre": "ZAFYRO - Coctelería Madrid",
+            "direccion": "C. de la Libertad, 10, Centro, 28004 Madrid, Spain",
+            "lat": 40.420820000000006,
+            "lon": -3.6973496,
+            "rating": 4.8,
+            "reviews": 2347,
+            "tipo_comida": [
+                "Coctelería",
+                "Bar"
+            ],
+            "amenities": [
+                "cocktail_bar",
+                "bar",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJn7zov1spQg0RGNbsRjZnNGw",
+            "nombre": "Hemingway Gin & Cocktail Bar",
+            "direccion": "Pl. de Matute, 13, Centro, 28012 Madrid, Spain",
+            "lat": 40.4136976,
+            "lon": -3.699949,
+            "rating": 4.9,
+            "reviews": 534,
+            "tipo_comida": [
+                "Coctelería",
+                "Bar"
+            ],
+            "amenities": [
+                "cocktail_bar",
+                "bar",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ01cC__8pQg0RiOk2ohPjiBI",
+            "nombre": "Salty Dog Madrid",
+            "direccion": "Calle del Divino Pastor, 14, Centro, 28004 Madrid, Spain",
+            "lat": 40.427769999999995,
+            "lon": -3.7043073,
+            "rating": 5,
+            "reviews": 105,
+            "tipo_comida": [
+                "Coctelería",
+                "Bar"
+            ],
+            "amenities": [
+                "cocktail_bar",
+                "bar",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJWZGRWt0pQg0ROSphZEWvvh0",
+            "nombre": "Mojito´s Cocktail bar",
+            "direccion": "C. de la Aduana, 27, Centro, 28013 Madrid, Spain",
+            "lat": 40.4185076,
+            "lon": -3.7005785,
+            "rating": 4.6,
+            "reviews": 1198,
+            "tipo_comida": [
+                "Bar",
+                "Coctelería"
+            ],
+            "amenities": [
+                "bar",
+                "cocktail_bar",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJWZH4A4QpQg0R4se2gqrni-c",
+            "nombre": "SAMBHAD the cocktail bar",
+            "direccion": "C. del Duque de Osuna, 4, Centro, 28015 Madrid, Spain",
+            "lat": 40.4249237,
+            "lon": -3.7117809,
+            "rating": 4.8,
+            "reviews": 1355,
+            "tipo_comida": [
+                "Coctelería",
+                "Bar"
+            ],
+            "amenities": [
+                "cocktail_bar",
+                "bar",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJJT1bNVEpQg0RoGD_HmhT6dg",
+            "nombre": "Estando Contigo",
+            "direccion": "Calle de la Independencia, 1, Centro, 28013 Madrid, Spain",
+            "lat": 40.4174653,
+            "lon": -3.7101089,
+            "rating": 4.6,
+            "reviews": 851,
+            "tipo_comida": [
+                "Wine Bar",
+                "Bar"
+            ],
+            "amenities": [
+                "wine_bar",
+                "bar",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJQyMxuCMpQg0REmo9MkAjteo",
+            "nombre": "El Lobo Wine & Music Bar",
+            "direccion": "C. del Barco, 17, Centro, 28004 Madrid, Spain",
+            "lat": 40.421672,
+            "lon": -3.7028040999999994,
+            "rating": 5,
+            "reviews": 130,
+            "tipo_comida": [
+                "Wine Bar",
+                "Bar"
+            ],
+            "amenities": [
+                "wine_bar",
+                "bar",
+                "association_or_organization",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ5Zi8Y7UpQg0RQKtsXIX-y8A",
+            "nombre": "La Alquimia vinos",
+            "direccion": "C. de San Lucas, 15, Centro, 28004 Madrid, Spain",
+            "lat": 40.423729699999996,
+            "lon": -3.6958320000000002,
+            "rating": 4.5,
+            "reviews": 330,
+            "tipo_comida": [
+                "Wine Bar",
+                "Bar"
+            ],
+            "amenities": [
+                "wine_bar",
+                "bar",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJW9ZQFGQoQg0RHYkhNcnMneo",
+            "nombre": "Winebar",
+            "direccion": "C. de la Palma, 76, Centro, 28015 Madrid, Spain",
+            "lat": 40.4268782,
+            "lon": -3.7089880999999996,
+            "rating": 4.4,
+            "reviews": 579,
+            "tipo_comida": [
+                "Wine Bar",
+                "Bar"
+            ],
+            "amenities": [
+                "wine_bar",
+                "bar",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ4Y3eSbMpQg0Rm4ctXsa0Qj0",
+            "nombre": "Medite Specialty Coffee&Tea",
+            "direccion": "C. de Espoz y Mina, 32, Centro, 28012 Madrid, Spain",
+            "lat": 40.4147588,
+            "lon": -3.7023694999999996,
+            "rating": 5,
+            "reviews": 116,
+            "tipo_comida": [
+                "Wine Bar",
+                "Bar"
+            ],
+            "amenities": [
+                "wine_bar",
+                "cafeteria",
+                "cafe",
+                "bar",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ42PszOcnQg0RvU8FWvaggU8",
+            "nombre": "Corchito Bar de Vinos",
+            "direccion": "C. del Salitre, 2, Centro, 28012 Madrid, Spain",
+            "lat": 40.4101728,
+            "lon": -3.6977434000000002,
+            "rating": 4.6,
+            "reviews": 398,
+            "tipo_comida": [
+                "Wine Bar",
+                "Bar"
+            ],
+            "amenities": [
+                "wine_bar",
+                "bar",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJicwwIzUpQg0R5FCxpHpUXI8",
+            "nombre": "Delito Madrid",
+            "direccion": "C. de las Conchas, 4, Centro, 28013 Madrid, Spain",
+            "lat": 40.4190554,
+            "lon": -3.7076970000000005,
+            "rating": 4.8,
+            "reviews": 912,
+            "tipo_comida": [
+                "Wine Bar",
+                "Bar"
+            ],
+            "amenities": [
+                "wine_bar",
+                "bar",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJqyHjvNMpQg0Rf0aQYLSsY_k",
+            "nombre": "CASA LUNA",
+            "direccion": "Corre. Baja de San Pablo, 4, Centro, 28004 Madrid, Spain",
+            "lat": 40.4217848,
+            "lon": -3.7045694999999994,
+            "rating": 4.4,
+            "reviews": 685,
+            "tipo_comida": [
+                "Wine Bar",
+                "Bar"
+            ],
+            "amenities": [
+                "wine_bar",
+                "bar",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJIwS3EHIpQg0R2NolBn-O0fM",
+            "nombre": "Sa Vida Wine Restaurant",
+            "direccion": "Calle del Dr. Fleming, 51, Chamartín, 28036 Madrid, Spain",
+            "lat": 40.463628299999996,
+            "lon": -3.6879643,
+            "rating": 4.9,
+            "reviews": 277,
+            "tipo_comida": [
+                "Wine Bar",
+                "Bar"
+            ],
+            "amenities": [
+                "restaurant",
+                "wine_bar",
+                "mediterranean_restaurant",
+                "bar",
+                "spanish_restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJI1pyJ04pQg0RHUcz7Vc01Ho",
+            "nombre": "D.O.C Wine bar Enoteca italiana",
+            "direccion": "C. de El Españoleto, 2, Chamberí, 28010 Madrid, Spain",
+            "lat": 40.431066699999995,
+            "lon": -3.6967331999999993,
+            "rating": 4.9,
+            "reviews": 740,
+            "tipo_comida": [
+                "Wine Bar",
+                "Bar"
+            ],
+            "amenities": [
+                "wine_bar",
+                "italian_restaurant",
+                "bar",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJKbzwoW8nQg0R7oYcLg26JhI",
+            "nombre": "FUN FUN natural wine from spain",
+            "direccion": "C. de Don Pedro, 20, Centro, 28005 Madrid, Spain",
+            "lat": 40.412010099999996,
+            "lon": -3.7145297000000004,
+            "rating": 4.7,
+            "reviews": 369,
+            "tipo_comida": [
+                "Bar",
+                "Wine Bar"
+            ],
+            "amenities": [
+                "bar",
+                "wine_bar",
+                "liquor_store",
+                "store",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJtxWkuvMpQg0R7SkucNE7ehA",
+            "nombre": "Vinology Conde de Aranda",
+            "direccion": "C. del Conde de Aranda, 11, Salamanca, 28001 Madrid, Spain",
+            "lat": 40.4218772,
+            "lon": -3.6866254000000005,
+            "rating": 4.5,
+            "reviews": 701,
+            "tipo_comida": [
+                "Wine Bar",
+                "Bar"
+            ],
+            "amenities": [
+                "wine_bar",
+                "mediterranean_restaurant",
+                "liquor_store",
+                "bar",
+                "store",
+                "service",
+                "association_or_organization",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJXU0ui3onQg0Rkjm5IFVxudI",
+            "nombre": "Muñeca Brava",
+            "direccion": "C. de Gutenberg, 5, Retiro, 28014 Madrid, Spain",
+            "lat": 40.405093099999995,
+            "lon": -3.6816965999999995,
+            "rating": 4.7,
+            "reviews": 571,
+            "tipo_comida": [
+                "Wine Bar",
+                "Bar"
+            ],
+            "amenities": [
+                "wine_bar",
+                "argentinian_restaurant",
+                "liquor_store",
+                "south_american_restaurant",
+                "fusion_restaurant",
+                "bar",
+                "store",
+                "spanish_restaurant",
+                "association_or_organization",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJx7ATIQApQg0RFupCvcgSBDg",
+            "nombre": "UBA Wine Bar",
+            "direccion": "C. de Jorge Juan, 52, Salamanca, 28001 Madrid, Spain",
+            "lat": 40.4235409,
+            "lon": -3.680643,
+            "rating": 4.9,
+            "reviews": 125,
+            "tipo_comida": [
+                "Bar"
+            ],
+            "amenities": [
+                "bar",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ9XvGeMUpQg0RqMNWcbccUDU",
+            "nombre": "Vinology Zurbano",
+            "direccion": "Calle de Zurbano, 13, Chamberí, 28010 Madrid, Spain",
+            "lat": 40.4287168,
+            "lon": -3.6938769000000002,
+            "rating": 4.7,
+            "reviews": 351,
+            "tipo_comida": [
+                "Wine Bar",
+                "Bar"
+            ],
+            "amenities": [
+                "wine_bar",
+                "mediterranean_restaurant",
+                "liquor_store",
+                "bar",
+                "store",
+                "service",
+                "association_or_organization",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJA8ESQd4pQg0RdAZUO8MCo6I",
+            "nombre": "kaskais wine bar",
+            "direccion": "Cuesta de Sto. Domingo, 12, Centro, 28013 Madrid, Spain",
+            "lat": 40.419564199999996,
+            "lon": -3.7093695999999996,
+            "rating": 4.5,
+            "reviews": 499,
+            "tipo_comida": [
+                "Bar"
+            ],
+            "amenities": [
+                "bar",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJfUrwPHgpQg0RR6FqDBsZdgs",
+            "nombre": "BATCH",
+            "direccion": "Calle de Vallehermoso, 36 Mercado (Vallehermoso Puesto 47-48, Chamberí, 28015 Madrid, Spain",
+            "lat": 40.434104399999995,
+            "lon": -3.7082124,
+            "rating": 4.5,
+            "reviews": 229,
+            "tipo_comida": [
+                "Wine Bar",
+                "Bar"
+            ],
+            "amenities": [
+                "restaurant",
+                "wine_bar",
+                "convenience_store",
+                "food_store",
+                "bar",
+                "store",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ7SC4aGgpQg0RPzChopaUluY",
+            "nombre": "The Library Wine Boutique & Cuisine",
+            "direccion": "C. de Serrano, 2, Salamanca, 28001 Madrid, Spain",
+            "lat": 40.4207438,
+            "lon": -3.68837,
+            "rating": 4.1,
+            "reviews": 654,
+            "tipo_comida": [],
+            "amenities": [
+                "restaurant",
+                "liquor_store",
+                "store",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJP_rDZoAoQg0RWvVLVRtfEUw",
+            "nombre": "Inclan Brutal Bar",
+            "direccion": "C. de Álvarez Gato, 4, Centro, 28012 Madrid, Spain",
+            "lat": 40.415062299999995,
+            "lon": -3.7019135,
+            "rating": 4.7,
+            "reviews": 20030,
+            "tipo_comida": [
+                "Coctelería",
+                "Bar"
+            ],
+            "amenities": [
+                "restaurant",
+                "tapas_restaurant",
+                "cocktail_bar",
+                "mediterranean_restaurant",
+                "spanish_restaurant",
+                "bar",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJoYayDoEoQg0RMEqKDjbUhCs",
+            "nombre": "La Venencia",
+            "direccion": "Calle de Echegaray, 7, Centro, Centro, 28014 Madrid, Spain",
+            "lat": 40.415835699999995,
+            "lon": -3.6995633000000003,
+            "rating": 4.4,
+            "reviews": 3176,
+            "tipo_comida": [
+                "Bar"
+            ],
+            "amenities": [
+                "bar",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJReV7gYAoQg0RX5wpI4epZ-w",
+            "nombre": "Malaspina",
+            "direccion": "C. de Cádiz, 9, Centro, 28012 Madrid, Spain",
+            "lat": 40.4158435,
+            "lon": -3.7026826,
+            "rating": 4.3,
+            "reviews": 6054,
+            "tipo_comida": [
+                "Bar"
+            ],
+            "amenities": [
+                "spanish_restaurant",
+                "bar",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJi402aYEoQg0RyEVgw-JM8vw",
+            "nombre": "Glass Bar",
+            "direccion": "Cra de S. Jerónimo, 34, Centro, 28014 Madrid, Spain",
+            "lat": 40.416360000000005,
+            "lon": -3.69863,
+            "rating": 4.6,
+            "reviews": 513,
+            "tipo_comida": [
+                "Coctelería",
+                "Bar"
+            ],
+            "amenities": [
+                "cocktail_bar",
+                "bar",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ60ApUIAoQg0Rrib089rrdqU",
+            "nombre": "La Dolores",
+            "direccion": "Pl. de Jesús, 4, Centro, 28012 Madrid, Spain",
+            "lat": 40.413770299999996,
+            "lon": -3.6957850999999997,
+            "rating": 4.3,
+            "reviews": 2946,
+            "tipo_comida": [
+                "Bar"
+            ],
+            "amenities": [
+                "bar",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ3wNHbIcoQg0RV3XOURPqLNA",
+            "nombre": "Tapa Tapa Montera",
+            "direccion": "C. de la Montera, 47, Centro, 28013 Madrid, Spain",
+            "lat": 40.4196362,
+            "lon": -3.7019526000000003,
+            "rating": 4.6,
+            "reviews": 37356,
+            "tipo_comida": [
+                "Bar"
+            ],
+            "amenities": [
+                "tapas_restaurant",
+                "bar",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        }
+    ],
+    "source": "Google Places API (New)"
+}

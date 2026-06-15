@@ -1,0 +1,793 @@
+{
+    "Pinar de Chamartín": [
+        "L1",
+        "L4"
+    ],
+    "Bambú": [
+        "L1"
+    ],
+    "Chamartín": [
+        "L1",
+        "L10"
+    ],
+    "Plaza de Castilla": [
+        "L1",
+        "L9",
+        "L10"
+    ],
+    "Valdeacederas": [
+        "L1"
+    ],
+    "Tetuán": [
+        "L1"
+    ],
+    "Estrecho": [
+        "L1"
+    ],
+    "Alvarado": [
+        "L1"
+    ],
+    "Cuatro Caminos": [
+        "L1",
+        "L2",
+        "L6"
+    ],
+    "Ríos Rosas": [
+        "L1"
+    ],
+    "Iglesia": [
+        "L1"
+    ],
+    "Chamberí": [
+        "L1"
+    ],
+    "Bilbao": [
+        "L1",
+        "L4"
+    ],
+    "Tribunal": [
+        "L1",
+        "L10"
+    ],
+    "Gran Vía": [
+        "L1",
+        "L5"
+    ],
+    "Sol": [
+        "L1",
+        "L2",
+        "L3"
+    ],
+    "Tirso de Molina": [
+        "L1"
+    ],
+    "Antón Martín": [
+        "L1"
+    ],
+    "Estación del Arte": [
+        "L1"
+    ],
+    "Atocha": [
+        "L1",
+        "L11"
+    ],
+    "Menéndez Pelayo": [
+        "L1"
+    ],
+    "Pacífico": [
+        "L1",
+        "L6"
+    ],
+    "Puente de Vallecas": [
+        "L1"
+    ],
+    "Nueva Numancia": [
+        "L1"
+    ],
+    "Portazgo": [
+        "L1"
+    ],
+    "Buenos Aires": [
+        "L1"
+    ],
+    "Alto del Arenal": [
+        "L1"
+    ],
+    "Miguel Hernández": [
+        "L1"
+    ],
+    "Sierra de Guadalupe": [
+        "L1"
+    ],
+    "Villa de Vallecas": [
+        "L1"
+    ],
+    "Congosto": [
+        "L1"
+    ],
+    "La Gavia": [
+        "L1"
+    ],
+    "Las Suertes": [
+        "L1"
+    ],
+    "Valdecarros": [
+        "L1"
+    ],
+    "Las Rosas": [
+        "L2"
+    ],
+    "Avenida de Guadalajara": [
+        "L2"
+    ],
+    "Alsacia": [
+        "L2"
+    ],
+    "La Almudena": [
+        "L2"
+    ],
+    "La Elipa": [
+        "L2"
+    ],
+    "Ventas": [
+        "L2",
+        "L5"
+    ],
+    "Manuel Becerra": [
+        "L2",
+        "L6"
+    ],
+    "Goya": [
+        "L2",
+        "L4"
+    ],
+    "Príncipe de Vergara": [
+        "L2",
+        "L9"
+    ],
+    "Retiro": [
+        "L2"
+    ],
+    "Banco de España": [
+        "L2"
+    ],
+    "Sevilla": [
+        "L2"
+    ],
+    "Ópera": [
+        "L2",
+        "L5",
+        "R"
+    ],
+    "Santo Domingo": [
+        "L2"
+    ],
+    "Noviciado": [
+        "L2"
+    ],
+    "San Bernardo": [
+        "L2",
+        "L4"
+    ],
+    "Quevedo": [
+        "L2"
+    ],
+    "Canal": [
+        "L2",
+        "L7"
+    ],
+    "Moncloa": [
+        "L3",
+        "L6"
+    ],
+    "Argüelles": [
+        "L3",
+        "L4",
+        "L6"
+    ],
+    "Ventura Rodríguez": [
+        "L3"
+    ],
+    "Plaza de España": [
+        "L3",
+        "L10"
+    ],
+    "Callao": [
+        "L3",
+        "L5"
+    ],
+    "Lavapiés": [
+        "L3"
+    ],
+    "Embajadores": [
+        "L3"
+    ],
+    "Palos de la Frontera": [
+        "L3",
+        "L11"
+    ],
+    "Delicias": [
+        "L3"
+    ],
+    "Legazpi": [
+        "L3",
+        "L6"
+    ],
+    "Almendrales": [
+        "L3"
+    ],
+    "Hospital 12 de Octubre": [
+        "L3"
+    ],
+    "San Fermín-Orcasur": [
+        "L3"
+    ],
+    "Ciudad de los Ángeles": [
+        "L3"
+    ],
+    "Villaverde Bajo-Cruce": [
+        "L3"
+    ],
+    "San Cristóbal": [
+        "L3"
+    ],
+    "Villaverde Alto": [
+        "L3"
+    ],
+    "El Casar": [
+        "L3",
+        "L12"
+    ],
+    "Alonso Martínez": [
+        "L4",
+        "L5",
+        "L10"
+    ],
+    "Colón": [
+        "L4"
+    ],
+    "Serrano": [
+        "L4"
+    ],
+    "Velázquez": [
+        "L4"
+    ],
+    "Lista": [
+        "L4"
+    ],
+    "Diego de León": [
+        "L4",
+        "L5",
+        "L6"
+    ],
+    "Avenida de América": [
+        "L4",
+        "L6",
+        "L7",
+        "L9"
+    ],
+    "Prosperidad": [
+        "L4"
+    ],
+    "Alfonso XIII": [
+        "L4"
+    ],
+    "Avenida de la Paz": [
+        "L4"
+    ],
+    "Arturo Soria": [
+        "L4"
+    ],
+    "Esperanza": [
+        "L4"
+    ],
+    "Canillas": [
+        "L4"
+    ],
+    "Mar de Cristal": [
+        "L4",
+        "L8"
+    ],
+    "San Lorenzo": [
+        "L4"
+    ],
+    "Parque de Santa María": [
+        "L4"
+    ],
+    "Hortaleza": [
+        "L4"
+    ],
+    "Manoteras": [
+        "L4"
+    ],
+    "Casa de Campo": [
+        "L5",
+        "L10"
+    ],
+    "Campamento": [
+        "L5"
+    ],
+    "Empalme": [
+        "L5"
+    ],
+    "Aluche": [
+        "L5"
+    ],
+    "Eugenia de Montijo": [
+        "L5"
+    ],
+    "Carabanchel": [
+        "L5"
+    ],
+    "Vista Alegre": [
+        "L5"
+    ],
+    "Oporto": [
+        "L5",
+        "L6"
+    ],
+    "Urgel": [
+        "L5"
+    ],
+    "Marqués de Vadillo": [
+        "L5"
+    ],
+    "Pirámides": [
+        "L5"
+    ],
+    "Acacias": [
+        "L5"
+    ],
+    "Puerta de Toledo": [
+        "L5"
+    ],
+    "La Latina": [
+        "L5"
+    ],
+    "Chueca": [
+        "L5"
+    ],
+    "Rubén Darío": [
+        "L5"
+    ],
+    "Núñez de Balboa": [
+        "L5",
+        "L9"
+    ],
+    "El Carmen": [
+        "L5"
+    ],
+    "Quintana": [
+        "L5"
+    ],
+    "Pueblo Nuevo": [
+        "L5",
+        "L7"
+    ],
+    "Ciudad Lineal": [
+        "L5"
+    ],
+    "Suanzes": [
+        "L5"
+    ],
+    "Torre Arias": [
+        "L5"
+    ],
+    "Canillejas": [
+        "L5"
+    ],
+    "El Capricho": [
+        "L5"
+    ],
+    "Alameda de Osuna": [
+        "L5"
+    ],
+    "Aeropuerto T1-T2-T3": [
+        "L5",
+        "L8"
+    ],
+    "Laguna": [
+        "L6"
+    ],
+    "Lucero": [
+        "L6"
+    ],
+    "Alto de Extremadura": [
+        "L6"
+    ],
+    "Puerta del Ángel": [
+        "L6"
+    ],
+    "Príncipe Pío": [
+        "L6",
+        "L10",
+        "R"
+    ],
+    "Ciudad Universitaria": [
+        "L6"
+    ],
+    "Vicente Aleixandre": [
+        "L6"
+    ],
+    "Guzmán el Bueno": [
+        "L6",
+        "L7"
+    ],
+    "Nuevos Ministerios": [
+        "L6",
+        "L8",
+        "L10"
+    ],
+    "República Argentina": [
+        "L6"
+    ],
+    "O'Donnell": [
+        "L6"
+    ],
+    "Sainz de Baranda": [
+        "L6",
+        "L9"
+    ],
+    "Conde de Casal": [
+        "L6",
+        "L11"
+    ],
+    "Méndez Álvaro": [
+        "L6"
+    ],
+    "Arganzuela-Planetario": [
+        "L6"
+    ],
+    "Usera": [
+        "L6"
+    ],
+    "Plaza Elíptica": [
+        "L6",
+        "L11"
+    ],
+    "Opañel": [
+        "L6"
+    ],
+    "Carpetana": [
+        "L6"
+    ],
+    "Pitis": [
+        "L7"
+    ],
+    "Arroyofresno": [
+        "L7"
+    ],
+    "Lacoma": [
+        "L7"
+    ],
+    "Avenida de la Ilustración": [
+        "L7"
+    ],
+    "Peñagrande": [
+        "L7"
+    ],
+    "Antonio Machado": [
+        "L7"
+    ],
+    "Valdezarza": [
+        "L7"
+    ],
+    "Francos Rodríguez": [
+        "L7"
+    ],
+    "Islas Filipinas": [
+        "L7"
+    ],
+    "Alonso Cano": [
+        "L7"
+    ],
+    "Gregorio Marañón": [
+        "L7",
+        "L10"
+    ],
+    "Cartagena": [
+        "L7"
+    ],
+    "Parque de las Avenidas": [
+        "L7"
+    ],
+    "Barrio de la Concepción": [
+        "L7"
+    ],
+    "Ascao": [
+        "L7"
+    ],
+    "García Noblejas": [
+        "L7"
+    ],
+    "Simancas": [
+        "L7"
+    ],
+    "San Blas": [
+        "L7"
+    ],
+    "Las Musas": [
+        "L7"
+    ],
+    "Estadio Metropolitano": [
+        "L7"
+    ],
+    "Barrio del Puerto": [
+        "L7"
+    ],
+    "Coslada Central": [
+        "L7"
+    ],
+    "La Rambla": [
+        "L7"
+    ],
+    "San Fernando": [
+        "L7"
+    ],
+    "Jarama": [
+        "L7"
+    ],
+    "Henares": [
+        "L7"
+    ],
+    "Hospital del Henares": [
+        "L7"
+    ],
+    "Aeropuerto T4": [
+        "L8"
+    ],
+    "Barajas": [
+        "L8"
+    ],
+    "Feria de Madrid": [
+        "L8"
+    ],
+    "Pinar del Rey": [
+        "L8"
+    ],
+    "Colombia": [
+        "L8",
+        "L9"
+    ],
+    "Paco de Lucía": [
+        "L9"
+    ],
+    "Mirasierra": [
+        "L9"
+    ],
+    "Herrera Oria": [
+        "L9"
+    ],
+    "Barrio del Pilar": [
+        "L9"
+    ],
+    "Ventilla": [
+        "L9"
+    ],
+    "Duque de Pastrana": [
+        "L9"
+    ],
+    "Pío XII": [
+        "L9"
+    ],
+    "Concha Espina": [
+        "L9"
+    ],
+    "Cruz del Rayo": [
+        "L9"
+    ],
+    "Ibiza": [
+        "L9"
+    ],
+    "Estrella": [
+        "L9"
+    ],
+    "Vinateros": [
+        "L9"
+    ],
+    "Artilleros": [
+        "L9"
+    ],
+    "Pavones": [
+        "L9"
+    ],
+    "Valdebernardo": [
+        "L9"
+    ],
+    "Vicálvaro": [
+        "L9"
+    ],
+    "San Cipriano": [
+        "L9"
+    ],
+    "Puerta de Arganda": [
+        "L9"
+    ],
+    "Rivas-Urbanizaciones": [
+        "L9"
+    ],
+    "Rivas-Futura": [
+        "L9"
+    ],
+    "Rivas-Vaciamadrid": [
+        "L9"
+    ],
+    "La Poveda": [
+        "L9"
+    ],
+    "Arganda del Rey": [
+        "L9"
+    ],
+    "Puerta del Sur": [
+        "L10",
+        "L12"
+    ],
+    "Joaquín Vilumbrales": [
+        "L10"
+    ],
+    "Cuatro Vientos": [
+        "L10"
+    ],
+    "Aviación Española": [
+        "L10"
+    ],
+    "Colonia Jardín": [
+        "L10"
+    ],
+    "Batán": [
+        "L10"
+    ],
+    "Lago": [
+        "L10"
+    ],
+    "Tramo cortado por obras": [
+        "L10"
+    ],
+    "Santiago Bernabéu": [
+        "L10"
+    ],
+    "Cuzco": [
+        "L10"
+    ],
+    "Begoña": [
+        "L10"
+    ],
+    "Fuencarral": [
+        "L10"
+    ],
+    "Tres Olivos": [
+        "L10"
+    ],
+    "Montecarmelo": [
+        "L10"
+    ],
+    "Las Tablas": [
+        "L10"
+    ],
+    "Ronda de la Comunicación": [
+        "L10"
+    ],
+    "La Granja": [
+        "L10"
+    ],
+    "La Moraleja": [
+        "L10"
+    ],
+    "Marqués de la Valdavia": [
+        "L10"
+    ],
+    "Manuel de Falla": [
+        "L10"
+    ],
+    "Baunatal": [
+        "L10"
+    ],
+    "Reyes Católicos": [
+        "L10"
+    ],
+    "Hospital Infanta Sofía": [
+        "L10"
+    ],
+    "La Fortuna": [
+        "L11"
+    ],
+    "La Peseta": [
+        "L11"
+    ],
+    "Carabanchel Alto": [
+        "L11"
+    ],
+    "San Francisco": [
+        "L11"
+    ],
+    "Pan Bendito": [
+        "L11"
+    ],
+    "Abrantes": [
+        "L11"
+    ],
+    "Comillas": [
+        "L11"
+    ],
+    "Madrid Río": [
+        "L11"
+    ],
+    "Parque Lisboa": [
+        "L12"
+    ],
+    "Alcorcón Central": [
+        "L12"
+    ],
+    "Parque Oeste": [
+        "L12"
+    ],
+    "Universidad Rey Juan Carlos": [
+        "L12"
+    ],
+    "Móstoles Central": [
+        "L12"
+    ],
+    "Pradillo": [
+        "L12"
+    ],
+    "Hospital de Móstoles": [
+        "L12"
+    ],
+    "Manuela Malasaña": [
+        "L12"
+    ],
+    "Loranca": [
+        "L12"
+    ],
+    "Hospital de Fuenlabrada": [
+        "L12"
+    ],
+    "Parque Europa": [
+        "L12"
+    ],
+    "Fuenlabrada Central": [
+        "L12"
+    ],
+    "Parque de los Estados": [
+        "L12"
+    ],
+    "Arroyo Culebro": [
+        "L12"
+    ],
+    "Conservatorio": [
+        "L12"
+    ],
+    "Alonso de Mendoza": [
+        "L12"
+    ],
+    "Getafe Central": [
+        "L12"
+    ],
+    "Juan de la Cierva": [
+        "L12"
+    ],
+    "Los Espartales": [
+        "L12"
+    ],
+    "El Bercial": [
+        "L12"
+    ],
+    "El Carrascal": [
+        "L12"
+    ],
+    "Julián Besteiro": [
+        "L12"
+    ],
+    "Casa del Reloj": [
+        "L12"
+    ],
+    "Hospital Severo Ochoa": [
+        "L12"
+    ],
+    "Leganés Central": [
+        "L12"
+    ],
+    "San Nicasio": [
+        "L12"
+    ]
+}

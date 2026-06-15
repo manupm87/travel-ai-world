@@ -1,0 +1,413 @@
+{
+    "city": "Madrid",
+    "category": "iglesias_palacios",
+    "count": 16,
+    "items": [
+        {
+            "id": "ChIJI_FYeHcoQg0RcqwG5gDs3H8",
+            "nombre": "Catedral de Santa María la Real de la Almudena",
+            "direccion": "C. de Bailén, 10, Centro, 28013 Madrid, Spain",
+            "lat": 40.415651,
+            "lon": -3.714552,
+            "rating": 4.6,
+            "reviews": 31764,
+            "amenities": [
+                "tourist_attraction",
+                "church",
+                "place_of_worship",
+                "association_or_organization",
+                "point_of_interest",
+                "establishment"
+            ],
+            "tipo": [
+                "Iglesia"
+            ],
+            "fuente": "Google Places (New)",
+            "nombre_original": "Catedral de la Almudena Madrid",
+            "historia": null,
+            "estilo": null,
+            "año_construccion": null,
+            "arquitecto": null
+        },
+        {
+            "id": "ChIJCd5rR9gnQg0RUIJOfg7D19Y",
+            "nombre": "Royal Basilica of Saint Francis the Great",
+            "direccion": "C. de San Buenaventura, 1, Centro, 28005 Madrid, Spain",
+            "lat": 40.4104996,
+            "lon": -3.7145482999999997,
+            "rating": 4.7,
+            "reviews": 8588,
+            "amenities": [
+                "tourist_attraction",
+                "historical_landmark",
+                "historical_place",
+                "museum",
+                "church",
+                "place_of_worship",
+                "association_or_organization",
+                "point_of_interest",
+                "establishment"
+            ],
+            "tipo": [
+                "Iglesia"
+            ],
+            "fuente": "Google Places (New)",
+            "nombre_original": "Basílica de San Francisco el Grande Madrid",
+            "historia": null,
+            "estilo": null,
+            "año_construccion": null,
+            "arquitecto": null
+        },
+        {
+            "id": "ChIJw8Youn4oQg0RLohCcxtlKJc",
+            "nombre": "Church of Saint Genesius",
+            "direccion": "C. del Arenal, 13, Centro, 28013 Madrid, Spain",
+            "lat": 40.4172532,
+            "lon": -3.7070675000000004,
+            "rating": 4.6,
+            "reviews": 1498,
+            "amenities": [
+                "church",
+                "place_of_worship",
+                "association_or_organization",
+                "point_of_interest",
+                "establishment"
+            ],
+            "tipo": [
+                "Iglesia"
+            ],
+            "fuente": "Google Places (New)",
+            "nombre_original": "Iglesia de San Ginés Madrid",
+            "historia": null,
+            "estilo": null,
+            "año_construccion": null,
+            "arquitecto": null
+        },
+        {
+            "id": "ChIJZ8xFdJ0oQg0RwgcVJGz5clA",
+            "nombre": "Iglesia de San Jerónimo el Real",
+            "direccion": "C. de Moreto, 4, Retiro, 28014 Madrid, Spain",
+            "lat": 40.414535799999996,
+            "lon": -3.6909801,
+            "rating": 4.6,
+            "reviews": 2483,
+            "amenities": [
+                "tourist_attraction",
+                "church",
+                "place_of_worship",
+                "association_or_organization",
+                "point_of_interest",
+                "establishment"
+            ],
+            "tipo": [
+                "Iglesia"
+            ],
+            "fuente": "Google Places (New)",
+            "nombre_original": "Iglesia de San Jerónimo el Real Madrid",
+            "historia": null,
+            "estilo": null,
+            "año_construccion": null,
+            "arquitecto": null
+        },
+        {
+            "id": "ChIJtVdpFn4oQg0RtUTuupvVsBY",
+            "nombre": "Church of Saint Anthony of the German",
+            "direccion": "C. de la Puebla, 22, Centro, 28004 Madrid, Spain",
+            "lat": 40.4223578,
+            "lon": -3.7038115,
+            "rating": 4.7,
+            "reviews": 4670,
+            "amenities": [
+                "tourist_attraction",
+                "church",
+                "place_of_worship",
+                "association_or_organization",
+                "point_of_interest",
+                "establishment"
+            ],
+            "tipo": [
+                "Iglesia"
+            ],
+            "fuente": "Google Places (New)",
+            "nombre_original": "Iglesia de San Antonio de los Alemanes Madrid",
+            "historia": null,
+            "estilo": null,
+            "año_construccion": null,
+            "arquitecto": null
+        },
+        {
+            "id": "ChIJe6ZWa3goQg0RB20E9vWreyE",
+            "nombre": "Church of San Andrés Apóstol",
+            "direccion": "Pl. de San Andrés, 1, Centro, 28005 Madrid, Spain",
+            "lat": 40.412017,
+            "lon": -3.7114157999999997,
+            "rating": 4.6,
+            "reviews": 759,
+            "amenities": [
+                "tourist_attraction",
+                "church",
+                "place_of_worship",
+                "association_or_organization",
+                "point_of_interest",
+                "establishment"
+            ],
+            "tipo": [
+                "Iglesia"
+            ],
+            "fuente": "Google Places (New)",
+            "nombre_original": "Iglesia de San Andrés Madrid",
+            "historia": null,
+            "estilo": null,
+            "año_construccion": null,
+            "arquitecto": null
+        },
+        {
+            "id": "ChIJzfrit3koQg0R1zyNFMJZkAU",
+            "nombre": "Church of Saint Nicholas",
+            "direccion": "Pl. de San Nicolás, 6, Centro, 28013 Madrid, Spain",
+            "lat": 40.415917799999995,
+            "lon": -3.7118782,
+            "rating": 4.5,
+            "reviews": 415,
+            "amenities": [
+                "tourist_attraction",
+                "church",
+                "place_of_worship",
+                "association_or_organization",
+                "point_of_interest",
+                "establishment"
+            ],
+            "tipo": [
+                "Iglesia"
+            ],
+            "fuente": "Google Places (New)",
+            "nombre_original": "Iglesia de San Nicolás de los Servitas Madrid",
+            "historia": null,
+            "estilo": null,
+            "año_construccion": null,
+            "arquitecto": null
+        },
+        {
+            "id": "ChIJZ1JllY8oQg0RmXeRRlTegrs",
+            "nombre": "Parish Church of Saint Barbara",
+            "direccion": "Calle del Gral. Castaños, 2, Centro, 28004 Madrid, Spain",
+            "lat": 40.4245434,
+            "lon": -3.693829,
+            "rating": 4.6,
+            "reviews": 1904,
+            "amenities": [
+                "tourist_attraction",
+                "church",
+                "place_of_worship",
+                "association_or_organization",
+                "point_of_interest",
+                "establishment"
+            ],
+            "tipo": [
+                "Iglesia"
+            ],
+            "fuente": "Google Places (New)",
+            "nombre_original": "Iglesia de Santa Bárbara Madrid",
+            "historia": null,
+            "estilo": null,
+            "año_construccion": null,
+            "arquitecto": null
+        },
+        {
+            "id": "ChIJwamkfX4oQg0RUUjO1nnsfy4",
+            "nombre": "Royal Palace of Madrid",
+            "direccion": "Centro, 28071 Madrid, Spain",
+            "lat": 40.417955,
+            "lon": -3.714311999999999,
+            "rating": 4.7,
+            "reviews": 129098,
+            "amenities": [
+                "castle",
+                "historical_landmark",
+                "historical_place",
+                "tourist_attraction",
+                "point_of_interest",
+                "establishment"
+            ],
+            "tipo": [
+                "Palacio"
+            ],
+            "fuente": "Google Places (New)",
+            "nombre_original": "Palacio Real de Madrid",
+            "historia": null,
+            "estilo": null,
+            "año_construccion": null,
+            "arquitecto": null
+        },
+        {
+            "id": "ChIJX1YZW5soQg0Ry7dYRV-oyi0",
+            "nombre": "Cybele Palace",
+            "direccion": "Palacio de Cibeles, Retiro, 28014 Madrid, Spain",
+            "lat": 40.418887999999995,
+            "lon": -3.6920493999999997,
+            "rating": null,
+            "reviews": null,
+            "amenities": [
+                "subpremise",
+                "street_address"
+            ],
+            "tipo": [
+                "Palacio"
+            ],
+            "fuente": "Google Places (New)",
+            "nombre_original": "Palacio de Cibeles Madrid",
+            "historia": null,
+            "estilo": null,
+            "año_construccion": null,
+            "arquitecto": null
+        },
+        {
+            "id": "ChIJe47KNpsoQg0R67C5DKP3Eyc",
+            "nombre": "Linares Palace",
+            "direccion": "Pl. Cibeles, s/n, Salamanca, 28014 Madrid, Spain",
+            "lat": 40.419791,
+            "lon": -3.6921509999999995,
+            "rating": 4.6,
+            "reviews": 2007,
+            "amenities": [
+                "convention_center",
+                "event_venue",
+                "tourist_attraction",
+                "service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "tipo": [
+                "Palacio"
+            ],
+            "fuente": "Google Places (New)",
+            "nombre_original": "Palacio de Linares Madrid",
+            "historia": null,
+            "estilo": null,
+            "año_construccion": null,
+            "arquitecto": null
+        },
+        {
+            "id": "ChIJPcua_GUoQg0RTyyDtruTvv4",
+            "nombre": "Liria Palace",
+            "direccion": "Calle de la Princesa, 20, Centro, 28008 Madrid, Spain",
+            "lat": 40.427675199999996,
+            "lon": -3.7124899000000005,
+            "rating": 4.3,
+            "reviews": 5288,
+            "amenities": [
+                "art_museum",
+                "museum",
+                "point_of_interest",
+                "establishment"
+            ],
+            "tipo": [
+                "Palacio"
+            ],
+            "fuente": "Google Places (New)",
+            "nombre_original": "Palacio de Liria Madrid",
+            "historia": null,
+            "estilo": null,
+            "año_construccion": null,
+            "arquitecto": null
+        },
+        {
+            "id": "ChIJ5bJ2s4QoQg0RrOLGBQrsl-Q",
+            "nombre": "Palacio de Buenavista",
+            "direccion": "Pl. Cibeles, Centro, 28014 Madrid, Spain",
+            "lat": 40.420473400000006,
+            "lon": -3.6945373999999997,
+            "rating": 4.6,
+            "reviews": 219,
+            "amenities": [
+                "historical_place",
+                "point_of_interest",
+                "establishment"
+            ],
+            "tipo": [
+                "Palacio"
+            ],
+            "fuente": "Google Places (New)",
+            "nombre_original": "Palacio de Buenavista Madrid",
+            "historia": null,
+            "estilo": null,
+            "año_construccion": null,
+            "arquitecto": null
+        },
+        {
+            "id": "ChIJmy6-B6AoQg0RWfqNzFXrq3k",
+            "nombre": "Palacio de Cristal",
+            "direccion": "P.º de Cuba, 4, Retiro, 28009 Madrid, Spain",
+            "lat": 40.4136352,
+            "lon": -3.6819996999999995,
+            "rating": 4.5,
+            "reviews": 47535,
+            "amenities": [
+                "museum",
+                "tourist_attraction",
+                "event_venue",
+                "point_of_interest",
+                "establishment"
+            ],
+            "tipo": [
+                "Palacio"
+            ],
+            "fuente": "Google Places (New)",
+            "nombre_original": "Palacio de Cristal Madrid",
+            "historia": null,
+            "estilo": null,
+            "año_construccion": null,
+            "arquitecto": null
+        },
+        {
+            "id": "ChIJAcSrJKAoQg0RsDvXI5M_170",
+            "nombre": "Velázquez Palace",
+            "direccion": "El Retiro Park, P.º de Venezuela, 2, Retiro, 28001 Madrid, Spain",
+            "lat": 40.4150379,
+            "lon": -3.6819055000000005,
+            "rating": 4.4,
+            "reviews": 4417,
+            "amenities": [
+                "museum",
+                "tourist_attraction",
+                "store",
+                "point_of_interest",
+                "establishment"
+            ],
+            "tipo": [
+                "Palacio"
+            ],
+            "fuente": "Google Places (New)",
+            "nombre_original": "Palacio de Velázquez Madrid",
+            "historia": null,
+            "estilo": null,
+            "año_construccion": null,
+            "arquitecto": null
+        },
+        {
+            "id": "ChIJARlt1IopQg0R9nytVr3k-k0",
+            "nombre": "Longoria Palace",
+            "direccion": "C. de Fernando VI, 4, Centro, 28004 Madrid, Spain",
+            "lat": 40.4253708,
+            "lon": -3.6966267999999998,
+            "rating": 4.3,
+            "reviews": 220,
+            "amenities": [
+                "corporate_office",
+                "historical_landmark",
+                "historical_place",
+                "point_of_interest",
+                "establishment"
+            ],
+            "tipo": [
+                "Palacio"
+            ],
+            "fuente": "Google Places (New)",
+            "nombre_original": "Palacio de Longoria Madrid",
+            "historia": null,
+            "estilo": null,
+            "año_construccion": null,
+            "arquitecto": null
+        }
+    ]
+}

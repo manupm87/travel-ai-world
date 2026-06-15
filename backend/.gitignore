@@ -1,0 +1,84 @@
+# ==============================================================================
+# Python / FastAPI Template .gitignore
+# ==============================================================================
+
+# Python Environments & Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+venv/
+.venv/
+env/
+.env_dir/
+
+# Environment Variables
+.env
+.env.*
+!.env.example
+
+# Testing & Linting
+.pytest_cache/
+.coverage
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.tox/
+.nox/
+.ruff_cache/
+.mypy_cache/
+
+# IDEs & Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Databases
+*.db
+*.sqlite3
+
+# Security & Certificates
+certs/
+*.pem
+*.key
+*.crt
+
+# Logs
+logs/
+*.log
+
+# AI Agents & Workflows
+# Note: .claude/ and .agents/ are INTENTIONALLY NOT IGNORED 
+# as they contain the rules and workflows for the template.
+.cursor/
+.cursorrules
+
+# Package Managers
+# (uv, pip, etc. caches)
+.uv/

@@ -1,0 +1,1191 @@
+{
+    "city": "Madrid",
+    "category": "emt",
+    "count": 68,
+    "items": [
+        {
+            "id": "ChIJQRclnkEoQg0Rp1azo5iACag",
+            "nombre": "Moncloa",
+            "direccion": "Moncloa - Aravaca, 28008 Madrid, España",
+            "lat": 40.4345298,
+            "lon": -3.7190834,
+            "rating": 4.3,
+            "reviews": 2427,
+            "amenities": [
+                "transit_station",
+                "bus_stop",
+                "transit_stop",
+                "subway_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJV5wunkEoQg0Rbti90bZcPCM",
+            "nombre": "Intercambiador de Moncloa",
+            "direccion": "Pl. Moncloa, Moncloa - Aravaca, 28008 Madrid",
+            "lat": 40.4347971,
+            "lon": -3.7197004999999996,
+            "rating": 4.2,
+            "reviews": 3635,
+            "amenities": [
+                "transit_depot",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJL6PdlUEoQg0Rgq5YDGWq3-o",
+            "nombre": "Intercambiador Moncloa",
+            "direccion": "Moncloa - Aravaca, 28008 Madrid, España",
+            "lat": 40.4342978,
+            "lon": -3.7192993999999993,
+            "rating": 3.5,
+            "reviews": 39,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJsSzaEUEoQg0Ryjaimc7P6zY",
+            "nombre": "Intercambiador De Moncloa",
+            "direccion": "Moncloa - Aravaca, 28040 Madrid, España",
+            "lat": 40.435900000000004,
+            "lon": -3.71982,
+            "rating": null,
+            "reviews": null,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ_X3YEUEoQg0RlpopsJkR4kc",
+            "nombre": "Intercambiador De Moncloa",
+            "direccion": "Moncloa - Aravaca, 28040 Madrid, España",
+            "lat": 40.43588,
+            "lon": -3.71982,
+            "rating": null,
+            "reviews": null,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJHcWOxcYoQg0RCb2HF-oMwdU",
+            "nombre": "NEXTSTATION",
+            "direccion": "Intercambiador de, Av. de América, 9, planta -1, Chamartín, 28002 Madrid",
+            "lat": 40.4382342,
+            "lon": -3.6768931,
+            "rating": 4,
+            "reviews": 10074,
+            "amenities": [
+                "storage",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJSbxOvMYoQg0RklRYC9nHTVM",
+            "nombre": "Estación de Avenida de América",
+            "direccion": "Chamartín, 28002 Madrid, España",
+            "lat": 40.43832,
+            "lon": -3.67645,
+            "rating": 2.5,
+            "reviews": 174,
+            "amenities": [
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJrxbzvMYoQg0Rr9B2V-kPvyw",
+            "nombre": "Intercambiador De Avenida América",
+            "direccion": "Chamartín, 28002 Madrid, España",
+            "lat": 40.4384,
+            "lon": -3.6765,
+            "rating": 5,
+            "reviews": 1,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJdZLTVxApQg0RFeDQTYf63IE",
+            "nombre": "Intercambiador de Plaza de Castilla",
+            "direccion": "Av. de Asturias, Tetuán, 28029 Madrid",
+            "lat": 40.4668385,
+            "lon": -3.6891526000000003,
+            "rating": 4.2,
+            "reviews": 745,
+            "amenities": [
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJjXCKHhEpQg0RrYhMTPp19Bg",
+            "nombre": "Plaza de Castilla",
+            "direccion": "Tetuán, 28046 Madrid, España",
+            "lat": 40.466892099999995,
+            "lon": -3.6891328000000003,
+            "rating": 4.4,
+            "reviews": 1026,
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJi5W8VBApQg0RVv5CNrXtZnw",
+            "nombre": "Intercambiador De Plaza Castilla",
+            "direccion": "Tetuán, 28029 Madrid, España",
+            "lat": 40.4666,
+            "lon": -3.69049,
+            "rating": 3.9,
+            "reviews": 54,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJRyhMHhEpQg0RpmEVJGwZRwk",
+            "nombre": "Intercambiador Subterraneo Plaza Castilla",
+            "direccion": "Pl. Castilla, 7, Chamartín, 28046 Madrid",
+            "lat": 40.4667312,
+            "lon": -3.6890103999999995,
+            "rating": 3.8,
+            "reviews": 185,
+            "amenities": [
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJmbZrrREpQg0RAyLPco9Y2j0",
+            "nombre": "Intercambiador De Plaza Castilla",
+            "direccion": "Tetuán, 28029 Madrid, España",
+            "lat": 40.466777799999996,
+            "lon": -3.6907854,
+            "rating": 4.5,
+            "reviews": 12,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ2UZ8PREpQg0RI839DSPtHzg",
+            "nombre": "Estación de Plaza de Castilla",
+            "direccion": "28046 Madrid, España",
+            "lat": 40.467515,
+            "lon": -3.6889350000000003,
+            "rating": 2.9,
+            "reviews": 46,
+            "amenities": [
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJa3yBPREpQg0RAbfzh4mI-mo",
+            "nombre": "Intercambiador Plaza Castilla-Nivel 0",
+            "direccion": "Tetuán, 28046 Madrid, España",
+            "lat": 40.467596,
+            "lon": -3.6889111999999997,
+            "rating": 3.8,
+            "reviews": 4,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJn8qfi3IoQg0RvOL9j5lKqj0",
+            "nombre": "Intercambiador de Príncipe Pío",
+            "direccion": "Moncloa - Aravaca, 28008 Madrid, España",
+            "lat": 40.42138,
+            "lon": -3.72091,
+            "rating": 2.1,
+            "reviews": 34,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJL1K583IoQg0RcRs1vCwGfNE",
+            "nombre": "Intercambiador de Príncipe Pío",
+            "direccion": "Moncloa - Aravaca, 28008 Madrid, España",
+            "lat": 40.420989999999996,
+            "lon": -3.7210799999999997,
+            "rating": 3.9,
+            "reviews": 19,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJwxPs7kgpQg0R-30HplhaYmo",
+            "nombre": "Intercambiador de Príncipe Pío",
+            "direccion": "Casa de Campo, Moncloa - Aravaca, 28008 Madrid",
+            "lat": 40.4211689,
+            "lon": -3.7205079,
+            "rating": 3.7,
+            "reviews": 37,
+            "amenities": [
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJn_Hd820oQg0RgOhjR0WLNbk",
+            "nombre": "Príncipe Pío",
+            "direccion": "Moncloa - Aravaca, 28008 Madrid, España",
+            "lat": 40.421467299999996,
+            "lon": -3.7189925,
+            "rating": 4.2,
+            "reviews": 2164,
+            "amenities": [
+                "transit_station",
+                "subway_station",
+                "train_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJjTDci3IoQg0RBDlUJUGuM8Y",
+            "nombre": "Príncipe Pío",
+            "direccion": "Moncloa - Aravaca, 28008 Madrid, España",
+            "lat": 40.42151260000001,
+            "lon": -3.7208878999999997,
+            "rating": 3.5,
+            "reviews": 21,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ13MlfLwnQg0R-YH9kWAiRgU",
+            "nombre": "Plaza Elíptica",
+            "direccion": "Carabanchel, 28025 Madrid, España",
+            "lat": 40.3844911,
+            "lon": -3.7183262999999998,
+            "rating": 4,
+            "reviews": 940,
+            "amenities": [
+                "transit_station",
+                "subway_station",
+                "bus_stop",
+                "transit_stop",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJsyFaerwnQg0Ry-oSkZ_ndP8",
+            "nombre": "Intercambiador Plaza Elíptica",
+            "direccion": "Carabanchel, 28025 Madrid, España",
+            "lat": 40.3849631,
+            "lon": -3.7183587,
+            "rating": 2.9,
+            "reviews": 14,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJO4HUfLwnQg0RMaHahwAK8Is",
+            "nombre": "Intercambiador Plaza Elíptica",
+            "direccion": "Carabanchel, 28025 Madrid, España",
+            "lat": 40.3843295,
+            "lon": -3.7190619000000003,
+            "rating": 3.8,
+            "reviews": 8,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJl-WngLwnQg0RJid3fbJ5nzc",
+            "nombre": "Intercambiador De Plaza Elíptica",
+            "direccion": "Carabanchel, 28025 Madrid, España",
+            "lat": 40.384389999999996,
+            "lon": -3.7184,
+            "rating": 3,
+            "reviews": 1,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJjcIEabwnQg0RNUUuFzVqHus",
+            "nombre": "Intercambiador Plaza Elíptica",
+            "direccion": "Carabanchel, 28019 Madrid, España",
+            "lat": 40.38519,
+            "lon": -3.7192,
+            "rating": 3,
+            "reviews": 2,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJvWv_gLsnQg0Rd1SNE_IHTQo",
+            "nombre": "Intercambiador De Plaza Elíptica",
+            "direccion": "Carabanchel, 28025 Madrid, España",
+            "lat": 40.38457,
+            "lon": -3.7179800000000003,
+            "rating": null,
+            "reviews": null,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJzS2AfrwnQg0RLj8l6hcavfk",
+            "nombre": "Plaza Elíptica",
+            "direccion": "Carabanchel, 28025 Madrid, España",
+            "lat": 40.38451,
+            "lon": -3.71861,
+            "rating": 3.7,
+            "reviews": 12,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ13xyfrwnQg0Rg0c9FK0InvI",
+            "nombre": "Plaza Elíptica",
+            "direccion": "Intercambiador de Plaza Elíptica, Carabanchel, 28025 Madrid",
+            "lat": 40.3844833,
+            "lon": -3.7184046000000004,
+            "rating": null,
+            "reviews": null,
+            "amenities": [
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJaV0VjhQmQg0RmRjbXT77HgQ",
+            "nombre": "Madrid Estacion Sur",
+            "direccion": "C. de Méndez Álvaro, 83, Arganzuela, 28045 Madrid",
+            "lat": 40.395184199999996,
+            "lon": -3.6780361999999993,
+            "rating": 3,
+            "reviews": 673,
+            "amenities": [
+                "bus_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJN7XkcUMnQg0RC9UmCcZbC4k",
+            "nombre": "Estación de Autobuses Madrid Sur",
+            "direccion": "Estación Sur de Autobuses, C. de Méndez Álvaro, 99, Arganzuela, 28045 Madrid",
+            "lat": 40.3947333,
+            "lon": -3.6778519999999997,
+            "rating": 3.8,
+            "reviews": 4147,
+            "amenities": [
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJq6pqjhQmQg0Rd3d-5BKid_U",
+            "nombre": "Estación Sur de Autobuses de Madrid",
+            "direccion": "Estación Sur de Autobuses, Arganzuela, 28045 Madrid",
+            "lat": 40.394571899999995,
+            "lon": -3.6787896,
+            "rating": 3.3,
+            "reviews": 377,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ9Vb86xQmQg0RjLocNVUNHUc",
+            "nombre": "Madrid, Estación Sur (Estación de Autobuses)",
+            "direccion": "Arganzuela, 28045 Madrid, España",
+            "lat": 40.3948457,
+            "lon": -3.6791096000000003,
+            "rating": null,
+            "reviews": null,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJa11NqhQmQg0RrDpE5beIIRY",
+            "nombre": "Méndez Álvaro - Terminal",
+            "direccion": "Arganzuela, 28045 Madrid, España",
+            "lat": 40.39353,
+            "lon": -3.67769,
+            "rating": 2.1,
+            "reviews": 31,
+            "amenities": [
+                "bus_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJaQ2CjxQmQg0RtI6VRGNCR-s",
+            "nombre": "Méndez Álvaro",
+            "direccion": "Arganzuela, 28045 Madrid, España",
+            "lat": 40.395739999999996,
+            "lon": -3.67784,
+            "rating": 3.5,
+            "reviews": 1091,
+            "amenities": [
+                "transit_station",
+                "subway_station",
+                "bus_stop",
+                "transit_stop",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ5zKcVBQmQg0Rb-fQ7Co5YwQ",
+            "nombre": "Méndez Álvaro",
+            "direccion": "Arganzuela, 28045 Madrid, España",
+            "lat": 40.3960049,
+            "lon": -3.6798372,
+            "rating": 1.9,
+            "reviews": 7,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJcQe_Y1InQg0RBhU1q2zPKB4",
+            "nombre": "Méndez Álvaro Renfe",
+            "direccion": "Estación Sur de Autobuses, C. de Méndez Álvaro, Arganzuela, 28045 Madrid",
+            "lat": 40.3959115,
+            "lon": -3.6781072999999997,
+            "rating": 4,
+            "reviews": 1280,
+            "amenities": [
+                "train_ticket_office",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJpWKHrRQmQg0Rz9ZG36Fb5wk",
+            "nombre": "Méndez Álvaro - Estación Sur",
+            "direccion": "Arganzuela, 28045 Madrid, España",
+            "lat": 40.393499999999996,
+            "lon": -3.67817,
+            "rating": 2.9,
+            "reviews": 9,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ9zLJrhQmQg0RKWLmzCffYiU",
+            "nombre": "Méndez Álvaro - Estación Sur",
+            "direccion": "Arganzuela, 28045 Madrid, España",
+            "lat": 40.3936937,
+            "lon": -3.6778535999999997,
+            "rating": 2.6,
+            "reviews": 24,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ3VxUWignQg0RItHJLO7-Ab0",
+            "nombre": "Avanza - Servicios de Larga Distancia",
+            "direccion": "C. de Méndez Álvaro, 83, Arganzuela, 28045 Madrid",
+            "lat": 40.395052,
+            "lon": -3.6787319999999997,
+            "rating": 3.1,
+            "reviews": 1120,
+            "amenities": [
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ_3jnXhQmQg0RPzL8C3pTLJg",
+            "nombre": "Méndez Álvaro",
+            "direccion": "Arganzuela, 28045 Madrid, España",
+            "lat": 40.3960527,
+            "lon": -3.6788227000000004,
+            "rating": 3.7,
+            "reviews": 3,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJgTgDo0EoQg0RCpx1l_Edcs0",
+            "nombre": "Estación de Autobuses de Madrid Moncloa",
+            "direccion": "Moncloa - Aravaca, 28008 Madrid, España",
+            "lat": 40.434737399999996,
+            "lon": -3.7195669999999996,
+            "rating": null,
+            "reviews": null,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJzxpkBEIoQg0RHm_zckrutfw",
+            "nombre": "Moncloa",
+            "direccion": "Moncloa - Aravaca, 28008 Madrid, España",
+            "lat": 40.433189899999995,
+            "lon": -3.7176932,
+            "rating": 4.3,
+            "reviews": 8,
+            "amenities": [
+                "bus_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ21_ujUEoQg0Rkt-8-GzTXN0",
+            "nombre": "Moncloa",
+            "direccion": "Moncloa - Aravaca, 28008 Madrid, España",
+            "lat": 40.434491799999996,
+            "lon": -3.7188724,
+            "rating": 4,
+            "reviews": 5,
+            "amenities": [
+                "bus_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJpSmGmEEoQg0R-X4qQexnAj4",
+            "nombre": "ALSA",
+            "direccion": "Calle de la Princesa, 98, Moncloa - Aravaca, 28008 Madrid",
+            "lat": 40.434139099999996,
+            "lon": -3.7192250999999996,
+            "rating": 2.7,
+            "reviews": 220,
+            "amenities": [
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJZ1Ie7UEoQg0Ry9AY5TIO2kM",
+            "nombre": "Moncloa",
+            "direccion": "Moncloa - Aravaca, 28008 Madrid, España",
+            "lat": 40.4338913,
+            "lon": -3.7188624999999997,
+            "rating": 3.9,
+            "reviews": 11,
+            "amenities": [
+                "bus_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJNail8UEoQg0RBLJRKzps3OI",
+            "nombre": "Moncloa",
+            "direccion": "Moncloa - Aravaca, 28008 Madrid, España",
+            "lat": 40.43358,
+            "lon": -3.7186299999999997,
+            "rating": 4.8,
+            "reviews": 10,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJPT9KB0EoQg0RnrQJL1QknWc",
+            "nombre": "Moncloa",
+            "direccion": "Moncloa - Aravaca, 28008 Madrid, España",
+            "lat": 40.435279099999995,
+            "lon": -3.7203407,
+            "rating": 4.5,
+            "reviews": 2,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJhfZ5lEEoQg0RkF8-WwvLKeo",
+            "nombre": "Moncloa",
+            "direccion": "Moncloa - Aravaca, 28008 Madrid, España",
+            "lat": 40.4341893,
+            "lon": -3.7190954,
+            "rating": 3.8,
+            "reviews": 6,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJfZPsckEoQg0RIp5kpyt3XNM",
+            "nombre": "Moncloa",
+            "direccion": "Moncloa - Aravaca, 28040 Madrid, España",
+            "lat": 40.43581,
+            "lon": -3.7192900000000004,
+            "rating": 5,
+            "reviews": 6,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJDenql0EoQg0Rnh4QM1TZD08",
+            "nombre": "Moncloa",
+            "direccion": "Moncloa - Aravaca, 28008 Madrid, España",
+            "lat": 40.4344434,
+            "lon": -3.719233,
+            "rating": 4.1,
+            "reviews": 7,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ0y0As0EoQg0RMGhCHK7dmqk",
+            "nombre": "Moncloa",
+            "direccion": "Moncloa - Aravaca, 28008 Madrid, España",
+            "lat": 40.434457099999996,
+            "lon": -3.7204015999999998,
+            "rating": 5,
+            "reviews": 3,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ-SOxkMYoQg0RTVP4JThCM28",
+            "nombre": "Estación de Autobuses de Madrid (Intercam Av.America)",
+            "direccion": "Chamartín, 28002 Madrid, España",
+            "lat": 40.4384691,
+            "lon": -3.6759408000000002,
+            "rating": 4.4,
+            "reviews": 5,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJNWpHv8YoQg0R78z6GCghrZg",
+            "nombre": "ALSA",
+            "direccion": "Av. de América, Chamartín, 28002 Madrid",
+            "lat": 40.438178099999995,
+            "lon": -3.6766832999999997,
+            "rating": 3.3,
+            "reviews": 463,
+            "amenities": [
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJAcDjuMYoQg0R0OxZxZtospU",
+            "nombre": "Avenida de América",
+            "direccion": "Chamartín, 28002 Madrid, España",
+            "lat": 40.4381048,
+            "lon": -3.6766079000000005,
+            "rating": 3.9,
+            "reviews": 1163,
+            "amenities": [
+                "transit_station",
+                "bus_stop",
+                "subway_station",
+                "transit_stop",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJAa17vsYoQg0RqM7hE0UHl4M",
+            "nombre": "Avenida de América",
+            "direccion": "Av. de América, Chamartín, 28002 Madrid",
+            "lat": 40.4381902,
+            "lon": -3.6763976999999994,
+            "rating": 4.5,
+            "reviews": 2,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJeW3rxsYoQg0R7GmyEw_WhkM",
+            "nombre": "Avda.America-Fco.Silvela",
+            "direccion": "Salamanca, 28028 Madrid, España",
+            "lat": 40.437586599999996,
+            "lon": -3.6767630999999996,
+            "rating": 2.8,
+            "reviews": 8,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJmavk08YoQg0R58azivUGHpA",
+            "nombre": "Avenida América",
+            "direccion": "Salamanca, 28028 Madrid, España",
+            "lat": 40.4368877,
+            "lon": -3.6771194,
+            "rating": 4.4,
+            "reviews": 8,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJSVl4PREpQg0RgjoI13pe25M",
+            "nombre": "Plaza de Castilla",
+            "direccion": "Tetuán, 28046 Madrid, España",
+            "lat": 40.4675347,
+            "lon": -3.6889177,
+            "rating": 1.8,
+            "reviews": 8,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJobfqJBEpQg0RuYplEGjtGCo",
+            "nombre": "Plaza Castilla",
+            "direccion": "Chamartín, 28046 Madrid, España",
+            "lat": 40.467152999999996,
+            "lon": -3.6885657,
+            "rating": 3.8,
+            "reviews": 8,
+            "amenities": [
+                "bus_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJvz8c4hApQg0RG76-iThP0v0",
+            "nombre": "Plaza Castilla",
+            "direccion": "Tetuán, 28046 Madrid, España",
+            "lat": 40.46668,
+            "lon": -3.68928,
+            "rating": 4.3,
+            "reviews": 170,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJmVqWWxApQg0RkG85uut0OT8",
+            "nombre": "Bravo Murillo - Plaza Castilla",
+            "direccion": "Tetuán, 28020 Madrid, España",
+            "lat": 40.4657716,
+            "lon": -3.6905322999999997,
+            "rating": 4.4,
+            "reviews": 46,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJQ-G-lhApQg0R4p5W-39viy4",
+            "nombre": "Juzgados Plaza Castilla",
+            "direccion": "Chamartín, 28046 Madrid, España",
+            "lat": 40.4650277,
+            "lon": -3.6891911,
+            "rating": 3,
+            "reviews": 7,
+            "amenities": [
+                "bus_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJBa9GAxEpQg0RxkslxaGgXMM",
+            "nombre": "Plaza Castilla",
+            "direccion": "Tetuán, 28046 Madrid, España",
+            "lat": 40.46692,
+            "lon": -3.6895599999999993,
+            "rating": 4.6,
+            "reviews": 5,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJV3dXjhApQg0RynTWuzAHQE8",
+            "nombre": "Juzgados Plaza Castilla",
+            "direccion": "Tetuán, 28046 Madrid, España",
+            "lat": 40.464998099999995,
+            "lon": -3.6896866,
+            "rating": 2.9,
+            "reviews": 11,
+            "amenities": [
+                "bus_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJj40G2hApQg0R_tyCStdf_M0",
+            "nombre": "Plaza Castilla",
+            "direccion": "Chamartín, 28036 Madrid, España",
+            "lat": 40.46642,
+            "lon": -3.68833,
+            "rating": 4.5,
+            "reviews": 13,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJiyQ_HhEpQg0ReFNGoooRs6c",
+            "nombre": "Madrid Interc. Plaza Castilla",
+            "direccion": "Tetuán, 28046 Madrid, España",
+            "lat": 40.4668099,
+            "lon": -3.6891697999999997,
+            "rating": 2.8,
+            "reviews": 4,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJDcy5IhEpQg0RJ3fCbnmHse8",
+            "nombre": "Plaza Castilla",
+            "direccion": "Chamartín, 28046 Madrid, España",
+            "lat": 40.46734,
+            "lon": -3.6888799999999997,
+            "rating": 4,
+            "reviews": 1,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJwVQ-KxcpQg0RrTViryaPI50",
+            "nombre": "Plaza Castilla",
+            "direccion": "Chamartín, 28036 Madrid, España",
+            "lat": 40.4665076,
+            "lon": -3.6875065,
+            "rating": null,
+            "reviews": null,
+            "amenities": [
+                "bus_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        }
+    ]
+}

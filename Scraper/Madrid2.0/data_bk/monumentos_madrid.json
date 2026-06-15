@@ -1,0 +1,871 @@
+{
+    "city": "Madrid",
+    "category": "monumentos",
+    "count": 43,
+    "items": [
+        {
+            "id": "ChIJwamkfX4oQg0RUUjO1nnsfy4",
+            "nombre": "Royal Palace of Madrid",
+            "direccion": "Centro, 28071 Madrid, Spain",
+            "lat": 40.417955,
+            "lon": -3.714311999999999,
+            "rating": 4.7,
+            "reviews": 129098,
+            "tipo_monumento": [
+                "Atracción Turística",
+                "Lugar Histórico"
+            ],
+            "amenities": [
+                "castle",
+                "tourist_attraction",
+                "historical_landmark",
+                "historical_place",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJLW4ZIXkoQg0R6JDRTdPmLxY",
+            "nombre": "Mercado de San Miguel",
+            "direccion": "Pl. de San Miguel, s/n, Centro, 28005 Madrid, Spain",
+            "lat": 40.4153794,
+            "lon": -3.7089697,
+            "rating": 4.4,
+            "reviews": 160017,
+            "tipo_monumento": [
+                "Atracción Turística",
+                "Lugar Histórico"
+            ],
+            "amenities": [
+                "food_court",
+                "tourist_attraction",
+                "historical_landmark",
+                "historical_place",
+                "market",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJWRLqi24oQg0RqwZ3SsbZah0",
+            "nombre": "Temple of Debod",
+            "direccion": "C. de Ferraz, 1, Moncloa - Aravaca, 28008 Madrid, Spain",
+            "lat": 40.424021599999996,
+            "lon": -3.7177694999999993,
+            "rating": 4.4,
+            "reviews": 67623,
+            "tipo_monumento": [
+                "Monumento",
+                "Atracción Turística",
+                "Lugar Histórico"
+            ],
+            "amenities": [
+                "monument",
+                "tourist_attraction",
+                "historical_landmark",
+                "historical_place",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJZX56134oQg0RHBgRAVQ8pkk",
+            "nombre": "Plaza Mayor",
+            "direccion": "Pl. Mayor, Centro, 28012 Madrid, Spain",
+            "lat": 40.415510999999995,
+            "lon": -3.7074008999999997,
+            "rating": 4.6,
+            "reviews": 200949,
+            "tipo_monumento": [
+                "Atracción Turística",
+                "Lugar Histórico"
+            ],
+            "amenities": [
+                "plaza",
+                "tourist_attraction",
+                "historical_landmark",
+                "historical_place",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJJ1KGSpooQg0R8YZKFDqLJ5g",
+            "nombre": "Puerta de Alcalá",
+            "direccion": "Pl. de la Independencia, s/n, Retiro, 28001 Madrid, Spain",
+            "lat": 40.419992,
+            "lon": -3.6887369999999997,
+            "rating": 4.7,
+            "reviews": 62286,
+            "tipo_monumento": [
+                "Monumento",
+                "Atracción Turística"
+            ],
+            "amenities": [
+                "monument",
+                "tourist_attraction",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJN9Ka0LQoQg0RyKntUElZV74",
+            "nombre": "Las Ventas Bullring",
+            "direccion": "C. Alcalá, 237, Salamanca, 28028 Madrid, Spain",
+            "lat": 40.4321355,
+            "lon": -3.6632911000000004,
+            "rating": 4.5,
+            "reviews": 41024,
+            "tipo_monumento": [
+                "Atracción Turística",
+                "Monumento"
+            ],
+            "amenities": [
+                "tourist_attraction",
+                "monument",
+                "event_venue",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJHQS2xgqIQQ0RgyGlQ3AakYk",
+            "nombre": "Zoo Aquarium de Madrid",
+            "direccion": "Casa de Campo, S/N, Moncloa - Aravaca, 28011 Madrid, Spain",
+            "lat": 40.4089556,
+            "lon": -3.7612287999999996,
+            "rating": 4.2,
+            "reviews": 40698,
+            "tipo_monumento": [
+                "Atracción Turística"
+            ],
+            "amenities": [
+                "zoo",
+                "aquarium",
+                "tourist_attraction",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJTdm0x9AnQg0R2OeiT29EvFQ",
+            "nombre": "Toledo Gate",
+            "direccion": "Gta. de la Prta de Toledo, s/n, Centro, 28005 Madrid, Spain",
+            "lat": 40.4067666,
+            "lon": -3.7116135000000003,
+            "rating": 4.5,
+            "reviews": 20542,
+            "tipo_monumento": [
+                "Monumento",
+                "Atracción Turística"
+            ],
+            "amenities": [
+                "monument",
+                "tourist_attraction",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJO-zP-QeIQQ0RypPybBogF2I",
+            "nombre": "Parque de Atracciones de Madrid",
+            "direccion": "Casa de Campo, s/n, Moncloa - Aravaca, 28011 Madrid, Spain",
+            "lat": 40.411882999999996,
+            "lon": -3.750058,
+            "rating": 4.1,
+            "reviews": 39704,
+            "tipo_monumento": [
+                "Atracción Turística"
+            ],
+            "amenities": [
+                "amusement_park",
+                "tourist_attraction",
+                "amusement_center",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJi_NS7icmQg0RK8FepNiBeSk",
+            "nombre": "Real Jardín Botánico",
+            "direccion": "Pl. Murillo, 2, Retiro, 28014 Madrid, Spain",
+            "lat": 40.4111064,
+            "lon": -3.6911267,
+            "rating": 4.4,
+            "reviews": 36548,
+            "tipo_monumento": [
+                "Atracción Turística"
+            ],
+            "amenities": [
+                "botanical_garden",
+                "tourist_attraction",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJVRietoQoQg0Rci_inpJ-XzI",
+            "nombre": "Cibeles Fountain",
+            "direccion": "Pl. Cibeles, S/N, Centro, 28014 Madrid, Spain",
+            "lat": 40.4193326,
+            "lon": -3.6930824999999996,
+            "rating": 4.7,
+            "reviews": 56991,
+            "tipo_monumento": [
+                "Atracción Turística",
+                "Lugar Histórico"
+            ],
+            "amenities": [
+                "sculpture",
+                "fountain",
+                "tourist_attraction",
+                "historical_landmark",
+                "historical_place",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJv3ERb-IoQg0Rs2mh59vAhRY",
+            "nombre": "Tour Bernabéu",
+            "direccion": "Av. de Concha Espina, 1, Chamartín, 28036 Madrid, Spain",
+            "lat": 40.4522072,
+            "lon": -3.6893328999999992,
+            "rating": 4.3,
+            "reviews": 23084,
+            "tipo_monumento": [
+                "Atracción Turística"
+            ],
+            "amenities": [
+                "tourist_attraction",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJw3gVUWUoQg0R1E7vc84GxV4",
+            "nombre": "Monumento Cervantes",
+            "direccion": "Plaza de España, 3, Moncloa - Aravaca, 28008 Madrid, Spain",
+            "lat": 40.423201999999996,
+            "lon": -3.7125849,
+            "rating": 4.6,
+            "reviews": 2307,
+            "tipo_monumento": [
+                "Atracción Turística"
+            ],
+            "amenities": [
+                "tourist_attraction",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJSeKYEHooQg0RxPASfXZ8eto",
+            "nombre": "Monument to Felipe IV",
+            "direccion": "Pl. de Ote., Centro, 28013 Madrid, Spain",
+            "lat": 40.4183418,
+            "lon": -3.7121864999999996,
+            "rating": 4.6,
+            "reviews": 1159,
+            "tipo_monumento": [
+                "Monumento",
+                "Atracción Turística"
+            ],
+            "amenities": [
+                "monument",
+                "tourist_attraction",
+                "sculpture",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJoZCVLYMoQg0Rgzsk0lNxqtw",
+            "nombre": "Monumento a los Caídos por España",
+            "direccion": "Pl. de la Lealtad, 1, Retiro, 28014 Madrid, Spain",
+            "lat": 40.4164469,
+            "lon": -3.6928918,
+            "rating": 4.5,
+            "reviews": 380,
+            "tipo_monumento": [
+                "Atracción Turística",
+                "Monumento"
+            ],
+            "amenities": [
+                "sculpture",
+                "tourist_attraction",
+                "monument",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJz8aG24MoQg0R8OnawJ-mgy0",
+            "nombre": "Statue of Miguel de Cervantes",
+            "direccion": "Pl. de las Cortes, s/n, Centro, 28014 Madrid, Spain",
+            "lat": 40.4157478,
+            "lon": -3.6964755999999994,
+            "rating": 4.5,
+            "reviews": 336,
+            "tipo_monumento": [
+                "Atracción Turística"
+            ],
+            "amenities": [
+                "sculpture",
+                "tourist_attraction",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJxYrPUp0oQg0RO1ol2YbD6O8",
+            "nombre": "Monumento a Velázquez",
+            "direccion": "P.º del Prado, 11, Retiro, 28014 Madrid, Spain",
+            "lat": 40.413733,
+            "lon": -3.6926856,
+            "rating": 4.7,
+            "reviews": 365,
+            "tipo_monumento": [
+                "Monumento",
+                "Atracción Turística"
+            ],
+            "amenities": [
+                "monument",
+                "tourist_attraction",
+                "sculpture",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ-f5pgB8mQg0RIJzX-JzlFEk",
+            "nombre": "Fountain of the Fallen Angel",
+            "direccion": "Parque del Retiro, Glorieta del Ángel Caído, s/n, Retiro, 28014 Madrid, Spain",
+            "lat": 40.4110538,
+            "lon": -3.6825368000000003,
+            "rating": 4.6,
+            "reviews": 9210,
+            "tipo_monumento": [
+                "Atracción Turística",
+                "Monumento"
+            ],
+            "amenities": [
+                "tourist_attraction",
+                "monument",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJzbpLMp0oQg0R-FNitd6cGRo",
+            "nombre": "Monument to Goya",
+            "direccion": "C. de Felipe IV, s/n, Retiro, 28014 Madrid, Spain",
+            "lat": 40.4149886,
+            "lon": -3.6925261,
+            "rating": 4.6,
+            "reviews": 1595,
+            "tipo_monumento": [
+                "Monumento",
+                "Atracción Turística"
+            ],
+            "amenities": [
+                "monument",
+                "tourist_attraction",
+                "sculpture",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJVVUVAHkoQg0RW16eT4rtZUo",
+            "nombre": "Statue of Don Álvaro de Bazán",
+            "direccion": "Pl. de la Villa, S/N, Centro, 28008 Madrid, Spain",
+            "lat": 40.4151166,
+            "lon": -3.7104009,
+            "rating": 4.5,
+            "reviews": 304,
+            "tipo_monumento": [
+                "Monumento",
+                "Atracción Turística"
+            ],
+            "amenities": [
+                "monument",
+                "tourist_attraction",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ92yeWZAoQg0RSl41KYgbPQM",
+            "nombre": "Monument to Christopher Columbus",
+            "direccion": "Pl. de Colón, Centro, 28001 Madrid, Spain",
+            "lat": 40.4252077,
+            "lon": -3.690472599999999,
+            "rating": 4.5,
+            "reviews": 408,
+            "tipo_monumento": [
+                "Atracción Turística"
+            ],
+            "amenities": [
+                "sculpture",
+                "tourist_attraction",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJxZRukaEoQg0RlC_-5sMfjKM",
+            "nombre": "Monumento to Martínez Campos",
+            "direccion": "El Retiro Park, Pl. de Guatemala, s/n, Retiro, 28009 Madrid, Spain",
+            "lat": 40.4178024,
+            "lon": -3.6809079000000002,
+            "rating": 4.5,
+            "reviews": 381,
+            "tipo_monumento": [
+                "Monumento",
+                "Atracción Turística"
+            ],
+            "amenities": [
+                "monument",
+                "tourist_attraction",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJKx77DIQoQg0R_gppYNKr4c0",
+            "nombre": "Metropolis Building",
+            "direccion": "C. Alcalá, 39, Centro, 28014 Madrid, Spain",
+            "lat": 40.418866799999996,
+            "lon": -3.6973181999999993,
+            "rating": 4.7,
+            "reviews": 6171,
+            "tipo_monumento": [
+                "Lugar Histórico"
+            ],
+            "amenities": [
+                "historical_landmark",
+                "historical_place",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJKb2lpXAoQg0R5D_nTgSVmyg",
+            "nombre": "Puerta del Príncipe",
+            "direccion": "C. de Bailén, 4, Centro, 28013 Madrid, Spain",
+            "lat": 40.4183871,
+            "lon": -3.7134980000000004,
+            "rating": 4.7,
+            "reviews": 172,
+            "tipo_monumento": [
+                "Lugar Histórico",
+                "Atracción Turística"
+            ],
+            "amenities": [
+                "historical_landmark",
+                "tourist_attraction",
+                "historical_place",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJf4SfcEYpQg0RdHuUlXSgaDg",
+            "nombre": "Palacio de Cibeles (sede del Ayuntamiento de Madrid)",
+            "direccion": "Pl. Cibeles, 1, Retiro, 28014 Madrid, Spain",
+            "lat": 40.418887,
+            "lon": -3.6920500000000005,
+            "rating": 4.7,
+            "reviews": 911,
+            "tipo_monumento": [
+                "Lugar Histórico",
+                "Atracción Turística"
+            ],
+            "amenities": [
+                "historical_landmark",
+                "tourist_attraction",
+                "historical_place",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJJ_Hb26YpQg0RthxwYpnrLc0",
+            "nombre": "Plaza de la Villa",
+            "direccion": "Pl. de la Villa, S/N, Centro, 28008 Madrid, Spain",
+            "lat": 40.4153644,
+            "lon": -3.7103935999999997,
+            "rating": 4.5,
+            "reviews": 3839,
+            "tipo_monumento": [
+                "Lugar Histórico"
+            ],
+            "amenities": [
+                "historical_landmark",
+                "historical_place",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ30OkQwxJQg0RJhuhaEhL6wY",
+            "nombre": "Puerta de Madrid",
+            "direccion": "Pl. Prta de Madrid, 28802 Alcalá de Henares, Madrid, Spain",
+            "lat": 40.480643799999996,
+            "lon": -3.3726277,
+            "rating": 4.5,
+            "reviews": 2253,
+            "tipo_monumento": [
+                "Atracción Turística",
+                "Lugar Histórico"
+            ],
+            "amenities": [
+                "tourist_attraction",
+                "historical_landmark",
+                "historical_place",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJS2XK1Y0pQg0RQeYFeoLvdjQ",
+            "nombre": "Palacio de Oriente",
+            "direccion": "C. de Bailén, s/n, Centro, 28071 Madrid, Spain",
+            "lat": 40.417955,
+            "lon": -3.714311999999999,
+            "rating": 4.8,
+            "reviews": 126,
+            "tipo_monumento": [
+                "Lugar Histórico"
+            ],
+            "amenities": [
+                "historical_landmark",
+                "historical_place",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJD8fOWAApQg0R7e8tumUkf0U",
+            "nombre": "Puerta de Madrid del Parque de Retiro",
+            "direccion": "Calle de O'Donnell, Retiro, 28009 Madrid, Spain",
+            "lat": 40.421147,
+            "lon": -3.6819726,
+            "rating": 4.8,
+            "reviews": 30,
+            "tipo_monumento": [
+                "Lugar Histórico"
+            ],
+            "amenities": [
+                "historical_landmark",
+                "historical_place",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJOy8cIgApQg0R2atlau0sDls",
+            "nombre": "Plaza de callao",
+            "direccion": "C. de Preciados, Centro, 28013 Madrid, Spain",
+            "lat": 40.4199109,
+            "lon": -3.7059113000000004,
+            "rating": 4.7,
+            "reviews": 65,
+            "tipo_monumento": [
+                "Lugar Histórico"
+            ],
+            "amenities": [
+                "historical_landmark",
+                "historical_place",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJN-KUGX4oQg0R0eKI7ogGgq8",
+            "nombre": "El Oso y el Madroño",
+            "direccion": "Prta del Sol, 1, Centro, 28013 Madrid, Spain",
+            "lat": 40.417031300000005,
+            "lon": -3.7027422999999997,
+            "rating": 4.6,
+            "reviews": 8343,
+            "tipo_monumento": [
+                "Atracción Turística"
+            ],
+            "amenities": [
+                "sculpture",
+                "tourist_attraction",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJDTZi2nsoQg0RK5kOllgmfrI",
+            "nombre": "Statue Isabel II",
+            "direccion": "Pl. de Isabel II, 4, Centro, 28013 Madrid, Spain",
+            "lat": 40.4181738,
+            "lon": -3.7095799,
+            "rating": 4.4,
+            "reviews": 1992,
+            "tipo_monumento": [
+                "Lugar Histórico"
+            ],
+            "amenities": [
+                "sculpture",
+                "historical_landmark",
+                "historical_place",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJP5YWaX4oQg0RWZTLRYppQEI",
+            "nombre": "La Mariblanca",
+            "direccion": "C. del Arenal, 2, Centro, 28013 Madrid, Spain",
+            "lat": 40.4168618,
+            "lon": -3.7045595,
+            "rating": 4.4,
+            "reviews": 308,
+            "tipo_monumento": [
+                "Atracción Turística"
+            ],
+            "amenities": [
+                "sculpture",
+                "tourist_attraction",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJG-WOclYpQg0RbAniJjnQp88",
+            "nombre": "Estatua de Felipe III",
+            "direccion": "Pl. Mayor, Centro, 28012 Madrid, Spain",
+            "lat": 40.415414999999996,
+            "lon": -3.7073776,
+            "rating": 4.6,
+            "reviews": 489,
+            "tipo_monumento": [
+                "Lugar Histórico"
+            ],
+            "amenities": [
+                "sculpture",
+                "historical_landmark",
+                "historical_place",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJi8o2890pQg0Ru22uzUGE-lA",
+            "nombre": "Paseo de las Estatuas",
+            "direccion": "Pl. de Ote., 9, Centro, 28013 Madrid, Spain",
+            "lat": 40.4178098,
+            "lon": -3.7123979,
+            "rating": 4.7,
+            "reviews": 39,
+            "tipo_monumento": [
+                "Lugar Histórico"
+            ],
+            "amenities": [
+                "historical_landmark",
+                "historical_place",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJt1Dvk54oQg0RCOGVrwRjnhA",
+            "nombre": "Paseo de las Estatuas",
+            "direccion": "P.º Argentina, 2, Retiro, 28009 Madrid, Spain",
+            "lat": 40.4168041,
+            "lon": -3.6862778999999994,
+            "rating": 4.7,
+            "reviews": 152,
+            "tipo_monumento": [
+                "Atracción Turística"
+            ],
+            "amenities": [
+                "tourist_attraction",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ3ZxgKlooQg0RY1AHbRpK2sU",
+            "nombre": "Jose Rizal Monument",
+            "direccion": "C. de Santander, 1, Chamberí, 28003 Madrid, Spain",
+            "lat": 40.441176399999996,
+            "lon": -3.7078663,
+            "rating": 4.3,
+            "reviews": 297,
+            "tipo_monumento": [
+                "Atracción Turística"
+            ],
+            "amenities": [
+                "tourist_attraction",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJJ8cCG0EoQg0RWsBmSZgRZlI",
+            "nombre": "Arco de Moncloa",
+            "direccion": "Av. de la Memoria, 32, Moncloa - Aravaca, 28040 Madrid, Spain",
+            "lat": 40.4359648,
+            "lon": -3.7201931999999993,
+            "rating": 4.1,
+            "reviews": 942,
+            "tipo_monumento": [
+                "Lugar Histórico",
+                "Atracción Turística",
+                "Monumento"
+            ],
+            "amenities": [
+                "historical_landmark",
+                "tourist_attraction",
+                "monument",
+                "historical_place",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJG-23z-0oQg0RicgxtL2ctTQ",
+            "nombre": "Monumento al Marqués del Duero",
+            "direccion": "P.º de la Castellana, 70, Chamberí, 28046 Madrid, Spain",
+            "lat": 40.438010399999996,
+            "lon": -3.6907004999999997,
+            "rating": 4.1,
+            "reviews": 35,
+            "tipo_monumento": [
+                "Monumento",
+                "Atracción Turística"
+            ],
+            "amenities": [
+                "monument",
+                "tourist_attraction",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ8wQLpEAoQg0RytYU6JZ-yV0",
+            "nombre": "Monumento al General San Martín",
+            "direccion": "Moncloa - Aravaca, 28040 Madrid, Spain",
+            "lat": 40.436748,
+            "lon": -3.7228119,
+            "rating": 4,
+            "reviews": 98,
+            "tipo_monumento": [
+                "Atracción Turística"
+            ],
+            "amenities": [
+                "tourist_attraction",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ8Q4CUu4oQg0RVuXEG9Ftr6Y",
+            "nombre": "Monumento del Pueblo de Madrid a la Constitución Española de 1978",
+            "direccion": "C. de José Gutiérrez Abascal, 4, Chamartín, 28006 Madrid, Spain",
+            "lat": 40.440942199999995,
+            "lon": -3.6908291,
+            "rating": 4.4,
+            "reviews": 166,
+            "tipo_monumento": [
+                "Monumento",
+                "Atracción Turística"
+            ],
+            "amenities": [
+                "monument",
+                "tourist_attraction",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJK8RnZZ4oQg0RPBC00xaet98",
+            "nombre": "Statue of Jacinto Benavente",
+            "direccion": "Jacinto Benavente, Retiro, 28009 Madrid, Spain",
+            "lat": 40.4153123,
+            "lon": -3.6869024,
+            "rating": 4.5,
+            "reviews": 210,
+            "tipo_monumento": [
+                "Monumento",
+                "Atracción Turística"
+            ],
+            "amenities": [
+                "monument",
+                "tourist_attraction",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ1VL1D38oQg0R3KYC-zV0yZ8",
+            "nombre": "Palacio de la Santa Cruz",
+            "direccion": "Pl. de la Provincia, 1, Centro, 28012 Madrid, Spain",
+            "lat": 40.414365200000006,
+            "lon": -3.7059571000000004,
+            "rating": 4.5,
+            "reviews": 57,
+            "tipo_monumento": [
+                "Lugar Histórico"
+            ],
+            "amenities": [
+                "historical_landmark",
+                "historical_place",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        }
+    ],
+    "source": "Google Places API (New)"
+}

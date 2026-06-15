@@ -1,0 +1,22 @@
+# Datos sensibles
+# No subir claves de Entorno
+.env
+
+# Python
+__pycache__/
+*.pyc
+
+# Entornos virtuales
+venv/
+env/
+.venv/
+
+# Ignorar todos los JSON dentro de /data/
+data/*.json
+
+# NO ignorar los JSON dentro de /schemas/
+!schemas/*.json
+
+# Archivos temporales
+*.log
+*.tmp

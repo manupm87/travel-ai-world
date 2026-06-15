@@ -1,0 +1,405 @@
+{
+    "Aeropuerto T4": [
+        "C1"
+    ],
+    "Valdebebas": [
+        "C1"
+    ],
+    "Fuente de la Mora": [
+        "C1"
+    ],
+    "Chamartín-Clara Campoamor": [
+        "C1",
+        "C2",
+        "C3",
+        "C4",
+        "C7",
+        "C8",
+        "C10"
+    ],
+    "Guadalajara": [
+        "C2",
+        "C8"
+    ],
+    "Azuqueca": [
+        "C2",
+        "C8"
+    ],
+    "Meco": [
+        "C2",
+        "C8"
+    ],
+    "Alcalá de Henares-Universidad": [
+        "C2",
+        "C8"
+    ],
+    "Alcalá de Henares": [
+        "C2",
+        "C7",
+        "C8"
+    ],
+    "La Garena": [
+        "C2",
+        "C7",
+        "C8"
+    ],
+    "Soto del Henares": [
+        "C2",
+        "C7",
+        "C8"
+    ],
+    "Torrejón de Ardoz": [
+        "C2",
+        "C7",
+        "C8"
+    ],
+    "San Fernando de Henares": [
+        "C2"
+    ],
+    "Coslada": [
+        "C2",
+        "C7",
+        "C8"
+    ],
+    "Vicálvaro": [
+        "C2",
+        "C7",
+        "C8"
+    ],
+    "Santa Eugenia": [
+        "C2",
+        "C7",
+        "C8"
+    ],
+    "Vallecas": [
+        "C2",
+        "C7",
+        "C8"
+    ],
+    "El Pozo": [
+        "C2",
+        "C7",
+        "C8"
+    ],
+    "Asamblea de Madrid-Entrevías": [
+        "C2",
+        "C7",
+        "C8"
+    ],
+    "Atocha": [
+        "C2",
+        "C3",
+        "C4",
+        "C5",
+        "C7",
+        "C8",
+        "C10"
+    ],
+    "Recoletos": [
+        "C2",
+        "C7",
+        "C8",
+        "C10"
+    ],
+    "Nuevos Ministerios": [
+        "C2",
+        "C3",
+        "C4",
+        "C7",
+        "C8",
+        "C10"
+    ],
+    "Aranjuez": [
+        "C3"
+    ],
+    "Ciempozuelos": [
+        "C3"
+    ],
+    "Valdemoro": [
+        "C3"
+    ],
+    "Pinto": [
+        "C3"
+    ],
+    "La Tenería": [
+        "C3"
+    ],
+    "Getafe Industrial": [
+        "C3"
+    ],
+    "El Casar": [
+        "C3"
+    ],
+    "San Cristóbal Industrial": [
+        "C3"
+    ],
+    "San Cristóbal de los Ángeles": [
+        "C3"
+    ],
+    "Villaverde Bajo": [
+        "C3",
+        "C4"
+    ],
+    "Sol": [
+        "C3",
+        "C4"
+    ],
+    "Parla": [
+        "C4"
+    ],
+    "Parla Norte": [
+        "C4"
+    ],
+    "Getafe Sector 3": [
+        "C4"
+    ],
+    "Getafe Centro": [
+        "C4"
+    ],
+    "Las Margaritas Universidad": [
+        "C4"
+    ],
+    "Villaverde Alto": [
+        "C4",
+        "C5"
+    ],
+    "Fuencarral-Malmea": [
+        "C4"
+    ],
+    "Fuencarral": [
+        "C4"
+    ],
+    "Universidad-Cantoblanco": [
+        "C4"
+    ],
+    "Ramal C-4a": [
+        "C4"
+    ],
+    "Universidad Pontificia de Comillas": [
+        "C4"
+    ],
+    "Valdelasfuentes": [
+        "C4"
+    ],
+    "Alcobendas-San Sebastián de los Reyes": [
+        "C4"
+    ],
+    "Casco Antiguo": [
+        "C4"
+    ],
+    "Ramal C-4b": [
+        "C4"
+    ],
+    "El Goloso": [
+        "C4"
+    ],
+    "Tres Cantos": [
+        "C4"
+    ],
+    "Tres Cantos Norte": [
+        "C4"
+    ],
+    "Colmenar Viejo": [
+        "C4"
+    ],
+    "Soto Sur": [
+        "C4"
+    ],
+    "Humanes": [
+        "C5"
+    ],
+    "Fuenlabrada": [
+        "C5"
+    ],
+    "La Serna": [
+        "C5"
+    ],
+    "Parque Polvoranca": [
+        "C5"
+    ],
+    "Leganés": [
+        "C5"
+    ],
+    "Zarzaquemada": [
+        "C5"
+    ],
+    "Puente Alcocer": [
+        "C5"
+    ],
+    "Orcasitas": [
+        "C5"
+    ],
+    "Doce de Octubre": [
+        "C5"
+    ],
+    "Méndez Álvaro": [
+        "C5",
+        "C10"
+    ],
+    "Embajadores": [
+        "C5"
+    ],
+    "Laguna": [
+        "C5"
+    ],
+    "Aluche": [
+        "C5"
+    ],
+    "Maestra Justa Freire-Polideportivo Aluche": [
+        "C5"
+    ],
+    "Las Águilas": [
+        "C5"
+    ],
+    "Cuatro Vientos": [
+        "C5"
+    ],
+    "San José de Valderas": [
+        "C5"
+    ],
+    "Alcorcón": [
+        "C5"
+    ],
+    "Las Retamas": [
+        "C5"
+    ],
+    "Móstoles": [
+        "C5"
+    ],
+    "Móstoles-El Soto": [
+        "C5"
+    ],
+    "San Fernando": [
+        "C7",
+        "C8"
+    ],
+    "Ramón y Cajal": [
+        "C7",
+        "C8"
+    ],
+    "Mirasierra-Paco de Lucía": [
+        "C7",
+        "C8"
+    ],
+    "Pitis": [
+        "C7",
+        "C8"
+    ],
+    "Las Rozas": [
+        "C7",
+        "C10"
+    ],
+    "Majadahonda": [
+        "C7",
+        "C10"
+    ],
+    "El Barrial-Centro Comercial Pozuelo": [
+        "C7",
+        "C10"
+    ],
+    "Pozuelo": [
+        "C7",
+        "C10"
+    ],
+    "Aravaca": [
+        "C7",
+        "C10"
+    ],
+    "Príncipe Pío": [
+        "C7",
+        "C10"
+    ],
+    "Pinar": [
+        "C8",
+        "C10"
+    ],
+    "Las Matas": [
+        "C8",
+        "C10"
+    ],
+    "Torrelodones": [
+        "C8",
+        "C10"
+    ],
+    "Galapagar-La Navata": [
+        "C8",
+        "C10"
+    ],
+    "Villalba": [
+        "C8",
+        "C10"
+    ],
+    "Ramal C-8a": [
+        "C8"
+    ],
+    "San Yago": [
+        "C8"
+    ],
+    "Las Zorreras": [
+        "C8"
+    ],
+    "El Escorial": [
+        "C8"
+    ],
+    "Zarzalejo": [
+        "C8"
+    ],
+    "Robledo de Chavela": [
+        "C8"
+    ],
+    "Santa María de la Alameda-Peguerinos": [
+        "C8"
+    ],
+    "Ramal C-8b": [
+        "C8"
+    ],
+    "Los Negrales": [
+        "C8"
+    ],
+    "Alpedrete": [
+        "C8"
+    ],
+    "Collado Mediano": [
+        "C8"
+    ],
+    "Los Molinos": [
+        "C8"
+    ],
+    "Cercedilla": [
+        "C8",
+        "C9"
+    ],
+    "Cercedilla Pueblo": [
+        "C9"
+    ],
+    "Las Heras": [
+        "C9"
+    ],
+    "Camorritos": [
+        "C9"
+    ],
+    "Siete Picos": [
+        "C9"
+    ],
+    "Collado Albo": [
+        "C9"
+    ],
+    "Puerto de Navacerrada": [
+        "C9"
+    ],
+    "Dos Castillas": [
+        "C9"
+    ],
+    "Vaquerizas": [
+        "C9"
+    ],
+    "Cotos": [
+        "C9"
+    ],
+    "Delicias": [
+        "C10"
+    ],
+    "Pirámides": [
+        "C10"
+    ]
+}

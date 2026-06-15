@@ -1,0 +1,55 @@
+
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file: .env
+    environment:
+      - DB_SERVER=db_postgres
+      - FRONTEND_URL=http://localhost:3000
+    volumes:
+      - ./app:/app/app  # bind-mount for dev iteration
+      - ./alembic:/app/alembic
+      - ./alembic.ini:/app/alembic.ini
+    depends_on:
+      db_postgres:
+        condition: service_healthy
+    entrypoint: ["/app/entrypoint.sh"]
+    restart: unless-stopped
+
+  db_postgres:
+    image: postgres:16-alpine
+    restart: always
+    env_file: .env
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Uncomment the following block and update DB_ENGINE/DB_SERVER in the api service to use MySQL
+  # db_mysql:
+  #   image: mysql:8.0
+  #   restart: always
+  #   environment:
+  #     - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+  #     - MYSQL_USER=${DB_USER}
+  #     - MYSQL_PASSWORD=${DB_PASSWORD}
+  #     - MYSQL_DATABASE=${DB_NAME}
+  #   ports:
+  #     - "3306:3306"
+  #   volumes:
+  #     - mysql_data:/var/lib/mysql
+
+volumes:
+  postgres_data:
+  # mysql_data:

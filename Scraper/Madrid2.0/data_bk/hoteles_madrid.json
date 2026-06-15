@@ -1,0 +1,1784 @@
+{
+    "city": "Madrid",
+    "category": "hoteles",
+    "count": 88,
+    "items": [
+        {
+            "id": "ChIJRfe-12QoQg0RfF4gSjZRpl8",
+            "nombre": "Hotel Riu Plaza España",
+            "direccion": "Gran Vía, 84, Centro, 28013 Madrid, Spain",
+            "lat": 40.4240286,
+            "lon": -3.7111637,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "event_venue",
+                "bar",
+                "service",
+                "restaurant",
+                "food",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.4,
+            "reviews": 13279,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJhe7I3RopQg0RnV7aCEV5ztE",
+            "nombre": "Meliá Castilla",
+            "direccion": "C. del Poeta Joan Maragall, 43, Tetuán, 28020 Madrid, Spain",
+            "lat": 40.461445,
+            "lon": -3.6921869999999997,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.5,
+            "reviews": 8588,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ8VTJCWgpQg0RoDKdirL96Hk",
+            "nombre": "Four Seasons Hotel Madrid",
+            "direccion": "C. de Sevilla, 3, Centro, 28014 Madrid, Spain",
+            "lat": 40.417212299999996,
+            "lon": -3.7003412,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "extended_stay_hotel",
+                "resort_hotel",
+                "wellness_center",
+                "wedding_venue",
+                "event_venue",
+                "spa",
+                "health",
+                "service",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.6,
+            "reviews": 3568,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJDwAbC68oQg0RPprMWIWGHeg",
+            "nombre": "Novotel Madrid Center",
+            "direccion": "Calle de O'Donnell, 53, Salamanca, 28009 Madrid, Spain",
+            "lat": 40.4216398,
+            "lon": -3.6722838,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.4,
+            "reviews": 9682,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJJ5lhIconQg0RHiuOsa347HA",
+            "nombre": "Hotel Praga",
+            "direccion": "Calle de Antonio López, 65, Carabanchel, 28019 Madrid, Spain",
+            "lat": 40.394073,
+            "lon": -3.7075620000000002,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.1,
+            "reviews": 8252,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJYfC-KYMoQg0RhCEOyVqku7k",
+            "nombre": "Mandarin Oriental Ritz, Madrid",
+            "direccion": "Pl. de la Lealtad, 5, Retiro, 28014 Madrid, Spain",
+            "lat": 40.4157577,
+            "lon": -3.6926066999999994,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "banquet_hall",
+                "wedding_venue",
+                "catering_service",
+                "food_delivery",
+                "event_venue",
+                "spa",
+                "service",
+                "food",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.7,
+            "reviews": 4334,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJI3Wk6B4pQg0RKe1jOnM2TWk",
+            "nombre": "Hotel NH Collection Madrid Eurobuilding",
+            "direccion": "C. del Padre Damián, 23, Chamartín, 28036 Madrid, Spain",
+            "lat": 40.4584134,
+            "lon": -3.6859827999999997,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.5,
+            "reviews": 6691,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJG_oXeZwoQg0RT0nvorPocaA",
+            "nombre": "The Palace, a Luxury Collection Hotel",
+            "direccion": "Pl. de las Cortes, 7, Centro, 28014 Madrid, Spain",
+            "lat": 40.4154461,
+            "lon": -3.6958159000000004,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.6,
+            "reviews": 4777,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJCxdsfjUpQg0RrsGeIGEirWw",
+            "nombre": "The Madrid EDITION",
+            "direccion": "Pl. de Celenque, 2, Centro, 28013 Madrid, Spain",
+            "lat": 40.4175359,
+            "lon": -3.7060301000000004,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "service",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.5,
+            "reviews": 1284,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJp4YPH88oQg0RLvEnTtLh9wI",
+            "nombre": "Hotel Puerta America Madrid",
+            "direccion": "Av. de América, 41, Chamartín, 28002 Madrid, Spain",
+            "lat": 40.4406864,
+            "lon": -3.6701104,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "fine_dining_restaurant",
+                "wedding_venue",
+                "event_venue",
+                "service",
+                "restaurant",
+                "food",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.3,
+            "reviews": 6654,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJRfkBSQApQg0RFoXrSCHaqRc",
+            "nombre": "Callao",
+            "direccion": "Pl. del Callao, Centro, 28013 Madrid, Spain",
+            "lat": 40.4199109,
+            "lon": -3.7059113000000004,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.7,
+            "reviews": 297,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJv2lEjJMoQg0RK7Lwq40XKPs",
+            "nombre": "Rosewood Villa Magna",
+            "direccion": "P.º de la Castellana, 22, Salamanca, 28046 Madrid, Spain",
+            "lat": 40.4299515,
+            "lon": -3.6881524999999993,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "banquet_hall",
+                "fitness_center",
+                "gym",
+                "event_venue",
+                "spa",
+                "sports_activity_location",
+                "health",
+                "restaurant",
+                "food",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.5,
+            "reviews": 2943,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJjUEvDCQmQg0Ryh7Zw5eUWGg",
+            "nombre": "Only You Hotel, Atocha",
+            "direccion": "P.º de la Infanta Isabel, 13, Retiro, 28014 Madrid, Spain",
+            "lat": 40.4072946,
+            "lon": -3.688325,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.4,
+            "reviews": 6741,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJG5FiLrUpQg0R_QwhiZBwUIE",
+            "nombre": "Hotel Chamartín The One",
+            "direccion": "C. de Agustín de Foxá, s/n, Chamartín, 28036 Madrid, Spain",
+            "lat": 40.472277999999996,
+            "lon": -3.6832466000000004,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4,
+            "reviews": 6859,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJCzkyBSMpQg0RRkxwqGH4MgA",
+            "nombre": "Canopy by Hilton Madrid Castellana",
+            "direccion": "Pl. de Carlos Trías Bertrán, 4, Tetuán, 28020 Madrid, Spain",
+            "lat": 40.4513122,
+            "lon": -3.6935881,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "event_venue",
+                "business_center",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.4,
+            "reviews": 2364,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJsQD_fHsoQg0RZpqQzK9Jxrk",
+            "nombre": "Generator Madrid",
+            "direccion": "C. de San Bernardo, 2, Centro, 28013 Madrid, Spain",
+            "lat": 40.4208022,
+            "lon": -3.7081026999999995,
+            "estrellas": null,
+            "amenities": [
+                "hostel",
+                "cafeteria",
+                "hotel",
+                "bar",
+                "restaurant",
+                "food",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.4,
+            "reviews": 5335,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJae-mH-soQg0RZTYz08y9m6s",
+            "nombre": "Meliá Madrid Serrano",
+            "direccion": "C. de Claudio Coello, 139, Salamanca, 28006 Madrid, Spain",
+            "lat": 40.435249000000006,
+            "lon": -3.6855354000000005,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.4,
+            "reviews": 2953,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJq8ZdTOwoQg0RbYEUJvVKtMw",
+            "nombre": "InterContinental Madrid by IHG",
+            "direccion": "P.º de la Castellana, 49, Chamberí, 28046 Madrid, Spain",
+            "lat": 40.43651,
+            "lon": -3.69006,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "resort_hotel",
+                "convention_center",
+                "massage_spa",
+                "wedding_venue",
+                "event_venue",
+                "spa",
+                "massage",
+                "service",
+                "restaurant",
+                "food",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.6,
+            "reviews": 4650,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJD8DoFjopQg0RabJce_HxfNQ",
+            "nombre": "Hotel ILUNION Pío XII",
+            "direccion": "Av. de Pío XII, 77, Chamartín, 28016 Madrid, Spain",
+            "lat": 40.4689299,
+            "lon": -3.6740122,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "event_venue",
+                "restaurant",
+                "food",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.2,
+            "reviews": 4760,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJn6YX66IoQg0Ru4Mqrf3OFIM",
+            "nombre": "H10 Puerta de Alcalá",
+            "direccion": "C. Alcalá, 66, Salamanca, 28009 Madrid, Spain",
+            "lat": 40.422182,
+            "lon": -3.681154,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.4,
+            "reviews": 3233,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJidp4twUvQg0R7AMjeZaRRgw",
+            "nombre": "Meliá Avenida América",
+            "direccion": "C. de Juan Ignacio Luca de Tena, 36, San Blas-Canillejas, 28027 Madrid, Spain",
+            "lat": 40.447341,
+            "lon": -3.627852,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.4,
+            "reviews": 5052,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJgxuJ1vYpQg0RRRS3XEjkn7A",
+            "nombre": "Hotel Wellington & Spa",
+            "direccion": "Calle Velázquez, 8, Salamanca, 28001 Madrid, Spain",
+            "lat": 40.4221783,
+            "lon": -3.6840927,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.7,
+            "reviews": 3215,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJwYqcOX8oQg0Ru4qnNV1iiew",
+            "nombre": "The Hat Madrid",
+            "direccion": "C. Imperial, 9, Centro, 28012 Madrid, Spain",
+            "lat": 40.41431,
+            "lon": -3.70707,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "hostel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.3,
+            "reviews": 4686,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJvd9I80gwQg0RzIMlLyNZ-mg",
+            "nombre": "Madrid Marriott Auditorium",
+            "direccion": "Av. de Aragón, 400, San Blas-Canillejas, 28022 Madrid, Spain",
+            "lat": 40.448465999999996,
+            "lon": -3.5586235,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.5,
+            "reviews": 11013,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJibcVEaAvQg0RDnGxvu8fyrw",
+            "nombre": "Hotel ILUNION Alcalá Norte",
+            "direccion": "C. de San Romualdo, 30, San Blas-Canillejas, 28037 Madrid, Spain",
+            "lat": 40.4364156,
+            "lon": -3.6210871000000004,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "event_venue",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.4,
+            "reviews": 4680,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJVVWVxVowQg0RQxlFFM4Yves",
+            "nombre": "Zleep Madrid Airport",
+            "direccion": "Av. de Aragón, 402B, San Blas-Canillejas, 28022 Madrid, Spain",
+            "lat": 40.4476821,
+            "lon": -3.5488583000000005,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.3,
+            "reviews": 3060,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJC9gulSouQg0RAUnoaxcIcMA",
+            "nombre": "Senator Barajas Hotel",
+            "direccion": "C. del Galeón, 27, Barajas, 28042 Madrid, Spain",
+            "lat": 40.4587795,
+            "lon": -3.5825051,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "swimming_pool",
+                "transportation_service",
+                "sports_activity_location",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 3.8,
+            "reviews": 5430,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJhbDdh9gxQg0RESnYArK-mOw",
+            "nombre": "ibis Madrid Aeropuerto Barajas",
+            "direccion": "Av. General, 49, Barajas, 28042 Madrid, Spain",
+            "lat": 40.469834,
+            "lon": -3.5806383999999998,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.2,
+            "reviews": 6048,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJp1Mh-C4vQg0RIxrd4F47pHI",
+            "nombre": "Hotel ILUNION Atrium",
+            "direccion": "C. de Emilio Vargas, 3, 5, Cdad. Lineal, 28043 Madrid, Spain",
+            "lat": 40.4479994,
+            "lon": -3.6554259999999994,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "event_venue",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.5,
+            "reviews": 6303,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJBVgnjpwvQg0RxwfBmXHHd0I",
+            "nombre": "INNSiDE by Meliá Madrid Valdebebas",
+            "direccion": "C. de José Antonio Fernández Ordóñez, 55, Hortaleza, 28055 Madrid, Spain",
+            "lat": 40.49165500000001,
+            "lon": -3.605927,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.6,
+            "reviews": 830,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJqyMfDCgwQg0RdqZ1gk-DmpA",
+            "nombre": "Compostela Suites",
+            "direccion": "C. Zambrana, 4, San Blas-Canillejas, 28022 Madrid, Spain",
+            "lat": 40.4470346,
+            "lon": -3.5803125,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "coffee_shop",
+                "parking_lot",
+                "parking",
+                "apartment_building",
+                "cafe",
+                "lodging",
+                "transportation_service",
+                "food_store",
+                "food",
+                "store",
+                "service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 3.1,
+            "reviews": 1176,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJDXoTFfcuQg0RlyYrQ7-lisY",
+            "nombre": "Novotel Madrid Campo de las Naciones",
+            "direccion": "Campo De Las Naciones, C. de Ámsterdam, N° 3, Barajas, 28042 Madrid, Spain",
+            "lat": 40.4625584,
+            "lon": -3.6150941999999993,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.4,
+            "reviews": 6153,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJvTmNDVAwQg0RDpOl6HeMYY0",
+            "nombre": "Madrid Airport Suites Affiliated by Meliá",
+            "direccion": "C. de Lola Flores, 4-17, San Blas-Canillejas, 28022 Madrid, Spain",
+            "lat": 40.445645000000006,
+            "lon": -3.5436039999999998,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 3.6,
+            "reviews": 5511,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ7wTiHNQvQg0RiZSoeh4MkYk",
+            "nombre": "Hilton Madrid Airport",
+            "direccion": "Av de la Hispanidad, 2, 4, Barajas, 28042 Madrid, Spain",
+            "lat": 40.4519096,
+            "lon": -3.5857867999999997,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "banquet_hall",
+                "business_center",
+                "lodging",
+                "event_venue",
+                "service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.4,
+            "reviews": 3848,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJBQEnCxIvQg0RCy2BodueE6A",
+            "nombre": "Hotel Elba Madrid Alcalá",
+            "direccion": "C. Alcalá, 476, San Blas-Canillejas, 28027 Madrid, Spain",
+            "lat": 40.4393464,
+            "lon": -3.6315591,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.4,
+            "reviews": 3577,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJOYvnKxovQg0RcTtRBRg1sDE",
+            "nombre": "Eurostars Puerta Madrid",
+            "direccion": "C. Juan Rizi, 5, San Blas-Canillejas, 28027 Madrid, Spain",
+            "lat": 40.447787999999996,
+            "lon": -3.6359962,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.3,
+            "reviews": 3611,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJuxWf_ngxQg0RtUEEBemIgYY",
+            "nombre": "Hostelfly",
+            "direccion": "C. de la Caldera, 11, Barajas, 28042 Madrid, Spain",
+            "lat": 40.4749714,
+            "lon": -3.5754259999999998,
+            "estrellas": null,
+            "amenities": [
+                "hostel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.3,
+            "reviews": 807,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ50McfoAoQg0RGGsXak-IWQA",
+            "nombre": "Camping Osuna",
+            "direccion": "C. Jardines de Aranjuez, s/n, Barajas, 28042 Madrid, Spain",
+            "lat": 40.4537342,
+            "lon": -3.6033611,
+            "estrellas": null,
+            "amenities": [
+                "campground",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4,
+            "reviews": 2525,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJFfc62ygwQg0R1tl-zgszN-M",
+            "nombre": "Hotel Nuevo Boston",
+            "direccion": "Av. de Aragón, 332, San Blas-Canillejas, 28022 Madrid, Spain",
+            "lat": 40.4488917,
+            "lon": -3.576805,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.2,
+            "reviews": 4652,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJlRiMkc4vQg0RGJE4WhNn-eM",
+            "nombre": "Hotel NH Madrid Barajas Airport",
+            "direccion": "C. Catamarán, 1, Barajas, 28042 Madrid, Spain",
+            "lat": 40.451122999999995,
+            "lon": -3.5946170000000004,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.3,
+            "reviews": 4425,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ-XqKjycuQg0RjIq60jjPbsI",
+            "nombre": "Meliá Madrid Barajas",
+            "direccion": "Av. de Logroño, 305, Barajas, 28042 Madrid, Spain",
+            "lat": 40.469679,
+            "lon": -3.582283,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.2,
+            "reviews": 4858,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJYaWHua0vQg0Rd5K4jRGohEY",
+            "nombre": "Hotel Osuna",
+            "direccion": "C/ de Luis de la Mata, 18, Hortaleza, 28042 Madrid, Spain",
+            "lat": 40.453205100000005,
+            "lon": -3.6130345000000004,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "parking_lot",
+                "parking",
+                "wedding_venue",
+                "lodging",
+                "swimming_pool",
+                "event_venue",
+                "restaurant",
+                "transportation_service",
+                "sports_activity_location",
+                "food",
+                "service",
+                "bar",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 3.6,
+            "reviews": 3925,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ95Fj3t0nQg0RQ4IVfNPvSf8",
+            "nombre": "Hotel NH Madrid Ribera del Manzanares",
+            "direccion": "P.º de la Virgen del Puerto, 57, Arganzuela, 28005 Madrid, Spain",
+            "lat": 40.40634,
+            "lon": -3.721825999999999,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.5,
+            "reviews": 4674,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJpX9WhwsvQg0RQ7zfa5XAPK4",
+            "nombre": "ibis budget Madrid Calle Alcalá",
+            "direccion": "Metro Suanzes, C. de Rufino González, 19, San Blas-Canillejas, 28037 Madrid, Spain",
+            "lat": 40.439320699999996,
+            "lon": -3.6269130999999994,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4,
+            "reviews": 3095,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJB1rCn0smQg0RM0ywY-_8xWs",
+            "nombre": "Hotel Madrid Río",
+            "direccion": "Calle de Antonio López, 168, Usera, 28026 Madrid, Spain",
+            "lat": 40.3886679,
+            "lon": -3.7004043999999996,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 3.5,
+            "reviews": 2377,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJtZLzJYAoQg0RxAoxfRlTuzI",
+            "nombre": "Hostal Evoke Madrid",
+            "direccion": "C. de Atocha, 43, 2 Izda, Centro, 28012 Madrid, Spain",
+            "lat": 40.413329999999995,
+            "lon": -3.7010199999999998,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.7,
+            "reviews": 257,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJrTEF_WEoQg0RaESPmB3IoVY",
+            "nombre": "ibis Madrid Centro",
+            "direccion": "C. de Manuela Malasaña, 6, Centro, 28004 Madrid, Spain",
+            "lat": 40.4287373,
+            "lon": -3.7030805,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.4,
+            "reviews": 1268,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJvRXhe3soQg0R6SU6s7IBEGg",
+            "nombre": "Inhala Hotel Garden",
+            "direccion": "C. de San Bernardo, 1, Centro, 28013 Madrid, Spain",
+            "lat": 40.4206587,
+            "lon": -3.7085482,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4,
+            "reviews": 6473,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJWwmVJyYmQg0R_w0baaK6vDw",
+            "nombre": "Hotel NH Madrid Nacional",
+            "direccion": "P.º del Prado, 48, Centro, 28014 Madrid, Spain",
+            "lat": 40.409962,
+            "lon": -3.6926739999999993,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.4,
+            "reviews": 4403,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJLauNlYYoQg0R6Ui5h0RZ3Kg",
+            "nombre": "Hotel Catalonia Gran Vía Madrid",
+            "direccion": "Gran Vía, 7-9, Centro, 28013 Madrid, Spain",
+            "lat": 40.4194479,
+            "lon": -3.6985228999999995,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.3,
+            "reviews": 3074,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJiQ8L738oQg0RcrL59Vzx-58",
+            "nombre": "Hotel Cortezo",
+            "direccion": "Calle del Dr Cortezo, 3, Centro, 28012 Madrid, Spain",
+            "lat": 40.41367220000001,
+            "lon": -3.7035722,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.1,
+            "reviews": 1992,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJmf-CCNgnQg0R1oCBvzcj2Co",
+            "nombre": "abracadabra suites you",
+            "direccion": "C. de Bailén, 39, 1°Dcha, Centro, 28005 Madrid, Spain",
+            "lat": 40.4122738,
+            "lon": -3.7136470999999998,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 3.3,
+            "reviews": 365,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJmSRJmn0oQg0Rt5YwR1qpFLQ",
+            "nombre": "Hyatt Centric Gran Via Madrid",
+            "direccion": "Gran Vía, 31, Centro, 28013 Madrid, Spain",
+            "lat": 40.4200081,
+            "lon": -3.7036914,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.5,
+            "reviews": 2347,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJN2TYD3woQg0R3DZ9HpI3jXo",
+            "nombre": "Líbere Madrid Palacio Real",
+            "direccion": "Tr.ª de Trujillos, 3, Centro, 28013 Madrid, Spain",
+            "lat": 40.4185814,
+            "lon": -3.7073436,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.4,
+            "reviews": 657,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJk2fXkIcoQg0ROGFTjFaY9zY",
+            "nombre": "7 Islas Hotel",
+            "direccion": "C. de Valverde, 14, Centro, 28004 Madrid, Spain",
+            "lat": 40.421205199999996,
+            "lon": -3.7019282,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.5,
+            "reviews": 1433,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ1T8T08wpQg0Rq4Uukv0LbkU",
+            "nombre": "Bob W Madrid Chueca",
+            "direccion": "Calle de Fuencarral, 45, Centro, 28004 Madrid, Spain",
+            "lat": 40.423366699999995,
+            "lon": -3.7009182000000003,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "apartment_building",
+                "real_estate_agency",
+                "extended_stay_hotel",
+                "lodging",
+                "point_of_interest",
+                "service",
+                "establishment"
+            ],
+            "rating": 4.4,
+            "reviews": 380,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJb91-YHsoQg0RpehvEAqd8gw",
+            "nombre": "Hotel Emperador",
+            "direccion": "Gran Vía, 53, Centro, 28013 Madrid, Spain",
+            "lat": 40.421408199999995,
+            "lon": -3.7081698999999997,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.4,
+            "reviews": 4803,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJSZH-kigmQg0RhYGSTluWcK8",
+            "nombre": "Radisson RED Madrid",
+            "direccion": "C. de Atocha, 123, Centro, 28012 Madrid, Spain",
+            "lat": 40.4099637,
+            "lon": -3.6935889999999993,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.3,
+            "reviews": 3848,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJx6DI12QoQg0RyQLwL6TfU4M",
+            "nombre": "Dear Hotel Madrid",
+            "direccion": "Gran Vía, 80, Centro, 28013 Madrid, Spain",
+            "lat": 40.4233742,
+            "lon": -3.7104263,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.6,
+            "reviews": 7359,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ823J_GgoQg0Rkv9S2bQ1MyU",
+            "nombre": "Hotel Princesa Plaza",
+            "direccion": "C. de Serrano Jover, 3, Centro, 28015 Madrid, Spain",
+            "lat": 40.4295985,
+            "lon": -3.7148732000000004,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "restaurant",
+                "food",
+                "point_of_interest",
+                "service",
+                "establishment"
+            ],
+            "rating": 4.1,
+            "reviews": 3723,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ5-rOroAoQg0Rn285CcmTETI",
+            "nombre": "B&B HOTEL Madrid Centro Puerta del Sol",
+            "direccion": "C. de la Montera, 10, Centro, 28013 Madrid, Spain",
+            "lat": 40.4175829,
+            "lon": -3.7025026999999997,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.6,
+            "reviews": 2645,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJE6AOOnsoQg0RbFZ1enKVMYs",
+            "nombre": "Grupotel Mayorazgo",
+            "direccion": "C. de la Flor Baja, 3, Centro, 28013 Madrid, Spain",
+            "lat": 40.422120899999996,
+            "lon": -3.7095924,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.4,
+            "reviews": 5062,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ0bYkpKQpQg0ReKxm3r7Vb50",
+            "nombre": "Bloom Inn Madrid",
+            "direccion": "C. de la Puebla, 14, Centro, 28004 Madrid, Spain",
+            "lat": 40.422325099999995,
+            "lon": -3.7030388999999997,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.2,
+            "reviews": 105,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ2Zi2MispQg0RXk5DbDs3cGk",
+            "nombre": "Literal Madrid Hostel",
+            "direccion": "C. del Duque de Rivas, 2, Centro, 28012 Madrid, Spain",
+            "lat": 40.413732599999996,
+            "lon": -3.7065522000000004,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.8,
+            "reviews": 58,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJezdruocoQg0RK0lDAmgvTnk",
+            "nombre": "Hostal Sonsoles",
+            "direccion": "Calle de Fuencarral, 18, Centro, 28004 Madrid, Spain",
+            "lat": 40.42166410000001,
+            "lon": -3.7009235,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.3,
+            "reviews": 410,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJn2ilfgApQg0Rw2Sv3zjti3U",
+            "nombre": "Mante House",
+            "direccion": "C. del Barco, 25, Centro, Centro, 28004 Madrid, Spain",
+            "lat": 40.4222567,
+            "lon": -3.7026436999999994,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.8,
+            "reviews": 5,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ5yZxe4AoQg0RMkn0eD02Z0M",
+            "nombre": "JQC Rooms",
+            "direccion": "C. de la Cruz, 33, Centro, 28012 Madrid, Spain",
+            "lat": 40.4148832,
+            "lon": -3.7024757,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 3.6,
+            "reviews": 572,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJg4vVCH0oQg0RFdR5mstcolk",
+            "nombre": "Woohoo Suites Madrid",
+            "direccion": "C. de Concepcion Arenal, 6, 1º, Centro, 28004 Madrid, Spain",
+            "lat": 40.4207892,
+            "lon": -3.7046706,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4,
+            "reviews": 1016,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ-YE9F4coQg0RrrOWmiJshNE",
+            "nombre": "El Hostall",
+            "direccion": "C. del Caballero de Gracia, 6, Centro, 28013 Madrid, Spain",
+            "lat": 40.419530099999996,
+            "lon": -3.701111,
+            "estrellas": null,
+            "amenities": [
+                "inn",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.3,
+            "reviews": 417,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJO_wsZH4oQg0RLvCVFpy4CtQ",
+            "nombre": "Hotel Moderno",
+            "direccion": "C. del Arenal, 2, Centro, 28013 Madrid, Spain",
+            "lat": 40.4170417,
+            "lon": -3.7048905,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.4,
+            "reviews": 2321,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJzQv0EXkpQg0R9wr3PB3EAbM",
+            "nombre": "HOSTAL ARENAL MADRID",
+            "direccion": "C. del Arenal, 26, piso 4° puerta izquierda, Centro, 28013 Madrid, Spain",
+            "lat": 40.4178794,
+            "lon": -3.7081798,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.3,
+            "reviews": 107,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJJ6UihTYpQg0RtN8TkVaDsyY",
+            "nombre": "Sabia Natura - Boutique Hostel",
+            "direccion": "C. del Arenal, 26, Centro, 28013 Madrid, Spain",
+            "lat": 40.4178794,
+            "lon": -3.7081798,
+            "estrellas": null,
+            "amenities": [
+                "hostel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 3.5,
+            "reviews": 129,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ9_72coAoQg0RmvfCRXSvboI",
+            "nombre": "Plaza Dort Rooms - Madrid",
+            "direccion": "Pl. del Ángel, 13, Centro, 28012 Madrid, Spain",
+            "lat": 40.414302,
+            "lon": -3.7024320000000004,
+            "estrellas": null,
+            "amenities": [
+                "guest_house",
+                "extended_stay_hotel",
+                "hostel",
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 3,
+            "reviews": 520,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ6xDhcYAoQg0RLkJTJy5srqk",
+            "nombre": "Hostal Alonso",
+            "direccion": "C. de Espoz y Mina, 17, 3º Centro, Centro, 28012 Madrid, Spain",
+            "lat": 40.4144619,
+            "lon": -3.702147,
+            "estrellas": null,
+            "amenities": [
+                "guest_house",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4,
+            "reviews": 394,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ9zUmBjgpQg0RLyhg-k_9GSY",
+            "nombre": "Numa Madrid Luna",
+            "direccion": "C. de la Palma, 11, Centro, 28004 Madrid, Spain",
+            "lat": 40.426121099999996,
+            "lon": -3.7024497,
+            "estrellas": null,
+            "amenities": [
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.4,
+            "reviews": 75,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJgRC4boEoQg0Rl6-gmXVOYkY",
+            "nombre": "Hotel Urban",
+            "direccion": "Cra de S. Jerónimo, 34, Centro, 28014 Madrid, Spain",
+            "lat": 40.416444899999995,
+            "lon": -3.6986025999999996,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.5,
+            "reviews": 2089,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ3_0ZmYUoQg0REPut3yCZGR8",
+            "nombre": "Only YOU Boutique Hotel",
+            "direccion": "C. del Barquillo, 21, Centro, 28004 Madrid, Spain",
+            "lat": 40.422255799999995,
+            "lon": -3.6957491,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.6,
+            "reviews": 2953,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJoT0AwIAoQg0RKDbeFSFEevQ",
+            "nombre": "Hostal Centro Sol",
+            "direccion": "Cra de S. Jerónimo, 5, Centro, 28014 Madrid, Spain",
+            "lat": 40.4167791,
+            "lon": -3.7014743999999995,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.5,
+            "reviews": 452,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJrZYDANonQg0RGd5bp9DBDSY",
+            "nombre": "LATROUPE Prado Hostel Madrid",
+            "direccion": "Paseo de las Delicias, 1, Arganzuela, 28045 Madrid, Spain",
+            "lat": 40.4068476,
+            "lon": -3.6930662999999995,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.3,
+            "reviews": 847,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJPUa9aMMpQg0RIs1hdh0BRoA",
+            "nombre": "Hotel Petit Palace Puerta del Sol",
+            "direccion": "C. del Arenal, 4, Centro, 28013 Madrid, Spain",
+            "lat": 40.4170258,
+            "lon": -3.7050916999999997,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "event_venue",
+                "bar",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.5,
+            "reviews": 1044,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJI4GFxNspQg0RYzZXxlaFRRk",
+            "nombre": "Gran View Apartments",
+            "direccion": "Gran Vía, 48, Centro, 28013 Madrid, Spain",
+            "lat": 40.4208243,
+            "lon": -3.7064478999999997,
+            "estrellas": null,
+            "amenities": [
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.2,
+            "reviews": 616,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ7w6YjOYpQg0RafkAf2GeTR0",
+            "nombre": "Hostal Gran Via Experience",
+            "direccion": "C. del Postigo de San Martín, 5, Centro, 28013 Madrid, Spain",
+            "lat": 40.4189199,
+            "lon": -3.7064587999999996,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 3.5,
+            "reviews": 46,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ1Vw9MXsoQg0RsGo3QJJmP2s",
+            "nombre": "Hotel Boutique | Vitium Urban Suites",
+            "direccion": "Gran Vía, 61, 5ta Planta, Centro, 28013 Madrid, Spain",
+            "lat": 40.42231470000001,
+            "lon": -3.7095800999999997,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 3.9,
+            "reviews": 874,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ21kIgaopQg0R6wJiGEcF94Q",
+            "nombre": "UMusic Hotel Madrid",
+            "direccion": "C. de la Paz, 11, Centro, 28012 Madrid, Spain",
+            "lat": 40.4153449,
+            "lon": -3.7041017,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.6,
+            "reviews": 1366,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJJ20fYh8pQg0RHvQ4ZumGXOM",
+            "nombre": "Hotel Madrid Centro Affiliated by Meliá",
+            "direccion": "Gran Vía, 72, Centro, 28013 Madrid, Spain",
+            "lat": 40.423033000000004,
+            "lon": -3.7095719999999996,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 3.7,
+            "reviews": 429,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJZ5OCNIAoQg0RAQs3oEPgY6o",
+            "nombre": "Santa Ana Colors",
+            "direccion": "C. de las Huertas, 14, Centro, 28012 Madrid, Spain",
+            "lat": 40.413896,
+            "lon": -3.7005200000000005,
+            "estrellas": null,
+            "amenities": [
+                "hostel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.3,
+            "reviews": 343,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJCS-WkIIoQg0RYjJnT5-SXoQ",
+            "nombre": "Mercure Madrid Centro",
+            "direccion": "C. de Lope de Vega, 49, Centro, 28014 Madrid, Spain",
+            "lat": 40.414018600000006,
+            "lon": -3.6945064,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.3,
+            "reviews": 1338,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJTYpdvX0oQg0Rq31tTeozSg8",
+            "nombre": "Hotel Regente Madrid",
+            "direccion": "C. de Mesonero Romanos, 9, Centro, 28013 Madrid, Spain",
+            "lat": 40.4197096,
+            "lon": -3.7043006,
+            "estrellas": null,
+            "amenities": [
+                "hotel",
+                "extended_stay_hotel",
+                "lodging",
+                "point_of_interest",
+                "establishment"
+            ],
+            "rating": 4.2,
+            "reviews": 3149,
+            "descripcion": "",
+            "fotos": [],
+            "fuente": "Google Places (New)"
+        }
+    ],
+    "source": "Google Places API (New)"
+}

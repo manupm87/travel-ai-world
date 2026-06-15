@@ -1,0 +1,63 @@
+# ==============================================================================
+# Docker Build Ignore File
+# Keeps the Docker image context small and secure.
+# ==============================================================================
+
+# Git
+.git
+.gitignore
+
+# Environment Variables & Secrets
+.env
+.env.*
+!.env.example
+certs/
+*.pem
+*.key
+*.crt
+
+# Python & Caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+
+# Virtual Environments
+venv/
+.venv/
+env/
+
+# IDEs & OS Files
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.swo
+
+# Tests and Docs (keep tests out of prod image to save space)
+tests/
+docs/
+*.md
+!README.md
+
+# AI Agents & Assistants (not needed inside the container runtime)
+.claude/
+.agents/
+.cursor/
+.cursorrules
+
+# Docker / Compose
+docker-compose.yml
+.dockerignore
+Dockerfile
+
+# Local DBs
+*.db
+*.sqlite3
+
+# Scripts (dev-only tooling)
+scripts/

@@ -1,0 +1,795 @@
+{
+    "city": "Madrid",
+    "category": "museos",
+    "count": 42,
+    "items": [
+        {
+            "id": "ChIJxYeg-O4oQg0Rjnq7nU4nHRQ",
+            "nombre": "Museo Nacional de Ciencias Naturales",
+            "direccion": "C. de José Gutiérrez Abascal, 2, Chamartín, 28006 Madrid, Spain",
+            "lat": 40.4412381,
+            "lon": -3.6901921000000004,
+            "rating": 4.5,
+            "reviews": 13360,
+            "tipo_museo": [
+                "Museo"
+            ],
+            "amenities": [
+                "research_institute",
+                "museum",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJmUm3eSgmQg0R6kTeCcnVsjQ",
+            "nombre": "CaixaForum Madrid",
+            "direccion": "P.º del Prado, 36, Centro, 28014 Madrid, Spain",
+            "lat": 40.411111999999996,
+            "lon": -3.693571,
+            "rating": 4.5,
+            "reviews": 23976,
+            "tipo_museo": [
+                "Museo"
+            ],
+            "amenities": [
+                "cultural_center",
+                "concert_hall",
+                "auditorium",
+                "art_museum",
+                "museum",
+                "live_music_venue",
+                "event_venue",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJz7lhuugnQg0Rj90_vaeCmjw",
+            "nombre": "Museo Banksy Madrid",
+            "direccion": "P.º de la Esperanza, 1, Arganzuela, 28005 Madrid, Spain",
+            "lat": 40.4037381,
+            "lon": -3.7061956000000005,
+            "rating": 4.7,
+            "reviews": 3357,
+            "tipo_museo": [
+                "Museo"
+            ],
+            "amenities": [
+                "art_museum",
+                "museum",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ5YZXSr4oQg0Rez8GpUlVmrk",
+            "nombre": "Fundación Juan March",
+            "direccion": "Calle de Castelló, 77, Salamanca, 28006 Madrid, Spain",
+            "lat": 40.4311763,
+            "lon": -3.6812725,
+            "rating": 4.6,
+            "reviews": 4589,
+            "tipo_museo": [
+                "Museo"
+            ],
+            "amenities": [
+                "cultural_center",
+                "concert_hall",
+                "auditorium",
+                "art_museum",
+                "museum",
+                "live_music_venue",
+                "event_venue",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJPcua_GUoQg0RTyyDtruTvv4",
+            "nombre": "Liria Palace",
+            "direccion": "Calle de la Princesa, 20, Centro, 28008 Madrid, Spain",
+            "lat": 40.427675199999996,
+            "lon": -3.7124899000000005,
+            "rating": 4.3,
+            "reviews": 5288,
+            "tipo_museo": [
+                "Museo"
+            ],
+            "amenities": [
+                "art_museum",
+                "museum",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJa4xB52YoQg0RZLCVcd6FJBA",
+            "nombre": "Fundación Casa de México en España",
+            "direccion": "C. de Alberto Aguilera, 20, Chamberí, 28015 Madrid, Spain",
+            "lat": 40.4301007,
+            "lon": -3.7093041,
+            "rating": 4.5,
+            "reviews": 2311,
+            "tipo_museo": [
+                "Museo"
+            ],
+            "amenities": [
+                "cultural_center",
+                "coworking_space",
+                "movie_theater",
+                "museum",
+                "educational_institution",
+                "store",
+                "restaurant",
+                "food",
+                "amusement_center",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJQ1sIgtspQg0Rx2ShOWYlvFY",
+            "nombre": "Galería de las Colecciones Reales",
+            "direccion": "C. de Bailén, s/n, Centro, 28013 Madrid, Spain",
+            "lat": 40.4161729,
+            "lon": -3.7154884999999997,
+            "rating": 4.6,
+            "reviews": 5615,
+            "tipo_museo": [
+                "Museo"
+            ],
+            "amenities": [
+                "art_museum",
+                "museum",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJnfzMZ0QpQg0Ri5olXJSCsZ4",
+            "nombre": "Balloon Museum | Euphoria Madrid",
+            "direccion": "Recinto Ferial de la, Escenario, Moncloa - Aravaca, 28011 Madrid, Spain",
+            "lat": 40.416772,
+            "lon": -3.7273345000000004,
+            "rating": 4.6,
+            "reviews": 362,
+            "tipo_museo": [
+                "Museo"
+            ],
+            "amenities": [
+                "art_museum",
+                "museum",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJTTxR5cUpQg0RuOqasDN57f8",
+            "nombre": "Museum of Senses Madrid",
+            "direccion": "C. de la Virgen de los Peligros, 5, Centro, 28013 Madrid, Spain",
+            "lat": 40.4186153,
+            "lon": -3.6997082999999997,
+            "rating": 4.8,
+            "reviews": 344,
+            "tipo_museo": [
+                "Museo"
+            ],
+            "amenities": [
+                "museum",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJkZKX7r4pQg0RRNT4xLKmtso",
+            "nombre": "Nomad Museo Inmersivo",
+            "direccion": "Gran Vía, 78, Local Museo, Centro, 28013 Madrid, Spain",
+            "lat": 40.4232977,
+            "lon": -3.7102486,
+            "rating": 4.3,
+            "reviews": 6257,
+            "tipo_museo": [
+                "Museo"
+            ],
+            "amenities": [
+                "museum",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJRy3DewApQg0Rw9AmfPsyfWQ",
+            "nombre": "Museo de la Luz Madrid",
+            "direccion": "C. de Segovia, 2, Centro, 28005 Madrid, Spain",
+            "lat": 40.4137273,
+            "lon": -3.7093773,
+            "rating": 4.2,
+            "reviews": 1052,
+            "tipo_museo": [
+                "Museo"
+            ],
+            "amenities": [
+                "museum",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJYQJIvoUnQg0RwSB9WHLDbNc",
+            "nombre": "95 ART GALLERY",
+            "direccion": "C. de Álvarez Abellán, 23, Carabanchel, 28025 Madrid, Spain",
+            "lat": 40.385120199999996,
+            "lon": -3.7316462,
+            "rating": 4.7,
+            "reviews": 563,
+            "tipo_museo": [
+                "Galería de Arte"
+            ],
+            "amenities": [
+                "art_gallery",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJuRi_C4IpQg0RFkz555AYL3U",
+            "nombre": "Corvus Blanc Art Gallery",
+            "direccion": "C. de Lope de Vega, 18c, Centro, 28014 Madrid, Spain",
+            "lat": 40.4136757,
+            "lon": -3.6970507,
+            "rating": 5,
+            "reviews": 15,
+            "tipo_museo": [
+                "Galería de Arte"
+            ],
+            "amenities": [
+                "art_gallery",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJNdcpUxQpQg0RfvVaqTqgdSw",
+            "nombre": "Alzueta Gallery Madrid",
+            "direccion": "C. Marqués de Monasterio, 1, Centro, 28004 Madrid, Spain",
+            "lat": 40.4231008,
+            "lon": -3.6939243,
+            "rating": 4.9,
+            "reviews": 19,
+            "tipo_museo": [
+                "Galería de Arte"
+            ],
+            "amenities": [
+                "art_gallery",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ18hLoNkpQg0RSvWFQgXhyGw",
+            "nombre": "Rover Art Gallery",
+            "direccion": "C. de San Bernardo, 107, Chamberí, 28015 Madrid, Spain",
+            "lat": 40.431998199999995,
+            "lon": -3.7057125,
+            "rating": 5,
+            "reviews": 31,
+            "tipo_museo": [
+                "Galería de Arte"
+            ],
+            "amenities": [
+                "art_gallery",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJv7kpZigmQg0RFBjnPlHZk1I",
+            "nombre": "Camara Oscura Art Gallery",
+            "direccion": "Alameda, 16, 1º B, Centro, 28014 Madrid, Spain",
+            "lat": 40.411269,
+            "lon": -3.6938649999999997,
+            "rating": 4.8,
+            "reviews": 42,
+            "tipo_museo": [
+                "Galería de Arte"
+            ],
+            "amenities": [
+                "art_gallery",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJj7EyRCwpQg0R7bNsPCT1lIY",
+            "nombre": "La Gran Vía Cultural de Madrid",
+            "direccion": "Gran Vía, 9, Centro, 28013 Madrid, Spain",
+            "lat": 40.419470499999996,
+            "lon": -3.6990859,
+            "rating": 4.9,
+            "reviews": 126,
+            "tipo_museo": [
+                "Galería de Arte"
+            ],
+            "amenities": [
+                "art_gallery",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJG1jDUo8oQg0RMN-QI4x0LKA",
+            "nombre": "Mad is Mad",
+            "direccion": "C. de Pelayo, 48, Centro, 28004 Madrid, Spain",
+            "lat": 40.4236947,
+            "lon": -3.6977888999999995,
+            "rating": 4.7,
+            "reviews": 52,
+            "tipo_museo": [
+                "Galería de Arte"
+            ],
+            "amenities": [
+                "art_gallery",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJlSpxi0MpQg0R8yGg3SWQ6gM",
+            "nombre": "Pigment Gallery Madrid",
+            "direccion": "Calle de Covarrubias, 22, Chamberí, 28010 Madrid, Spain",
+            "lat": 40.4300589,
+            "lon": -3.6975935,
+            "rating": 5,
+            "reviews": 1,
+            "tipo_museo": [
+                "Galería de Arte"
+            ],
+            "amenities": [
+                "art_gallery",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJOcRDGBQpQg0RYM9aV6V9iaQ",
+            "nombre": "VAN GOGH Art Gallery",
+            "direccion": "C. de los Estudios, 7, A, Centro, 28012 Madrid, Spain",
+            "lat": 40.4117817,
+            "lon": -3.7071601,
+            "rating": 4.4,
+            "reviews": 117,
+            "tipo_museo": [
+                "Galería de Arte"
+            ],
+            "amenities": [
+                "art_gallery",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJPR-71O0oQg0RtAL5yYqM5Go",
+            "nombre": "OCCO Art Gallery",
+            "direccion": "C. de Espalter, 13, 1° Derecha, Retiro, 28014 Madrid, Spain",
+            "lat": 40.4129272,
+            "lon": -3.6896345,
+            "rating": 4.8,
+            "reviews": 70,
+            "tipo_museo": [
+                "Galería de Arte"
+            ],
+            "amenities": [
+                "art_gallery",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJIyLXwiwmQg0Rd8qDYFd3hBw",
+            "nombre": "Swinton",
+            "direccion": "C. de Miguel Servet, 21, Centro, 28012 Madrid, Spain",
+            "lat": 40.405967,
+            "lon": -3.7017282999999996,
+            "rating": 4.8,
+            "reviews": 73,
+            "tipo_museo": [
+                "Galería de Arte"
+            ],
+            "amenities": [
+                "art_gallery",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJWfoKGY4oQg0RHU1HznkYNNI",
+            "nombre": "Orfila Art Gallery",
+            "direccion": "C. de Orfila, 3, Chamberí, 28010 Madrid, Spain",
+            "lat": 40.4274354,
+            "lon": -3.6931973,
+            "rating": 4.6,
+            "reviews": 44,
+            "tipo_museo": [
+                "Galería de Arte"
+            ],
+            "amenities": [
+                "art_gallery",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ7SeZuFAnQg0RS3dk3w2DtSU",
+            "nombre": "Sabrina Amrani",
+            "direccion": "C. Sallaberry, 52, Carabanchel, 28019 Madrid, Spain",
+            "lat": 40.392317,
+            "lon": -3.7206229,
+            "rating": 4.6,
+            "reviews": 63,
+            "tipo_museo": [
+                "Galería de Arte"
+            ],
+            "amenities": [
+                "art_gallery",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJay2s2XonQg0RJKN9GipQjb4",
+            "nombre": "Montbaron Gallery",
+            "direccion": "C. de Mira el Río Baja, 14, Centro, 28005 Madrid, Spain",
+            "lat": 40.40788810000001,
+            "lon": -3.7088767999999996,
+            "rating": 4.6,
+            "reviews": 37,
+            "tipo_museo": [
+                "Galería de Arte"
+            ],
+            "amenities": [
+                "art_gallery",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJNVLzKTEpQg0RVT1t_AIyqb8",
+            "nombre": "Museo Leonardo Da Vinci Madrid",
+            "direccion": "C. de San Bernardo, 39, Centro, 28015 Madrid, Spain",
+            "lat": 40.423617199999995,
+            "lon": -3.707686099999999,
+            "rating": 4.7,
+            "reviews": 70,
+            "tipo_museo": [
+                "Museo"
+            ],
+            "amenities": [
+                "museum",
+                "cultural_landmark",
+                "art_museum",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ04I32mgpQg0Rgo5zdDFx10g",
+            "nombre": "Museo del Traje",
+            "direccion": "Av. de Juan de Herrera, 2, Moncloa - Aravaca, 28040 Madrid, Spain",
+            "lat": 40.4400802,
+            "lon": -3.728866,
+            "rating": 4.4,
+            "reviews": 3014,
+            "tipo_museo": [
+                "Museo"
+            ],
+            "amenities": [
+                "history_museum",
+                "art_museum",
+                "museum",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJXUmqe5woQg0R3CQqaZtY3zM",
+            "nombre": "National Museum of Decorative Arts",
+            "direccion": "C. de Montalbán, 12, Retiro, 28014 Madrid, Spain",
+            "lat": 40.4179105,
+            "lon": -3.6898041,
+            "rating": 4.3,
+            "reviews": 3022,
+            "tipo_museo": [
+                "Museo"
+            ],
+            "amenities": [
+                "museum",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJhYh4lY8oQg0RSg25uObbteU",
+            "nombre": "Galería Elvira González",
+            "direccion": "Calle Hermanos Álvarez Quintero, 1, Centro, 28004 Madrid, Spain",
+            "lat": 40.4272699,
+            "lon": -3.6976071999999998,
+            "rating": 4.5,
+            "reviews": 292,
+            "tipo_museo": [
+                "Galería de Arte"
+            ],
+            "amenities": [
+                "art_gallery",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJjTFfBVMpQg0Ro6zqODml5ag",
+            "nombre": "La Galería Arte y Revolución",
+            "direccion": "C. de la Estrella, 14, Centro, 28004 Madrid, Spain",
+            "lat": 40.4223283,
+            "lon": -3.7066103999999997,
+            "rating": 4.9,
+            "reviews": 26,
+            "tipo_museo": [
+                "Galería de Arte"
+            ],
+            "amenities": [
+                "art_gallery",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJc_Dv-4EoQg0R0EYHvHw-uxA",
+            "nombre": "Galería Leandro Navarro",
+            "direccion": "C. del Amor de Dios, 1, Centro, 28014 Madrid, Spain",
+            "lat": 40.4133062,
+            "lon": -3.6981124000000003,
+            "rating": 4.6,
+            "reviews": 34,
+            "tipo_museo": [
+                "Galería de Arte"
+            ],
+            "amenities": [
+                "art_gallery",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJE85bw4goQg0R4S-yFkDqT3k",
+            "nombre": "Ehrhardt Flórez Gallery",
+            "direccion": "C. de San Lorenzo, 11, Centro, 28004 Madrid, Spain",
+            "lat": 40.4250161,
+            "lon": -3.6986428,
+            "rating": 4.8,
+            "reviews": 28,
+            "tipo_museo": [
+                "Galería de Arte"
+            ],
+            "amenities": [
+                "art_gallery",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJE85bw4goQg0Ru01r85GNHwg",
+            "nombre": "Elba Benitez Gallery",
+            "direccion": "C. de San Lorenzo, 11, 2 int. dcha, Centro, 28004 Madrid, Spain",
+            "lat": 40.425041,
+            "lon": -3.6986980000000003,
+            "rating": 4.7,
+            "reviews": 49,
+            "tipo_museo": [
+                "Galería de Arte"
+            ],
+            "amenities": [
+                "art_gallery",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJTzt_948pQg0Ra-76mQ9EtGw",
+            "nombre": "GÄRNA GALLERY",
+            "direccion": "C. de Jorge Juan, 12, Salamanca, 28001 Madrid, Spain",
+            "lat": 40.4233883,
+            "lon": -3.6861165,
+            "rating": 4.8,
+            "reviews": 21,
+            "tipo_museo": [
+                "Galería de Arte"
+            ],
+            "amenities": [
+                "art_gallery",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJi6VwSY8oQg0RcXW1rknlRcc",
+            "nombre": "Galería Échale Guindas",
+            "direccion": "C. de Pelayo, 47, Centro, 28004 Madrid, Spain",
+            "lat": 40.42432900000001,
+            "lon": -3.6974679999999998,
+            "rating": 4.7,
+            "reviews": 63,
+            "tipo_museo": [
+                "Galería de Arte"
+            ],
+            "amenities": [
+                "art_gallery",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJbUy0ShopQg0RMauga1rrGBs",
+            "nombre": "RÍO & MEÑAKA Gallery",
+            "direccion": "C. del Conde de Aranda, 20, Salamanca, 28001 Madrid, Spain",
+            "lat": 40.421575,
+            "lon": -3.6855767999999993,
+            "rating": 4.6,
+            "reviews": 51,
+            "tipo_museo": [
+                "Galería de Arte"
+            ],
+            "amenities": [
+                "art_gallery",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ1Q-y-JUoQg0RPAVaH1AGgro",
+            "nombre": "Galería Herraiz",
+            "direccion": "Calle de Don Ramón de la Cruz, 27, Salamanca, 28001 Madrid, Spain",
+            "lat": 40.4291331,
+            "lon": -3.6826499999999998,
+            "rating": 4.6,
+            "reviews": 74,
+            "tipo_museo": [
+                "Galería de Arte"
+            ],
+            "amenities": [
+                "art_gallery",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJoxb4BI0nQg0RAelGYjElSmg",
+            "nombre": "Los Artistas del Barrio",
+            "direccion": "C. de las Dos Hermanas, 24, Centro, 28012 Madrid, Spain",
+            "lat": 40.4102566,
+            "lon": -3.7063506999999993,
+            "rating": 4.7,
+            "reviews": 286,
+            "tipo_museo": [
+                "Galería de Arte"
+            ],
+            "amenities": [
+                "art_gallery",
+                "toy_store",
+                "store",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJKxry54coQg0RZZpfYuHpjS8",
+            "nombre": "Espacio Valverde",
+            "direccion": "C. de Valverde, 30, Centro, 28004 Madrid, Spain",
+            "lat": 40.422567,
+            "lon": -3.701587999999999,
+            "rating": 4.9,
+            "reviews": 46,
+            "tipo_museo": [
+                "Galería de Arte"
+            ],
+            "amenities": [
+                "art_gallery",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJxf5eSpgoQg0RgMORyrON-S0",
+            "nombre": "Galeria de Arte Fernández-Braso",
+            "direccion": "C. de Villanueva, 30, Salamanca, 28001 Madrid, Spain",
+            "lat": 40.4222414,
+            "lon": -3.6850430999999997,
+            "rating": 4.3,
+            "reviews": 55,
+            "tipo_museo": [
+                "Galería de Arte"
+            ],
+            "amenities": [
+                "art_gallery",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ9cIrMmQoQg0R4jVKMrdxyl0",
+            "nombre": "Galería Blanca Berlín",
+            "direccion": "C. del Limón, 28, Centro, 28015 Madrid, Spain",
+            "lat": 40.427128599999996,
+            "lon": -3.7101439999999997,
+            "rating": 4.5,
+            "reviews": 114,
+            "tipo_museo": [
+                "Galería de Arte"
+            ],
+            "amenities": [
+                "art_gallery",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ8bspOAApQg0Rh56vRjLDzDg",
+            "nombre": "Saisho Art",
+            "direccion": "C. de Ferraz, 78, 5º Derecha, Moncloa - Aravaca, 28008 Madrid, Spain",
+            "lat": 40.4295797,
+            "lon": -3.7203225,
+            "rating": 4.9,
+            "reviews": 115,
+            "tipo_museo": [
+                "Galería de Arte"
+            ],
+            "amenities": [
+                "art_gallery",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        }
+    ],
+    "source": "Google Places API (New)"
+}

@@ -1,0 +1,711 @@
+{
+    "city": "Madrid",
+    "category": "parques",
+    "count": 37,
+    "items": [
+        {
+            "id": "ChIJe4IR9Z8oQg0RrqMktRYnbJ4",
+            "nombre": "El Retiro Park",
+            "direccion": "Retiro, 28009 Madrid, Spain",
+            "lat": 40.415258,
+            "lon": -3.6834656999999997,
+            "rating": 4.8,
+            "reviews": 211475,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "park",
+                "tourist_attraction",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJTcV2FZ8oQg0RyFE83TPKXW0",
+            "nombre": "Estanque Grande del Retiro",
+            "direccion": "P.º de Colombia, 2, Retiro, 28016 Madrid, Spain",
+            "lat": 40.417142,
+            "lon": -3.6839005,
+            "rating": 4.7,
+            "reviews": 34547,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "tourist_attraction",
+                "park",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ5bY4x-gnQg0RMzA2yjRLxuw",
+            "nombre": "Saint Isidore Park",
+            "direccion": "P.º de la Ermita del Santo, 74, Carabanchel, 28019 Madrid, Spain",
+            "lat": 40.398011,
+            "lon": -3.7281916999999996,
+            "rating": 4.4,
+            "reviews": 11298,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "park",
+                "tourist_attraction",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJwzMmP6wlQg0RE0eeuPzCFiM",
+            "nombre": "Parque de las Siete Tetas",
+            "direccion": "C. de Ramón Pérez de Ayala, 12, Puente de Vallecas, 28038 Madrid, Spain",
+            "lat": 40.3980203,
+            "lon": -3.6555044999999997,
+            "rating": 4.8,
+            "reviews": 421,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "park",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ60xZJbweQg0R5oxFW2SUW8M",
+            "nombre": "Parque Enrique Tierno Galván",
+            "direccion": "C. Meneses, 4, Arganzuela, 28045 Madrid, Spain",
+            "lat": 40.390039699999996,
+            "lon": -3.6838406,
+            "rating": 4.5,
+            "reviews": 11880,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "park",
+                "tourist_attraction",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJsV5fbNkoQg0RsuodgAB71IQ",
+            "nombre": "Berlin Park",
+            "direccion": "Av. de Ramón y Cajal, 2, Chamartín, 28016 Madrid, Spain",
+            "lat": 40.4504072,
+            "lon": -3.6757557999999992,
+            "rating": 4.4,
+            "reviews": 11567,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "park",
+                "city_park",
+                "tourist_attraction",
+                "historical_landmark",
+                "historical_place",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJbWJHqRQoQg0R5EugZXTDJu8",
+            "nombre": "Parque del Oeste",
+            "direccion": "P.º de Moret, 2, Moncloa - Aravaca, 28008 Madrid, Spain",
+            "lat": 40.4307702,
+            "lon": -3.7262231999999997,
+            "rating": 4.5,
+            "reviews": 30466,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "park",
+                "tourist_attraction",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJyUoHrcUnQg0RnajOmB6gFSk",
+            "nombre": "Arganzuela Park",
+            "direccion": "P.º de las Yeserías, Arganzuela, 28005 Madrid, Spain",
+            "lat": 40.396541299999996,
+            "lon": -3.7065128,
+            "rating": 4.7,
+            "reviews": 1283,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "park",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ7aLeH4EoQg0RzT0PTqYc3Y4",
+            "nombre": "Campo del Moro",
+            "direccion": "P.º de la Virgen del Puerto, 1, Centro, 28013 Madrid, Spain",
+            "lat": 40.41826220000001,
+            "lon": -3.7172954,
+            "rating": 4.6,
+            "reviews": 9048,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "garden",
+                "tourist_attraction",
+                "park",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ6zTK2QIlQg0Rb9jigjCJTQM",
+            "nombre": "Cerro del Tío Pío",
+            "direccion": "C. de Ramón Pérez de Ayala, 12, Puente de Vallecas, 28038 Madrid, Spain",
+            "lat": 40.3980203,
+            "lon": -3.6555044999999997,
+            "rating": 4.7,
+            "reviews": 5451,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "park",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJtRbzP-2HQQ0RJx9XvRW6qLw",
+            "nombre": "Casa de Campo",
+            "direccion": "P.º de la Prta del Ángel, 1, 28011 Madrid, Spain",
+            "lat": 40.425258899999996,
+            "lon": -3.7526816000000003,
+            "rating": 4.6,
+            "reviews": 52138,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "park",
+                "nature_preserve",
+                "tourist_attraction",
+                "garden",
+                "national_park",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ2-g6D00nQg0RF76FgrJL1rA",
+            "nombre": "Parque Madrid Río",
+            "direccion": "P.º de la Ermita del Santo, 14, 16, Latina, 28011 Madrid, Spain",
+            "lat": 40.4130932,
+            "lon": -3.7234566000000004,
+            "rating": 4.6,
+            "reviews": 5761,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "park",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ0aWGoF4mQg0RNOdDMR3snpc",
+            "nombre": "Manzanares River Linear Park",
+            "direccion": "Cmo. de Perales, Puente de Vallecas, 28053 Madrid, Spain",
+            "lat": 40.3775309,
+            "lon": -3.6865892,
+            "rating": 4.6,
+            "reviews": 7604,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "park",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJb1chGVMvQg0Rap6IYuBNShA",
+            "nombre": "Quinta de la Fuente del Berro Park",
+            "direccion": "C/ del Alcalde Sainz de Baranda, 94, Salamanca, 28028 Madrid, Spain",
+            "lat": 40.4229699,
+            "lon": -3.6610917,
+            "rating": 4.7,
+            "reviews": 4040,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "park",
+                "tourist_attraction",
+                "garden",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJn7xp6rYpQg0RZdhmLzJNQzU",
+            "nombre": "Dehesa de la Villa",
+            "direccion": "Carr. de la Dehesa de la Villa, Moncloa - Aravaca, 28035 Madrid, Spain",
+            "lat": 40.459626199999995,
+            "lon": -3.7194658,
+            "rating": 4.6,
+            "reviews": 9005,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "park",
+                "tourist_attraction",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJs4IOFWIoQg0RsRhSAEImv3g",
+            "nombre": "Plaza del Dos de Mayo",
+            "direccion": "Pl. del Dos de Mayo, 2, Centro, 28004 Madrid, Spain",
+            "lat": 40.426998999999995,
+            "lon": -3.7040302999999994,
+            "rating": 4.2,
+            "reviews": 13492,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "park",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJwR6hSVgoQg0RLwq20KZpmq8",
+            "nombre": "Instalaciones Deportivas Canal de Isabel II",
+            "direccion": "Av. de Filipinas, 54, Chamberí, 28003 Madrid, Spain",
+            "lat": 40.441189,
+            "lon": -3.705117,
+            "rating": 3.9,
+            "reviews": 2132,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "sports_complex",
+                "park",
+                "sports_activity_location",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJVUKvK3YoQg0ROZkJwsFy10w",
+            "nombre": "Las Vistillas Garden",
+            "direccion": "Jardín de las Vistillas, Pl. de Gabriel Miró, 2, Centro, 28005 Madrid, Spain",
+            "lat": 40.4125885,
+            "lon": -3.7154567,
+            "rating": 4.3,
+            "reviews": 5846,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "garden",
+                "tourist_attraction",
+                "park",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJrx8px6snQg0RPrfIy51MNdE",
+            "nombre": "Parque de Pradolongo",
+            "direccion": "Usera, 28026 Madrid, Spain",
+            "lat": 40.3759632,
+            "lon": -3.7061911,
+            "rating": 4.3,
+            "reviews": 5715,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "park",
+                "tourist_attraction",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJNU3kNVgoQg0Rk7hhGDr1DtY",
+            "nombre": "Centro de Ocio y Deporte Tercer Depósito Canal de Isabel II",
+            "direccion": "Avda. Filipinas esquina, Av. de Pablo Iglesias, s/n, Chamberí, 28003 Madrid, Spain",
+            "lat": 40.4452113,
+            "lon": -3.7069050000000003,
+            "rating": 4.5,
+            "reviews": 1194,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "park",
+                "tourist_attraction",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJKUbvqw4vQg0ReuepK0ZTEyk",
+            "nombre": "Parque de la Quinta de los Molinos",
+            "direccion": "C. Alcalá, 527, San Blas-Canillejas, 28027 Madrid, Spain",
+            "lat": 40.4438927,
+            "lon": -3.6274797,
+            "rating": 4.5,
+            "reviews": 16066,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "city_park",
+                "park",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJDxhIALUvQg0RE5k2R2VbvTM",
+            "nombre": "Parque Juan Carlos I",
+            "direccion": "GLORIETA S.A.R. DON JUAN DE BORBON Y BATTEMBERG, 5 , 5, Barajas, 28042 Madrid, Spain",
+            "lat": 40.4598175,
+            "lon": -3.6047531,
+            "rating": 4.7,
+            "reviews": 26987,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "park",
+                "tourist_attraction",
+                "sports_activity_location",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJW89YisovQg0RwRu1bb1MjOM",
+            "nombre": "Jardín del Capricho",
+            "direccion": "P.º de la Alameda de Osuna, 25, Barajas, 28042 Madrid, Spain",
+            "lat": 40.4558582,
+            "lon": -3.5991508999999993,
+            "rating": 4.7,
+            "reviews": 22094,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "garden",
+                "tourist_attraction",
+                "park",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJcUwpSw4nQg0RU_iJ8kfiBcU",
+            "nombre": "Madrid Río Park",
+            "direccion": "Autop. de Circunvalación M-30, 28005 Madrid, Spain",
+            "lat": 40.3985912,
+            "lon": -3.7147311,
+            "rating": 4.7,
+            "reviews": 3229,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "park",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJHfAHxVQ7Qg0R1p4ZEpxVoY4",
+            "nombre": "Europe Park",
+            "direccion": "28850 Torrejón de Ardoz, Madrid, Spain",
+            "lat": 40.446729999999995,
+            "lon": -3.4530547,
+            "rating": 4.6,
+            "reviews": 51608,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "park",
+                "tourist_attraction",
+                "amusement_park",
+                "amusement_center",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJp77z4JcuQg0RgsGHyM4YrVc",
+            "nombre": "Parque Forestal de Valdebebas - Felipe VI",
+            "direccion": "Av. de las Fuerzas Armadas, 11, Hortaleza, 28055 Madrid, Spain",
+            "lat": 40.4909787,
+            "lon": -3.6338581,
+            "rating": 4.5,
+            "reviews": 9343,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "park",
+                "tourist_attraction",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJHw46BR03Qg0RIDbbGc2sYOs",
+            "nombre": "Agua Park",
+            "direccion": "Av. de la Constitución, 82, 28850 Torrejón de Ardoz, Madrid, Spain",
+            "lat": 40.458666099999995,
+            "lon": -3.4720845999999996,
+            "rating": 4.2,
+            "reviews": 774,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "park",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ_T76ttwoQg0RgMpwJ1ahqu0",
+            "nombre": "Pablo Sorozábal Gardens",
+            "direccion": "Calle del Príncipe de Vergara, 139, Chamartín, 28002 Madrid, Spain",
+            "lat": 40.44562,
+            "lon": -3.6786643999999997,
+            "rating": 3.9,
+            "reviews": 354,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "park",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJOWcwCx4mQg0RCtMBecNi5Js",
+            "nombre": "Pabellón de los Jardines de Cecilio Rodríguez",
+            "direccion": "P.º del Uruguay, 5, Retiro, 28009 Madrid, Spain",
+            "lat": 40.412450899999996,
+            "lon": -3.6777427,
+            "rating": 4.7,
+            "reviews": 1065,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "park",
+                "tourist_attraction",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJVVUVT4QoQg0R81C7vyFp1lg",
+            "nombre": "Plaza del Rey",
+            "direccion": "Centro, 28004 Madrid, Spain",
+            "lat": 40.4201792,
+            "lon": -3.6961616,
+            "rating": 4.3,
+            "reviews": 1034,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "city_park",
+                "park",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJBXttECwmQg0RjBY61T08hLU",
+            "nombre": "\"Esta es una Plaza\"",
+            "direccion": "Calle del Dr. Fourquet, 24, Centro, Centro, 28012 Madrid, Spain",
+            "lat": 40.4072919,
+            "lon": -3.6984508000000003,
+            "rating": 4.7,
+            "reviews": 394,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "park",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJnxDS1hgpQg0RdUidvTHBdwA",
+            "nombre": "Plaza del Carmen",
+            "direccion": "C. del Carmen, Centro, 28013 Madrid, Spain",
+            "lat": 40.4185837,
+            "lon": -3.7037833,
+            "rating": 4.8,
+            "reviews": 18,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "park",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJyRBJz3koQg0RTlSqBRn4Iss",
+            "nombre": "Plaza San Nicolas",
+            "direccion": "C. de San Nicolás, 7, Centro, 28013 Madrid, Spain",
+            "lat": 40.415706899999996,
+            "lon": -3.7121245999999997,
+            "rating": 4.6,
+            "reviews": 19,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "park",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ_fD3byspQg0RmIm-KkIzLkw",
+            "nombre": "Plaza de Oriente",
+            "direccion": "Pl. de Ote., 2, Centro, Centro, 28013 Madrid, Spain",
+            "lat": 40.4186362,
+            "lon": -3.7120978,
+            "rating": 4.8,
+            "reviews": 105,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "garden",
+                "park",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ9Sqyz4ooQg0R2793ZVL-xCQ",
+            "nombre": "Plaza de Olavide Garden",
+            "direccion": "Plaza de Olavide, 16, Chamberí, 28010 Madrid, Spain",
+            "lat": 40.4327622,
+            "lon": -3.7011165999999998,
+            "rating": 4.3,
+            "reviews": 3441,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "park",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ77UOgBY3Qg0Rf33Hv4k9vBA",
+            "nombre": "Los Fresnos Park",
+            "direccion": "Parque del castillo(los Fresnos), 28850 Torrejón de Ardoz, Madrid, Spain",
+            "lat": 40.4453622,
+            "lon": -3.4775883999999997,
+            "rating": 4.4,
+            "reviews": 643,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "park",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        },
+        {
+            "id": "ChIJ5bNFH0kuQg0Rp8J8hNuAKdY",
+            "nombre": "Jardín de Las Tres Culturas",
+            "direccion": "Barajas, 28042 Madrid, Spain",
+            "lat": 40.463174099999996,
+            "lon": -3.6048237999999992,
+            "rating": 4.6,
+            "reviews": 4169,
+            "tipo_parque": [
+                "Parque"
+            ],
+            "amenities": [
+                "park",
+                "tourist_attraction",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)"
+        }
+    ],
+    "source": "Google Places API (New)"
+}

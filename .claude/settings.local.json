@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"D:\\\\WorkTable\\\\Curso\\\\GitHub_Pontia\\\\travel-ai-world\\\\backend\" -Force)",
+      "Bash(Select-Object Name, Length, LastWriteTime)",
+      "Bash(uv run *)"
+    ]
+  }
+}

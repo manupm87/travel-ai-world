@@ -1,0 +1,2333 @@
+{
+    "city": "Madrid",
+    "category": "cercanias",
+    "count": 120,
+    "items": [
+        {
+            "id": "ChIJMZxLQSYnQg0RMTSZy3-HghE",
+            "nombre": "Renfe Atocha",
+            "direccion": "Arganzuela, 28045 Madrid, Spain",
+            "lat": 40.4062683,
+            "lon": -3.6910629,
+            "rating": 2.8,
+            "reviews": 529,
+            "amenities": [
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "lineas": [
+                "C2",
+                "C3",
+                "C4",
+                "C5",
+                "C7",
+                "C8",
+                "C10"
+            ],
+            "colores": [
+                "#E2231A",
+                "#F28E00",
+                "#009739",
+                "#FFD700",
+                "#8B008B",
+                "#00A3E0",
+                "#003DA5"
+            ]
+        },
+        {
+            "id": "ChIJr3ABizAmQg0RcXr91jVgclM",
+            "nombre": "Estación de Delicias",
+            "direccion": "Arganzuela, 28045 Madrid, Spain",
+            "lat": 40.40027,
+            "lon": -3.6938800000000005,
+            "rating": 3.6,
+            "reviews": 16,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "lineas": [
+                "C10"
+            ],
+            "colores": [
+                "#003DA5"
+            ]
+        },
+        {
+            "id": "ChIJR5lroIAoQg0R6Lhbj4PqHTg",
+            "nombre": "Estación de Sol",
+            "direccion": "Centro, Madrid, Spain",
+            "lat": 40.416796999999995,
+            "lon": -3.7028367,
+            "rating": 3.2,
+            "reviews": 166,
+            "amenities": [
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "lineas": [
+                "C3",
+                "C4"
+            ],
+            "colores": [
+                "#F28E00",
+                "#009739"
+            ]
+        },
+        {
+            "id": "ChIJlWJNnZooQg0RFRoyrFNHp6Y",
+            "nombre": "Recoletos",
+            "direccion": "Salamanca, 28001 Madrid, Spain",
+            "lat": 40.4233389,
+            "lon": -3.690958,
+            "rating": 3.6,
+            "reviews": 265,
+            "amenities": [
+                "train_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "lineas": [
+                "C2",
+                "C7",
+                "C8",
+                "C10"
+            ],
+            "colores": [
+                "#E2231A",
+                "#8B008B",
+                "#00A3E0",
+                "#003DA5"
+            ]
+        },
+        {
+            "id": "ChIJbWALKT4pQg0R6nxibfBqHDc",
+            "nombre": "Estación de Madrid-Chamartín-Clara Campoamor",
+            "direccion": "Chamartín, 28036 Madrid, Spain",
+            "lat": 40.4718908,
+            "lon": -3.6825565,
+            "rating": 1.9,
+            "reviews": 1062,
+            "amenities": [
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "lineas": [
+                "C1",
+                "C2",
+                "C3",
+                "C4",
+                "C7",
+                "C8",
+                "C10"
+            ],
+            "colores": [
+                "#0072CE",
+                "#E2231A",
+                "#F28E00",
+                "#009739",
+                "#8B008B",
+                "#00A3E0",
+                "#003DA5"
+            ]
+        },
+        {
+            "id": "ChIJF1RWEksnQg0RwXmgryf8NLM",
+            "nombre": "Estación de tren de Atocha",
+            "direccion": "Atocha, Arganzuela, 28045 Madrid, Spain",
+            "lat": 40.407556,
+            "lon": -3.6918864,
+            "rating": 2.9,
+            "reviews": 31,
+            "amenities": [
+                "train_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "lineas": [
+                "C2",
+                "C7",
+                "C8"
+            ],
+            "colores": [
+                "#E2231A",
+                "#8B008B",
+                "#00A3E0"
+            ]
+        },
+        {
+            "id": "ChIJD3LgJtAnQg0REkusFhF3_Ew",
+            "nombre": "Pirámides",
+            "direccion": "Arganzuela, 28005 Madrid, Spain",
+            "lat": 40.4025137,
+            "lon": -3.7113712,
+            "rating": 3.9,
+            "reviews": 208,
+            "amenities": [
+                "transit_station",
+                "train_station",
+                "subway_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "lineas": [
+                "C10"
+            ],
+            "colores": [
+                "#003DA5"
+            ]
+        },
+        {
+            "id": "ChIJn_Hd820oQg0RgOhjR0WLNbk",
+            "nombre": "Príncipe Pío",
+            "direccion": "Moncloa - Aravaca, 28008 Madrid, Spain",
+            "lat": 40.421467299999996,
+            "lon": -3.7189925,
+            "rating": 4.2,
+            "reviews": 2164,
+            "amenities": [
+                "transit_station",
+                "train_station",
+                "subway_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "lineas": [
+                "C7",
+                "C10"
+            ],
+            "colores": [
+                "#8B008B",
+                "#003DA5"
+            ]
+        },
+        {
+            "id": "ChIJl05g2eQoQg0RxUzptEglylA",
+            "nombre": "Estación de Nuevos Ministerios",
+            "direccion": "Tetuán, 28046, Madrid, Spain",
+            "lat": 40.446621,
+            "lon": -3.6918895999999997,
+            "rating": 2.6,
+            "reviews": 135,
+            "amenities": [
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "lineas": [
+                "C2",
+                "C3",
+                "C4",
+                "C7",
+                "C8",
+                "C10"
+            ],
+            "colores": [
+                "#E2231A",
+                "#F28E00",
+                "#009739",
+                "#8B008B",
+                "#00A3E0",
+                "#003DA5"
+            ]
+        },
+        {
+            "id": "ChIJ6eQxKi0mQg0RpzPMa8LPjJc",
+            "nombre": "Embajadores",
+            "direccion": "C. de Martín de Vargas, 7-I, n. 5, Arganzuela, 28005 Madrid, Spain",
+            "lat": 40.4046198,
+            "lon": -3.7025916,
+            "rating": 4.2,
+            "reviews": 602,
+            "amenities": [
+                "transit_station",
+                "train_station",
+                "subway_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "lineas": [
+                "C5"
+            ],
+            "colores": [
+                "#FFD700"
+            ]
+        },
+        {
+            "id": "ChIJcQe_Y1InQg0RBhU1q2zPKB4",
+            "nombre": "Méndez Álvaro Renfe",
+            "direccion": "Estación Sur de Autobuses, C. de Méndez Álvaro, Arganzuela, 28045 Madrid, Spain",
+            "lat": 40.3959115,
+            "lon": -3.6781072999999997,
+            "rating": 4,
+            "reviews": 1280,
+            "amenities": [
+                "train_ticket_office",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "lineas": [
+                "C5",
+                "C10"
+            ],
+            "colores": [
+                "#FFD700",
+                "#003DA5"
+            ]
+        },
+        {
+            "id": "ChIJNbSXHCYmQg0RUhUT2ytPcTM",
+            "nombre": "Estación del Arte",
+            "direccion": "Centro, 28012 Madrid, Spain",
+            "lat": 40.408989,
+            "lon": -3.6924959,
+            "rating": 4.2,
+            "reviews": 390,
+            "amenities": [
+                "subway_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "lineas": [
+                "C2",
+                "C7",
+                "C8"
+            ],
+            "colores": [
+                "#E2231A",
+                "#8B008B",
+                "#00A3E0"
+            ]
+        },
+        {
+            "id": "ChIJJ8F4w1MmQg0RYB6Xo_E11DE",
+            "nombre": "Doce de Octubre",
+            "direccion": "Usera, 28041 Madrid, Spain",
+            "lat": 40.37891,
+            "lon": -3.69869,
+            "rating": 3.1,
+            "reviews": 105,
+            "amenities": [
+                "train_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "lineas": [
+                "C5"
+            ],
+            "colores": [
+                "#FFD700"
+            ]
+        },
+        {
+            "id": "ChIJe4u_cnspQg0Rb1JlISWrIQk",
+            "nombre": "Ramón y Cajal",
+            "direccion": "Fuencarral-El Pardo, 28034 Madrid, Spain",
+            "lat": 40.4880947,
+            "lon": -3.6948195999999998,
+            "rating": 2.9,
+            "reviews": 127,
+            "amenities": [
+                "train_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "lineas": [
+                "C7",
+                "C8"
+            ],
+            "colores": [
+                "#8B008B",
+                "#00A3E0"
+            ]
+        },
+        {
+            "id": "ChIJve08KtMnQg0RaK_cUPIAI6g",
+            "nombre": "Estación de metro Atocha",
+            "direccion": "Arganzuela, 28007 Madrid, Spain",
+            "lat": 40.406603499999996,
+            "lon": -3.6894452,
+            "rating": 4.1,
+            "reviews": 169,
+            "amenities": [
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "lineas": [
+                "C2",
+                "C3",
+                "C4",
+                "C5",
+                "C7",
+                "C8",
+                "C10"
+            ],
+            "colores": [
+                "#E2231A",
+                "#F28E00",
+                "#009739",
+                "#FFD700",
+                "#8B008B",
+                "#00A3E0",
+                "#003DA5"
+            ]
+        },
+        {
+            "id": "ChIJB1H-xfMwQg0RZewT9r6_A84",
+            "nombre": "San Fernando",
+            "direccion": "28821 Coslada, Madrid, Spain",
+            "lat": 40.4428,
+            "lon": -3.5339601999999997,
+            "rating": 3.5,
+            "reviews": 178,
+            "amenities": [
+                "train_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "lineas": [
+                "C7",
+                "C8"
+            ],
+            "colores": [
+                "#8B008B",
+                "#00A3E0"
+            ]
+        },
+        {
+            "id": "ChIJU0889hAlQg0RGmqYmgfEGq4",
+            "nombre": "Santa Eugenia",
+            "direccion": "Villa de Vallecas, 28031 Madrid, Spain",
+            "lat": 40.386939999999996,
+            "lon": -3.6089403000000004,
+            "rating": 4,
+            "reviews": 185,
+            "amenities": [
+                "train_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "lineas": [
+                "C2",
+                "C7",
+                "C8"
+            ],
+            "colores": [
+                "#E2231A",
+                "#8B008B",
+                "#00A3E0"
+            ]
+        },
+        {
+            "id": "ChIJiRU8JA8uQg0R23wUDGLmoeo",
+            "nombre": "Aeropuerto T4",
+            "direccion": "Barajas, 28042 Madrid, Spain",
+            "lat": 40.492106199999995,
+            "lon": -3.593446,
+            "rating": 4.3,
+            "reviews": 2147,
+            "amenities": [
+                "bus_stop",
+                "transit_stop",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "lineas": [
+                "C1"
+            ],
+            "colores": [
+                "#0072CE"
+            ]
+        },
+        {
+            "id": "ChIJ_6Lbrxg3Qg0RpMFr5i3bXzc",
+            "nombre": "Torrejón de Ardoz",
+            "direccion": "P.º de la Estación, 2, 28850 Torrejón de Ardoz, Madrid, Spain",
+            "lat": 40.45479,
+            "lon": -3.47973,
+            "rating": 4.3,
+            "reviews": 560,
+            "amenities": [
+                "train_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "lineas": [
+                "C2",
+                "C7",
+                "C8"
+            ],
+            "colores": [
+                "#E2231A",
+                "#8B008B",
+                "#00A3E0"
+            ]
+        },
+        {
+            "id": "ChIJx92MS3wnQg0RxOoqGgAATEw",
+            "nombre": "[Renfe Cercanías] Orcasitas (C-5)",
+            "direccion": "C. Campotéjar, 24, Usera, 28041 Madrid, Spain",
+            "lat": 40.3670576,
+            "lon": -3.7039711000000004,
+            "rating": 3.4,
+            "reviews": 33,
+            "amenities": [
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "lineas": [
+                "C5"
+            ],
+            "colores": [
+                "#FFD700"
+            ]
+        },
+        {
+            "id": "ChIJZ2tlA0QlQg0RKaZARK6prLc",
+            "nombre": "Cercanías Renfe",
+            "direccion": "C. de S. Cipriano, 85, Vicálvaro, 28032 Madrid, Spain",
+            "lat": 40.401267499999996,
+            "lon": -3.5959366999999993,
+            "rating": 3.3,
+            "reviews": 191,
+            "amenities": [
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "lineas": [],
+            "colores": []
+        },
+        {
+            "id": "ChIJO2EuJXomQg0RNrajmkhsmns",
+            "nombre": "Asamblea de Madrid-Entrevías",
+            "direccion": "metro Portazgo Renfe, C. de Peña de la Miel, no 1, Puente de Vallecas, 28018 Madrid, Spain",
+            "lat": 40.381690299999995,
+            "lon": -3.6679811000000004,
+            "rating": 3.6,
+            "reviews": 267,
+            "amenities": [
+                "train_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "lineas": [
+                "C2",
+                "C7",
+                "C8"
+            ],
+            "colores": [
+                "#E2231A",
+                "#8B008B",
+                "#00A3E0"
+            ]
+        },
+        {
+            "id": "ChIJg15oGts3Qg0RvEHEC6ELXV0",
+            "nombre": "Pasarela Estación de Cercanías Torrejón de Ardoz a Parking alternativo",
+            "direccion": "28850 Torrejón de Ardoz, Madrid, Spain",
+            "lat": 40.4544654,
+            "lon": -3.4798134999999997,
+            "rating": 4.5,
+            "reviews": 6,
+            "amenities": [
+                "bridge",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "lineas": [],
+            "colores": []
+        },
+        {
+            "id": "ChIJl-lXYgsvQg0R_eNt7qqGnUQ",
+            "nombre": "[Renfe Cercanías] Valdebebas (C1)",
+            "direccion": "Av. de las Fuerzas Armadas, Hortaleza, 28055 Madrid, Spain",
+            "lat": 40.481994400000005,
+            "lon": -3.6163165,
+            "rating": 3.3,
+            "reviews": 24,
+            "amenities": [
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "lineas": [
+                "C1"
+            ],
+            "colores": [
+                "#0072CE"
+            ]
+        },
+        {
+            "id": "ChIJrUGcBEQlQg0R_9l2NsSJvCk",
+            "nombre": "Vicálvaro",
+            "direccion": "Vicálvaro, 28032 Madrid, Spain",
+            "lat": 40.401256599999996,
+            "lon": -3.5959078000000004,
+            "rating": 3.9,
+            "reviews": 239,
+            "amenities": [
+                "train_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "lineas": [
+                "C2",
+                "C7",
+                "C8"
+            ],
+            "colores": [
+                "#E2231A",
+                "#8B008B",
+                "#00A3E0"
+            ]
+        },
+        {
+            "id": "ChIJUx3DIAInQg0R260M78Pqg1U",
+            "nombre": "Orcasitas",
+            "direccion": "Usera, 28041 Madrid, Spain",
+            "lat": 40.36669,
+            "lon": -3.70457,
+            "rating": 3.5,
+            "reviews": 116,
+            "amenities": [
+                "train_station",
+                "transit_station",
+                "transportation_service",
+                "point_of_interest",
+                "establishment"
+            ],
+            "fuente": "Google Places (New)",
+            "lineas": [
+                "C5"
+            ],
+            "colores": [
+                "#FFD700"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Valdebebas",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C1"
+            ],
+            "colores": [
+                "#0072CE"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Fuente de la Mora",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C1"
+            ],
+            "colores": [
+                "#0072CE"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Guadalajara",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C2",
+                "C8"
+            ],
+            "colores": [
+                "#E2231A",
+                "#00A3E0"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Azuqueca",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C2",
+                "C8"
+            ],
+            "colores": [
+                "#E2231A",
+                "#00A3E0"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Meco",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C2",
+                "C8"
+            ],
+            "colores": [
+                "#E2231A",
+                "#00A3E0"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Alcalá de Henares-Universidad",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C2",
+                "C8"
+            ],
+            "colores": [
+                "#E2231A",
+                "#00A3E0"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Alcalá de Henares",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C2",
+                "C7",
+                "C8"
+            ],
+            "colores": [
+                "#E2231A",
+                "#8B008B",
+                "#00A3E0"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "La Garena",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C2",
+                "C7",
+                "C8"
+            ],
+            "colores": [
+                "#E2231A",
+                "#8B008B",
+                "#00A3E0"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Soto del Henares",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C2",
+                "C7",
+                "C8"
+            ],
+            "colores": [
+                "#E2231A",
+                "#8B008B",
+                "#00A3E0"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "San Fernando de Henares",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C2"
+            ],
+            "colores": [
+                "#E2231A"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Coslada",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C2",
+                "C7",
+                "C8"
+            ],
+            "colores": [
+                "#E2231A",
+                "#8B008B",
+                "#00A3E0"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Vallecas",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C2",
+                "C7",
+                "C8"
+            ],
+            "colores": [
+                "#E2231A",
+                "#8B008B",
+                "#00A3E0"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "El Pozo",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C2",
+                "C7",
+                "C8"
+            ],
+            "colores": [
+                "#E2231A",
+                "#8B008B",
+                "#00A3E0"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Aranjuez",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C3"
+            ],
+            "colores": [
+                "#F28E00"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Ciempozuelos",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C3"
+            ],
+            "colores": [
+                "#F28E00"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Valdemoro",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C3"
+            ],
+            "colores": [
+                "#F28E00"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Pinto",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C3"
+            ],
+            "colores": [
+                "#F28E00"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "La Tenería",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C3"
+            ],
+            "colores": [
+                "#F28E00"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Getafe Industrial",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C3"
+            ],
+            "colores": [
+                "#F28E00"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "El Casar",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C3"
+            ],
+            "colores": [
+                "#F28E00"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "San Cristóbal Industrial",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C3"
+            ],
+            "colores": [
+                "#F28E00"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "San Cristóbal de los Ángeles",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C3"
+            ],
+            "colores": [
+                "#F28E00"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Villaverde Bajo",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C3",
+                "C4"
+            ],
+            "colores": [
+                "#F28E00",
+                "#009739"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Parla",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C4"
+            ],
+            "colores": [
+                "#009739"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Parla Norte",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C4"
+            ],
+            "colores": [
+                "#009739"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Getafe Sector 3",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C4"
+            ],
+            "colores": [
+                "#009739"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Getafe Centro",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C4"
+            ],
+            "colores": [
+                "#009739"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Las Margaritas Universidad",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C4"
+            ],
+            "colores": [
+                "#009739"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Villaverde Alto",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C4",
+                "C5"
+            ],
+            "colores": [
+                "#009739",
+                "#FFD700"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Fuencarral-Malmea",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C4"
+            ],
+            "colores": [
+                "#009739"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Fuencarral",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C4"
+            ],
+            "colores": [
+                "#009739"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Universidad-Cantoblanco",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C4"
+            ],
+            "colores": [
+                "#009739"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Ramal C-4a",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C4"
+            ],
+            "colores": [
+                "#009739"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Universidad Pontificia de Comillas",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C4"
+            ],
+            "colores": [
+                "#009739"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Valdelasfuentes",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C4"
+            ],
+            "colores": [
+                "#009739"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Alcobendas-San Sebastián de los Reyes",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C4"
+            ],
+            "colores": [
+                "#009739"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Casco Antiguo",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C4"
+            ],
+            "colores": [
+                "#009739"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Ramal C-4b",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C4"
+            ],
+            "colores": [
+                "#009739"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "El Goloso",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C4"
+            ],
+            "colores": [
+                "#009739"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Tres Cantos",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C4"
+            ],
+            "colores": [
+                "#009739"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Tres Cantos Norte",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C4"
+            ],
+            "colores": [
+                "#009739"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Colmenar Viejo",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C4"
+            ],
+            "colores": [
+                "#009739"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Soto Sur",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C4"
+            ],
+            "colores": [
+                "#009739"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Humanes",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C5"
+            ],
+            "colores": [
+                "#FFD700"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Fuenlabrada",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C5"
+            ],
+            "colores": [
+                "#FFD700"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "La Serna",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C5"
+            ],
+            "colores": [
+                "#FFD700"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Parque Polvoranca",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C5"
+            ],
+            "colores": [
+                "#FFD700"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Leganés",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C5"
+            ],
+            "colores": [
+                "#FFD700"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Zarzaquemada",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C5"
+            ],
+            "colores": [
+                "#FFD700"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Puente Alcocer",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C5"
+            ],
+            "colores": [
+                "#FFD700"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Laguna",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C5"
+            ],
+            "colores": [
+                "#FFD700"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Aluche",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C5"
+            ],
+            "colores": [
+                "#FFD700"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Maestra Justa Freire-Polideportivo Aluche",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C5"
+            ],
+            "colores": [
+                "#FFD700"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Las Águilas",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C5"
+            ],
+            "colores": [
+                "#FFD700"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Cuatro Vientos",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C5"
+            ],
+            "colores": [
+                "#FFD700"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "San José de Valderas",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C5"
+            ],
+            "colores": [
+                "#FFD700"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Alcorcón",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C5"
+            ],
+            "colores": [
+                "#FFD700"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Las Retamas",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C5"
+            ],
+            "colores": [
+                "#FFD700"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Móstoles",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C5"
+            ],
+            "colores": [
+                "#FFD700"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Móstoles-El Soto",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C5"
+            ],
+            "colores": [
+                "#FFD700"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Mirasierra-Paco de Lucía",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C7",
+                "C8"
+            ],
+            "colores": [
+                "#8B008B",
+                "#00A3E0"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Pitis",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C7",
+                "C8"
+            ],
+            "colores": [
+                "#8B008B",
+                "#00A3E0"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Las Rozas",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C7",
+                "C10"
+            ],
+            "colores": [
+                "#8B008B",
+                "#003DA5"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Majadahonda",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C7",
+                "C10"
+            ],
+            "colores": [
+                "#8B008B",
+                "#003DA5"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "El Barrial-Centro Comercial Pozuelo",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C7",
+                "C10"
+            ],
+            "colores": [
+                "#8B008B",
+                "#003DA5"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Pozuelo",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C7",
+                "C10"
+            ],
+            "colores": [
+                "#8B008B",
+                "#003DA5"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Aravaca",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C7",
+                "C10"
+            ],
+            "colores": [
+                "#8B008B",
+                "#003DA5"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Pinar",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C8",
+                "C10"
+            ],
+            "colores": [
+                "#00A3E0",
+                "#003DA5"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Las Matas",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C8",
+                "C10"
+            ],
+            "colores": [
+                "#00A3E0",
+                "#003DA5"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Torrelodones",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C8",
+                "C10"
+            ],
+            "colores": [
+                "#00A3E0",
+                "#003DA5"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Galapagar-La Navata",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C8",
+                "C10"
+            ],
+            "colores": [
+                "#00A3E0",
+                "#003DA5"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Villalba",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C8",
+                "C10"
+            ],
+            "colores": [
+                "#00A3E0",
+                "#003DA5"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Ramal C-8a",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C8"
+            ],
+            "colores": [
+                "#00A3E0"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "San Yago",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C8"
+            ],
+            "colores": [
+                "#00A3E0"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Las Zorreras",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C8"
+            ],
+            "colores": [
+                "#00A3E0"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "El Escorial",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C8"
+            ],
+            "colores": [
+                "#00A3E0"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Zarzalejo",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C8"
+            ],
+            "colores": [
+                "#00A3E0"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Robledo de Chavela",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C8"
+            ],
+            "colores": [
+                "#00A3E0"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Santa María de la Alameda-Peguerinos",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C8"
+            ],
+            "colores": [
+                "#00A3E0"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Ramal C-8b",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C8"
+            ],
+            "colores": [
+                "#00A3E0"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Los Negrales",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C8"
+            ],
+            "colores": [
+                "#00A3E0"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Alpedrete",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C8"
+            ],
+            "colores": [
+                "#00A3E0"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Collado Mediano",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C8"
+            ],
+            "colores": [
+                "#00A3E0"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Los Molinos",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C8"
+            ],
+            "colores": [
+                "#00A3E0"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Cercedilla",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C8",
+                "C9"
+            ],
+            "colores": [
+                "#00A3E0",
+                "#6F4E37"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Cercedilla Pueblo",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C9"
+            ],
+            "colores": [
+                "#6F4E37"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Las Heras",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C9"
+            ],
+            "colores": [
+                "#6F4E37"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Camorritos",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C9"
+            ],
+            "colores": [
+                "#6F4E37"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Siete Picos",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C9"
+            ],
+            "colores": [
+                "#6F4E37"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Collado Albo",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C9"
+            ],
+            "colores": [
+                "#6F4E37"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Puerto de Navacerrada",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C9"
+            ],
+            "colores": [
+                "#6F4E37"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Dos Castillas",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C9"
+            ],
+            "colores": [
+                "#6F4E37"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Vaquerizas",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C9"
+            ],
+            "colores": [
+                "#6F4E37"
+            ]
+        },
+        {
+            "id": null,
+            "nombre": "Cotos",
+            "direccion": null,
+            "lat": null,
+            "lon": null,
+            "rating": null,
+            "reviews": null,
+            "amenities": [],
+            "fuente": "Wikipedia",
+            "lineas": [
+                "C9"
+            ],
+            "colores": [
+                "#6F4E37"
+            ]
+        }
+    ]
+}
