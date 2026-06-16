@@ -1,7 +1,16 @@
 """Chat service — business logic for AI chat streaming.
 
+<<<<<<< HEAD
 Manages NVIDIA API streaming via httpx with retry + exponential backoff.
 Ported from monorepo, adapted to target's architecture (no DI constructor).
+=======
+Updated to match NVIDIA's 2025–2026 API:
+- Model is now passed in the URL (?model=...)
+- /v1/chat/completions no longer accepts "model" in the JSON body
+- Old endpoint returned 404, causing timeouts in the backend
+This service is stateless and model‑agnostic: it works with Kimi, Llama,
+StepFun, Cosmos and any NVIDIA‑compatible chat model.
+>>>>>>> 91ad8fe (agregando cambios devcontainer)
 """
 
 import asyncio
@@ -24,43 +33,67 @@ logger = logging.getLogger(__name__)
 
 
 class ChatService:
-    """Manages AI chat completions via NVIDIA API.
 
-    Uses httpx.AsyncClient for true async streaming.
-    """
+    """Manages AI chat completions via NVIDIA API (SSE streaming)."""
 
+    # ROLE NORMALIZATION
+    # Ensures frontend roles ("human", "me", "assistant_message", etc.)
+    # are mapped to valid NVIDIA roles: "user", "assistant", "system".
+    def _normalize_role(self, role: str) -> str:
+        role = role.lower().strip()
+
+        if role in ("user", "human", "me"):
+            return "user"
+
+        if role in ("assistant", "ai", "model", "assistant_message"):
+            return "assistant"
+
+        if role == "system":
+            return "system"
+
+        # fallback: treat any unknown role as "user" to avoid NVIDIA API errors 
+        return "user"
+
+    # REQUEST HEADERS
+    # Builds the headers required for NVIDIA's chat/completions API,
+    # including SSE support and Bearer authentication.
     def _get_headers(self) -> dict[str, str]:
-        """Build authorization headers for NVIDIA API."""
+
         if not settings.NVIDIA_API_KEY:
             raise ValueError("NVIDIA API key not configured")
         return {
             "Authorization": f"Bearer {settings.NVIDIA_API_KEY}",
-            "Accept": "text/event-stream",
+            "Accept": "text/event-stream",      # enables SSE streaming
             "Content-Type": "application/json",
         }
 
+
+    # Payload
     def _build_payload(self, messages: list[dict[str, str]]) -> dict:
-        """Build the request payload matching NVIDIA API spec."""
+        """Payload for NVIDIA API — model must be in the body."""
+
         return {
             "model": NVIDIA_CHAT_MODEL,
             "messages": messages,
             "max_tokens": 4096,
             "temperature": 0.7,
             "top_p": 0.95,
-            "stream": True,
-            "chat_template_kwargs": {"thinking": False},
+            "stream": True, # enable SSE streaming
         }
 
+
+    # Streaming SSE
     async def stream_completion(
         self, messages: list[dict[str, str]]
     ) -> AsyncGenerator[str]:
-        """Generator that yields SSE-formatted chunks from NVIDIA API.
 
-        Includes retry logic with exponential backoff for transient errors.
-        """
         headers = self._get_headers()
         payload = self._build_payload(messages)
+
+        # Correct endpoint — model goes in the body, NOT in the URL
         url = f"{NVIDIA_BASE_URL}/chat/completions"
+
+
         timeout = httpx.Timeout(
             connect=NVIDIA_CONNECT_TIMEOUT,
             read=NVIDIA_READ_TIMEOUT,
@@ -109,17 +142,18 @@ class ChatService:
                                 choices = parsed.get("choices", [])
                                 if choices:
                                     delta = choices[0].get("delta", {})
-                                    content = delta.get("content")
+                                    # content = delta.get("content") # Old models used "content"
+                                    content = delta.get("content") or delta.get("text") # some models use "content", others use "text"
+
                                     if content:
                                         yield f"data: {json.dumps({'content': content})}\n\n"
                             except json.JSONDecodeError:
                                 logger.debug("Skipping malformed SSE data: %s", data)
 
                 yield "data: [DONE]\n\n"
-                return  # Success — exit retry loop
+                return
 
             except ValueError:
-                # NVIDIA_API_KEY not configured — don't retry
                 raise
             except httpx.TimeoutException as exc:
                 last_error = exc
@@ -152,7 +186,6 @@ class ChatService:
                 logger.exception("Unexpected error during NVIDIA streaming: %s", exc)
                 break
 
-        # All retries exhausted
         error_msg = str(last_error) if last_error else "Unknown error"
         logger.error("NVIDIA streaming failed after retries: %s", error_msg)
         yield f"data: {json.dumps({'error': error_msg})}\n\n"
