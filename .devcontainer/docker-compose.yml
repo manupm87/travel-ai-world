@@ -1,0 +1,70 @@
+version: "3.9"
+
+services:
+  devcontainer:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - ..:/workspace:cached
+    command: sleep infinity
+    networks:
+      - devnet
+    depends_on:
+      - backend
+      - frontend
+      - db
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    working_dir: /workspace/backend
+    volumes:
+      - ..:/workspace
+    command: uv run fastapi dev app/main.py
+    ports:
+      - "8000:8000"
+    environment:
+      DB_SERVER: db
+      DB_PORT: 5432
+      DB_USER: travel
+      DB_PASSWORD: travel
+      DB_NAME: travel_ai_world
+      NVIDIA_API_KEY: ${NVIDIA_API_KEY}
+    networks:
+      - devnet
+    depends_on:
+      - db
+
+  frontend:
+    image: node:20
+    working_dir: /workspace/frontend
+    volumes:
+      - ..:/workspace
+    command: sh -c "npm install && npm run dev"
+    ports:
+      - "3000:3000"
+    networks:
+      - devnet
+
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: travel
+      POSTGRES_PASSWORD: travel
+      POSTGRES_DB: travel_ai_world
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - devnet
+
+networks:
+  devnet:
+
+volumes:
+  postgres_data:
+ 
