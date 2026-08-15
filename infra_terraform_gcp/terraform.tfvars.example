@@ -1,0 +1,15 @@
+project_id   = "your-gcp-project-id"
+region       = "europe-west1"
+zone         = "europe-west1-b"
+name_prefix  = "travel-ai"
+backend_image = "europe-west1-docker.pkg.dev/your-gcp-project-id/travel-ai-images/backend:latest"
+
+# Use secret values only in a local, ignored terraform.tfvars file or CI variables.
+db_password         = "replace-me"
+nvidia_api_key      = "replace-me"
+secret_key          = "replace-me"
+google_client_id    = "replace-me.apps.googleusercontent.com"
+google_client_secret = "replace-me"
+
+frontend_url        = "https://www.example.com"
+backend_cors_origins = "[\"https://www.example.com\"]"

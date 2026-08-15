@@ -13,6 +13,8 @@ The project is split into independent services:
 | **`frontend/`** | Next.js 16 · Tailwind CSS v4 · TypeScript | ✅ Active |
 | **`backend/`** | FastAPI · Python 3.12 · NVIDIA AI (Kimi K2.6) | ✅ Active |
 | **`Scraper/`** | Python · Playwright · httpx | 🔧 In development |
+| **`infra_terraform_gcp/`** | Terraform · Google Cloud · Cloud Run · Cloud SQL | ✅ Ready |
+| **`infra_terraform_aws/`** | Terraform · AWS · ECS Fargate · RDS | ✅ Ready |
 
 ---
 
@@ -22,6 +24,8 @@ The project is split into independent services:
 travel-ai-world/
 ├── frontend/          # Next.js web app (browser client)
 ├── backend/           # FastAPI REST API + AI chat streaming
+├── infra_terraform_gcp/ # GCP infrastructure (Cloud Run + Cloud SQL)
+├── infra_terraform_aws/ # AWS infrastructure (ECS Fargate + RDS)
 ├── Scraper/           # City data scrapers (Madrid, Berlin)
 │   ├── Madrid/
 │   └── Madrid2.0/
@@ -32,6 +36,19 @@ travel-ai-world/
 ├── images/            # Design assets and generated images
 └── README.md          # ← You are here
 ```
+
+---
+
+## Cloud Infrastructure
+
+The repository includes Terraform configurations for both supported cloud providers:
+
+- **[GCP infrastructure](infra_terraform_gcp/README.md)** — Cloud Run, Cloud SQL, Artifact Registry, VPC and Secret Manager.
+- **[AWS infrastructure](infra_terraform_aws/README.md)** — ECS Fargate, RDS PostgreSQL, ECR, Application Load Balancer and Secrets Manager.
+
+These are alternative deployment paths. Choose one provider for the project and apply only its Terraform configuration. Neither folder creates resources until `terraform apply` is explicitly executed.
+
+Each infrastructure folder contains its own README with prerequisites, secret configuration, Docker image workflow and deployment commands.
 
 ---
 
