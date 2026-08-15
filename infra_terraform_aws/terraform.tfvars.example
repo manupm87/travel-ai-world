@@ -1,0 +1,13 @@
+region        = "eu-west-1"
+name_prefix   = "travel-ai"
+backend_image = "123456789012.dkr.ecr.eu-west-1.amazonaws.com/travel-ai-backend:latest"
+
+# Use real values only in a local ignored terraform.tfvars file or CI variables.
+db_password          = "replace-me"
+nvidia_api_key       = "replace-me"
+secret_key           = "replace-me"
+google_client_id     = "replace-me.apps.googleusercontent.com"
+google_client_secret = "replace-me"
+
+frontend_url         = "https://www.example.com"
+backend_cors_origins = "[\"https://www.example.com\"]"
