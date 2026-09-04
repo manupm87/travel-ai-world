@@ -1,16 +1,11 @@
 """Chat service — business logic for AI chat streaming.
 
-<<<<<<< HEAD
-Manages NVIDIA API streaming via httpx with retry + exponential backoff.
-Ported from monorepo, adapted to target's architecture (no DI constructor).
-=======
 Updated to match NVIDIA's 2025–2026 API:
 - Model is now passed in the URL (?model=...)
 - /v1/chat/completions no longer accepts "model" in the JSON body
 - Old endpoint returned 404, causing timeouts in the backend
 This service is stateless and model‑agnostic: it works with Kimi, Llama,
 StepFun, Cosmos and any NVIDIA‑compatible chat model.
->>>>>>> 91ad8fe (agregando cambios devcontainer)
 """
 
 import asyncio
@@ -78,6 +73,7 @@ class ChatService:
             "max_tokens": 4096,
             "temperature": 0.7,
             "top_p": 0.95,
+            "reasoning_effort": "low",
             "stream": True, # enable SSE streaming
         }
 
