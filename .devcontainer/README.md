@@ -39,7 +39,7 @@ The result is a fully‑functional development stack that works the same on Wind
    cd ../backend
    uv run fastapi dev app/main.py   # http://localhost:8000
    ```
-4. The services are already exposed on the host ports `3000`, `8000`, `5432` (Postgres) and `6333` (optional).  Open your browser at `http://localhost:3000` to view the app.
+4. The services are already exposed on the host ports `3000`, `8000` and `5433` (Postgres). Open your browser at `http://localhost:3000` to view the app. Inside Docker, the backend continues to reach PostgreSQL at `db:5432`.
 
 ---
 
