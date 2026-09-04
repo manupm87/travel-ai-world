@@ -10,8 +10,7 @@ NVIDIA_BASE_URL = "https://integrate.api.nvidia.com/v1"
 #   "moonshotai/kimi-k2.6"
 #   "meta/llama-3.1-8b-instruct"
 
-# NVIDIA_CHAT_MODEL = "moonshotai/kimi-k2.6" # modelo original, pero respuestas muy toscas
-NVIDIA_CHAT_MODEL = "meta/llama-3.1-8b-instruct"
+NVIDIA_CHAT_MODEL = "openai/gpt-oss-20b"
 
 # HTTP client configuration
 NVIDIA_CONNECT_TIMEOUT = 10  # seconds
