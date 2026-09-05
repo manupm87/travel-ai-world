@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { AuthProvider, useAuth } from "./AuthContext";
+import { jwtDecode } from "jwt-decode";
 import React from "react";
 
 // Mock next/navigation
@@ -22,6 +23,19 @@ vi.mock("jwt-decode", () => ({
 }));
 
 
+// Mock the API client.
+let apiAvailable = false;
+const verifyGoogleTokenMock = vi.fn();
+
+vi.mock("@/services/api", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/services/api")>();
+  return {
+    ...actual,
+    isApiAvailable: () => apiAvailable,
+    verifyGoogleToken: (...args: unknown[]) => verifyGoogleTokenMock(...args),
+  };
+});
+
 // Mock localStorage
 const localStorageMock = (function() {
   let store: Record<string, string> = {};
@@ -42,6 +56,7 @@ describe("AuthContext", () => {
   beforeEach(() => {
     localStorage.clear();
     vi.clearAllMocks();
+    apiAvailable = false;
   });
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -99,6 +114,42 @@ describe("AuthContext", () => {
     expect(result.current.isAuthenticated).toBe(true);
     
     vi.unstubAllEnvs();
+  });
+
+  it("leaves no token behind when backend verification fails", async () => {
+    apiAvailable = true;
+    verifyGoogleTokenMock.mockRejectedValue(new Error("Auth failed"));
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    let failure: unknown;
+    await act(async () => {
+      failure = await result.current
+        .login("google-credential")
+        .catch((error: unknown) => error);
+    });
+
+    expect(failure).toBeInstanceOf(Error);
+    expect(result.current.user).toBeNull();
+    expect(result.current.isAuthenticated).toBe(false);
+    expect(localStorage.getItem("travel_ai_token")).toBeNull();
+    expect(localStorage.getItem("travel_ai_user")).toBeNull();
+  });
+
+  it("restores the cached profile on reload, not the JWT payload", () => {
+    const profile = {
+      id: "42",
+      email: "real@example.com",
+      name: "Real User",
+      picture: "https://example.com/real.jpg",
+    };
+    vi.mocked(jwtDecode).mockReturnValueOnce({ sub: "42" } as never);
+    localStorage.setItem("travel_ai_token", "our-backend-jwt");
+    localStorage.setItem("travel_ai_user", JSON.stringify(profile));
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    expect(result.current.user).toEqual(profile);
   });
 
   it("should logout and remove all storage items", () => {

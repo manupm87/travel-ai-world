@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import React from "react";
 import PlannerCard from "./PlannerCard";
+import { UnauthorizedError } from "@/services/api";
 
 const mockI18n = {
   planner: {
@@ -18,6 +19,7 @@ const mockI18n = {
       { emoji: "🏔", label: "Adventure in Patagonia", prompt: "2 weeks in Patagonia" },
     ],
     errorFallback: "Sorry, error.",
+    errorUnauthorized: "Session expired.",
   },
 };
 
@@ -34,15 +36,17 @@ vi.mock("@/components/ui/SectionLabel", () => ({
 let apiAvailable = true;
 const streamMock = vi.fn();
 
-vi.mock("@/services/api", () => ({
-  isApiAvailable: () => apiAvailable,
-  streamChat: (...args: unknown[]) => streamMock(...args),
-}));
+vi.mock("@/services/api", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/services/api")>();
+  return {
+    ...actual,
+    isApiAvailable: () => apiAvailable,
+    streamChat: (...args: unknown[]) => streamMock(...args),
+  };
+});
 
 beforeEach(() => {
   apiAvailable = true;
-  // jsdom does not implement scrollIntoView; stub it so the auto-scroll effect
-  // does not throw once messages are appended.
   Element.prototype.scrollIntoView = vi.fn();
   streamMock.mockReset();
   streamMock.mockImplementation(async function* () {
@@ -118,9 +122,6 @@ describe("PlannerCard", () => {
   });
 
   it("Cmd+Enter and Ctrl+Enter submit", async () => {
-    // Each modifier+Enter combo must independently route to a submit. After a
-    // submit the input is cleared and the component is briefly streaming, so we
-    // let each send settle and re-type before exercising the next combo.
     render(<PlannerCard />);
     const ta = screen.getByPlaceholderText(PLACEHOLDER);
 
@@ -157,6 +158,43 @@ describe("PlannerCard", () => {
       target: { value: "go to Rome" },
     });
     expect(screen.getByRole("button", { name: /Send/ })).toBeDisabled();
+  });
+
+  it("shows the session message when the backend rejects the token", async () => {
+    streamMock.mockImplementation(async function* () {
+      throw new UnauthorizedError();
+      // eslint-disable-next-line no-unreachable
+      yield "";
+    });
+
+    render(<PlannerCard />);
+    fireEvent.change(screen.getByPlaceholderText(PLACEHOLDER), {
+      target: { value: "go to Oslo" },
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /Send/ }));
+    });
+
+    expect(screen.getByText("Session expired.")).toBeInTheDocument();
+    expect(screen.queryByText("Sorry, error.")).toBeNull();
+  });
+
+  it("shows the generic message for any other failure", async () => {
+    streamMock.mockImplementation(async function* () {
+      throw new Error("boom");
+      // eslint-disable-next-line no-unreachable
+      yield "";
+    });
+
+    render(<PlannerCard />);
+    fireEvent.change(screen.getByPlaceholderText(PLACEHOLDER), {
+      target: { value: "go to Oslo" },
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /Send/ }));
+    });
+
+    expect(screen.getByText("Sorry, error.")).toBeInTheDocument();
   });
 
   it("applies transparent section classes when prop set", () => {
