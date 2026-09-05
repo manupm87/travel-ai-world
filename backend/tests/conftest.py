@@ -30,8 +30,7 @@ AsyncSessionTest = async_sessionmaker(
     bind=engine_test, class_=AsyncSession, expire_on_commit=False
 )
 
-
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="session")
 async def setup_db():
     # 1. Create the test database if it doesn't exist
     async with setup_engine.begin() as conn:
@@ -54,7 +53,7 @@ async def setup_db():
 
 
 @pytest.fixture
-async def db_session() -> AsyncGenerator[AsyncSession, None]:
+async def db_session(setup_db) -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSessionTest() as session:
         yield session
 
