@@ -94,6 +94,7 @@ export interface Translations {
     examplesLabel: string;
     examples: { emoji: string; label: string; prompt: string }[];
     errorFallback: string;
+    errorUnauthorized: string;
   };
   howItWorks: {
     label: string;
@@ -148,6 +149,7 @@ export interface Translations {
     welcomeBack: string;
     signingIn: string;
     loggedIn: string;
+    loginError: string;
   };
   notFound: {
     title: string;

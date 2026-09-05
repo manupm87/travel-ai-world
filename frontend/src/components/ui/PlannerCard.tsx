@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { SectionLabel } from "@/components/ui/SectionLabel";
-import { isApiAvailable, streamChat } from "@/services/api";
+import { isApiAvailable, streamChat, UnauthorizedError } from "@/services/api";
 import { Bot, Loader2, Send, User } from "lucide-react";
 
 interface PlannerCardProps {
@@ -73,11 +73,14 @@ export default function PlannerCard({ transparent = false }: PlannerCardProps) {
         });
       }
     } catch (error) {
+      const failure =
+        error instanceof UnauthorizedError ? p.errorUnauthorized : p.errorFallback;
+
       setMessages((prev) => {
         const updated = [...prev];
         const last = updated[updated.length - 1];
         if (last?.role === "assistant" && last.content === "") {
-          updated[updated.length - 1] = { ...last, content: p.errorFallback };
+          updated[updated.length - 1] = { ...last, content: failure };
         }
         return updated;
       });

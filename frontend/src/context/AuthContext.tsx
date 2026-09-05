@@ -4,7 +4,12 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { User } from "@/types/user";
 import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
-import { isApiAvailable, verifyGoogleToken } from "@/services/api";
+import {
+  isApiAvailable,
+  verifyGoogleToken,
+  TOKEN_STORAGE_KEY,
+  USER_STORAGE_KEY,
+} from "@/services/api";
 
 interface AuthContextType {
   user: User | null;
@@ -59,25 +64,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  /**
+   * Reads the profile cached at login time.
+   *
+   * Our own JWT carries only { sub, exp }
+   */
+  const readStoredProfile = (raw: string | null): User | null => {
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as User;
+    } catch {
+      return null;
+    }
+  };
+
   useEffect(() => {
-    const savedToken = localStorage.getItem("travel_ai_token");
-    const savedUserJson = localStorage.getItem("travel_ai_user");
+    const savedToken = localStorage.getItem(TOKEN_STORAGE_KEY);
+    const savedUserJson = localStorage.getItem(USER_STORAGE_KEY);
 
     if (savedToken) {
       const decodedUser = validateAndDecode(savedToken);
       if (decodedUser) {
-        setUser(decodedUser);
+        setUser(readStoredProfile(savedUserJson) ?? decodedUser);
       } else {
         // Token is invalid or expired
-        localStorage.removeItem("travel_ai_token");
-        localStorage.removeItem("travel_ai_user");
+        localStorage.removeItem(TOKEN_STORAGE_KEY);
+        localStorage.removeItem(USER_STORAGE_KEY);
       }
     } else if (!isProd && savedUserJson) {
-      // In Development, allow plain JSON injection for testing/browser agent
       try {
         setUser(JSON.parse(savedUserJson));
       } catch (e) {
-        localStorage.removeItem("travel_ai_user");
+        localStorage.removeItem(USER_STORAGE_KEY);
       }
     }
     
@@ -93,42 +111,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    */
   const login = async (credential: string): Promise<void> => {
     if (isApiAvailable()) {
-      try {
-        const response = await verifyGoogleToken(credential);
-        const backendUser: User = {
-          id: response.user.id,
-          email: response.user.email,
-          name: response.user.name,
-          picture: response.user.picture,
-        };
-        setUser(backendUser);
-        localStorage.setItem("travel_ai_token", response.access_token);
-        localStorage.setItem("travel_ai_user", JSON.stringify(backendUser));
-      } catch (error) {
-        console.error("Backend auth failed, falling back to client-side:", error);
-        // Graceful fallback to client-side decode
-        const decodedUser = validateAndDecode(credential);
-        if (decodedUser) {
-          setUser(decodedUser);
-          localStorage.setItem("travel_ai_token", credential);
-          localStorage.setItem("travel_ai_user", JSON.stringify(decodedUser));
-        }
-      }
-    } else {
-      // Static mode — no backend available
-      const decodedUser = validateAndDecode(credential);
-      if (decodedUser) {
-        setUser(decodedUser);
-        localStorage.setItem("travel_ai_token", credential);
-        localStorage.setItem("travel_ai_user", JSON.stringify(decodedUser));
-      }
+      const response = await verifyGoogleToken(credential);
+      const backendUser: User = {
+        id: response.user.id,
+        email: response.user.email,
+        name: response.user.name,
+        picture: response.user.picture,
+      };
+      setUser(backendUser);
+      localStorage.setItem(TOKEN_STORAGE_KEY, response.access_token);
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(backendUser));
+      return;
+    }
+
+    const decodedUser = validateAndDecode(credential);
+    if (decodedUser) {
+      setUser(decodedUser);
+      localStorage.setItem(TOKEN_STORAGE_KEY, credential);
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(decodedUser));
     }
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("travel_ai_token");
-    localStorage.removeItem("travel_ai_user");
+    localStorage.removeItem(TOKEN_STORAGE_KEY);
+    localStorage.removeItem(USER_STORAGE_KEY);
     router.push("/");
   };
 
