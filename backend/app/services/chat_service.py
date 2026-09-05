@@ -17,6 +17,7 @@ import httpx
 
 from app.core.config import settings
 from app.core.constants import (
+    CHAT_SYSTEM_PROMPT,
     NVIDIA_BASE_URL,
     NVIDIA_CHAT_MODEL,
     NVIDIA_CONNECT_TIMEOUT,
@@ -30,24 +31,6 @@ logger = logging.getLogger(__name__)
 class ChatService:
 
     """Manages AI chat completions via NVIDIA API (SSE streaming)."""
-
-    # ROLE NORMALIZATION
-    # Ensures frontend roles ("human", "me", "assistant_message", etc.)
-    # are mapped to valid NVIDIA roles: "user", "assistant", "system".
-    def _normalize_role(self, role: str) -> str:
-        role = role.lower().strip()
-
-        if role in ("user", "human", "me"):
-            return "user"
-
-        if role in ("assistant", "ai", "model", "assistant_message"):
-            return "assistant"
-
-        if role == "system":
-            return "system"
-
-        # fallback: treat any unknown role as "user" to avoid NVIDIA API errors 
-        return "user"
 
     # REQUEST HEADERS
     # Builds the headers required for NVIDIA's chat/completions API,
@@ -69,7 +52,10 @@ class ChatService:
 
         return {
             "model": NVIDIA_CHAT_MODEL,
-            "messages": messages,
+            "messages": [
+                {"role": "system", "content": CHAT_SYSTEM_PROMPT},
+                *messages,
+            ],
             "max_tokens": 4096,
             "temperature": 0.7,
             "top_p": 0.95,
@@ -86,9 +72,7 @@ class ChatService:
         headers = self._get_headers()
         payload = self._build_payload(messages)
 
-        # Correct endpoint — model goes in the body, NOT in the URL
         url = f"{NVIDIA_BASE_URL}/chat/completions"
-
 
         timeout = httpx.Timeout(
             connect=NVIDIA_CONNECT_TIMEOUT,
