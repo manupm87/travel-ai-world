@@ -4,26 +4,23 @@ import React from 'react'
 import TripOverview from './TripOverview'
 import { Trip } from '@/types/trip'
 
-// Mock components
 vi.mock('@/components/ui/Section', () => ({
-  Section: ({ children }: any) => <section>{children}</section>
+  Section: ({ children }: { children?: React.ReactNode }) => <section>{children}</section>
 }))
 
 vi.mock('@/components/ui/SectionLabel', () => ({
-  SectionLabel: ({ children }: any) => <div>{children}</div>
+  SectionLabel: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>
 }))
 
 vi.mock('@/components/ui/Card', () => ({
-  Card: ({ children, className }: any) => <div className={className}>{children}</div>
+  Card: ({ children, className }: { children?: React.ReactNode; className?: string }) => <div className={className}>{children}</div>
 }))
 
-// Mock utils
 vi.mock('@/utils/format', () => ({
   formatDate: (date: string) => date,
   formatDuration: (duration: string) => duration
 }))
 
-// Mock LanguageContext
 vi.mock('@/context/LanguageContext', () => ({
   useLanguage: () => ({
     language: 'en',
@@ -39,10 +36,10 @@ vi.mock('@/context/LanguageContext', () => ({
 
 const mockTrip: Partial<Trip> = {
   accommodation: [
-    { id: 'a1', name: 'Le Cinema Hotel', rating: 4.5, city: 'Cannes', countryCode: 'FR', checkIn: 'June 1', checkOut: 'June 5' }
+    { id: 'a1', name: 'Le Cinema Hotel', type: 'hotel', rating: 4.5, city: 'Cannes', countryCode: 'FR', address: '1 Rue Antibes', coordinates: { lat: 43.5528, lng: 7.0174 }, checkIn: 'June 1', checkOut: 'June 5', checkInTime: '15:00', checkOutTime: '11:00', pricePerNight: 180, totalCost: 720, amenities: [] }
   ],
   transportation: [
-    { id: 't1', fromCity: 'Nice', toCity: 'Cannes', type: 'train', provider: 'SNCF', departureTime: '10:00', arrivalTime: '10:30', duration: '30m' }
+    { id: 't1', category: 'ground', from: 'Nice-Ville', to: 'Cannes', fromCity: 'Nice', toCity: 'Cannes', type: 'train', provider: 'SNCF', departureTime: '10:00', arrivalTime: '10:30', duration: 30, cost: 12 }
   ]
 }
 

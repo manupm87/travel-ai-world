@@ -8,7 +8,7 @@ describe('Button', () => {
     render(<Button>Click me</Button>)
     const button = screen.getByRole('button', { name: /click me/i })
     expect(button).toBeInTheDocument()
-    expect(button.className).toContain('bg-accent') // default variant
+    expect(button.className).toContain('bg-accent')
   })
 
   it('renders correctly as a link when href is provided', () => {
@@ -20,7 +20,7 @@ describe('Button', () => {
 
   it('applies the correct variant classes', () => {
     const { rerender } = render(<Button variant="secondary">Secondary</Button>)
-    expect(screen.getByRole('button')).toHaveClass('bg-white/5')
+    expect(screen.getByRole('button')).toHaveClass('bg-bg-secondary')
     
     rerender(<Button variant="ghost">Ghost</Button>)
     expect(screen.getByRole('button')).toHaveClass('bg-transparent')

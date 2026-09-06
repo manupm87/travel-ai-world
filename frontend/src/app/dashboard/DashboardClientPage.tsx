@@ -2,7 +2,6 @@
 
 import { TripSummary } from "@/types/trip-summary";
 import EmptyDashboard from "@/components/dashboard/EmptyDashboard";
-import Header from "@/components/layout/Header";
 import PlannerCard from "@/components/ui/PlannerCard";
 import { useLanguage } from "@/context/LanguageContext";
 import { TripSection } from "@/components/dashboard/TripSection";

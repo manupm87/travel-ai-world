@@ -33,11 +33,11 @@ async def chat(
     Returns Server-Sent Events (SSE) with incremental content chunks.
 
     Wire format, one JSON object per `data:` line, terminated by `[DONE]`:
-    Example: 
-    
+    Example:
+
         data: {"content": "Hola"}
         data: {"content": " que"}
-        data: {"error": "..."}    
+        data: {"error": "..."}
         data: [DONE]
 
     The `system` prompt is inserted by the backend; clients may only send

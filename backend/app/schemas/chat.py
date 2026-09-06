@@ -4,6 +4,17 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+# Request limits.
+MAX_MESSAGE_CHARS = 4_000
+"""Longest single user turn the endpoint accepts."""
+
+MAX_HISTORY_MESSAGE_CHARS = 8_000
+"""Longest replayed turn — assistant answers run longer than user prompts."""
+
+MAX_HISTORY_TURNS = 40
+"""How many previous turns a client may replay for context."""
+
+
 class ChatMessage(BaseModel):
     """A single message replayed from the conversation history."""
 
@@ -11,7 +22,7 @@ class ChatMessage(BaseModel):
         description="Message role: 'user' or 'assistant'"
     )
     content: str = Field(
-        max_length=8_000,
+        max_length=MAX_HISTORY_MESSAGE_CHARS,
         description="Message content",
     )
 
@@ -21,11 +32,11 @@ class ChatRequest(BaseModel):
 
     message: str = Field(
         min_length=1,
-        max_length=4_000,
+        max_length=MAX_MESSAGE_CHARS,
         description="Current user message",
     )
     history: list[ChatMessage] = Field(
         default_factory=list,
-        max_length=40,
+        max_length=MAX_HISTORY_TURNS,
         description="Previous conversation messages for context",
     )

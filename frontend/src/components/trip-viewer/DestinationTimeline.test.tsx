@@ -4,21 +4,18 @@ import React from 'react'
 import DestinationTimeline from './DestinationTimeline'
 import { Destination } from '@/types/trip'
 
-// Mock components
 vi.mock('@/components/ui/Container', () => ({
-  Container: ({ children }: any) => <div data-testid="container">{children}</div>
+  Container: ({ children }: { children?: React.ReactNode }) => <div data-testid="container">{children}</div>
 }))
 
-// Mock utils
 vi.mock('@/utils/format', () => ({
-  formatDate: (date: string) => date // Simple return for testing
+  formatDate: (date: string) => date
 }))
 
 vi.mock('@/utils/countryFlag', () => ({
   getFlag: (code: string) => `Flag-${code}`
 }))
 
-// Mock LanguageContext
 vi.mock('@/context/LanguageContext', () => ({
   useLanguage: () => ({
     language: 'en',
@@ -32,8 +29,8 @@ vi.mock('@/context/LanguageContext', () => ({
 }))
 
 const mockDestinations: Destination[] = [
-  { id: '1', city: 'Paris', countryCode: 'FR', arrivalDate: 'May 1', departureDate: 'May 4', nightsStaying: 3, activities: [] },
-  { id: '2', city: 'Lyon', countryCode: 'FR', arrivalDate: 'May 4', departureDate: 'May 6', nightsStaying: 2, activities: [] },
+  { id: '1', city: 'Paris', country: 'France', countryCode: 'FR', coordinates: { lat: 48.8566, lng: 2.3522 }, arrivalDate: 'May 1', departureDate: 'May 4', nightsStaying: 3 },
+  { id: '2', city: 'Lyon', country: 'France', countryCode: 'FR', coordinates: { lat: 45.764, lng: 4.8357 }, arrivalDate: 'May 4', departureDate: 'May 6', nightsStaying: 2 },
 ]
 
 describe('DestinationTimeline', () => {

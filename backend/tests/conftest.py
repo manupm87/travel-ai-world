@@ -30,6 +30,7 @@ AsyncSessionTest = async_sessionmaker(
     bind=engine_test, class_=AsyncSession, expire_on_commit=False
 )
 
+
 @pytest.fixture(scope="session")
 async def setup_db():
     # 1. Create the test database if it doesn't exist

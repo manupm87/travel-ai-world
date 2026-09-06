@@ -163,7 +163,6 @@ describe("PlannerCard", () => {
   it("shows the session message when the backend rejects the token", async () => {
     streamMock.mockImplementation(async function* () {
       throw new UnauthorizedError();
-      // eslint-disable-next-line no-unreachable
       yield "";
     });
 
@@ -182,7 +181,6 @@ describe("PlannerCard", () => {
   it("shows the generic message for any other failure", async () => {
     streamMock.mockImplementation(async function* () {
       throw new Error("boom");
-      // eslint-disable-next-line no-unreachable
       yield "";
     });
 

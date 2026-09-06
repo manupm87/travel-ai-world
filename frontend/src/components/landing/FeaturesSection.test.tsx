@@ -3,22 +3,20 @@ import { render, screen } from '@testing-library/react'
 import React from 'react'
 import FeaturesSection from './FeaturesSection'
 
-// Mock components
 vi.mock('@/components/ui/Container', () => ({
-  Container: ({ children }: any) => <div>{children}</div>
+  Container: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>
 }))
 
 vi.mock('@/components/ui/SectionLabel', () => ({
-  SectionLabel: ({ children }: any) => <div data-testid="section-label">{children}</div>
+  SectionLabel: ({ children }: { children?: React.ReactNode }) => <div data-testid="section-label">{children}</div>
 }))
 
 vi.mock('@/components/ui/Card', () => ({
-  Card: ({ children, highlight, className }: any) => (
+  Card: ({ children, highlight, className }: { children?: React.ReactNode; highlight?: boolean; className?: string }) => (
     <div data-testid="card" data-highlight={highlight} className={className}>{children}</div>
   )
 }))
 
-// Mock lucide-react icons
 vi.mock('lucide-react', () => ({
   Brain: () => <div data-testid="icon-0" />,
   Calendar: () => <div data-testid="icon-1" />,
@@ -28,7 +26,6 @@ vi.mock('lucide-react', () => ({
   Edit3: () => <div data-testid="icon-5" />,
 }))
 
-// Mock LanguageContext
 vi.mock('@/context/LanguageContext', () => ({
   useLanguage: () => ({
     t: {

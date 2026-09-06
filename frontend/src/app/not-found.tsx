@@ -7,35 +7,28 @@ import Footer from "@/components/layout/Footer";
 import paradiseImage from "../../public/images/404-paradise.png";
 import { useLanguage } from "@/context/LanguageContext";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 /**
- * Global 404 Fallback (`not-found.tsx`).
- * 
- * Styled with a "Lost in Paradise" theme, reflecting the travel nature of the app.
- * Includes the official Header and Footer for easy navigation.
+ * Global 404 Fallback
  */
 export default function NotFound() {
   const { t, language } = useLanguage();
   const nt = t.notFound;
   const pathname = usePathname();
   const router = useRouter();
-  const [isRedirecting, setIsRedirecting] = useState(false);
 
-  // Smart check for dynamic routes on static export (GH Pages fallback)
+  const isRedirecting =
+    pathname.includes('/trip/') || pathname.includes('/dashboard/');
+
   useEffect(() => {
-    const isDynamicRoute = pathname.includes('/trip/') || pathname.includes('/dashboard/');
+    if (!isRedirecting) return;
     
-    if (isDynamicRoute) {
-      setIsRedirecting(true);
-      // Wait a moment for the SPA to potentially mount and handle the route
-      // If it doesn't, we redirect to home as a safer fallback than 404
-      const timer = setTimeout(() => {
-        router.push('/');
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [pathname, router]);
+    const timer = setTimeout(() => {
+      router.push('/');
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [isRedirecting, router]);
 
   if (isRedirecting) {
     return (

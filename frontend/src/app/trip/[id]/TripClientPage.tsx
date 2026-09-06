@@ -3,7 +3,6 @@
 import { Trip } from "@/types/trip";
 
 import TripHeader from "@/components/trip-viewer/trip-header";
-import Header from "@/components/layout/Header";
 import InteractiveTimeline from "@/components/trip-viewer/InteractiveTimeline";
 import TripOverview from "@/components/trip-viewer/TripOverview";
 import AIInsights from "@/components/trip-viewer/AIInsights";

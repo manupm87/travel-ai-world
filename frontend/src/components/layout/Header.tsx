@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Image from "next/image";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
@@ -32,7 +32,6 @@ export default function Header({ variant = "landing" }: HeaderProps) {
   const { t, language, setLanguage } = useLanguage();
   const { user, isAuthenticated, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
@@ -110,6 +109,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
             <div className="relative dropdown-container">
               <button
                 onClick={() => setLangDropdownOpen(!langDropdownOpen)}
+                aria-label="Select language"
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border-soft bg-bg-secondary hover:bg-bg-surface transition-all text-[11px] font-medium text-text-primary cursor-pointer"
               >
                 <span>{FLAG[language]}</span>
@@ -154,9 +154,11 @@ export default function Header({ variant = "landing" }: HeaderProps) {
                   className="flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer"
                 >
                   {user?.picture ? (
-                    <img 
-                      src={user.picture} 
-                      alt={user.name} 
+                    <Image
+                      src={user.picture}
+                      alt={user.name}
+                      width={36}
+                      height={36}
                       className="w-9 h-9 rounded-full object-cover border border-accent/30 shadow-[0_0_15px_rgba(79,110,247,0.2)]"
                     />
                   ) : (
@@ -286,9 +288,11 @@ export default function Header({ variant = "landing" }: HeaderProps) {
               <div className="flex flex-col gap-6">
                 <div className="flex items-center gap-4">
                   {user?.picture ? (
-                    <img 
-                      src={user.picture} 
-                      alt={user.name} 
+                    <Image
+                      src={user.picture}
+                      alt={user.name}
+                      width={48}
+                      height={48}
                       className="w-12 h-12 rounded-full border border-accent/30"
                     />
                   ) : (
@@ -362,10 +366,12 @@ export default function Header({ variant = "landing" }: HeaderProps) {
         </div>
       </div>
 
-      <LoginModal 
-        isOpen={loginModalOpen} 
-        onClose={() => setLoginModalOpen(false)} 
-      />
+      <Suspense fallback={null}>
+        <LoginModal 
+          isOpen={loginModalOpen} 
+          onClose={() => setLoginModalOpen(false)} 
+        />
+      </Suspense>
     </>
   );
 }

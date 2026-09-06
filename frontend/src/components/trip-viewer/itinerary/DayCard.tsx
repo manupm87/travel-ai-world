@@ -29,16 +29,13 @@ export function DayCard({ day, currency }: DayCardProps) {
   const hasTravel = day.activities.some(a => a.category === "transport");
   
   let primaryColor = "bg-accent";
-  let textColor = "text-accent";
   let badgeText = "";
   
   if (isFreeDay) {
     primaryColor = "bg-purple";
-    textColor = "text-purple";
     badgeText = t.tripViewer.freeDay;
   } else if (hasTravel) {
     primaryColor = "bg-gold";
-    textColor = "text-gold";
     badgeText = t.tripViewer.travel;
   }
 

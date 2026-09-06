@@ -2,10 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import React from 'react'
 import Header from './Header'
-import { usePathname } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 
-// Mock next/navigation
 vi.mock('next/navigation', () => ({
   usePathname: vi.fn(() => '/'),
   useRouter: vi.fn(() => ({
@@ -16,14 +14,12 @@ vi.mock('next/navigation', () => ({
   useSearchParams: vi.fn(() => new URLSearchParams()),
 }))
 
-// Mock next/link
 vi.mock('next/link', () => ({
-  default: ({ children, href, className }: any) => (
+  default: ({ children, href, className }: { children?: React.ReactNode; href?: string; className?: string }) => (
     <a href={href} className={className}>{children}</a>
   ),
 }))
 
-// Mock lucide-react
 vi.mock('lucide-react', () => ({
   Menu: () => <div data-testid="menu-icon" />,
   X: () => <div data-testid="x-icon" />,
@@ -41,11 +37,10 @@ vi.mock('@/context/AuthContext', () => ({
 
 vi.mock('@react-oauth/google', () => ({
   GoogleLogin: () => <div data-testid="google-login" />,
-  GoogleOAuthProvider: ({ children }: any) => <>{children}</>,
+  GoogleOAuthProvider: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
   useGoogleLogin: () => vi.fn(),
 }))
 
-// Mock LanguageContext
 const mockSetLanguage = vi.fn()
 vi.mock('@/context/LanguageContext', () => ({
   useLanguage: () => ({
@@ -73,7 +68,6 @@ vi.mock('@/context/LanguageContext', () => ({
   })
 }))
 
-// Mock ThemeContext
 vi.mock('@/context/ThemeContext', () => ({
   useTheme: () => ({
     theme: 'dark',
@@ -108,7 +102,6 @@ describe('Header', () => {
 
   it('renders landing variant navigation links correctly', () => {
     render(<Header variant="landing" />)
-    // Links exist in both desktop and mobile nav
     expect(screen.getAllByText('How it works')[0]).toBeInTheDocument()
     expect(screen.getAllByText('Features')[0]).toBeInTheDocument()
     expect(screen.getAllByText('Reviews')[0]).toBeInTheDocument()
@@ -139,7 +132,7 @@ describe('Header', () => {
   it('calls setLanguage when language is selected from dropdown', () => {
     render(<Header />)
     const langButtons = screen.getAllByText(/en/i)
-    fireEvent.click(langButtons[0]) // Click the desktop one
+    fireEvent.click(langButtons[0])
     
     const esOption = screen.getByText(/español/i)
     fireEvent.click(esOption)
@@ -147,8 +140,7 @@ describe('Header', () => {
   })
 
   it('opens login modal when clicking login icon while unauthenticated', () => {
-    const { container } = render(<Header />)
-    // Find LogIn icon by the data-testid from mock
+    render(<Header />)
     const loginIcon = screen.getByTestId('log-in-icon')
     fireEvent.click(loginIcon.parentElement!)
     
@@ -160,7 +152,6 @@ describe('Header', () => {
     const header = screen.getByRole('banner')
     expect(header).toHaveClass('bg-transparent')
 
-    // Simulate scroll
     window.scrollY = 100
     fireEvent.scroll(window)
     
@@ -172,7 +163,6 @@ describe('Header', () => {
     const hamburger = screen.getByLabelText('Open menu')
     fireEvent.click(hamburger)
     
-    // Check if the mobile drawer text is visible
     expect(screen.getByText('Select Language')).toBeInTheDocument()
   })
 })

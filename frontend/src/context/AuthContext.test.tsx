@@ -4,7 +4,6 @@ import { AuthProvider, useAuth } from "./AuthContext";
 import { jwtDecode } from "jwt-decode";
 import React from "react";
 
-// Mock next/navigation
 const mockPush = vi.fn();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
@@ -12,7 +11,6 @@ vi.mock("next/navigation", () => ({
   }),
 }));
 
-// Mock jwt-decode
 vi.mock("jwt-decode", () => ({
   jwtDecode: vi.fn(() => ({
     sub: "123",
@@ -23,7 +21,6 @@ vi.mock("jwt-decode", () => ({
 }));
 
 
-// Mock the API client.
 let apiAvailable = false;
 const verifyGoogleTokenMock = vi.fn();
 
@@ -36,7 +33,6 @@ vi.mock("@/services/api", async (importOriginal) => {
   };
 });
 
-// Mock localStorage
 const localStorageMock = (function() {
   let store: Record<string, string> = {};
   return {
@@ -88,7 +84,6 @@ describe("AuthContext", () => {
   });
 
   it("should reject plain JSON in production environment", () => {
-    // Mock production environment
     vi.stubEnv("NODE_ENV", "production");
     
     localStorage.setItem("travel_ai_user", JSON.stringify({ name: "Hacker" }));
@@ -102,7 +97,6 @@ describe("AuthContext", () => {
   });
 
   it("should allow plain JSON in development environment", () => {
-    // Mock development environment
     vi.stubEnv("NODE_ENV", "development");
     
     const mockUser = { id: "mock-1", name: "Mock User", email: "mock@example.com", picture: "" };

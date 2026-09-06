@@ -29,7 +29,6 @@ logger = logging.getLogger(__name__)
 
 
 class ChatService:
-
     """Manages AI chat completions via NVIDIA API (SSE streaming)."""
 
     # REQUEST HEADERS
@@ -41,10 +40,9 @@ class ChatService:
             raise ValueError("NVIDIA API key not configured")
         return {
             "Authorization": f"Bearer {settings.NVIDIA_API_KEY}",
-            "Accept": "text/event-stream",      # enables SSE streaming
+            "Accept": "text/event-stream",  # enables SSE streaming
             "Content-Type": "application/json",
         }
-
 
     # Payload
     def _build_payload(self, messages: list[dict[str, str]]) -> dict:
@@ -60,9 +58,8 @@ class ChatService:
             "temperature": 0.7,
             "top_p": 0.95,
             "reasoning_effort": "low",
-            "stream": True, # enable SSE streaming
+            "stream": True,  # enable SSE streaming
         }
-
 
     # Streaming SSE
     async def stream_completion(
@@ -123,7 +120,9 @@ class ChatService:
                                 if choices:
                                     delta = choices[0].get("delta", {})
                                     # content = delta.get("content") # Old models used "content"
-                                    content = delta.get("content") or delta.get("text") # some models use "content", others use "text"
+                                    content = delta.get("content") or delta.get(
+                                        "text"
+                                    )  # some models use "content", others use "text"
 
                                     if content:
                                         yield f"data: {json.dumps({'content': content})}\n\n"

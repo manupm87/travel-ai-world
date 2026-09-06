@@ -4,9 +4,8 @@ import React from 'react'
 import { TripSection } from './TripSection'
 import { TripSummary } from '@/types/trip-summary'
 
-// Mock components used inside TripSection
 vi.mock('@/components/ui/Section', () => ({
-  Section: ({ children, variant, padding }: any) => (
+  Section: ({ children, variant, padding }: { children?: React.ReactNode; variant?: string; padding?: string }) => (
     <section data-testid="section" data-variant={variant} data-padding={padding}>
       {children}
     </section>
@@ -14,11 +13,11 @@ vi.mock('@/components/ui/Section', () => ({
 }))
 
 vi.mock('@/components/ui/SectionLabel', () => ({
-  SectionLabel: ({ children }: any) => <div data-testid="section-label">{children}</div>
+  SectionLabel: ({ children }: { children?: React.ReactNode }) => <div data-testid="section-label">{children}</div>
 }))
 
 vi.mock('@/components/ui/TripCard', () => ({
-  default: ({ trip }: any) => <div data-testid="trip-card">{trip.title}</div>
+  default: ({ trip }: { trip: TripSummary }) => <div data-testid="trip-card">{trip.title}</div>
 }))
 
 const mockTrips: TripSummary[] = [

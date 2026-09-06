@@ -3,18 +3,16 @@ import { render, screen } from '@testing-library/react'
 import React from 'react'
 import FinalCTA from './FinalCTA'
 
-// Mock components
 vi.mock('@/components/ui/Container', () => ({
-  Container: ({ children, className }: any) => <div className={className}>{children}</div>
+  Container: ({ children, className }: { children?: React.ReactNode; className?: string }) => <div className={className}>{children}</div>
 }))
 
 vi.mock('@/components/ui/Button', () => ({
-  Button: ({ children, href, variant, className }: any) => (
+  Button: ({ children, href, variant, className }: { children?: React.ReactNode; href?: string; variant?: string; className?: string }) => (
     <a href={href} data-variant={variant} className={className}>{children}</a>
   )
 }))
 
-// Mock LanguageContext
 vi.mock('@/context/LanguageContext', () => ({
   useLanguage: () => ({
     t: {

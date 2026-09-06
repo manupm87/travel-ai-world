@@ -3,14 +3,12 @@ import { render, screen } from '@testing-library/react'
 import React from 'react'
 import Footer from './Footer'
 
-// Mock next/link
 vi.mock('next/link', () => ({
-  default: ({ children, href, className }: any) => (
+  default: ({ children, href, className }: { children?: React.ReactNode; href?: string; className?: string }) => (
     <a href={href} className={className}>{children}</a>
   ),
 }))
 
-// Mock LanguageContext
 vi.mock('@/context/LanguageContext', () => ({
   useLanguage: () => ({
     t: {

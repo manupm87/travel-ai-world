@@ -4,22 +4,20 @@ import React from 'react'
 import AIInsights from './AIInsights'
 import { Trip } from '@/types/trip'
 
-// Mock components
 vi.mock('@/components/ui/Section', () => ({
-  Section: ({ children }: any) => <section>{children}</section>
+  Section: ({ children }: { children?: React.ReactNode }) => <section>{children}</section>
 }))
 
 vi.mock('@/components/ui/SectionLabel', () => ({
-  SectionLabel: ({ children }: any) => <div>{children}</div>
+  SectionLabel: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>
 }))
 
 vi.mock('@/components/ui/Card', () => ({
-  Card: ({ children, highlight }: any) => (
+  Card: ({ children, highlight }: { children?: React.ReactNode; highlight?: boolean }) => (
     <div data-testid="card" data-highlight={highlight}>{children}</div>
   )
 }))
 
-// Mock LanguageContext
 vi.mock('@/context/LanguageContext', () => ({
   useLanguage: () => ({
     t: {
@@ -51,7 +49,7 @@ describe('AIInsights', () => {
   })
 
   it('renders fallback content when insights are missing', () => {
-    render(<AIInsights trip={{ aiInsights: null } as any} />)
+    render(<AIInsights trip={{ aiInsights: null } as unknown as Trip} />)
     expect(screen.getByText(/Weather information currently unavailable/i)).toBeInTheDocument()
     expect(screen.getByText(/No local tips available yet/i)).toBeInTheDocument()
   })
@@ -63,7 +61,7 @@ describe('AIInsights', () => {
         localTips: 'Just one tip here.'
       }
     }
-    render(<AIInsights trip={singleTipTrip as any} />)
+    render(<AIInsights trip={singleTipTrip as unknown as Trip} />)
     expect(screen.getByText('Just one tip here.')).toBeInTheDocument()
   })
 })

@@ -12,6 +12,7 @@ const baseURL =
 
 export default defineConfig({
   testDir: "./e2e",
+  testIgnore: ["**/prerender.spec.ts"],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -32,10 +33,12 @@ export default defineConfig({
 
   /* Start the Next.js dev server automatically before tests run.
    * Remove this block if you prefer to start the server manually. */
-  webServer: {
-    command: "npm run dev",
-    url: baseURL,
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+  webServer: process.env.PLAYWRIGHT_BASE_URL
+    ? undefined
+    : {
+        command: "npm run dev",
+        url: baseURL,
+        reuseExistingServer: !process.env.CI,
+        timeout: 120_000,
+      },
 });

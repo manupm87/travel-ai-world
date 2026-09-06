@@ -3,19 +3,16 @@ import { render, screen } from '@testing-library/react'
 import React from 'react'
 import EmptyDashboard from './EmptyDashboard'
 
-// Mock next/link
 vi.mock('next/link', () => ({
-  default: ({ children, href, className }: any) => (
+  default: ({ children, href, className }: { children?: React.ReactNode; href?: string; className?: string }) => (
     <a href={href} className={className}>{children}</a>
   ),
 }))
 
-// Mock lucide-react
 vi.mock('lucide-react', () => ({
   PlaneTakeoff: () => <div data-testid="plane-icon" />,
 }))
 
-// Mock LanguageContext
 vi.mock('@/context/LanguageContext', () => ({
   useLanguage: () => ({
     t: {
