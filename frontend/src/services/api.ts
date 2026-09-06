@@ -8,11 +8,36 @@
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
+export const TOKEN_STORAGE_KEY = "travel_ai_token";
+export const USER_STORAGE_KEY = "travel_ai_user";
+
+/**
+ * Raised when the backend rejects our token, or when we never had one.
+ */
+export class UnauthorizedError extends Error {
+  constructor(message = "Unauthorized") {
+    super(message);
+    this.name = "UnauthorizedError";
+  }
+}
+
 /**
  * Returns true when a backend API URL is configured.
  */
 export function isApiAvailable(): boolean {
   return API_URL.length > 0;
+}
+
+/**
+ * Reads our JWT from storage. Null during SSR, or when logged out.
+ */
+function getStoredToken(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return localStorage.getItem(TOKEN_STORAGE_KEY);
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -40,16 +65,33 @@ export async function verifyGoogleToken(credential: string): Promise<{
 /**
  * Streams a chat completion from the backend AI endpoint.
  * Yields content chunks as they arrive via SSE.
+ *
+ * The endpoint requires authentication, so our JWT travels in the
+ * Authorization header and a rejected session surfaces as UnauthorizedError.
  */
 export async function* streamChat(
   message: string,
   history: { role: string; content: string }[]
 ): AsyncGenerator<string, void, unknown> {
+  const token = getStoredToken();
+
+  // No token, no point in asking: the backend would answer 401 anyway.
+  if (!token) {
+    throw new UnauthorizedError("No session token available");
+  }
+
   const res = await fetch(`${API_URL}/api/v1/chat`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
     body: JSON.stringify({ message, history }),
   });
+
+  if (res.status === 401) {
+    throw new UnauthorizedError("Session expired or invalid");
+  }
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({ detail: "Chat failed" }));

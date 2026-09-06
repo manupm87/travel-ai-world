@@ -93,6 +93,8 @@ const en: Translations = {
     ],
     errorFallback:
       "Sorry, I couldn't process your request. Please try again.",
+    errorUnauthorized:
+      "Your session has expired. Log in again to keep planning.",
   },
   howItWorks: {
     label: "How It Works",
@@ -240,7 +242,8 @@ const en: Translations = {
     loginWithGoogle: "Continue with Google",
     welcomeBack: "Welcome back",
     signingIn: "Signing in...",
-    loggedIn: "Logged In"
+    loggedIn: "Logged In",
+    loginError: "We couldn't sign you in. Please try again."
   },
   notFound: {
     title: "404",

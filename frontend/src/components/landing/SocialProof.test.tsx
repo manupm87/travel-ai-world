@@ -3,22 +3,20 @@ import { render, screen } from '@testing-library/react'
 import React from 'react'
 import SocialProof from './SocialProof'
 
-// Mock components
 vi.mock('@/components/ui/Container', () => ({
-  Container: ({ children }: any) => <div>{children}</div>
+  Container: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>
 }))
 
 vi.mock('@/components/ui/SectionLabel', () => ({
-  SectionLabel: ({ children }: any) => <div data-testid="section-label">{children}</div>
+  SectionLabel: ({ children }: { children?: React.ReactNode }) => <div data-testid="section-label">{children}</div>
 }))
 
 vi.mock('@/components/ui/Card', () => ({
-  Card: ({ children, highlight, className }: any) => (
+  Card: ({ children, highlight, className }: { children?: React.ReactNode; highlight?: boolean; className?: string }) => (
     <div data-testid="card" data-highlight={highlight} className={className}>{children}</div>
   )
 }))
 
-// Mock LanguageContext
 vi.mock('@/context/LanguageContext', () => ({
   useLanguage: () => ({
     t: {
@@ -51,7 +49,6 @@ describe('SocialProof', () => {
     expect(screen.getByText('Jane Doe')).toBeInTheDocument()
     expect(screen.getByText('London')).toBeInTheDocument()
     
-    // Check stars rendering
     expect(screen.getByText('★★★★★')).toBeInTheDocument()
     expect(screen.getByText('★★★★')).toBeInTheDocument()
   })

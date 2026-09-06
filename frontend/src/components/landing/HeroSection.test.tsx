@@ -3,21 +3,14 @@ import { render, screen } from '@testing-library/react'
 import React from 'react'
 import HeroSection from './HeroSection'
 
-// Mock components
 vi.mock('@/components/ui/Container', () => ({
-  Container: ({ children, className }: any) => <div data-testid="container" className={className}>{children}</div>
+  Container: ({ children, className }: { children?: React.ReactNode; className?: string }) => <div data-testid="container" className={className}>{children}</div>
 }))
 
 vi.mock('@/components/ui/Button', () => ({
-  Button: ({ children, href, variant }: any) => <a href={href} data-variant={variant}>{children}</a>
+  Button: ({ children, href, variant }: { children?: React.ReactNode; href?: string; variant?: string }) => <a href={href} data-variant={variant}>{children}</a>
 }))
 
-// Mock next/image
-vi.mock('next/image', () => ({
-  default: ({ src, alt }: any) => <img src={src} alt={alt} />
-}))
-
-// Mock LanguageContext
 vi.mock('@/context/LanguageContext', () => ({
   useLanguage: () => ({
     t: {

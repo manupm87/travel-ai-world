@@ -4,17 +4,8 @@ import React from 'react'
 import TripCard from './TripCard'
 import { TripSummary } from '@/types/trip-summary'
 
-// Mock next/image
-vi.mock('next/image', () => ({
-  default: ({ src, alt, fill, className, sizes }: any) => (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src={src} alt={alt} data-fill={fill?.toString()} className={className} data-sizes={sizes} />
-  ),
-}))
-
-// Mock next/link
 vi.mock('next/link', () => ({
-  default: ({ children, href, className }: any) => (
+  default: ({ children, href, className }: { children?: React.ReactNode; href?: string; className?: string }) => (
     <a href={href} className={className}>{children}</a>
   ),
 }))
@@ -62,6 +53,7 @@ describe('TripCard', () => {
   it('renders the cover image with correct alt text', () => {
     render(<TripCard trip={mockTrip} />)
     const img = screen.getByAltText('Paris Adventure')
-    expect(img).toHaveAttribute('src', '/images/paris.jpg')
+    // next/image rewrites src through its loader, so match the underlying file
+    expect(img).toHaveAttribute('src', expect.stringContaining('paris.jpg'))
   })
 })

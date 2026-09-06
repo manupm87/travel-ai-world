@@ -17,6 +17,7 @@ import httpx
 
 from app.core.config import settings
 from app.core.constants import (
+    CHAT_SYSTEM_PROMPT,
     NVIDIA_BASE_URL,
     NVIDIA_CHAT_MODEL,
     NVIDIA_CONNECT_TIMEOUT,
@@ -28,26 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 class ChatService:
-
     """Manages AI chat completions via NVIDIA API (SSE streaming)."""
-
-    # ROLE NORMALIZATION
-    # Ensures frontend roles ("human", "me", "assistant_message", etc.)
-    # are mapped to valid NVIDIA roles: "user", "assistant", "system".
-    def _normalize_role(self, role: str) -> str:
-        role = role.lower().strip()
-
-        if role in ("user", "human", "me"):
-            return "user"
-
-        if role in ("assistant", "ai", "model", "assistant_message"):
-            return "assistant"
-
-        if role == "system":
-            return "system"
-
-        # fallback: treat any unknown role as "user" to avoid NVIDIA API errors 
-        return "user"
 
     # REQUEST HEADERS
     # Builds the headers required for NVIDIA's chat/completions API,
@@ -58,10 +40,9 @@ class ChatService:
             raise ValueError("NVIDIA API key not configured")
         return {
             "Authorization": f"Bearer {settings.NVIDIA_API_KEY}",
-            "Accept": "text/event-stream",      # enables SSE streaming
+            "Accept": "text/event-stream",  # enables SSE streaming
             "Content-Type": "application/json",
         }
-
 
     # Payload
     def _build_payload(self, messages: list[dict[str, str]]) -> dict:
@@ -69,14 +50,16 @@ class ChatService:
 
         return {
             "model": NVIDIA_CHAT_MODEL,
-            "messages": messages,
+            "messages": [
+                {"role": "system", "content": CHAT_SYSTEM_PROMPT},
+                *messages,
+            ],
             "max_tokens": 4096,
             "temperature": 0.7,
             "top_p": 0.95,
             "reasoning_effort": "low",
-            "stream": True, # enable SSE streaming
+            "stream": True,  # enable SSE streaming
         }
-
 
     # Streaming SSE
     async def stream_completion(
@@ -86,9 +69,7 @@ class ChatService:
         headers = self._get_headers()
         payload = self._build_payload(messages)
 
-        # Correct endpoint — model goes in the body, NOT in the URL
         url = f"{NVIDIA_BASE_URL}/chat/completions"
-
 
         timeout = httpx.Timeout(
             connect=NVIDIA_CONNECT_TIMEOUT,
@@ -139,7 +120,9 @@ class ChatService:
                                 if choices:
                                     delta = choices[0].get("delta", {})
                                     # content = delta.get("content") # Old models used "content"
-                                    content = delta.get("content") or delta.get("text") # some models use "content", others use "text"
+                                    content = delta.get("content") or delta.get(
+                                        "text"
+                                    )  # some models use "content", others use "text"
 
                                     if content:
                                         yield f"data: {json.dumps({'content': content})}\n\n"

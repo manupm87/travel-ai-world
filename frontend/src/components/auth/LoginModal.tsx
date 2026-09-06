@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
@@ -21,6 +21,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const { t } = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [error, setError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -58,6 +59,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
           <GoogleLogin
             onSuccess={async (credentialResponse) => {
               if (credentialResponse.credential) {
+                setError(null);
                 try {
                   await login(credentialResponse.credential);
                   onClose();
@@ -69,20 +71,28 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                   } else {
                     router.push("/dashboard");
                   }
-                } catch (error) {
-                  console.error("Login failed:", error);
+                } catch (err) {
+                  console.error("Login failed:", err);
+                  setError(t.auth.loginError);
                 }
               }
             }}
 
             onError={() => {
               console.error("Login Failed");
+              setError(t.auth.loginError);
             }}
             useOneTap
             theme="filled_blue"
             shape="pill"
             text="continue_with"
           />
+
+          {error && (
+            <p role="alert" className="text-sm text-center text-red-400">
+              {error}
+            </p>
+          )}
 
         </div>
 

@@ -93,6 +93,8 @@ const es: Translations = {
     ],
     errorFallback:
       "Lo siento, no pude procesar tu solicitud. Inténtalo de nuevo.",
+    errorUnauthorized:
+      "Tu sesión ha caducado. Vuelve a iniciar sesión para seguir planificando.",
   },
   howItWorks: {
     label: "Cómo Funciona",
@@ -240,7 +242,8 @@ const es: Translations = {
     loginWithGoogle: "Continuar con Google",
     welcomeBack: "Bienvenido de nuevo",
     signingIn: "Iniciando sesión...",
-    loggedIn: "Sesión iniciada"
+    loggedIn: "Sesión iniciada",
+    loginError: "No hemos podido iniciar tu sesión. Inténtalo de nuevo."
   },
   notFound: {
     title: "404",

@@ -8,6 +8,10 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement | HTM
   href?: string;
 }
 
+type PolymorphicProps = React.ButtonHTMLAttributes<
+  HTMLButtonElement | HTMLAnchorElement
+> & { href?: string };
+
 
 /**
  * Shared Button / Anchor Primitive.
@@ -49,20 +53,19 @@ export function Button({
 
   if (href) {
     const isInternal = href.startsWith("/") || href.startsWith("#");
-    const Component = as || (isInternal ? Link : "a");
-    
+    const Component = (as ||
+      (isInternal ? Link : "a")) as React.ElementType<PolymorphicProps>;
+
     return (
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      <Component href={href} className={combinedClasses} {...(props as any)}>
+      <Component href={href} className={combinedClasses} {...props}>
         {children}
       </Component>
     );
   }
 
-  const Component = as || "button";
+  const Component = (as || "button") as React.ElementType<PolymorphicProps>;
   return (
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    <Component className={combinedClasses} {...(props as any)}>
+    <Component className={combinedClasses} {...props}>
       {children}
     </Component>
   );

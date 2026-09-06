@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { formatDate, formatCurrency } from "@/utils/format";
 import { useLanguage } from "@/context/LanguageContext";
 import { BudgetCard } from "./BudgetCard";
-import { Calendar, Users, Wallet, ArrowLeft, ClipboardList, Download } from "lucide-react";
+import { Calendar, Users, Wallet, ClipboardList, Download } from "lucide-react";
 
 interface TripHeaderProps {
   trip: Trip;

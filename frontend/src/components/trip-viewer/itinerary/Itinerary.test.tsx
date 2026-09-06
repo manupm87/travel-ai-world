@@ -5,7 +5,6 @@ import Itinerary from './Itinerary';
 import { DayCard } from './DayCard';
 import type { Trip, ItineraryDay } from '@/types/trip';
 
-// Mock Language Context
 vi.mock('@/context/LanguageContext', () => ({
   useLanguage: () => ({
     t: {

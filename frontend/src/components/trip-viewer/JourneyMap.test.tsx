@@ -4,25 +4,22 @@ import React from 'react'
 import JourneyMap from './JourneyMap'
 import { Trip } from '@/types/trip'
 
-// Mock components
 vi.mock('@/components/ui/Container', () => ({
-  Container: ({ children }: any) => <div>{children}</div>
+  Container: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>
 }))
 
 vi.mock('@/components/ui/SectionLabel', () => ({
-  SectionLabel: ({ children }: any) => <div>{children}</div>
+  SectionLabel: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>
 }))
 
 vi.mock('@/components/ui/Card', () => ({
-  Card: ({ children, className }: any) => <div className={className}>{children}</div>
+  Card: ({ children, className }: { children?: React.ReactNode; className?: string }) => <div className={className}>{children}</div>
 }))
 
-// Mock utils
 vi.mock('@/utils/countryFlag', () => ({
   getFlag: (code: string) => `Flag-${code}`
 }))
 
-// Mock LanguageContext
 vi.mock('@/context/LanguageContext', () => ({
   useLanguage: () => ({
     t: {
@@ -36,8 +33,8 @@ vi.mock('@/context/LanguageContext', () => ({
 
 const mockTrip: Partial<Trip> = {
   destinations: [
-    { id: '1', city: 'Paris', countryCode: 'FR', arrivalDate: 'May 1', departureDate: 'May 4', nightsStaying: 3, activities: [] as any },
-    { id: '2', city: 'Lyon', countryCode: 'FR', arrivalDate: 'May 4', departureDate: 'May 6', nightsStaying: 2, activities: [] as any },
+    { id: '1', city: 'Paris', country: 'France', countryCode: 'FR', coordinates: { lat: 48.8566, lng: 2.3522 }, arrivalDate: 'May 1', departureDate: 'May 4', nightsStaying: 3 },
+    { id: '2', city: 'Lyon', country: 'France', countryCode: 'FR', coordinates: { lat: 45.764, lng: 4.8357 }, arrivalDate: 'May 4', departureDate: 'May 6', nightsStaying: 2 },
   ]
 }
 
