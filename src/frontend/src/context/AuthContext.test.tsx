@@ -1,158 +1,121 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { AuthProvider, useAuth } from "./AuthContext";
-import { jwtDecode } from "jwt-decode";
 import React from "react";
-
-const mockPush = vi.fn();
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({
-    push: mockPush,
-  }),
-}));
-
-vi.mock("jwt-decode", () => ({
-  jwtDecode: vi.fn(() => ({
-    sub: "123",
-    email: "test@example.com",
-    name: "Test User",
-    picture: "https://example.com/pic.jpg",
-  })),
-}));
-
-
-let apiAvailable = false;
-const verifyGoogleTokenMock = vi.fn();
-
-vi.mock("@/services/http", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/services/http")>();
-  return { ...actual, isApiAvailable: () => apiAvailable };
-});
+import { AuthProvider, useAuth } from "./AuthContext";
+import { loginWithGoogle } from "@/services/auth";
+import { writeSession } from "@/services/session";
+import { makeJwt, nowInSeconds } from "@/test/jwt";
 
 vi.mock("@/services/auth", () => ({
-  verifyGoogleToken: (...args: unknown[]) => verifyGoogleTokenMock(...args),
+  loginWithGoogle: vi.fn(),
 }));
 
-const localStorageMock = (function() {
-  let store: Record<string, string> = {};
-  return {
-    getItem: (key: string) => store[key] || null,
-    setItem: (key: string, value: string) => { store[key] = value.toString(); },
-    clear: () => { store = {}; },
-    removeItem: (key: string) => { delete store[key]; }
-  };
-})();
+const user = {
+  id: "123",
+  email: "test@example.com",
+  name: "Test User",
+  picture: "https://example.com/pic.jpg",
+};
+const validToken = makeJwt({ sub: "123", exp: nowInSeconds() + 3600 });
 
-Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock
-});
+const wrapper = ({ children }: { children: React.ReactNode }) => (
+  <AuthProvider>{children}</AuthProvider>
+);
 
 describe("AuthContext", () => {
-
   beforeEach(() => {
     localStorage.clear();
     vi.clearAllMocks();
-    apiAvailable = false;
+    vi.mocked(loginWithGoogle).mockImplementation(async (credential) => {
+      writeSession(credential, user);
+      return user;
+    });
   });
 
-  const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <AuthProvider>{children}</AuthProvider>
-  );
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
 
-  it("should initialize with no user and stop loading", () => {
+  it("initialises signed out and not loading once hydrated", () => {
     const { result } = renderHook(() => useAuth(), { wrapper });
     expect(result.current.user).toBeNull();
     expect(result.current.isAuthenticated).toBe(false);
     expect(result.current.isLoading).toBe(false);
   });
 
-  it("should login and persist user with token", () => {
+  it("reflects the session written by the auth service on login", async () => {
     const { result } = renderHook(() => useAuth(), { wrapper });
 
-    act(() => {
-      result.current.login("fake-jwt-token");
+    await act(async () => {
+      await result.current.login(validToken);
     });
 
-    expect(result.current.user).toEqual({
-      id: "123",
-      email: "test@example.com",
-      name: "Test User",
-      picture: "https://example.com/pic.jpg",
-    });
+    expect(loginWithGoogle).toHaveBeenCalledWith(validToken);
+    expect(result.current.user).toEqual(user);
     expect(result.current.isAuthenticated).toBe(true);
-    expect(localStorage.getItem("travel_ai_token")).toBe("fake-jwt-token");
+    expect(localStorage.getItem("travel_ai_token")).toBe(validToken);
   });
 
-  it("should reject plain JSON in production environment", () => {
-    vi.stubEnv("NODE_ENV", "production");
-    
-    localStorage.setItem("travel_ai_user", JSON.stringify({ name: "Hacker" }));
-    
-    const { result } = renderHook(() => useAuth(), { wrapper });
-    
-    expect(result.current.user).toBeNull();
-    expect(result.current.isAuthenticated).toBe(false);
-    
-    vi.unstubAllEnvs();
-  });
-
-  it("should allow plain JSON in development environment", () => {
-    vi.stubEnv("NODE_ENV", "development");
-    
-    const mockUser = { id: "mock-1", name: "Mock User", email: "mock@example.com", picture: "" };
-    localStorage.setItem("travel_ai_user", JSON.stringify(mockUser));
-    
-    const { result } = renderHook(() => useAuth(), { wrapper });
-    
-    expect(result.current.user).toEqual(mockUser);
-    expect(result.current.isAuthenticated).toBe(true);
-    
-    vi.unstubAllEnvs();
-  });
-
-  it("leaves no token behind when backend verification fails", async () => {
-    apiAvailable = true;
-    verifyGoogleTokenMock.mockRejectedValue(new Error("Auth failed"));
-
+  it("propagates login failures and stays signed out", async () => {
+    vi.mocked(loginWithGoogle).mockRejectedValue(new Error("Auth failed"));
     const { result } = renderHook(() => useAuth(), { wrapper });
 
     let failure: unknown;
     await act(async () => {
-      failure = await result.current
-        .login("google-credential")
-        .catch((error: unknown) => error);
+      failure = await result.current.login("bad").catch((e: unknown) => e);
     });
 
     expect(failure).toBeInstanceOf(Error);
     expect(result.current.user).toBeNull();
+    expect(localStorage.getItem("travel_ai_token")).toBeNull();
+  });
+
+  it("rejects a bare profile in production", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    localStorage.setItem("travel_ai_user", JSON.stringify({ name: "Hacker" }));
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    expect(result.current.user).toBeNull();
     expect(result.current.isAuthenticated).toBe(false);
+  });
+
+  it("accepts a bare profile in development (E2E mocking)", () => {
+    vi.stubEnv("NODE_ENV", "development");
+    localStorage.setItem("travel_ai_user", JSON.stringify(user));
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    expect(result.current.user).toEqual(user);
+    expect(result.current.isAuthenticated).toBe(true);
+  });
+
+  it("restores the cached profile on reload, not the JWT payload", () => {
+    localStorage.setItem("travel_ai_token", makeJwt({ sub: "42" }));
+    localStorage.setItem("travel_ai_user", JSON.stringify(user));
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    expect(result.current.user).toEqual(user);
+  });
+
+  it("prunes an expired session on mount", () => {
+    localStorage.setItem("travel_ai_token", makeJwt({ sub: "42", exp: 1 }));
+    localStorage.setItem("travel_ai_user", JSON.stringify(user));
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    expect(result.current.user).toBeNull();
     expect(localStorage.getItem("travel_ai_token")).toBeNull();
     expect(localStorage.getItem("travel_ai_user")).toBeNull();
   });
 
-  it("restores the cached profile on reload, not the JWT payload", () => {
-    const profile = {
-      id: "42",
-      email: "real@example.com",
-      name: "Real User",
-      picture: "https://example.com/real.jpg",
-    };
-    vi.mocked(jwtDecode).mockReturnValueOnce({ sub: "42" } as never);
-    localStorage.setItem("travel_ai_token", "our-backend-jwt");
-    localStorage.setItem("travel_ai_user", JSON.stringify(profile));
-
+  it("logs out by clearing storage, without navigating", async () => {
     const { result } = renderHook(() => useAuth(), { wrapper });
 
-    expect(result.current.user).toEqual(profile);
-  });
-
-  it("should logout and remove all storage items", () => {
-    const { result } = renderHook(() => useAuth(), { wrapper });
-
-    act(() => {
-      result.current.login("fake-jwt-token");
+    await act(async () => {
+      await result.current.login(validToken);
     });
-
     act(() => {
       result.current.logout();
     });
@@ -160,8 +123,9 @@ describe("AuthContext", () => {
     expect(result.current.user).toBeNull();
     expect(localStorage.getItem("travel_ai_token")).toBeNull();
     expect(localStorage.getItem("travel_ai_user")).toBeNull();
-    expect(mockPush).toHaveBeenCalledWith("/");
+  });
+
+  it("throws when used outside the provider", () => {
+    expect(() => renderHook(() => useAuth())).toThrow(/within an AuthProvider/);
   });
 });
-
-

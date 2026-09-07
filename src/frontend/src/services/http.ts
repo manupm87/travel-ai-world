@@ -10,15 +10,14 @@
  * gracefully disabled.
  */
 
+import { readToken } from "./session";
+
 export type Service = "core" | "ai";
 
 const CORE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 const AI_URL = process.env.NEXT_PUBLIC_AI_API_URL ?? CORE_URL;
 
 const API_PREFIX = "/api/v1";
-
-export const TOKEN_STORAGE_KEY = "travel_ai_token";
-export const USER_STORAGE_KEY = "travel_ai_user";
 
 /** Raised when the backend rejects our token, or when we never had one. */
 export class UnauthorizedError extends Error {
@@ -44,14 +43,9 @@ export function apiUrl(service: Service, path: string): string {
   return `${base}${API_PREFIX}${path}`;
 }
 
-/** Reads our JWT from storage. Null during SSR, or when logged out. */
+/** The session's bearer token. Null during SSR, or when logged out. */
 export function getStoredToken(): string | null {
-  if (typeof window === "undefined") return null;
-  try {
-    return localStorage.getItem(TOKEN_STORAGE_KEY);
-  } catch {
-    return null;
-  }
+  return readToken();
 }
 
 /** Authorization header for the stored session, or throws when there is none. */

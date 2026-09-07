@@ -6,8 +6,9 @@ components trivial to mock in tests.
 
 | File | Talks to | Exports |
 |---|---|---|
-| `http.ts` | — | `apiUrl(service, path)`, `authHeaders()`, `readErrorMessage()`, `isApiAvailable()`, `isAiAvailable()`, `UnauthorizedError`, storage keys |
-| `auth.ts` | `core_api` | `verifyGoogleToken(credential)` |
+| `http.ts` | — | `apiUrl(service, path)`, `authHeaders()`, `readErrorMessage()`, `isApiAvailable()`, `isAiAvailable()`, `UnauthorizedError` |
+| `session.ts` | `localStorage` | The only owner of the persisted session: `readSession`, `readToken`, `writeSession`, `clearSession`, `pruneInvalidSession`, plus `subscribe`/`getSnapshot` for `useSyncExternalStore` |
+| `auth.ts` | `core_api` | `loginWithGoogle(credential)` (API vs static mode, writes the session, throws on an invalid credential), `verifyGoogleToken(credential)` |
 | `chat.ts` | `ai_api` | `streamChat(message, history)` — async generator over SSE |
 | `trips.ts` | mocks (for now) | `getTripById`, `getTripSummaries`, `getAllTripIds` |
 

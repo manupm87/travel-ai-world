@@ -86,14 +86,21 @@ The app uses **Google OAuth 2.0** for frontend authentication. User state is man
 
 ### How it works
 
-1. `src/context/AuthContext.tsx` provides the `AuthContext` which manages the `user` object and `isAuthenticated` status. It uses a raw JWT `credential` as the source of truth.
-2. `@react-oauth/google` handles the Google Sign-In button and token retrieval.
-3. **Environment-Aware Validation**:
-    - **Production**: Strictly requires a valid, non-expired Google JWT. Plain JSON objects in `localStorage` are rejected.
-    - **Development**: Allows "mocking" by injecting a plain JSON object into `localStorage.travel_ai_user`, facilitating E2E testing and AI agent interaction.
-4. Upon login, the JWT is stored in `localStorage.travel_ai_token` and decoded (via `jwt-decode`) to extract user profile info for the UI.
-5. The `Header` component reacts to the `user` state to switch between "Login" and "Profile/Logout" views.
-6. **Auto-Logout**: The app automatically clears session data and redirects to the home page if the stored token is detected as expired.
+1. `src/services/session.ts` is the only owner of the persisted session: it writes and clears
+   `localStorage.travel_ai_token` / `localStorage.travel_ai_user` together and exposes
+   `subscribe`/`getSnapshot` for `useSyncExternalStore`. `http.ts` reads the token through it.
+2. `src/services/auth.ts` exports `loginWithGoogle(credential)`, which decides the mode:
+   - **API mode** (`NEXT_PUBLIC_API_URL` set): `core_api` verifies the Google credential and issues our own JWT.
+   - **Static mode** (no API URL, e.g. GitHub Pages): the Google ID token is decoded client-side (`jwt-decode`) for profile display only.
+   It rejects on an invalid credential in both modes and leaves storage untouched.
+3. `src/context/AuthContext.tsx` is a thin React binding: `user`, `isAuthenticated`, `isLoading`
+   (until hydration), `login` and `logout`. It never navigates; the header's user menu goes home after `logout()`.
+4. `@react-oauth/google` renders the Sign-In button; `LoginModal` calls `login` and only follows a
+   `?redirect=` parameter that is a same-origin path (`src/utils/safeRedirect.ts`).
+5. **Environment-aware validation**:
+    - **Production**: a token must be a well-formed, non-expired JWT. A bare profile in `localStorage` is rejected.
+    - **Development**: a plain JSON `User` in `localStorage.travel_ai_user` signs you in, for E2E tests and agents.
+6. **Auto-logout**: an expired or corrupt session is pruned on mount, so it does not survive a reload.
 
 ### Configuration
 
@@ -190,10 +197,10 @@ drive the same headless Chromium (`npx playwright install --with-deps chromium` 
 
 1. Set `NEXT_PUBLIC_API_URL=http://localhost:8000` and `NEXT_PUBLIC_AI_API_URL=http://localhost:8001`
    in `.env.local` (one URL is enough behind the Docker Compose proxy on `:8080`).
-2. `services/auth.ts` (`verifyGoogleToken`) talks to `core_api`; `services/chat.ts` (`streamChat`)
+2. `services/auth.ts` (`loginWithGoogle`) talks to `core_api`; `services/chat.ts` (`streamChat`)
    consumes `ai_api`'s SSE stream; `services/trips.ts` still serves the fixtures in `src/mocks/`.
 3. `PlannerCard.tsx` streams real answers when `ai_api` is reachable and shows a static
    "coming soon" mode otherwise (the GitHub Pages build sets no API URL).
-4. `AuthContext.tsx` keeps the session in `localStorage`, validates the JWT and logs out on expiry.
+4. `services/session.ts` keeps the session in `localStorage`, validates the JWT and prunes it on expiry.
 
 Backend details: [`src/backend/README.md`](../backend/README.md).

@@ -9,6 +9,7 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
+import { createLocalStorageStore } from "@/utils/localStorageStore";
 
 type Theme = "light" | "dark";
 
@@ -20,32 +21,12 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-const THEME_STORAGE_KEY = "theme";
 const DEFAULT_THEME: Theme = "dark";
-
-const themeListeners = new Set<() => void>();
-
-function emitThemeChange() {
-  for (const listener of themeListeners) listener();
-}
-
-function subscribeToTheme(onStoreChange: () => void) {
-  themeListeners.add(onStoreChange);
-  window.addEventListener("storage", onStoreChange);
-  return () => {
-    themeListeners.delete(onStoreChange);
-    window.removeEventListener("storage", onStoreChange);
-  };
-}
+const themeStore = createLocalStorageStore("theme");
 
 // Returns a primitive, so it is stable across calls without any memoisation.
 function getThemeSnapshot(): Theme {
-  let saved: string | null = null;
-  try {
-    saved = localStorage.getItem(THEME_STORAGE_KEY);
-  } catch {
-    return DEFAULT_THEME;
-  }
+  const saved = themeStore.read();
   return saved === "light" || saved === "dark" ? saved : DEFAULT_THEME;
 }
 
@@ -56,7 +37,7 @@ function getServerThemeSnapshot(): Theme {
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const theme = useSyncExternalStore(
-    subscribeToTheme,
+    themeStore.subscribe,
     getThemeSnapshot,
     getServerThemeSnapshot
   );
@@ -66,13 +47,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [theme]);
 
   const setTheme = useCallback((newTheme: Theme) => {
-    localStorage.setItem(THEME_STORAGE_KEY, newTheme);
-    emitThemeChange();
+    themeStore.write(newTheme);
   }, []);
 
   const toggleTheme = useCallback(() => {
-    const newTheme = theme === "dark" ? "light" : "dark";
-    setTheme(newTheme);
+    setTheme(theme === "dark" ? "light" : "dark");
   }, [theme, setTheme]);
 
   const value = useMemo(

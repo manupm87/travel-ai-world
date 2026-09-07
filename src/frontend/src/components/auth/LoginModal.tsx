@@ -1,20 +1,24 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { GoogleLogin } from "@react-oauth/google";
+import { X } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
-import { X } from "lucide-react";
+import { safeRedirectPath } from "@/utils/safeRedirect";
 
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-import { useRouter, useSearchParams } from "next/navigation";
-
 /**
  * A modal that provides Google Sign-In options.
+ *
+ * After a successful sign-in it honours a `?redirect=` query parameter, but
+ * only for same-origin paths (see `safeRedirectPath`); otherwise it goes to
+ * the dashboard.
  */
 export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const { login } = useAuth();
@@ -25,10 +29,22 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
   if (!isOpen) return null;
 
+  const handleCredential = async (credential: string) => {
+    setError(null);
+    try {
+      await login(credential);
+    } catch {
+      setError(t.auth.loginError);
+      return;
+    }
+    onClose();
+    router.push(safeRedirectPath(searchParams.get("redirect")) ?? "/dashboard");
+  };
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-bg-primary/80 backdrop-blur-sm"
         onClick={onClose}
       />
@@ -57,31 +73,12 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
         <div className="flex flex-col items-center gap-4">
           <GoogleLogin
-            onSuccess={async (credentialResponse) => {
+            onSuccess={(credentialResponse) => {
               if (credentialResponse.credential) {
-                setError(null);
-                try {
-                  await login(credentialResponse.credential);
-                  onClose();
-
-                  // Handle redirection
-                  const redirect = searchParams.get("redirect");
-                  if (redirect) {
-                    router.push(decodeURIComponent(redirect));
-                  } else {
-                    router.push("/dashboard");
-                  }
-                } catch (err) {
-                  console.error("Login failed:", err);
-                  setError(t.auth.loginError);
-                }
+                void handleCredential(credentialResponse.credential);
               }
             }}
-
-            onError={() => {
-              console.error("Login Failed");
-              setError(t.auth.loginError);
-            }}
+            onError={() => setError(t.auth.loginError)}
             useOneTap
             theme="filled_blue"
             shape="pill"
@@ -93,7 +90,6 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
               {error}
             </p>
           )}
-
         </div>
 
         <p className="mt-8 text-center text-xs text-text-secondary leading-relaxed">
