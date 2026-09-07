@@ -10,7 +10,7 @@ components trivial to mock in tests.
 | `session.ts` | `localStorage` | The only owner of the persisted session: `readSession`, `readToken`, `writeSession`, `clearSession`, `pruneInvalidSession`, plus `subscribe`/`getSnapshot` for `useSyncExternalStore` |
 | `auth.ts` | `core_api` | `loginWithGoogle(credential)` (API vs static mode, writes the session, throws on an invalid credential), `verifyGoogleToken(credential)` |
 | `chat.ts` | `ai_api` | `streamChat(message, history, { signal })` — async generator over SSE, cancellable with an `AbortSignal`; `parseSseEvents(buffer)` — the pure SSE line parser it is built on |
-| `trips.ts` | mocks (for now) | `getTripById`, `getTripSummaries`, `getAllTripIds` |
+| `trips.ts` | fixtures in `src/mocks/*.ts` (backend shape) until the API serves trips | `getTripById`, `getTripSummaries`, `getAllTripIds`, and the mappers `toTrip` / `toTripSummary` (`TripResponse` → view model, [ADR 0006](../../../../docs/architecture/adr/0006-frontend-trip-view-model.md)) |
 
 `ApiError.code` carries the backend's `error_code`, so UI code can pick its own translated copy
 (`t.planner.errorUnauthorized`, ...) instead of showing the server's message in the server's language.

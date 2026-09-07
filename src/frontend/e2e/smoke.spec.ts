@@ -77,7 +77,10 @@ test.describe("Landing page — /", () => {
   });
 
   test("features section renders feature cards", async ({ page }) => {
-    await page.locator("#features").first().scrollIntoViewIfNeeded();
+    // No manual scroll: the node can be swapped during hydration and
+    // `scrollIntoViewIfNeeded` then fails with "not attached". `toBeVisible`
+    // auto-waits and does not need the element in the viewport.
+    await expect(page.locator("#features").first()).toBeAttached();
     await expect(page.getByText(/Hyper-Personalized AI/i).first()).toBeVisible();
   });
 

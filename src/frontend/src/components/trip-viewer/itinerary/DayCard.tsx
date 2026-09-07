@@ -26,19 +26,11 @@ export function DayCard({ day, currency }: DayCardProps) {
   const { formatDate, formatCurrency } = useFormatters();
   const [expanded, setExpanded] = useState(false);
   
-  const isFreeDay = day.title.toLowerCase().includes("free day") || day.title.toLowerCase().includes("día libre");
-  const hasTravel = day.activities.some(a => a.category === "transport");
-  
-  let primaryColor = "bg-accent";
-  let badgeText = "";
-  
-  if (isFreeDay) {
-    primaryColor = "bg-purple";
-    badgeText = t.tripViewer.freeDay;
-  } else if (hasTravel) {
-    primaryColor = "bg-gold";
-    badgeText = t.tripViewer.travel;
-  }
+  const { primaryColor, badgeText } = {
+    free: { primaryColor: "bg-purple", badgeText: t.tripViewer.freeDay },
+    travel: { primaryColor: "bg-gold", badgeText: t.tripViewer.travel },
+    regular: { primaryColor: "bg-accent", badgeText: "" },
+  }[day.kind];
 
   return (
     <Card className={`transition-all rounded-[20px] ${expanded ? "ring-1 ring-border-soft" : ""}`}>

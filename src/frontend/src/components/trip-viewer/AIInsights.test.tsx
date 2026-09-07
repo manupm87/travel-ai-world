@@ -31,11 +31,12 @@ describe("AIInsights", () => {
     expect(screen.getByText(tv.noLocalTips)).toBeInTheDocument();
   });
 
-  it("renders a single-string tip as a paragraph", () => {
+  it("shows the tips fallback when the insights carry none", () => {
     renderWithProviders(
-      <AIInsights trip={makeTrip({ aiInsights: { weatherForecast: "Rainy", localTips: "Just one tip." } })} />
+      <AIInsights trip={makeTrip({ aiInsights: { weatherForecast: "Rainy", localTips: [] } })} />
     );
-    expect(screen.getByText("Just one tip.")).toBeInTheDocument();
+    expect(screen.getByText("Rainy")).toBeInTheDocument();
+    expect(screen.getByText(tv.noLocalTips)).toBeInTheDocument();
     expect(screen.queryByRole("list")).not.toBeInTheDocument();
   });
 });

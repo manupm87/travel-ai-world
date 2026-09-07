@@ -45,6 +45,7 @@ describe("Itinerary", () => {
 
 describe("DayCard", () => {
   const day = makeItineraryDay({
+    kind: "free",
     title: "Free Day in Paris",
     description: "Enjoy a free day walking around the city.",
     estimatedCost: 50,

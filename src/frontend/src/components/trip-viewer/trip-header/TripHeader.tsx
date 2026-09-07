@@ -1,6 +1,6 @@
 import React from "react";
 import { Trip } from "@/types/trip";
-import { isTripStatus } from "@/types/trip-summary";
+import type { TripStatus } from "@/types/trip-summary";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 import { useFormatters } from "@/hooks/useFormatters";
@@ -30,14 +30,12 @@ export default function TripHeader({ trip }: TripHeaderProps) {
     return trip.travelers.adults + trip.travelers.children + trip.travelers.infants;
   };
 
-  const getStatusColor = (status: string) => {
-    if (status === "planned" || status === "confirmed") return "text-success bg-success/20";
-    return "text-accent bg-accent/20";
+  const STATUS_COLOR: Record<TripStatus, string> = {
+    planning: "text-accent bg-accent/20",
+    planned: "text-success bg-success/20",
+    finished: "text-text-secondary bg-bg-tertiary",
   };
-
-  // `Trip.status` is still a plain string until the view model is typed from
-  // the OpenAPI contract; unknown values fall through untranslated.
-  const statusLabel = isTripStatus(trip.status) ? t.status[trip.status] : trip.status;
+  const statusLabel = t.status[trip.status];
 
   return (
     <section className="w-full bg-transparent pt-8 md:pt-[60px] pb-10">
@@ -76,7 +74,7 @@ export default function TripHeader({ trip }: TripHeaderProps) {
 
           {/* Header Actions */}
           <div className="flex flex-col gap-4 items-start lg:items-end w-full lg:w-auto">
-            <div className={`px-4 py-1.5 rounded-full flex items-center gap-2 ${getStatusColor(trip.status)}`}>
+            <div className={`px-4 py-1.5 rounded-full flex items-center gap-2 ${STATUS_COLOR[trip.status]}`}>
               <div className="w-1.5 h-1.5 rounded-full bg-current"></div>
               <span className="text-[11px] font-medium tracking-[1.5px] uppercase">{statusLabel}</span>
             </div>

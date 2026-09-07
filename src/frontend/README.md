@@ -57,7 +57,7 @@ src/
 ├── hooks/          # useFormatters, useChatStream, useStickToBottom, useAutoResizeTextarea, useScrolled, useClickOutside
 ├── i18n/           # types.ts (contract), en.ts, es.ts, index.ts (locales + LANGUAGES), interpolate.ts
 ├── services/       # The only place that talks to the network -> [README](src/services/README.md)
-├── mocks/          # Trip fixtures used by services/trips.ts until the API serves trips
+├── mocks/          # TripResponse fixtures (backend shape, `satisfies`-checked) used by services/trips.ts
 ├── types/          # Hand-written domain types + generated/ (from OpenAPI, never edited)
 ├── utils/          # Pure helpers (cn, formatting, country flags, localStorage store, safe redirect)
 └── test/           # Vitest setup + renderWithProviders (render.tsx) + typed fixtures (fixtures.ts)
@@ -226,7 +226,8 @@ drive the same headless Chromium (`npx playwright install --with-deps chromium` 
 1. Set `NEXT_PUBLIC_API_URL=http://localhost:8000` and `NEXT_PUBLIC_AI_API_URL=http://localhost:8001`
    in `.env.local` (one URL is enough behind the Docker Compose proxy on `:8080`).
 2. `services/auth.ts` (`loginWithGoogle`) talks to `core_api`; `services/chat.ts` (`streamChat`)
-   consumes `ai_api`'s SSE stream; `services/trips.ts` still serves the fixtures in `src/mocks/`.
+   consumes `ai_api`'s SSE stream; `services/trips.ts` still serves the fixtures in `src/mocks/`,
+   mapped through `toTrip` (ADR 0006).
 3. `components/planner/PlannerCard.tsx` streams real answers when `ai_api` is reachable
    (`useChatStream`, which also aborts the stream on unmount). Without an AI URL (the GitHub Pages
    build) the composer stays usable but sending is disabled and `t.planner.unavailable` explains why.

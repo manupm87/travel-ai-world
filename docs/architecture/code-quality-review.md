@@ -409,10 +409,10 @@ repositorio: el scraper se mantiene aparte y conserva la política de lint origi
 | 1, 2 | Propiedad de entidades hijas (rutas anidadas, `get_owned_trip`), `child_router` declarativo, `Page`, `partial()`, `/users/{id}` sólo admin, ADR 0005 | #50 | Fusionado |
 | 3 | Unidad de trabajo por petición, `Mapped[]` + mixins, `check_invariants()` en la entidad, tipos restringidos y enums en los esquemas, migración de timestamps | #52 | Fusionado |
 | 4 | `get_settings` inyectado, engine en `lifespan`, caso de uso `SignIn` tras el puerto `IdentityVerifier`, `/health/db` → 503, primeros tests de `/auth/google` | #53 | Fusionado |
-| 5 | Frontend: `toTrip`/`toTripSummary`, fixtures en forma `TripResponse` con `satisfies`, `ItineraryDay.kind`, ADR 0006 | #65 | Abierto al cierre de este informe |
+| 5 | Frontend: `toTrip`/`toTripSummary`, fixtures en forma `TripResponse` con `satisfies`, `ItineraryDay.kind`, ADR 0006 | #65 | Fusionado |
 | 6 | Frontend: `services/session.ts`, `loginWithGoogle`, `AuthContext` delgado, `redirect` validado | #51 | Fusionado |
 | 7 | Frontend: `LANGUAGES`, `locale`, `useFormatters`, claves i18n faltantes/muertas, `t.status` | #54 | Fusionado |
-| 8 | Frontend: `Header`/`PlannerCard` descompuestos, route groups, `request<T>`/`ApiError`, `parseSseEvents`, reglas ESLint, código muerto | #64 | Abierto al cierre de este informe |
+| 8 | Frontend: `Header`/`PlannerCard` descompuestos, route groups, `request<T>`/`ApiError`, `parseSseEvents`, reglas ESLint, código muerto | #64 | Fusionado |
 | 9 | `FRONTEND_URL`/`DB_ENGINE` eliminados de toda la cadena, test `.env.example` ↔ `Settings`, Postgres 16 en infra, `.python-version`/`.nvmrc` | #56 | Fusionado |
 | 10 | `setup-frontend`, `_build-image.yml`, job `infra` (fmt + validate), `just` en CI, `GCP_REGION` como variable, timeouts, Dependabot, shell de Windows, `depends_on` en Cloud Run y circuit breaker en ECS | #57 | Fusionado |
 | 11 | `ai_api`: provider único en `lifespan`, sin detalles del proveedor hacia el navegador, `CHAT_*` en settings, `ChatRole`, prompt RAG en `prompts.py` | #55 | Fusionado |
