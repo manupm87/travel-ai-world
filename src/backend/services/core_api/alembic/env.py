@@ -27,7 +27,9 @@ target_metadata = Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
-from core_api.config import settings
+from core_api.config import get_settings
+
+settings = get_settings()
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""
     url = settings.SQLALCHEMY_DATABASE_URI

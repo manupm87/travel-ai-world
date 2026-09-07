@@ -39,19 +39,20 @@ Errors: `{"detail": {"message": "...", "error_code": "NOT_FOUND" | "FORBIDDEN" |
 
 ```text
 core_api/
-├── main.py            create_app(settings, [api_router])
-├── config.py          CoreSettings(CommonSettings): DB_*, GOOGLE_*
+├── main.py            create_app(get_settings(), [api_router], lifespan=...) — engine on app.state
+├── config.py          CoreSettings(CommonSettings): DB_*, GOOGLE_*; get_settings() (injected)
 ├── api/deps.py        get_current_user (JWT + DB check) → Principal; provide() wiring;
-│                      get_owned_trip / get_owned_itinerary_day (aggregate boundary)
+│                      get_owned_trip / get_owned_itinerary_day (aggregate boundary); get_sign_in
 ├── api/v1/endpoints/  thin controllers for auth, users, trips, health
 ├── api/v1/resources.py  CHILD_RESOURCES + child_router(): the nested CRUD collections
-├── auth/google.py     Google tokeninfo verification
-├── services/          base.py (generic; every child entity) + trip_service.py, user_service.py
+├── auth/google.py     IdentityVerifier port + GoogleTokenInfoVerifier adapter
+├── services/          base.py (generic; every child entity) + trip_service.py, user_service.py,
+│                      auth_service.py (SignIn use case)
 ├── repositories/      base.py (generic) + trip_repository.py, user_repository.py
 ├── models/            SQLAlchemy 2 typed tables; mixins + check_invariants() in base.py; enums.py
 ├── schemas/           Pydantic models; XUpdate = partial(XBase) (_partial.py); formats in _types.py
 ├── pagination.py      Page(skip, limit)
-└── db/session.py      async engine + get_db (one transaction per request: unit_of_work)
+└── db/session.py      build_engine / build_session_factory + get_db (one transaction per request)
 ```
 
 ## Tests and migrations

@@ -11,7 +11,7 @@ thing everywhere. Nothing here talks to a database or an external API.
 | `security.py` | `create_access_token`, `decode_access_token`, `principal_from_token` — settings passed explicitly |
 | `http/auth.py` | `extract_bearer_token` dependency |
 | `http/error_handlers.py` | Maps domain errors to `{"detail": {"message", "error_code", "extras"}}` |
-| `http/app_factory.py` | `create_app(settings, routers)`: CORS + error handlers + versioned prefix |
+| `http/app_factory.py` | `create_app(settings, routers, lifespan=...)`: CORS + error handlers + versioned prefix; process resources live on `app.state` |
 
 Rule of thumb: if only one service uses it, it does not belong here.
 

@@ -3752,7 +3752,7 @@
     },
     "/api/v1/health/": {
       "get": {
-        "description": "Simple API health check.",
+        "description": "Liveness: the process answers.",
         "operationId": "health_check_api_v1_health__get",
         "responses": {
           "200": {
@@ -3772,7 +3772,7 @@
     },
     "/api/v1/health/db": {
       "get": {
-        "description": "Database connectivity health check.",
+        "description": "Readiness: the database answers. 503 (via ProviderUnavailable) when it does not.",
         "operationId": "db_health_check_api_v1_health_db_get",
         "responses": {
           "200": {

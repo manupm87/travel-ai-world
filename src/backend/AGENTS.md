@@ -36,8 +36,11 @@ uv run python scripts/export_openapi.py  # → docs/api/*.openapi.json (then `np
   domain exceptions, JWT codec, bearer extraction, the FastAPI app factory and error handlers.
   If a thing is used by one service, it belongs to that service. Never add SQLAlchemy or httpx-based
   clients to `travel_common`.
-- **Settings**: each service subclasses `CommonSettings`; JWT helpers take `settings` explicitly.
-  `SECRET_KEY` must be the same value in both services' `.env`.
+- **Settings**: each service subclasses `CommonSettings` and exposes `get_settings()` (cached);
+  inject it with `Depends(get_settings)` — no module-level `settings` singleton. JWT helpers take
+  `settings` explicitly. `SECRET_KEY` must be the same value in both services' `.env`.
+- **Process resources** (database engines, HTTP clients) are created in the app `lifespan` passed to
+  `create_app(..., lifespan=...)` and stored on `app.state`, never at import time.
 - **Errors**: services raise `travel_common.exceptions.*`; `travel_common.http.error_handlers` maps
   them to `{"detail": {"message", "error_code", "extras"}}`. Endpoints never raise `HTTPException`.
 - **Adding a dependency**: edit the *member's* `pyproject.toml`, then `uv lock` at the workspace root.

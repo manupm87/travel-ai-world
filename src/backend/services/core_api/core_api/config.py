@@ -27,7 +27,9 @@ class CoreSettings(CommonSettings):
 
 @lru_cache
 def get_settings() -> CoreSettings:
+    """Process-wide settings, injected with `Depends(get_settings)`.
+
+    Tests override the dependency (or call `get_settings.cache_clear()`)
+    instead of patching a module-level singleton.
+    """
     return CoreSettings()
-
-
-settings = get_settings()
