@@ -7,15 +7,25 @@ const es: Translations = {
     reviews: "Opiniones",
     planMyTrip: "Planificar Viaje",
     dashboard: "Dashboard",
-    home: "Inicio",
+    openMenu: "Abrir menú",
+    closeMenu: "Cerrar menú",
+    selectLanguage: "Seleccionar idioma",
   },
   common: {
+    loading: "Cargando...",
+    close: "Cerrar",
+  },
+  status: {
     planning: "En Planificación",
     planned: "Planificado",
     finished: "Finalizado",
   },
+  errors: {
+    title: "¡Vaya! Algo ha salido mal.",
+    description: "Se ha producido un error inesperado al cargar esta página.",
+    retry: "Reintentar",
+  },
   tripViewer: {
-    backToDashboard: "Volver al Panel",
     travelers: "Viajeros",
     totalBudget: "Presupuesto Total",
     viewBookings: "Ver Reservas",
@@ -28,7 +38,9 @@ const es: Translations = {
     transportation: "Transporte",
     aiInsights: "Sugerencias IA",
     weatherForecast: "Pronóstico del Tiempo",
+    weatherUnavailable: "La información meteorológica no está disponible para este viaje.",
     localTips: "Consejos Locales",
+    noLocalTips: "Aún no hay consejos locales disponibles.",
     yourItinerary: "Tu Itinerario",
     journeyTitle: "Tu Viaje de {duration} Días",
     allDays: "Todos los Días",
@@ -53,9 +65,12 @@ const es: Translations = {
       "Cuéntanos adónde quieres ir, tu presupuesto y tu estilo de viaje. Nuestra IA crea un itinerario personalizado, día a día, hecho justo para ti — en segundos.",
     ctaPrimary: "Planificar Mi Viaje Gratis",
     ctaSecondary: "Ver Cómo Funciona ↓",
-    trust1: "✓ Sin tarjeta de crédito",
-    trust2: "✓ +50.000 viajes planificados",
-    trust3: "✓ +190 destinos",
+    trust: [
+      "✓ Sin tarjeta de crédito",
+      "✓ +50.000 viajes planificados",
+      "✓ +190 destinos",
+    ],
+    imageAlt: "Paisaje de montaña espectacular al atardecer",
   },
   planner: {
     label: "Planifica tu viaje",
@@ -207,24 +222,13 @@ const es: Translations = {
   footer: {
     tagline:
       "Planificación de viajes con IA para el explorador moderno. De la idea al itinerario en 30 segundos.",
-    links: {
-      Producto: ["Cómo Funciona", "Funcionalidades", "Precios", "Viajes de Ejemplo"],
-      Destinos: ["Europa", "Asia", "Américas", "Todos los Destinos"],
-      Empresa:  ["Quiénes Somos", "Blog", "Política de Privacidad", "Términos de Uso"],
-    },
+    links: [
+      { title: "Producto", items: ["Cómo Funciona", "Funcionalidades", "Precios", "Viajes de Ejemplo"] },
+      { title: "Destinos", items: ["Europa", "Asia", "Américas", "Todos los Destinos"] },
+      { title: "Empresa", items: ["Quiénes Somos", "Blog", "Política de Privacidad", "Términos de Uso"] },
+    ],
+    social: ["Twitter", "Instagram", "LinkedIn"],
     copyright: "© 2025 Travel AI World. Todos los derechos reservados.",
-  },
-  planPage: {
-    title: "Planificador de Viajes",
-    description:
-      "El planificador de viajes con IA estará disponible próximamente. Lo estamos conectando con nuestro backend FastAPI. ¡Vuelve pronto!",
-    back: "← Volver al Inicio",
-  },
-  tripPage: {
-    title: "Viaje",
-    description:
-      "El visualizador de itinerarios generado por IA está en construcción. Una vez que nuestro backend FastAPI esté en funcionamiento, los detalles de tu viaje aparecerán aquí.",
-    back: "← Volver al Inicio",
   },
   dashboard: {
     heroTitle: "Planifica Tu Próxima Aventura",
@@ -239,17 +243,17 @@ const es: Translations = {
   auth: {
     login: "Iniciar Sesión",
     logout: "Cerrar Sesión",
-    loginWithGoogle: "Continuar con Google",
     welcomeBack: "Bienvenido de nuevo",
-    signingIn: "Iniciando sesión...",
-    loggedIn: "Sesión iniciada",
+    subtitle: "Únete a Travel AI World para guardar tus itinerarios y explorar el mundo.",
+    terms: "Al continuar, aceptas nuestros Términos de Uso y nuestra Política de Privacidad.",
     loginError: "No hemos podido iniciar tu sesión. Inténtalo de nuevo."
   },
   notFound: {
-    title: "404",
     subtitle: "404 - Perdido en el Paraíso",
     description: "Incluso los mejores planes de viaje pueden desviarse. Parece que has descubierto una isla que no está en nuestros mapas.",
-    cta: "Volver a la Civilización"
+    cta: "Volver a la Civilización",
+    redirecting: "Preparando tu aventura...",
+    imageAlt: "Isla paradisíaca perdida",
   },
   theme: {
     toggle: "Cambiar tema",

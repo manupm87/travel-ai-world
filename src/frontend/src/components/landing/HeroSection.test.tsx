@@ -20,9 +20,8 @@ vi.mock('@/context/LanguageContext', () => ({
         subtitle: 'The best way to plan your next trip.',
         ctaPrimary: 'Start Planning',
         ctaSecondary: 'How it works',
-        trust1: '10k+ Users',
-        trust2: '50+ Countries',
-        trust3: '24/7 Support'
+        trust: ['10k+ Users', '50+ Countries', '24/7 Support'],
+        imageAlt: 'Dramatic mountain landscape',
       }
     }
   })
@@ -31,26 +30,32 @@ vi.mock('@/context/LanguageContext', () => ({
 describe('HeroSection', () => {
   it('renders hero content correctly', () => {
     render(<HeroSection />)
-    
+
     expect(screen.getByText('NEW: AI TRAVELLER')).toBeInTheDocument()
     expect(screen.getByText('Discover the world with AI')).toBeInTheDocument()
     expect(screen.getByText('The best way to plan your next trip.')).toBeInTheDocument()
+  })
+
+  it('renders every trust marker', () => {
+    render(<HeroSection />)
     expect(screen.getByText('10k+ Users')).toBeInTheDocument()
+    expect(screen.getByText('50+ Countries')).toBeInTheDocument()
+    expect(screen.getByText('24/7 Support')).toBeInTheDocument()
   })
 
   it('renders primary and secondary CTAs', () => {
     render(<HeroSection />)
     const primaryCta = screen.getByText('Start Planning')
     const secondaryCta = screen.getByText('How it works')
-    
+
     expect(primaryCta).toHaveAttribute('href', '#planner')
     expect(secondaryCta).toHaveAttribute('href', '#how-it-works')
     expect(secondaryCta).toHaveAttribute('data-variant', 'secondary')
   })
 
-  it('renders the hero image', () => {
+  it('renders the hero image with its translated alt text', () => {
     render(<HeroSection />)
-    const img = screen.getByAltText(/Dramatic mountain landscape/i)
+    const img = screen.getByAltText('Dramatic mountain landscape')
     expect(img).toBeInTheDocument()
     expect(img).toHaveAttribute('src', expect.stringContaining('unsplash.com'))
   })

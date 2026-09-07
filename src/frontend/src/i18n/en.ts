@@ -7,15 +7,25 @@ const en: Translations = {
     reviews: "Reviews",
     planMyTrip: "Plan My Trip",
     dashboard: "Dashboard",
-    home: "Home",
+    openMenu: "Open menu",
+    closeMenu: "Close menu",
+    selectLanguage: "Select language",
   },
   common: {
+    loading: "Loading...",
+    close: "Close",
+  },
+  status: {
     planning: "Planning",
     planned: "Planned",
     finished: "Finished",
   },
+  errors: {
+    title: "Oops! Something went wrong.",
+    description: "An unexpected error occurred while loading this page.",
+    retry: "Try again",
+  },
   tripViewer: {
-    backToDashboard: "Back to Dashboard",
     travelers: "Travelers",
     totalBudget: "Total Budget",
     viewBookings: "View Bookings",
@@ -28,7 +38,9 @@ const en: Translations = {
     transportation: "Transportation",
     aiInsights: "AI Insights",
     weatherForecast: "Weather Forecast",
+    weatherUnavailable: "Weather information currently unavailable for this trip.",
     localTips: "Local Tips",
+    noLocalTips: "No local tips available yet.",
     yourItinerary: "Your Itinerary",
     journeyTitle: "Your {duration}-Day Journey",
     allDays: "All Days",
@@ -53,9 +65,12 @@ const en: Translations = {
       "Tell us where you want to go, your budget, and your travel style. Our AI crafts a personalized, day-by-day itinerary built just for you — in seconds.",
     ctaPrimary: "Plan My Trip Free",
     ctaSecondary: "See How It Works ↓",
-    trust1: "✓ No credit card required",
-    trust2: "✓ 50,000+ trips planned",
-    trust3: "✓ 190+ destinations",
+    trust: [
+      "✓ No credit card required",
+      "✓ 50,000+ trips planned",
+      "✓ 190+ destinations",
+    ],
+    imageAlt: "Dramatic mountain landscape at sunset for travel",
   },
   planner: {
     label: "Plan Your Trip",
@@ -207,24 +222,13 @@ const en: Translations = {
   footer: {
     tagline:
       "AI-powered travel planning for the modern explorer. From idea to itinerary in 30 seconds.",
-    links: {
-      Product:      ["How It Works", "Features", "Pricing", "Sample Trips"],
-      Destinations: ["Europe", "Asia", "Americas", "All Destinations"],
-      Company:      ["About", "Blog", "Privacy Policy", "Terms of Service"],
-    },
+    links: [
+      { title: "Product", items: ["How It Works", "Features", "Pricing", "Sample Trips"] },
+      { title: "Destinations", items: ["Europe", "Asia", "Americas", "All Destinations"] },
+      { title: "Company", items: ["About", "Blog", "Privacy Policy", "Terms of Service"] },
+    ],
+    social: ["Twitter", "Instagram", "LinkedIn"],
     copyright: "© 2025 Travel AI World. All rights reserved.",
-  },
-  planPage: {
-    title: "Trip Planner",
-    description:
-      "The AI-powered trip planner is coming soon. We're connecting it to our FastAPI backend. Check back shortly!",
-    back: "← Back to Home",
-  },
-  tripPage: {
-    title: "Trip",
-    description:
-      "The AI-generated itinerary viewer is under construction. Once our FastAPI backend is live, your trip details will appear here.",
-    back: "← Back to Home",
   },
   dashboard: {
     heroTitle: "Plan Your Next Adventure",
@@ -239,17 +243,17 @@ const en: Translations = {
   auth: {
     login: "Log In",
     logout: "Log Out",
-    loginWithGoogle: "Continue with Google",
     welcomeBack: "Welcome back",
-    signingIn: "Signing in...",
-    loggedIn: "Logged In",
+    subtitle: "Join Travel AI World to save your itineraries and explore the world.",
+    terms: "By continuing, you agree to our Terms of Service and Privacy Policy.",
     loginError: "We couldn't sign you in. Please try again."
   },
   notFound: {
-    title: "404",
     subtitle: "404 - Lost in Paradise",
     description: "Even the best travel plans can go off-course. It seems you've discovered an island that isn't on our maps.",
-    cta: "Return to Civilization"
+    cta: "Return to Civilization",
+    redirecting: "Preparing your adventure...",
+    imageAlt: "Lost paradise island",
   },
   theme: {
     toggle: "Toggle theme",

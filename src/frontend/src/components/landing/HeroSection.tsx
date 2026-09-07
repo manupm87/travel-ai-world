@@ -50,16 +50,16 @@ export default function HeroSection() {
 
         {/* Trust */}
         <div className="flex flex-wrap gap-8">
-          <span className="text-sm text-text-secondary">{h.trust1}</span>
-          <span className="text-sm text-text-secondary">{h.trust2}</span>
-          <span className="text-sm text-text-secondary">{h.trust3}</span>
+          {h.trust.map((item) => (
+            <span key={item} className="text-sm text-text-secondary">{item}</span>
+          ))}
         </div>
 
         {/* Hero Image */}
         <div className="relative w-full h-[480px] rounded-2xl overflow-hidden mt-4">
           <Image
             src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1440&q=85"
-            alt="Dramatic mountain landscape at sunset for travel"
+            alt={h.imageAlt}
             fill
             className="object-cover"
             priority

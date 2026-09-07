@@ -12,13 +12,16 @@ const visibleHeader = (page: Page) =>
 const visibleNav = (page: Page) =>
   page.getByRole("navigation").filter({ visible: true });
 
+// The trigger's accessible name is translated, so it changes with the language.
+const LANGUAGE_TRIGGER_NAME = /Select language|Seleccionar idioma/;
+
 const languageTrigger = (page: Page) =>
-  visibleHeader(page).getByRole("button", { name: "Select language" });
+  visibleHeader(page).getByRole("button", { name: LANGUAGE_TRIGGER_NAME });
 
 const languageSwitcher = (page: Page) =>
   visibleHeader(page)
     .locator(".dropdown-container")
-    .filter({ has: page.getByRole("button", { name: "Select language" }) });
+    .filter({ has: page.getByRole("button", { name: LANGUAGE_TRIGGER_NAME }) });
 
 async function openLanguageMenu(page: Page) {
   await languageTrigger(page).click();

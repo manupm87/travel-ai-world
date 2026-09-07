@@ -24,7 +24,9 @@ vi.mock('@/context/LanguageContext', () => ({
       tripViewer: {
         aiInsights: 'AI INSIGHTS',
         weatherForecast: 'Weather Forecast',
-        localTips: 'Local Tips'
+        weatherUnavailable: 'Weather information currently unavailable for this trip.',
+        localTips: 'Local Tips',
+        noLocalTips: 'No local tips available yet.'
       }
     }
   })

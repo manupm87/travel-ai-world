@@ -8,7 +8,8 @@ vi.mock('@/components/ui/Container', () => ({
   Container: ({ children }: { children?: React.ReactNode }) => <div data-testid="container">{children}</div>
 }))
 
-vi.mock('@/utils/format', () => ({
+vi.mock('@/utils/format', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/utils/format')>()),
   formatDate: (date: string) => date
 }))
 
@@ -19,6 +20,7 @@ vi.mock('@/utils/countryFlag', () => ({
 vi.mock('@/context/LanguageContext', () => ({
   useLanguage: () => ({
     language: 'en',
+    locale: 'en-US',
     t: {
       tripViewer: {
         journeyMap: 'JOURNEY MAP',

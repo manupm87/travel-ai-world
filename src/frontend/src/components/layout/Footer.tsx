@@ -35,13 +35,13 @@ export default function Footer() {
           </div>
 
           {/* Link columns */}
-          {Object.entries(f.links).map(([category, links]) => (
-            <div key={category} className="flex flex-col gap-4">
+          {f.links.map(({ title, items }) => (
+            <div key={title} className="flex flex-col gap-4">
               <h4 className="text-[11px] font-black text-text-primary tracking-[2px] uppercase opacity-90">
-                {category}
+                {title}
               </h4>
               <ul className="flex flex-col gap-3">
-                {(links as readonly string[]).map((label) => (
+                {items.map((label) => (
                   <li key={label}>
                     <a href="#" className="text-text-secondary text-sm hover:text-text-primary transition-all duration-200">
                       {label}
@@ -60,7 +60,7 @@ export default function Footer() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <p className="text-text-secondary text-xs">{f.copyright}</p>
           <div className="flex gap-6">
-            {["Twitter", "Instagram", "LinkedIn"].map((s) => (
+            {f.social.map((s) => (
               <a key={s} href="#" className="text-text-secondary text-xs hover:text-text-primary transition-colors">
                 {s}
               </a>

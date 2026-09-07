@@ -2,6 +2,8 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import React from 'react'
 import TripCard from './TripCard'
+import { LanguageProvider } from '@/context/LanguageContext'
+import en from '@/i18n/en'
 import { TripSummary } from '@/types/trip-summary'
 
 vi.mock('next/link', () => ({
@@ -20,38 +22,50 @@ const mockTrip: TripSummary = {
   imageUrl: '/images/paris.jpg',
 }
 
+const renderCard = (trip: TripSummary) =>
+  render(
+    <LanguageProvider>
+      <TripCard trip={trip} />
+    </LanguageProvider>
+  )
+
 describe('TripCard', () => {
   it('renders trip information correctly', () => {
-    render(<TripCard trip={mockTrip} />)
-    
+    renderCard(mockTrip)
+
     expect(screen.getByText('Paris Adventure')).toBeInTheDocument()
     expect(screen.getByText('Paris, Versailles')).toBeInTheDocument()
     expect(screen.getByText('2024-05-01 - 2024-05-07')).toBeInTheDocument()
-    expect(screen.getByText('Planned')).toBeInTheDocument()
+    expect(screen.getByText(en.status.planned)).toBeInTheDocument()
   })
 
-  it('renders progress status with correct styles', () => {
-    const { rerender } = render(<TripCard trip={mockTrip} />)
-    const statusLabel = screen.getByText('Planned')
-    expect(statusLabel).toHaveClass('text-accent')
+  it('labels every status from the dictionary', () => {
+    const { rerender } = renderCard(mockTrip)
+    expect(screen.getByText(en.status.planned)).toHaveAttribute('data-status', 'planned')
 
-    const planningTrip = { ...mockTrip, status: 'planning' as const }
-    rerender(<TripCard trip={planningTrip} />)
-    expect(screen.getByText('Planning')).toHaveClass('text-status-planning')
+    rerender(
+      <LanguageProvider>
+        <TripCard trip={{ ...mockTrip, status: 'planning' }} />
+      </LanguageProvider>
+    )
+    expect(screen.getByText(en.status.planning)).toHaveAttribute('data-status', 'planning')
 
-    const finishedTrip = { ...mockTrip, status: 'finished' as const }
-    rerender(<TripCard trip={finishedTrip} />)
-    expect(screen.getByText('Finished')).toHaveClass('text-text-secondary')
+    rerender(
+      <LanguageProvider>
+        <TripCard trip={{ ...mockTrip, status: 'finished' }} />
+      </LanguageProvider>
+    )
+    expect(screen.getByText(en.status.finished)).toHaveAttribute('data-status', 'finished')
   })
 
   it('contains the correct link to the trip page', () => {
-    render(<TripCard trip={mockTrip} />)
+    renderCard(mockTrip)
     const link = screen.getByRole('link')
     expect(link).toHaveAttribute('href', '/trip/1')
   })
 
   it('renders the cover image with correct alt text', () => {
-    render(<TripCard trip={mockTrip} />)
+    renderCard(mockTrip)
     const img = screen.getByAltText('Paris Adventure')
     // next/image rewrites src through its loader, so match the underlying file
     expect(img).toHaveAttribute('src', expect.stringContaining('paris.jpg'))

@@ -1,43 +1,34 @@
+"use client";
+
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { TripSummary } from "@/types/trip-summary";
+import { useLanguage } from "@/context/LanguageContext";
+import type { TripStatus, TripSummary } from "@/types/trip-summary";
 
 interface TripCardProps {
   trip: TripSummary;
 }
 
-const statusConfig = {
-  planning: {
-    label: "Planning",
-    bgColor: "bg-status-planning/20",
-    textColor: "text-status-planning",
-  },
-  planned: {
-    label: "Planned",
-    bgColor: "bg-accent/20",
-    textColor: "text-accent",
-  },
-  finished: {
-    label: "Finished",
-    bgColor: "bg-border-card",
-    textColor: "text-text-secondary",
-  },
+/** Badge colours per status; the label comes from `t.status`. */
+const STATUS_STYLES: Record<TripStatus, string> = {
+  planning: "bg-status-planning/20 text-status-planning",
+  planned: "bg-accent/20 text-accent",
+  finished: "bg-border-card text-text-secondary",
 };
-
 
 /**
  * Trip Summary Card.
- * 
+ *
  * Renders a high-level preview of a Trip for lists/grids. Displays the trip's
  * cover image, status (Planning/Planned/Finished), dates, title, and destinations.
- * 
+ *
  * Includes built-in hover states and links directly to the full Trip Viewer route.
- * 
+ *
  * @param trip - The TripSummary object containing preview data.
  */
 export default function TripCard({ trip }: TripCardProps) {
-  const config = statusConfig[trip.status];
+  const { t } = useLanguage();
 
   // Helper to format date display
   const formatDateRange = (start: string, end: string) => {
@@ -62,8 +53,11 @@ export default function TripCard({ trip }: TripCardProps) {
         {/* Content Container */}
         <div className="flex flex-col p-6 gap-4">
           <div className="flex items-center justify-between">
-            <div className={`px-3 py-1 rounded-full text-xs font-medium ${config.bgColor} ${config.textColor}`}>
-              {config.label}
+            <div
+              data-status={trip.status}
+              className={`px-3 py-1 rounded-full text-xs font-medium ${STATUS_STYLES[trip.status]}`}
+            >
+              {t.status[trip.status]}
             </div>
             <div className="text-xs font-medium text-text-secondary">
               {formatDateRange(trip.startDate, trip.endDate)}

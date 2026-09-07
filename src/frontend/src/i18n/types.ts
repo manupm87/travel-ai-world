@@ -1,5 +1,8 @@
 // ─── Shared i18n types ────────────────────────────────────────────────────────
-// Add new locales here: "en" | "es" | "fr" ...
+// Add new locales here: "en" | "es" | "fr" ... and describe them in LANGUAGES
+// (src/i18n/index.ts). The compiler flags whichever of the two you forget.
+import type { TripStatus } from "@/types/trip-summary";
+
 export type Language = "en" | "es";
 
 export interface Step {
@@ -27,6 +30,11 @@ export interface Testimonial {
   highlight: boolean;
 }
 
+export interface FooterLinkGroup {
+  title: string;
+  items: string[];
+}
+
 // The shape every locale file MUST satisfy.
 // TypeScript will error on import if any key is missing.
 export interface Translations {
@@ -36,15 +44,22 @@ export interface Translations {
     reviews: string;
     planMyTrip: string;
     dashboard: string;
-    home: string;
+    openMenu: string;
+    closeMenu: string;
+    selectLanguage: string;
   };
   common: {
-    planning: string;
-    planned: string;
-    finished: string;
+    loading: string;
+    close: string;
+  };
+  /** Label for each trip status, keyed by the backend's `TripStatus`. */
+  status: Record<TripStatus, string>;
+  errors: {
+    title: string;
+    description: string;
+    retry: string;
   };
   tripViewer: {
-    backToDashboard: string;
     travelers: string;
     totalBudget: string;
     viewBookings: string;
@@ -57,7 +72,9 @@ export interface Translations {
     transportation: string;
     aiInsights: string;
     weatherForecast: string;
+    weatherUnavailable: string;
     localTips: string;
+    noLocalTips: string;
     yourItinerary: string;
     journeyTitle: string; // "Your {duration}-Day Journey"
     allDays: string;
@@ -81,9 +98,8 @@ export interface Translations {
     subtitle: string;
     ctaPrimary: string;
     ctaSecondary: string;
-    trust1: string;
-    trust2: string;
-    trust3: string;
+    trust: string[];
+    imageAlt: string;
   };
   planner: {
     label: string;
@@ -119,43 +135,30 @@ export interface Translations {
   };
   footer: {
     tagline: string;
-    links: Record<string, string[]>;
+    links: FooterLinkGroup[];
+    social: string[];
     copyright: string;
-  };
-  planPage: {
-    title: string;
-    description: string;
-    back: string;
-  };
-  tripPage: {
-    title: string;
-    description: string;
-    back: string;
   };
   dashboard: {
     heroTitle: string;
-    sections: {
-      planned: string;
-      planning: string;
-      finished: string;
-    };
+    sections: Record<TripStatus, string>;
     emptyTitle: string;
     emptyDescription: string;
   };
   auth: {
     login: string;
     logout: string;
-    loginWithGoogle: string;
     welcomeBack: string;
-    signingIn: string;
-    loggedIn: string;
+    subtitle: string;
+    terms: string;
     loginError: string;
   };
   notFound: {
-    title: string;
     subtitle: string;
     description: string;
     cta: string;
+    redirecting: string;
+    imageAlt: string;
   };
   theme: {
     toggle: string;
@@ -163,4 +166,3 @@ export interface Translations {
     dark: string;
   };
 }
-

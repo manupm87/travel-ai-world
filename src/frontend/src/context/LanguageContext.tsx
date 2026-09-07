@@ -5,13 +5,16 @@ import {
   useContext,
   useState,
   useCallback,
+  useMemo,
   type ReactNode,
 } from "react";
-import { locales } from "@/i18n";
+import { DEFAULT_LANGUAGE, getLanguageMeta, locales } from "@/i18n";
 import type { Language, Translations } from "@/i18n";
 
 interface LanguageContextValue {
   language: Language;
+  /** BCP 47 tag for `Intl` formatters (`en-US`, `es-ES`, ...). */
+  locale: string;
   t: Translations;
   setLanguage: (lang: Language) => void;
 }
@@ -19,7 +22,7 @@ interface LanguageContextValue {
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<Language>("en");
+  const [language, setLanguageState] = useState<Language>(DEFAULT_LANGUAGE);
 
   const setLanguage = useCallback((lang: Language) => {
     setLanguageState(lang);
@@ -27,12 +30,18 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     document.documentElement.lang = lang;
   }, []);
 
+  const value = useMemo<LanguageContextValue>(
+    () => ({
+      language,
+      locale: getLanguageMeta(language).locale,
+      t: locales[language],
+      setLanguage,
+    }),
+    [language, setLanguage]
+  );
+
   return (
-    <LanguageContext.Provider
-      value={{ language, t: locales[language], setLanguage }}
-    >
-      {children}
-    </LanguageContext.Provider>
+    <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>
   );
 }
 

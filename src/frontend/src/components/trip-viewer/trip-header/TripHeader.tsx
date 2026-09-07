@@ -1,8 +1,9 @@
 import React from "react";
 import { Trip } from "@/types/trip";
+import { isTripStatus } from "@/types/trip-summary";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
-import { formatDate, formatCurrency } from "@/utils/format";
+import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/context/LanguageContext";
 import { BudgetCard } from "./BudgetCard";
 import { Calendar, Users, Wallet, ClipboardList, Download } from "lucide-react";
@@ -22,7 +23,8 @@ interface TripHeaderProps {
  * @param trip - The complete Trip data object.
  */
 export default function TripHeader({ trip }: TripHeaderProps) {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
+  const { formatDate, formatCurrency } = useFormatters();
 
   const calculateTravelers = () => {
     return trip.travelers.adults + trip.travelers.children + trip.travelers.infants;
@@ -33,14 +35,9 @@ export default function TripHeader({ trip }: TripHeaderProps) {
     return "text-blue-500 bg-blue-500/20";
   };
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case "planned": return t.common.planned;
-      case "planning": return t.common.planning;
-      case "finished": return t.common.finished;
-      default: return status;
-    }
-  };
+  // `Trip.status` is still a plain string until the view model is typed from
+  // the OpenAPI contract; unknown values fall through untranslated.
+  const statusLabel = isTripStatus(trip.status) ? t.status[trip.status] : trip.status;
 
   return (
     <section className="w-full bg-transparent pt-8 md:pt-[60px] pb-10">
@@ -60,7 +57,7 @@ export default function TripHeader({ trip }: TripHeaderProps) {
                 <div className="flex items-center gap-2 text-text-secondary">
                   <Calendar size={14} className="text-accent" />
                   <span className="text-sm">
-                    {formatDate(trip.dates.startDate, language === "en" ? "en-US" : "es-ES")} - {formatDate(trip.dates.endDate, language === "en" ? "en-US" : "es-ES")} ({trip.dates.durationDays} {t.tripViewer.nights.toLowerCase()})
+                    {formatDate(trip.dates.startDate)} - {formatDate(trip.dates.endDate)} ({trip.dates.durationDays} {t.tripViewer.nights.toLowerCase()})
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-text-secondary">
@@ -70,7 +67,7 @@ export default function TripHeader({ trip }: TripHeaderProps) {
                 <div className="flex items-center gap-2 text-text-secondary">
                   <Wallet size={14} className="text-accent" />
                   <span className="text-sm">
-                    {formatCurrency(trip.budget.total, trip.budget.currency, language === "en" ? "en-US" : "es-ES")} {t.tripViewer.totalBudget}
+                    {formatCurrency(trip.budget.total, trip.budget.currency)} {t.tripViewer.totalBudget}
                   </span>
                 </div>
               </div>
@@ -81,7 +78,7 @@ export default function TripHeader({ trip }: TripHeaderProps) {
           <div className="flex flex-col gap-4 items-start lg:items-end w-full lg:w-auto">
             <div className={`px-4 py-1.5 rounded-full flex items-center gap-2 ${getStatusColor(trip.status)}`}>
               <div className="w-1.5 h-1.5 rounded-full bg-current"></div>
-              <span className="text-[11px] font-medium tracking-[1.5px] uppercase">{getStatusLabel(trip.status)}</span>
+              <span className="text-[11px] font-medium tracking-[1.5px] uppercase">{statusLabel}</span>
             </div>
             
             <div className="flex flex-row md:flex-row lg:flex-col gap-3 w-full md:w-auto">
@@ -99,10 +96,10 @@ export default function TripHeader({ trip }: TripHeaderProps) {
 
         {/* Budget Overview */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-          <BudgetCard label={t.tripViewer.budgetBreakdown.accommodation} value={trip.budget.breakdown.accommodation} currency={trip.budget.currency} language={language} />
-          <BudgetCard label={t.tripViewer.budgetBreakdown.food} value={trip.budget.breakdown.food} currency={trip.budget.currency} language={language} />
-          <BudgetCard label={t.tripViewer.budgetBreakdown.activities} value={trip.budget.breakdown.activities} currency={trip.budget.currency} language={language} />
-          <BudgetCard label={t.tripViewer.budgetBreakdown.transport} value={trip.budget.breakdown.transportation} currency={trip.budget.currency} language={language} />
+          <BudgetCard label={t.tripViewer.budgetBreakdown.accommodation} value={trip.budget.breakdown.accommodation} currency={trip.budget.currency} />
+          <BudgetCard label={t.tripViewer.budgetBreakdown.food} value={trip.budget.breakdown.food} currency={trip.budget.currency} />
+          <BudgetCard label={t.tripViewer.budgetBreakdown.activities} value={trip.budget.breakdown.activities} currency={trip.budget.currency} />
+          <BudgetCard label={t.tripViewer.budgetBreakdown.transport} value={trip.budget.breakdown.transportation} currency={trip.budget.currency} />
         </div>
       </Container>
     </section>

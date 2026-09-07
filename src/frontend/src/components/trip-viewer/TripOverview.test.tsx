@@ -16,7 +16,8 @@ vi.mock('@/components/ui/Card', () => ({
   Card: ({ children, className }: { children?: React.ReactNode; className?: string }) => <div className={className}>{children}</div>
 }))
 
-vi.mock('@/utils/format', () => ({
+vi.mock('@/utils/format', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/utils/format')>()),
   formatDate: (date: string) => date,
   formatDuration: (duration: string) => duration
 }))
@@ -24,6 +25,7 @@ vi.mock('@/utils/format', () => ({
 vi.mock('@/context/LanguageContext', () => ({
   useLanguage: () => ({
     language: 'en',
+    locale: 'en-US',
     t: {
       tripViewer: {
         tripOverview: 'Trip Overview',

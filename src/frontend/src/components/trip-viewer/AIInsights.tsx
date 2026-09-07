@@ -20,11 +20,11 @@ export default function AIInsights({ trip }: AIInsightsProps) {
   const insights = trip.aiInsights;
 
   // Fallback content if insights are missing
-  const weatherText = insights?.weatherForecast || "Weather information currently unavailable for this trip.";
-  
+  const weatherText = insights?.weatherForecast || t.tripViewer.weatherUnavailable;
+
   const renderTips = () => {
     if (!insights?.localTips) {
-      return <p className="text-text-secondary text-[13px] leading-relaxed">No local tips available yet.</p>;
+      return <p className="text-text-secondary text-[13px] leading-relaxed">{t.tripViewer.noLocalTips}</p>;
     }
     
     if (Array.isArray(insights.localTips)) {
@@ -51,7 +51,7 @@ export default function AIInsights({ trip }: AIInsightsProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Weather Card */}
           <Card highlight={true} className="flex items-start gap-4 border-none shadow-none">
-            <div role="img" aria-label="Sun" className="text-4xl">🌤️</div>
+            <div aria-hidden="true" className="text-4xl">🌤️</div>
             <div className="flex flex-col gap-2">
               <h3 className="text-text-primary text-base font-medium">{t.tripViewer.weatherForecast}</h3>
               <p className="text-text-secondary text-[13px] leading-relaxed">
@@ -62,7 +62,7 @@ export default function AIInsights({ trip }: AIInsightsProps) {
 
           {/* Local Tips Card */}
           <Card className="flex items-start gap-4 h-full">
-            <div role="img" aria-label="Lightbulb" className="text-4xl">💡</div>
+            <div aria-hidden="true" className="text-4xl">💡</div>
             <div className="flex flex-col gap-2 w-full">
               <h3 className="text-text-primary text-base font-medium">{t.tripViewer.localTips}</h3>
               {renderTips()}
