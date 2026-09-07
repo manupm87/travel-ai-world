@@ -1,6 +1,7 @@
 """Trip endpoints — every trip is private to the user who owns it."""
 
 from fastapi import APIRouter, Depends, status
+from travel_common.principal import Principal
 
 from core_api.api.deps import (
     get_current_user,
@@ -12,7 +13,6 @@ from core_api.models.trip import Trip
 from core_api.pagination import Page
 from core_api.schemas.trip import TripCreate, TripResponse, TripUpdate
 from core_api.services.trip_service import TripService
-from travel_common.principal import Principal
 
 router = APIRouter()
 

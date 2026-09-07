@@ -2,11 +2,11 @@
 # Realiza búsquedas por zonas y búsquedas textuales, deduplica resultados y genera el archivo 'cercanias_madrid.json' con los datos obtenidos.
 
 
-import os
 import json
+import os
 import time
-import requests
 
+import requests
 from config.env import GOOGLE_API_KEY as API_KEY
 
 SEARCH_URL = "https://places.googleapis.com/v1/places:searchText"

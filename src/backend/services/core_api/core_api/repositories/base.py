@@ -12,8 +12,8 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core_api.pagination import Page
 from core_api.models.base import Base
+from core_api.pagination import Page
 
 
 class BaseRepository[ModelT: Base]:

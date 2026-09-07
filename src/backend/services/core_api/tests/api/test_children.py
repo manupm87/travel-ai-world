@@ -8,9 +8,9 @@ from dataclasses import dataclass
 from typing import Any
 
 import pytest
+from core_api.models.user import User
 from httpx import AsyncClient
 
-from core_api.models.user import User
 from tests.conftest import headers_for
 
 TRIPS_URL = "/api/v1/trips/"

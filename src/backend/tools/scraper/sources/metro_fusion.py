@@ -2,20 +2,19 @@
 # Realiza matching difuso para asignar líneas y colores a cada estación, y genera el archivo'metro_madrid_final.json'.
 
 import json
-
 from difflib import get_close_matches
 
 
 def fusionar_metro():
     print(">> Fusionando Google Places + Wikipedia…")
 
-    with open("data/metro_madrid.json", "r", encoding="utf-8") as f:
+    with open("data/metro_madrid.json", encoding="utf-8") as f:
         google_data = json.load(f)["items"]
 
-    with open("data/metro_wiki_estaciones.json", "r", encoding="utf-8") as f:
+    with open("data/metro_wiki_estaciones.json", encoding="utf-8") as f:
         wiki_estaciones = json.load(f)
 
-    with open("data/metro_wiki_colores.json", "r", encoding="utf-8") as f:
+    with open("data/metro_wiki_colores.json", encoding="utf-8") as f:
         wiki_colores = json.load(f)
 
     resultado = []

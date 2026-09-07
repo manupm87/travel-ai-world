@@ -1,8 +1,8 @@
 """Accounts: owners manage their own; administrators see and promote everyone."""
 
+from core_api.models.user import User
 from httpx import AsyncClient
 
-from core_api.models.user import User
 from tests.conftest import headers_for
 
 USERS_URL = "/api/v1/users/"

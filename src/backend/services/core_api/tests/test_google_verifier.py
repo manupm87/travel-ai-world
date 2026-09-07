@@ -2,7 +2,6 @@
 
 import httpx
 import pytest
-
 from core_api.auth.google import TOKENINFO_URL, GoogleTokenInfoVerifier
 from travel_common.exceptions import Unauthorized
 

@@ -1,15 +1,13 @@
 # Scraper de Wikipedia para Iglesias y Palacios de Madrid. Extrae historia, estilo arquitectónico, arquitecto y año de construcción desde la página oficial de cada POI.
 
-import json
-import requests
-
-from bs4 import BeautifulSoup
-
-import unicodedata
-import re
-import os
 import difflib
+import json
+import os
+import re
+import unicodedata
 
+import requests
+from bs4 import BeautifulSoup
 from sources.iglesias_palacios_wiki_names import WIKI_NOMBRES
 
 
@@ -80,7 +78,7 @@ def generar_wiki_iglesias_palacios(
 
     print(">> Extrayendo información de Wikipedia para Iglesias y Palacios…")
 
-    with open(path_google, "r", encoding="utf-8") as f:
+    with open(path_google, encoding="utf-8") as f:
         google_items = json.load(f)["items"]
 
     salida = {}

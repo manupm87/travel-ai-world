@@ -1,17 +1,17 @@
 """POST /auth/google: the use case behind it, with the identity provider faked."""
 
 import pytest
-from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from core_api.api.deps import get_identity_verifier
 from core_api.auth.google import ExternalIdentity
 from core_api.config import get_settings
 from core_api.main import app
 from core_api.models.user import User
-from tests.conftest import make_user
+from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession
 from travel_common.exceptions import Unauthorized
 from travel_common.security import principal_from_token
+
+from tests.conftest import make_user
 
 AUTH_URL = "/api/v1/auth/google"
 

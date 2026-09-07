@@ -1,7 +1,9 @@
 from datetime import date
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
-from sqlalchemy import Date, Enum as SQLEnum, ForeignKey, Integer, Numeric, String, Text
+from sqlalchemy import Date, ForeignKey, Integer, Numeric, String, Text
+from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.dialects.postgresql import ARRAY, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -12,6 +14,14 @@ from core_api.models.base import (
     ensure_ordered,
 )
 from core_api.models.enums import TripStatus
+
+if TYPE_CHECKING:
+    from core_api.models.accommodation import Accommodation
+    from core_api.models.destination import Destination
+    from core_api.models.itinerary_day import ItineraryDay
+    from core_api.models.transportation import Transportation
+    from core_api.models.user import User
+
 
 __all__ = ["Trip", "TripStatus"]
 
@@ -69,17 +79,17 @@ class Trip(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     # Relationships. Children load eagerly: the API always returns the whole
     # aggregate and lazy loads are not possible from an async serializer.
-    user: Mapped["User"] = relationship(back_populates="trips")  # noqa: F821
-    destinations: Mapped[list["Destination"]] = relationship(  # noqa: F821
+    user: Mapped["User"] = relationship(back_populates="trips")
+    destinations: Mapped[list["Destination"]] = relationship(
         back_populates="trip", cascade="all, delete-orphan", lazy="selectin"
     )
-    itinerary_days: Mapped[list["ItineraryDay"]] = relationship(  # noqa: F821
+    itinerary_days: Mapped[list["ItineraryDay"]] = relationship(
         back_populates="trip", cascade="all, delete-orphan", lazy="selectin"
     )
-    accommodations: Mapped[list["Accommodation"]] = relationship(  # noqa: F821
+    accommodations: Mapped[list["Accommodation"]] = relationship(
         back_populates="trip", cascade="all, delete-orphan", lazy="selectin"
     )
-    transportations: Mapped[list["Transportation"]] = relationship(  # noqa: F821
+    transportations: Mapped[list["Transportation"]] = relationship(
         back_populates="trip", cascade="all, delete-orphan", lazy="selectin"
     )
 

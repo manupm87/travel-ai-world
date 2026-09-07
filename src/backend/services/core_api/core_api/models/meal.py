@@ -1,4 +1,5 @@
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Float, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -10,6 +11,9 @@ from core_api.models.base import (
     TimestampMixin,
     UUIDPrimaryKeyMixin,
 )
+
+if TYPE_CHECKING:
+    from core_api.models.itinerary_day import ItineraryDay
 
 
 class Meal(
@@ -30,6 +34,4 @@ class Meal(
     )
     rating: Mapped[float | None] = mapped_column(Float, nullable=True)
 
-    itinerary_day: Mapped["ItineraryDay"] = relationship(  # noqa: F821
-        back_populates="meals"
-    )
+    itinerary_day: Mapped["ItineraryDay"] = relationship(back_populates="meals")

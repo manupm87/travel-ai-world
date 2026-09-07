@@ -14,7 +14,7 @@ class CoreSettings(CommonSettings):
     DB_PORT: int = 5432
 
     @property
-    def SQLALCHEMY_DATABASE_URI(self) -> str:
+    def database_url(self) -> str:
         return (
             f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}"
             f"@{self.DB_SERVER}:{self.DB_PORT}/{self.DB_NAME}"

@@ -1,8 +1,14 @@
-from sqlalchemy import Boolean, Enum as SQLEnum, Integer, String
+from typing import TYPE_CHECKING
+
+from sqlalchemy import Boolean, Integer, String
+from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from travel_common.principal import Role
 
 from core_api.models.base import Base
-from travel_common.principal import Role
+
+if TYPE_CHECKING:
+    from core_api.models.trip import Trip
 
 
 class User(Base):
@@ -23,6 +29,6 @@ class User(Base):
     name: Mapped[str | None] = mapped_column(String, nullable=True)
     picture: Mapped[str | None] = mapped_column(String, nullable=True)
 
-    trips: Mapped[list["Trip"]] = relationship(  # noqa: F821
+    trips: Mapped[list["Trip"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )

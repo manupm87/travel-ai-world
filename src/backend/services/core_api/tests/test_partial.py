@@ -1,9 +1,8 @@
 """`partial()` derives the PATCH body from the base schema, field by field."""
 
-from pydantic import BaseModel
-
 from core_api.schemas._partial import partial
 from core_api.schemas.trip import TripBase, TripUpdate
+from pydantic import BaseModel
 
 
 class Thing(BaseModel):

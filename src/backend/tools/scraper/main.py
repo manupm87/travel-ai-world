@@ -3,26 +3,21 @@
 # Cada bloque se ejecuta de manera segura mediante 'run_safe()' para garantizar que un error en un módulo no detenga el pipeline completo.
 # Produce todos los archivos JSON finales en la carpeta 'data/'.
 
-from sources.scraper_general import ejecutar_scraper
+import traceback
 
-from sources.metro_madrid_wiki import get_metro_wiki
-from sources.metro_fusion import fusionar_metro
-
-from sources.cercanias_madrid_wiki import get_cercanias_wiki
-from sources.cercanias_madrid_google import get_cercanias_google
 from sources.cercanias_madrid_fusion import fusionar_cercanias
-
-from sources.emt_madrid_wiki import get_emt_wiki
-from sources.emt_madrid_google import get_emt_google
+from sources.cercanias_madrid_google import get_cercanias_google
+from sources.cercanias_madrid_wiki import get_cercanias_wiki
+from sources.documentales import ejecutar_documental
 from sources.emt_madrid_fusion import fusionar_emt
-
+from sources.emt_madrid_google import get_emt_google
+from sources.emt_madrid_wiki import get_emt_wiki
+from sources.iglesias_palacios_fusion import fusionar_iglesias_palacios
 from sources.iglesias_palacios_madrid import get_iglesias_palacios_madrid
 from sources.iglesias_palacios_wiki import generar_wiki_iglesias_palacios
-from sources.iglesias_palacios_fusion import fusionar_iglesias_palacios
-
-from sources.documentales import ejecutar_documental
-
-import traceback
+from sources.metro_fusion import fusionar_metro
+from sources.metro_madrid_wiki import get_metro_wiki
+from sources.scraper_general import ejecutar_scraper
 
 
 def run_safe(nombre, funcion):

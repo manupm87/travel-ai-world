@@ -2,12 +2,11 @@
 # Descarga el HTML del artículo, identifica secciones (h2) y párrafos (p), y genera un JSON estructurado con las secciones narrativas.
 # Este módulo es utilizado por 'documentales.py' para generar los datasets narrativos de Historia, Cultura, Gastronomía y Clima.
 
-import requests
-
-from bs4 import BeautifulSoup
-
 import json
 import os
+
+import requests
+from bs4 import BeautifulSoup
 
 
 def extraer_documental(url, category, output_path, modo="all", section_name=None):

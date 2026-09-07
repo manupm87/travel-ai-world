@@ -6,10 +6,10 @@ an ORM row.
 """
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 
-class Role(str, Enum):
+class Role(StrEnum):
     USER = "user"
     ADMIN = "admin"
 

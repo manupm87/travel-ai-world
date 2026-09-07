@@ -1,10 +1,10 @@
 # Fusiona los datos de Iglesias y Palacios obtenidos desde Google Places (New) con la información enriquecida extraída desde Wikipedia.
 
-import json
-import unicodedata
-import re
 import difflib
+import json
 import os
+import re
+import unicodedata
 
 
 def normalizar(nombre):
@@ -28,10 +28,10 @@ def fusionar_iglesias_palacios(
 
     print(">> Fusionando Iglesias y Palacios…")
 
-    with open(path_google, "r", encoding="utf-8") as f:
+    with open(path_google, encoding="utf-8") as f:
         google_items = json.load(f)["items"]
 
-    with open(path_wiki, "r", encoding="utf-8") as f:
+    with open(path_wiki, encoding="utf-8") as f:
         wiki = json.load(f)
 
     items_final = []

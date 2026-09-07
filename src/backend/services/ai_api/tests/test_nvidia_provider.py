@@ -2,7 +2,6 @@
 
 import httpx
 import pytest
-
 from ai_api.config import AISettings
 from ai_api.domain.models import GenerationParams, Message
 from ai_api.infrastructure.nvidia_provider import (

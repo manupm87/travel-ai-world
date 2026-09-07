@@ -16,16 +16,16 @@ from core_api.models.trip import Trip
 from core_api.models.user import User
 
 __all__ = [
-    "User",
-    "Trip",
-    "TripStatus",
-    "MealType",
-    "TransportType",
-    "TransportCategory",
+    "Accommodation",
+    "Activity",
     "Destination",
     "ItineraryDay",
-    "Activity",
     "Meal",
-    "Accommodation",
+    "MealType",
+    "TransportCategory",
+    "TransportType",
     "Transportation",
+    "Trip",
+    "TripStatus",
+    "User",
 ]

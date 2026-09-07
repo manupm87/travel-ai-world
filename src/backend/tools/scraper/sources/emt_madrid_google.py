@@ -1,9 +1,9 @@
 # Scraper de Google Places (New) para obtener los intercambiadores EMT de Madrid.
 
-import os
 import json
-import requests
+import os
 
+import requests
 from config.env import GOOGLE_API_KEY as API_KEY
 
 PLACES_URL = "https://places.googleapis.com/v1/places:searchText"

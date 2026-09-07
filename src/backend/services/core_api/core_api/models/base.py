@@ -11,7 +11,6 @@ from datetime import date, datetime
 from sqlalchemy import DateTime, Float, ForeignKey, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column
-
 from travel_common.exceptions import UnprocessableEntity
 
 

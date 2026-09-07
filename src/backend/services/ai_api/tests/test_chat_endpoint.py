@@ -1,17 +1,16 @@
 """POST /api/v1/ai/chat — authentication, validation and the SSE contract."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import httpx
 import jwt
 import pytest
-from httpx import AsyncClient
-
 from ai_api.api.deps import get_llm_provider
 from ai_api.config import get_settings
 from ai_api.main import app
 from ai_api.schemas.chat import MAX_HISTORY_TURNS, MAX_MESSAGE_CHARS
 from ai_api.testing import FakeProvider, settings_for_tests
+from httpx import AsyncClient
 from travel_common.exceptions import ProviderUnavailable
 
 CHAT_URL = "/api/v1/ai/chat"
@@ -24,7 +23,7 @@ def _expired_token() -> str:
             "sub": "1",
             "email": "x@y.z",
             "role": "user",
-            "exp": datetime.now(timezone.utc) - timedelta(minutes=5),
+            "exp": datetime.now(UTC) - timedelta(minutes=5),
         },
         TEST_SETTINGS.SECRET_KEY,
         algorithm=TEST_SETTINGS.ALGORITHM,
@@ -168,9 +167,8 @@ async def test_unexpected_failure_is_not_leaked_to_the_client(
 
 async def test_unconfigured_provider_on_app_state_is_503(auth_headers):
     """No key: the lifespan still installs a provider, and requests get 503, not 500."""
-    from httpx import ASGITransport
-
     from ai_api.infrastructure.nvidia_provider import NvidiaProvider
+    from httpx import ASGITransport
 
     app.state.llm_provider = NvidiaProvider(
         api_key="", base_url="https://x", model="m", client=httpx.AsyncClient()

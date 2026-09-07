@@ -7,6 +7,10 @@ from uuid import UUID
 
 from fastapi import Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
+from travel_common.exceptions import Forbidden
+from travel_common.http.auth import extract_bearer_token
+from travel_common.principal import Principal
+from travel_common.security import principal_from_token
 
 from core_api.auth.google import GoogleTokenInfoVerifier, IdentityVerifier
 from core_api.config import CoreSettings, get_settings
@@ -27,10 +31,6 @@ from core_api.services.auth_service import SignIn
 from core_api.services.base import BaseService
 from core_api.services.trip_service import TripService
 from core_api.services.user_service import UserService
-from travel_common.exceptions import Forbidden
-from travel_common.http.auth import extract_bearer_token
-from travel_common.principal import Principal
-from travel_common.security import principal_from_token
 
 # ── Pagination ───────────────────────────────────────────────────────────────
 

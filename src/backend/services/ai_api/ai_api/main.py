@@ -2,11 +2,11 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from travel_common.http.app_factory import create_app
 
 from ai_api.api.v1.api_router import api_router
 from ai_api.config import get_settings
 from ai_api.infrastructure.nvidia_provider import NvidiaProvider
-from travel_common.http.app_factory import create_app
 
 
 @asynccontextmanager

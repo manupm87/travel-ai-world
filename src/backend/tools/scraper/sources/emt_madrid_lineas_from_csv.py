@@ -1,9 +1,8 @@
 # Procesa el archivo CSV oficial de líneas EMT y determina qué líneas pasan por cada intercambiador. Normaliza nombres, compara patrones y devuelve un diccionario con las líneas asociadas a cada intercambiador.
 
 import csv
-import unicodedata
 import re
-
+import unicodedata
 from collections import defaultdict
 
 INTERCAMBIADORES = {
@@ -37,7 +36,7 @@ def cargar_lineas_emt(path_csv: str) -> dict:
     """
     lineas_por_inter = defaultdict(set)
 
-    with open(path_csv, "r", encoding="utf-8") as f:
+    with open(path_csv, encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
             linea = row.get("line")

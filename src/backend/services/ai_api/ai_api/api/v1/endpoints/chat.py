@@ -4,13 +4,13 @@ import logging
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
+from travel_common.principal import Principal
 
 from ai_api.api.deps import get_current_user, get_stream_chat
 from ai_api.application.stream_chat import StreamChat
 from ai_api.domain.models import Message
 from ai_api.infrastructure.sse import sse_stream
 from ai_api.schemas.chat import ChatRequest
-from travel_common.principal import Principal
 
 logger = logging.getLogger(__name__)
 

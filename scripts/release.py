@@ -36,7 +36,7 @@ SEMVER = re.compile(r"^\d+\.\d+\.\d+$")
 
 
 def run(*args: str, check: bool = True, capture: bool = False) -> str:
-    result = subprocess.run(
+    result = subprocess.run(  # noqa: S603 — fixed argv, no shell
         args, cwd=ROOT, check=check, text=True, capture_output=capture
     )
     return result.stdout.strip() if capture else ""
@@ -105,7 +105,7 @@ def cmd_bump(args: argparse.Namespace) -> int:
             print(f"  warn  {path.relative_to(ROOT)} did not contain version {old}")
 
     if shutil.which("uv"):
-        subprocess.run(["uv", "lock", "--quiet"], cwd=ROOT / "src/backend", check=True)
+        subprocess.run(["uv", "lock", "--quiet"], cwd=ROOT / "src/backend", check=True)  # noqa: S607
         changed.append(ROOT / "src/backend/uv.lock")
         print("  ok    src/backend/uv.lock re-locked")
     else:

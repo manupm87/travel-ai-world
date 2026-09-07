@@ -10,7 +10,6 @@ from dataclasses import dataclass
 from typing import Protocol
 
 import httpx
-
 from travel_common.exceptions import Unauthorized
 
 logger = logging.getLogger(__name__)

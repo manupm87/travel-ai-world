@@ -4,9 +4,9 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
+from travel_common.exceptions import ProviderUnavailable
 
 from core_api.db.session import get_db
-from travel_common.exceptions import ProviderUnavailable
 
 logger = logging.getLogger(__name__)
 

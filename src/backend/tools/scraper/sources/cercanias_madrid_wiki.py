@@ -1,10 +1,10 @@
 # Scraper de Wikipedia para obtener las estaciones oficiales de Cercanías Madrid.
 # Extrae las tablas de cada línea (C1–C10), limpia los nombres y genera los archivos 'cercanias_wiki_estaciones.json' y 'cercanias_wiki_colores.json'. Estos datos se usan en la fase de fusión.
 
-import os
 import json
-import requests
+import os
 
+import requests
 from bs4 import BeautifulSoup
 
 HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}

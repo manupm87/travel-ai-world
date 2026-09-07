@@ -5,6 +5,10 @@ Process-wide resources (the LLM provider and its HTTP client) are created in
 """
 
 from fastapi import Depends, Request
+from travel_common.exceptions import ProviderUnavailable
+from travel_common.http.auth import extract_bearer_token
+from travel_common.principal import Principal
+from travel_common.security import principal_from_token
 
 from ai_api.application.stream_chat import StreamChat
 from ai_api.config import AISettings, get_settings
@@ -12,10 +16,6 @@ from ai_api.domain.ports import LLMProvider, TripGateway
 from ai_api.infrastructure.core_api_client import CoreApiClient
 from ai_api.infrastructure.nvidia_provider import NvidiaProvider
 from ai_api.prompts import CHAT_SYSTEM_PROMPT
-from travel_common.exceptions import ProviderUnavailable
-from travel_common.http.auth import extract_bearer_token
-from travel_common.principal import Principal
-from travel_common.security import principal_from_token
 
 
 async def get_current_user(

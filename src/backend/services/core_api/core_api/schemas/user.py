@@ -1,5 +1,4 @@
 from pydantic import BaseModel, ConfigDict, EmailStr
-
 from travel_common.principal import Role
 
 
@@ -55,5 +54,5 @@ class GoogleAuthResponse(BaseModel):
     """Response after a successful Google sign-in."""
 
     access_token: str
-    token_type: str = "bearer"
+    token_type: str = "bearer"  # noqa: S105 — a scheme name, not a secret
     user: AuthUser

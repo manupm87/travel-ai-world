@@ -5,7 +5,7 @@ that predates this module)."""
 import enum
 
 
-class TripStatus(str, enum.Enum):
+class TripStatus(enum.StrEnum):
     PLANNING = "planning"
     PLANNED = "planned"
     FINISHED = "finished"

@@ -1,10 +1,10 @@
 # Fusiona los datos de Cercanías obtenidos desde Google Places (New) y Wikipedia.
 # Normaliza nombres, empareja estaciones, añade líneas y colores, y genera el archivo 'cercanias_madrid_final.json'.
 
-import json
 import difflib
-import unicodedata
+import json
 import re
+import unicodedata
 
 
 def normalizar(nombre):
@@ -39,14 +39,14 @@ def fusionar_cercanias():
     print(">> Fusionando datos de Cercanías…")
 
     # Google Places
-    with open("data/cercanias_madrid.json", "r", encoding="utf-8") as f:
+    with open("data/cercanias_madrid.json", encoding="utf-8") as f:
         google_items = json.load(f)["items"]
 
     # Wikipedia
-    with open("data/cercanias_wiki_estaciones.json", "r", encoding="utf-8") as f:
+    with open("data/cercanias_wiki_estaciones.json", encoding="utf-8") as f:
         wiki = json.load(f)
 
-    with open("data/cercanias_wiki_colores.json", "r", encoding="utf-8") as f:
+    with open("data/cercanias_wiki_colores.json", encoding="utf-8") as f:
         colores = json.load(f)
 
     # Normalizar claves de Wikipedia

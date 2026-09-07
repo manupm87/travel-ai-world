@@ -5,7 +5,7 @@ database access can authenticate callers on its own. Settings are passed
 in explicitly: this module owns no global state.
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import jwt
 
@@ -15,9 +15,7 @@ from travel_common.principal import Principal, Role
 
 
 def create_access_token(principal: Principal, settings: CommonSettings) -> str:
-    expire = datetime.now(timezone.utc) + timedelta(
-        minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
-    )
+    expire = datetime.now(UTC) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     payload = {
         "sub": str(principal.id),
         "email": principal.email,

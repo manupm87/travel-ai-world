@@ -3,8 +3,6 @@
 import pytest
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
-
-from travel_common.http.error_handlers import register_error_handlers, status_for
 from travel_common.exceptions import (
     DomainError,
     EntityNotFound,
@@ -12,6 +10,7 @@ from travel_common.exceptions import (
     ProviderUnavailable,
     Unauthorized,
 )
+from travel_common.http.error_handlers import register_error_handlers, status_for
 
 
 class _CustomNotFound(EntityNotFound):

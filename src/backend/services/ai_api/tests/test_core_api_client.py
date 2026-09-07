@@ -2,7 +2,6 @@
 
 import httpx
 import pytest
-
 from ai_api.infrastructure.core_api_client import CoreApiClient
 from travel_common.exceptions import (
     EntityNotFound,

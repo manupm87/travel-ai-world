@@ -11,11 +11,12 @@ from collections.abc import AsyncIterator, Sequence
 from dataclasses import asdict
 
 import httpx
+from travel_common.exceptions import ProviderUnavailable
 
+from ai_api.config import AISettings
 from ai_api.domain.models import GenerationParams, Message
 from ai_api.infrastructure.retry import RetryPolicy
 from ai_api.infrastructure.sse import SSEParser
-from travel_common.exceptions import ProviderUnavailable
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +43,7 @@ class NvidiaProvider:
         self._retry = retry
 
     @classmethod
-    def from_settings(cls, settings) -> "NvidiaProvider":  # noqa: ANN001
+    def from_settings(cls, settings: AISettings) -> "NvidiaProvider":
         """Build the process-wide instance from `AISettings`."""
         timeout = httpx.Timeout(
             connect=settings.NVIDIA_CONNECT_TIMEOUT,

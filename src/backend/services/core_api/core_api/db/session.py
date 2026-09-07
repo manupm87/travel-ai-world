@@ -23,7 +23,7 @@ SessionFactory = async_sessionmaker[AsyncSession]
 
 def build_engine(settings: CoreSettings, **overrides: object) -> AsyncEngine:
     options: dict[str, object] = {"pool_pre_ping": True, "echo": False, **overrides}
-    return create_async_engine(settings.SQLALCHEMY_DATABASE_URI, **options)
+    return create_async_engine(settings.database_url, **options)
 
 
 def build_session_factory(engine: AsyncEngine) -> SessionFactory:
