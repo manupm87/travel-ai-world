@@ -12,7 +12,8 @@ to a cloud is a manual, two-step decision:
 2. **Subsequent deploys** run `.github/workflows/deploy-backend.yml` (Actions → "Deploy backend"
    → Run workflow): pick the cloud, the image tag (a commit SHA or `latest`) and whether to apply.
    It copies the GHCR images into the cloud registry and runs Terraform. Requires a remote
-   Terraform state backend and the secrets listed in the workflow header.
+   Terraform state backend, the secrets listed in the workflow header and, for GCP, the repository
+   variable `GCP_REGION`.
 
 Frontend variables per shape:
 

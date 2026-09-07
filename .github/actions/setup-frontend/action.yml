@@ -1,0 +1,17 @@
+name: Set up frontend
+description: Install the Node pinned in src/frontend/.nvmrc and the frontend dependencies (cached).
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version-file: src/frontend/.nvmrc
+        cache: npm
+        cache-dependency-path: src/frontend/package-lock.json
+
+    - name: Install dependencies
+      shell: bash
+      working-directory: src/frontend
+      run: npm ci

@@ -21,27 +21,19 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: src/frontend/.nvmrc
-          cache: "npm"
-          cache-dependency-path: src/frontend/package-lock.json
-
-      - name: Install dependencies
-        working-directory: src/frontend
-        run: npm ci
+      - uses: ./.github/actions/setup-frontend
 
       - name: Build (static export)
         working-directory: src/frontend
         env:
           # Project GitHub Pages URL: https://<owner>.github.io/<repo>/
-          # The basePath must match the repo name exactly.
-          NEXT_PUBLIC_BASE_PATH: /travel-ai-world
+          # The basePath is the repo name, derived so a fork or rename keeps working.
+          NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
           NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           NODE_ENV: production
 
@@ -56,6 +48,7 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

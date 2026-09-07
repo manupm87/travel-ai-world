@@ -82,6 +82,12 @@ resource "aws_ecs_service" "this" {
   desired_count   = var.desired_count
   launch_type     = "FARGATE"
 
+  # A broken image rolls back instead of cycling tasks forever.
+  deployment_circuit_breaker {
+    enable   = true
+    rollback = true
+  }
+
   network_configuration {
     subnets          = var.subnets
     security_groups  = var.security_groups

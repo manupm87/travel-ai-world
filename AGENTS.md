@@ -44,7 +44,7 @@ just docker-up      # proxy :8080 + core_api + ai_api + PostgreSQL
 just scrape         # run the city scraper (needs GOOGLE_API_KEY in its .env)
 ```
 
-Windows: `winget install Casey.Just`; the recipes run under PowerShell there.
+Windows: `winget install Casey.Just` and run the recipes from Git Bash or WSL (they are POSIX shell).
 `just test-core` needs PostgreSQL and a non-empty `SECRET_KEY` (see `src/backend/services/core_api/.env.example`).
 
 ## Non-negotiable rules
