@@ -1,6 +1,6 @@
 // Fixture in the exact shape of core_api's `TripResponse`. `satisfies` makes the
 // compiler reject any drift from the generated contract (enum values included).
-import type { components } from "@/types/generated/core-api";
+import type { TripResponse } from "@/types/trip";
 
 const trip = {
   "id": "trip_prague_vienna_budapest_2024",
@@ -392,6 +392,6 @@ const trip = {
       "booking_reference": null
     }
   ]
-} satisfies components["schemas"]["TripResponse"];
+} satisfies TripResponse;
 
 export default trip;
