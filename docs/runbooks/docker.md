@@ -17,7 +17,8 @@ installed non-editable so the runtime stage carries no source tree. Migrations a
 when the service has an `alembic/` directory; the shared entrypoint runs them if present.
 
 CI publishes `ghcr.io/manupm87/travel-ai-world/core-api` and `.../ai-api` (tags: commit SHA and
-`latest`) on every push to `main` touching `src/backend/` (`.github/workflows/backend-images.yml`).
+`latest`, platform `linux/amd64`) on every push to `main` touching `src/backend/`
+(`.github/workflows/backend-images.yml`, which calls the reusable `_build-image.yml`).
 
 ## Local stack
 
@@ -31,11 +32,13 @@ just docker-down
 |---|---|
 | <http://localhost:8080> | nginx proxy — point `NEXT_PUBLIC_API_URL` here |
 | <http://localhost:8000/docs> | core_api directly |
-| <http://localhost:8001/docs> | ai_api directly |
+| <http://localhost:8001/api/v1/ai/docs> | ai_api directly |
 | localhost:5432 | PostgreSQL (`DB_USER`/`DB_PASSWORD` from `core_api/.env`) |
 
 `docker-compose.yml` reads `services/core_api/.env` and `services/ai_api/.env`; `DB_SERVER` and
-`CORE_API_URL` are overridden to the Compose service names.
+`CORE_API_URL` are overridden to the Compose service names. PostgreSQL receives only `POSTGRES_*`
+(interpolated from `DB_*` via `--env-file`), never the whole `.env`. The proxy waits for both
+services' health checks before it starts routing.
 
 ## Troubleshooting
 

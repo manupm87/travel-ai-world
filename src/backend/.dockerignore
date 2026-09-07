@@ -26,7 +26,7 @@ __pycache__/
 .coverage
 coverage.xml
 
-# Virtual Environments
+# Virtual environments (images build their own in /opt/venv)
 venv/
 .venv/
 env/
@@ -38,8 +38,8 @@ env/
 *.swp
 *.swo
 
-# Tests and Docs (keep tests out of prod image to save space)
-tests/
+# Tests and Docs (keep tests out of the build context; every package has a tests/)
+**/tests/
 docs/
 *.md
 !README.md
@@ -61,6 +61,3 @@ Dockerfile
 # Scripts (dev-only tooling) and scraper output
 scripts/
 tools/*/data/
-
-# Virtualenv of the workspace (images build their own in /opt/venv)
-.venv/
