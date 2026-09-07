@@ -1,5 +1,5 @@
 name: Set up uv workspace
-description: Install uv, Python 3.12 and the backend workspace dependencies (cached).
+description: Install uv, the Python pinned in src/backend/.python-version and the workspace dependencies (cached).
 
 runs:
   using: composite
@@ -12,7 +12,8 @@ runs:
 
     - name: Set up Python
       shell: bash
-      run: uv python install 3.12
+      working-directory: src/backend
+      run: uv python install   # version from .python-version
 
     - name: Install workspace
       shell: bash

@@ -13,7 +13,7 @@ path. The frontend needs only `NEXT_PUBLIC_API_URL`.
 ## What Terraform creates
 
 - VPC, public subnets and security groups (ALB → ECS:8000 → RDS:5432).
-- RDS PostgreSQL (private).
+- RDS PostgreSQL 16 (private).
 - Two ECR repositories: `${name_prefix}-core-api`, `${name_prefix}-ai-api`.
 - Secrets Manager secrets: `secret-key`, `google-client-id`, `google-client-secret`,
   `db-password`, `nvidia-api-key`; each task execution role can read only its own.

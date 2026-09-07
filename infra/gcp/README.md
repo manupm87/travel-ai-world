@@ -11,7 +11,7 @@ for both clouds. This folder deploys the two services as separate **Cloud Run** 
 ## What Terraform creates
 
 - The required GCP APIs, a VPC, a subnet and a Serverless VPC Access connector.
-- Cloud SQL PostgreSQL 15 (private IP), database and user.
+- Cloud SQL PostgreSQL 16 (private IP), database and user.
 - One Artifact Registry Docker repository (`${name_prefix}-images`).
 - Secret Manager secrets: `secret-key`, `google-client-id`, `google-client-secret`,
   `db-password`, `nvidia-api-key`; each service account can read only its own.

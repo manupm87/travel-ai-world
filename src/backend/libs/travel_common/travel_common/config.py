@@ -1,5 +1,6 @@
 """Settings every service shares. Each service subclasses and adds its own."""
 
+import re
 from typing import ClassVar
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -19,9 +20,19 @@ class CommonSettings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
-    # Frontend URL (for redirects / CORS)
-    FRONTEND_URL: str = "http://localhost:3000"
-
     model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", case_sensitive=True, extra="ignore"
     )
+
+
+_ENV_LINE = re.compile(r"^\s*#?\s*([A-Z][A-Z0-9_]*)=", re.MULTILINE)
+
+
+def documented_env_keys(env_example: str) -> set[str]:
+    """Variable names an `.env.example` documents, active or commented out.
+
+    Each service's tests compare this with its `Settings.model_fields`, so a
+    setting cannot be added without documenting it, nor documented without
+    existing.
+    """
+    return set(_ENV_LINE.findall(env_example))

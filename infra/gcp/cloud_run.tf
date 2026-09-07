@@ -7,8 +7,8 @@
 # Each service gets only the secrets it uses.
 
 locals {
+  # CORS is the only thing the backend needs to know about the frontend.
   frontend_env = {
-    FRONTEND_URL         = var.frontend_url
     BACKEND_CORS_ORIGINS = var.backend_cors_origins
   }
 }
@@ -24,7 +24,6 @@ module "core_api" {
   vpc_connector = google_vpc_access_connector.run.id
 
   env = merge(local.frontend_env, {
-    DB_ENGINE = "postgresql"
     DB_SERVER = google_sql_database_instance.main.private_ip_address
     DB_PORT   = "5432"
     DB_USER   = var.db_user

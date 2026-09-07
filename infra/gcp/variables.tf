@@ -79,11 +79,6 @@ variable "google_client_secret" {
   sensitive   = true
 }
 
-variable "frontend_url" {
-  description = "Public frontend URL."
-  type        = string
-}
-
 variable "backend_cors_origins" {
   description = "JSON list of allowed frontend origins."
   type        = string

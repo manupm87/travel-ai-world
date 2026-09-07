@@ -9,8 +9,8 @@ resource "aws_ecs_cluster" "main" {
 }
 
 locals {
+  # CORS is the only thing the backend needs to know about the frontend.
   frontend_env = {
-    FRONTEND_URL         = var.frontend_url
     BACKEND_CORS_ORIGINS = var.backend_cors_origins
   }
 }
@@ -27,7 +27,6 @@ module "core_api" {
   target_group_arn = aws_lb_target_group.core_api.arn
 
   env = merge(local.frontend_env, {
-    DB_ENGINE = "postgresql"
     DB_SERVER = aws_db_instance.main.address
     DB_PORT   = "5432"
     DB_USER   = var.db_user
