@@ -2,6 +2,7 @@ from pydantic import BaseModel
 
 from travel_common.exceptions import Forbidden, Unauthorized
 from travel_common.principal import Principal, Role
+from core_api.auth.google import ExternalIdentity
 from core_api.models.user import User
 from core_api.repositories.user_repository import UserRepository
 from core_api.schemas.user import UserRoleUpdate, UserUpdate
@@ -30,27 +31,22 @@ class UserService(BaseService[User, BaseModel, UserUpdate | UserRoleUpdate]):
             raise Forbidden()
         return user
 
-    async def find_or_create_google_user(
-        self, email: str, google_id: str, name: str, picture: str | None
-    ) -> User:
-        """Find user by email or create a new Google OAuth user.
-
-        Existing users get their Google profile data refreshed.
-        """
-        user = await self.repository.get_by_email(email)
+    async def upsert_from_identity(self, identity: ExternalIdentity) -> User:
+        """Find the account by email or create it; refresh the profile either way."""
+        user = await self.repository.get_by_email(identity.email)
         if user:
-            user.google_id = google_id
-            user.name = name
-            user.picture = picture
+            user.google_id = identity.subject
+            user.name = identity.name
+            user.picture = identity.picture
             user.auth_provider = "google"
             return await self.repository.update(user)
 
         return await self.repository.create(
             User(
-                email=email,
-                google_id=google_id,
-                name=name,
-                picture=picture,
+                email=identity.email,
+                google_id=identity.subject,
+                name=identity.name,
+                picture=identity.picture,
                 auth_provider="google",
                 is_active=True,
                 role=Role.USER,

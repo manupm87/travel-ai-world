@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from sqlalchemy.pool import NullPool
 
 from core_api import models  # noqa: F401 — registers models with Base.metadata
-from core_api.config import settings
+from core_api.config import get_settings
 from core_api.db.session import get_db, unit_of_work
 from core_api.main import app
 from core_api.models.base import Base
@@ -21,6 +21,7 @@ from core_api.models.user import User
 from travel_common.principal import Principal, Role
 from travel_common.security import create_access_token
 
+settings = get_settings()
 TEST_DB_NAME = f"{settings.DB_NAME}_test"
 _SERVER = f"postgresql+asyncpg://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_SERVER}:{settings.DB_PORT}"
 

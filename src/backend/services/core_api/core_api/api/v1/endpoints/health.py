@@ -1,9 +1,12 @@
 import logging
 
 from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from core_api.db.session import get_db
+from travel_common.exceptions import ProviderUnavailable
 
 logger = logging.getLogger(__name__)
 
@@ -12,21 +15,16 @@ router = APIRouter()
 
 @router.get("/")
 async def health_check():
-    """
-    Simple API health check.
-    """
+    """Liveness: the process answers."""
     return {"status": "ok", "api": "healthy"}
 
 
 @router.get("/db")
 async def db_health_check(db: AsyncSession = Depends(get_db)):
-    """
-    Database connectivity health check.
-    """
+    """Readiness: the database answers. 503 (via ProviderUnavailable) when it does not."""
     try:
-        # Perform a simple query to check DB connection
         await db.execute(text("SELECT 1"))
-        return {"status": "ok", "database": "connected"}
-    except Exception as e:
-        logger.error("DB health check failed: %s", e)
-        return {"status": "error", "database": "disconnected"}
+    except (SQLAlchemyError, OSError) as exc:
+        logger.error("DB health check failed: %s", exc)
+        raise ProviderUnavailable("Database unavailable") from exc
+    return {"status": "ok", "database": "connected"}

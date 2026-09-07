@@ -6,6 +6,8 @@ same everywhere; only the routers and the settings differ.
 
 import logging
 from collections.abc import Sequence
+from contextlib import AbstractAsyncContextManager
+from typing import Any, Callable
 
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,8 +23,12 @@ def create_app(
     routers: Sequence[APIRouter],
     *,
     docs_prefix: str = "",
+    lifespan: Callable[[FastAPI], AbstractAsyncContextManager[Any]] | None = None,
 ) -> FastAPI:
     """Assemble the app.
+
+    `lifespan` is the service's startup/shutdown context (engines, clients);
+    resources it creates belong on `app.state`, never in module globals.
 
     `docs_prefix` is the URL prefix a reverse proxy routes to this service
     (e.g. "/api/v1/ai"). The OpenAPI document and the Swagger/ReDoc pages
@@ -43,6 +49,7 @@ def create_app(
         openapi_url=f"{base or settings.API_V1_STR}/openapi.json",
         docs_url=f"{base}/docs",
         redoc_url=f"{base}/redoc",
+        lifespan=lifespan,
     )
 
     # CORS middleware must be registered before routers.

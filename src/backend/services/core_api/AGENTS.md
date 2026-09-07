@@ -14,8 +14,14 @@ repositories/*.py       SQLAlchemy only; never import Pydantic schemas
 models/*.py             tables (DeclarativeBase, SQLAlchemy 2 style)
 ```
 
+- **Settings are injected**, never imported as a singleton: `Depends(get_settings)` in dependables,
+  `get_settings()` at the composition root (`main.py`, `alembic/env.py`). The engine is built in the
+  app `lifespan` and the session factory lives on `app.state`; `get_db` reads it from the request.
 - `api/deps.py`: `get_current_user` (JWT **plus** a DB check that the account is active) returns a
   `Principal`; `provide(Service, Model[, Repository])` wires services — do not write per-entity factories.
+- **Sign-in is a use case** (`services/auth_service.py::SignIn`) behind the `IdentityVerifier` port
+  (`auth/google.py`); `GoogleTokenInfoVerifier` is its only adapter today. The endpoint just calls it;
+  tests override `get_identity_verifier` with a fake.
 - **`Trip` is the aggregate root** (ADR 0005). Child collections are nested under
   `/trips/{trip_id}/...` and authorised once by `get_owned_trip` (or `get_owned_itinerary_day`
   for activities and meals). Services scope every query with `get_in(id, trip_id=...)` /
