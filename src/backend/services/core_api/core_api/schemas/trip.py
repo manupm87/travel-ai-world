@@ -1,99 +1,52 @@
-from __future__ import annotations
-
 from datetime import date, datetime
 from decimal import Decimal
-from typing import List, Optional, Union
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
 from core_api.models.trip import TripStatus
+from core_api.schemas._partial import partial
 from core_api.schemas.accommodation import AccommodationResponse
 from core_api.schemas.destination import DestinationResponse
 from core_api.schemas.itinerary_day import ItineraryDayResponse
 from core_api.schemas.transportation import TransportationResponse
 
 
-# ---------------------------------------------------------------------------
-# TripSummary — lightweight card used in list views (mirrors TripSummary.ts)
-# ---------------------------------------------------------------------------
-
-
-class TripSummaryResponse(BaseModel):
-    id: UUID
-    title: str
-    status: TripStatus
-    start_date: Optional[date] = None
-    end_date: Optional[date] = None
-    image_url: Optional[str] = None
-    # Convenience: list of destination city names
-    destinations: List[str] = []
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-# ---------------------------------------------------------------------------
-# Full Trip CRUD schemas
-# ---------------------------------------------------------------------------
-
-
 class TripBase(BaseModel):
     title: str
-    description: Optional[str] = None
+    description: str | None = None
     status: TripStatus = TripStatus.PLANNING
-    image_url: Optional[str] = None
+    image_url: str | None = None
     # Dates
-    start_date: Optional[date] = None
-    end_date: Optional[date] = None
-    duration_days: Optional[int] = None
+    start_date: date | None = None
+    end_date: date | None = None
+    duration_days: int | None = None
     # Travelers (mirrors Trip.travelers in frontend)
     travelers_adults: int = 1
     travelers_children: int = 0
     travelers_infants: int = 0
     # Preferences
-    travel_style: Optional[List[str]] = None
-    pace_preference: Optional[str] = None
-    accommodation_type: Optional[str] = None
+    travel_style: list[str] | None = None
+    pace_preference: str | None = None
+    accommodation_type: str | None = None
     # Budget (mirrors Budget interface in frontend)
-    budget_total: Optional[Decimal] = None
-    budget_currency: Optional[str] = None
-    budget_accommodation: Optional[Decimal] = None
-    budget_food: Optional[Decimal] = None
-    budget_activities: Optional[Decimal] = None
-    budget_transportation: Optional[Decimal] = None
-    budget_other: Optional[Decimal] = None
+    budget_total: Decimal | None = None
+    budget_currency: str | None = None
+    budget_accommodation: Decimal | None = None
+    budget_food: Decimal | None = None
+    budget_activities: Decimal | None = None
+    budget_transportation: Decimal | None = None
+    budget_other: Decimal | None = None
     # AI Insights (mirrors AIInsights in frontend)
-    ai_weather_forecast: Optional[str] = None
-    ai_local_tips: Optional[Union[List[str], str]] = None
+    ai_weather_forecast: str | None = None
+    ai_local_tips: list[str] | str | None = None
 
 
 class TripCreate(TripBase):
     pass
 
 
-class TripUpdate(BaseModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
-    status: Optional[TripStatus] = None
-    image_url: Optional[str] = None
-    start_date: Optional[date] = None
-    end_date: Optional[date] = None
-    duration_days: Optional[int] = None
-    travelers_adults: Optional[int] = None
-    travelers_children: Optional[int] = None
-    travelers_infants: Optional[int] = None
-    travel_style: Optional[List[str]] = None
-    pace_preference: Optional[str] = None
-    accommodation_type: Optional[str] = None
-    budget_total: Optional[Decimal] = None
-    budget_currency: Optional[str] = None
-    budget_accommodation: Optional[Decimal] = None
-    budget_food: Optional[Decimal] = None
-    budget_activities: Optional[Decimal] = None
-    budget_transportation: Optional[Decimal] = None
-    budget_other: Optional[Decimal] = None
-    ai_weather_forecast: Optional[str] = None
-    ai_local_tips: Optional[Union[List[str], str]] = None
+TripUpdate = partial(TripBase, "TripUpdate")
 
 
 class TripResponse(TripBase):
@@ -102,9 +55,9 @@ class TripResponse(TripBase):
     created_at: datetime
     updated_at: datetime
     # Nested relationships — names match the ORM attributes so they populate.
-    destinations: List[DestinationResponse] = []
-    itinerary_days: List[ItineraryDayResponse] = []
-    accommodations: List[AccommodationResponse] = []
-    transportations: List[TransportationResponse] = []
+    destinations: list[DestinationResponse] = []
+    itinerary_days: list[ItineraryDayResponse] = []
+    accommodations: list[AccommodationResponse] = []
+    transportations: list[TransportationResponse] = []
 
     model_config = ConfigDict(from_attributes=True)

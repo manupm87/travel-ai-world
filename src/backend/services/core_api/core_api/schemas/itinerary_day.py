@@ -1,42 +1,34 @@
-from __future__ import annotations
-
-from datetime import date
+import datetime as dt
 from decimal import Decimal
-from typing import List, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
+from core_api.schemas._partial import partial
 from core_api.schemas.activity import ActivityResponse
 from core_api.schemas.meal import MealResponse
 
 
 class ItineraryDayBase(BaseModel):
     day_number: int
-    date: Optional[date] = None
-    title: Optional[str] = None
-    description: Optional[str] = None
-    estimated_cost: Optional[Decimal] = None
+    date: dt.date | None = None
+    title: str | None = None
+    description: str | None = None
+    estimated_cost: Decimal | None = None
+    destination_id: UUID | None = None
 
 
 class ItineraryDayCreate(ItineraryDayBase):
-    destination_id: Optional[UUID] = None
+    pass
 
 
-class ItineraryDayUpdate(BaseModel):
-    day_number: Optional[int] = None
-    date: Optional[date] = None
-    title: Optional[str] = None
-    description: Optional[str] = None
-    estimated_cost: Optional[Decimal] = None
-    destination_id: Optional[UUID] = None
+ItineraryDayUpdate = partial(ItineraryDayBase, "ItineraryDayUpdate")
 
 
 class ItineraryDayResponse(ItineraryDayBase):
     id: UUID
     trip_id: UUID
-    destination_id: Optional[UUID] = None
-    activities: List[ActivityResponse] = []
-    meals: List[MealResponse] = []
+    activities: list[ActivityResponse] = []
+    meals: list[MealResponse] = []
 
     model_config = ConfigDict(from_attributes=True)

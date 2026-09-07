@@ -8,9 +8,10 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from travel_common.exceptions import EntityNotFound
+from core_api.pagination import Page
 from core_api.models.base import Base
 from core_api.repositories.base import BaseRepository
+from travel_common.exceptions import EntityNotFound
 
 
 class BaseService[ModelT: Base, CreateT: BaseModel, UpdateT: BaseModel]:
@@ -29,8 +30,19 @@ class BaseService[ModelT: Base, CreateT: BaseModel, UpdateT: BaseModel]:
             raise EntityNotFound(self._entity, obj_id)
         return obj
 
-    async def list(self, *, skip: int = 0, limit: int = 100) -> list[ModelT]:
-        return await self.repository.get_all(skip=skip, limit=limit)
+    async def get_in(self, obj_id: Any, **parent: Any) -> ModelT:
+        """Fetch a child that must belong to the given parent(s).
+
+        A row that exists under another parent is reported as not found, so
+        callers learn nothing about other users' data.
+        """
+        obj = await self.get(obj_id)
+        if any(getattr(obj, field) != value for field, value in parent.items()):
+            raise EntityNotFound(self._entity, obj_id)
+        return obj
+
+    async def list(self, page: Page = Page(), **filters: Any) -> list[ModelT]:
+        return await self.repository.list(page, **filters)
 
     async def create(self, data: CreateT, **context: Any) -> ModelT:
         """Create from a schema; `context` carries server-side fields (owner ids)."""

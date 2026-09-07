@@ -40,7 +40,8 @@ Calls go in one direction only: `ai_api → core_api`. `core_api` works with `ai
 
 - `core_api` is **N-tier**: `api → services → repositories → models`. Generic `BaseRepository`
   and `BaseService`; endpoints are thin; services raise domain errors; a single handler maps them
-  to HTTP.
+  to HTTP. `Trip` is the aggregate root: its children are nested under `/trips/{trip_id}/...` and
+  authorised once at the boundary ([ADR 0005](adr/0005-trip-aggregate-nested-resources.md)).
 - `ai_api` is **ports and adapters**: `domain` (types + Protocols) ← `application` (use cases) ←
   `infrastructure` (NVIDIA, SSE, core_api client) ← `api` (wiring). Swapping the LLM provider or
   adding a retriever touches only `infrastructure/` and `api/deps.py`.
@@ -113,7 +114,5 @@ See [ADR 0003](adr/0003-frontend-two-base-urls.md) and the [deploy runbook](../r
 
 ## Known gaps (tracked)
 
-- Nested entities in `core_api` (activities, meals, accommodations, transportations, destinations,
-  itinerary days) are not ownership-checked beyond authentication.
 - No rate limiting or per-user AI quotas; add at the proxy/gateway when needed.
 - `src/frontend/src/services/trips.ts` still serves mock data.

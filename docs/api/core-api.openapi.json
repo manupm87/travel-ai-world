@@ -368,6 +368,7 @@
         "type": "object"
       },
       "AccommodationUpdate": {
+        "description": "Partial update of AccommodationBase.",
         "properties": {
           "address": {
             "anyOf": [
@@ -869,6 +870,7 @@
         "type": "object"
       },
       "ActivityUpdate": {
+        "description": "Partial update of ActivityBase.",
         "properties": {
           "booking_required": {
             "anyOf": [
@@ -1246,6 +1248,7 @@
         "type": "object"
       },
       "DestinationUpdate": {
+        "description": "Partial update of DestinationBase.",
         "properties": {
           "arrival_date": {
             "anyOf": [
@@ -1394,8 +1397,16 @@
       "ItineraryDayCreate": {
         "properties": {
           "date": {
-            "title": "Date",
-            "type": "null"
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date"
           },
           "day_number": {
             "title": "Day Number",
@@ -1468,8 +1479,16 @@
             "type": "array"
           },
           "date": {
-            "title": "Date",
-            "type": "null"
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date"
           },
           "day_number": {
             "title": "Day Number",
@@ -1549,10 +1568,19 @@
         "type": "object"
       },
       "ItineraryDayUpdate": {
+        "description": "Partial update of ItineraryDayBase.",
         "properties": {
           "date": {
-            "title": "Date",
-            "type": "null"
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date"
           },
           "day_number": {
             "anyOf": [
@@ -1882,6 +1910,7 @@
         "type": "object"
       },
       "MealUpdate": {
+        "description": "Partial update of MealBase.",
         "properties": {
           "cuisine": {
             "anyOf": [
@@ -2342,6 +2371,7 @@
         "type": "object"
       },
       "TransportationUpdate": {
+        "description": "Partial update of TransportationBase.",
         "properties": {
           "arrival_time": {
             "anyOf": [
@@ -3051,6 +3081,7 @@
         "type": "string"
       },
       "TripUpdate": {
+        "description": "Partial update of TripBase.",
         "properties": {
           "accommodation_type": {
             "anyOf": [
@@ -3505,542 +3536,6 @@
   },
   "openapi": "3.1.0",
   "paths": {
-    "/api/v1/accommodations/": {
-      "get": {
-        "description": "Retrieve accommodations (paginated).",
-        "operationId": "read_accommodations_api_v1_accommodations__get",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "skip",
-            "required": false,
-            "schema": {
-              "default": 0,
-              "title": "Skip",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 100,
-              "maximum": 500,
-              "minimum": 1,
-              "title": "Limit",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/AccommodationResponse"
-                  },
-                  "title": "Response Read Accommodations Api V1 Accommodations  Get",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Read Accommodations",
-        "tags": [
-          "Accommodations"
-        ]
-      },
-      "post": {
-        "description": "Create a accommodation under the given parent.",
-        "operationId": "create_accommodation_api_v1_accommodations__post",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "trip_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Trip Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AccommodationCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AccommodationResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Create Accommodation",
-        "tags": [
-          "Accommodations"
-        ]
-      }
-    },
-    "/api/v1/accommodations/{accommodation_id}": {
-      "delete": {
-        "description": "Delete a accommodation.",
-        "operationId": "delete_accommodation_api_v1_accommodations__accommodation_id__delete",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "accommodation_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Accommodation Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Delete Accommodation",
-        "tags": [
-          "Accommodations"
-        ]
-      },
-      "get": {
-        "description": "Get a accommodation by ID.",
-        "operationId": "read_accommodation_api_v1_accommodations__accommodation_id__get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "accommodation_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Accommodation Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AccommodationResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Read Accommodation",
-        "tags": [
-          "Accommodations"
-        ]
-      },
-      "put": {
-        "description": "Partially update a accommodation.",
-        "operationId": "update_accommodation_api_v1_accommodations__accommodation_id__put",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "accommodation_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Accommodation Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AccommodationUpdate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AccommodationResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Update Accommodation",
-        "tags": [
-          "Accommodations"
-        ]
-      }
-    },
-    "/api/v1/activities/": {
-      "get": {
-        "description": "Retrieve activities (paginated).",
-        "operationId": "read_activities_api_v1_activities__get",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "skip",
-            "required": false,
-            "schema": {
-              "default": 0,
-              "title": "Skip",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 100,
-              "maximum": 500,
-              "minimum": 1,
-              "title": "Limit",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/ActivityResponse"
-                  },
-                  "title": "Response Read Activities Api V1 Activities  Get",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Read Activities",
-        "tags": [
-          "Activities"
-        ]
-      },
-      "post": {
-        "description": "Create a activity under the given parent.",
-        "operationId": "create_activity_api_v1_activities__post",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "itinerary_day_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Itinerary Day Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ActivityCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ActivityResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Create Activity",
-        "tags": [
-          "Activities"
-        ]
-      }
-    },
-    "/api/v1/activities/{activity_id}": {
-      "delete": {
-        "description": "Delete a activity.",
-        "operationId": "delete_activity_api_v1_activities__activity_id__delete",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "activity_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Activity Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Delete Activity",
-        "tags": [
-          "Activities"
-        ]
-      },
-      "get": {
-        "description": "Get a activity by ID.",
-        "operationId": "read_activity_api_v1_activities__activity_id__get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "activity_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Activity Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ActivityResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Read Activity",
-        "tags": [
-          "Activities"
-        ]
-      },
-      "put": {
-        "description": "Partially update a activity.",
-        "operationId": "update_activity_api_v1_activities__activity_id__put",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "activity_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Activity Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ActivityUpdate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ActivityResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Update Activity",
-        "tags": [
-          "Activities"
-        ]
-      }
-    },
     "/api/v1/auth/google": {
       "post": {
         "description": "Verify the Google credential, upsert the user and issue our JWT.",
@@ -4080,274 +3575,6 @@
         "summary": "Google Auth",
         "tags": [
           "Auth"
-        ]
-      }
-    },
-    "/api/v1/destinations/": {
-      "get": {
-        "description": "Retrieve destinations (paginated).",
-        "operationId": "read_destinations_api_v1_destinations__get",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "skip",
-            "required": false,
-            "schema": {
-              "default": 0,
-              "title": "Skip",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 100,
-              "maximum": 500,
-              "minimum": 1,
-              "title": "Limit",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/DestinationResponse"
-                  },
-                  "title": "Response Read Destinations Api V1 Destinations  Get",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Read Destinations",
-        "tags": [
-          "Destinations"
-        ]
-      },
-      "post": {
-        "description": "Create a destination under the given parent.",
-        "operationId": "create_destination_api_v1_destinations__post",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "trip_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Trip Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DestinationCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DestinationResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Create Destination",
-        "tags": [
-          "Destinations"
-        ]
-      }
-    },
-    "/api/v1/destinations/{destination_id}": {
-      "delete": {
-        "description": "Delete a destination.",
-        "operationId": "delete_destination_api_v1_destinations__destination_id__delete",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "destination_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Destination Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Delete Destination",
-        "tags": [
-          "Destinations"
-        ]
-      },
-      "get": {
-        "description": "Get a destination by ID.",
-        "operationId": "read_destination_api_v1_destinations__destination_id__get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "destination_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Destination Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DestinationResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Read Destination",
-        "tags": [
-          "Destinations"
-        ]
-      },
-      "put": {
-        "description": "Partially update a destination.",
-        "operationId": "update_destination_api_v1_destinations__destination_id__put",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "destination_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Destination Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DestinationUpdate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DestinationResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Update Destination",
-        "tags": [
-          "Destinations"
         ]
       }
     },
@@ -4391,810 +3618,6 @@
         ]
       }
     },
-    "/api/v1/itinerary-days/": {
-      "get": {
-        "description": "Retrieve itinerary days (paginated).",
-        "operationId": "read_itinerary_days_api_v1_itinerary_days__get",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "skip",
-            "required": false,
-            "schema": {
-              "default": 0,
-              "title": "Skip",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 100,
-              "maximum": 500,
-              "minimum": 1,
-              "title": "Limit",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/ItineraryDayResponse"
-                  },
-                  "title": "Response Read Itinerary Days Api V1 Itinerary Days  Get",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Read Itinerary Days",
-        "tags": [
-          "Itinerary Days"
-        ]
-      },
-      "post": {
-        "description": "Create a Itinerary day under the given parent.",
-        "operationId": "create_itinerary_day_api_v1_itinerary_days__post",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "trip_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Trip Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ItineraryDayCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ItineraryDayResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Create Itinerary Day",
-        "tags": [
-          "Itinerary Days"
-        ]
-      }
-    },
-    "/api/v1/itinerary-days/{itinerary_day_id}": {
-      "delete": {
-        "description": "Delete a Itinerary day.",
-        "operationId": "delete_itinerary_day_api_v1_itinerary_days__itinerary_day_id__delete",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "itinerary_day_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Itinerary Day Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Delete Itinerary Day",
-        "tags": [
-          "Itinerary Days"
-        ]
-      },
-      "get": {
-        "description": "Get a Itinerary day by ID.",
-        "operationId": "read_itinerary_day_api_v1_itinerary_days__itinerary_day_id__get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "itinerary_day_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Itinerary Day Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ItineraryDayResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Read Itinerary Day",
-        "tags": [
-          "Itinerary Days"
-        ]
-      },
-      "put": {
-        "description": "Partially update a Itinerary day.",
-        "operationId": "update_itinerary_day_api_v1_itinerary_days__itinerary_day_id__put",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "itinerary_day_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Itinerary Day Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ItineraryDayUpdate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ItineraryDayResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Update Itinerary Day",
-        "tags": [
-          "Itinerary Days"
-        ]
-      }
-    },
-    "/api/v1/meals/": {
-      "get": {
-        "description": "Retrieve meals (paginated).",
-        "operationId": "read_meals_api_v1_meals__get",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "skip",
-            "required": false,
-            "schema": {
-              "default": 0,
-              "title": "Skip",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 100,
-              "maximum": 500,
-              "minimum": 1,
-              "title": "Limit",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/MealResponse"
-                  },
-                  "title": "Response Read Meals Api V1 Meals  Get",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Read Meals",
-        "tags": [
-          "Meals"
-        ]
-      },
-      "post": {
-        "description": "Create a meal under the given parent.",
-        "operationId": "create_meal_api_v1_meals__post",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "itinerary_day_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Itinerary Day Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MealCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MealResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Create Meal",
-        "tags": [
-          "Meals"
-        ]
-      }
-    },
-    "/api/v1/meals/{meal_id}": {
-      "delete": {
-        "description": "Delete a meal.",
-        "operationId": "delete_meal_api_v1_meals__meal_id__delete",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "meal_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Meal Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Delete Meal",
-        "tags": [
-          "Meals"
-        ]
-      },
-      "get": {
-        "description": "Get a meal by ID.",
-        "operationId": "read_meal_api_v1_meals__meal_id__get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "meal_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Meal Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MealResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Read Meal",
-        "tags": [
-          "Meals"
-        ]
-      },
-      "put": {
-        "description": "Partially update a meal.",
-        "operationId": "update_meal_api_v1_meals__meal_id__put",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "meal_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Meal Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MealUpdate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MealResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Update Meal",
-        "tags": [
-          "Meals"
-        ]
-      }
-    },
-    "/api/v1/transportations/": {
-      "get": {
-        "description": "Retrieve transportations (paginated).",
-        "operationId": "read_transportations_api_v1_transportations__get",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "skip",
-            "required": false,
-            "schema": {
-              "default": 0,
-              "title": "Skip",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 100,
-              "maximum": 500,
-              "minimum": 1,
-              "title": "Limit",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/TransportationResponse"
-                  },
-                  "title": "Response Read Transportations Api V1 Transportations  Get",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Read Transportations",
-        "tags": [
-          "Transportations"
-        ]
-      },
-      "post": {
-        "description": "Create a transportation under the given parent.",
-        "operationId": "create_transportation_api_v1_transportations__post",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "trip_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Trip Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TransportationCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TransportationResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Create Transportation",
-        "tags": [
-          "Transportations"
-        ]
-      }
-    },
-    "/api/v1/transportations/{transportation_id}": {
-      "delete": {
-        "description": "Delete a transportation.",
-        "operationId": "delete_transportation_api_v1_transportations__transportation_id__delete",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "transportation_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Transportation Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Delete Transportation",
-        "tags": [
-          "Transportations"
-        ]
-      },
-      "get": {
-        "description": "Get a transportation by ID.",
-        "operationId": "read_transportation_api_v1_transportations__transportation_id__get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "transportation_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Transportation Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TransportationResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Read Transportation",
-        "tags": [
-          "Transportations"
-        ]
-      },
-      "put": {
-        "description": "Partially update a transportation.",
-        "operationId": "update_transportation_api_v1_transportations__transportation_id__put",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "transportation_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Transportation Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TransportationUpdate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TransportationResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Update Transportation",
-        "tags": [
-          "Transportations"
-        ]
-      }
-    },
     "/api/v1/trips/": {
       "get": {
         "description": "The caller's trips (paginated).",
@@ -5206,6 +3629,7 @@
             "required": false,
             "schema": {
               "default": 0,
+              "minimum": 0,
               "title": "Skip",
               "type": "integer"
             }
@@ -5307,7 +3731,7 @@
     },
     "/api/v1/trips/{trip_id}": {
       "delete": {
-        "description": "Delete one of the caller's trips.",
+        "description": "Delete one of the caller's trips and everything in it.",
         "operationId": "delete_trip_api_v1_trips__trip_id__delete",
         "parameters": [
           {
@@ -5347,7 +3771,7 @@
         ]
       },
       "get": {
-        "description": "Get one of the caller's trips.",
+        "description": "Get one of the caller's trips, children included.",
         "operationId": "read_trip_api_v1_trips__trip_id__get",
         "parameters": [
           {
@@ -5393,9 +3817,9 @@
           "Trips"
         ]
       },
-      "put": {
+      "patch": {
         "description": "Partially update one of the caller's trips.",
-        "operationId": "update_trip_api_v1_trips__trip_id__put",
+        "operationId": "update_trip_api_v1_trips__trip_id__patch",
         "parameters": [
           {
             "in": "path",
@@ -5451,6 +3875,1930 @@
         ]
       }
     },
+    "/api/v1/trips/{trip_id}/accommodations/": {
+      "get": {
+        "operationId": "list_accommodations_api_v1_trips__trip_id__accommodations__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "trip_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "skip",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Skip",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AccommodationResponse"
+                  },
+                  "title": "Response List Accommodations Api V1 Trips  Trip Id  Accommodations  Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Accommodations",
+        "tags": [
+          "Accommodations"
+        ]
+      },
+      "post": {
+        "operationId": "create_accommodation_api_v1_trips__trip_id__accommodations__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "trip_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccommodationCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccommodationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Accommodation",
+        "tags": [
+          "Accommodations"
+        ]
+      }
+    },
+    "/api/v1/trips/{trip_id}/accommodations/{accommodation_id}": {
+      "delete": {
+        "operationId": "delete_accommodation_api_v1_trips__trip_id__accommodations__accommodation_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accommodation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Accommodation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "trip_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Accommodation",
+        "tags": [
+          "Accommodations"
+        ]
+      },
+      "get": {
+        "operationId": "read_accommodation_api_v1_trips__trip_id__accommodations__accommodation_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accommodation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Accommodation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "trip_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccommodationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Accommodation",
+        "tags": [
+          "Accommodations"
+        ]
+      },
+      "patch": {
+        "operationId": "update_accommodation_api_v1_trips__trip_id__accommodations__accommodation_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accommodation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Accommodation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "trip_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccommodationUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccommodationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Accommodation",
+        "tags": [
+          "Accommodations"
+        ]
+      }
+    },
+    "/api/v1/trips/{trip_id}/destinations/": {
+      "get": {
+        "operationId": "list_destinations_api_v1_trips__trip_id__destinations__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "trip_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "skip",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Skip",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DestinationResponse"
+                  },
+                  "title": "Response List Destinations Api V1 Trips  Trip Id  Destinations  Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Destinations",
+        "tags": [
+          "Destinations"
+        ]
+      },
+      "post": {
+        "operationId": "create_destination_api_v1_trips__trip_id__destinations__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "trip_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DestinationCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DestinationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Destination",
+        "tags": [
+          "Destinations"
+        ]
+      }
+    },
+    "/api/v1/trips/{trip_id}/destinations/{destination_id}": {
+      "delete": {
+        "operationId": "delete_destination_api_v1_trips__trip_id__destinations__destination_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "destination_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Destination Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "trip_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Destination",
+        "tags": [
+          "Destinations"
+        ]
+      },
+      "get": {
+        "operationId": "read_destination_api_v1_trips__trip_id__destinations__destination_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "destination_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Destination Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "trip_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DestinationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Destination",
+        "tags": [
+          "Destinations"
+        ]
+      },
+      "patch": {
+        "operationId": "update_destination_api_v1_trips__trip_id__destinations__destination_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "destination_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Destination Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "trip_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DestinationUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DestinationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Destination",
+        "tags": [
+          "Destinations"
+        ]
+      }
+    },
+    "/api/v1/trips/{trip_id}/itinerary-days/": {
+      "get": {
+        "operationId": "list_itinerary_days_api_v1_trips__trip_id__itinerary_days__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "trip_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "skip",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Skip",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ItineraryDayResponse"
+                  },
+                  "title": "Response List Itinerary Days Api V1 Trips  Trip Id  Itinerary Days  Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Itinerary-Days",
+        "tags": [
+          "Itinerary Days"
+        ]
+      },
+      "post": {
+        "operationId": "create_itinerary_day_api_v1_trips__trip_id__itinerary_days__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "trip_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ItineraryDayCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItineraryDayResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Itinerary Day",
+        "tags": [
+          "Itinerary Days"
+        ]
+      }
+    },
+    "/api/v1/trips/{trip_id}/itinerary-days/{itinerary_day_id}": {
+      "delete": {
+        "operationId": "delete_itinerary_day_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "itinerary_day_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Itinerary Day Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "trip_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Itinerary Day",
+        "tags": [
+          "Itinerary Days"
+        ]
+      },
+      "get": {
+        "operationId": "read_itinerary_day_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "itinerary_day_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Itinerary Day Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "trip_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItineraryDayResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Itinerary Day",
+        "tags": [
+          "Itinerary Days"
+        ]
+      },
+      "patch": {
+        "operationId": "update_itinerary_day_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "itinerary_day_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Itinerary Day Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "trip_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ItineraryDayUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItineraryDayResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Itinerary Day",
+        "tags": [
+          "Itinerary Days"
+        ]
+      }
+    },
+    "/api/v1/trips/{trip_id}/itinerary-days/{itinerary_day_id}/activities/": {
+      "get": {
+        "operationId": "list_activities_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__activities__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "itinerary_day_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Itinerary Day Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "trip_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "skip",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Skip",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ActivityResponse"
+                  },
+                  "title": "Response List Activities Api V1 Trips  Trip Id  Itinerary Days  Itinerary Day Id  Activities  Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Activities",
+        "tags": [
+          "Activities"
+        ]
+      },
+      "post": {
+        "operationId": "create_activity_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__activities__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "itinerary_day_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Itinerary Day Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "trip_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActivityCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivityResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Activity",
+        "tags": [
+          "Activities"
+        ]
+      }
+    },
+    "/api/v1/trips/{trip_id}/itinerary-days/{itinerary_day_id}/activities/{activity_id}": {
+      "delete": {
+        "operationId": "delete_activity_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__activities__activity_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "activity_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Activity Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "itinerary_day_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Itinerary Day Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "trip_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Activity",
+        "tags": [
+          "Activities"
+        ]
+      },
+      "get": {
+        "operationId": "read_activity_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__activities__activity_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "activity_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Activity Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "itinerary_day_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Itinerary Day Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "trip_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivityResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Activity",
+        "tags": [
+          "Activities"
+        ]
+      },
+      "patch": {
+        "operationId": "update_activity_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__activities__activity_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "activity_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Activity Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "itinerary_day_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Itinerary Day Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "trip_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActivityUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivityResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Activity",
+        "tags": [
+          "Activities"
+        ]
+      }
+    },
+    "/api/v1/trips/{trip_id}/itinerary-days/{itinerary_day_id}/meals/": {
+      "get": {
+        "operationId": "list_meals_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__meals__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "itinerary_day_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Itinerary Day Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "trip_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "skip",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Skip",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MealResponse"
+                  },
+                  "title": "Response List Meals Api V1 Trips  Trip Id  Itinerary Days  Itinerary Day Id  Meals  Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Meals",
+        "tags": [
+          "Meals"
+        ]
+      },
+      "post": {
+        "operationId": "create_meal_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__meals__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "itinerary_day_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Itinerary Day Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "trip_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MealCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MealResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Meal",
+        "tags": [
+          "Meals"
+        ]
+      }
+    },
+    "/api/v1/trips/{trip_id}/itinerary-days/{itinerary_day_id}/meals/{meal_id}": {
+      "delete": {
+        "operationId": "delete_meal_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__meals__meal_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "meal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Meal Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "itinerary_day_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Itinerary Day Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "trip_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Meal",
+        "tags": [
+          "Meals"
+        ]
+      },
+      "get": {
+        "operationId": "read_meal_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__meals__meal_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "meal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Meal Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "itinerary_day_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Itinerary Day Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "trip_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MealResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Meal",
+        "tags": [
+          "Meals"
+        ]
+      },
+      "patch": {
+        "operationId": "update_meal_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__meals__meal_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "meal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Meal Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "itinerary_day_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Itinerary Day Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "trip_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MealUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MealResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Meal",
+        "tags": [
+          "Meals"
+        ]
+      }
+    },
+    "/api/v1/trips/{trip_id}/transportations/": {
+      "get": {
+        "operationId": "list_transportations_api_v1_trips__trip_id__transportations__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "trip_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "skip",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Skip",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TransportationResponse"
+                  },
+                  "title": "Response List Transportations Api V1 Trips  Trip Id  Transportations  Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Transportations",
+        "tags": [
+          "Transportations"
+        ]
+      },
+      "post": {
+        "operationId": "create_transportation_api_v1_trips__trip_id__transportations__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "trip_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransportationCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransportationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Transportation",
+        "tags": [
+          "Transportations"
+        ]
+      }
+    },
+    "/api/v1/trips/{trip_id}/transportations/{transportation_id}": {
+      "delete": {
+        "operationId": "delete_transportation_api_v1_trips__trip_id__transportations__transportation_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "transportation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Transportation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "trip_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Transportation",
+        "tags": [
+          "Transportations"
+        ]
+      },
+      "get": {
+        "operationId": "read_transportation_api_v1_trips__trip_id__transportations__transportation_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "transportation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Transportation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "trip_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransportationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Transportation",
+        "tags": [
+          "Transportations"
+        ]
+      },
+      "patch": {
+        "operationId": "update_transportation_api_v1_trips__trip_id__transportations__transportation_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "transportation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Transportation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "trip_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransportationUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransportationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Transportation",
+        "tags": [
+          "Transportations"
+        ]
+      }
+    },
     "/api/v1/users/": {
       "get": {
         "description": "List users (paginated). Administrators only.",
@@ -5462,6 +5810,7 @@
             "required": false,
             "schema": {
               "default": 0,
+              "minimum": 0,
               "title": "Skip",
               "type": "integer"
             }
@@ -5584,7 +5933,7 @@
         ]
       },
       "get": {
-        "description": "Get a user by ID.",
+        "description": "Get a user by ID. Administrators only (profiles are not public).",
         "operationId": "read_user_api_v1_users__user_id__get",
         "parameters": [
           {
@@ -5629,9 +5978,9 @@
           "Users"
         ]
       },
-      "put": {
+      "patch": {
         "description": "Update an account. Only its owner may do so.",
-        "operationId": "update_user_api_v1_users__user_id__put",
+        "operationId": "update_user_api_v1_users__user_id__patch",
         "parameters": [
           {
             "in": "path",

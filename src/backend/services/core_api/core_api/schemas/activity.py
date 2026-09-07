@@ -1,49 +1,34 @@
-from __future__ import annotations
-
 from decimal import Decimal
-from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
+from core_api.schemas._partial import partial
+
 
 class ActivityBase(BaseModel):
-    time: Optional[str] = None
-    duration_minutes: Optional[int] = None
+    time: str | None = None
+    duration_minutes: int | None = None
     title: str
-    description: Optional[str] = None
-    category: Optional[str] = None
-    cost: Optional[Decimal] = None
+    description: str | None = None
+    category: str | None = None
+    cost: Decimal | None = None
     booking_required: bool = False
-    booking_url: Optional[str] = None
-    rating: Optional[float] = None
+    booking_url: str | None = None
+    rating: float | None = None
     # Flat location snapshot (mirrors ActivityLocation in frontend)
-    location_name: Optional[str] = None
-    location_address: Optional[str] = None
-    location_city: Optional[str] = None
-    location_lat: Optional[float] = None
-    location_lng: Optional[float] = None
+    location_name: str | None = None
+    location_address: str | None = None
+    location_city: str | None = None
+    location_lat: float | None = None
+    location_lng: float | None = None
 
 
 class ActivityCreate(ActivityBase):
     pass
 
 
-class ActivityUpdate(BaseModel):
-    time: Optional[str] = None
-    duration_minutes: Optional[int] = None
-    title: Optional[str] = None
-    description: Optional[str] = None
-    category: Optional[str] = None
-    cost: Optional[Decimal] = None
-    booking_required: Optional[bool] = None
-    booking_url: Optional[str] = None
-    rating: Optional[float] = None
-    location_name: Optional[str] = None
-    location_address: Optional[str] = None
-    location_city: Optional[str] = None
-    location_lat: Optional[float] = None
-    location_lng: Optional[float] = None
+ActivityUpdate = partial(ActivityBase, "ActivityUpdate")
 
 
 class ActivityResponse(ActivityBase):

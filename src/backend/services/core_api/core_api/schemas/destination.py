@@ -1,36 +1,27 @@
-from __future__ import annotations
-
 from datetime import date
-from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
+
+from core_api.schemas._partial import partial
 
 
 class DestinationBase(BaseModel):
     city: str
     country: str
     country_code: str
-    lat: Optional[float] = None
-    lng: Optional[float] = None
-    arrival_date: Optional[date] = None
-    departure_date: Optional[date] = None
-    nights_staying: Optional[int] = None
+    lat: float | None = None
+    lng: float | None = None
+    arrival_date: date | None = None
+    departure_date: date | None = None
+    nights_staying: int | None = None
 
 
 class DestinationCreate(DestinationBase):
     pass
 
 
-class DestinationUpdate(BaseModel):
-    city: Optional[str] = None
-    country: Optional[str] = None
-    country_code: Optional[str] = None
-    lat: Optional[float] = None
-    lng: Optional[float] = None
-    arrival_date: Optional[date] = None
-    departure_date: Optional[date] = None
-    nights_staying: Optional[int] = None
+DestinationUpdate = partial(DestinationBase, "DestinationUpdate")
 
 
 class DestinationResponse(DestinationBase):
