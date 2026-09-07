@@ -1,6 +1,6 @@
 # Revisión de calidad de código y arquitectura
 
-**Fecha:** 2026-09-07
+**Fecha:** 2026-09-07 (revisión) · **Estado de ejecución:** ver la sección 8 al final.
 **Alcance:** `src/backend` (travel_common, core_api, ai_api, tools/scraper), `src/frontend`, `infra/`, `.github/`, `justfile`, `scripts/`, `docs/`.
 **Objetivo:** proponer mejoras concretas para que el código y la arquitectura sean más SOLID, DRY y limpios.
 Cada hallazgo indica fichero y línea, el principio afectado y un refactor propuesto. Todo lo que se afirma se ha comprobado en el código a fecha de hoy (rama `main`, commit `1423c5b`).
@@ -395,3 +395,38 @@ Ordenado por relación valor/riesgo. Cada bloque cabe en un PR y las reglas del 
 | 11 | `ai_api`: provider en `lifespan`, mensaje de error genérico al cliente, parámetros de generación en settings, `ChatRole`. | 2 | No |
 | 12 | Scraper: `matching`/`io` + tests → `HttpClient`/`ScraperSettings` → modelos `Place`/`Dataset` → `Source`/`Domain` + `argparse` → YAML por ciudad. | 4 | Sí (`0005-scraper-pipeline`) |
 | 13 | Ruff ampliado + pyright en CI; `configure_logging`. | 6 | No |
+
+---
+
+## 8. Estado de ejecución (2026-09-07)
+
+El plan de la sección 7 se ejecutó como una serie de PRs pequeños, cada uno con tests y CI en verde
+antes de fusionarse. El bloque 12 (scraper) quedó fuera de alcance por decisión del propietario del
+repositorio: el scraper se mantiene aparte y conserva la política de lint original.
+
+| Orden | Trabajo | PR | Estado |
+|---|---|---|---|
+| 1, 2 | Propiedad de entidades hijas (rutas anidadas, `get_owned_trip`), `child_router` declarativo, `Page`, `partial()`, `/users/{id}` sólo admin, ADR 0005 | #50 | Fusionado |
+| 3 | Unidad de trabajo por petición, `Mapped[]` + mixins, `check_invariants()` en la entidad, tipos restringidos y enums en los esquemas, migración de timestamps | #52 | Fusionado |
+| 4 | `get_settings` inyectado, engine en `lifespan`, caso de uso `SignIn` tras el puerto `IdentityVerifier`, `/health/db` → 503, primeros tests de `/auth/google` | #53 | Fusionado |
+| 5 | Frontend: `toTrip`/`toTripSummary`, fixtures en forma `TripResponse` con `satisfies`, `ItineraryDay.kind`, ADR 0006 | #65 | Abierto al cierre de este informe |
+| 6 | Frontend: `services/session.ts`, `loginWithGoogle`, `AuthContext` delgado, `redirect` validado | #51 | Fusionado |
+| 7 | Frontend: `LANGUAGES`, `locale`, `useFormatters`, claves i18n faltantes/muertas, `t.status` | #54 | Fusionado |
+| 8 | Frontend: `Header`/`PlannerCard` descompuestos, route groups, `request<T>`/`ApiError`, `parseSseEvents`, reglas ESLint, código muerto | #64 | Abierto al cierre de este informe |
+| 9 | `FRONTEND_URL`/`DB_ENGINE` eliminados de toda la cadena, test `.env.example` ↔ `Settings`, Postgres 16 en infra, `.python-version`/`.nvmrc` | #56 | Fusionado |
+| 10 | `setup-frontend`, `_build-image.yml`, job `infra` (fmt + validate), `just` en CI, `GCP_REGION` como variable, timeouts, Dependabot, shell de Windows, `depends_on` en Cloud Run y circuit breaker en ECS | #57 | Fusionado |
+| 11 | `ai_api`: provider único en `lifespan`, sin detalles del proveedor hacia el navegador, `CHAT_*` en settings, `ChatRole`, prompt RAG en `prompts.py` | #55 | Fusionado |
+| 12 | Scraper | — | Fuera de alcance (se mantiene aparte) |
+| 13 | Ruff ampliado (`I, UP, B, SIM, N, RUF, ASYNC, S`), pyright en `just lint-backend`, `configure_logging` | #62 | Fusionado |
+| — | Docker Compose sin secretos en Postgres, `depends_on` con healthcheck, `.dockerignore`, deriva de runbooks | #63 | Fusionado |
+
+Pendiente, fuera del plan de la sección 7 pero señalado en el informe:
+
+- 5.2: módulo Terraform compartido entre `infra/gcp` e `infra/aws` (`app_config`) y `for_each` sobre un
+  mapa de servicios. Ambos roots validan en CI desde #57, pero la duplicación de variables sigue.
+- 5.5/5.7: `CommonSettings.VERSION` (lo que anuncia el OpenAPI) no lo actualiza `scripts/release.py`.
+- 3.1 / ADR 0006: la estrategia de datos en cliente para `/trip/[id]` está decidida, no implementada
+  (sigue sirviendo fixtures).
+- `Activity.category` y `Accommodation.type` siguen siendo texto libre en ambos lados.
+- Los PRs de Dependabot abiertos por #57 (#58–#61) son decisión del propietario: incluyen saltos de
+  versión mayor (TypeScript 7, ESLint 10).
