@@ -33,7 +33,7 @@ export interface paths {
         };
         /**
          * Health Check
-         * @description Simple API health check.
+         * @description Liveness: the process answers.
          */
         get: operations["health_check_api_v1_health__get"];
         put?: never;
@@ -53,7 +53,7 @@ export interface paths {
         };
         /**
          * Db Health Check
-         * @description Database connectivity health check.
+         * @description Readiness: the database answers. 503 (via ProviderUnavailable) when it does not.
          */
         get: operations["db_health_check_api_v1_health_db_get"];
         put?: never;
