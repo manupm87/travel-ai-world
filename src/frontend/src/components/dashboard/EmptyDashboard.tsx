@@ -17,7 +17,7 @@ export default function EmptyDashboard() {
 
   return (
     <div className="flex flex-col items-center justify-center py-20 px-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="w-24 h-24 rounded-full bg-accent/10 flex items-center justify-center text-accent mb-8 shadow-[0_0_30px_rgba(79,110,247,0.2)]">
+      <div className="w-24 h-24 rounded-full bg-accent/10 flex items-center justify-center text-accent mb-8 shadow-accent-glow">
         <PlaneTakeoff size={48} strokeWidth={1.5} />
       </div>
       

@@ -56,7 +56,7 @@ describe("i18n", () => {
           .reduce<unknown>((acc, key) => {
             if (key.endsWith("[]")) {
               const arr = (acc as Record<string, unknown[]>)[key.slice(0, -2)];
-              return arr[0];
+              return arr?.[0];
             }
             return (acc as Record<string, unknown>)[key];
           }, dictionary);

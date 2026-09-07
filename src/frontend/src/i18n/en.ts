@@ -10,6 +10,8 @@ const en: Translations = {
     openMenu: "Open menu",
     closeMenu: "Close menu",
     selectLanguage: "Select language",
+    userMenu: "Account menu",
+    menu: "Menu",
   },
   common: {
     loading: "Loading...",
@@ -106,6 +108,8 @@ const en: Translations = {
           "2-week adventure trip in Patagonia, hiking and outdoors, late November.",
       },
     ],
+    unavailable:
+      "The AI planner needs a connected backend, so it is not available on this static preview.",
     errorFallback:
       "Sorry, I couldn't process your request. Please try again.",
     errorUnauthorized:
@@ -116,18 +120,24 @@ const en: Translations = {
     title: "Three steps to your\nperfect getaway.",
     steps: [
       {
+        id: "tell",
+        imageAlt: "Person planning a trip on laptop",
         number: "1",
         title: "Tell Us Your Dreams",
         description:
           "Enter your destination, travel dates, budget, group size, and travel vibe. Takes less than 60 seconds.",
       },
       {
+        id: "build",
+        imageAlt: "AI generating a travel plan",
         number: "2",
         title: "AI Builds Your Itinerary",
         description:
           "Our AI analyzes thousands of options, reviews, and local insights to craft a day-by-day personalized itinerary.",
       },
       {
+        id: "live",
+        imageAlt: "Happy couple traveling",
         number: "3",
         title: "Live the Experience",
         description:
@@ -140,36 +150,42 @@ const en: Translations = {
     title: "Smarter planning,\nmore memorable moments.",
     items: [
       {
+        id: "personalized",
         emoji: "🧠",
         title: "Hyper-Personalized AI",
         description:
           "Learns your preferences to suggest experiences that genuinely match your style — not just tourist traps.",
       },
       {
+        id: "itineraries",
         emoji: "📅",
         title: "Day-by-Day Itineraries",
         description:
           "Detailed schedules, timings, and logistics for every day of your trip — optimized for minimum travel, maximum fun.",
       },
       {
+        id: "budget",
         emoji: "💰",
         title: "Smart Budget Control",
         description:
           "Set your budget and watch the AI optimize every recommendation — from hotels to restaurants — to your spending limit.",
       },
       {
+        id: "maps",
         emoji: "🗺️",
         title: "Interactive Maps",
         description:
           "Visual maps showing your entire route, hotel locations, and must-see attractions at a glance.",
       },
       {
+        id: "food",
         emoji: "🍽️",
         title: "Local Foodie Guide",
         description:
           "Hand-picked restaurant recommendations for every meal, filtered by cuisine, budget, and location.",
       },
       {
+        id: "customizable",
         emoji: "✏️",
         title: "Fully Customizable",
         description:

@@ -1,76 +1,32 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
-import React from 'react'
-import FeaturesSection from './FeaturesSection'
+import { describe, it, expect } from "vitest";
+import { renderWithProviders, screen } from "@/test/render";
+import FeaturesSection from "./FeaturesSection";
+import en from "@/i18n/en";
 
-vi.mock('@/components/ui/Container', () => ({
-  Container: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>
-}))
+const f = en.features;
 
-vi.mock('@/components/ui/SectionLabel', () => ({
-  SectionLabel: ({ children }: { children?: React.ReactNode }) => <div data-testid="section-label">{children}</div>
-}))
+describe("FeaturesSection", () => {
+  it("renders the headline and every feature", () => {
+    renderWithProviders(<FeaturesSection />);
 
-vi.mock('@/components/ui/Card', () => ({
-  Card: ({ children, highlight, className }: { children?: React.ReactNode; highlight?: boolean; className?: string }) => (
-    <div data-testid="card" data-highlight={highlight} className={className}>{children}</div>
-  )
-}))
-
-vi.mock('lucide-react', () => ({
-  Brain: () => <div data-testid="icon-0" />,
-  Calendar: () => <div data-testid="icon-1" />,
-  Banknote: () => <div data-testid="icon-2" />,
-  Map: () => <div data-testid="icon-3" />,
-  Utensils: () => <div data-testid="icon-4" />,
-  Edit3: () => <div data-testid="icon-5" />,
-}))
-
-vi.mock('@/context/LanguageContext', () => ({
-  useLanguage: () => ({
-    t: {
-      features: {
-        label: 'FEATURES',
-        title: 'Why choose Travel AI',
-        items: [
-          { title: 'AI Planning', description: 'Smart itineraries' },
-          { title: 'Calendar Sync', description: 'Stay organized' },
-          { title: 'Budgeting', description: 'Control costs' },
-        ]
-      }
+    expect(screen.getByText(f.label)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent(f.title.replace("\n", " "));
+    const titles = screen.getAllByRole("heading", { level: 3 }).map((el) => el.textContent);
+    expect(titles).toEqual(f.items.map((item) => item.title));
+    for (const item of f.items) {
+      expect(screen.getByText(item.description)).toBeInTheDocument();
     }
-  })
-}))
+  });
 
-describe('FeaturesSection', () => {
-  it('renders section headline and items', () => {
-    render(<FeaturesSection />)
-    
-    expect(screen.getByTestId('section-label')).toHaveTextContent('FEATURES')
-    expect(screen.getByText('Why choose Travel AI')).toBeInTheDocument()
-    
-    expect(screen.getByText('AI Planning')).toBeInTheDocument()
-    expect(screen.getByText('Smart itineraries')).toBeInTheDocument()
-    expect(screen.getByText('Budgeting')).toBeInTheDocument()
-  })
+  it("renders one icon per feature", () => {
+    const { container } = renderWithProviders(<FeaturesSection />);
+    expect(container.querySelectorAll("svg.lucide")).toHaveLength(f.items.length);
+  });
 
-  it('renders correct number of feature cards', () => {
-    render(<FeaturesSection />)
-    const cards = screen.getAllByTestId('card')
-    expect(cards).toHaveLength(3)
-  })
-
-  it('renders appropriate icons for each feature', () => {
-    render(<FeaturesSection />)
-    expect(screen.getByTestId('icon-0')).toBeInTheDocument()
-    expect(screen.getByTestId('icon-1')).toBeInTheDocument()
-    expect(screen.getByTestId('icon-2')).toBeInTheDocument()
-  })
-
-  it('highlights the third card (index 2)', () => {
-    render(<FeaturesSection />)
-    const cards = screen.getAllByTestId('card')
-    expect(cards[2]).toHaveAttribute('data-highlight', 'true')
-    expect(cards[0]).toHaveAttribute('data-highlight', 'false')
-  })
-})
+  it("highlights only the third card", () => {
+    const { container } = renderWithProviders(<FeaturesSection />);
+    const highlighted = container.querySelectorAll("[data-highlight]");
+    expect(highlighted).toHaveLength(1);
+    expect(highlighted[0]).toHaveTextContent(f.items[2]!.title);
+  });
+});

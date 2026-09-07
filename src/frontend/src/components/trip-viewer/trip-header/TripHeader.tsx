@@ -31,8 +31,8 @@ export default function TripHeader({ trip }: TripHeaderProps) {
   };
 
   const getStatusColor = (status: string) => {
-    if (status === "planned" || status === "confirmed") return "text-green-500 bg-green-500/20";
-    return "text-blue-500 bg-blue-500/20";
+    if (status === "planned" || status === "confirmed") return "text-success bg-success/20";
+    return "text-accent bg-accent/20";
   };
 
   // `Trip.status` is still a plain string until the view model is typed from

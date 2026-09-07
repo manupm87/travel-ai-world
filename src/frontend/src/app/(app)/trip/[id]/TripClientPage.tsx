@@ -1,7 +1,6 @@
 "use client";
 
-import { Trip } from "@/types/trip";
-
+import type { Trip } from "@/types/trip";
 import TripHeader from "@/components/trip-viewer/trip-header";
 import InteractiveTimeline from "@/components/trip-viewer/InteractiveTimeline";
 import TripOverview from "@/components/trip-viewer/TripOverview";
@@ -12,32 +11,23 @@ interface TripClientPageProps {
   trip: Trip;
 }
 
-
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
-import TripViewLayout from "@/components/trip-viewer/TripViewLayout";
-
-
 /**
  * Client-Side Trip Viewer (`/trip/[id]`).
- * 
- * This Client Component renders the fully interactive trip view. It is responsible
- * for assembling all the specific trip-viewer UI components (Timeline, Overview, 
- * Itinerary, AI Insights) and passing down the fetched Trip data.
- * 
+ *
+ * Assembles the trip-viewer sections (header, timeline, overview, insights,
+ * itinerary) for the trip fetched by the server component. The shell and the
+ * auth guard come from the `(app)` layout.
+ *
  * @param trip - The complete Trip data object fetched by the Server Component.
  */
 export default function TripClientPage({ trip }: TripClientPageProps) {
-
   return (
-    <ProtectedRoute>
-    <TripViewLayout>
+    <div className="flex flex-col pb-20">
       <TripHeader trip={trip} />
       <InteractiveTimeline trip={trip} />
       <TripOverview trip={trip} />
       <AIInsights trip={trip} />
       <Itinerary trip={trip} />
-    </TripViewLayout>
-    </ProtectedRoute>
+    </div>
   );
 }
-

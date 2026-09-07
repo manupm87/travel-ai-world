@@ -6,11 +6,14 @@ components trivial to mock in tests.
 
 | File | Talks to | Exports |
 |---|---|---|
-| `http.ts` | — | `apiUrl(service, path)`, `authHeaders()`, `readErrorMessage()`, `isApiAvailable()`, `isAiAvailable()`, `UnauthorizedError` |
+| `http.ts` | — | `request<T>(service, path, options)` / `requestRaw(...)` (the one `fetch` wrapper: JSON body, optional bearer token, non-2xx → `ApiError { status, code }`, 401 → `UnauthorizedError extends ApiError`), `apiUrl`, `authHeaders`, `parseErrorBody`, `readErrorMessage`, `isApiAvailable`, `isAiAvailable` |
 | `session.ts` | `localStorage` | The only owner of the persisted session: `readSession`, `readToken`, `writeSession`, `clearSession`, `pruneInvalidSession`, plus `subscribe`/`getSnapshot` for `useSyncExternalStore` |
 | `auth.ts` | `core_api` | `loginWithGoogle(credential)` (API vs static mode, writes the session, throws on an invalid credential), `verifyGoogleToken(credential)` |
-| `chat.ts` | `ai_api` | `streamChat(message, history)` — async generator over SSE |
+| `chat.ts` | `ai_api` | `streamChat(message, history, { signal })` — async generator over SSE, cancellable with an `AbortSignal`; `parseSseEvents(buffer)` — the pure SSE line parser it is built on |
 | `trips.ts` | mocks (for now) | `getTripById`, `getTripSummaries`, `getAllTripIds` |
+
+`ApiError.code` carries the backend's `error_code`, so UI code can pick its own translated copy
+(`t.planner.errorUnauthorized`, ...) instead of showing the server's message in the server's language.
 
 Base URLs come from `NEXT_PUBLIC_API_URL` (core) and `NEXT_PUBLIC_AI_API_URL` (ai, defaults to
 core). See [ADR 0003](../../../../docs/architecture/adr/0003-frontend-two-base-urls.md).

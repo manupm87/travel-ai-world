@@ -1,15 +1,13 @@
 import { TripSummary } from "@/types/trip-summary";
 import TripCard from "@/components/ui/TripCard";
 import { SectionLabel } from "@/components/ui/SectionLabel";
+import { Section } from "@/components/ui/Section";
 
 export interface TripSectionProps {
   title: string;
   trips: TripSummary[];
   transparent?: boolean;
 }
-
-
-import { Section } from "@/components/ui/Section";
 
 /**
  * Dynamic Trip Grid Section.

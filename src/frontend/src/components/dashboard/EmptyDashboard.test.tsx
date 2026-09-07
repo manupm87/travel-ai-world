@@ -1,44 +1,20 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
-import React from 'react'
-import EmptyDashboard from './EmptyDashboard'
+import { describe, it, expect } from "vitest";
+import { renderWithProviders, screen } from "@/test/render";
+import EmptyDashboard from "./EmptyDashboard";
+import en from "@/i18n/en";
 
-vi.mock('next/link', () => ({
-  default: ({ children, href, className }: { children?: React.ReactNode; href?: string; className?: string }) => (
-    <a href={href} className={className}>{children}</a>
-  ),
-}))
+describe("EmptyDashboard", () => {
+  it("renders the translated empty state", () => {
+    renderWithProviders(<EmptyDashboard />);
+    expect(screen.getByRole("heading", { name: en.dashboard.emptyTitle })).toBeInTheDocument();
+    expect(screen.getByText(en.dashboard.emptyDescription)).toBeInTheDocument();
+  });
 
-vi.mock('lucide-react', () => ({
-  PlaneTakeoff: () => <div data-testid="plane-icon" />,
-}))
-
-vi.mock('@/context/LanguageContext', () => ({
-  useLanguage: () => ({
-    t: {
-      dashboard: {
-        emptyTitle: 'Your atlas is waiting',
-        emptyDescription: "You haven't planned any journeys yet."
-      },
-      planner: {
-        label: 'Plan my trip'
-      }
-    }
-  })
-}))
-
-describe('EmptyDashboard', () => {
-  it('renders correctly with translated content', () => {
-    render(<EmptyDashboard />)
-    expect(screen.getByText('Your atlas is waiting')).toBeInTheDocument()
-    expect(screen.getByText(/You haven't planned any journeys yet/i)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Plan my trip/i })).toBeInTheDocument()
-    expect(screen.getByTestId('plane-icon')).toBeInTheDocument()
-  })
-
-  it('has the correct link to the planner', () => {
-    render(<EmptyDashboard />)
-    const link = screen.getByRole('link', { name: /Plan my trip/i })
-    expect(link).toHaveAttribute('href', '#planner')
-  })
-})
+  it("links to the planner", () => {
+    renderWithProviders(<EmptyDashboard />);
+    expect(screen.getByRole("link", { name: new RegExp(en.planner.label) })).toHaveAttribute(
+      "href",
+      "#planner"
+    );
+  });
+});

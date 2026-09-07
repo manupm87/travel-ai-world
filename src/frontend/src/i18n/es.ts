@@ -10,6 +10,8 @@ const es: Translations = {
     openMenu: "Abrir menú",
     closeMenu: "Cerrar menú",
     selectLanguage: "Seleccionar idioma",
+    userMenu: "Menú de cuenta",
+    menu: "Menú",
   },
   common: {
     loading: "Cargando...",
@@ -106,6 +108,8 @@ const es: Translations = {
           "Viaje de aventura de 2 semanas por la Patagonia, senderismo y aire libre, a finales de noviembre.",
       },
     ],
+    unavailable:
+      "El planificador con IA necesita un backend conectado, así que no está disponible en esta vista estática.",
     errorFallback:
       "Lo siento, no pude procesar tu solicitud. Inténtalo de nuevo.",
     errorUnauthorized:
@@ -116,18 +120,24 @@ const es: Translations = {
     title: "Tres pasos hacia tu\nescapada perfecta.",
     steps: [
       {
+        id: "tell",
+        imageAlt: "Persona planificando un viaje en su portátil",
         number: "1",
         title: "Cuéntanos tus Sueños",
         description:
           "Introduce tu destino, fechas de viaje, presupuesto, número de personas y el tipo de viaje que buscas. Tarda menos de 60 segundos.",
       },
       {
+        id: "build",
+        imageAlt: "IA generando un plan de viaje",
         number: "2",
         title: "La IA Crea tu Itinerario",
         description:
           "Nuestra IA analiza miles de opciones, reseñas e información local para crear un itinerario personalizado día a día.",
       },
       {
+        id: "live",
+        imageAlt: "Pareja feliz viajando",
         number: "3",
         title: "Vive la Experiencia",
         description:
@@ -140,36 +150,42 @@ const es: Translations = {
     title: "Planificación más inteligente,\nmomentos más memorables.",
     items: [
       {
+        id: "personalized",
         emoji: "🧠",
         title: "IA Hiperpersonalizada",
         description:
           "Aprende tus preferencias para sugerirte experiencias que realmente encajan con tu estilo — no solo trampas para turistas.",
       },
       {
+        id: "itineraries",
         emoji: "📅",
         title: "Itinerarios Día a Día",
         description:
           "Horarios detallados, tiempos y logística para cada día de tu viaje — optimizados para viajar menos y disfrutar más.",
       },
       {
+        id: "budget",
         emoji: "💰",
         title: "Control Inteligente del Presupuesto",
         description:
           "Fija tu presupuesto y observa cómo la IA optimiza cada recomendación — desde hoteles a restaurantes — ajustándose a tu límite.",
       },
       {
+        id: "maps",
         emoji: "🗺️",
         title: "Mapas Interactivos",
         description:
           "Mapas visuales con toda tu ruta, la ubicación de los hoteles y los imprescindibles de un vistazo.",
       },
       {
+        id: "food",
         emoji: "🍽️",
         title: "Guía Gastronómica Local",
         description:
           "Recomendaciones de restaurantes seleccionados para cada comida, filtradas por cocina, presupuesto y ubicación.",
       },
       {
+        id: "customizable",
         emoji: "✏️",
         title: "Totalmente Personalizable",
         description:

@@ -68,7 +68,7 @@ export function ActivityItem({ activity, currency }: ActivityItemProps) {
           )}
           {activity.rating && (
             <span className="text-[11px] font-bold text-text-primary bg-bg-secondary border border-border-soft px-2 py-0.5 rounded flex items-center gap-1">
-              <Star size={10} className="text-amber-500" fill="currentColor" /> {activity.rating}
+              <Star size={10} className="text-warning" fill="currentColor" /> {activity.rating}
             </span>
           )}
         </div>

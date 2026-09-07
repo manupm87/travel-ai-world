@@ -1,46 +1,20 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
-import React from 'react'
-import FinalCTA from './FinalCTA'
+import { describe, it, expect } from "vitest";
+import { renderWithProviders, screen } from "@/test/render";
+import FinalCTA from "./FinalCTA";
+import en from "@/i18n/en";
 
-vi.mock('@/components/ui/Container', () => ({
-  Container: ({ children, className }: { children?: React.ReactNode; className?: string }) => <div className={className}>{children}</div>
-}))
+const c = en.finalCta;
 
-vi.mock('@/components/ui/Button', () => ({
-  Button: ({ children, href, variant, className }: { children?: React.ReactNode; href?: string; variant?: string; className?: string }) => (
-    <a href={href} data-variant={variant} className={className}>{children}</a>
-  )
-}))
+describe("FinalCTA", () => {
+  it("renders headline and subtitle", () => {
+    renderWithProviders(<FinalCTA />);
+    expect(screen.getByRole("heading", { name: c.title })).toBeInTheDocument();
+    expect(screen.getByText(c.subtitle)).toBeInTheDocument();
+  });
 
-vi.mock('@/context/LanguageContext', () => ({
-  useLanguage: () => ({
-    t: {
-      finalCta: {
-        title: 'Ready for your next adventure?',
-        subtitle: 'Start planning with AI today.',
-        ctaPrimary: 'Plan now',
-        ctaSecondary: 'Learn more'
-      }
-    }
-  })
-}))
-
-describe('FinalCTA', () => {
-  it('renders headline and subtitle', () => {
-    render(<FinalCTA />)
-    expect(screen.getByText('Ready for your next adventure?')).toBeInTheDocument()
-    expect(screen.getByText('Start planning with AI today.')).toBeInTheDocument()
-  })
-
-  it('renders CTAs with correct variants and links', () => {
-    render(<FinalCTA />)
-    const primaryCta = screen.getByText('Plan now')
-    const secondaryCta = screen.getByText('Learn more')
-    
-    expect(primaryCta).toHaveAttribute('href', '#planner')
-    expect(primaryCta).toHaveAttribute('data-variant', 'white')
-    
-    expect(secondaryCta).toHaveAttribute('data-variant', 'secondary')
-  })
-})
+  it("links the primary CTA to the planner and renders the secondary action", () => {
+    renderWithProviders(<FinalCTA />);
+    expect(screen.getByRole("link", { name: c.ctaPrimary })).toHaveAttribute("href", "#planner");
+    expect(screen.getByRole("button", { name: c.ctaSecondary })).toBeInTheDocument();
+  });
+});

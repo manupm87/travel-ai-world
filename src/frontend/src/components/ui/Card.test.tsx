@@ -22,4 +22,18 @@ describe('Card', () => {
     expect(cardDiv.className).toContain('border-accent-border')
     expect(cardDiv.className).toContain('bg-accent-soft')
   })
+
+  it('lets a consumer padding win over the default', () => {
+    const { container } = render(<Card className="p-8">Padded</Card>)
+    const cardDiv = container.firstChild as HTMLElement
+    expect(cardDiv.className).toContain('p-8')
+    expect(cardDiv.className).not.toContain('p-6')
+  })
+
+  it('exposes highlight as a state attribute', () => {
+    const { container } = render(<Card highlight>Highlighted</Card>)
+    expect(container.firstChild).toHaveAttribute('data-highlight', 'true')
+    const plain = render(<Card>Plain</Card>)
+    expect(plain.container.firstChild).not.toHaveAttribute('data-highlight')
+  })
 })

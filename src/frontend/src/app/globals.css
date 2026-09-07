@@ -20,6 +20,12 @@
   --color-status-planning: #F78E4F;
   --color-status-finished: #8888AA;
   --color-purple: #8B5CF6;
+  --color-error: #F87171;
+  --color-success: #22C55E;
+  --color-warning: #F59E0B;
+  /* Fixed header height: the offset every page and sticky element uses. */
+  --header-h: 72px;
+  --shadow-accent-glow: 0 0 20px rgba(79, 110, 247, 0.4);
 }
 
 [data-theme="light"] {
@@ -42,6 +48,10 @@
   --color-status-planning: #EA580C;
   --color-status-finished: #64748B;
   --color-purple: #7C3AED;
+  --color-error: #DC2626;
+  --color-success: #16A34A;
+  --color-warning: #D97706;
+  --shadow-accent-glow: 0 0 20px rgba(79, 110, 247, 0.3);
 }
 
 @theme inline {
@@ -64,6 +74,10 @@
   --color-status-planning: var(--color-status-planning);
   --color-status-finished: var(--color-status-finished);
   --color-purple: var(--color-purple);
+  --color-error: var(--color-error);
+  --color-success: var(--color-success);
+  --color-warning: var(--color-warning);
+  --shadow-accent-glow: var(--shadow-accent-glow);
   --font-sans: var(--font-sans), system-ui, sans-serif;
   --font-heading: var(--font-heading), system-ui, sans-serif;
 }
@@ -83,7 +97,7 @@ html {
 }
 
 section {
-  scroll-margin-top: 72px;
+  scroll-margin-top: var(--header-h);
 }
 
 body {

@@ -50,7 +50,7 @@ export default function InteractiveTimeline({ trip }: InteractiveTimelineProps) 
             {/* Horizontal Line (Desktop) */}
             <div className="hidden md:block absolute top-[28px] left-[5%] right-[5%] h-[2px] bg-border-soft/50 -z-10">
               <div 
-                className="h-full bg-accent transition-all duration-500 shadow-[0_0_10px_rgba(79,110,247,0.5)]"
+                className="h-full bg-accent transition-all duration-500 shadow-accent-glow"
                 style={{ width: `${(trip.destinations.findIndex(d => d.id === activeDest) / (trip.destinations.length - 1)) * 100}%` }}
               ></div>
             </div>
@@ -64,7 +64,7 @@ export default function InteractiveTimeline({ trip }: InteractiveTimelineProps) 
                     onClick={() => setActiveDest(dest.id)}
                     className={`w-14 h-14 rounded-full border-4 transition-all duration-300 flex items-center justify-center z-10 ${
                       isActive 
-                        ? "bg-accent border-accent/40 scale-110 shadow-[0_0_20px_rgba(79,110,247,0.4)]" 
+                        ? "bg-accent border-accent/40 scale-110 shadow-accent-glow" 
                         : "bg-bg-primary border-border hover:border-accent"
                     }`}
                   >

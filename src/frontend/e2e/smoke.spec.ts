@@ -18,14 +18,11 @@ const LANGUAGE_TRIGGER_NAME = /Select language|Seleccionar idioma/;
 const languageTrigger = (page: Page) =>
   visibleHeader(page).getByRole("button", { name: LANGUAGE_TRIGGER_NAME });
 
-const languageSwitcher = (page: Page) =>
-  visibleHeader(page)
-    .locator(".dropdown-container")
-    .filter({ has: page.getByRole("button", { name: LANGUAGE_TRIGGER_NAME }) });
-
 async function openLanguageMenu(page: Page) {
-  await languageTrigger(page).click();
-  return languageSwitcher(page);
+  const trigger = languageTrigger(page);
+  await trigger.click();
+  await expect(trigger).toHaveAttribute("aria-expanded", "true");
+  return visibleHeader(page).getByRole("menu");
 }
 
 test.describe("Landing page — /", () => {
@@ -59,7 +56,7 @@ test.describe("Landing page — /", () => {
 
   test("switching to Spanish translates nav links", async ({ page }) => {
     const menu = await openLanguageMenu(page);
-    await menu.getByRole("button", { name: /Español/ }).click();
+    await menu.getByRole("menuitemradio", { name: /Español/ }).click();
 
     await expect(
       visibleNav(page).getByRole("link", { name: /Cómo Funciona/i })
@@ -69,10 +66,10 @@ test.describe("Landing page — /", () => {
 
   test("switching back to English restores nav", async ({ page }) => {
     let menu = await openLanguageMenu(page);
-    await menu.getByRole("button", { name: /Español/ }).click();
+    await menu.getByRole("menuitemradio", { name: /Español/ }).click();
 
     menu = await openLanguageMenu(page);
-    await menu.getByRole("button", { name: /English/ }).click();
+    await menu.getByRole("menuitemradio", { name: /English/ }).click();
 
     await expect(
       visibleNav(page).getByRole("link", { name: /How It Works/i })

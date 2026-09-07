@@ -1,80 +1,37 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
-import React from 'react'
-import InteractiveTimeline from './InteractiveTimeline'
-import { Trip } from '@/types/trip'
+import { describe, it, expect } from "vitest";
+import { fireEvent, renderWithProviders, screen } from "@/test/render";
+import InteractiveTimeline from "./InteractiveTimeline";
+import { makeDestination, makeTrip } from "@/test/fixtures";
+import en from "@/i18n/en";
 
-vi.mock('@/components/ui/Section', () => ({
-  Section: ({ children }: { children?: React.ReactNode }) => <section>{children}</section>
-}))
-
-vi.mock('@/components/ui/SectionLabel', () => ({
-  SectionLabel: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>
-}))
-
-vi.mock('@/components/ui/Card', () => ({
-  Card: ({ children, className }: { children?: React.ReactNode; className?: string }) => <div className={className}>{children}</div>
-}))
-
-vi.mock('@/utils/format', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@/utils/format')>()),
-  formatDate: (date: string) => date
-}))
-
-vi.mock('@/utils/countryFlag', () => ({
-  getFlag: (code: string) => `Flag-${code}`
-}))
-
-vi.mock('lucide-react', () => ({
-  Navigation: () => <div data-testid="nav-icon" />,
-}))
-
-vi.mock('@/context/LanguageContext', () => ({
-  useLanguage: () => ({
-    language: 'en',
-    locale: 'en-US',
-    t: {
-      tripViewer: {
-        journeyMap: 'JOURNEY MAP',
-        routeOverview: 'Route Overview',
-        nights: 'nights',
-        viewItinerary: 'View Itinerary'
-      }
-    }
-  })
-}))
-
-const mockTrip: Partial<Trip> = {
+const trip = makeTrip({
   destinations: [
-    { id: '1', city: 'Paris', country: 'France', countryCode: 'FR', coordinates: { lat: 48.8566, lng: 2.3522 }, arrivalDate: 'May 1', departureDate: 'May 4', nightsStaying: 3 },
-    { id: '2', city: 'Lyon', country: 'France', countryCode: 'FR', coordinates: { lat: 45.764, lng: 4.8357 }, arrivalDate: 'May 4', departureDate: 'May 6', nightsStaying: 2 },
-  ]
-}
+    makeDestination({ id: "d1", city: "Paris", nightsStaying: 3 }),
+    makeDestination({ id: "d2", city: "Lyon", nightsStaying: 2 }),
+  ],
+});
 
-describe('InteractiveTimeline', () => {
-  it('renders destination nodes and initial active panel', () => {
-    render(<InteractiveTimeline trip={mockTrip as Trip} />)
-    
-    expect(screen.getByText('Route Overview')).toBeInTheDocument()
-    const cityLabels = screen.getAllByText(/Paris|Lyon/)
-    expect(cityLabels.length).toBeGreaterThanOrEqual(2)
-    expect(screen.getAllByText('Flag-FR')).toHaveLength(2)
-    
-    expect(screen.getByRole('heading', { level: 4, name: 'Paris' })).toBeInTheDocument()
-  })
+describe("InteractiveTimeline", () => {
+  it("renders every destination and opens the first one", () => {
+    renderWithProviders(<InteractiveTimeline trip={trip} />);
 
-  it('switches active destination on click', () => {
-    render(<InteractiveTimeline trip={mockTrip as Trip} />)
-    
-    const destButtons = screen.getAllByRole('button')
-    fireEvent.click(destButtons[1])
-    
-    expect(screen.getByRole('heading', { level: 4, name: 'Lyon' })).toBeInTheDocument()
-    expect(screen.queryByRole('heading', { level: 4, name: 'Paris' })).not.toBeInTheDocument()
-  })
+    expect(screen.getByRole("heading", { name: en.tripViewer.routeOverview })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Paris" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Lyon" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 4, name: "Paris" })).toBeInTheDocument();
+  });
 
-  it('renders view itinerary button', () => {
-    render(<InteractiveTimeline trip={mockTrip as Trip} />)
-    expect(screen.getByText('View Itinerary')).toBeInTheDocument()
-  })
-})
+  it("switches the active destination on click", () => {
+    renderWithProviders(<InteractiveTimeline trip={trip} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Lyon" }));
+
+    expect(screen.getByRole("heading", { level: 4, name: "Lyon" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { level: 4, name: "Paris" })).not.toBeInTheDocument();
+  });
+
+  it("offers to jump to the itinerary", () => {
+    renderWithProviders(<InteractiveTimeline trip={trip} />);
+    expect(screen.getByRole("button", { name: en.tripViewer.viewItinerary })).toBeInTheDocument();
+  });
+});

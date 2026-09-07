@@ -5,13 +5,28 @@ import type { TripStatus } from "@/types/trip-summary";
 
 export type Language = "en" | "es";
 
+/** Stable ids for the "How it works" steps; components key images on them. */
+export type StepId = "tell" | "build" | "live";
+
 export interface Step {
+  id: StepId;
   number: string;
   title: string;
   description: string;
+  imageAlt: string;
 }
 
+/** Stable ids for the feature grid; components key icons on them. */
+export type FeatureId =
+  | "personalized"
+  | "itineraries"
+  | "budget"
+  | "maps"
+  | "food"
+  | "customizable";
+
 export interface FeatureItem {
+  id: FeatureId;
   emoji: string;
   title: string;
   description: string;
@@ -47,6 +62,8 @@ export interface Translations {
     openMenu: string;
     closeMenu: string;
     selectLanguage: string;
+    userMenu: string;
+    menu: string;
   };
   common: {
     loading: string;
@@ -109,6 +126,8 @@ export interface Translations {
     sendHint: string;
     examplesLabel: string;
     examples: { emoji: string; label: string; prompt: string }[];
+    /** Shown when no ai_api URL is configured (static preview builds). */
+    unavailable: string;
     errorFallback: string;
     errorUnauthorized: string;
   };

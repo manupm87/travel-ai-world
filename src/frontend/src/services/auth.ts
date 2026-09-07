@@ -11,7 +11,7 @@
 import { jwtDecode } from "jwt-decode";
 import type { components } from "@/types/generated/core-api";
 import type { User } from "@/types/user";
-import { apiUrl, isApiAvailable, readErrorMessage } from "./http";
+import { isApiAvailable, request } from "./http";
 import { writeSession } from "./session";
 
 export type GoogleAuthResponse = components["schemas"]["GoogleAuthResponse"];
@@ -41,17 +41,10 @@ export async function verifyGoogleToken(
   credential: string
 ): Promise<GoogleAuthResponse> {
   const body: components["schemas"]["GoogleAuthRequest"] = { credential };
-  const res = await fetch(apiUrl("core", "/auth/google"), {
+  return request<GoogleAuthResponse>("core", "/auth/google", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    json: body,
   });
-
-  if (!res.ok) {
-    throw new Error(await readErrorMessage(res, "Auth failed"));
-  }
-
-  return res.json();
 }
 
 /**
