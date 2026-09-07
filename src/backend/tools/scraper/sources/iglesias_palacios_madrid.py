@@ -1,12 +1,11 @@
 # Scraper de Google Places (New) para Iglesias y Palacios importantes de Madrid. Realiza búsquedas textuales específicas para cada POI
 
-import os
 import json
-import requests
+import os
 
+import requests
 from config.env import GOOGLE_API_KEY
 from core.utils import normalize_iglesias_palacios
-
 
 TEXT_URL = "https://places.googleapis.com/v1/places:searchText"
 

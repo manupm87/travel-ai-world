@@ -23,7 +23,8 @@ src/backend/
 
 ```bash
 uv sync --all-packages                   # whole workspace (incl. tools/) into src/backend/.venv
-uv run ruff check . && uv run ruff format --check .
+uv run ruff check . ../../scripts && uv run ruff format --check . ../../scripts
+uv run pyright                           # libs/ and services/, standard mode (CI runs it in `just lint-backend`)
 cd services/core_api && uv run pytest    # needs PostgreSQL
 cd services/ai_api   && uv run pytest    # no external deps
 cd libs/travel_common && uv run pytest
@@ -50,3 +51,9 @@ uv run python scripts/export_openapi.py  # → docs/api/*.openapi.json (then `np
   add it to the root `dependencies` + `[tool.uv.sources]`, a `tests/` dir, an `AGENTS.md`, a `README.md`,
   a `.env.example`, a CI job in `.github/workflows/pr.yml`, and the image in `backend-images.yml`.
 - **Tests** run per package with `--import-mode=importlib`; never `from tests.x import` across packages.
+- **Lint policy** lives in the root `pyproject.toml`: ruff `I, UP, B, SIM, N, RUF, ASYNC, S` on top of
+  `E/F`, `B008` and `N818` ignored on purpose (FastAPI defaults; domain error names), tests may
+  `assert` and hold fake secrets, `tools/**` keeps the old E/F-only set. Type-check with pyright
+  (`[tool.pyright]`); prefer fixing the type over `# pyright: ignore`, and justify every ignore.
+- **Logging**: `create_app` calls `travel_common.http.logging.configure_logging(settings.LOG_LEVEL)`
+  once; modules use `logging.getLogger(__name__)`, never `print`.

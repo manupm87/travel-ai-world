@@ -2,7 +2,6 @@
 
 import jwt
 import pytest
-
 from travel_common.config import CommonSettings
 from travel_common.exceptions import Unauthorized
 from travel_common.principal import Principal, Role

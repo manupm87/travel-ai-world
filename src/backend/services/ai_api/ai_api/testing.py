@@ -8,7 +8,7 @@ from ai_api.domain.models import Message
 
 
 def settings_for_tests() -> AISettings:
-    return AISettings(SECRET_KEY="unit-test-secret-key-with-32-bytes-min")
+    return AISettings(SECRET_KEY="unit-test-secret-key-with-32-bytes-min")  # noqa: S106
 
 
 class FakeProvider:

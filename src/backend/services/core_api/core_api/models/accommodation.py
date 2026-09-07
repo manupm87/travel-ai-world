@@ -1,5 +1,6 @@
 from datetime import date
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Date, Float, Numeric, String
 from sqlalchemy.dialects.postgresql import ARRAY
@@ -13,6 +14,9 @@ from core_api.models.base import (
     UUIDPrimaryKeyMixin,
     ensure_ordered,
 )
+
+if TYPE_CHECKING:
+    from core_api.models.trip import Trip
 
 
 class Accommodation(
@@ -36,7 +40,7 @@ class Accommodation(
     check_in_time: Mapped[str | None] = mapped_column(String(10), nullable=True)
     check_out_time: Mapped[str | None] = mapped_column(String(10), nullable=True)
 
-    trip: Mapped["Trip"] = relationship(back_populates="accommodations")  # noqa: F821
+    trip: Mapped["Trip"] = relationship(back_populates="accommodations")
 
     def check_invariants(self) -> None:
         ensure_ordered(self.check_in, self.check_out, "Stay")

@@ -2,7 +2,6 @@
 
 from config.city_zones import ZONAS_BASE
 
-
 CATEGORIES = {
     "bares": {
         "included_types": ["bar"],

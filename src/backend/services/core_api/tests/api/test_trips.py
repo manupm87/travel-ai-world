@@ -1,9 +1,9 @@
 """Trips are private: listing, reading and mutating stop at the owner boundary."""
 
-from httpx import AsyncClient
-
 from core_api.models.user import User
+from httpx import AsyncClient
 from travel_common.principal import Role
+
 from tests.conftest import headers_for
 
 TRIPS_URL = "/api/v1/trips/"

@@ -1,4 +1,5 @@
 from datetime import date
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Date, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -11,6 +12,10 @@ from core_api.models.base import (
     UUIDPrimaryKeyMixin,
     ensure_ordered,
 )
+
+if TYPE_CHECKING:
+    from core_api.models.itinerary_day import ItineraryDay
+    from core_api.models.trip import Trip
 
 
 class Destination(
@@ -26,8 +31,8 @@ class Destination(
     departure_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     nights_staying: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
-    trip: Mapped["Trip"] = relationship(back_populates="destinations")  # noqa: F821
-    itinerary_days: Mapped[list["ItineraryDay"]] = relationship(  # noqa: F821
+    trip: Mapped["Trip"] = relationship(back_populates="destinations")
+    itinerary_days: Mapped[list["ItineraryDay"]] = relationship(
         back_populates="destination"
     )
 

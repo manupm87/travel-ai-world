@@ -1,7 +1,7 @@
 from pydantic import BaseModel
-
 from travel_common.exceptions import Forbidden, Unauthorized
 from travel_common.principal import Principal, Role
+
 from core_api.auth.google import ExternalIdentity
 from core_api.models.user import User
 from core_api.repositories.user_repository import UserRepository

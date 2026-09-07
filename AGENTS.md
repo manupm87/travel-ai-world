@@ -34,7 +34,7 @@ just setup          # .env files + uv sync + npm install
 just dev-core       # core_api  :8000 (hot reload)
 just dev-ai         # ai_api    :8001 (hot reload)
 just dev-frontend   # Next.js   :3000
-just lint           # ruff (backend + scraper) + eslint
+just lint           # ruff + pyright (backend, scripts) + eslint
 just test           # every backend package + frontend unit tests
 just test-core / test-ai / test-common / test-frontend / test-e2e
 just contracts      # export OpenAPI docs + regenerate frontend types (run after changing any schema/route)
@@ -67,7 +67,9 @@ Windows: `winget install Casey.Just` and run the recipes from Git Bash or WSL (t
 
 ## Conventions
 
-- Python 3.12, `uv` workspace at `src/backend/` (one lockfile), ruff (line length 88, rules E4/E7/E9/F).
+- Python 3.12, `uv` workspace at `src/backend/` (one lockfile), ruff (line length 88; rules E4/E7/E9/F +
+  I, UP, B, SIM, N, RUF, ASYNC, S — see `src/backend/pyproject.toml`) and pyright (standard mode) over
+  `libs/` and `services/`. The scraper keeps the E/F-only policy.
 - TypeScript strict, Tailwind v4 (CSS custom properties, no `tailwind.config.js`), Vitest, Playwright.
 - Commits: conventional prefixes (`feat`, `fix`, `refactor`, `build`, `ci`, `docs`, `infra`, `test`, `chore`).
 - Branches: `feat/TRA-123-short-title` (Linear issue key when there is one).

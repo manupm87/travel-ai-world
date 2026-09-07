@@ -2,13 +2,14 @@
 
 from dataclasses import dataclass
 
-from core_api.auth.google import IdentityVerifier
-from core_api.models.user import User
-from core_api.services.user_service import UserService
 from travel_common.config import CommonSettings
 from travel_common.exceptions import Unauthorized
 from travel_common.principal import Principal
 from travel_common.security import create_access_token
+
+from core_api.auth.google import IdentityVerifier
+from core_api.models.user import User
+from core_api.services.user_service import UserService
 
 
 @dataclass(frozen=True, slots=True)

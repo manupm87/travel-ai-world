@@ -40,7 +40,7 @@ same in both: `ai_api` verifies the tokens `core_api` issues.
 ## Tests, lint, contracts
 
 ```bash
-just lint             # ruff check + format
+just lint             # ruff check + format + pyright (backend, scripts) + eslint
 just test-backend     # travel_common, core_api (PostgreSQL), ai_api (no external deps)
 just contracts        # export OpenAPI → docs/api, regenerate frontend types
 ```

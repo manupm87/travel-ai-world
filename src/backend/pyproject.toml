@@ -26,6 +26,7 @@ dev = [
     "pytest-asyncio>=1.4.0",
     "ruff>=0.16.6",
     "httpx>=0.28.1",
+    "pyright>=1.1.411",
 ]
 
 [tool.ruff]
@@ -34,9 +35,29 @@ target-version = "py312"
 exclude = [".git", "__pycache__", "alembic", ".venv"]
 
 [tool.ruff.lint]
-# Ruff 0.16 widened its implicit default rule set. Pin the set the project has
-# always linted against so a linter upgrade never silently changes the policy.
-select = ["E4", "E7", "E9", "F"]
+# Explicit rule set so a linter upgrade never silently changes the policy.
+#   I  import order      UP modern syntax      B  bugbear          SIM simplify
+#   N  pep8 naming       RUF ruff-specific     ASYNC async pitfalls   S  bandit
+select = ["E4", "E7", "E9", "F", "I", "UP", "B", "SIM", "N", "RUF", "ASYNC", "S"]
+ignore = [
+    "B008",  # FastAPI wiring: Depends()/Query() calls in parameter defaults
+    "N818",  # domain errors are named after the condition (Forbidden), not *Error
+]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["S101", "S105", "S106"]  # asserts and fake secrets are what tests are made of
+# The scraper is maintained separately and keeps the original E/F-only policy.
+"tools/**" = ["I", "UP", "B", "SIM", "N", "RUF", "ASYNC", "S"]
+
+[tool.ruff.lint.pep8-naming]
+classmethod-decorators = ["sqlalchemy.orm.declared_attr"]
+
+[tool.pyright]
+include = ["libs/travel_common/travel_common", "services/core_api/core_api", "services/ai_api/ai_api"]
+pythonVersion = "3.12"
+venvPath = "."
+venv = ".venv"
+typeCheckingMode = "standard"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

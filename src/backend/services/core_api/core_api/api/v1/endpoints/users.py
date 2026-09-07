@@ -1,6 +1,7 @@
 """User endpoints: the caller manages their own account; admins see everyone."""
 
 from fastapi import APIRouter, Depends, status
+from travel_common.principal import Principal
 
 from core_api.api.deps import (
     get_current_admin_user,
@@ -11,7 +12,6 @@ from core_api.api.deps import (
 from core_api.pagination import Page
 from core_api.schemas.user import UserResponse, UserRoleUpdate, UserUpdate
 from core_api.services.user_service import UserService
-from travel_common.principal import Principal
 
 router = APIRouter()
 

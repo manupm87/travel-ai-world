@@ -1,9 +1,9 @@
 """Entity rules hold on POST and on PATCH; field formats are validated once."""
 
 import pytest
+from core_api.models.user import User
 from httpx import AsyncClient
 
-from core_api.models.user import User
 from tests.conftest import headers_for
 
 TRIPS_URL = "/api/v1/trips/"

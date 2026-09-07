@@ -3,12 +3,12 @@
 from typing import Any
 
 import pytest
-from httpx import AsyncClient
-from sqlalchemy import func, select
-
 from core_api.db.session import unit_of_work
 from core_api.models.trip import Trip
 from core_api.models.user import User
+from httpx import AsyncClient
+from sqlalchemy import func, select
+
 from tests.conftest import AsyncSessionTest, headers_for
 
 TRIPS_URL = "/api/v1/trips/"

@@ -7,17 +7,16 @@ database `<DB_NAME>_test` is created on demand and emptied after every test.
 from collections.abc import AsyncGenerator
 
 import pytest
-from httpx import ASGITransport, AsyncClient
-from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.pool import NullPool
-
 from core_api import models  # noqa: F401 — registers models with Base.metadata
 from core_api.config import get_settings
 from core_api.db.session import get_db, unit_of_work
 from core_api.main import app
 from core_api.models.base import Base
 from core_api.models.user import User
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.pool import NullPool
 from travel_common.principal import Principal, Role
 from travel_common.security import create_access_token
 

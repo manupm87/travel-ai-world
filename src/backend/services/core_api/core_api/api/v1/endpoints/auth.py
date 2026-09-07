@@ -3,7 +3,7 @@
 from fastapi import APIRouter, Depends
 
 from core_api.api.deps import get_sign_in
-from core_api.schemas.user import GoogleAuthRequest, GoogleAuthResponse
+from core_api.schemas.user import AuthUser, GoogleAuthRequest, GoogleAuthResponse
 from core_api.services.auth_service import SignIn
 
 router = APIRouter()
@@ -15,4 +15,6 @@ async def google_auth(
 ) -> GoogleAuthResponse:
     """Verify the Google credential, upsert the user and issue our JWT."""
     result = await sign_in(body.credential)
-    return GoogleAuthResponse(access_token=result.access_token, user=result.user)
+    return GoogleAuthResponse(
+        access_token=result.access_token, user=AuthUser.model_validate(result.user)
+    )

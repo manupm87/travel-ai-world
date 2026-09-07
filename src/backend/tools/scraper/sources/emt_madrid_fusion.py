@@ -1,9 +1,9 @@
 # Fusiona los datos de los intercambiadores EMT obtenidos desde Google Places, Wikipedia y el CSV oficial de líneas
 
-import json
 import difflib
-import unicodedata
+import json
 import re
+import unicodedata
 
 from sources.emt_madrid_lineas_from_csv import cargar_lineas_emt
 
@@ -36,17 +36,17 @@ def fusionar_emt():
 
     # 1._ Cargar Google Places
 
-    with open("data/emt_madrid.json", "r", encoding="utf-8") as f:
+    with open("data/emt_madrid.json", encoding="utf-8") as f:
         google_items = json.load(f)["items"]
 
     # 2._ Cargar Wikipedia
 
-    with open("data/emt_wiki_estaciones.json", "r", encoding="utf-8") as f:
+    with open("data/emt_wiki_estaciones.json", encoding="utf-8") as f:
         wiki = json.load(f)
 
     # 3._ Cargar colores
 
-    with open("data/emt_wiki_colores.json", "r", encoding="utf-8") as f:
+    with open("data/emt_wiki_colores.json", encoding="utf-8") as f:
         colores = json.load(f)
 
     # 4._ Cargar líneas reales desde CSV

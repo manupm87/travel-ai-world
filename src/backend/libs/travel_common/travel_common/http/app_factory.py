@@ -5,15 +5,16 @@ same everywhere; only the routers and the settings differ.
 """
 
 import logging
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from contextlib import AbstractAsyncContextManager
-from typing import Any, Callable
+from typing import Any
 
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from travel_common.config import CommonSettings
 from travel_common.http.error_handlers import register_error_handlers
+from travel_common.http.logging import configure_logging
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +37,7 @@ def create_app(
     not shadow them. Empty means the default service: /docs, /redoc and
     {API_V1_STR}/openapi.json.
     """
+    configure_logging(settings.LOG_LEVEL)
     if not settings.SECRET_KEY:
         logger.warning(
             "SECRET_KEY is empty: issuing or verifying tokens will fail. "

@@ -1,9 +1,9 @@
 # Scraper de Wikipedia para obtener las estaciones oficiales del Metro de Madrid.
 
-import os
 import json
-import requests
+import os
 
+import requests
 from bs4 import BeautifulSoup
 
 WIKI_BASE = "https://es.wikipedia.org"

@@ -55,9 +55,14 @@ scrape:
 # Lint backend (ruff, incl. scripts/) and frontend (eslint)
 lint: lint-backend lint-frontend
 
-# ruff over the backend workspace and the repo scripts, with the backend's config
+# ruff (backend workspace + repo scripts, backend config) and pyright
 lint-backend:
     cd {{backend}} && uv run ruff check . ../../scripts && uv run ruff format --check . ../../scripts
+    cd {{backend}} && uv run pyright
+
+# Static type check of the backend packages (pyright, standard mode)
+typecheck:
+    cd {{backend}} && uv run pyright
 
 # eslint
 lint-frontend:

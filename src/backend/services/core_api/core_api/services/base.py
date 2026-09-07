@@ -7,11 +7,11 @@ raise domain errors; they never know about HTTP.
 from typing import Any
 
 from pydantic import BaseModel
-
-from core_api.pagination import Page
-from core_api.models.base import Base
-from core_api.repositories.base import BaseRepository
 from travel_common.exceptions import EntityNotFound
+
+from core_api.models.base import Base
+from core_api.pagination import Page
+from core_api.repositories.base import BaseRepository
 
 
 class BaseService[ModelT: Base, CreateT: BaseModel, UpdateT: BaseModel]:

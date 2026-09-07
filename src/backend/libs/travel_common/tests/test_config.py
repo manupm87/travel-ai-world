@@ -28,4 +28,5 @@ def test_common_settings_have_no_unused_fields():
         "SECRET_KEY",
         "ALGORITHM",
         "ACCESS_TOKEN_EXPIRE_MINUTES",
+        "LOG_LEVEL",
     }

@@ -1,3 +1,6 @@
+# pyright: reportInvalidTypeForm=false
+# Endpoint signatures are built from `ChildResource` fields at runtime; FastAPI
+# reads them, a static checker cannot.
 """Declarative CRUD routers for the entities that live inside a trip.
 
 Every child resource (destinations, accommodations, ..., meals) gets the same
@@ -5,7 +8,7 @@ five endpoints, nested under its owner: the caller's trip, or a day of it.
 Adding an entity is one `ChildResource` entry, not a new endpoint module.
 """
 
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from typing import Annotated, Any
 from uuid import UUID
@@ -65,7 +68,7 @@ class ChildResource:
     create_schema: type[BaseModel]
     update_schema: type[BaseModel]
     response_schema: type[BaseModel]
-    parent: Callable[..., Base]
+    parent: Callable[..., Awaitable[Base]]
     parent_field: str
     parent_prefix: str = TRIP
 
@@ -114,13 +117,15 @@ CHILD_RESOURCES: tuple[ChildResource, ...] = (
 def child_router(res: ChildResource) -> APIRouter:
     router = APIRouter(prefix=res.prefix, tags=[res.tag])
     item_id = f"{res.singular}_id"
-    ItemId = Annotated[UUID, Path(alias=item_id)]
-    Parent = Annotated[Base, Depends(res.parent)]
-    Service = Annotated[BaseService[Any, Any, Any], Depends(res.service)]
+    item_path = f"/{{{item_id}}}"
+    # Lowercase on purpose: these are per-call aliases, not module-level types.
+    item_id_t = Annotated[UUID, Path(alias=item_id)]
+    parent_t = Annotated[Base, Depends(res.parent)]
+    service_t = Annotated[BaseService[Any, Any, Any], Depends(res.service)]
 
     @router.get("/", response_model=list[res.response_schema], name=f"list_{res.path}")
     async def list_items(
-        parent: Parent, service: Service, page: Page = Depends(page_params)
+        parent: parent_t, service: service_t, page: Page = Depends(page_params)
     ):
         return await service.list(page, **{res.parent_field: parent.id})
 
@@ -130,34 +135,38 @@ def child_router(res: ChildResource) -> APIRouter:
         status_code=status.HTTP_201_CREATED,
         name=f"create_{res.singular}",
     )
-    async def create_item(body: res.create_schema, parent: Parent, service: Service):  # type: ignore[valid-type]
+    async def create_item(
+        body: res.create_schema, parent: parent_t, service: service_t
+    ):
         return await service.create(body, **{res.parent_field: parent.id})
 
     @router.get(
-        "/{%s}" % item_id,
+        item_path,
         response_model=res.response_schema,
         name=f"read_{res.singular}",
     )
-    async def read_item(obj_id: ItemId, parent: Parent, service: Service):
+    async def read_item(obj_id: item_id_t, parent: parent_t, service: service_t):
         return await service.get_in(obj_id, **{res.parent_field: parent.id})
 
     @router.patch(
-        "/{%s}" % item_id,
+        item_path,
         response_model=res.response_schema,
         name=f"update_{res.singular}",
     )
     async def update_item(
-        obj_id: ItemId, body: res.update_schema, parent: Parent, service: Service
-    ):  # type: ignore[valid-type]
+        obj_id: item_id_t, body: res.update_schema, parent: parent_t, service: service_t
+    ):
         obj = await service.get_in(obj_id, **{res.parent_field: parent.id})
         return await service.update(obj, body)
 
     @router.delete(
-        "/{%s}" % item_id,
+        item_path,
         status_code=status.HTTP_204_NO_CONTENT,
         name=f"delete_{res.singular}",
     )
-    async def delete_item(obj_id: ItemId, parent: Parent, service: Service) -> None:
+    async def delete_item(
+        obj_id: item_id_t, parent: parent_t, service: service_t
+    ) -> None:
         obj = await service.get_in(obj_id, **{res.parent_field: parent.id})
         await service.delete(obj)
 

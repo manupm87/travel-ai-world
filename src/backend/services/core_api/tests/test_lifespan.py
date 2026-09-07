@@ -1,8 +1,7 @@
 """The app opens its engine on startup and disposes it on shutdown."""
 
-from httpx import ASGITransport, AsyncClient
-
 from core_api.main import app
+from httpx import ASGITransport, AsyncClient
 
 
 async def test_lifespan_provides_a_session_factory_and_disposes_the_engine():

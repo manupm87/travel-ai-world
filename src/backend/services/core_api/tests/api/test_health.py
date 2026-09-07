@@ -1,8 +1,7 @@
-from httpx import AsyncClient
-from sqlalchemy.exc import OperationalError
-
 from core_api.db.session import get_db
 from core_api.main import app
+from httpx import AsyncClient
+from sqlalchemy.exc import OperationalError
 
 
 async def test_liveness(client: AsyncClient):

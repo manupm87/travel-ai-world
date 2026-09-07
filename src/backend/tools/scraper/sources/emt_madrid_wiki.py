@@ -2,10 +2,10 @@
 # Extrae tablas de las páginas oficiales, obtiene líneas y coordenadas, y genera los archivos 'emt_wiki_estaciones.json' y 'emt_wiki_colores.json'. Estos datos se usan en la fase de fusión EMT.
 
 
-import os
 import json
-import requests
+import os
 
+import requests
 from bs4 import BeautifulSoup
 
 HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}

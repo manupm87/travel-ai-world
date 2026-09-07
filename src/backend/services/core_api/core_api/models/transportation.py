@@ -1,5 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, Integer, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -11,6 +12,9 @@ from core_api.models.base import (
     UUIDPrimaryKeyMixin,
     ensure_ordered,
 )
+
+if TYPE_CHECKING:
+    from core_api.models.trip import Trip
 
 
 class Transportation(UUIDPrimaryKeyMixin, TripChildMixin, TimestampMixin, Base):
@@ -36,7 +40,7 @@ class Transportation(UUIDPrimaryKeyMixin, TripChildMixin, TimestampMixin, Base):
     cost: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
     booking_reference: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
-    trip: Mapped["Trip"] = relationship(back_populates="transportations")  # noqa: F821
+    trip: Mapped["Trip"] = relationship(back_populates="transportations")
 
     def check_invariants(self) -> None:
         ensure_ordered(self.departure_time, self.arrival_time, "Journey")

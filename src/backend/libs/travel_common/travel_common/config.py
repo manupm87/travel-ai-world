@@ -20,6 +20,9 @@ class CommonSettings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
+    # Root log level for the application's own loggers (uvicorn keeps its own).
+    LOG_LEVEL: str = "INFO"
+
     model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", case_sensitive=True, extra="ignore"
     )

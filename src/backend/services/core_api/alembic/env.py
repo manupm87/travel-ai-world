@@ -32,7 +32,7 @@ from core_api.config import get_settings
 settings = get_settings()
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""
-    url = settings.SQLALCHEMY_DATABASE_URI
+    url = settings.database_url
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -54,7 +54,7 @@ async def run_async_migrations() -> None:
     and associate a connection with the context.
     """
     configuration = config.get_section(config.config_ini_section, {})
-    configuration["sqlalchemy.url"] = settings.SQLALCHEMY_DATABASE_URI
+    configuration["sqlalchemy.url"] = settings.database_url
     
     connectable = async_engine_from_config(
         configuration,

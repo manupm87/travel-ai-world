@@ -2,13 +2,13 @@
 # Lee la configuración de cada categoría desde 'config/categories.py' y ejecutaautomáticamente Nearby Search y Text Search, aplicando filtros por tipos, normalización específica por categoría y deduplicación.
 # Genera un archivo JSON estructurado en la carpeta 'data/' con los POIs encontrados para la categoría seleccionada. Este módulo es el motor principal del scraping de POIs en Madrid.
 
-import os
 import json
-import requests
+import os
 
+import requests
+from config.categories import CATEGORIES
 from config.env import GOOGLE_API_KEY
 from config.google_places import GOOGLE_NEARBY_URL, GOOGLE_TEXT_URL
-from config.categories import CATEGORIES
 from core import utils
 
 
