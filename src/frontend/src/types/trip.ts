@@ -7,7 +7,12 @@
  * camelCase, no nulls); keep the mapping in the service.
  */
 
+import type { components } from "@/types/generated/core-api";
 import type { TripStatus } from "@/types/trip-summary";
+
+/** The wire shape `toTrip` consumes: core_api's `TripResponse`, re-exported here so
+ * fixtures and services name it without reaching into the generated module. */
+export type TripResponse = components["schemas"]["TripResponse"];
 
 export interface Coordinates {
   lat: number;

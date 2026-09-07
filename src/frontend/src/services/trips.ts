@@ -19,10 +19,11 @@ import type {
   Meal,
   Transportation,
   Trip,
+  TripResponse,
 } from "@/types/trip";
 import type { TripSummary } from "@/types/trip-summary";
 
-export type TripResponse = components["schemas"]["TripResponse"];
+export type { TripResponse };
 type DestinationResponse = components["schemas"]["DestinationResponse"];
 type ItineraryDayResponse = components["schemas"]["ItineraryDayResponse"];
 type ActivityResponse = components["schemas"]["ActivityResponse"];
