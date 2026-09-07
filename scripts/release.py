@@ -36,7 +36,9 @@ SEMVER = re.compile(r"^\d+\.\d+\.\d+$")
 
 
 def run(*args: str, check: bool = True, capture: bool = False) -> str:
-    result = subprocess.run(args, cwd=ROOT, check=check, text=True, capture_output=capture)
+    result = subprocess.run(
+        args, cwd=ROOT, check=check, text=True, capture_output=capture
+    )
     return result.stdout.strip() if capture else ""
 
 
@@ -69,7 +71,13 @@ def set_version(path: Path, old: str, new: str) -> bool:
     if path.suffix == ".json":
         updated = text.replace(f'"version": "{old}"', f'"version": "{new}"', 1)
     else:
-        updated = re.sub(rf'^version = "{re.escape(old)}"', f'version = "{new}"', text, count=1, flags=re.M)
+        updated = re.sub(
+            rf'^version = "{re.escape(old)}"',
+            f'version = "{new}"',
+            text,
+            count=1,
+            flags=re.M,
+        )
     if updated == text:
         return False
     path.write_text(updated)
@@ -108,7 +116,7 @@ def cmd_bump(args: argparse.Namespace) -> int:
         return 0
     run("git", "add", *[str(p.relative_to(ROOT)) for p in changed])
     run("git", "commit", "-q", "-m", f"build: bump version to {new}")
-    print(f"committed. Next: push, open a PR, merge, then `just release`.")
+    print("committed. Next: push, open a PR, merge, then `just release`.")
     return 0
 
 
@@ -129,26 +137,42 @@ def cmd_publish(args: argparse.Namespace) -> int:
     if run("git", "tag", "-l", tag, capture=True):
         sys.exit(f"tag {tag} already exists; bump the version first (`just version`)")
 
-    gh_args = ["gh", "release", "create", tag, "--generate-notes", "--title", f"Release {tag}"]
+    gh_args = [
+        "gh",
+        "release",
+        "create",
+        tag,
+        "--generate-notes",
+        "--title",
+        f"Release {tag}",
+    ]
     if args.draft:
         gh_args.append("--draft")
     if args.prerelease:
         gh_args.append("--prerelease")
     run(*gh_args)
-    print(run("gh", "release", "view", tag, "--json", "url", "--jq", ".url", capture=True))
+    print(
+        run("gh", "release", "view", tag, "--json", "url", "--jq", ".url", capture=True)
+    )
     return 0
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     sub = parser.add_subparsers(dest="command", required=True)
 
     bump = sub.add_parser("bump", help="bump the version in every manifest and commit")
-    bump.add_argument("part", nargs="?", default="patch", choices=["patch", "minor", "major"])
+    bump.add_argument(
+        "part", nargs="?", default="patch", choices=["patch", "minor", "major"]
+    )
     bump.add_argument("--no-commit", action="store_true")
     bump.set_defaults(func=cmd_bump)
 
-    publish = sub.add_parser("publish", help="tag and create the GitHub release from main")
+    publish = sub.add_parser(
+        "publish", help="tag and create the GitHub release from main"
+    )
     publish.add_argument("--draft", action="store_true")
     publish.add_argument("--prerelease", action="store_true")
     publish.set_defaults(func=cmd_publish)

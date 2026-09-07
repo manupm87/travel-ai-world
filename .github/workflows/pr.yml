@@ -23,6 +23,7 @@ jobs:
       ai: ${{ steps.filter.outputs.ai }}
       backend: ${{ steps.filter.outputs.backend }}
       frontend: ${{ steps.filter.outputs.frontend }}
+      infra: ${{ steps.filter.outputs.infra }}
       docs: ${{ steps.filter.outputs.docs }}
     steps:
       - uses: actions/checkout@v4
@@ -49,13 +50,20 @@ jobs:
               - '.github/**'
             backend:
               - 'src/backend/**'
+              - 'scripts/**'
+              - 'justfile'
               - '.github/**'
             frontend:
               - 'src/frontend/**'
+              - 'justfile'
+              - '.github/**'
+            infra:
+              - 'infra/**'
               - '.github/**'
             docs:
               - '**/*.md'
               - 'scripts/check_docs.py'
+              - 'justfile'
               - '.github/**'
 
   backend-lint:
@@ -63,20 +71,19 @@ jobs:
     needs: changes
     if: needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: src/backend
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-uv
-      - run: uv run ruff check .
-      - run: uv run ruff format --check .
+      - uses: extractions/setup-just@v2
+      - run: just lint-backend
 
   backend-common:
     name: travel_common tests
     needs: changes
     if: needs.changes.outputs.common == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: src/backend/libs/travel_common
@@ -90,6 +97,7 @@ jobs:
     needs: changes
     if: needs.changes.outputs.core == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: src/backend/services/core_api
@@ -130,6 +138,7 @@ jobs:
     needs: changes
     if: needs.changes.outputs.ai == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: src/backend/services/ai_api
@@ -141,73 +150,60 @@ jobs:
       - run: uv run pytest -q
 
   docker-build:
-    name: Docker image (${{ matrix.service }})
+    name: Docker image
     needs: changes
     if: needs.changes.outputs.backend == 'true'
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         service: [core_api, ai_api]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-      - name: Build (no push)
-        uses: docker/build-push-action@v6
-        with:
-          context: src/backend
-          file: src/backend/Dockerfile
-          build-args: SERVICE=${{ matrix.service }}
-          load: true
-          tags: ${{ matrix.service }}:pr
-          cache-from: type=gha,scope=${{ matrix.service }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
-      - name: Image imports its app
-        run: docker run --rm --entrypoint python -e SECRET_KEY=x ${{ matrix.service }}:pr -c "from ${{ matrix.service }}.main import app; print('ok')"
-      - name: Image serves its health endpoint
-        if: matrix.service == 'ai_api'
-        run: |
-          docker run -d --name ai -p 8000:8000 -e SECRET_KEY=ci-secret ai_api:pr
-          for i in $(seq 1 20); do
-            curl -fsS http://localhost:8000/api/v1/ai/health/ && break
-            sleep 1
-          done
-          docker logs ai
-          curl -fsS http://localhost:8000/api/v1/ai/health/
+    uses: ./.github/workflows/_build-image.yml
+    with:
+      service: ${{ matrix.service }}
+      push: false
 
   contracts:
     name: API contracts (OpenAPI → TypeScript)
     needs: changes
     if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-uv
-      - name: OpenAPI documents match the code
-        working-directory: src/backend
-        run: uv run python scripts/export_openapi.py --check
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: src/frontend/.nvmrc
-          cache: "npm"
-          cache-dependency-path: src/frontend/package-lock.json
-      - name: Install dependencies
-        working-directory: src/frontend
-        run: npm ci
-      - name: Generated TypeScript types match the documents
-        working-directory: src/frontend
-        run: npm run types:check
+      - uses: ./.github/actions/setup-frontend
+      - uses: extractions/setup-just@v2
+      - name: OpenAPI documents and generated types match the code
+        run: just contracts-check
+
+  infra:
+    name: Terraform (${{ matrix.cloud }})
+    needs: changes
+    if: needs.changes.outputs.infra == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        cloud: [gcp, aws]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - uses: extractions/setup-just@v2
+      - run: just infra-fmt-check
+      - run: just infra-validate ${{ matrix.cloud }}
 
   docs:
     name: Docs hygiene
     needs: changes
     if: needs.changes.outputs.docs == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      - uses: extractions/setup-just@v2
       - name: Required files, ADR index, just recipes, relative links
-        run: python3 scripts/check_docs.py
+        run: just docs-check
       - name: markdownlint
         uses: DavidAnson/markdownlint-cli2-action@v19
         with:
@@ -226,38 +222,30 @@ jobs:
     needs: changes
     if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: src/frontend
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: src/frontend/.nvmrc
-          cache: "npm"
-          cache-dependency-path: src/frontend/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
+      - uses: ./.github/actions/setup-frontend
+      - uses: extractions/setup-just@v2
 
       - name: Lint
-        run: npm run lint
+        run: just lint-frontend
 
       - name: Unit tests
-        run: npm run test:unit
+        run: just test-frontend
 
       - name: Install Playwright browsers
+        working-directory: src/frontend
         run: npx playwright install --with-deps chromium
 
       - name: E2E tests (static export)
         env:
           NEXT_PUBLIC_GOOGLE_CLIENT_ID: placeholder
-        run: npm run test:e2e:static
+        run: just test-e2e-static
 
-      - name: Build
+      - name: Build as deployed (GitHub Pages base path)
         env:
-          NEXT_PUBLIC_BASE_PATH: /travel-ai-world
+          # Project Pages URL is https://<owner>.github.io/<repo>/: the base path is the repo name.
+          NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
           NEXT_PUBLIC_GOOGLE_CLIENT_ID: placeholder
-        run: npm run build
+        run: just build

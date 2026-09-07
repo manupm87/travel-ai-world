@@ -40,6 +40,7 @@ module "core_api" {
   depends_on = [
     google_sql_database.main,
     google_sql_user.main,
+    google_secret_manager_secret_version.app,
   ]
 }
 
@@ -63,4 +64,7 @@ module "ai_api" {
     SECRET_KEY     = google_secret_manager_secret.app["secret-key"].id
     NVIDIA_API_KEY = google_secret_manager_secret.app["nvidia-api-key"].id
   }
+
+  # Cloud Run resolves `version = "latest"` at deploy time: the version must exist first.
+  depends_on = [google_secret_manager_secret_version.app]
 }

@@ -45,5 +45,5 @@ services and why the frontend accepts two URLs: [ADR 0001](../docs/architecture/
    update `backend_cors_origins` and the Google OAuth client.
 
 ```bash
-terraform fmt -recursive && terraform validate    # before committing changes in gcp/ or aws/
+just infra-fmt && just infra-validate gcp && just infra-validate aws    # CI runs the check variants changes in gcp/ or aws/
 ```

@@ -1,12 +1,14 @@
-# Travel AI World — task runner (humans and agents use the same commands).
+# Travel AI World — task runner (humans, CI and agents use the same commands).
 # Install: https://just.systems  (winget install Casey.Just / brew install just / cargo install just)
 #
 #   just            list recipes
 #   just setup      first-time setup
 #   just dev-core   run core_api with hot reload
+#
+# Recipes are POSIX shell. On Windows run them from Git Bash (bundled with Git
+# for Windows) or WSL; PowerShell is not supported.
 
 set shell := ["bash", "-euo", "pipefail", "-c"]
-set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
 
 backend := "src/backend"
 core := "src/backend/services/core_api"
@@ -50,14 +52,20 @@ scrape:
 
 # ── Quality ──────────────────────────────────────────────────────────────────
 
-# Lint backend (ruff) and frontend (eslint)
-lint:
-    cd {{backend}} && uv run ruff check . && uv run ruff format --check .
+# Lint backend (ruff, incl. scripts/) and frontend (eslint)
+lint: lint-backend lint-frontend
+
+# ruff over the backend workspace and the repo scripts, with the backend's config
+lint-backend:
+    cd {{backend}} && uv run ruff check . ../../scripts && uv run ruff format --check . ../../scripts
+
+# eslint
+lint-frontend:
     cd {{frontend}} && npm run lint
 
-# Auto-format the backend
+# Auto-format the backend and the repo scripts
 format:
-    cd {{backend}} && uv run ruff format . && uv run ruff check --fix .
+    cd {{backend}} && uv run ruff format . ../../scripts && uv run ruff check --fix . ../../scripts
 
 # All tests: backend packages + frontend unit tests
 test: test-backend test-frontend
@@ -65,21 +73,29 @@ test: test-backend test-frontend
 # Every backend package (needs PostgreSQL for core_api)
 test-backend: test-common test-core test-ai
 
+# travel_common unit tests
 test-common:
     cd {{common}} && uv run pytest -q
 
+# core_api tests (PostgreSQL required; creates <DB_NAME>_test)
 test-core:
     cd {{core}} && uv run pytest -q
 
+# ai_api tests (no network, no key)
 test-ai:
     cd {{ai}} && uv run pytest -q
 
+# Frontend unit tests (vitest)
 test-frontend:
     cd {{frontend}} && npm run test:unit
 
-# Playwright E2E smoke tests (starts the dev server)
+# Playwright E2E smoke tests against the dev server
 test-e2e:
     cd {{frontend}} && npx playwright test
+
+# Playwright E2E over the static export (what CI runs)
+test-e2e-static:
+    cd {{frontend}} && npm run test:e2e:static
 
 # ── Contracts & docs ─────────────────────────────────────────────────────────
 
@@ -96,6 +112,20 @@ contracts-check:
 # Documentation hygiene: required files present, links resolve
 docs-check:
     python3 scripts/check_docs.py
+
+# ── Infrastructure ───────────────────────────────────────────────────────────
+
+# terraform fmt over both clouds (writes)
+infra-fmt:
+    terraform fmt -recursive infra
+
+# Fail if any Terraform file is not formatted (what CI runs)
+infra-fmt-check:
+    terraform fmt -check -recursive -diff infra
+
+# terraform init (no backend) + validate for one cloud: just infra-validate gcp|aws
+infra-validate cloud:
+    cd infra/{{cloud}} && terraform init -backend=false -input=false >/dev/null && terraform validate
 
 # ── Database ─────────────────────────────────────────────────────────────────
 
@@ -122,6 +152,7 @@ docker-build:
 docker-up:
     cd {{backend}} && docker compose --env-file services/core_api/.env up --build -d
 
+# Stop the Compose stack
 docker-down:
     cd {{backend}} && docker compose down
 

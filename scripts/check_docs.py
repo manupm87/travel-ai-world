@@ -60,7 +60,11 @@ def main() -> int:
             problems.append(f"missing required file: {rel}")
 
     recipes = set(RECIPE_RE.findall((ROOT / "justfile").read_text()))
-    docs = [p for p in ROOT.rglob("*.md") if "node_modules" not in p.parts and ".venv" not in p.parts]
+    docs = [
+        p
+        for p in ROOT.rglob("*.md")
+        if "node_modules" not in p.parts and ".venv" not in p.parts
+    ]
 
     for doc in docs:
         text = doc.read_text(encoding="utf-8")
@@ -69,7 +73,9 @@ def main() -> int:
         if doc.name == "AGENTS.md" or doc.name == "CLAUDE.md":
             for recipe in JUST_RE.findall(text):
                 if recipe not in recipes:
-                    problems.append(f"{rel}: mentions `just {recipe}` which is not a justfile recipe")
+                    problems.append(
+                        f"{rel}: mentions `just {recipe}` which is not a justfile recipe"
+                    )
 
         for target in LINK_RE.findall(text):
             if target.startswith(("http://", "https://", "mailto:")):
@@ -79,7 +85,9 @@ def main() -> int:
                 problems.append(f"{rel}: broken link -> {target}")
 
     adr_dir = ROOT / "docs" / "architecture" / "adr"
-    index = (adr_dir / "README.md").read_text() if (adr_dir / "README.md").exists() else ""
+    index = (
+        (adr_dir / "README.md").read_text() if (adr_dir / "README.md").exists() else ""
+    )
     for adr in sorted(adr_dir.glob("[0-9][0-9][0-9][0-9]-*.md")):
         text = adr.read_text(encoding="utf-8")
         if not re.search(r"^\*\*Status:?\*\*|^Status:", text, re.M):
@@ -92,7 +100,9 @@ def main() -> int:
         for p in problems:
             print(f"  - {p}")
         return 1
-    print(f"Documentation OK ({len(docs)} markdown files, {len(recipes)} just recipes).")
+    print(
+        f"Documentation OK ({len(docs)} markdown files, {len(recipes)} just recipes)."
+    )
     return 0
 
 
