@@ -11,7 +11,11 @@ TypeScript 5, Tailwind CSS v4.
   Language metadata (flag, native name, locale) lives only in `LANGUAGES` (`src/i18n/index.ts`).
 - **Network only in `src/services/`**: `http.ts` (base URLs, auth header, error parsing),
   `session.ts` (the only owner of the `localStorage` session), `auth.ts` (core_api),
-  `chat.ts` (ai_api), `trips.ts` (mocks today). Components never `fetch` or touch the session storage.
+  `chat.ts` (ai_api), `trips.ts` (fixtures today; owns `toTrip`, the only place that turns a
+  `TripResponse` into the `Trip` view model — ADR 0006). Components never `fetch` or touch the session storage.
+- **`src/types/trip.ts` is a view model**, not a response shape: components render it, `services/trips.ts`
+  builds it from the generated `TripResponse`. Fixtures in `src/mocks/*.ts` are `TripResponse` objects
+  checked with `satisfies`; add derived facts (e.g. `ItineraryDay.kind`) in the mapper, not in JSX.
 - **Types from the backend are generated**: `src/types/generated/{core-api,ai-api}.ts` via
   `npm run types:generate` (from `docs/api/*.openapi.json`). Do not edit them; do not redeclare
   response shapes by hand — import `components["schemas"]["..."]`.

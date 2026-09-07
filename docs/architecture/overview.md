@@ -117,4 +117,5 @@ See [ADR 0003](adr/0003-frontend-two-base-urls.md) and the [deploy runbook](../r
 ## Known gaps (tracked)
 
 - No rate limiting or per-user AI quotas; add at the proxy/gateway when needed.
-- `src/frontend/src/services/trips.ts` still serves mock data.
+- `src/frontend/src/services/trips.ts` still serves fixtures (in the backend's shape, mapped by
+  `toTrip`; the client-side fetch strategy is decided in [ADR 0006](adr/0006-frontend-trip-view-model.md)).

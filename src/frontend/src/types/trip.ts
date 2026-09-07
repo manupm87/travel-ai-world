@@ -1,3 +1,14 @@
+/**
+ * The trip **view model**: the shape the trip-viewer components render.
+ *
+ * It is derived from the backend contract (`TripResponse` in
+ * `types/generated/core-api.ts`) by `services/trips.ts::toTrip`, never
+ * declared by hand for a response. Keep it convenient for the UI (nested,
+ * camelCase, no nulls); keep the mapping in the service.
+ */
+
+import type { TripStatus } from "@/types/trip-summary";
+
 export interface Coordinates {
   lat: number;
   lng: number;
@@ -35,8 +46,13 @@ export interface Meal {
   rating?: number;
 }
 
+/** How a day reads at a glance; derived once in the mapper, not in JSX. */
+export type ItineraryDayKind = "free" | "travel" | "regular";
+
 export interface ItineraryDay {
+  id: string;
   dayNumber: number;
+  kind: ItineraryDayKind;
   date: string;
   destinationId: string;
   title: string;
@@ -106,13 +122,13 @@ export interface Transportation {
 
 export interface AIInsights {
   weatherForecast: string;
-  localTips: string | string[];
+  localTips: string[];
 }
 
 export interface Trip {
   id: string;
   userId: string;
-  status: string;
+  status: TripStatus;
   createdAt: string;
   updatedAt: string;
   title: string;

@@ -23,24 +23,16 @@ export default function AIInsights({ trip }: AIInsightsProps) {
   const weatherText = insights?.weatherForecast || t.tripViewer.weatherUnavailable;
 
   const renderTips = () => {
-    if (!insights?.localTips) {
+    const tips = insights?.localTips ?? [];
+    if (tips.length === 0) {
       return <p className="text-text-secondary text-[13px] leading-relaxed">{t.tripViewer.noLocalTips}</p>;
     }
-    
-    if (Array.isArray(insights.localTips)) {
-      return (
-        <ul className="text-text-secondary text-[13px] leading-relaxed list-disc pl-4 flex flex-col gap-1">
-          {insights.localTips.map((tip, index) => (
-            <li key={index}>{tip}</li>
-          ))}
-        </ul>
-      );
-    }
-    
     return (
-      <p className="text-text-secondary text-[13px] leading-relaxed">
-        {insights.localTips}
-      </p>
+      <ul className="text-text-secondary text-[13px] leading-relaxed list-disc pl-4 flex flex-col gap-1">
+        {tips.map((tip, index) => (
+          <li key={index}>{tip}</li>
+        ))}
+      </ul>
     );
   };
 

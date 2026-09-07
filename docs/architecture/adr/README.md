@@ -9,6 +9,7 @@ One file per decision, numbered, never deleted (superseded ones get a new status
 | [0003](0003-frontend-two-base-urls.md) | Frontend supports two base URLs; reverse proxy is optional | Accepted |
 | [0004](0004-repository-layout.md) | Source under `src/`, infrastructure under `infra/`, one ignore file | Accepted |
 | [0005](0005-trip-aggregate-nested-resources.md) | `Trip` is the aggregate root; child resources are nested and declarative | Accepted |
+| [0006](0006-frontend-trip-view-model.md) | The frontend renders a view model mapped from the backend contract | Accepted |
 
 ## Template
 

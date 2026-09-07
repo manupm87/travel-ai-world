@@ -61,6 +61,8 @@ export function makeMeal(overrides: Partial<Meal> = {}): Meal {
 
 export function makeItineraryDay(overrides: Partial<ItineraryDay> = {}): ItineraryDay {
   return {
+    id: "day-1",
+    kind: "regular",
     dayNumber: 1,
     date: "2026-05-15",
     destinationId: "dest-paris",

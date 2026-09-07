@@ -45,5 +45,6 @@ every endpoint; NVIDIA details hard-wired into the chat service; no tests for th
 - Behaviour changes shipped with the refactor: trip listing is scoped to the owner; user listing is
   admin-only; `TripResponse` nested field names now match the ORM (`itinerary_days`,
   `accommodations`, `transportations`); non-admin role checks answer 403 instead of 401.
-- Open: `trips.ts` in the frontend is still mock data. Revisit when the dashboard reads real trips.
-  (Nested-entity ownership was closed by [ADR 0005](0005-trip-aggregate-nested-resources.md).)
+- Open: `trips.ts` in the frontend still serves fixtures (see [ADR 0006](0006-frontend-trip-view-model.md)
+  for the mapping and the plan). Nested-entity ownership was closed by
+  [ADR 0005](0005-trip-aggregate-nested-resources.md).
