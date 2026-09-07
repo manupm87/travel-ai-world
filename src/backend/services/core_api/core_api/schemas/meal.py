@@ -1,24 +1,32 @@
-from decimal import Decimal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
+from core_api.models.enums import MealType
 from core_api.schemas._partial import partial
+from core_api.schemas._types import (
+    Latitude,
+    Longitude,
+    Money,
+    Rating,
+    TimeOfDay,
+    Title,
+)
 
 
 class MealBase(BaseModel):
-    time: str | None = None
-    type: str | None = None  # e.g. "breakfast", "lunch", "dinner"
-    restaurant_name: str
+    time: TimeOfDay | None = None
+    type: MealType | None = None
+    restaurant_name: Title
     cuisine: str | None = None
-    estimated_cost: Decimal | None = None
-    rating: float | None = None
+    estimated_cost: Money | None = None
+    rating: Rating | None = None
     # Flat location snapshot (mirrors ActivityLocation in frontend)
     location_name: str | None = None
     location_address: str | None = None
     location_city: str | None = None
-    location_lat: float | None = None
-    location_lng: float | None = None
+    location_lat: Latitude | None = None
+    location_lng: Longitude | None = None
 
 
 class MealCreate(MealBase):

@@ -4,17 +4,18 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict
 
 from core_api.schemas._partial import partial
+from core_api.schemas._types import Count, CountryCode, Latitude, Longitude, Title
 
 
 class DestinationBase(BaseModel):
-    city: str
-    country: str
-    country_code: str
-    lat: float | None = None
-    lng: float | None = None
+    city: Title
+    country: Title
+    country_code: CountryCode
+    lat: Latitude | None = None
+    lng: Longitude | None = None
     arrival_date: date | None = None
     departure_date: date | None = None
-    nights_staying: int | None = None
+    nights_staying: Count | None = None
 
 
 class DestinationCreate(DestinationBase):

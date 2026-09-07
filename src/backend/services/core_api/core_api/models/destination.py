@@ -1,35 +1,35 @@
-import uuid
+from datetime import date
 
-from sqlalchemy import Column, Date, Float, ForeignKey, Integer, String
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
+from sqlalchemy import Date, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from core_api.models.base import Base
+from core_api.models.base import (
+    Base,
+    CoordinatesMixin,
+    TimestampMixin,
+    TripChildMixin,
+    UUIDPrimaryKeyMixin,
+    ensure_ordered,
+)
 
 
-class Destination(Base):
+class Destination(
+    UUIDPrimaryKeyMixin, TripChildMixin, CoordinatesMixin, TimestampMixin, Base
+):
     __tablename__ = "destinations"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    trip_id = Column(
-        UUID(as_uuid=True),
-        ForeignKey("trips.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
+    city: Mapped[str] = mapped_column(String(150), nullable=False)
+    country: Mapped[str] = mapped_column(String(150), nullable=False)
+    country_code: Mapped[str] = mapped_column(String(3), nullable=False)  # ISO 3166-1
+
+    arrival_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    departure_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    nights_staying: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+    trip: Mapped["Trip"] = relationship(back_populates="destinations")  # noqa: F821
+    itinerary_days: Mapped[list["ItineraryDay"]] = relationship(  # noqa: F821
+        back_populates="destination"
     )
 
-    city = Column(String(150), nullable=False)
-    country = Column(String(150), nullable=False)
-    country_code = Column(String(3), nullable=False)  # ISO 3166-1 alpha-2/3
-
-    # Coordinates (no PostGIS dependency at this stage)
-    lat = Column(Float, nullable=True)
-    lng = Column(Float, nullable=True)
-
-    arrival_date = Column(Date, nullable=True)
-    departure_date = Column(Date, nullable=True)
-    nights_staying = Column(Integer, nullable=True)
-
-    # Relationships
-    trip = relationship("Trip", back_populates="destinations")
-    itinerary_days = relationship("ItineraryDay", back_populates="destination")
+    def check_invariants(self) -> None:
+        ensure_ordered(self.arrival_date, self.departure_date, "Stay")

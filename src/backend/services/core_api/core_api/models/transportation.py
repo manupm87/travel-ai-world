@@ -1,38 +1,42 @@
-import uuid
+from datetime import datetime
+from decimal import Decimal
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, Numeric, String
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
+from sqlalchemy import DateTime, Integer, Numeric, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from core_api.models.base import Base
+from core_api.models.base import (
+    Base,
+    TimestampMixin,
+    TripChildMixin,
+    UUIDPrimaryKeyMixin,
+    ensure_ordered,
+)
 
 
-class Transportation(Base):
+class Transportation(UUIDPrimaryKeyMixin, TripChildMixin, TimestampMixin, Base):
     __tablename__ = "transportations"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    trip_id = Column(
-        UUID(as_uuid=True),
-        ForeignKey("trips.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
+    type: Mapped[str | None] = mapped_column(
+        String(100), nullable=True
+    )  # TransportType
+    category: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    from_location: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    to_location: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    from_city: Mapped[str | None] = mapped_column(String(150), nullable=True)
+    to_city: Mapped[str | None] = mapped_column(String(150), nullable=True)
+    departure_time: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
     )
+    arrival_time: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    provider: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    flight_number: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    duration_minutes: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    cost: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
+    booking_reference: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
-    type = Column(String(100), nullable=True)  # flight / train / bus …
-    category = Column(String(100), nullable=True)  # e.g. "economy"
-    from_location = Column(String(512), nullable=True)
-    to_location = Column(String(512), nullable=True)
-    from_city = Column(String(150), nullable=True)
-    to_city = Column(String(150), nullable=True)
-    departure_time = Column(DateTime(timezone=True), nullable=True)
-    arrival_time = Column(DateTime(timezone=True), nullable=True)
-    provider = Column(String(255), nullable=True)
-    flight_number = Column(
-        String(50), nullable=True
-    )  # nullable — non-flights won't have one
-    duration_minutes = Column(Integer, nullable=True)
-    cost = Column(Numeric(10, 2), nullable=True)
-    booking_reference = Column(String(100), nullable=True)
+    trip: Mapped["Trip"] = relationship(back_populates="transportations")  # noqa: F821
 
-    # Relationships
-    trip = relationship("Trip", back_populates="transportations")
+    def check_invariants(self) -> None:
+        ensure_ordered(self.departure_time, self.arrival_time, "Journey")

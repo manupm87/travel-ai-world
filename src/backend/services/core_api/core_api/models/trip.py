@@ -1,108 +1,87 @@
-import enum
-import uuid
+from datetime import date
+from decimal import Decimal
 
-from sqlalchemy import (
-    Column,
-    Date,
-    DateTime,
-    Enum as SQLEnum,
-    ForeignKey,
-    Integer,
-    Numeric,
-    String,
-    Text,
+from sqlalchemy import Date, Enum as SQLEnum, ForeignKey, Integer, Numeric, String, Text
+from sqlalchemy.dialects.postgresql import ARRAY, JSON
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from core_api.models.base import (
+    Base,
+    TimestampMixin,
+    UUIDPrimaryKeyMixin,
+    ensure_ordered,
 )
-from sqlalchemy.dialects.postgresql import ARRAY, JSON, UUID
-from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
+from core_api.models.enums import TripStatus
 
-from core_api.models.base import Base
+__all__ = ["Trip", "TripStatus"]
 
 
-class TripStatus(str, enum.Enum):
-    PLANNING = "planning"
-    PLANNED = "planned"
-    FINISHED = "finished"
+class Trip(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+    """Aggregate root: everything a user plans for one journey."""
 
-
-class Trip(Base):
     __tablename__ = "trips"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    user_id = Column(
+    user_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
 
     # Core fields
-    title = Column(String(255), nullable=False)
-    description = Column(Text, nullable=True)
-    status = Column(SQLEnum(TripStatus), nullable=False, default=TripStatus.PLANNING)
-    image_url = Column(String(512), nullable=True)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    status: Mapped[TripStatus] = mapped_column(
+        SQLEnum(TripStatus), nullable=False, default=TripStatus.PLANNING
+    )
+    image_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
 
     # Dates
-    start_date = Column(Date, nullable=True)
-    end_date = Column(Date, nullable=True)
-    duration_days = Column(Integer, nullable=True)
+    start_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    end_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    duration_days: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     # Travelers
-    travelers_adults = Column(Integer, nullable=False, default=1)
-    travelers_children = Column(Integer, nullable=False, default=0)
-    travelers_infants = Column(Integer, nullable=False, default=0)
+    travelers_adults: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    travelers_children: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    travelers_infants: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
     # Preferences
-    travel_style = Column(ARRAY(String), nullable=True)  # stored as native PG array
-    pace_preference = Column(String(100), nullable=True)
-    accommodation_type = Column(String(100), nullable=True)
+    travel_style: Mapped[list[str] | None] = mapped_column(ARRAY(String), nullable=True)
+    pace_preference: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    accommodation_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
-    # Budget (inline — 1-to-1 value object, no separate table needed)
-    budget_total = Column(Numeric(12, 2), nullable=True)
-    budget_currency = Column(String(3), nullable=True)  # ISO 4217
-    budget_accommodation = Column(Numeric(12, 2), nullable=True)
-    budget_food = Column(Numeric(12, 2), nullable=True)
-    budget_activities = Column(Numeric(12, 2), nullable=True)
-    budget_transportation = Column(Numeric(12, 2), nullable=True)
-    budget_other = Column(Numeric(12, 2), nullable=True)
+    # Budget (inline value object; ISO 4217 currency)
+    budget_total: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
+    budget_currency: Mapped[str | None] = mapped_column(String(3), nullable=True)
+    budget_accommodation: Mapped[Decimal | None] = mapped_column(
+        Numeric(12, 2), nullable=True
+    )
+    budget_food: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
+    budget_activities: Mapped[Decimal | None] = mapped_column(
+        Numeric(12, 2), nullable=True
+    )
+    budget_transportation: Mapped[Decimal | None] = mapped_column(
+        Numeric(12, 2), nullable=True
+    )
+    budget_other: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
 
-    # AI Insights (inline — 1-to-1, optional)
-    ai_weather_forecast = Column(Text, nullable=True)
-    ai_local_tips = Column(JSON, nullable=True)  # str | str[]
+    # AI insights (inline, optional)
+    ai_weather_forecast: Mapped[str | None] = mapped_column(Text, nullable=True)
+    ai_local_tips: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
 
-    # Audit timestamps
-    created_at = Column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
+    # Relationships. Children load eagerly: the API always returns the whole
+    # aggregate and lazy loads are not possible from an async serializer.
+    user: Mapped["User"] = relationship(back_populates="trips")  # noqa: F821
+    destinations: Mapped[list["Destination"]] = relationship(  # noqa: F821
+        back_populates="trip", cascade="all, delete-orphan", lazy="selectin"
     )
-    updated_at = Column(
-        DateTime(timezone=True),
-        server_default=func.now(),
-        onupdate=func.now(),
-        nullable=False,
+    itinerary_days: Mapped[list["ItineraryDay"]] = relationship(  # noqa: F821
+        back_populates="trip", cascade="all, delete-orphan", lazy="selectin"
+    )
+    accommodations: Mapped[list["Accommodation"]] = relationship(  # noqa: F821
+        back_populates="trip", cascade="all, delete-orphan", lazy="selectin"
+    )
+    transportations: Mapped[list["Transportation"]] = relationship(  # noqa: F821
+        back_populates="trip", cascade="all, delete-orphan", lazy="selectin"
     )
 
-    # Relationships
-    user = relationship("User", back_populates="trips")
-    # Children load eagerly: the API always returns the whole aggregate and
-    # lazy loads are not possible from an async response serializer.
-    destinations = relationship(
-        "Destination",
-        back_populates="trip",
-        cascade="all, delete-orphan",
-        lazy="selectin",
-    )
-    itinerary_days = relationship(
-        "ItineraryDay",
-        back_populates="trip",
-        cascade="all, delete-orphan",
-        lazy="selectin",
-    )
-    accommodations = relationship(
-        "Accommodation",
-        back_populates="trip",
-        cascade="all, delete-orphan",
-        lazy="selectin",
-    )
-    transportations = relationship(
-        "Transportation",
-        back_populates="trip",
-        cascade="all, delete-orphan",
-        lazy="selectin",
-    )
+    def check_invariants(self) -> None:
+        ensure_ordered(self.start_date, self.end_date, "Trip dates")

@@ -46,13 +46,15 @@ class BaseService[ModelT: Base, CreateT: BaseModel, UpdateT: BaseModel]:
 
     async def create(self, data: CreateT, **context: Any) -> ModelT:
         """Create from a schema; `context` carries server-side fields (owner ids)."""
-        return await self.repository.create(
-            self.repository.model(**data.model_dump(), **context)
-        )
+        obj = self.repository.model(**data.model_dump(), **context)
+        obj.check_invariants()
+        return await self.repository.create(obj)
 
     async def update(self, obj: ModelT, data: UpdateT) -> ModelT:
+        """Apply the fields the client sent, then re-check the entity's rules."""
         for field, value in data.model_dump(exclude_unset=True).items():
             setattr(obj, field, value)
+        obj.check_invariants()
         return await self.repository.update(obj)
 
     async def delete(self, obj: ModelT) -> None:

@@ -48,10 +48,10 @@ core_api/
 ├── auth/google.py     Google tokeninfo verification
 ├── services/          base.py (generic; every child entity) + trip_service.py, user_service.py
 ├── repositories/      base.py (generic) + trip_repository.py, user_repository.py
-├── models/            SQLAlchemy tables (Base in base.py; register new ones in __init__.py)
-├── schemas/           Pydantic models; XUpdate = partial(XBase) (see _partial.py)
+├── models/            SQLAlchemy 2 typed tables; mixins + check_invariants() in base.py; enums.py
+├── schemas/           Pydantic models; XUpdate = partial(XBase) (_partial.py); formats in _types.py
 ├── pagination.py      Page(skip, limit)
-└── db/session.py      async engine + get_db
+└── db/session.py      async engine + get_db (one transaction per request: unit_of_work)
 ```
 
 ## Tests and migrations

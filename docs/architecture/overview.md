@@ -42,6 +42,8 @@ Calls go in one direction only: `ai_api → core_api`. `core_api` works with `ai
   and `BaseService`; endpoints are thin; services raise domain errors; a single handler maps them
   to HTTP. `Trip` is the aggregate root: its children are nested under `/trips/{trip_id}/...` and
   authorised once at the boundary ([ADR 0005](adr/0005-trip-aggregate-nested-resources.md)).
+  Entities own their invariants (`check_invariants()`); one transaction per request
+  (`unit_of_work`) commits on success and rolls back on any error.
 - `ai_api` is **ports and adapters**: `domain` (types + Protocols) ← `application` (use cases) ←
   `infrastructure` (NVIDIA, SSE, core_api client) ← `api` (wiring). Swapping the LLM provider or
   adding a retriever touches only `infrastructure/` and `api/deps.py`.

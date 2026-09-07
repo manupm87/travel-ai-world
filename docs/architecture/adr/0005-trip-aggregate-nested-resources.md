@@ -47,5 +47,6 @@ copies apart from identifiers, and every `XUpdate` schema restated `XBase` with 
   TypeScript types were regenerated in the same change. Activities and meals sit three levels
   deep; if that proves awkward for clients, a read-only flat view can be added without touching
   authorisation.
-- Follow-up: the repository still commits per operation (no unit of work), and the ORM models
-  use the legacy `Column` API. Both are tracked in `docs/architecture/code-quality-review.md`.
+- Follow-up (done in the next change): the repository no longer commits per operation — a
+  request-scoped unit of work does — and the ORM models moved to the SQLAlchemy 2 typed style with
+  shared mixins and entity-level `check_invariants()`. See `docs/architecture/code-quality-review.md`.

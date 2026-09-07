@@ -1,11 +1,11 @@
 from datetime import date, datetime
-from decimal import Decimal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
-from core_api.models.trip import TripStatus
+from core_api.models.enums import TripStatus
 from core_api.schemas._partial import partial
+from core_api.schemas._types import Count, CurrencyCode, Money, StringList, Title
 from core_api.schemas.accommodation import AccommodationResponse
 from core_api.schemas.destination import DestinationResponse
 from core_api.schemas.itinerary_day import ItineraryDayResponse
@@ -13,33 +13,33 @@ from core_api.schemas.transportation import TransportationResponse
 
 
 class TripBase(BaseModel):
-    title: str
+    title: Title
     description: str | None = None
     status: TripStatus = TripStatus.PLANNING
     image_url: str | None = None
-    # Dates
+    # Dates (start <= end is enforced by the Trip entity)
     start_date: date | None = None
     end_date: date | None = None
-    duration_days: int | None = None
-    # Travelers (mirrors Trip.travelers in frontend)
-    travelers_adults: int = 1
-    travelers_children: int = 0
-    travelers_infants: int = 0
+    duration_days: Count | None = None
+    # Travelers
+    travelers_adults: Count = 1
+    travelers_children: Count = 0
+    travelers_infants: Count = 0
     # Preferences
     travel_style: list[str] | None = None
     pace_preference: str | None = None
     accommodation_type: str | None = None
-    # Budget (mirrors Budget interface in frontend)
-    budget_total: Decimal | None = None
-    budget_currency: str | None = None
-    budget_accommodation: Decimal | None = None
-    budget_food: Decimal | None = None
-    budget_activities: Decimal | None = None
-    budget_transportation: Decimal | None = None
-    budget_other: Decimal | None = None
-    # AI Insights (mirrors AIInsights in frontend)
+    # Budget
+    budget_total: Money | None = None
+    budget_currency: CurrencyCode | None = None
+    budget_accommodation: Money | None = None
+    budget_food: Money | None = None
+    budget_activities: Money | None = None
+    budget_transportation: Money | None = None
+    budget_other: Money | None = None
+    # AI insights
     ai_weather_forecast: str | None = None
-    ai_local_tips: list[str] | str | None = None
+    ai_local_tips: StringList | None = None
 
 
 class TripCreate(TripBase):
