@@ -10,5 +10,4 @@ secret_key           = "replace-me"
 google_client_id     = "replace-me.apps.googleusercontent.com"
 google_client_secret = "replace-me"
 
-frontend_url         = "https://www.example.com"
 backend_cors_origins = "[\"https://www.example.com\"]"

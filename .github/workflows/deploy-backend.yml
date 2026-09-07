@@ -15,7 +15,7 @@ name: Deploy backend
 #       AWS: AWS_REGION, AWS_ROLE_TO_ASSUME
 #       both: TF_VAR_db_password, TF_VAR_nvidia_api_key, TF_VAR_secret_key,
 #             TF_VAR_google_client_id, TF_VAR_google_client_secret,
-#             TF_VAR_frontend_url, TF_VAR_backend_cors_origins
+#             TF_VAR_backend_cors_origins
 #
 # `apply=false` (default) only plans, so the workflow is safe to try.
 
@@ -62,7 +62,6 @@ jobs:
       TF_VAR_secret_key: ${{ secrets.TF_VAR_secret_key }}
       TF_VAR_google_client_id: ${{ secrets.TF_VAR_google_client_id }}
       TF_VAR_google_client_secret: ${{ secrets.TF_VAR_google_client_secret }}
-      TF_VAR_frontend_url: ${{ secrets.TF_VAR_frontend_url }}
       TF_VAR_backend_cors_origins: ${{ secrets.TF_VAR_backend_cors_origins }}
     steps:
       - uses: actions/checkout@v4

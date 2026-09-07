@@ -36,7 +36,7 @@ travel-ai-world/
 
 ## Quick start
 
-Prerequisites: Node.js ≥ 20, Python 3.12 + [uv](https://github.com/astral-sh/uv),
+Prerequisites: Node.js 24 (`.nvmrc`), Python 3.12 (`.python-version`) + [uv](https://github.com/astral-sh/uv),
 [just](https://just.systems), PostgreSQL 16 (or the devcontainer), a Google OAuth client ID and an
 NVIDIA API key for the chat.
 

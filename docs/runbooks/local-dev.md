@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Node.js ≥ 20 (CI uses 24), Python 3.12, [uv](https://github.com/astral-sh/uv), [just](https://just.systems)
+- Node.js 24 (`src/frontend/.nvmrc`), Python 3.12 (`src/backend/.python-version`), [uv](https://github.com/astral-sh/uv), [just](https://just.systems)
 - PostgreSQL 16 (local, Docker, or the devcontainer's)
 - A Google OAuth client ID; an NVIDIA API key for the chat
 

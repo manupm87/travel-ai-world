@@ -25,8 +25,8 @@ services and why the frontend accepts two URLs: [ADR 0001](../docs/architecture/
   `google_client_secret`, `nvidia_api_key`) stored in the cloud's secret manager and injected per
   service. Locally they go in `terraform.tfvars` (ignored by git; start from `terraform.tfvars.example`).
   In CI they arrive as `TF_VAR_*` repository secrets.
-- **CORS and OAuth**: `frontend_url` and `backend_cors_origins` must name the deployed frontend, and
-  that origin must be registered in the Google OAuth client.
+- **CORS and OAuth**: `backend_cors_origins` must list the deployed frontend origin, and that origin
+  must be registered in the Google OAuth client.
 - **Migrations** run at container start in `core_api` only (`src/backend/docker/entrypoint.sh`).
 - **State**: commit `.terraform.lock.hcl`, never `*.tfstate` or `*.tfvars`. Sensitive variables end
   up in the state, so use a remote backend with restricted access (GCS or S3) for team work; the CI
@@ -42,7 +42,7 @@ services and why the frontend accepts two URLs: [ADR 0001](../docs/architecture/
    apply (`apply=false` only plans). Details and required secrets are in the header of
    `.github/workflows/deploy-backend.yml` and in the [deploy runbook](../docs/runbooks/deploy.md).
 3. **After the backend URL changes**: rebuild the frontend with the new `NEXT_PUBLIC_*` values and
-   update `frontend_url`, `backend_cors_origins` and the Google OAuth client.
+   update `backend_cors_origins` and the Google OAuth client.
 
 ```bash
 terraform fmt -recursive && terraform validate    # before committing changes in gcp/ or aws/
