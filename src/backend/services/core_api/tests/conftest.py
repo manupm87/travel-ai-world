@@ -1,31 +1,34 @@
-from typing import AsyncGenerator
+"""Fixtures: a throwaway PostgreSQL database, an app client and two users.
+
+Tests run against real PostgreSQL (the migrations use Postgres types). The
+database `<DB_NAME>_test` is created on demand and emptied after every test.
+"""
+
+from collections.abc import AsyncGenerator
+
 import pytest
-from httpx import AsyncClient, ASGITransport
+from httpx import ASGITransport, AsyncClient
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-
-from core_api.main import app
-from core_api.db.session import get_db
-from core_api import (
-    models,  # noqa: F401 — registers models with Base.metadata
-)
-from core_api.models.base import Base
-from core_api.config import settings
-
 from sqlalchemy.pool import NullPool
 
-# Test database URL (using real PostgreSQL for full type support)
+from core_api import models  # noqa: F401 — registers models with Base.metadata
+from core_api.config import settings
+from core_api.db.session import get_db
+from core_api.main import app
+from core_api.models.base import Base
+from core_api.models.user import User
+from travel_common.principal import Principal, Role
+from travel_common.security import create_access_token
+
 TEST_DB_NAME = f"{settings.DB_NAME}_test"
-TEST_SQLALCHEMY_DATABASE_URI = f"postgresql+asyncpg://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_SERVER}:{settings.DB_PORT}/{TEST_DB_NAME}"
+_SERVER = f"postgresql+asyncpg://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_SERVER}:{settings.DB_PORT}"
 
-# Engine for dynamically creating the test DB (connects to default 'postgres' db)
+# Engine for creating the test DB (connects to the default 'postgres' database)
 setup_engine = create_async_engine(
-    f"postgresql+asyncpg://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_SERVER}:{settings.DB_PORT}/postgres",
-    isolation_level="AUTOCOMMIT",
-    poolclass=NullPool,
+    f"{_SERVER}/postgres", isolation_level="AUTOCOMMIT", poolclass=NullPool
 )
-
-engine_test = create_async_engine(TEST_SQLALCHEMY_DATABASE_URI, poolclass=NullPool)
+engine_test = create_async_engine(f"{_SERVER}/{TEST_DB_NAME}", poolclass=NullPool)
 AsyncSessionTest = async_sessionmaker(
     bind=engine_test, class_=AsyncSession, expire_on_commit=False
 )
@@ -33,22 +36,20 @@ AsyncSessionTest = async_sessionmaker(
 
 @pytest.fixture(scope="session")
 async def setup_db():
-    # 1. Create the test database if it doesn't exist
     async with setup_engine.begin() as conn:
-        result = await conn.execute(
-            text(f"SELECT 1 FROM pg_database WHERE datname='{TEST_DB_NAME}'")
+        exists = await conn.execute(
+            text("SELECT 1 FROM pg_database WHERE datname = :name"),
+            {"name": TEST_DB_NAME},
         )
-        if not result.scalar():
-            await conn.execute(text(f"CREATE DATABASE {TEST_DB_NAME}"))
+        if not exists.scalar():
+            await conn.execute(text(f'CREATE DATABASE "{TEST_DB_NAME}"'))
 
-    # Wait for the DB to be ready and clear previous tables
     async with engine_test.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 
     yield
 
-    # 3. Drop all tables after tests finish
     async with engine_test.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
 
@@ -66,15 +67,43 @@ async def db_session(setup_db) -> AsyncGenerator[AsyncSession, None]:
 
 @pytest.fixture
 async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
-    # Override get_db dependency
     async def _get_test_db():
         yield db_session
 
     app.dependency_overrides[get_db] = _get_test_db
-
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as ac:
         yield ac
-
     app.dependency_overrides.clear()
+
+
+# ── Users and credentials ────────────────────────────────────────────────────
+
+
+async def make_user(db: AsyncSession, email: str, role: Role = Role.USER) -> User:
+    user = User(email=email, name=email.split("@")[0], is_active=True, role=role)
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+    return user
+
+
+def headers_for(user: User) -> dict[str, str]:
+    principal = Principal(id=user.id, email=user.email, role=user.role)
+    return {"Authorization": f"Bearer {create_access_token(principal, settings)}"}
+
+
+@pytest.fixture
+async def alice(db_session: AsyncSession) -> User:
+    return await make_user(db_session, "alice@example.com")
+
+
+@pytest.fixture
+async def bob(db_session: AsyncSession) -> User:
+    return await make_user(db_session, "bob@example.com")
+
+
+@pytest.fixture
+async def admin(db_session: AsyncSession) -> User:
+    return await make_user(db_session, "admin@example.com", Role.ADMIN)

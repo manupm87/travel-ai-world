@@ -1,43 +1,31 @@
-from __future__ import annotations
-
 from decimal import Decimal
-from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
+from core_api.schemas._partial import partial
+
 
 class MealBase(BaseModel):
-    time: Optional[str] = None
-    type: Optional[str] = None  # e.g. "breakfast", "lunch", "dinner"
+    time: str | None = None
+    type: str | None = None  # e.g. "breakfast", "lunch", "dinner"
     restaurant_name: str
-    cuisine: Optional[str] = None
-    estimated_cost: Optional[Decimal] = None
-    rating: Optional[float] = None
+    cuisine: str | None = None
+    estimated_cost: Decimal | None = None
+    rating: float | None = None
     # Flat location snapshot (mirrors ActivityLocation in frontend)
-    location_name: Optional[str] = None
-    location_address: Optional[str] = None
-    location_city: Optional[str] = None
-    location_lat: Optional[float] = None
-    location_lng: Optional[float] = None
+    location_name: str | None = None
+    location_address: str | None = None
+    location_city: str | None = None
+    location_lat: float | None = None
+    location_lng: float | None = None
 
 
 class MealCreate(MealBase):
     pass
 
 
-class MealUpdate(BaseModel):
-    time: Optional[str] = None
-    type: Optional[str] = None
-    restaurant_name: Optional[str] = None
-    cuisine: Optional[str] = None
-    estimated_cost: Optional[Decimal] = None
-    rating: Optional[float] = None
-    location_name: Optional[str] = None
-    location_address: Optional[str] = None
-    location_city: Optional[str] = None
-    location_lat: Optional[float] = None
-    location_lng: Optional[float] = None
+MealUpdate = partial(MealBase, "MealUpdate")
 
 
 class MealResponse(MealBase):

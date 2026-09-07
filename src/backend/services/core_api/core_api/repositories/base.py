@@ -1,7 +1,9 @@
 """Generic persistence for a single SQLAlchemy model.
 
-Concrete repositories set `model` and add only entity-specific queries.
-Repositories never import Pydantic schemas.
+A repository is bound to one model, either by subclassing (`model = Trip`,
+plus entity-specific queries) or by instantiation (`BaseRepository(db, Meal)`)
+when the entity needs nothing beyond the generic operations. Repositories
+never import Pydantic schemas and never manage transactions themselves.
 """
 
 from typing import Any
@@ -9,20 +11,27 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core_api.pagination import Page
 from core_api.models.base import Base
 
 
 class BaseRepository[ModelT: Base]:
     model: type[ModelT]
 
-    def __init__(self, db: AsyncSession) -> None:
+    def __init__(self, db: AsyncSession, model: type[ModelT] | None = None) -> None:
         self.db = db
+        if model is not None:
+            self.model = model
 
     async def get_by_id(self, obj_id: Any) -> ModelT | None:
         return await self.db.get(self.model, obj_id)
 
-    async def get_all(self, *, skip: int = 0, limit: int = 100) -> list[ModelT]:
-        result = await self.db.execute(select(self.model).offset(skip).limit(limit))
+    async def list(self, page: Page = Page(), **filters: Any) -> list[ModelT]:
+        """Rows matching every `column == value` filter, in insertion order."""
+        stmt = (
+            select(self.model).filter_by(**filters).offset(page.skip).limit(page.limit)
+        )
+        result = await self.db.execute(stmt)
         return list(result.scalars().all())
 
     async def create(self, obj: ModelT) -> ModelT:

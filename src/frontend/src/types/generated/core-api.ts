@@ -4,110 +4,6 @@
  */
 
 export interface paths {
-    "/api/v1/accommodations/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Read Accommodations
-         * @description Retrieve accommodations (paginated).
-         */
-        get: operations["read_accommodations_api_v1_accommodations__get"];
-        put?: never;
-        /**
-         * Create Accommodation
-         * @description Create a accommodation under the given parent.
-         */
-        post: operations["create_accommodation_api_v1_accommodations__post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/accommodations/{accommodation_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Read Accommodation
-         * @description Get a accommodation by ID.
-         */
-        get: operations["read_accommodation_api_v1_accommodations__accommodation_id__get"];
-        /**
-         * Update Accommodation
-         * @description Partially update a accommodation.
-         */
-        put: operations["update_accommodation_api_v1_accommodations__accommodation_id__put"];
-        post?: never;
-        /**
-         * Delete Accommodation
-         * @description Delete a accommodation.
-         */
-        delete: operations["delete_accommodation_api_v1_accommodations__accommodation_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/activities/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Read Activities
-         * @description Retrieve activities (paginated).
-         */
-        get: operations["read_activities_api_v1_activities__get"];
-        put?: never;
-        /**
-         * Create Activity
-         * @description Create a activity under the given parent.
-         */
-        post: operations["create_activity_api_v1_activities__post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/activities/{activity_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Read Activity
-         * @description Get a activity by ID.
-         */
-        get: operations["read_activity_api_v1_activities__activity_id__get"];
-        /**
-         * Update Activity
-         * @description Partially update a activity.
-         */
-        put: operations["update_activity_api_v1_activities__activity_id__put"];
-        post?: never;
-        /**
-         * Delete Activity
-         * @description Delete a activity.
-         */
-        delete: operations["delete_activity_api_v1_activities__activity_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/auth/google": {
         parameters: {
             query?: never;
@@ -123,58 +19,6 @@ export interface paths {
          */
         post: operations["google_auth_api_v1_auth_google_post"];
         delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/destinations/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Read Destinations
-         * @description Retrieve destinations (paginated).
-         */
-        get: operations["read_destinations_api_v1_destinations__get"];
-        put?: never;
-        /**
-         * Create Destination
-         * @description Create a destination under the given parent.
-         */
-        post: operations["create_destination_api_v1_destinations__post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/destinations/{destination_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Read Destination
-         * @description Get a destination by ID.
-         */
-        get: operations["read_destination_api_v1_destinations__destination_id__get"];
-        /**
-         * Update Destination
-         * @description Partially update a destination.
-         */
-        put: operations["update_destination_api_v1_destinations__destination_id__put"];
-        post?: never;
-        /**
-         * Delete Destination
-         * @description Delete a destination.
-         */
-        delete: operations["delete_destination_api_v1_destinations__destination_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -220,162 +64,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/itinerary-days/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Read Itinerary Days
-         * @description Retrieve itinerary days (paginated).
-         */
-        get: operations["read_itinerary_days_api_v1_itinerary_days__get"];
-        put?: never;
-        /**
-         * Create Itinerary Day
-         * @description Create a Itinerary day under the given parent.
-         */
-        post: operations["create_itinerary_day_api_v1_itinerary_days__post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/itinerary-days/{itinerary_day_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Read Itinerary Day
-         * @description Get a Itinerary day by ID.
-         */
-        get: operations["read_itinerary_day_api_v1_itinerary_days__itinerary_day_id__get"];
-        /**
-         * Update Itinerary Day
-         * @description Partially update a Itinerary day.
-         */
-        put: operations["update_itinerary_day_api_v1_itinerary_days__itinerary_day_id__put"];
-        post?: never;
-        /**
-         * Delete Itinerary Day
-         * @description Delete a Itinerary day.
-         */
-        delete: operations["delete_itinerary_day_api_v1_itinerary_days__itinerary_day_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/meals/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Read Meals
-         * @description Retrieve meals (paginated).
-         */
-        get: operations["read_meals_api_v1_meals__get"];
-        put?: never;
-        /**
-         * Create Meal
-         * @description Create a meal under the given parent.
-         */
-        post: operations["create_meal_api_v1_meals__post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/meals/{meal_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Read Meal
-         * @description Get a meal by ID.
-         */
-        get: operations["read_meal_api_v1_meals__meal_id__get"];
-        /**
-         * Update Meal
-         * @description Partially update a meal.
-         */
-        put: operations["update_meal_api_v1_meals__meal_id__put"];
-        post?: never;
-        /**
-         * Delete Meal
-         * @description Delete a meal.
-         */
-        delete: operations["delete_meal_api_v1_meals__meal_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/transportations/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Read Transportations
-         * @description Retrieve transportations (paginated).
-         */
-        get: operations["read_transportations_api_v1_transportations__get"];
-        put?: never;
-        /**
-         * Create Transportation
-         * @description Create a transportation under the given parent.
-         */
-        post: operations["create_transportation_api_v1_transportations__post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/transportations/{transportation_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Read Transportation
-         * @description Get a transportation by ID.
-         */
-        get: operations["read_transportation_api_v1_transportations__transportation_id__get"];
-        /**
-         * Update Transportation
-         * @description Partially update a transportation.
-         */
-        put: operations["update_transportation_api_v1_transportations__transportation_id__put"];
-        post?: never;
-        /**
-         * Delete Transportation
-         * @description Delete a transportation.
-         */
-        delete: operations["delete_transportation_api_v1_transportations__transportation_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/trips/": {
         parameters: {
             query?: never;
@@ -409,23 +97,245 @@ export interface paths {
         };
         /**
          * Read Trip
-         * @description Get one of the caller's trips.
+         * @description Get one of the caller's trips, children included.
          */
         get: operations["read_trip_api_v1_trips__trip_id__get"];
-        /**
-         * Update Trip
-         * @description Partially update one of the caller's trips.
-         */
-        put: operations["update_trip_api_v1_trips__trip_id__put"];
+        put?: never;
         post?: never;
         /**
          * Delete Trip
-         * @description Delete one of the caller's trips.
+         * @description Delete one of the caller's trips and everything in it.
          */
         delete: operations["delete_trip_api_v1_trips__trip_id__delete"];
         options?: never;
         head?: never;
+        /**
+         * Update Trip
+         * @description Partially update one of the caller's trips.
+         */
+        patch: operations["update_trip_api_v1_trips__trip_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/trips/{trip_id}/accommodations/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Accommodations */
+        get: operations["list_accommodations_api_v1_trips__trip_id__accommodations__get"];
+        put?: never;
+        /** Create Accommodation */
+        post: operations["create_accommodation_api_v1_trips__trip_id__accommodations__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trips/{trip_id}/accommodations/{accommodation_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Accommodation */
+        get: operations["read_accommodation_api_v1_trips__trip_id__accommodations__accommodation_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Accommodation */
+        delete: operations["delete_accommodation_api_v1_trips__trip_id__accommodations__accommodation_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Accommodation */
+        patch: operations["update_accommodation_api_v1_trips__trip_id__accommodations__accommodation_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/trips/{trip_id}/destinations/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Destinations */
+        get: operations["list_destinations_api_v1_trips__trip_id__destinations__get"];
+        put?: never;
+        /** Create Destination */
+        post: operations["create_destination_api_v1_trips__trip_id__destinations__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trips/{trip_id}/destinations/{destination_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Destination */
+        get: operations["read_destination_api_v1_trips__trip_id__destinations__destination_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Destination */
+        delete: operations["delete_destination_api_v1_trips__trip_id__destinations__destination_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Destination */
+        patch: operations["update_destination_api_v1_trips__trip_id__destinations__destination_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/trips/{trip_id}/itinerary-days/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Itinerary-Days */
+        get: operations["list_itinerary_days_api_v1_trips__trip_id__itinerary_days__get"];
+        put?: never;
+        /** Create Itinerary Day */
+        post: operations["create_itinerary_day_api_v1_trips__trip_id__itinerary_days__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trips/{trip_id}/itinerary-days/{itinerary_day_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Itinerary Day */
+        get: operations["read_itinerary_day_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Itinerary Day */
+        delete: operations["delete_itinerary_day_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Itinerary Day */
+        patch: operations["update_itinerary_day_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/trips/{trip_id}/itinerary-days/{itinerary_day_id}/activities/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Activities */
+        get: operations["list_activities_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__activities__get"];
+        put?: never;
+        /** Create Activity */
+        post: operations["create_activity_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__activities__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trips/{trip_id}/itinerary-days/{itinerary_day_id}/activities/{activity_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Activity */
+        get: operations["read_activity_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__activities__activity_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Activity */
+        delete: operations["delete_activity_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__activities__activity_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Activity */
+        patch: operations["update_activity_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__activities__activity_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/trips/{trip_id}/itinerary-days/{itinerary_day_id}/meals/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Meals */
+        get: operations["list_meals_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__meals__get"];
+        put?: never;
+        /** Create Meal */
+        post: operations["create_meal_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__meals__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trips/{trip_id}/itinerary-days/{itinerary_day_id}/meals/{meal_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Meal */
+        get: operations["read_meal_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__meals__meal_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Meal */
+        delete: operations["delete_meal_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__meals__meal_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Meal */
+        patch: operations["update_meal_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__meals__meal_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/trips/{trip_id}/transportations/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Transportations */
+        get: operations["list_transportations_api_v1_trips__trip_id__transportations__get"];
+        put?: never;
+        /** Create Transportation */
+        post: operations["create_transportation_api_v1_trips__trip_id__transportations__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trips/{trip_id}/transportations/{transportation_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Transportation */
+        get: operations["read_transportation_api_v1_trips__trip_id__transportations__transportation_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Transportation */
+        delete: operations["delete_transportation_api_v1_trips__trip_id__transportations__transportation_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Transportation */
+        patch: operations["update_transportation_api_v1_trips__trip_id__transportations__transportation_id__patch"];
         trace?: never;
     };
     "/api/v1/users/": {
@@ -477,14 +387,10 @@ export interface paths {
         };
         /**
          * Read User
-         * @description Get a user by ID.
+         * @description Get a user by ID. Administrators only (profiles are not public).
          */
         get: operations["read_user_api_v1_users__user_id__get"];
-        /**
-         * Update User
-         * @description Update an account. Only its owner may do so.
-         */
-        put: operations["update_user_api_v1_users__user_id__put"];
+        put?: never;
         post?: never;
         /**
          * Delete User
@@ -493,7 +399,11 @@ export interface paths {
         delete: operations["delete_user_api_v1_users__user_id__delete"];
         options?: never;
         head?: never;
-        patch?: never;
+        /**
+         * Update User
+         * @description Update an account. Only its owner may do so.
+         */
+        patch: operations["update_user_api_v1_users__user_id__patch"];
         trace?: never;
     };
     "/api/v1/users/{user_id}/role": {
@@ -596,7 +506,10 @@ export interface components {
             /** Type */
             type?: string | null;
         };
-        /** AccommodationUpdate */
+        /**
+         * AccommodationUpdate
+         * @description Partial update of AccommodationBase.
+         */
         AccommodationUpdate: {
             /** Address */
             address?: string | null;
@@ -707,7 +620,10 @@ export interface components {
             /** Title */
             title: string;
         };
-        /** ActivityUpdate */
+        /**
+         * ActivityUpdate
+         * @description Partial update of ActivityBase.
+         */
         ActivityUpdate: {
             /** Booking Required */
             booking_required?: boolean | null;
@@ -800,7 +716,10 @@ export interface components {
              */
             trip_id: string;
         };
-        /** DestinationUpdate */
+        /**
+         * DestinationUpdate
+         * @description Partial update of DestinationBase.
+         */
         DestinationUpdate: {
             /** Arrival Date */
             arrival_date?: string | null;
@@ -849,7 +768,7 @@ export interface components {
         /** ItineraryDayCreate */
         ItineraryDayCreate: {
             /** Date */
-            date?: null;
+            date?: string | null;
             /** Day Number */
             day_number: number;
             /** Description */
@@ -869,7 +788,7 @@ export interface components {
              */
             activities: components["schemas"]["ActivityResponse"][];
             /** Date */
-            date?: null;
+            date?: string | null;
             /** Day Number */
             day_number: number;
             /** Description */
@@ -896,10 +815,13 @@ export interface components {
              */
             trip_id: string;
         };
-        /** ItineraryDayUpdate */
+        /**
+         * ItineraryDayUpdate
+         * @description Partial update of ItineraryDayBase.
+         */
         ItineraryDayUpdate: {
             /** Date */
-            date?: null;
+            date?: string | null;
             /** Day Number */
             day_number?: number | null;
             /** Description */
@@ -971,7 +893,10 @@ export interface components {
             /** Type */
             type?: string | null;
         };
-        /** MealUpdate */
+        /**
+         * MealUpdate
+         * @description Partial update of MealBase.
+         */
         MealUpdate: {
             /** Cuisine */
             cuisine?: string | null;
@@ -1069,7 +994,10 @@ export interface components {
             /** Type */
             type?: string | null;
         };
-        /** TransportationUpdate */
+        /**
+         * TransportationUpdate
+         * @description Partial update of TransportationBase.
+         */
         TransportationUpdate: {
             /** Arrival Time */
             arrival_time?: string | null;
@@ -1252,7 +1180,10 @@ export interface components {
          * @enum {string}
          */
         TripStatus: "planning" | "planned" | "finished";
-        /** TripUpdate */
+        /**
+         * TripUpdate
+         * @description Partial update of TripBase.
+         */
         TripUpdate: {
             /** Accommodation Type */
             accommodation_type?: string | null;
@@ -1363,330 +1294,6 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    read_accommodations_api_v1_accommodations__get: {
-        parameters: {
-            query?: {
-                skip?: number;
-                limit?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AccommodationResponse"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_accommodation_api_v1_accommodations__post: {
-        parameters: {
-            query: {
-                trip_id: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AccommodationCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AccommodationResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    read_accommodation_api_v1_accommodations__accommodation_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                accommodation_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AccommodationResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_accommodation_api_v1_accommodations__accommodation_id__put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                accommodation_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AccommodationUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AccommodationResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_accommodation_api_v1_accommodations__accommodation_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                accommodation_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    read_activities_api_v1_activities__get: {
-        parameters: {
-            query?: {
-                skip?: number;
-                limit?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ActivityResponse"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_activity_api_v1_activities__post: {
-        parameters: {
-            query: {
-                itinerary_day_id: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ActivityCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ActivityResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    read_activity_api_v1_activities__activity_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                activity_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ActivityResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_activity_api_v1_activities__activity_id__put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                activity_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ActivityUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ActivityResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_activity_api_v1_activities__activity_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                activity_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     google_auth_api_v1_auth_google_post: {
         parameters: {
             query?: never;
@@ -1708,168 +1315,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["GoogleAuthResponse"];
                 };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    read_destinations_api_v1_destinations__get: {
-        parameters: {
-            query?: {
-                skip?: number;
-                limit?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DestinationResponse"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_destination_api_v1_destinations__post: {
-        parameters: {
-            query: {
-                trip_id: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DestinationCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DestinationResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    read_destination_api_v1_destinations__destination_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                destination_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DestinationResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_destination_api_v1_destinations__destination_id__put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                destination_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DestinationUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DestinationResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_destination_api_v1_destinations__destination_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                destination_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -1918,492 +1363,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
-                };
-            };
-        };
-    };
-    read_itinerary_days_api_v1_itinerary_days__get: {
-        parameters: {
-            query?: {
-                skip?: number;
-                limit?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ItineraryDayResponse"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_itinerary_day_api_v1_itinerary_days__post: {
-        parameters: {
-            query: {
-                trip_id: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ItineraryDayCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ItineraryDayResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    read_itinerary_day_api_v1_itinerary_days__itinerary_day_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                itinerary_day_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ItineraryDayResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_itinerary_day_api_v1_itinerary_days__itinerary_day_id__put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                itinerary_day_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ItineraryDayUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ItineraryDayResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_itinerary_day_api_v1_itinerary_days__itinerary_day_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                itinerary_day_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    read_meals_api_v1_meals__get: {
-        parameters: {
-            query?: {
-                skip?: number;
-                limit?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MealResponse"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_meal_api_v1_meals__post: {
-        parameters: {
-            query: {
-                itinerary_day_id: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MealCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MealResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    read_meal_api_v1_meals__meal_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                meal_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MealResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_meal_api_v1_meals__meal_id__put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                meal_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MealUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MealResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_meal_api_v1_meals__meal_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                meal_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    read_transportations_api_v1_transportations__get: {
-        parameters: {
-            query?: {
-                skip?: number;
-                limit?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TransportationResponse"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_transportation_api_v1_transportations__post: {
-        parameters: {
-            query: {
-                trip_id: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TransportationCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TransportationResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    read_transportation_api_v1_transportations__transportation_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                transportation_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TransportationResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_transportation_api_v1_transportations__transportation_id__put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                transportation_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TransportationUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TransportationResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_transportation_api_v1_transportations__transportation_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                transportation_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -2504,7 +1463,36 @@ export interface operations {
             };
         };
     };
-    update_trip_api_v1_trips__trip_id__put: {
+    delete_trip_api_v1_trips__trip_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_trip_api_v1_trips__trip_id__patch: {
         parameters: {
             query?: never;
             header?: never;
@@ -2539,11 +1527,113 @@ export interface operations {
             };
         };
     };
-    delete_trip_api_v1_trips__trip_id__delete: {
+    list_accommodations_api_v1_trips__trip_id__accommodations__get: {
+        parameters: {
+            query?: {
+                skip?: number;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccommodationResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_accommodation_api_v1_trips__trip_id__accommodations__post: {
         parameters: {
             query?: never;
             header?: never;
             path: {
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccommodationCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccommodationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_accommodation_api_v1_trips__trip_id__accommodations__accommodation_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                accommodation_id: string;
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccommodationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_accommodation_api_v1_trips__trip_id__accommodations__accommodation_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                accommodation_id: string;
                 trip_id: string;
             };
             cookie?: never;
@@ -2556,6 +1646,887 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_accommodation_api_v1_trips__trip_id__accommodations__accommodation_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                accommodation_id: string;
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccommodationUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccommodationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_destinations_api_v1_trips__trip_id__destinations__get: {
+        parameters: {
+            query?: {
+                skip?: number;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DestinationResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_destination_api_v1_trips__trip_id__destinations__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DestinationCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DestinationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_destination_api_v1_trips__trip_id__destinations__destination_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                destination_id: string;
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DestinationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_destination_api_v1_trips__trip_id__destinations__destination_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                destination_id: string;
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_destination_api_v1_trips__trip_id__destinations__destination_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                destination_id: string;
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DestinationUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DestinationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_itinerary_days_api_v1_trips__trip_id__itinerary_days__get: {
+        parameters: {
+            query?: {
+                skip?: number;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ItineraryDayResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_itinerary_day_api_v1_trips__trip_id__itinerary_days__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ItineraryDayCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ItineraryDayResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_itinerary_day_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                itinerary_day_id: string;
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ItineraryDayResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_itinerary_day_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                itinerary_day_id: string;
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_itinerary_day_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                itinerary_day_id: string;
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ItineraryDayUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ItineraryDayResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_activities_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__activities__get: {
+        parameters: {
+            query?: {
+                skip?: number;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                itinerary_day_id: string;
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActivityResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_activity_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__activities__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                itinerary_day_id: string;
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ActivityCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActivityResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_activity_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__activities__activity_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                activity_id: string;
+                itinerary_day_id: string;
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActivityResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_activity_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__activities__activity_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                activity_id: string;
+                itinerary_day_id: string;
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_activity_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__activities__activity_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                activity_id: string;
+                itinerary_day_id: string;
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ActivityUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActivityResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_meals_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__meals__get: {
+        parameters: {
+            query?: {
+                skip?: number;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                itinerary_day_id: string;
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MealResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_meal_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__meals__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                itinerary_day_id: string;
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MealCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MealResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_meal_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__meals__meal_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                meal_id: string;
+                itinerary_day_id: string;
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MealResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_meal_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__meals__meal_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                meal_id: string;
+                itinerary_day_id: string;
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_meal_api_v1_trips__trip_id__itinerary_days__itinerary_day_id__meals__meal_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                meal_id: string;
+                itinerary_day_id: string;
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MealUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MealResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_transportations_api_v1_trips__trip_id__transportations__get: {
+        parameters: {
+            query?: {
+                skip?: number;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransportationResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_transportation_api_v1_trips__trip_id__transportations__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TransportationCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransportationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_transportation_api_v1_trips__trip_id__transportations__transportation_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                transportation_id: string;
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransportationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_transportation_api_v1_trips__trip_id__transportations__transportation_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                transportation_id: string;
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_transportation_api_v1_trips__trip_id__transportations__transportation_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                transportation_id: string;
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TransportationUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransportationResponse"];
+                };
             };
             /** @description Validation Error */
             422: {
@@ -2651,7 +2622,36 @@ export interface operations {
             };
         };
     };
-    update_user_api_v1_users__user_id__put: {
+    delete_user_api_v1_users__user_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_user_api_v1_users__user_id__patch: {
         parameters: {
             query?: never;
             header?: never;
@@ -2674,35 +2674,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["UserResponse"];
                 };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_user_api_v1_users__user_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                user_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
             /** @description Validation Error */
             422: {

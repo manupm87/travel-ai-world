@@ -3,7 +3,7 @@ import logging
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
-from core_api.api.deps import get_db
+from core_api.db.session import get_db
 
 logger = logging.getLogger(__name__)
 

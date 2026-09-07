@@ -18,12 +18,18 @@ uv run uvicorn core_api.main:app --reload --port 8000    # http://localhost:8000
 | `POST` | `/auth/google` | — | Google ID token → our JWT + profile |
 | `GET` | `/users/me` | Bearer | Own profile |
 | `GET` | `/users/` | Admin | List users |
-| `GET/PUT/DELETE` | `/users/{id}` | Bearer | Read any; update/delete only your own |
+| `GET` | `/users/{id}` | Admin | Profiles are not public |
+| `PATCH/DELETE` | `/users/{id}` | Bearer (owner) | Only your own account |
 | `PATCH` | `/users/{id}/role` | Admin | |
 | `GET/POST` | `/trips/` | Bearer | Only the caller's trips |
-| `GET/PUT/DELETE` | `/trips/{id}` | Bearer (owner) | 403 for another user's trip |
-| CRUD | `/destinations/`, `/itinerary-days/`, `/activities/`, `/meals/`, `/accommodations/`, `/transportations/` | Bearer | Parent id as query param on create |
+| `GET/PATCH/DELETE` | `/trips/{id}` | Bearer (owner) | 403 for another user's trip; response embeds every child |
+| CRUD | `/trips/{id}/destinations/`, `/trips/{id}/itinerary-days/`, `/trips/{id}/accommodations/`, `/trips/{id}/transportations/` | Bearer (owner) | Nested under the owner's trip |
+| CRUD | `/trips/{id}/itinerary-days/{day_id}/activities/`, `.../meals/` | Bearer (owner) | Nested under a day of the owner's trip |
 | `GET` | `/health/`, `/health/db` | — | |
+
+Every collection offers `GET /` (paginated with `skip`/`limit`), `POST /`, `GET/PATCH/DELETE /{item_id}`.
+A child that exists under another trip answers 404, never 403, so ids leak nothing
+([ADR 0005](../../../../docs/architecture/adr/0005-trip-aggregate-nested-resources.md)).
 
 Full contract: [`docs/api/core-api.openapi.json`](../../../../docs/api/core-api.openapi.json).
 
@@ -35,13 +41,16 @@ Errors: `{"detail": {"message": "...", "error_code": "NOT_FOUND" | "FORBIDDEN" |
 core_api/
 ├── main.py            create_app(settings, [api_router])
 ├── config.py          CoreSettings(CommonSettings): DB_*, GOOGLE_*
-├── api/deps.py        get_current_user (JWT + DB check) → Principal; provide() wiring
-├── api/v1/endpoints/  thin controllers
+├── api/deps.py        get_current_user (JWT + DB check) → Principal; provide() wiring;
+│                      get_owned_trip / get_owned_itinerary_day (aggregate boundary)
+├── api/v1/endpoints/  thin controllers for auth, users, trips, health
+├── api/v1/resources.py  CHILD_RESOURCES + child_router(): the nested CRUD collections
 ├── auth/google.py     Google tokeninfo verification
-├── services/          base.py (generic) + one file per entity with its rules
-├── repositories/      base.py (generic) + one file per entity with its queries
+├── services/          base.py (generic; every child entity) + trip_service.py, user_service.py
+├── repositories/      base.py (generic) + trip_repository.py, user_repository.py
 ├── models/            SQLAlchemy tables (Base in base.py; register new ones in __init__.py)
-├── schemas/           Pydantic request/response models
+├── schemas/           Pydantic models; XUpdate = partial(XBase) (see _partial.py)
+├── pagination.py      Page(skip, limit)
 └── db/session.py      async engine + get_db
 ```
 

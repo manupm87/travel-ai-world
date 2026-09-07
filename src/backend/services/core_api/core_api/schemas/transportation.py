@@ -1,47 +1,33 @@
-from __future__ import annotations
-
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
+from core_api.schemas._partial import partial
+
 
 class TransportationBase(BaseModel):
-    type: Optional[str] = None  # e.g. "flight", "train", "bus"
-    category: Optional[str] = None  # e.g. "outbound", "return", "internal"
-    from_location: Optional[str] = None
-    to_location: Optional[str] = None
-    from_city: Optional[str] = None
-    to_city: Optional[str] = None
-    departure_time: Optional[datetime] = None
-    arrival_time: Optional[datetime] = None
-    provider: Optional[str] = None
-    flight_number: Optional[str] = None
-    duration_minutes: Optional[int] = None
-    cost: Optional[Decimal] = None
-    booking_reference: Optional[str] = None
+    type: str | None = None  # e.g. "flight", "train", "bus"
+    category: str | None = None  # e.g. "outbound", "return", "internal"
+    from_location: str | None = None
+    to_location: str | None = None
+    from_city: str | None = None
+    to_city: str | None = None
+    departure_time: datetime | None = None
+    arrival_time: datetime | None = None
+    provider: str | None = None
+    flight_number: str | None = None
+    duration_minutes: int | None = None
+    cost: Decimal | None = None
+    booking_reference: str | None = None
 
 
 class TransportationCreate(TransportationBase):
     pass
 
 
-class TransportationUpdate(BaseModel):
-    type: Optional[str] = None
-    category: Optional[str] = None
-    from_location: Optional[str] = None
-    to_location: Optional[str] = None
-    from_city: Optional[str] = None
-    to_city: Optional[str] = None
-    departure_time: Optional[datetime] = None
-    arrival_time: Optional[datetime] = None
-    provider: Optional[str] = None
-    flight_number: Optional[str] = None
-    duration_minutes: Optional[int] = None
-    cost: Optional[Decimal] = None
-    booking_reference: Optional[str] = None
+TransportationUpdate = partial(TransportationBase, "TransportationUpdate")
 
 
 class TransportationResponse(TransportationBase):

@@ -8,6 +8,7 @@ One file per decision, numbered, never deleted (superseded ones get a new status
 | [0002](0002-auth-between-services.md) | Stateless JWT in `ai_api`; forward the user's token to `core_api` | Accepted |
 | [0003](0003-frontend-two-base-urls.md) | Frontend supports two base URLs; reverse proxy is optional | Accepted |
 | [0004](0004-repository-layout.md) | Source under `src/`, infrastructure under `infra/`, one ignore file | Accepted |
+| [0005](0005-trip-aggregate-nested-resources.md) | `Trip` is the aggregate root; child resources are nested and declarative | Accepted |
 
 ## Template
 

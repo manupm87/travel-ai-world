@@ -1,11 +1,17 @@
-"""User endpoints."""
+"""User endpoints: the caller manages their own account; admins see everyone."""
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, status
 
-from core_api.api.deps import get_current_admin_user, get_current_user, get_user_service
-from travel_common.principal import Principal
+from core_api.api.deps import (
+    get_current_admin_user,
+    get_current_user,
+    get_user_service,
+    page_params,
+)
+from core_api.pagination import Page
 from core_api.schemas.user import UserResponse, UserRoleUpdate, UserUpdate
 from core_api.services.user_service import UserService
+from travel_common.principal import Principal
 
 router = APIRouter()
 
@@ -15,13 +21,12 @@ router = APIRouter()
 
 @router.get("/", response_model=list[UserResponse])
 async def read_users(
-    skip: int = 0,
-    limit: int = Query(default=100, ge=1, le=500),
+    page: Page = Depends(page_params),
     _admin: Principal = Depends(get_current_admin_user),
     service: UserService = Depends(get_user_service),
 ):
     """List users (paginated). Administrators only."""
-    return await service.list(skip=skip, limit=limit)
+    return await service.list(page)
 
 
 @router.get("/me", response_model=UserResponse)
@@ -36,14 +41,14 @@ async def read_user_me(
 @router.get("/{user_id}", response_model=UserResponse)
 async def read_user(
     user_id: int,
-    _principal: Principal = Depends(get_current_user),
+    _admin: Principal = Depends(get_current_admin_user),
     service: UserService = Depends(get_user_service),
 ):
-    """Get a user by ID."""
+    """Get a user by ID. Administrators only (profiles are not public)."""
     return await service.get(user_id)
 
 
-@router.put("/{user_id}", response_model=UserResponse)
+@router.patch("/{user_id}", response_model=UserResponse)
 async def update_user(
     user_id: int,
     user_in: UserUpdate,
