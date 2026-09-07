@@ -3,6 +3,7 @@
 import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
@@ -32,11 +33,18 @@ export default function Header({ variant = "landing" }: HeaderProps) {
   const { t, language, setLanguage } = useLanguage();
   const { user, isAuthenticated, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
+
+  // Signing out from a protected page must also leave it.
+  const handleLogout = () => {
+    logout();
+    router.push("/");
+  };
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -185,7 +193,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
                   </div>
                   <button 
                     onClick={() => {
-                      logout();
+                      handleLogout();
                       setUserDropdownOpen(false);
                     }}
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-[12px] font-medium text-text-secondary hover:text-error hover:bg-error/5 transition-colors cursor-pointer"
@@ -307,7 +315,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
                 </div>
                 <button
                   onClick={() => {
-                    logout();
+                    handleLogout();
                     setMobileMenuOpen(false);
                   }}
                   className="flex items-center gap-3 text-xl font-medium text-text-primary hover:text-accent transition-colors cursor-pointer"

@@ -7,7 +7,8 @@ TypeScript 5, Tailwind CSS v4.
 
 - **i18n**: every visible string via `const { t } = useLanguage()`; keys in `src/i18n/{types,en,es}.ts`.
 - **Network only in `src/services/`**: `http.ts` (base URLs, auth header, error parsing),
-  `auth.ts` (core_api), `chat.ts` (ai_api), `trips.ts` (mocks today). Components never `fetch`.
+  `session.ts` (the only owner of the `localStorage` session), `auth.ts` (core_api),
+  `chat.ts` (ai_api), `trips.ts` (mocks today). Components never `fetch` or touch the session storage.
 - **Types from the backend are generated**: `src/types/generated/{core-api,ai-api}.ts` via
   `npm run types:generate` (from `docs/api/*.openapi.json`). Do not edit them; do not redeclare
   response shapes by hand — import `components["schemas"]["..."]`.
