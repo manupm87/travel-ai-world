@@ -1,36 +1,35 @@
-import uuid
+from decimal import Decimal
 
-from sqlalchemy import Column, Float, ForeignKey, Numeric, String
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
+from sqlalchemy import Float, Numeric, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from core_api.models.base import Base
+from core_api.models.base import (
+    Base,
+    ItineraryDayChildMixin,
+    LocationSnapshotMixin,
+    TimestampMixin,
+    UUIDPrimaryKeyMixin,
+)
 
 
-class Meal(Base):
+class Meal(
+    UUIDPrimaryKeyMixin,
+    ItineraryDayChildMixin,
+    LocationSnapshotMixin,
+    TimestampMixin,
+    Base,
+):
     __tablename__ = "meals"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    itinerary_day_id = Column(
-        UUID(as_uuid=True),
-        ForeignKey("itinerary_days.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
+    time: Mapped[str | None] = mapped_column(String(10), nullable=True)  # "13:00"
+    type: Mapped[str | None] = mapped_column(String(50), nullable=True)  # MealType
+    restaurant_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    cuisine: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    estimated_cost: Mapped[Decimal | None] = mapped_column(
+        Numeric(10, 2), nullable=True
     )
+    rating: Mapped[float | None] = mapped_column(Float, nullable=True)
 
-    time = Column(String(10), nullable=True)  # e.g. "13:00"
-    type = Column(String(50), nullable=True)  # breakfast / lunch / dinner
-    restaurant_name = Column(String(255), nullable=False)
-    cuisine = Column(String(100), nullable=True)
-    estimated_cost = Column(Numeric(10, 2), nullable=True)
-    rating = Column(Float, nullable=True)
-
-    # ActivityLocation fields (flat — immutable snapshot, same pattern as Activity)
-    location_name = Column(String(255), nullable=True)
-    location_address = Column(String(512), nullable=True)
-    location_city = Column(String(150), nullable=True)
-    location_lat = Column(Float, nullable=True)
-    location_lng = Column(Float, nullable=True)
-
-    # Relationships
-    itinerary_day = relationship("ItineraryDay", back_populates="meals")
+    itinerary_day: Mapped["ItineraryDay"] = relationship(  # noqa: F821
+        back_populates="meals"
+    )

@@ -855,8 +855,7 @@ export interface components {
             restaurant_name: string;
             /** Time */
             time?: string | null;
-            /** Type */
-            type?: string | null;
+            type?: components["schemas"]["MealType"] | null;
         };
         /** MealResponse */
         MealResponse: {
@@ -890,9 +889,13 @@ export interface components {
             restaurant_name: string;
             /** Time */
             time?: string | null;
-            /** Type */
-            type?: string | null;
+            type?: components["schemas"]["MealType"] | null;
         };
+        /**
+         * MealType
+         * @enum {string}
+         */
+        MealType: "breakfast" | "brunch" | "lunch" | "snack" | "dinner";
         /**
          * MealUpdate
          * @description Partial update of MealBase.
@@ -918,22 +921,30 @@ export interface components {
             restaurant_name?: string | null;
             /** Time */
             time?: string | null;
-            /** Type */
-            type?: string | null;
+            type?: components["schemas"]["MealType"] | null;
         };
         /**
          * Role
          * @enum {string}
          */
         Role: "user" | "admin";
+        /**
+         * TransportCategory
+         * @enum {string}
+         */
+        TransportCategory: "outbound" | "return" | "internal";
+        /**
+         * TransportType
+         * @enum {string}
+         */
+        TransportType: "flight" | "train" | "bus" | "ferry" | "car" | "taxi" | "metro" | "walk" | "other";
         /** TransportationCreate */
         TransportationCreate: {
             /** Arrival Time */
             arrival_time?: string | null;
             /** Booking Reference */
             booking_reference?: string | null;
-            /** Category */
-            category?: string | null;
+            category?: components["schemas"]["TransportCategory"] | null;
             /** Cost */
             cost?: number | string | null;
             /** Departure Time */
@@ -952,8 +963,7 @@ export interface components {
             to_city?: string | null;
             /** To Location */
             to_location?: string | null;
-            /** Type */
-            type?: string | null;
+            type?: components["schemas"]["TransportType"] | null;
         };
         /** TransportationResponse */
         TransportationResponse: {
@@ -961,8 +971,7 @@ export interface components {
             arrival_time?: string | null;
             /** Booking Reference */
             booking_reference?: string | null;
-            /** Category */
-            category?: string | null;
+            category?: components["schemas"]["TransportCategory"] | null;
             /** Cost */
             cost?: string | null;
             /** Departure Time */
@@ -991,8 +1000,7 @@ export interface components {
              * Format: uuid
              */
             trip_id: string;
-            /** Type */
-            type?: string | null;
+            type?: components["schemas"]["TransportType"] | null;
         };
         /**
          * TransportationUpdate
@@ -1003,8 +1011,7 @@ export interface components {
             arrival_time?: string | null;
             /** Booking Reference */
             booking_reference?: string | null;
-            /** Category */
-            category?: string | null;
+            category?: components["schemas"]["TransportCategory"] | null;
             /** Cost */
             cost?: number | string | null;
             /** Departure Time */
@@ -1023,15 +1030,14 @@ export interface components {
             to_city?: string | null;
             /** To Location */
             to_location?: string | null;
-            /** Type */
-            type?: string | null;
+            type?: components["schemas"]["TransportType"] | null;
         };
         /** TripCreate */
         TripCreate: {
             /** Accommodation Type */
             accommodation_type?: string | null;
             /** Ai Local Tips */
-            ai_local_tips?: string[] | string | null;
+            ai_local_tips?: string[] | null;
             /** Ai Weather Forecast */
             ai_weather_forecast?: string | null;
             /** Budget Accommodation */
@@ -1092,7 +1098,7 @@ export interface components {
              */
             accommodations: components["schemas"]["AccommodationResponse"][];
             /** Ai Local Tips */
-            ai_local_tips?: string[] | string | null;
+            ai_local_tips?: string[] | null;
             /** Ai Weather Forecast */
             ai_weather_forecast?: string | null;
             /** Budget Accommodation */
@@ -1188,7 +1194,7 @@ export interface components {
             /** Accommodation Type */
             accommodation_type?: string | null;
             /** Ai Local Tips */
-            ai_local_tips?: string[] | string | null;
+            ai_local_tips?: string[] | null;
             /** Ai Weather Forecast */
             ai_weather_forecast?: string | null;
             /** Budget Accommodation */

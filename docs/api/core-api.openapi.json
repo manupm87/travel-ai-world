@@ -43,6 +43,7 @@
           "check_in_time": {
             "anyOf": [
               {
+                "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
                 "type": "string"
               },
               {
@@ -66,6 +67,7 @@
           "check_out_time": {
             "anyOf": [
               {
+                "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
                 "type": "string"
               },
               {
@@ -99,6 +101,8 @@
           "lat": {
             "anyOf": [
               {
+                "maximum": 90.0,
+                "minimum": -90.0,
                 "type": "number"
               },
               {
@@ -110,6 +114,8 @@
           "lng": {
             "anyOf": [
               {
+                "maximum": 180.0,
+                "minimum": -180.0,
                 "type": "number"
               },
               {
@@ -119,16 +125,19 @@
             "title": "Lng"
           },
           "name": {
+            "maxLength": 255,
+            "minLength": 1,
             "title": "Name",
             "type": "string"
           },
           "price_per_night": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -140,6 +149,8 @@
           "rating": {
             "anyOf": [
               {
+                "maximum": 5.0,
+                "minimum": 0.0,
                 "type": "number"
               },
               {
@@ -151,10 +162,11 @@
           "total_cost": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -223,6 +235,7 @@
           "check_in_time": {
             "anyOf": [
               {
+                "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
                 "type": "string"
               },
               {
@@ -246,6 +259,7 @@
           "check_out_time": {
             "anyOf": [
               {
+                "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
                 "type": "string"
               },
               {
@@ -268,6 +282,7 @@
           "country_code": {
             "anyOf": [
               {
+                "pattern": "^[A-Z]{2,3}$",
                 "type": "string"
               },
               {
@@ -284,6 +299,8 @@
           "lat": {
             "anyOf": [
               {
+                "maximum": 90.0,
+                "minimum": -90.0,
                 "type": "number"
               },
               {
@@ -295,6 +312,8 @@
           "lng": {
             "anyOf": [
               {
+                "maximum": 180.0,
+                "minimum": -180.0,
                 "type": "number"
               },
               {
@@ -304,13 +323,15 @@
             "title": "Lng"
           },
           "name": {
+            "maxLength": 255,
+            "minLength": 1,
             "title": "Name",
             "type": "string"
           },
           "price_per_night": {
             "anyOf": [
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -322,6 +343,8 @@
           "rating": {
             "anyOf": [
               {
+                "maximum": 5.0,
+                "minimum": 0.0,
                 "type": "number"
               },
               {
@@ -333,7 +356,7 @@
           "total_cost": {
             "anyOf": [
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -410,6 +433,7 @@
           "check_in_time": {
             "anyOf": [
               {
+                "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
                 "type": "string"
               },
               {
@@ -433,6 +457,7 @@
           "check_out_time": {
             "anyOf": [
               {
+                "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
                 "type": "string"
               },
               {
@@ -466,6 +491,8 @@
           "lat": {
             "anyOf": [
               {
+                "maximum": 90.0,
+                "minimum": -90.0,
                 "type": "number"
               },
               {
@@ -477,6 +504,8 @@
           "lng": {
             "anyOf": [
               {
+                "maximum": 180.0,
+                "minimum": -180.0,
                 "type": "number"
               },
               {
@@ -499,10 +528,11 @@
           "price_per_night": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -514,6 +544,8 @@
           "rating": {
             "anyOf": [
               {
+                "maximum": 5.0,
+                "minimum": 0.0,
                 "type": "number"
               },
               {
@@ -525,10 +557,11 @@
           "total_cost": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -584,10 +617,11 @@
           "cost": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -610,6 +644,8 @@
           "duration_minutes": {
             "anyOf": [
               {
+                "maximum": 44640.0,
+                "minimum": 0.0,
                 "type": "integer"
               },
               {
@@ -643,6 +679,8 @@
           "location_lat": {
             "anyOf": [
               {
+                "maximum": 90.0,
+                "minimum": -90.0,
                 "type": "number"
               },
               {
@@ -654,6 +692,8 @@
           "location_lng": {
             "anyOf": [
               {
+                "maximum": 180.0,
+                "minimum": -180.0,
                 "type": "number"
               },
               {
@@ -676,6 +716,8 @@
           "rating": {
             "anyOf": [
               {
+                "maximum": 5.0,
+                "minimum": 0.0,
                 "type": "number"
               },
               {
@@ -687,6 +729,7 @@
           "time": {
             "anyOf": [
               {
+                "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
                 "type": "string"
               },
               {
@@ -696,6 +739,8 @@
             "title": "Time"
           },
           "title": {
+            "maxLength": 255,
+            "minLength": 1,
             "title": "Title",
             "type": "string"
           }
@@ -738,7 +783,7 @@
           "cost": {
             "anyOf": [
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -761,6 +806,8 @@
           "duration_minutes": {
             "anyOf": [
               {
+                "maximum": 44640.0,
+                "minimum": 0.0,
                 "type": "integer"
               },
               {
@@ -804,6 +851,8 @@
           "location_lat": {
             "anyOf": [
               {
+                "maximum": 90.0,
+                "minimum": -90.0,
                 "type": "number"
               },
               {
@@ -815,6 +864,8 @@
           "location_lng": {
             "anyOf": [
               {
+                "maximum": 180.0,
+                "minimum": -180.0,
                 "type": "number"
               },
               {
@@ -837,6 +888,8 @@
           "rating": {
             "anyOf": [
               {
+                "maximum": 5.0,
+                "minimum": 0.0,
                 "type": "number"
               },
               {
@@ -848,6 +901,7 @@
           "time": {
             "anyOf": [
               {
+                "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
                 "type": "string"
               },
               {
@@ -857,6 +911,8 @@
             "title": "Time"
           },
           "title": {
+            "maxLength": 255,
+            "minLength": 1,
             "title": "Title",
             "type": "string"
           }
@@ -908,10 +964,11 @@
           "cost": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -934,6 +991,8 @@
           "duration_minutes": {
             "anyOf": [
               {
+                "maximum": 44640.0,
+                "minimum": 0.0,
                 "type": "integer"
               },
               {
@@ -967,6 +1026,8 @@
           "location_lat": {
             "anyOf": [
               {
+                "maximum": 90.0,
+                "minimum": -90.0,
                 "type": "number"
               },
               {
@@ -978,6 +1039,8 @@
           "location_lng": {
             "anyOf": [
               {
+                "maximum": 180.0,
+                "minimum": -180.0,
                 "type": "number"
               },
               {
@@ -1000,6 +1063,8 @@
           "rating": {
             "anyOf": [
               {
+                "maximum": 5.0,
+                "minimum": 0.0,
                 "type": "number"
               },
               {
@@ -1011,6 +1076,7 @@
           "time": {
             "anyOf": [
               {
+                "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
                 "type": "string"
               },
               {
@@ -1090,10 +1156,14 @@
             "title": "Arrival Date"
           },
           "city": {
+            "maxLength": 255,
+            "minLength": 1,
             "title": "City",
             "type": "string"
           },
           "country": {
+            "maxLength": 255,
+            "minLength": 1,
             "title": "Country",
             "type": "string"
           },
@@ -1116,6 +1186,8 @@
           "lat": {
             "anyOf": [
               {
+                "maximum": 90.0,
+                "minimum": -90.0,
                 "type": "number"
               },
               {
@@ -1127,6 +1199,8 @@
           "lng": {
             "anyOf": [
               {
+                "maximum": 180.0,
+                "minimum": -180.0,
                 "type": "number"
               },
               {
@@ -1138,6 +1212,7 @@
           "nights_staying": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "integer"
               },
               {
@@ -1170,14 +1245,19 @@
             "title": "Arrival Date"
           },
           "city": {
+            "maxLength": 255,
+            "minLength": 1,
             "title": "City",
             "type": "string"
           },
           "country": {
+            "maxLength": 255,
+            "minLength": 1,
             "title": "Country",
             "type": "string"
           },
           "country_code": {
+            "pattern": "^[A-Z]{2,3}$",
             "title": "Country Code",
             "type": "string"
           },
@@ -1201,6 +1281,8 @@
           "lat": {
             "anyOf": [
               {
+                "maximum": 90.0,
+                "minimum": -90.0,
                 "type": "number"
               },
               {
@@ -1212,6 +1294,8 @@
           "lng": {
             "anyOf": [
               {
+                "maximum": 180.0,
+                "minimum": -180.0,
                 "type": "number"
               },
               {
@@ -1223,6 +1307,7 @@
           "nights_staying": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "integer"
               },
               {
@@ -1310,6 +1395,8 @@
           "lat": {
             "anyOf": [
               {
+                "maximum": 90.0,
+                "minimum": -90.0,
                 "type": "number"
               },
               {
@@ -1321,6 +1408,8 @@
           "lng": {
             "anyOf": [
               {
+                "maximum": 180.0,
+                "minimum": -180.0,
                 "type": "number"
               },
               {
@@ -1332,6 +1421,7 @@
           "nights_staying": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "integer"
               },
               {
@@ -1409,6 +1499,7 @@
             "title": "Date"
           },
           "day_number": {
+            "minimum": 1.0,
             "title": "Day Number",
             "type": "integer"
           },
@@ -1438,10 +1529,11 @@
           "estimated_cost": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -1491,6 +1583,7 @@
             "title": "Date"
           },
           "day_number": {
+            "minimum": 1.0,
             "title": "Day Number",
             "type": "integer"
           },
@@ -1520,7 +1613,7 @@
           "estimated_cost": {
             "anyOf": [
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -1619,10 +1712,11 @@
           "estimated_cost": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -1662,10 +1756,11 @@
           "estimated_cost": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -1699,6 +1794,8 @@
           "location_lat": {
             "anyOf": [
               {
+                "maximum": 90.0,
+                "minimum": -90.0,
                 "type": "number"
               },
               {
@@ -1710,6 +1807,8 @@
           "location_lng": {
             "anyOf": [
               {
+                "maximum": 180.0,
+                "minimum": -180.0,
                 "type": "number"
               },
               {
@@ -1732,6 +1831,8 @@
           "rating": {
             "anyOf": [
               {
+                "maximum": 5.0,
+                "minimum": 0.0,
                 "type": "number"
               },
               {
@@ -1741,12 +1842,15 @@
             "title": "Rating"
           },
           "restaurant_name": {
+            "maxLength": 255,
+            "minLength": 1,
             "title": "Restaurant Name",
             "type": "string"
           },
           "time": {
             "anyOf": [
               {
+                "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
                 "type": "string"
               },
               {
@@ -1758,13 +1862,12 @@
           "type": {
             "anyOf": [
               {
-                "type": "string"
+                "$ref": "#/components/schemas/MealType"
               },
               {
                 "type": "null"
               }
-            ],
-            "title": "Type"
+            ]
           }
         },
         "required": [
@@ -1789,7 +1892,7 @@
           "estimated_cost": {
             "anyOf": [
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -1833,6 +1936,8 @@
           "location_lat": {
             "anyOf": [
               {
+                "maximum": 90.0,
+                "minimum": -90.0,
                 "type": "number"
               },
               {
@@ -1844,6 +1949,8 @@
           "location_lng": {
             "anyOf": [
               {
+                "maximum": 180.0,
+                "minimum": -180.0,
                 "type": "number"
               },
               {
@@ -1866,6 +1973,8 @@
           "rating": {
             "anyOf": [
               {
+                "maximum": 5.0,
+                "minimum": 0.0,
                 "type": "number"
               },
               {
@@ -1875,12 +1984,15 @@
             "title": "Rating"
           },
           "restaurant_name": {
+            "maxLength": 255,
+            "minLength": 1,
             "title": "Restaurant Name",
             "type": "string"
           },
           "time": {
             "anyOf": [
               {
+                "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
                 "type": "string"
               },
               {
@@ -1892,13 +2004,12 @@
           "type": {
             "anyOf": [
               {
-                "type": "string"
+                "$ref": "#/components/schemas/MealType"
               },
               {
                 "type": "null"
               }
-            ],
-            "title": "Type"
+            ]
           }
         },
         "required": [
@@ -1908,6 +2019,17 @@
         ],
         "title": "MealResponse",
         "type": "object"
+      },
+      "MealType": {
+        "enum": [
+          "breakfast",
+          "brunch",
+          "lunch",
+          "snack",
+          "dinner"
+        ],
+        "title": "MealType",
+        "type": "string"
       },
       "MealUpdate": {
         "description": "Partial update of MealBase.",
@@ -1926,10 +2048,11 @@
           "estimated_cost": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -1963,6 +2086,8 @@
           "location_lat": {
             "anyOf": [
               {
+                "maximum": 90.0,
+                "minimum": -90.0,
                 "type": "number"
               },
               {
@@ -1974,6 +2099,8 @@
           "location_lng": {
             "anyOf": [
               {
+                "maximum": 180.0,
+                "minimum": -180.0,
                 "type": "number"
               },
               {
@@ -1996,6 +2123,8 @@
           "rating": {
             "anyOf": [
               {
+                "maximum": 5.0,
+                "minimum": 0.0,
                 "type": "number"
               },
               {
@@ -2018,6 +2147,7 @@
           "time": {
             "anyOf": [
               {
+                "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
                 "type": "string"
               },
               {
@@ -2029,13 +2159,12 @@
           "type": {
             "anyOf": [
               {
-                "type": "string"
+                "$ref": "#/components/schemas/MealType"
               },
               {
                 "type": "null"
               }
-            ],
-            "title": "Type"
+            ]
           }
         },
         "title": "MealUpdate",
@@ -2047,6 +2176,30 @@
           "admin"
         ],
         "title": "Role",
+        "type": "string"
+      },
+      "TransportCategory": {
+        "enum": [
+          "outbound",
+          "return",
+          "internal"
+        ],
+        "title": "TransportCategory",
+        "type": "string"
+      },
+      "TransportType": {
+        "enum": [
+          "flight",
+          "train",
+          "bus",
+          "ferry",
+          "car",
+          "taxi",
+          "metro",
+          "walk",
+          "other"
+        ],
+        "title": "TransportType",
         "type": "string"
       },
       "TransportationCreate": {
@@ -2077,21 +2230,21 @@
           "category": {
             "anyOf": [
               {
-                "type": "string"
+                "$ref": "#/components/schemas/TransportCategory"
               },
               {
                 "type": "null"
               }
-            ],
-            "title": "Category"
+            ]
           },
           "cost": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -2115,6 +2268,8 @@
           "duration_minutes": {
             "anyOf": [
               {
+                "maximum": 44640.0,
+                "minimum": 0.0,
                 "type": "integer"
               },
               {
@@ -2192,13 +2347,12 @@
           "type": {
             "anyOf": [
               {
-                "type": "string"
+                "$ref": "#/components/schemas/TransportType"
               },
               {
                 "type": "null"
               }
-            ],
-            "title": "Type"
+            ]
           }
         },
         "title": "TransportationCreate",
@@ -2232,18 +2386,17 @@
           "category": {
             "anyOf": [
               {
-                "type": "string"
+                "$ref": "#/components/schemas/TransportCategory"
               },
               {
                 "type": "null"
               }
-            ],
-            "title": "Category"
+            ]
           },
           "cost": {
             "anyOf": [
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -2267,6 +2420,8 @@
           "duration_minutes": {
             "anyOf": [
               {
+                "maximum": 44640.0,
+                "minimum": 0.0,
                 "type": "integer"
               },
               {
@@ -2354,13 +2509,12 @@
           "type": {
             "anyOf": [
               {
-                "type": "string"
+                "$ref": "#/components/schemas/TransportType"
               },
               {
                 "type": "null"
               }
-            ],
-            "title": "Type"
+            ]
           }
         },
         "required": [
@@ -2399,21 +2553,21 @@
           "category": {
             "anyOf": [
               {
-                "type": "string"
+                "$ref": "#/components/schemas/TransportCategory"
               },
               {
                 "type": "null"
               }
-            ],
-            "title": "Category"
+            ]
           },
           "cost": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -2437,6 +2591,8 @@
           "duration_minutes": {
             "anyOf": [
               {
+                "maximum": 44640.0,
+                "minimum": 0.0,
                 "type": "integer"
               },
               {
@@ -2514,13 +2670,12 @@
           "type": {
             "anyOf": [
               {
-                "type": "string"
+                "$ref": "#/components/schemas/TransportType"
               },
               {
                 "type": "null"
               }
-            ],
-            "title": "Type"
+            ]
           }
         },
         "title": "TransportationUpdate",
@@ -2548,9 +2703,6 @@
                 "type": "array"
               },
               {
-                "type": "string"
-              },
-              {
                 "type": "null"
               }
             ],
@@ -2570,10 +2722,11 @@
           "budget_accommodation": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -2585,10 +2738,11 @@
           "budget_activities": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -2611,10 +2765,11 @@
           "budget_food": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -2626,10 +2781,11 @@
           "budget_other": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -2641,10 +2797,11 @@
           "budget_total": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -2656,10 +2813,11 @@
           "budget_transportation": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -2682,6 +2840,7 @@
           "duration_days": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "integer"
               },
               {
@@ -2741,6 +2900,8 @@
             "default": "planning"
           },
           "title": {
+            "maxLength": 255,
+            "minLength": 1,
             "title": "Title",
             "type": "string"
           },
@@ -2760,16 +2921,19 @@
           },
           "travelers_adults": {
             "default": 1,
+            "minimum": 0.0,
             "title": "Travelers Adults",
             "type": "integer"
           },
           "travelers_children": {
             "default": 0,
+            "minimum": 0.0,
             "title": "Travelers Children",
             "type": "integer"
           },
           "travelers_infants": {
             "default": 0,
+            "minimum": 0.0,
             "title": "Travelers Infants",
             "type": "integer"
           }
@@ -2810,9 +2974,6 @@
                 "type": "array"
               },
               {
-                "type": "string"
-              },
-              {
                 "type": "null"
               }
             ],
@@ -2832,7 +2993,7 @@
           "budget_accommodation": {
             "anyOf": [
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -2844,7 +3005,7 @@
           "budget_activities": {
             "anyOf": [
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -2856,6 +3017,7 @@
           "budget_currency": {
             "anyOf": [
               {
+                "pattern": "^[A-Z]{3}$",
                 "type": "string"
               },
               {
@@ -2867,7 +3029,7 @@
           "budget_food": {
             "anyOf": [
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -2879,7 +3041,7 @@
           "budget_other": {
             "anyOf": [
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -2891,7 +3053,7 @@
           "budget_total": {
             "anyOf": [
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -2903,7 +3065,7 @@
           "budget_transportation": {
             "anyOf": [
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -2939,6 +3101,7 @@
           "duration_days": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "integer"
               },
               {
@@ -3011,6 +3174,8 @@
             "default": "planning"
           },
           "title": {
+            "maxLength": 255,
+            "minLength": 1,
             "title": "Title",
             "type": "string"
           },
@@ -3038,16 +3203,19 @@
           },
           "travelers_adults": {
             "default": 1,
+            "minimum": 0.0,
             "title": "Travelers Adults",
             "type": "integer"
           },
           "travelers_children": {
             "default": 0,
+            "minimum": 0.0,
             "title": "Travelers Children",
             "type": "integer"
           },
           "travelers_infants": {
             "default": 0,
+            "minimum": 0.0,
             "title": "Travelers Infants",
             "type": "integer"
           },
@@ -3103,9 +3271,6 @@
                 "type": "array"
               },
               {
-                "type": "string"
-              },
-              {
                 "type": "null"
               }
             ],
@@ -3125,10 +3290,11 @@
           "budget_accommodation": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -3140,10 +3306,11 @@
           "budget_activities": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -3166,10 +3333,11 @@
           "budget_food": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -3181,10 +3349,11 @@
           "budget_other": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -3196,10 +3365,11 @@
           "budget_total": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -3211,10 +3381,11 @@
           "budget_transportation": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
                 "type": "string"
               },
               {
@@ -3237,6 +3408,7 @@
           "duration_days": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "integer"
               },
               {

@@ -31,12 +31,24 @@ models/*.py             tables (DeclarativeBase, SQLAlchemy 2 style)
 - Partial updates are `PATCH`; `PUT` is not used.
 - Aggregates the API returns whole must eager-load children (`lazy="selectin"`); async serializers
   cannot lazy-load.
+- **Models** use the SQLAlchemy 2 typed style (`Mapped[...]`, `mapped_column`) and compose the mixins
+  in `models/base.py` (`UUIDPrimaryKeyMixin`, `TimestampMixin`, `TripChildMixin`,
+  `ItineraryDayChildMixin`, `CoordinatesMixin`, `LocationSnapshotMixin`). Closed vocabularies live in
+  `models/enums.py` and are reused by the schemas (and therefore by the OpenAPI contract).
+- **Entity rules live on the entity**: override `check_invariants()` (see `Trip`, `Destination`,
+  `Accommodation`, `Transportation`) and raise `travel_common.exceptions.*`. `BaseService` calls it
+  before every create and update, so PATCH cannot break what POST enforces. Single-field formats
+  (`TimeOfDay`, `CountryCode`, `Money`, `Rating`, ...) are the `Annotated` types in `schemas/_types.py`.
+- **One transaction per request**: `db/session.py::unit_of_work` commits when the request succeeds
+  and rolls back on any exception (domain errors included). Repositories only `flush`; never call
+  `commit()` from a repository or a service.
 
 ## Commands
 
 ```bash
 uv run uvicorn core_api.main:app --reload --port 8000
 uv run pytest                      # PostgreSQL: creates <DB_NAME>_test and empties it between tests
+                                   # each request gets its own session; use `db_session` only to arrange data
 uv run alembic upgrade head
 uv run alembic revision --autogenerate -m "message"   # review the file before committing
 uv run alembic check               # models and migrations agree (CI runs this)

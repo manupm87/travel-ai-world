@@ -1,15 +1,16 @@
 from datetime import datetime
-from decimal import Decimal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
+from core_api.models.enums import TransportCategory, TransportType
 from core_api.schemas._partial import partial
+from core_api.schemas._types import Money, PositiveMinutes
 
 
 class TransportationBase(BaseModel):
-    type: str | None = None  # e.g. "flight", "train", "bus"
-    category: str | None = None  # e.g. "outbound", "return", "internal"
+    type: TransportType | None = None
+    category: TransportCategory | None = None
     from_location: str | None = None
     to_location: str | None = None
     from_city: str | None = None
@@ -18,8 +19,8 @@ class TransportationBase(BaseModel):
     arrival_time: datetime | None = None
     provider: str | None = None
     flight_number: str | None = None
-    duration_minutes: int | None = None
-    cost: Decimal | None = None
+    duration_minutes: PositiveMinutes | None = None
+    cost: Money | None = None
     booking_reference: str | None = None
 
 

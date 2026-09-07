@@ -3,7 +3,8 @@
 A repository is bound to one model, either by subclassing (`model = Trip`,
 plus entity-specific queries) or by instantiation (`BaseRepository(db, Meal)`)
 when the entity needs nothing beyond the generic operations. Repositories
-never import Pydantic schemas and never manage transactions themselves.
+never import Pydantic schemas and never commit: the request-scoped unit of
+work (`db.session.get_db`) does, so several writes can share one transaction.
 """
 
 from typing import Any
@@ -36,15 +37,15 @@ class BaseRepository[ModelT: Base]:
 
     async def create(self, obj: ModelT) -> ModelT:
         self.db.add(obj)
-        await self.db.commit()
+        await self.db.flush()
         await self.db.refresh(obj)
         return obj
 
     async def update(self, obj: ModelT) -> ModelT:
-        await self.db.commit()
+        await self.db.flush()
         await self.db.refresh(obj)
         return obj
 
     async def delete(self, obj: ModelT) -> None:
         await self.db.delete(obj)
-        await self.db.commit()
+        await self.db.flush()

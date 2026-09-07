@@ -14,7 +14,7 @@ from sqlalchemy.pool import NullPool
 
 from core_api import models  # noqa: F401 — registers models with Base.metadata
 from core_api.config import settings
-from core_api.db.session import get_db
+from core_api.db.session import get_db, unit_of_work
 from core_api.main import app
 from core_api.models.base import Base
 from core_api.models.user import User
@@ -67,8 +67,15 @@ async def db_session(setup_db) -> AsyncGenerator[AsyncSession, None]:
 
 @pytest.fixture
 async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
+    """App client against the test database.
+
+    Each request gets its own session and unit of work, exactly like
+    production; `db_session` is only for arranging data in the test.
+    """
+
     async def _get_test_db():
-        yield db_session
+        async with AsyncSessionTest() as session, unit_of_work(session) as scoped:
+            yield scoped
 
     app.dependency_overrides[get_db] = _get_test_db
     async with AsyncClient(

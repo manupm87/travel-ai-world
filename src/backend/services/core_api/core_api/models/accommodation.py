@@ -1,38 +1,42 @@
-import uuid
+from datetime import date
+from decimal import Decimal
 
-from sqlalchemy import Column, Date, Float, ForeignKey, Numeric, String
-from sqlalchemy.dialects.postgresql import ARRAY, UUID
-from sqlalchemy.orm import relationship
+from sqlalchemy import Date, Float, Numeric, String
+from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from core_api.models.base import Base
+from core_api.models.base import (
+    Base,
+    CoordinatesMixin,
+    TimestampMixin,
+    TripChildMixin,
+    UUIDPrimaryKeyMixin,
+    ensure_ordered,
+)
 
 
-class Accommodation(Base):
+class Accommodation(
+    UUIDPrimaryKeyMixin, TripChildMixin, CoordinatesMixin, TimestampMixin, Base
+):
     __tablename__ = "accommodations"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    trip_id = Column(
-        UUID(as_uuid=True),
-        ForeignKey("trips.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
+    check_in: Mapped[date | None] = mapped_column(Date, nullable=True)
+    check_out: Mapped[date | None] = mapped_column(Date, nullable=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    type: Mapped[str | None] = mapped_column(String(100), nullable=True)  # hotel…
+    city: Mapped[str | None] = mapped_column(String(150), nullable=True)
+    country_code: Mapped[str | None] = mapped_column(String(3), nullable=True)
+    address: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    rating: Mapped[float | None] = mapped_column(Float, nullable=True)
+    price_per_night: Mapped[Decimal | None] = mapped_column(
+        Numeric(10, 2), nullable=True
     )
+    total_cost: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
+    amenities: Mapped[list[str] | None] = mapped_column(ARRAY(String), nullable=True)
+    check_in_time: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    check_out_time: Mapped[str | None] = mapped_column(String(10), nullable=True)
 
-    check_in = Column(Date, nullable=True)
-    check_out = Column(Date, nullable=True)
-    name = Column(String(255), nullable=False)
-    type = Column(String(100), nullable=True)  # hotel / hostel / apartment …
-    city = Column(String(150), nullable=True)
-    country_code = Column(String(3), nullable=True)
-    address = Column(String(512), nullable=True)
-    lat = Column(Float, nullable=True)
-    lng = Column(Float, nullable=True)
-    rating = Column(Float, nullable=True)
-    price_per_night = Column(Numeric(10, 2), nullable=True)
-    total_cost = Column(Numeric(12, 2), nullable=True)
-    amenities = Column(ARRAY(String), nullable=True)  # e.g. ["WiFi", "Pool"]
-    check_in_time = Column(String(10), nullable=True)  # e.g. "15:00"
-    check_out_time = Column(String(10), nullable=True)  # e.g. "11:00"
+    trip: Mapped["Trip"] = relationship(back_populates="accommodations")  # noqa: F821
 
-    # Relationships
-    trip = relationship("Trip", back_populates="accommodations")
+    def check_invariants(self) -> None:
+        ensure_ordered(self.check_in, self.check_out, "Stay")

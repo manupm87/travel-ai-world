@@ -1,27 +1,35 @@
-from decimal import Decimal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
 from core_api.schemas._partial import partial
+from core_api.schemas._types import (
+    Latitude,
+    Longitude,
+    Money,
+    PositiveMinutes,
+    Rating,
+    TimeOfDay,
+    Title,
+)
 
 
 class ActivityBase(BaseModel):
-    time: str | None = None
-    duration_minutes: int | None = None
-    title: str
+    time: TimeOfDay | None = None
+    duration_minutes: PositiveMinutes | None = None
+    title: Title
     description: str | None = None
     category: str | None = None
-    cost: Decimal | None = None
+    cost: Money | None = None
     booking_required: bool = False
     booking_url: str | None = None
-    rating: float | None = None
+    rating: Rating | None = None
     # Flat location snapshot (mirrors ActivityLocation in frontend)
     location_name: str | None = None
     location_address: str | None = None
     location_city: str | None = None
-    location_lat: float | None = None
-    location_lng: float | None = None
+    location_lat: Latitude | None = None
+    location_lng: Longitude | None = None
 
 
 class ActivityCreate(ActivityBase):

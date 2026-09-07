@@ -1,48 +1,45 @@
 import uuid
+from datetime import date
+from decimal import Decimal
 
-from sqlalchemy import Column, Date, ForeignKey, Integer, Numeric, String, Text
+from sqlalchemy import Date, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from core_api.models.base import Base
+from core_api.models.base import (
+    Base,
+    TimestampMixin,
+    TripChildMixin,
+    UUIDPrimaryKeyMixin,
+)
 
 
-class ItineraryDay(Base):
+class ItineraryDay(UUIDPrimaryKeyMixin, TripChildMixin, TimestampMixin, Base):
     __tablename__ = "itinerary_days"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    trip_id = Column(
-        UUID(as_uuid=True),
-        ForeignKey("trips.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
-    )
     # nullable: a day might not yet be tied to a specific destination
-    destination_id = Column(
+    destination_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("destinations.id", ondelete="SET NULL"),
         nullable=True,
         index=True,
     )
 
-    day_number = Column(Integer, nullable=False)
-    date = Column(Date, nullable=True)
-    title = Column(String(255), nullable=True)
-    description = Column(Text, nullable=True)
-    estimated_cost = Column(Numeric(12, 2), nullable=True)
-
-    # Relationships
-    trip = relationship("Trip", back_populates="itinerary_days")
-    destination = relationship("Destination", back_populates="itinerary_days")
-    activities = relationship(
-        "Activity",
-        back_populates="itinerary_day",
-        cascade="all, delete-orphan",
-        lazy="selectin",
+    day_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    title: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    estimated_cost: Mapped[Decimal | None] = mapped_column(
+        Numeric(12, 2), nullable=True
     )
-    meals = relationship(
-        "Meal",
-        back_populates="itinerary_day",
-        cascade="all, delete-orphan",
-        lazy="selectin",
+
+    trip: Mapped["Trip"] = relationship(back_populates="itinerary_days")  # noqa: F821
+    destination: Mapped["Destination | None"] = relationship(  # noqa: F821
+        back_populates="itinerary_days"
+    )
+    activities: Mapped[list["Activity"]] = relationship(  # noqa: F821
+        back_populates="itinerary_day", cascade="all, delete-orphan", lazy="selectin"
+    )
+    meals: Mapped[list["Meal"]] = relationship(  # noqa: F821
+        back_populates="itinerary_day", cascade="all, delete-orphan", lazy="selectin"
     )

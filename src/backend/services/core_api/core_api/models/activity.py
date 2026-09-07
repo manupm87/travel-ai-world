@@ -1,48 +1,38 @@
-import uuid
+from decimal import Decimal
 
-from sqlalchemy import (
-    Boolean,
-    Column,
-    Float,
-    ForeignKey,
-    Integer,
-    Numeric,
-    String,
-    Text,
+from sqlalchemy import Boolean, Float, Integer, Numeric, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from core_api.models.base import (
+    Base,
+    ItineraryDayChildMixin,
+    LocationSnapshotMixin,
+    TimestampMixin,
+    UUIDPrimaryKeyMixin,
 )
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
-
-from core_api.models.base import Base
 
 
-class Activity(Base):
+class Activity(
+    UUIDPrimaryKeyMixin,
+    ItineraryDayChildMixin,
+    LocationSnapshotMixin,
+    TimestampMixin,
+    Base,
+):
     __tablename__ = "activities"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    itinerary_day_id = Column(
-        UUID(as_uuid=True),
-        ForeignKey("itinerary_days.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
+    time: Mapped[str | None] = mapped_column(String(10), nullable=True)  # "09:00"
+    duration_minutes: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    category: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    cost: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
+    booking_required: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
     )
+    booking_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    rating: Mapped[float | None] = mapped_column(Float, nullable=True)
 
-    time = Column(String(10), nullable=True)  # e.g. "09:00"
-    duration_minutes = Column(Integer, nullable=True)
-    title = Column(String(255), nullable=False)
-    description = Column(Text, nullable=True)
-    category = Column(String(100), nullable=True)
-    cost = Column(Numeric(10, 2), nullable=True)
-    booking_required = Column(Boolean, nullable=False, default=False)
-    booking_url = Column(String(512), nullable=True)
-    rating = Column(Float, nullable=True)
-
-    # ActivityLocation fields (flat — immutable snapshot)
-    location_name = Column(String(255), nullable=True)
-    location_address = Column(String(512), nullable=True)
-    location_city = Column(String(150), nullable=True)
-    location_lat = Column(Float, nullable=True)
-    location_lng = Column(Float, nullable=True)
-
-    # Relationships
-    itinerary_day = relationship("ItineraryDay", back_populates="activities")
+    itinerary_day: Mapped["ItineraryDay"] = relationship(  # noqa: F821
+        back_populates="activities"
+    )
