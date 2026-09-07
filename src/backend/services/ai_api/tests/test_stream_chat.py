@@ -35,4 +35,6 @@ async def test_retrieved_documents_become_a_second_system_message():
 
     system_messages = [m for m in provider.calls[0] if m.role == "system"]
     assert len(system_messages) == 2
-    assert "Madrid has great tapas" in system_messages[1].content
+    assert system_messages[1].content == (
+        "Use this background information:\nMadrid has great tapas"
+    )

@@ -3,12 +3,13 @@
 from dataclasses import dataclass, field
 from typing import Literal
 
-Role = Literal["system", "user", "assistant"]
+ChatRole = Literal["system", "user", "assistant"]
+"""Who speaks in a chat turn (not to be confused with a user's account Role)."""
 
 
 @dataclass(frozen=True, slots=True)
 class Message:
-    role: Role
+    role: ChatRole
     content: str
 
 
@@ -19,3 +20,12 @@ class Document:
     id: str
     content: str
     metadata: dict[str, str] = field(default_factory=dict)
+
+
+@dataclass(frozen=True, slots=True)
+class GenerationParams:
+    """Sampling settings handed to whichever provider answers."""
+
+    max_tokens: int = 4096
+    temperature: float = 0.7
+    top_p: float = 0.95

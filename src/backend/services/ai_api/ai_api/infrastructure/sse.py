@@ -4,7 +4,7 @@
 - `sse_stream` writes our own wire format for the browser:
 
       data: {"content": "Hola"}
-      data: {"error": "..."}
+      data: {"error": "...", "error_code": "..."}
       data: [DONE]
 """
 
@@ -12,9 +12,12 @@ import json
 import logging
 from collections.abc import AsyncIterator
 
+from travel_common.exceptions import DomainError
+
 logger = logging.getLogger(__name__)
 
 DONE = "data: [DONE]\n\n"
+STREAM_FAILED_MESSAGE = "Chat stream failed"
 
 
 def encode_event(payload: dict[str, str]) -> str:
@@ -40,11 +43,19 @@ class SSEParser:
 
 
 async def sse_stream(deltas: AsyncIterator[str]) -> AsyncIterator[str]:
-    """Wrap text deltas into our SSE format; errors become a final event."""
+    """Wrap text deltas into our SSE format; errors become a final event.
+
+    The response has already started, so failures are reported in-band. Only
+    domain errors carry their message to the client; anything else is logged
+    with its traceback and reported generically.
+    """
     try:
         async for delta in deltas:
             yield encode_event({"content": delta})
-    except Exception as exc:  # the response has started: report in-band
-        logger.error("Chat stream failed: %s", exc)
-        yield encode_event({"error": str(exc)})
+    except DomainError as exc:
+        logger.warning("Chat stream ended with %s: %s", exc.error_code, exc.message)
+        yield encode_event({"error": exc.message, "error_code": exc.error_code})
+    except Exception:
+        logger.exception("Chat stream failed")
+        yield encode_event({"error": STREAM_FAILED_MESSAGE, "error_code": "INTERNAL"})
     yield DONE

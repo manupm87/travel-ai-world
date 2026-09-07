@@ -1,21 +1,26 @@
-"""LLMProvider adapter for NVIDIA's OpenAI-compatible chat completions API."""
+"""LLMProvider adapter for NVIDIA's OpenAI-compatible chat completions API.
+
+One instance per process: it owns an `httpx.AsyncClient` (connection pool,
+keep-alive) that the app lifespan closes on shutdown.
+"""
 
 import asyncio
 import json
 import logging
-from collections.abc import AsyncIterator, Callable, Sequence
+from collections.abc import AsyncIterator, Sequence
 from dataclasses import asdict
 
 import httpx
 
-from ai_api.domain.models import Message
+from ai_api.domain.models import GenerationParams, Message
 from ai_api.infrastructure.retry import RetryPolicy
 from ai_api.infrastructure.sse import SSEParser
 from travel_common.exceptions import ProviderUnavailable
 
 logger = logging.getLogger(__name__)
 
-ClientFactory = Callable[..., httpx.AsyncClient]
+# What the browser sees. Upstream status codes and bodies stay in the logs.
+UPSTREAM_ERROR_MESSAGE = "AI provider error"
 
 
 class NvidiaProvider:
@@ -25,23 +30,45 @@ class NvidiaProvider:
         api_key: str,
         base_url: str,
         model: str,
-        connect_timeout: float = 10.0,
-        read_timeout: float = 120.0,
+        client: httpx.AsyncClient,
+        params: GenerationParams = GenerationParams(),
         retry: RetryPolicy = RetryPolicy(),
-        client_factory: ClientFactory = httpx.AsyncClient,
     ) -> None:
         self._api_key = api_key
         self._url = f"{base_url.rstrip('/')}/chat/completions"
         self._model = model
-        self._timeout = httpx.Timeout(
-            connect=connect_timeout, read=read_timeout, write=10.0, pool=10.0
-        )
+        self._client = client
+        self._params = params
         self._retry = retry
-        self._client_factory = client_factory
+
+    @classmethod
+    def from_settings(cls, settings) -> "NvidiaProvider":  # noqa: ANN001
+        """Build the process-wide instance from `AISettings`."""
+        timeout = httpx.Timeout(
+            connect=settings.NVIDIA_CONNECT_TIMEOUT,
+            read=settings.NVIDIA_READ_TIMEOUT,
+            write=10.0,
+            pool=10.0,
+        )
+        return cls(
+            api_key=settings.NVIDIA_API_KEY,
+            base_url=settings.NVIDIA_BASE_URL,
+            model=settings.NVIDIA_CHAT_MODEL,
+            client=httpx.AsyncClient(timeout=timeout),
+            params=GenerationParams(
+                max_tokens=settings.CHAT_MAX_TOKENS,
+                temperature=settings.CHAT_TEMPERATURE,
+                top_p=settings.CHAT_TOP_P,
+            ),
+            retry=RetryPolicy(max_retries=settings.NVIDIA_MAX_RETRIES),
+        )
 
     @property
     def is_configured(self) -> bool:
         return bool(self._api_key)
+
+    async def aclose(self) -> None:
+        await self._client.aclose()
 
     async def stream(self, messages: Sequence[Message]) -> AsyncIterator[str]:
         if not self.is_configured:
@@ -57,7 +84,8 @@ class NvidiaProvider:
             except httpx.HTTPError as exc:
                 # Retrying after partial output would duplicate text.
                 if yielded or delay is None:
-                    raise ProviderUnavailable(f"AI provider error: {exc}") from exc
+                    logger.error("NVIDIA API failed: %s", exc)
+                    raise ProviderUnavailable(UPSTREAM_ERROR_MESSAGE) from exc
                 logger.warning("NVIDIA API error (%s); retrying in %.0fs", exc, delay)
                 await asyncio.sleep(delay)
 
@@ -70,20 +98,17 @@ class NvidiaProvider:
         payload = {
             "model": self._model,
             "messages": [asdict(m) for m in messages],
-            "max_tokens": 4096,
-            "temperature": 0.7,
-            "top_p": 0.95,
+            **asdict(self._params),
             "stream": True,
         }
         parser = SSEParser()
-        async with (
-            self._client_factory(timeout=self._timeout) as client,
-            client.stream("POST", self._url, headers=headers, json=payload) as resp,
-        ):
+        async with self._client.stream(
+            "POST", self._url, headers=headers, json=payload
+        ) as resp:
             if resp.status_code != 200:
                 body = (await resp.aread()).decode("utf-8", errors="replace")
                 raise httpx.HTTPStatusError(
-                    f"NVIDIA API returned {resp.status_code}: {body}",
+                    f"NVIDIA API returned {resp.status_code}: {body[:500]}",
                     request=resp.request,
                     response=resp,
                 )

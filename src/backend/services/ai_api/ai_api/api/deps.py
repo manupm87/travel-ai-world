@@ -1,13 +1,16 @@
-"""FastAPI wiring for ai_api: settings, identity and use cases."""
+"""FastAPI wiring for ai_api: settings, identity and use cases.
 
-from fastapi import Depends
+Process-wide resources (the LLM provider and its HTTP client) are created in
+`main.lifespan` and read from `app.state`; per-request objects are built here.
+"""
+
+from fastapi import Depends, Request
 
 from ai_api.application.stream_chat import StreamChat
 from ai_api.config import AISettings, get_settings
 from ai_api.domain.ports import LLMProvider, TripGateway
 from ai_api.infrastructure.core_api_client import CoreApiClient
 from ai_api.infrastructure.nvidia_provider import NvidiaProvider
-from ai_api.infrastructure.retry import RetryPolicy
 from ai_api.prompts import CHAT_SYSTEM_PROMPT
 from travel_common.exceptions import ProviderUnavailable
 from travel_common.http.auth import extract_bearer_token
@@ -23,16 +26,9 @@ async def get_current_user(
     return principal_from_token(token, settings)
 
 
-def get_llm_provider(settings: AISettings = Depends(get_settings)) -> LLMProvider:
-    provider = NvidiaProvider(
-        api_key=settings.NVIDIA_API_KEY,
-        base_url=settings.NVIDIA_BASE_URL,
-        model=settings.NVIDIA_CHAT_MODEL,
-        connect_timeout=settings.NVIDIA_CONNECT_TIMEOUT,
-        read_timeout=settings.NVIDIA_READ_TIMEOUT,
-        retry=RetryPolicy(max_retries=settings.NVIDIA_MAX_RETRIES),
-    )
-    if not provider.is_configured:
+def get_llm_provider(request: Request) -> LLMProvider:
+    provider: NvidiaProvider | None = getattr(request.app.state, "llm_provider", None)
+    if provider is None or not provider.is_configured:
         raise ProviderUnavailable("AI chat service not configured")
     return provider
 
