@@ -13,7 +13,7 @@ Create a migration after changing models in `src/backend/services/core_api/core_
 
    ```bash
    just migration "describe the change"
-   # → backend/services/core_api/alembic/versions/<rev>_describe_the_change.py
+   # → src/backend/services/core_api/alembic/versions/<rev>_describe_the_change.py
    ```
 
 3. Apply with `just migrate`, then confirm models and migrations agree (CI runs this too):

@@ -9,6 +9,8 @@
 # SECRET_KEY must be identical in both. The ${DB_*} values below are
 # interpolated by Compose, so pass --env-file services/core_api/.env (as
 # `just docker-up` does) to keep PostgreSQL and core_api on the same credentials.
+# PostgreSQL itself receives only those three values, never the service's .env
+# (which holds SECRET_KEY and the Google client secret).
 
 services:
   proxy:
@@ -18,8 +20,10 @@ services:
     volumes:
       - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
-      - core_api
-      - ai_api
+      core_api:
+        condition: service_healthy
+      ai_api:
+        condition: service_healthy
     restart: unless-stopped
 
   core_api:
@@ -54,7 +58,6 @@ services:
   db_postgres:
     image: postgres:16-alpine
     restart: always
-    env_file: services/core_api/.env
     environment:
       - POSTGRES_USER=${DB_USER:-postgres}
       - POSTGRES_PASSWORD=${DB_PASSWORD:-postgres}

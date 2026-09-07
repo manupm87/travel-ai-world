@@ -12,6 +12,7 @@ ARG PYTHON_VERSION=3.12
 # ── Stage 1: resolve and install into /opt/venv ─────────────────────────────
 FROM python:${PYTHON_VERSION}-slim AS builder
 ARG SERVICE
+RUN test -n "$SERVICE" || { echo "build-arg SERVICE=core_api|ai_api is required" >&2; exit 1; }
 
 COPY --from=ghcr.io/astral-sh/uv:0.8 /uv /uvx /bin/
 

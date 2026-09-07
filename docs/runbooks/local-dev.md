@@ -29,7 +29,7 @@ Three terminals (also inside the devcontainer):
 ```bash
 just migrate       # once, and after pulling new migrations
 just dev-core      # http://localhost:8000/docs
-just dev-ai        # http://localhost:8001/docs
+just dev-ai        # http://localhost:8001/api/v1/ai/docs
 just dev-frontend  # http://localhost:3000
 ```
 
