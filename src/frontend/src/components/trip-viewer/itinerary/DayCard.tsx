@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { ItineraryDay } from "@/types/trip";
-import { formatDate, formatCurrency } from "@/utils/format";
+import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/context/LanguageContext";
 import { ActivityItem } from "./ActivityItem";
 
@@ -22,7 +22,8 @@ interface DayCardProps {
  * @param currency - The currency code used for formatting estimated costs.
  */
 export function DayCard({ day, currency }: DayCardProps) {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
+  const { formatDate, formatCurrency } = useFormatters();
   const [expanded, setExpanded] = useState(false);
   
   const isFreeDay = day.title.toLowerCase().includes("free day") || day.title.toLowerCase().includes("día libre");
@@ -60,7 +61,7 @@ export function DayCard({ day, currency }: DayCardProps) {
           
           <h4 className="text-text-primary text-xl font-medium">{day.title}</h4>
           <p className="text-text-secondary text-sm">
-            {formatDate(day.date, language === "en" ? "en-US" : "es-ES", { weekday: "long", month: "short", day: "numeric" })} • {day.estimatedCost > 0 ? `${formatCurrency(day.estimatedCost, currency, language === "en" ? "en-US" : "es-ES")} ${t.tripViewer.estimated}` : t.tripViewer.selfPlanned}
+            {formatDate(day.date, { weekday: "long", month: "short", day: "numeric" })} • {day.estimatedCost > 0 ? `${formatCurrency(day.estimatedCost, currency)} ${t.tripViewer.estimated}` : t.tripViewer.selfPlanned}
           </p>
         </div>
         
@@ -92,7 +93,7 @@ export function DayCard({ day, currency }: DayCardProps) {
                   <div className="text-text-secondary text-sm font-medium w-16">{meal.time}</div>
                   <div className="flex flex-col">
                     <span className="text-text-primary font-medium">{meal.restaurantName}</span>
-                    <span className="text-text-secondary text-sm">{meal.cuisine} • {formatCurrency(meal.estimatedCost, currency, language === "en" ? "en-US" : "es-ES")}</span>
+                    <span className="text-text-secondary text-sm">{meal.cuisine} • {formatCurrency(meal.estimatedCost, currency)}</span>
                   </div>
                 </div>
               ))}

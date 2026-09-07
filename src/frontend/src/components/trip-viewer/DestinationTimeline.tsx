@@ -1,6 +1,6 @@
 import React from "react";
 import { Destination } from "@/types/trip";
-import { formatDate } from "@/utils/format";
+import { useFormatters } from "@/hooks/useFormatters";
 import { getFlag } from "@/utils/countryFlag";
 import { Container } from "@/components/ui/Container";
 import { useLanguage } from "@/context/LanguageContext";
@@ -10,7 +10,8 @@ interface DestinationTimelineProps {
 }
 
 export default function DestinationTimeline({ destinations }: DestinationTimelineProps) {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
+  const { formatDate } = useFormatters();
 
   return (
     <section className="w-full bg-bg-secondary pb-10">
@@ -36,7 +37,7 @@ export default function DestinationTimeline({ destinations }: DestinationTimelin
               
               <div className="flex flex-col gap-1 mt-auto pt-2 text-sm text-text-secondary">
                 <div>
-                  {formatDate(dest.arrivalDate, language === "en" ? "en-US" : "es-ES", { month: "short", day: "numeric" })} - {formatDate(dest.departureDate, language === "en" ? "en-US" : "es-ES", { month: "short", day: "numeric" })}
+                  {formatDate(dest.arrivalDate, { month: "short", day: "numeric" })} - {formatDate(dest.departureDate, { month: "short", day: "numeric" })}
                 </div>
                 <div>{dest.nightsStaying} {t.tripViewer.nights}</div>
               </div>

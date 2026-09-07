@@ -22,11 +22,11 @@ export default function EmptyDashboard() {
       </div>
       
       <h2 className="text-3xl font-medium text-text-primary mb-4 tracking-tight">
-        {t.dashboard?.emptyTitle || "Your atlas is waiting"}
+        {t.dashboard.emptyTitle}
       </h2>
-      
+
       <p className="text-text-secondary text-lg max-w-[480px] mb-10 leading-relaxed">
-        {t.dashboard?.emptyDescription || "You haven't planned any journeys yet. Start your next adventure with our AI planner."}
+        {t.dashboard.emptyDescription}
       </p>
       
       <Button href="#planner">

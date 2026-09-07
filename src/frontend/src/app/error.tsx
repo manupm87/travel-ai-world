@@ -1,16 +1,16 @@
 "use client";
 
 import { useEffect } from "react";
-
+import { useLanguage } from "@/context/LanguageContext";
 
 /**
  * Global Error Boundary (`error.tsx`).
- * 
+ *
  * This Client Component acts as the ultimate fallback for any unhandled
  * runtime errors that occur anywhere in the React tree (excluding layout).
  * It prevents the application from completely crashing and shows a user-friendly
  * error message with a recovery button.
- * 
+ *
  * @param error - The Error object that was caught.
  * @param reset - A function to try re-rendering the segment that threw the error.
  */
@@ -21,6 +21,7 @@ export default function ErrorBoundary({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const { t } = useLanguage();
 
   useEffect(() => {
     // Log the error to an error reporting service
@@ -34,16 +35,16 @@ export default function ErrorBoundary({
           <span className="text-4xl text-red-500">⚠️</span>
         </div>
         <h2 className="mb-4 text-2xl font-bold tracking-tight">
-          Oops! Something went wrong.
+          {t.errors.title}
         </h2>
         <p className="text-text-secondary mb-8 text-sm">
-          {error.message || "An unexpected error occurred while loading this page."}
+          {error.message || t.errors.description}
         </p>
         <button
           onClick={reset}
           className="bg-accent hover:bg-accent/90 w-full rounded-lg px-6 py-3 font-medium transition-colors"
         >
-          Try again
+          {t.errors.retry}
         </button>
       </div>
     </main>

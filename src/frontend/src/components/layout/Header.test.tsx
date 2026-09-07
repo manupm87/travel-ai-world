@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import React from 'react'
 import Header from './Header'
 import { useAuth } from '@/context/AuthContext'
+import en from '@/i18n/en'
 
 vi.mock('next/navigation', () => ({
   usePathname: vi.fn(() => '/'),
@@ -45,26 +46,9 @@ const mockSetLanguage = vi.fn()
 vi.mock('@/context/LanguageContext', () => ({
   useLanguage: () => ({
     language: 'en',
+    locale: 'en-US',
     setLanguage: mockSetLanguage,
-    t: {
-      nav: {
-        howItWorks: 'How it works',
-        features: 'Features',
-        reviews: 'Reviews',
-        planMyTrip: 'Plan my trip',
-        dashboard: 'Dashboard'
-      },
-      auth: {
-        login: 'Login',
-        logout: 'Logout',
-        loggedIn: 'Logged In'
-      },
-      theme: {
-        toggle: 'Toggle theme',
-        light: 'Light mode',
-        dark: 'Dark mode'
-      }
-    }
+    t: en,
   })
 }))
 
@@ -102,7 +86,7 @@ describe('Header', () => {
 
   it('renders landing variant navigation links correctly', () => {
     render(<Header variant="landing" />)
-    expect(screen.getAllByText('How it works')[0]).toBeInTheDocument()
+    expect(screen.getAllByText('How It Works')[0]).toBeInTheDocument()
     expect(screen.getAllByText('Features')[0]).toBeInTheDocument()
     expect(screen.getAllByText('Reviews')[0]).toBeInTheDocument()
   })
@@ -124,7 +108,7 @@ describe('Header', () => {
 
   it('renders consolidated CTA as Plan my trip when not authenticated', () => {
     render(<Header />)
-    const ctaButtons = screen.getAllByText('Plan my trip')
+    const ctaButtons = screen.getAllByText('Plan My Trip')
     expect(ctaButtons.length).toBeGreaterThan(0)
     expect(ctaButtons[0].closest('a')).toHaveAttribute('href', '#planner')
   })
@@ -144,7 +128,7 @@ describe('Header', () => {
     const loginIcon = screen.getByTestId('log-in-icon')
     fireEvent.click(loginIcon.parentElement!)
     
-    expect(screen.getByText('Login')).toBeInTheDocument() 
+    expect(screen.getByText(en.auth.welcomeBack)).toBeInTheDocument() 
   })
 
   it('applies scrolled styles when window is scrolled', () => {
@@ -163,6 +147,6 @@ describe('Header', () => {
     const hamburger = screen.getByLabelText('Open menu')
     fireEvent.click(hamburger)
     
-    expect(screen.getByText('Select Language')).toBeInTheDocument()
+    expect(screen.getByText(en.nav.selectLanguage)).toBeInTheDocument()
   })
 })

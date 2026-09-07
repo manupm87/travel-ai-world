@@ -1,18 +1,15 @@
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 /**
  * Global Loading UI (`loading.tsx`).
- * 
- * This Component is automatically rendered by Next.js while the content of a route segment
- * (e.g. `page.tsx`) is resolving its asynchronous data fetching. It provides
- * instant feedback to the user on navigation.
+ *
+ * Rendered by Next.js while a route segment resolves. Reuses the shared
+ * spinner so the copy stays in one (translated) place.
  */
 export default function Loading() {
   return (
-    <div className="flex min-h-[50vh] flex-col items-center justify-center p-8">
-      <div className="flex items-center gap-3">
-        <div className="border-accent h-6 w-6 animate-spin rounded-full border-t-2 border-r-2" />
-        <span className="text-text-secondary font-medium tracking-wide text-sm">Loading...</span>
-      </div>
+    <div className="flex min-h-[50vh] flex-col items-center justify-center">
+      <LoadingSpinner />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { Activity } from "@/types/trip";
-import { formatCurrency } from "@/utils/format";
+import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/context/LanguageContext";
 import { Star, Plane, Bed, MapPin } from "lucide-react";
 
@@ -19,7 +19,8 @@ interface ActivityItemProps {
  * @param currency - The currency code to format costs.
  */
 export function ActivityItem({ activity, currency }: ActivityItemProps) {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
+  const { formatCurrency } = useFormatters();
   let bgColor = "bg-bg-secondary";
   let Icon = MapPin;
 
@@ -50,7 +51,7 @@ export function ActivityItem({ activity, currency }: ActivityItemProps) {
           <span className="text-text-primary font-medium">{formatTitle(activity.title)}</span>
           {activity.cost > 0 && (
             <span className="text-text-primary text-sm font-medium shrink-0">
-              {formatCurrency(activity.cost, currency, language === "en" ? "en-US" : "es-ES")}
+              {formatCurrency(activity.cost, currency)}
             </span>
           )}
         </div>

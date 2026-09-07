@@ -5,7 +5,10 @@ TypeScript 5, Tailwind CSS v4.
 
 ## Rules
 
-- **i18n**: every visible string via `const { t } = useLanguage()`; keys in `src/i18n/{types,en,es}.ts`.
+- **i18n**: every visible string (including `alt`/`aria-label`) via `const { t } = useLanguage()`; keys in
+  `src/i18n/{types,en,es}.ts`. Placeholders via `interpolate(t.x, { name })`. Dates and money via
+  `useFormatters()` (`src/hooks/useFormatters.ts`), never `language === "en" ? "en-US" : ...`.
+  Language metadata (flag, native name, locale) lives only in `LANGUAGES` (`src/i18n/index.ts`).
 - **Network only in `src/services/`**: `http.ts` (base URLs, auth header, error parsing),
   `session.ts` (the only owner of the `localStorage` session), `auth.ts` (core_api),
   `chat.ts` (ai_api), `trips.ts` (mocks today). Components never `fetch` or touch the session storage.

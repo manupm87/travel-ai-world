@@ -54,7 +54,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 text-text-secondary hover:text-white transition-colors"
-          aria-label="Close"
+          aria-label={t.common.close}
         >
           <X size={20} />
         </button>
@@ -67,7 +67,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
             {t.auth.welcomeBack}
           </h2>
           <p className="text-text-secondary">
-            Join Travel AI World to save your itineraries and explore the world.
+            {t.auth.subtitle}
           </p>
         </div>
 
@@ -93,7 +93,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
         </div>
 
         <p className="mt-8 text-center text-xs text-text-secondary leading-relaxed">
-          By continuing, you agree to our Terms of Service and Privacy Policy.
+          {t.auth.terms}
         </p>
       </div>
     </div>

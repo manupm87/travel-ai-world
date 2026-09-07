@@ -14,10 +14,11 @@ vi.mock('@/context/LanguageContext', () => ({
     t: {
       footer: {
         tagline: 'AI-powered travel planning for the modern world.',
-        links: {
-          Product: ['Features', 'Pricing'],
-          Company: ['About Us', 'Contact']
-        },
+        links: [
+          { title: 'Product', items: ['Features', 'Pricing'] },
+          { title: 'Company', items: ['About Us', 'Contact'] },
+        ],
+        social: ['Twitter', 'Instagram'],
         copyright: '© 2024 Travel AI World'
       }
     }
@@ -31,19 +32,20 @@ describe('Footer', () => {
     expect(screen.getByText('AI-powered travel planning for the modern world.')).toBeInTheDocument()
   })
 
-  it('renders link categories and labels', () => {
+  it('renders link groups in order with their items', () => {
     render(<Footer />)
-    expect(screen.getByText('Product')).toBeInTheDocument()
+    const headings = screen.getAllByRole('heading', { level: 4 }).map((h) => h.textContent)
+    expect(headings).toEqual(['Product', 'Company'])
     expect(screen.getByText('Features')).toBeInTheDocument()
     expect(screen.getByText('Pricing')).toBeInTheDocument()
-    expect(screen.getByText('Company')).toBeInTheDocument()
     expect(screen.getByText('About Us')).toBeInTheDocument()
   })
 
-  it('renders social links and copyright', () => {
+  it('renders social links and copyright from the dictionary', () => {
     render(<Footer />)
     expect(screen.getByText('Twitter')).toBeInTheDocument()
     expect(screen.getByText('Instagram')).toBeInTheDocument()
+    expect(screen.queryByText('LinkedIn')).not.toBeInTheDocument()
     expect(screen.getByText('© 2024 Travel AI World')).toBeInTheDocument()
   })
 })

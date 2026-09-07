@@ -47,7 +47,8 @@ src/
 ├── app/            # Next.js App Router: pages, layouts, error/loading/not-found
 ├── components/     # UI by feature: ui/, layout/, landing/, dashboard/, trip-viewer/, auth/, common/
 ├── context/        # Providers: AuthContext, LanguageContext, ThemeContext
-├── i18n/           # types.ts (contract), en.ts, es.ts, index.ts
+├── hooks/          # Reusable hooks (useFormatters)
+├── i18n/           # types.ts (contract), en.ts, es.ts, index.ts (locales + LANGUAGES), interpolate.ts
 ├── services/       # The only place that talks to the network -> [README](src/services/README.md)
 ├── mocks/          # Trip fixtures used by services/trips.ts until the API serves trips
 ├── types/          # Hand-written domain types + generated/ (from OpenAPI, never edited)
@@ -65,18 +66,26 @@ The app supports **English** and **Spanish**, switchable at runtime via the lang
 
 1. `src/i18n/types.ts` defines the `Translations` interface — the contract every locale file must satisfy.
 2. `src/i18n/en.ts` and `src/i18n/es.ts` each export a typed `Translations` object.
-3. `src/i18n/index.ts` assembles the `locales` map (`Record<Language, Translations>`).
-4. `LanguageProvider` (in `layout.tsx`) holds the active language in React state and provides `t` (the current locale's translations) and `setLanguage` to the whole tree.
-5. Every component calls `const { t } = useLanguage()` and uses `t.section.key` — no hardcoded strings anywhere.
+3. `src/i18n/index.ts` assembles the `locales` map (`Record<Language, Translations>`) and `LANGUAGES`,
+   the single list of language metadata (`code`, `flag`, `nativeName`, BCP 47 `locale`) that the header
+   switcher and the formatters read from.
+4. `LanguageProvider` (in `layout.tsx`) holds the active language in React state and provides `t` (the
+   current locale's translations), `locale` and `setLanguage` to the whole tree.
+5. Every component calls `const { t } = useLanguage()` and uses `t.section.key` — no hardcoded strings
+   anywhere. Templates with placeholders go through `interpolate(t.x.y, { name })`.
+6. Dates and money are formatted with `useFormatters()` (`src/hooks/useFormatters.ts`), which binds
+   `utils/format` to the active `locale`; components never map a language to a locale themselves.
+7. `src/i18n/i18n.test.ts` checks that every locale has the same key structure and that `LANGUAGES`
+   covers every `Language`.
 
 ### Adding a new language (e.g. French)
 
 1. Create `src/i18n/fr.ts` — copy `en.ts` and translate. TypeScript will tell you if you miss any keys.
 2. Add `"fr"` to the `Language` union in `src/i18n/types.ts`.
-3. Add `fr` to the `locales` map in `src/i18n/index.ts`.
-4. Add the flag + code to the `FLAG` map in `Header.tsx`.
+3. In `src/i18n/index.ts`, add `fr` to the `locales` map and an entry
+   (`{ code: "fr", flag: "🇫🇷", nativeName: "Français", locale: "fr-FR" }`) to `LANGUAGES`.
 
-That's it — no other files need to change.
+That's it — the compiler flags a missing locale or `LANGUAGES` entry, and no component needs to change.
 
 ---
 

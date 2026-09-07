@@ -6,6 +6,7 @@ import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Trip } from "@/types/trip";
 import { getFlag } from "@/utils/countryFlag";
 import { useLanguage } from "@/context/LanguageContext";
+import { interpolate } from "@/i18n";
 import { DayCard } from "./DayCard";
 
 interface ItineraryProps {
@@ -70,7 +71,7 @@ export default function Itinerary({ trip }: ItineraryProps) {
         <div className="flex flex-col gap-3">
           <SectionLabel>{t.tripViewer.yourItinerary}</SectionLabel>
           <h3 className="text-text-primary text-[42px] font-medium tracking-[-1px] leading-[1.1]">
-            {t.tripViewer.journeyTitle.replace("{duration}", trip.dates.durationDays.toString())}
+            {interpolate(t.tripViewer.journeyTitle, { duration: trip.dates.durationDays })}
           </h3>
         </div>
 

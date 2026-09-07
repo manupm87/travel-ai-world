@@ -6,7 +6,7 @@ import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Card } from "@/components/ui/Card";
 import { Trip } from "@/types/trip";
 import { getFlag } from "@/utils/countryFlag";
-import { formatDate } from "@/utils/format";
+import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/context/LanguageContext";
 import { Navigation } from "lucide-react";
 
@@ -25,7 +25,8 @@ interface InteractiveTimelineProps {
  * @param trip - The complete Trip data object.
  */
 export default function InteractiveTimeline({ trip }: InteractiveTimelineProps) {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
+  const { formatDate } = useFormatters();
   const [activeDest, setActiveDest] = useState<string>(trip.destinations[0]?.id || "");
 
   const activeDestData = trip.destinations.find(d => d.id === activeDest);
@@ -101,7 +102,7 @@ export default function InteractiveTimeline({ trip }: InteractiveTimelineProps) 
                   <div className="flex flex-col">
                     <h4 className="text-text-primary text-xl font-medium">{activeDestData.city}</h4>
                     <p className="text-text-secondary text-sm">
-                      {formatDate(activeDestData.arrivalDate, language === "en" ? "en-US" : "es-ES", { month: "long", day: "numeric" })} - {formatDate(activeDestData.departureDate, language === "en" ? "en-US" : "es-ES", { month: "long", day: "numeric" })}
+                      {formatDate(activeDestData.arrivalDate, { month: "long", day: "numeric" })} - {formatDate(activeDestData.departureDate, { month: "long", day: "numeric" })}
                     </p>
                   </div>
                 </div>
@@ -118,7 +119,7 @@ export default function InteractiveTimeline({ trip }: InteractiveTimelineProps) 
                     }}
                     className="px-6 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-medium transition-all shadow-lg shadow-accent/20 cursor-pointer"
                   >
-                    {t.tripViewer.viewItinerary || "View Itinerary"}
+                    {t.tripViewer.viewItinerary}
                   </button>
                 </div>
               </div>

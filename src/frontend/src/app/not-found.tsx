@@ -13,7 +13,7 @@ import { useEffect } from "react";
  * Global 404 Fallback
  */
 export default function NotFound() {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const nt = t.notFound;
   const pathname = usePathname();
   const router = useRouter();
@@ -36,7 +36,7 @@ export default function NotFound() {
         <div className="animate-pulse flex flex-col items-center gap-4">
           <div className="text-4xl">✈️</div>
           <p className="text-text-secondary">
-            {language === 'en' ? 'Preparing your adventure...' : 'Preparando tu aventura...'}
+            {nt.redirecting}
           </p>
         </div>
       </div>
@@ -59,7 +59,7 @@ export default function NotFound() {
               <div className="absolute inset-0 bg-gradient-to-t from-bg-primary/80 via-transparent to-transparent z-10" />
               <Image 
                 src={paradiseImage} 
-                alt="Lost Paradise Island"
+                alt={nt.imageAlt}
                 className="w-full max-w-[600px] h-auto object-cover aspect-[16/10]"
                 priority
               />

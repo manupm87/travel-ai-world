@@ -10,9 +10,8 @@ import { useTheme } from "@/context/ThemeContext";
 import { LoginModal } from "@/components/auth/LoginModal";
 import { Button } from "@/components/ui/Button";
 import { Menu, X, LogOut, User as UserIcon, ChevronDown, LogIn, Sun, Moon } from "lucide-react";
-import type { Language } from "@/i18n";
+import { LANGUAGES, getLanguageMeta } from "@/i18n";
 
-const FLAG: Record<Language, string> = { en: "🇬🇧", es: "🇪🇸" };
 
 interface HeaderProps {
   variant?: "landing" | "dashboard";
@@ -117,29 +116,29 @@ export default function Header({ variant = "landing" }: HeaderProps) {
             <div className="relative dropdown-container">
               <button
                 onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-                aria-label="Select language"
+                aria-label={t.nav.selectLanguage}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border-soft bg-bg-secondary hover:bg-bg-surface transition-all text-[11px] font-medium text-text-primary cursor-pointer"
               >
-                <span>{FLAG[language]}</span>
+                <span>{getLanguageMeta(language).flag}</span>
                 <span className="uppercase tracking-wider">{language}</span>
                 <ChevronDown size={12} className={`transition-transform duration-300 ${langDropdownOpen ? "rotate-180" : ""}`} />
               </button>
 
               {langDropdownOpen && (
                 <div className="absolute top-full right-0 mt-2 w-32 bg-bg-primary/95 backdrop-blur-md border border-border rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
-                  {(["en", "es"] as Language[]).map((lang) => (
+                  {LANGUAGES.map(({ code, flag, nativeName }) => (
                     <button
-                      key={lang}
+                      key={code}
                       onClick={() => {
-                        setLanguage(lang);
+                        setLanguage(code);
                         setLangDropdownOpen(false);
                       }}
                       className={`w-full flex items-center gap-3 px-4 py-3 text-[11px] font-medium transition-colors hover:bg-bg-secondary cursor-pointer ${
-                        language === lang ? "text-accent bg-accent/5" : "text-text-secondary hover:text-text-primary"
+                        language === code ? "text-accent bg-accent/5" : "text-text-secondary hover:text-text-primary"
                       }`}
                     >
-                      <span>{FLAG[lang]}</span>
-                      <span className="uppercase tracking-widest">{lang === 'en' ? 'English' : 'Español'}</span>
+                      <span>{flag}</span>
+                      <span className="uppercase tracking-widest">{nativeName}</span>
                     </button>
                   ))}
                 </div>
@@ -221,7 +220,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
             <button
               onClick={() => setMobileMenuOpen(true)}
               className="p-2 text-text-primary hover:bg-bg-surface rounded-lg transition-colors flex items-center justify-center"
-              aria-label="Open menu"
+              aria-label={t.nav.openMenu}
             >
               <Menu size={24} />
             </button>
@@ -254,7 +253,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
             <button
               onClick={() => setMobileMenuOpen(false)}
               className="p-2 text-text-primary hover:bg-bg-surface rounded-lg transition-colors flex items-center justify-center"
-              aria-label="Close menu"
+              aria-label={t.nav.closeMenu}
             >
               <X size={24} />
             </button>
@@ -341,7 +340,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
           <div className="mt-auto pt-8 border-t border-border">
             <div className="flex items-center justify-between mb-4">
               <p className="text-xs text-text-secondary uppercase tracking-widest font-medium">
-                Select Language
+                {t.nav.selectLanguage}
               </p>
               <button
                 onClick={toggleTheme}
@@ -352,21 +351,22 @@ export default function Header({ variant = "landing" }: HeaderProps) {
               </button>
             </div>
             <div className="flex items-center gap-2 bg-bg-secondary border border-border-soft rounded-2xl p-1.5 w-fit relative overflow-hidden">
-              {(["en", "es"] as Language[]).map((lang) => (
+              {LANGUAGES.map(({ code, flag }) => (
                 <button
-                  key={lang}
-                  onClick={() => setLanguage(lang)}
+                  key={code}
+                  onClick={() => setLanguage(code)}
+                  aria-pressed={language === code}
                   className={`relative flex items-center gap-2 px-6 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-500 cursor-pointer overflow-hidden group ${
-                    language === lang
+                    language === code
                       ? "text-white"
                       : "text-text-secondary hover:text-text-primary"
                   }`}
                 >
-                  {language === lang && (
+                  {language === code && (
                     <div className="absolute inset-0 bg-accent shadow-[0_0_20px_rgba(79,110,247,0.5)] z-0" />
                   )}
-                  <span className="relative z-10 text-base">{FLAG[lang]}</span>
-                  <span className="relative z-10 uppercase tracking-widest">{lang}</span>
+                  <span className="relative z-10 text-base">{flag}</span>
+                  <span className="relative z-10 uppercase tracking-widest">{code}</span>
                 </button>
               ))}
             </div>
