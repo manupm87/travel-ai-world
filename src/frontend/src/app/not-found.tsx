@@ -79,7 +79,7 @@ export default function NotFound() {
             <div className="mt-4">
               <Link
                 href="/dashboard"
-                className="group relative inline-flex items-center justify-center px-8 py-4 font-semibold text-white transition-all duration-300 bg-accent rounded-2xl hover:bg-accent-hover hover:shadow-[0_0_30px_rgba(79,110,247,0.4)] overflow-hidden"
+                className="group relative inline-flex items-center justify-center px-8 py-4 font-semibold text-white transition-all duration-300 bg-accent rounded-2xl hover:bg-accent-hover hover:shadow-accent-glow overflow-hidden"
               >
                 <div className="absolute inset-0 w-3 bg-white/20 transition-all duration-[600ms] -skew-x-[45deg] -translate-x-20 group-hover:translate-x-[200px]" />
                 <span className="relative flex items-center gap-2">

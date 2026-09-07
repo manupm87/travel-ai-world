@@ -18,10 +18,23 @@ TypeScript 5, Tailwind CSS v4.
 - **Two base URLs**: `NEXT_PUBLIC_API_URL` (core) and optional `NEXT_PUBLIC_AI_API_URL` (defaults to
   core, for single-origin deployments). Static builds set neither; features degrade gracefully via
   `isApiAvailable()` / `isAiAvailable()`.
-- Styling: CSS custom properties from `src/app/globals.css` (`--color-bg-primary`, `--color-accent`, ...);
-  no `tailwind.config.js`.
-- Files: components `PascalCase.tsx`, utilities `camelCase.ts`, locales `<code>.ts`.
-- `/trip/[id]` is split in `page.tsx` (server, `generateStaticParams`) + `TripClientPage.tsx` (client).
+- Styling: CSS custom properties from `src/app/globals.css` (`--color-bg-primary`, `--color-accent`,
+  `--color-error/success/warning`, `--header-h`, `--shadow-accent-glow`, ...); no `tailwind.config.js`.
+  Use the tokens (`text-error`, `pt-(--header-h)`, `shadow-accent-glow`), not palette literals like
+  `text-red-400` or `rgba(79,110,247,…)`. Compose classes with `cn()` (`src/utils/cn.ts`) so a
+  consumer's `p-8` reliably overrides a primitive's `p-6`.
+- **Lint enforces the boundaries** (`eslint.config.mjs`): no `fetch` outside `src/services/`, no
+  `@/mocks/*` outside `src/services/`, no `@/types/generated/*` outside `src/services/` and
+  `src/types/`, imports first, `console` is a warning. `tsconfig` has `noUncheckedIndexedAccess`:
+  key lookups on i18n ids (`step.id`, `feat.id`, `TripStatus`) instead of indexing parallel arrays.
+- Files: components `PascalCase.tsx`, utilities and hooks `camelCase.ts`, locales `<code>.ts`.
+- Routes live in groups: `app/(marketing)/` (public; layout = Header + Footer) and `app/(app)/`
+  (signed-in; layout = shell + `ProtectedRoute`). Do not wrap pages in `ProtectedRoute` again.
+- `/trip/[id]` (`app/(app)/trip/[id]/`) is split in `page.tsx` (server, `generateStaticParams`) +
+  `TripClientPage.tsx` (client).
+- Tests: `renderWithProviders` from `src/test/render.tsx` and the typed builders in
+  `src/test/fixtures.ts`; assert on roles/names/`data-*` state and on `en.ts` copy, not on class names.
+  Do not mock `Card`/`Section`/`Container`/`next/link` or `lucide-react` icon by icon.
 
 ## Commands
 

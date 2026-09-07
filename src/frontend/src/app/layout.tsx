@@ -3,6 +3,7 @@ import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { AuthProvider } from "@/context/AuthContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 const outfit = Outfit({
@@ -31,9 +32,6 @@ export const metadata: Metadata = {
     type: "website",
   },
 };
-
-
-import { ThemeProvider } from "@/context/ThemeContext";
 
 /**
  * Root Layout for the Next.js App Router.

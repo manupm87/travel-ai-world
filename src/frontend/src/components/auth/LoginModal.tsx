@@ -86,7 +86,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
           />
 
           {error && (
-            <p role="alert" className="text-sm text-center text-red-400">
+            <p role="alert" className="text-sm text-center text-error">
               {error}
             </p>
           )}

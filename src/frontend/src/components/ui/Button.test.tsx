@@ -36,4 +36,11 @@ describe('Button', () => {
     rerender(<Button size="lg">Large</Button>)
     expect(screen.getByRole('button')).toHaveClass('px-12')
   })
+
+  it('lets a consumer padding and radius win over the size preset', () => {
+    render(<Button className="px-5 py-3.5 rounded-xl">Custom</Button>)
+    const button = screen.getByRole('button')
+    expect(button).toHaveClass('px-5', 'py-3.5', 'rounded-xl')
+    expect(button).not.toHaveClass('px-9', 'py-4', 'rounded-lg')
+  })
 })

@@ -30,7 +30,7 @@ describe('trips service', () => {
       const summaries = await getTripSummaries();
       expect(Array.isArray(summaries)).toBe(true);
       expect(summaries.length).toBeGreaterThan(0);
-      expect(summaries[0].id).toBeDefined();
+      expect(summaries[0]?.id).toBeDefined();
     });
   });
 });

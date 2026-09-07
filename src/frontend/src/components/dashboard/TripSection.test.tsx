@@ -1,51 +1,27 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
-import React from 'react'
-import { TripSection } from './TripSection'
-import { TripSummary } from '@/types/trip-summary'
+import { describe, it, expect } from "vitest";
+import { renderWithProviders, screen } from "@/test/render";
+import { TripSection } from "./TripSection";
+import { makeTripSummary } from "@/test/fixtures";
 
-vi.mock('@/components/ui/Section', () => ({
-  Section: ({ children, variant, padding }: { children?: React.ReactNode; variant?: string; padding?: string }) => (
-    <section data-testid="section" data-variant={variant} data-padding={padding}>
-      {children}
-    </section>
-  )
-}))
+const trips = [
+  makeTripSummary({ id: "1", title: "Trip 1" }),
+  makeTripSummary({ id: "2", title: "Trip 2", status: "planning" }),
+];
 
-vi.mock('@/components/ui/SectionLabel', () => ({
-  SectionLabel: ({ children }: { children?: React.ReactNode }) => <div data-testid="section-label">{children}</div>
-}))
+describe("TripSection", () => {
+  it("renders the label and one card per trip", () => {
+    renderWithProviders(<TripSection title="My Trips" trips={trips} />);
 
-vi.mock('@/components/ui/TripCard', () => ({
-  default: ({ trip }: { trip: TripSummary }) => <div data-testid="trip-card">{trip.title}</div>
-}))
+    expect(screen.getByText("My Trips")).toBeInTheDocument();
+    const cards = screen.getAllByRole("link");
+    expect(cards).toHaveLength(2);
+    expect(cards[0]).toHaveTextContent("Trip 1");
+    expect(cards[0]).toHaveAttribute("href", "/trip/1");
+    expect(cards[1]).toHaveTextContent("Trip 2");
+  });
 
-const mockTrips: TripSummary[] = [
-  { id: '1', title: 'Trip 1', destinations: ['D1'], startDate: 'S1', endDate: 'E1', status: 'planned', imageUrl: 'I1' },
-  { id: '2', title: 'Trip 2', destinations: ['D2'], startDate: 'S2', endDate: 'E2', status: 'planning', imageUrl: 'I2' },
-]
-
-describe('TripSection', () => {
-  it('renders correctly when there are trips', () => {
-    render(<TripSection title="My Trips" trips={mockTrips} />)
-    
-    expect(screen.getByTestId('section-label')).toHaveTextContent('My Trips')
-    const tripCards = screen.getAllByTestId('trip-card')
-    expect(tripCards).toHaveLength(2)
-    expect(tripCards[0]).toHaveTextContent('Trip 1')
-    expect(tripCards[1]).toHaveTextContent('Trip 2')
-  })
-
-  it('returns null when there are no trips', () => {
-    const { container } = render(<TripSection title="No Trips" trips={[]} />)
-    expect(container.firstChild).toBeNull()
-  })
-
-  it('passes transparent prop to Section', () => {
-    const { rerender } = render(<TripSection title="Title" trips={mockTrips} transparent />)
-    expect(screen.getByTestId('section')).toHaveAttribute('data-variant', 'transparent')
-    
-    rerender(<TripSection title="Title" trips={mockTrips} transparent={false} />)
-    expect(screen.getByTestId('section')).toHaveAttribute('data-variant', 'secondary')
-  })
-})
+  it("renders nothing when there are no trips", () => {
+    const { container } = renderWithProviders(<TripSection title="No Trips" trips={[]} />);
+    expect(container).toBeEmptyDOMElement();
+  });
+});

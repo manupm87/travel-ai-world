@@ -18,7 +18,7 @@ export default function HeroSection() {
   const h = t.hero;
 
   return (
-    <section className="relative min-h-screen flex flex-col bg-bg-primary pt-[72px]">
+    <section className="relative min-h-screen flex flex-col bg-bg-primary pt-(--header-h)">
       <Container className="pt-20 pb-16 flex flex-col gap-10">
         {/* Badge */}
         <div className="flex items-center gap-2 w-fit px-4 py-2 rounded-full bg-accent-soft border border-accent-border">

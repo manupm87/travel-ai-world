@@ -41,7 +41,7 @@ export default function Itinerary({ trip }: ItineraryProps) {
     <Section variant="secondary" padding="large">
       <div className="flex flex-col gap-8">
         {/* Destination Filters (Sticky) */}
-        <div className="sticky top-[72px] z-30 py-4 bg-bg-secondary/80 backdrop-blur-md -mx-4 px-4 border-b border-border-soft">
+        <div className="sticky top-(--header-h) z-30 py-4 bg-bg-secondary/80 backdrop-blur-md -mx-4 px-4 border-b border-border-soft">
           <div className="flex flex-wrap gap-3">
             <button 
               onClick={() => setFilter("all")}
@@ -61,7 +61,7 @@ export default function Itinerary({ trip }: ItineraryProps) {
                   filter === dest.id ? "bg-accent text-white" : "bg-bg-surface border border-border-soft text-text-secondary hover:bg-bg-card hover:text-text-primary"
                 }`}
               >
-                <span className="font-normal" role="img" aria-label={dest.city}>{getDestinationFlag(dest.id)}</span>
+                <span className="font-normal" aria-hidden="true">{getDestinationFlag(dest.id)}</span>
                 <span>{dest.city}</span>
               </button>
             ))}
@@ -78,7 +78,7 @@ export default function Itinerary({ trip }: ItineraryProps) {
         <div className="flex flex-col gap-4 mt-4">
           {filteredItinerary.map((day, idx) => {
             // Find if this is the first day of a destination for anchoring
-            const isFirstDayOfDest = idx === 0 || filteredItinerary[idx-1].destinationId !== day.destinationId;
+            const isFirstDayOfDest = idx === 0 || filteredItinerary[idx - 1]?.destinationId !== day.destinationId;
             
             return (
               <div 

@@ -1,152 +1,149 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
-import React from 'react'
-import Header from './Header'
-import { useAuth } from '@/context/AuthContext'
-import en from '@/i18n/en'
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { fireEvent, renderWithProviders, screen, within } from "@/test/render";
+import Header from "./Header";
+import { useAuth } from "@/context/AuthContext";
+import en from "@/i18n/en";
 
-vi.mock('next/navigation', () => ({
-  usePathname: vi.fn(() => '/'),
-  useRouter: vi.fn(() => ({
-    push: vi.fn(),
-    replace: vi.fn(),
-    prefetch: vi.fn(),
-  })),
-  useSearchParams: vi.fn(() => new URLSearchParams()),
-}))
+const mockPush = vi.fn();
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/",
+  useRouter: () => ({ push: mockPush, replace: vi.fn(), prefetch: vi.fn() }),
+  useSearchParams: () => new URLSearchParams(),
+}));
 
-vi.mock('next/link', () => ({
-  default: ({ children, href, className }: { children?: React.ReactNode; href?: string; className?: string }) => (
-    <a href={href} className={className}>{children}</a>
-  ),
-}))
-
-vi.mock('lucide-react', () => ({
-  Menu: () => <div data-testid="menu-icon" />,
-  X: () => <div data-testid="x-icon" />,
-  LogOut: () => <div data-testid="logout-icon" />,
-  User: () => <div data-testid="user-icon" />,
-  ChevronDown: () => <div data-testid="chevron-down-icon" />,
-  LogIn: () => <div data-testid="log-in-icon" />,
-  Sun: () => <div data-testid="sun-icon" />,
-  Moon: () => <div data-testid="moon-icon" />,
-}))
-
-vi.mock('@/context/AuthContext', () => ({
+vi.mock("@/context/AuthContext", () => ({
   useAuth: vi.fn(),
-}))
+}));
 
-vi.mock('@react-oauth/google', () => ({
+vi.mock("@react-oauth/google", () => ({
   GoogleLogin: () => <div data-testid="google-login" />,
-  GoogleOAuthProvider: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
-  useGoogleLogin: () => vi.fn(),
-}))
+}));
 
-const mockSetLanguage = vi.fn()
-vi.mock('@/context/LanguageContext', () => ({
-  useLanguage: () => ({
-    language: 'en',
-    locale: 'en-US',
-    setLanguage: mockSetLanguage,
-    t: en,
-  })
-}))
+const logout = vi.fn();
 
-vi.mock('@/context/ThemeContext', () => ({
-  useTheme: () => ({
-    theme: 'dark',
-    toggleTheme: vi.fn(),
-    setTheme: vi.fn(),
-  })
-}))
+const signedOut = () =>
+  vi.mocked(useAuth).mockReturnValue({
+    isAuthenticated: false,
+    user: null,
+    logout,
+    login: vi.fn(),
+    isLoading: false,
+  });
 
-describe('Header', () => {
+const signedIn = () =>
+  vi.mocked(useAuth).mockReturnValue({
+    isAuthenticated: true,
+    user: { id: "1", name: "Ada Lovelace", email: "ada@example.com" },
+    logout,
+    login: vi.fn(),
+    isLoading: false,
+  });
+
+describe("Header", () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-    window.scrollY = 0
-    vi.mocked(useAuth).mockReturnValue({
-      isAuthenticated: false,
-      user: null,
-      logout: vi.fn(),
-      login: vi.fn(),
-      isLoading: false,
-    })
-  })
+    vi.clearAllMocks();
+    window.scrollY = 0;
+    document.documentElement.lang = "en";
+    signedOut();
+  });
 
-  it('renders branding correctly and links to home', () => {
-    render(<Header />)
-    const logoLink = screen.getAllByText('Travel AI World')[0].closest('a')
-    expect(logoLink).toHaveAttribute('href', '/')
-  })
+  it("links the brand home", () => {
+    renderWithProviders(<Header />);
+    expect(screen.getByRole("link", { name: /Travel AI World/ })).toHaveAttribute("href", "/");
+  });
 
-  it('does not render home link (it was removed)', () => {
-    render(<Header />)
-    expect(screen.queryByText('Home')).not.toBeInTheDocument()
-  })
+  it("shows the marketing links only on the landing variant", () => {
+    const { unmount } = renderWithProviders(<Header variant="landing" />);
+    expect(screen.getByRole("link", { name: en.nav.howItWorks })).toHaveAttribute("href", "#how-it-works");
+    expect(screen.getByRole("link", { name: en.nav.features })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: en.nav.reviews })).toBeInTheDocument();
+    unmount();
 
-  it('renders landing variant navigation links correctly', () => {
-    render(<Header variant="landing" />)
-    expect(screen.getAllByText('How It Works')[0]).toBeInTheDocument()
-    expect(screen.getAllByText('Features')[0]).toBeInTheDocument()
-    expect(screen.getAllByText('Reviews')[0]).toBeInTheDocument()
-  })
+    renderWithProviders(<Header variant="dashboard" />);
+    expect(screen.queryByRole("link", { name: en.nav.howItWorks })).not.toBeInTheDocument();
+  });
 
-  it('renders consolidated CTA as Dashboard when authenticated', () => {
-    vi.mocked(useAuth).mockReturnValue({
-      isAuthenticated: true,
-      user: { id: '1', name: 'Test', email: 'test@example.com' },
-      logout: vi.fn(),
-      login: vi.fn(),
-      isLoading: false
-    })
+  it("points the CTA at the planner when signed out and at the dashboard when signed in", () => {
+    const { unmount } = renderWithProviders(<Header />);
+    for (const cta of screen.getAllByRole("link", { name: en.nav.planMyTrip })) {
+      expect(cta).toHaveAttribute("href", "#planner");
+    }
+    unmount();
 
-    render(<Header />)
-    const ctaButtons = screen.getAllByText('Dashboard')
-    expect(ctaButtons.length).toBeGreaterThan(0)
-    expect(ctaButtons[0].closest('a')).toHaveAttribute('href', '/dashboard')
-  })
+    signedIn();
+    renderWithProviders(<Header />);
+    for (const cta of screen.getAllByRole("link", { name: en.nav.dashboard })) {
+      expect(cta).toHaveAttribute("href", "/dashboard");
+    }
+  });
 
-  it('renders consolidated CTA as Plan my trip when not authenticated', () => {
-    render(<Header />)
-    const ctaButtons = screen.getAllByText('Plan My Trip')
-    expect(ctaButtons.length).toBeGreaterThan(0)
-    expect(ctaButtons[0].closest('a')).toHaveAttribute('href', '#planner')
-  })
+  it("switches the language from the dropdown and closes it", () => {
+    renderWithProviders(<Header />);
+    const trigger = screen.getByRole("button", { name: en.nav.selectLanguage });
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
+    expect(trigger).toHaveTextContent("🇬🇧");
 
-  it('calls setLanguage when language is selected from dropdown', () => {
-    render(<Header />)
-    const langButtons = screen.getAllByText(/en/i)
-    fireEvent.click(langButtons[0])
-    
-    const esOption = screen.getByText(/español/i)
-    fireEvent.click(esOption)
-    expect(mockSetLanguage).toHaveBeenCalledWith('es')
-  })
+    fireEvent.click(trigger);
+    expect(trigger).toHaveAttribute("aria-expanded", "true");
+    const menu = screen.getByRole("menu", { name: en.nav.selectLanguage });
+    fireEvent.click(within(menu).getByRole("menuitemradio", { name: /Español/ }));
 
-  it('opens login modal when clicking login icon while unauthenticated', () => {
-    render(<Header />)
-    const loginIcon = screen.getByTestId('log-in-icon')
-    fireEvent.click(loginIcon.parentElement!)
-    
-    expect(screen.getByText(en.auth.welcomeBack)).toBeInTheDocument() 
-  })
+    expect(document.documentElement.lang).toBe("es");
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Seleccionar idioma" })).toHaveTextContent("🇪🇸");
+  });
 
-  it('applies scrolled styles when window is scrolled', () => {
-    render(<Header />)
-    const header = screen.getByRole('banner')
-    expect(header).toHaveClass('bg-transparent')
+  it("closes the language dropdown on an outside click", () => {
+    renderWithProviders(<Header />);
+    fireEvent.click(screen.getByRole("button", { name: en.nav.selectLanguage }));
+    expect(screen.getByRole("menu")).toBeInTheDocument();
 
-    window.scrollY = 100
-    fireEvent.scroll(window)
-    
-    expect(header).toHaveClass('bg-bg-primary/95')
-  })
+    fireEvent.mouseDown(document.body);
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+  });
 
-  it('opens mobile menu on hamburger click', () => {
-    render(<Header />)
-    const hamburger = screen.getByLabelText('Open menu')
-    fireEvent.click(hamburger)
-    
-    expect(screen.getByText(en.nav.selectLanguage)).toBeInTheDocument()
-  })
-})
+  it("opens the login modal from the login button", () => {
+    renderWithProviders(<Header />);
+    fireEvent.click(screen.getByRole("button", { name: en.auth.login }));
+    expect(screen.getByRole("heading", { name: en.auth.welcomeBack })).toBeInTheDocument();
+  });
+
+  it("marks itself as scrolled once the window scrolls", () => {
+    renderWithProviders(<Header />);
+    const header = screen.getByRole("banner");
+    expect(header).toHaveAttribute("data-scrolled", "false");
+
+    window.scrollY = 100;
+    fireEvent.scroll(window);
+    expect(header).toHaveAttribute("data-scrolled", "true");
+  });
+
+  it("keeps the mobile drawer out of the accessibility tree until opened", () => {
+    renderWithProviders(<Header />);
+    const hamburger = screen.getByRole("button", { name: en.nav.openMenu });
+    expect(hamburger).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+    fireEvent.click(hamburger);
+    const drawer = screen.getByRole("dialog", { name: en.nav.menu });
+    expect(hamburger).toHaveAttribute("aria-expanded", "true");
+    expect(within(drawer).getByRole("group", { name: en.nav.selectLanguage })).toBeInTheDocument();
+
+    fireEvent.click(within(drawer).getByRole("button", { name: en.nav.closeMenu }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("logs out from the user menu and navigates home", () => {
+    signedIn();
+    renderWithProviders(<Header />);
+
+    fireEvent.click(screen.getByRole("button", { name: en.nav.userMenu }));
+    const menu = screen.getByRole("menu", { name: en.nav.userMenu });
+    expect(menu).toHaveTextContent("ada@example.com");
+    fireEvent.click(within(menu).getByRole("menuitem", { name: en.auth.logout }));
+
+    expect(logout).toHaveBeenCalledTimes(1);
+    expect(mockPush).toHaveBeenCalledWith("/");
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+  });
+});

@@ -1,64 +1,38 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
-import React from 'react'
-import SocialProof from './SocialProof'
+import { describe, it, expect } from "vitest";
+import { renderWithProviders, screen } from "@/test/render";
+import SocialProof from "./SocialProof";
+import en from "@/i18n/en";
 
-vi.mock('@/components/ui/Container', () => ({
-  Container: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>
-}))
+const s = en.socialProof;
 
-vi.mock('@/components/ui/SectionLabel', () => ({
-  SectionLabel: ({ children }: { children?: React.ReactNode }) => <div data-testid="section-label">{children}</div>
-}))
-
-vi.mock('@/components/ui/Card', () => ({
-  Card: ({ children, highlight, className }: { children?: React.ReactNode; highlight?: boolean; className?: string }) => (
-    <div data-testid="card" data-highlight={highlight} className={className}>{children}</div>
-  )
-}))
-
-vi.mock('@/context/LanguageContext', () => ({
-  useLanguage: () => ({
-    t: {
-      socialProof: {
-        label: 'SOCIAL PROOF',
-        stats: [
-          { value: '10K+', label: 'Happy Users' },
-          { value: '50+', label: 'Destinations' }
-        ],
-        testimonials: [
-          { author: 'Jane Doe', location: 'London', stars: 5, quote: 'Amazing service!', highlight: true },
-          { author: 'John Smith', location: 'NYC', stars: 4, quote: 'Very helpful.', highlight: false }
-        ]
-      }
+describe("SocialProof", () => {
+  it("renders the section label and every stat", () => {
+    renderWithProviders(<SocialProof />);
+    expect(screen.getByText(s.label)).toBeInTheDocument();
+    for (const stat of s.stats) {
+      expect(screen.getByText(stat.value)).toBeInTheDocument();
+      expect(screen.getByText(stat.label)).toBeInTheDocument();
     }
-  })
-}))
+  });
 
-describe('SocialProof', () => {
-  it('renders section label and stats', () => {
-    render(<SocialProof />)
-    expect(screen.getByTestId('section-label')).toHaveTextContent('SOCIAL PROOF')
-    expect(screen.getByText('10K+')).toBeInTheDocument()
-    expect(screen.getByText('Happy Users')).toBeInTheDocument()
-  })
+  it("renders every testimonial with its author, location and stars", () => {
+    renderWithProviders(<SocialProof />);
+    for (const testimonial of s.testimonials) {
+      expect(screen.getByText(new RegExp(testimonial.quote.slice(0, 30)))).toBeInTheDocument();
+      expect(screen.getByText(testimonial.author)).toBeInTheDocument();
+      expect(screen.getByText(testimonial.location)).toBeInTheDocument();
+    }
+    const fiveStars = s.testimonials.filter((t) => t.stars === 5).length;
+    expect(screen.getAllByText("★★★★★")).toHaveLength(fiveStars);
+  });
 
-  it('renders testimonials with correct details', () => {
-    render(<SocialProof />)
-    expect(screen.getByText(/Amazing service!/i)).toBeInTheDocument()
-    expect(screen.getByText('Jane Doe')).toBeInTheDocument()
-    expect(screen.getByText('London')).toBeInTheDocument()
-    
-    expect(screen.getByText('★★★★★')).toBeInTheDocument()
-    expect(screen.getByText('★★★★')).toBeInTheDocument()
-  })
-
-  it('applies highlight prop to cards correctly', () => {
-    render(<SocialProof />)
-    const cards = screen.getAllByTestId('card')
-    // Stats cards (2) + Testimonials cards (2) = 4 cards
-    // Testimonial 0 is highlighted
-    expect(cards[2]).toHaveAttribute('data-highlight', 'true')
-    expect(cards[3]).toHaveAttribute('data-highlight', 'false')
-  })
-})
+  it("highlights exactly the testimonials flagged in the dictionary", () => {
+    const { container } = renderWithProviders(<SocialProof />);
+    const highlighted = Array.from(container.querySelectorAll("[data-highlight]"));
+    const expected = s.testimonials.filter((t) => t.highlight).map((t) => t.author);
+    expect(highlighted).toHaveLength(expected.length);
+    for (const author of expected) {
+      expect(highlighted.some((el) => el.textContent?.includes(author))).toBe(true);
+    }
+  });
+});

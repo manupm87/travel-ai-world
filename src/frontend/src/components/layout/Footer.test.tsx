@@ -1,51 +1,33 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
-import React from 'react'
-import Footer from './Footer'
+import { describe, it, expect } from "vitest";
+import { renderWithProviders, screen } from "@/test/render";
+import Footer from "./Footer";
+import en from "@/i18n/en";
 
-vi.mock('next/link', () => ({
-  default: ({ children, href, className }: { children?: React.ReactNode; href?: string; className?: string }) => (
-    <a href={href} className={className}>{children}</a>
-  ),
-}))
+const f = en.footer;
 
-vi.mock('@/context/LanguageContext', () => ({
-  useLanguage: () => ({
-    t: {
-      footer: {
-        tagline: 'AI-powered travel planning for the modern world.',
-        links: [
-          { title: 'Product', items: ['Features', 'Pricing'] },
-          { title: 'Company', items: ['About Us', 'Contact'] },
-        ],
-        social: ['Twitter', 'Instagram'],
-        copyright: '© 2024 Travel AI World'
+describe("Footer", () => {
+  it("renders branding and tagline", () => {
+    renderWithProviders(<Footer />);
+    expect(screen.getByRole("link", { name: /Travel AI World/ })).toHaveAttribute("href", "/");
+    expect(screen.getByText(f.tagline)).toBeInTheDocument();
+  });
+
+  it("renders the link groups in dictionary order with their items", () => {
+    renderWithProviders(<Footer />);
+    const headings = screen.getAllByRole("heading", { level: 4 }).map((h) => h.textContent);
+    expect(headings).toEqual(f.links.map((group) => group.title));
+    for (const group of f.links) {
+      for (const item of group.items) {
+        expect(screen.getByRole("link", { name: item })).toBeInTheDocument();
       }
     }
-  })
-}))
+  });
 
-describe('Footer', () => {
-  it('renders branding and tagline', () => {
-    render(<Footer />)
-    expect(screen.getByText('Travel AI World')).toBeInTheDocument()
-    expect(screen.getByText('AI-powered travel planning for the modern world.')).toBeInTheDocument()
-  })
-
-  it('renders link groups in order with their items', () => {
-    render(<Footer />)
-    const headings = screen.getAllByRole('heading', { level: 4 }).map((h) => h.textContent)
-    expect(headings).toEqual(['Product', 'Company'])
-    expect(screen.getByText('Features')).toBeInTheDocument()
-    expect(screen.getByText('Pricing')).toBeInTheDocument()
-    expect(screen.getByText('About Us')).toBeInTheDocument()
-  })
-
-  it('renders social links and copyright from the dictionary', () => {
-    render(<Footer />)
-    expect(screen.getByText('Twitter')).toBeInTheDocument()
-    expect(screen.getByText('Instagram')).toBeInTheDocument()
-    expect(screen.queryByText('LinkedIn')).not.toBeInTheDocument()
-    expect(screen.getByText('© 2024 Travel AI World')).toBeInTheDocument()
-  })
-})
+  it("renders social links and copyright from the dictionary", () => {
+    renderWithProviders(<Footer />);
+    for (const name of f.social) {
+      expect(screen.getByRole("link", { name })).toBeInTheDocument();
+    }
+    expect(screen.getByText(f.copyright)).toBeInTheDocument();
+  });
+});

@@ -6,20 +6,22 @@
 // The compiler flags a missing locale or LANGUAGES entry; the rest of the app
 // (header switcher, formatters, <html lang>) picks the language up from here.
 
+import en from "./en";
+import es from "./es";
+import type { Language, Translations } from "./types";
+
 export type {
   Language,
   Translations,
   Step,
+  StepId,
   FeatureItem,
+  FeatureId,
   Stat,
   Testimonial,
   FooterLinkGroup,
 } from "./types";
 export { interpolate } from "./interpolate";
-
-import en from "./en";
-import es from "./es";
-import type { Language, Translations } from "./types";
 
 export const locales: Record<Language, Translations> = { en, es };
 

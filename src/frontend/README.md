@@ -9,7 +9,8 @@ Next.js 16 (App Router) + Tailwind CSS v4 web app for Travel AI World: landing p
 | [Next.js](https://nextjs.org/) | 16 (App Router, static export) | Framework, routing |
 | [Tailwind CSS](https://tailwindcss.com/) | v4 | Styling via CSS custom properties |
 | [TypeScript](https://www.typescriptlang.org/) | 5 | Type safety |
-| [Inter](https://fonts.google.com/specimen/Inter) | via `next/font` | Typography |
+| [Outfit](https://fonts.google.com/specimen/Outfit) + [Plus Jakarta Sans](https://fonts.google.com/specimen/Plus+Jakarta+Sans) | via `next/font` | Headings + body typography |
+| [clsx](https://github.com/lukeed/clsx) + [tailwind-merge](https://github.com/dcastil/tailwind-merge) | | `cn()` for conflict-free class composition |
 | [Lucide](https://lucide.dev/) | 1.x | SVG iconography |
 | [Vitest](https://vitest.dev/) + [Playwright](https://playwright.dev/) | | Unit and E2E tests |
 | [openapi-typescript](https://openapi-ts.dev/) | 7 | Backend types generated from OpenAPI |
@@ -44,17 +45,26 @@ Types for requests and responses are generated, never hand-written: `src/types/g
 
 ```text
 src/
-├── app/            # Next.js App Router: pages, layouts, error/loading/not-found
-├── components/     # UI by feature: ui/, layout/, landing/, dashboard/, trip-viewer/, auth/, common/
+├── app/            # Next.js App Router
+│   ├── layout.tsx        # Root: fonts, providers (Google OAuth, Auth, Theme, Language)
+│   ├── (marketing)/      # Public routes: layout = Header + Footer; page.tsx is the landing
+│   ├── (app)/            # Signed-in routes: layout = app shell + ProtectedRoute, once
+│   │   ├── dashboard/    # page.tsx (server) + DashboardClientPage.tsx
+│   │   └── trip/[id]/    # page.tsx (server, generateStaticParams) + TripClientPage.tsx
+│   └── error.tsx, loading.tsx, not-found.tsx
+├── components/     # UI by feature: ui/, layout/, landing/, planner/, dashboard/, trip-viewer/, auth/, common/
 ├── context/        # Providers: AuthContext, LanguageContext, ThemeContext
-├── hooks/          # Reusable hooks (useFormatters)
+├── hooks/          # useFormatters, useChatStream, useStickToBottom, useAutoResizeTextarea, useScrolled, useClickOutside
 ├── i18n/           # types.ts (contract), en.ts, es.ts, index.ts (locales + LANGUAGES), interpolate.ts
 ├── services/       # The only place that talks to the network -> [README](src/services/README.md)
 ├── mocks/          # Trip fixtures used by services/trips.ts until the API serves trips
 ├── types/          # Hand-written domain types + generated/ (from OpenAPI, never edited)
-├── utils/          # Pure helpers (formatting, country flags)
-└── test/           # Vitest global setup
+├── utils/          # Pure helpers (cn, formatting, country flags, localStorage store, safe redirect)
+└── test/           # Vitest setup + renderWithProviders (render.tsx) + typed fixtures (fixtures.ts)
 ```
+
+Route groups `(marketing)` and `(app)` do not appear in URLs; they exist so the header/footer and the
+auth guard are declared in one layout each instead of in every page.
 
 ---
 
@@ -166,10 +176,15 @@ The site is deployed as a **static export** to **GitHub Pages**. See the root [`
 
 Next.js App Router can't mix `"use client"` and `generateStaticParams` in the same file, so the route is split:
 
-- **`page.tsx`** — server component; exports `generateStaticParams([{ id: '_' }])` to produce one HTML shell
-- **`TripClientPage.tsx`** — client component; reads the real ID via `useParams()` at runtime and will fetch from the API
+- **`page.tsx`** — server component; `generateStaticParams()` returns every id known to `services/trips.ts`
+  (today the four fixtures in `src/mocks/`), so one HTML page is prerendered per trip, and
+  `dynamicParams = false` rejects any other id at build time.
+- **`TripClientPage.tsx`** — client component; receives the resolved `Trip` as a prop and renders the
+  interactive viewer.
 
-For ids that were not pre-rendered, GitHub Pages serves the exported `404.html`; the client then reads the id and loads the trip.
+Ids that were not prerendered fall through to the exported `404.html`; `not-found.tsx` shows a short
+"redirecting" state for `/trip/*` and `/dashboard/*` paths and sends the visitor home. Serving
+per-user trips on a static export is an open question tracked in the code-quality review (plan row 5).
 
 ---
 
@@ -185,7 +200,11 @@ Powered by **Vitest** and **React Testing Library**.
 npm run test:unit
 ```
 
-Focuses on utility functions (formatting, date logic) and individual React components.
+Covers services (`http`, `chat`, `auth`, `session`), hooks, contexts and components. Component tests
+render through `renderWithProviders` (`src/test/render.tsx`, the real `LanguageProvider` and
+`ThemeProvider`) and build data with the typed builders in `src/test/fixtures.ts` (`makeTrip`,
+`makeTripSummary`, ...). Assert on roles, accessible names and `data-*` state, and on the English
+copy from `src/i18n/en.ts`, rather than on Tailwind class names.
 
 ### End-to-End (E2E) Testing
 
@@ -208,8 +227,9 @@ drive the same headless Chromium (`npx playwright install --with-deps chromium` 
    in `.env.local` (one URL is enough behind the Docker Compose proxy on `:8080`).
 2. `services/auth.ts` (`loginWithGoogle`) talks to `core_api`; `services/chat.ts` (`streamChat`)
    consumes `ai_api`'s SSE stream; `services/trips.ts` still serves the fixtures in `src/mocks/`.
-3. `PlannerCard.tsx` streams real answers when `ai_api` is reachable and shows a static
-   "coming soon" mode otherwise (the GitHub Pages build sets no API URL).
+3. `components/planner/PlannerCard.tsx` streams real answers when `ai_api` is reachable
+   (`useChatStream`, which also aborts the stream on unmount). Without an AI URL (the GitHub Pages
+   build) the composer stays usable but sending is disabled and `t.planner.unavailable` explains why.
 4. `services/session.ts` keeps the session in `localStorage`, validates the JWT and prunes it on expiry.
 
 Backend details: [`src/backend/README.md`](../backend/README.md).

@@ -5,17 +5,19 @@ import { Container } from "@/components/ui/Container";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Card } from "@/components/ui/Card";
 import { useLanguage } from "@/context/LanguageContext";
+import type { StepId } from "@/i18n";
+import { cn } from "@/utils/cn";
 
-const STEP_IMAGES = [
-  { src: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=600&q=80", alt: "Person planning a trip on laptop" },
-  { src: "https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=600&q=80", alt: "AI generating a travel plan" },
-  { src: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=600&q=80", alt: "Happy couple traveling" },
-];
-
+/** Illustration per step; the alt text is translated alongside the step. */
+const STEP_IMAGES: Record<StepId, string> = {
+  tell: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=600&q=80",
+  build: "https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=600&q=80",
+  live: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=600&q=80",
+};
 
 /**
  * Guided Process Section (`landing`).
- * 
+ *
  * Renders the "How It Works" 1-2-3 step guide on the landing page.
  * Displays a grid of cards outlining the user journey from input to trip generation.
  */
@@ -35,22 +37,19 @@ export default function HowItWorks() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {h.steps.map((step, i) => (
-            <Card
-              key={step.number}
-              highlight={i === 0}
-              className="flex flex-col gap-5 p-8"
-            >
+            <Card key={step.id} highlight={i === 0} className="flex flex-col gap-5 p-8">
               <div
-                className={`w-11 h-11 rounded-full flex items-center justify-center text-lg font-medium text-white ${
+                className={cn(
+                  "w-11 h-11 rounded-full flex items-center justify-center text-lg font-medium text-white",
                   i === 0 ? "bg-accent" : "bg-white/10"
-                }`}
+                )}
               >
                 {step.number}
               </div>
               <div className="relative w-full h-[180px] rounded-xl overflow-hidden">
                 <Image
-                  src={STEP_IMAGES[i].src}
-                  alt={STEP_IMAGES[i].alt}
+                  src={STEP_IMAGES[step.id]}
+                  alt={step.imageAlt}
                   fill
                   className="object-cover"
                   sizes="(max-width: 768px) 100vw, 33vw"

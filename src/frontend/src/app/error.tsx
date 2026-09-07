@@ -24,7 +24,8 @@ export default function ErrorBoundary({
   const { t } = useLanguage();
 
   useEffect(() => {
-    // Log the error to an error reporting service
+    // The boundary is the last place this error is seen; keep the trace.
+    // eslint-disable-next-line no-console
     console.error("Global Error Boundary caught an error:", error);
   }, [error]);
 
@@ -32,7 +33,7 @@ export default function ErrorBoundary({
     <main className="flex min-h-[50vh] flex-col items-center justify-center p-8 text-center text-text-primary">
       <div className="bg-bg-card max-w-md rounded-2xl border border-border-soft p-8 shadow-2xl">
         <div className="mb-6 flex justify-center">
-          <span className="text-4xl text-red-500">⚠️</span>
+          <span className="text-4xl text-error">⚠️</span>
         </div>
         <h2 className="mb-4 text-2xl font-bold tracking-tight">
           {t.errors.title}
