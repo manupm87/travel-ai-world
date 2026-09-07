@@ -15,6 +15,11 @@ class AISettings(CommonSettings):
     NVIDIA_READ_TIMEOUT: float = 120.0
     NVIDIA_MAX_RETRIES: int = 2
 
+    # Sampling. Tune per deployment, not in code.
+    CHAT_MAX_TOKENS: int = 4096
+    CHAT_TEMPERATURE: float = 0.7
+    CHAT_TOP_P: float = 0.95
+
     # Where core_api lives, for the calls that persist AI output.
     CORE_API_URL: str = "http://localhost:8000"
 

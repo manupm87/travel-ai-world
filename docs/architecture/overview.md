@@ -86,7 +86,7 @@ sequenceDiagram
     A->>N: chat/completions (stream)
     N-->>A: SSE deltas
     A-->>B: data: {"content": ...} ×n · data: [DONE]
-    Note over A,B: on failure after output started: data: {"error": ...} then [DONE]
+    Note over A,B: on failure after output started: data: {"error", "error_code"} then [DONE]
 ```
 
 Wire format is fixed by `ai_api/infrastructure/sse.py` and consumed by `src/frontend/src/services/chat.ts`.

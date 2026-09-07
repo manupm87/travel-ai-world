@@ -4,6 +4,7 @@ from collections.abc import AsyncIterator, Sequence
 
 from ai_api.domain.models import Message
 from ai_api.domain.ports import LLMProvider, Retriever
+from ai_api.prompts import RAG_CONTEXT_PROMPT
 
 
 class StreamChat:
@@ -26,7 +27,7 @@ class StreamChat:
             if documents:
                 context = "\n\n".join(doc.content for doc in documents)
                 messages.append(
-                    Message("system", f"Use this background information:\n{context}")
+                    Message("system", RAG_CONTEXT_PROMPT.format(context=context))
                 )
         messages.extend(history)
         messages.append(Message("user", message))

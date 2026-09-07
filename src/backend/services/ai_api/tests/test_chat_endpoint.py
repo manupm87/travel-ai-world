@@ -2,11 +2,13 @@
 
 from datetime import datetime, timedelta, timezone
 
+import httpx
 import jwt
 import pytest
 from httpx import AsyncClient
 
 from ai_api.api.deps import get_llm_provider
+from ai_api.config import get_settings
 from ai_api.main import app
 from ai_api.schemas.chat import MAX_HISTORY_TURNS, MAX_MESSAGE_CHARS
 from ai_api.testing import FakeProvider, settings_for_tests
@@ -121,7 +123,7 @@ async def test_unconfigured_provider_is_503(client: AsyncClient, auth_headers):
     assert response.json()["detail"]["error_code"] == "SERVICE_UNAVAILABLE"
 
 
-async def test_mid_stream_failure_is_reported_in_band(
+async def test_mid_stream_domain_error_is_reported_in_band(
     client: AsyncClient, auth_headers
 ):
     class ExplodingProvider(FakeProvider):
@@ -136,5 +138,59 @@ async def test_mid_stream_failure_is_reported_in_band(
     )
 
     assert response.status_code == 200
-    assert 'data: {"error": "upstream died"}' in response.text
+    assert (
+        'data: {"error": "upstream died", "error_code": "SERVICE_UNAVAILABLE"}'
+        in response.text
+    )
     assert response.text.endswith("data: [DONE]\n\n")
+
+
+async def test_unexpected_failure_is_not_leaked_to_the_client(
+    client: AsyncClient, auth_headers
+):
+    class BuggyProvider(FakeProvider):
+        async def stream(self, messages):
+            yield "Hola"
+            raise KeyError("api_key=nvapi-secret")
+
+    app.dependency_overrides[get_llm_provider] = lambda: BuggyProvider()
+
+    response = await client.post(
+        CHAT_URL, json={"message": "Hola", "history": []}, headers=auth_headers
+    )
+
+    assert response.status_code == 200
+    assert "nvapi-secret" not in response.text
+    assert 'data: {"error": "Chat stream failed", "error_code": "INTERNAL"}' in (
+        response.text
+    )
+
+
+async def test_unconfigured_provider_on_app_state_is_503(auth_headers):
+    """No key: the lifespan still installs a provider, and requests get 503, not 500."""
+    from httpx import ASGITransport
+
+    from ai_api.infrastructure.nvidia_provider import NvidiaProvider
+
+    app.state.llm_provider = NvidiaProvider(
+        api_key="", base_url="https://x", model="m", client=httpx.AsyncClient()
+    )
+    app.dependency_overrides[get_settings] = lambda: TEST_SETTINGS
+    try:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://t"
+        ) as c:
+            response = await c.post(
+                CHAT_URL, json={"message": "Hola", "history": []}, headers=auth_headers
+            )
+    finally:
+        del app.state.llm_provider
+        app.dependency_overrides.clear()
+    assert response.status_code == 503
+
+
+async def test_lifespan_installs_and_closes_the_provider():
+    async with app.router.lifespan_context(app):
+        provider = app.state.llm_provider
+        assert not provider._client.is_closed
+    assert provider._client.is_closed
