@@ -1,0 +1,65 @@
+{
+    "Intercambiador de Avenida de América": {
+        "lineas": [
+            "EMT"
+        ],
+        "lat": null,
+        "lon": null
+    },
+    "Intercambiador de Moncloa": {
+        "lineas": [
+            "EMT"
+        ],
+        "lat": null,
+        "lon": null
+    },
+    "Intercambiador de Príncipe Pío": {
+        "lineas": [
+            "EMT"
+        ],
+        "lat": null,
+        "lon": null
+    },
+    "Intercambiador de Plaza de Castilla": {
+        "lineas": [
+            "EMT"
+        ],
+        "lat": null,
+        "lon": null
+    },
+    "Intercambiador de Conde de Casal": {
+        "lineas": [
+            "EMT"
+        ],
+        "lat": null,
+        "lon": null
+    },
+    "Intercambiador de Méndez Álvaro": {
+        "lineas": [
+            "EMT"
+        ],
+        "lat": null,
+        "lon": null
+    },
+    "Intercambiador de Canillejas": {
+        "lineas": [
+            "EMT"
+        ],
+        "lat": null,
+        "lon": null
+    },
+    "Intercambiador de Ciudad Lineal": {
+        "lineas": [
+            "EMT"
+        ],
+        "lat": null,
+        "lon": null
+    },
+    "Intercambiador de Plaza Elíptica": {
+        "lineas": [
+            "EMT"
+        ],
+        "lat": null,
+        "lon": null
+    }
+}
