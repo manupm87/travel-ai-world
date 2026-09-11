@@ -42,8 +42,7 @@ npm-debug.log*
 crash.log
 crash.*.log
 
-# Scraper output (generated datasets are not versioned)
-src/backend/tools/scraper/data/
+# Scraper datasets are versioned for reproducible retrieval ingestion.
 
 # Editors, OS, logs
 .vscode/

@@ -21,13 +21,62 @@ just scrape                  # from the repo root; or, from this directory: uv r
 ```
 
 `main.py` runs every step in sequence through `run_safe`, so one failing source does not stop the
-pipeline. Output lands in `data/` (ignored by git); `sources/resources/linesemt.csv` is the only
-input file.
+pipeline. Output lands in `data/`, which is versioned so the team receives the source datasets and
+the normalized corpus. `sources/resources/linesemt.csv` is the only static scraper input file.
+
+## Normalize for retrieval
+
+After the scraper JSON files are available in `data/`, generate the retrieval-ready Madrid corpus:
+
+```bash
+uv run python ingest.py
+```
+
+`ingest.py` reads the files explicitly listed in `SOURCE_FILES`. It deliberately uses the final
+transport and monument files (`*_final.json`) and excludes intermediate Google and Wikipedia files,
+which would otherwise duplicate records. The point-of-interest and documentary source files listed
+there are already their final outputs.
+
+The script writes one JSON object per line to `data/documents_madrid.jsonl`. Each object follows the
+retrieval contract used by the future `ai_api` `Retriever` port:
+
+```json
+{
+  "id": "restaurantes-ChIJ...",
+  "content": "Natural-language text used to create an embedding.",
+  "metadata": {
+    "city": "Madrid",
+    "category": "restaurantes",
+    "source": "Google Places (New)",
+    "source_file": "restaurantes_madrid.json"
+  }
+}
+```
+
+`content` combines the information that should be searchable semantically, such as a place name,
+address, rating, amenities or transport lines. `metadata` preserves structured attributes for
+filtering and traceability. Every generated document is checked for a non-empty unique `id`, a
+non-empty `content`, and non-empty `city`, `category`, `source`, and `source_file` metadata.
+The command fails before producing an accepted dataset if any of those checks fail.
+
+### Add a city
+
+Keep one normalized file per city, named `documents_<city>.jsonl`; for example,
+`documents_barcelona.jsonl`. Do not merge cities into the same file: a later vector-store ingestion
+job can read every `documents_*.jsonl` file while allowing one city to be regenerated or reindexed
+independently.
+
+To add a city, first create its scraper configuration and final source JSON files in `data/`. Then
+adapt `ingest.py` for that city: set the output filename, replace `SOURCE_FILES` with its final JSON
+files, and run the command above. Keep `metadata.city` in every document even though the output
+filename identifies the city, because it will be needed as a retrieval filter. Do not add raw or
+intermediate `*_google.json` and `*_wiki_*.json` files to `SOURCE_FILES` unless they are explicitly
+the final source for a category.
 
 ## Layout
 
 ```text
-main.py                       pipeline order
+main.py, ingest.py             pipeline order; JSON normalization for retrieval
 config/  env.py               GOOGLE_API_KEY from .env
          city_zones.py        search centres (lat/lng) per zone
          categories.py        Google Places categories and type filters
