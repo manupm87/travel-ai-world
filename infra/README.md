@@ -8,7 +8,7 @@ pick one, apply only its folder. Nothing is created until you run `terraform app
 | Folder | Shape | Public origin(s) | Frontend variables |
 |---|---|---|---|
 | [`gcp/`](gcp/README.md) | Cloud Run ×2 + Cloud SQL + Artifact Registry + Secret Manager | two Cloud Run URLs | `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_AI_API_URL` |
-| [`aws/`](aws/README.md) | ECS Fargate ×2 + RDS + ECR + ALB + Secrets Manager | one ALB (routes `/api/v1/ai/*`) | `NEXT_PUBLIC_API_URL` |
+| [`aws/`](aws/README.md) | Lambda ×2 + API Gateway REST + Cognito + RDS + ECR, behind CloudFront (S3 frontend) | one CloudFront domain (`/api/*` → gateway) | `NEXT_PUBLIC_API_URL=https://<domain>` (same origin) |
 
 Both deploy `core_api` and `ai_api` as separate services, each with its own identity and access
 **only to its secrets**. On AWS the two services run in `AUTH_MODE=cognito`: a Cognito user pool
@@ -26,24 +26,28 @@ Why two services and why the frontend accepts two URLs: [ADR 0001](../docs/archi
   `crane copy ghcr.io/manupm87/travel-ai-world/<image>:<tag> <registry>/<image>:<tag>` (no Docker
   daemon needed; installed in the devcontainer) or `docker buildx imagetools create`, or build
   locally from `src/backend/` (`just docker-build`).
-- **Secrets** are Terraform variables (`db_password`, `secret_key`, `google_client_id`,
-  `google_client_secret`, `nvidia_api_key`) stored in the cloud's secret manager and injected per
-  service. Locally they go in `terraform.tfvars` (ignored by git; start from `terraform.tfvars.example`).
-  In CI they arrive as `TF_VAR_*` repository secrets.
+- **Secrets** are Terraform variables (`db_password`, `google_client_id`, `google_client_secret`,
+  `nvidia_api_key`; GCP also `secret_key`). GCP stores them in Secret Manager and injects them per
+  service; AWS sets them as encrypted Lambda environment variables (a VPC without endpoints
+  cannot reach Secrets Manager; ADR 0009) and hands the Google client to Cognito. Locally they go
+  in `terraform.tfvars` (ignored by git; start from `terraform.tfvars.example`). In CI they arrive
+  as `TF_VAR_*` repository secrets.
 - **CORS and OAuth**: `backend_cors_origins` must list the deployed frontend origin. The Google OAuth
   client (it stays in Google Cloud) must list the Cognito domain's `/oauth2/idpresponse` as a
   redirect URI on AWS (see [`aws/README.md`](aws/README.md#sign-in-cognito)), and the frontend
   origin itself where the Google button is used (GCP, local).
-- **Migrations**: `core_api` only. At container start on Compose/ECS (`src/backend/docker/entrypoint.sh`);
-  on Lambda the deploy workflow invokes the function with `{"command": "migrate"}` (see the
+- **Migrations**: `core_api` only. At container start on Compose and Cloud Run
+  (`src/backend/docker/entrypoint.sh`); on Lambda the deploy workflow invokes the function with
+  `{"command": "migrate"}` after each apply (see the
   [Docker runbook](../docs/runbooks/docker.md#the-same-image-on-aws-lambda)).
 - **State**: commit `.terraform.lock.hcl`, never `*.tfstate` or `*.tfvars`. Sensitive variables end
   up in the state, so it lives in a remote backend with restricted access; the CI workflow
   requires one. AWS: the private S3 bucket created by [`aws/bootstrap/`](aws/bootstrap/README.md)
   (partial backend config passed at `init`). GCP: add a GCS bucket to `gcp/versions.tf` if you
   ever apply it.
-- **The frontend is not deployed here**: it is a static export on GitHub Pages
-  (`.github/workflows/deploy.yml`) or any static host.
+- **The frontend** is a static export. On AWS it lives in the private S3 bucket behind the same
+  CloudFront distribution as the API (`aws/frontend.tf`), synced by `.github/workflows/deploy.yml`
+  on every push to `main`; on GCP it would be any static host.
 
 ## Workflow
 
@@ -52,8 +56,9 @@ Why two services and why the frontend accepts two URLs: [ADR 0001](../docs/archi
 2. **Later deploys from CI**: Actions → "Deploy backend" → choose cloud, image tag and whether to
    apply (`apply=false` only plans). Details and required secrets are in the header of
    `.github/workflows/deploy-backend.yml` and in the [deploy runbook](../docs/runbooks/deploy.md).
-3. **After the backend URL changes**: rebuild the frontend with the new `NEXT_PUBLIC_*` values and
-   update `backend_cors_origins` and the Google OAuth client.
+3. **After the backend URL changes** (GCP, or a local frontend against AWS): rebuild the frontend
+   with the new `NEXT_PUBLIC_*` values and update `backend_cors_origins`; on GCP also the Google
+   OAuth client's origins. On AWS the frontend and the API share one domain, so nothing changes.
 
 ```bash
 just infra-fmt && just infra-validate gcp && just infra-validate aws && just infra-validate aws/bootstrap    # CI runs the check variants on changes in infra/

@@ -4,8 +4,10 @@ terraform {
 
   required_providers {
     aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
+      source = "hashicorp/aws"
+      # 6.26+: `response_transfer_mode = "STREAM"` on REST API integrations
+      # (the SSE chat through API Gateway) and its 15-minute timeout.
+      version = "~> 6.26"
     }
     # Reads the user pool's JWKS at plan time (cognito.tf).
     http = {

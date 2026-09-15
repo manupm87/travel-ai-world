@@ -163,7 +163,10 @@ Defined in `globals.css` as CSS custom properties and consumed directly in Tailw
 
 ## Deployment
 
-The site is deployed as a **static export** to **GitHub Pages**. See the root [`README.md`](../../README.md#deployment) for full details.
+The site is deployed as a **static export** to a private S3 bucket behind CloudFront on AWS
+(`.github/workflows/deploy.yml`; infrastructure in `infra/aws/frontend.tf`). Routes are exported
+as `route/index.html`; a CloudFront Function maps `/route/` to that key. See the
+[deploy runbook](../../docs/runbooks/deploy.md).
 
 ### Static export config (`next.config.ts`)
 

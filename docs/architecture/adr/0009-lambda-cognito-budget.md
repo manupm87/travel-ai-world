@@ -91,8 +91,13 @@ The RDS free tier is the swing item; check the account's creation date before th
   `Dockerfile` and a `migrate` command; RS256/JWKS verification in `travel_common` and the
   Cognito claims mapping in `core_api`; the frontend's sign-in moves from Google Identity Services
   to Cognito's managed login.
-- The frontend has left GitHub Pages for S3 + CloudFront (#83); `deploy.yml` still has to sync
-  the export and invalidate the distribution on every push.
+- The frontend has left GitHub Pages for S3 + CloudFront (#83); `deploy.yml` syncs the export
+  and invalidates the distribution on every push (TRA-121). The SPA error pages of #83
+  (403/404 → `index.html`) had to go: CloudFront applies them to every behaviour, `/api/*`
+  included; a CloudFront Function resolves `/route/` to `/route/index.html` instead.
+- Health endpoints sit behind the gateway's Cognito authorizer like every other method; the
+  functions' own readiness check is internal (Lambda Web Adapter). Revisit if an external
+  uptime check is wanted.
 - Terraform: `infra/aws/` replaces the ECS/ALB resources with Lambda, API Gateway and Cognito
   and extends the existing CloudFront distribution with the `/api/*` behaviour; `infra/gcp/`
   stays untouched as the documented alternative.

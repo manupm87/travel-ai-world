@@ -148,8 +148,7 @@ regenerates `src/frontend/src/types/generated/*.ts`; CI fails on drift.
 |---|---|---|
 | Local `just dev-*` | `:8000` core, `:8001` ai | `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_AI_API_URL` |
 | Docker Compose | nginx `:8080` | `NEXT_PUBLIC_API_URL` only |
-| AWS v1 (ALB path rule, what `infra/aws/` applies today) | one ALB | `NEXT_PUBLIC_API_URL` only |
-| AWS v3 (CloudFront → S3 + API Gateway → Lambda, target) | one CloudFront domain | none (relative `/api`) |
+| AWS v3 (CloudFront → S3 + API Gateway → Lambda, `infra/aws/`) | one CloudFront domain | `NEXT_PUBLIC_API_URL=https://<domain>` (same origin) + `NEXT_PUBLIC_COGNITO_*` |
 | GCP (two Cloud Run) | two URLs | both variables |
 
 See [ADR 0003](adr/0003-frontend-two-base-urls.md) and the [deploy runbook](../runbooks/deploy.md).
@@ -164,6 +163,8 @@ it as is, and it is edited in place with the VS Code draw.io extension (installe
 devcontainer) or at app.diagrams.net (File → Open). No build step. Decisions, cost estimate and
 the order of work: [ADR 0009](adr/0009-lambda-cognito-budget.md) (Lambda, Cognito, no NAT; the
 edge and gateway decisions come from [ADR 0008](adr/0008-aws-architecture-v2-edge-and-gateway.md)).
+`infra/aws/` is this shape ([README](../../infra/aws/README.md)); Bedrock (TRA-122) and the
+`pgvector` database (TRA-123) are the parts still to come.
 
 ## Known gaps (tracked)
 

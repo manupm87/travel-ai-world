@@ -11,13 +11,31 @@ variable "name_prefix" {
 }
 
 variable "core_api_image" {
-  description = "ECR image URI for core_api (auth, users, trips)."
+  description = "ECR image URI for core_api (users, trips). Use a digest (repo@sha256:...) so a new image redeploys the function."
   type        = string
 }
 
 variable "ai_api_image" {
-  description = "ECR image URI for ai_api (chat streaming)."
+  description = "ECR image URI for ai_api (chat streaming). Use a digest (repo@sha256:...)."
   type        = string
+}
+
+variable "core_api_memory_mb" {
+  description = "Memory of the core_api function (CPU scales with it)."
+  type        = number
+  default     = 1024
+}
+
+variable "ai_api_memory_mb" {
+  description = "Memory of the ai_api function."
+  type        = number
+  default     = 512
+}
+
+variable "log_retention_days" {
+  description = "CloudWatch Logs retention for both functions."
+  type        = number
+  default     = 14
 }
 
 variable "nvidia_chat_model" {
@@ -50,27 +68,22 @@ variable "nvidia_api_key" {
   sensitive   = true
 }
 
-variable "secret_key" {
-  description = "JWT signing key. Stored in Terraform state when managed here."
-  type        = string
-  sensitive   = true
-}
-
 variable "google_client_id" {
-  description = "Google OAuth client ID."
+  description = "Google OAuth client ID (used by the Cognito identity provider)."
   type        = string
   sensitive   = true
 }
 
 variable "google_client_secret" {
-  description = "Google OAuth client secret. Stored in Terraform state when managed here."
+  description = "Google OAuth client secret (held by Cognito). Stored in Terraform state when managed here."
   type        = string
   sensitive   = true
 }
 
 variable "backend_cors_origins" {
-  description = "JSON list of allowed frontend origins."
+  description = "JSON list of extra browser origins allowed to call the API. The deployed frontend is same-origin (CloudFront) and needs none; a local frontend does."
   type        = string
+  default     = "[\"http://localhost:3000\"]"
 }
 
 variable "vpc_cidr" {

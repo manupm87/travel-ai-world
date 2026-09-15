@@ -3,8 +3,8 @@
 > AI-powered travel planning. Tell us where you want to go and the AI drafts a personalised,
 > day-by-day itinerary, streamed in real time.
 
-Live site: <https://manupm87.github.io/travel-ai-world/> (static frontend; backend features
-switch on when an API URL is configured).
+Live site: <https://kyrian-world.com> (static frontend on S3 + CloudFront; the API and the
+sign-in come from the same domain once `infra/aws/` is applied).
 
 ## What is inside
 
@@ -68,7 +68,7 @@ just docker-up      # nginx :8080 + core_api + ai_api + PostgreSQL from built im
 | Workflow | Trigger | Does |
 |---|---|---|
 | `pr.yml` | pull request | path-filtered jobs: ruff, per-package tests (PostgreSQL for `core_api`), Docker builds, contract drift, eslint + Vitest + Playwright + `next build`, docs hygiene |
-| `deploy.yml` | push to `main` | static export → GitHub Pages |
+| `deploy.yml` | push to `main` touching `src/frontend/` | static export → S3 + CloudFront invalidation (AWS) |
 | `backend-images.yml` | push to `main` touching `src/backend/` | publishes `ghcr.io/manupm87/travel-ai-world/{core-api,ai-api}` |
 | `deploy-backend.yml` | manual | copies the images to GCP or AWS and runs Terraform (plan by default) |
 

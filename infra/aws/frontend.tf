@@ -1,5 +1,5 @@
 # Frontend — S3 + CloudFront + ACM + Route 53
-# Documentación manual: docs/runbooks/manual-aws-frontend.md
+# Documentación manual: docs/runbooks/frontend-https-aws.md
 # NOTA: Requiere que el dominio esté en Route 53 (hosted zone) y validado en ACM.
 
 # -----------------------------------------------------------------------------
@@ -92,6 +92,43 @@ resource "aws_cloudfront_origin_access_control" "frontend" {
 }
 
 # -----------------------------------------------------------------------------
+# CloudFront Function — directory index for the static export
+# -----------------------------------------------------------------------------
+# Next.js exports `/dashboard/` as `dashboard/index.html`; S3 only serves the
+# root's default object. The function maps `/x/` and `/x` (no extension) to
+# `/x/index.html` before the request reaches S3. It replaces the previous
+# 403/404 → `/index.html` error pages, which CloudFront applies to every
+# behaviour and would have turned the API's own 403/404 answers into HTML 200s.
+
+resource "aws_cloudfront_function" "directory_index" {
+  name    = "${var.name_prefix}-directory-index"
+  runtime = "cloudfront-js-2.0"
+  publish = true
+  code    = <<-JS
+    function handler(event) {
+      var request = event.request;
+      var uri = request.uri;
+      if (uri.endsWith('/')) {
+        request.uri = uri + 'index.html';
+      } else if (!uri.split('/').pop().includes('.')) {
+        request.uri = uri + '/index.html';
+      }
+      return request;
+    }
+  JS
+}
+
+# Managed policies for the API behaviour: nothing cached, everything forwarded
+# except the Host header (API Gateway needs its own).
+data "aws_cloudfront_cache_policy" "caching_disabled" {
+  name = "Managed-CachingDisabled"
+}
+
+data "aws_cloudfront_origin_request_policy" "all_viewer_except_host" {
+  name = "Managed-AllViewerExceptHostHeader"
+}
+
+# -----------------------------------------------------------------------------
 # CloudFront Distribution
 # -----------------------------------------------------------------------------
 
@@ -107,6 +144,22 @@ resource "aws_cloudfront_distribution" "frontend" {
     domain_name              = aws_s3_bucket.frontend.bucket_regional_domain_name
     origin_id                = "S3-${var.frontend_bucket_name}"
     origin_access_control_id = aws_cloudfront_origin_access_control.frontend.id
+  }
+
+  # The API, behind the same domain: no CORS, one OAuth origin, a relative URL.
+  origin {
+    domain_name = local.api_gateway_host
+    origin_id   = "APIGW-${var.name_prefix}"
+    origin_path = local.api_gateway_path
+
+    custom_origin_config {
+      http_port                = 80
+      https_port               = 443
+      origin_protocol_policy   = "https-only"
+      origin_ssl_protocols     = ["TLSv1.2"]
+      origin_read_timeout      = 60 # per read; a streamed chat keeps sending tokens
+      origin_keepalive_timeout = 60
+    }
   }
 
   default_cache_behavior {
@@ -126,21 +179,22 @@ resource "aws_cloudfront_distribution" "frontend" {
     default_ttl            = 3600
     max_ttl                = 86400
     compress               = true
+
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.directory_index.arn
+    }
   }
 
-  # Manejo de errores para SPA (Single Page Application)
-  custom_error_response {
-    error_code            = 403
-    response_code         = 200
-    response_page_path    = "/index.html"
-    error_caching_min_ttl = 300
-  }
-
-  custom_error_response {
-    error_code            = 404
-    response_code         = 200
-    response_page_path    = "/index.html"
-    error_caching_min_ttl = 300
+  ordered_cache_behavior {
+    path_pattern             = "/api/*"
+    target_origin_id         = "APIGW-${var.name_prefix}"
+    allowed_methods          = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
+    cached_methods           = ["GET", "HEAD"]
+    cache_policy_id          = data.aws_cloudfront_cache_policy.caching_disabled.id
+    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.all_viewer_except_host.id
+    viewer_protocol_policy   = "https-only"
+    compress                 = false # SSE must reach the browser chunk by chunk
   }
 
   restrictions {

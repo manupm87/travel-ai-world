@@ -14,7 +14,7 @@ AI-powered travel planner. Static Next.js frontend + two FastAPI services:
 
 | Path | Role | Talks to |
 |---|---|---|
-| `src/frontend/` | Next.js 16 static export (GitHub Pages) | `core_api`, `ai_api` |
+| `src/frontend/` | Next.js 16 static export (S3 + CloudFront on AWS) | `core_api`, `ai_api` |
 | `src/backend/services/core_api/` | Google auth, users, trips CRUD | PostgreSQL |
 | `src/backend/services/ai_api/` | LLM chat streaming (NVIDIA), future RAG | `core_api` (with the caller's token) |
 | `src/backend/libs/travel_common/` | Shared kernel: Principal, settings, errors, JWT, app factory | — |

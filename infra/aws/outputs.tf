@@ -7,19 +7,25 @@ output "aws_region" {
   value = var.region
 }
 
-output "load_balancer_dns_name" {
-  value = aws_lb.backend.dns_name
+output "api_url" {
+  description = "Public API base URL (CloudFront, same origin as the frontend): NEXT_PUBLIC_API_URL."
+  value       = "https://${var.domain_name}"
 }
 
-output "backend_url" {
-  description = "Single public origin: core_api by default, /api/v1/ai/* routed to ai_api."
-  value       = "http://${aws_lb.backend.dns_name}"
+output "api_gateway_invoke_url" {
+  description = "The gateway's own URL (bypasses CloudFront; same Cognito token required)."
+  value       = aws_api_gateway_stage.prod.invoke_url
+}
+
+output "core_api_function_name" {
+  description = "Invoke with {\"command\": \"migrate\"} after each deploy."
+  value       = aws_lambda_function.core_api.function_name
+}
+
+output "ai_api_function_name" {
+  value = aws_lambda_function.ai_api.function_name
 }
 
 output "rds_endpoint" {
   value = aws_db_instance.main.address
-}
-
-output "ecs_cluster_name" {
-  value = aws_ecs_cluster.main.name
 }

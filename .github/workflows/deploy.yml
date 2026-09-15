@@ -1,27 +1,39 @@
-name: Deploy to GitHub Pages
+name: Deploy frontend
+
+# Builds the static export and syncs it to the private S3 bucket behind
+# CloudFront (infra/aws/frontend.tf), then invalidates the distribution.
+# The API is on the same domain (CloudFront /api/* → API Gateway), so the
+# build points NEXT_PUBLIC_API_URL at the site itself: no CORS involved.
+#
+# Repository variables: FRONTEND_DOMAIN (the site and bucket name),
+# CLOUDFRONT_DISTRIBUTION_ID (terraform output), COGNITO_DOMAIN and
+# COGNITO_CLIENT_ID (terraform outputs cognito_domain / cognito_client_id).
+# Secrets: AWS_REGION, AWS_ROLE_TO_ASSUME (bootstrap output ci_role_arn; the
+# role trusts the `aws` environment only).
 
 on:
   push:
     branches:
       - main
-  # Allow manual deploys from the Actions tab
+    paths:
+      - "src/frontend/**"
+      - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
-# Grant GITHUB_TOKEN the permissions needed by the Pages deploy action
 permissions:
   contents: read
-  pages: write
   id-token: write
 
-# Only one concurrent deployment; cancel any in-progress run
 concurrency:
-  group: "pages"
+  group: deploy-frontend
   cancel-in-progress: true
 
 jobs:
-  build:
+  deploy:
+    name: Build and sync to S3
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    environment: aws
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,31 +43,28 @@ jobs:
       - name: Build (static export)
         working-directory: src/frontend
         env:
-          # Project GitHub Pages URL: https://<owner>.github.io/<repo>/
-          # The basePath is the repo name, derived so a fork or rename keeps working.
-          NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
-          NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-          # Cognito managed login (repository variables; empty keeps the Google flow)
+          NEXT_PUBLIC_API_URL: https://${{ vars.FRONTEND_DOMAIN }}
           NEXT_PUBLIC_COGNITO_DOMAIN: ${{ vars.COGNITO_DOMAIN }}
           NEXT_PUBLIC_COGNITO_CLIENT_ID: ${{ vars.COGNITO_CLIENT_ID }}
+          # Only for the Google button, which the Cognito build does not show.
+          NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           NODE_ENV: production
+        run: |
+          test -n "${{ vars.FRONTEND_DOMAIN }}" || { echo "::error::Set the repository variable FRONTEND_DOMAIN"; exit 1; }
+          npm run build
 
-        run: npm run build
-        # Output lands in src/frontend/out/
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Authenticate to AWS
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          path: src/frontend/out
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Sync the export to S3
+        run: |
+          aws s3 sync src/frontend/out "s3://${{ vars.FRONTEND_DOMAIN }}" --delete \
+            --cache-control "public, max-age=300"
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}" --paths "/*"
