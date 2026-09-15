@@ -1,0 +1,22 @@
+{
+  "enabledMcpjsonServers": [
+    "linear",
+    "playwright",
+    "playwright-host"
+  ],
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/check-branch-name.sh\"",
+            "timeout": 10,
+            "statusMessage": "Checking branch name"
+          }
+        ]
+      }
+    ]
+  }
+}

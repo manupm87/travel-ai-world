@@ -52,8 +52,8 @@ Thumbs.db
 *.swp
 *.log
 
-# Coding-agent local state (shared rules live in AGENTS.md and .claude/CLAUDE.md)
-.claude/settings.json
+# Coding-agent local state (shared rules live in AGENTS.md, .claude/CLAUDE.md and .claude/settings.json)
 .claude/settings.local.json
 .superpowers/
 .cursor/
+.debug/

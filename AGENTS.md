@@ -74,7 +74,10 @@ Windows: `winget install Casey.Just` and run the recipes from Git Bash or WSL (t
   `libs/` and `services/`. The scraper keeps the E/F-only policy.
 - TypeScript strict, Tailwind v4 (CSS custom properties, no `tailwind.config.js`), Vitest, Playwright.
 - Commits: conventional prefixes (`feat`, `fix`, `refactor`, `build`, `ci`, `docs`, `infra`, `test`, `chore`).
-- Branches: `feat/TRA-123-short-title` (Linear issue key when there is one).
+- Branches: `<type>/TRA-<n>-<short-title>` (e.g. `feat/TRA-123-trip-list`): the same prefixes as
+  commits, the Linear issue key, a lowercase slug. Every change starts from a Linear issue; if
+  there is none, ask for one (or create it through the Linear MCP) before branching. The PR body
+  links it (`Closes TRA-123`). Claude Code enforces the pattern with a hook (`.claude/hooks/`).
 - PRs follow `.github/pull_request_template.md`; CI is `.github/workflows/pr.yml` (path-filtered jobs).
 
 ## Where things live
