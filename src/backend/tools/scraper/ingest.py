@@ -171,7 +171,9 @@ def normalize_dataset(path: Path) -> Iterable[dict[str, Any]]:
 def validate_document(document: dict[str, Any], known_ids: set[str]) -> None:
     document_id = document["id"]
     if not document_id or not document["content"].strip():
-        raise ValueError(f"Document requires a non-empty id and content: {document_id!r}")
+        raise ValueError(
+            f"Document requires a non-empty id and content: {document_id!r}"
+        )
     if document_id in known_ids:
         raise ValueError(f"Duplicate document ID: {document_id}")
     required_metadata = {"city", "category", "source", "source_file"}
@@ -184,9 +186,7 @@ def validate_document(document: dict[str, Any], known_ids: set[str]) -> None:
         key for key in required_metadata if not str(document["metadata"][key]).strip()
     )
     if empty_metadata:
-        raise ValueError(
-            f"Document {document_id} has empty metadata: {empty_metadata}"
-        )
+        raise ValueError(f"Document {document_id} has empty metadata: {empty_metadata}")
     known_ids.add(document_id)
 
 
