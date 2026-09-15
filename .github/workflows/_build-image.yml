@@ -60,6 +60,10 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=${{ inputs.service }}
           cache-to: type=gha,mode=max,scope=${{ inputs.service }}
+          # A plain single-platform manifest: Lambda rejects OCI indexes, and
+          # buildx would otherwise wrap the image in one to attach attestations.
+          provenance: false
+          sbom: false
 
       - name: Image imports its app
         if: ${{ !inputs.push }}

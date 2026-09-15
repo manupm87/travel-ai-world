@@ -128,6 +128,11 @@ data "aws_cloudfront_origin_request_policy" "all_viewer_except_host" {
   name = "Managed-AllViewerExceptHostHeader"
 }
 
+# The static export: cache by URL, compress, ignore query strings and cookies.
+data "aws_cloudfront_cache_policy" "caching_optimized" {
+  name = "Managed-CachingOptimized"
+}
+
 # -----------------------------------------------------------------------------
 # CloudFront Distribution
 # -----------------------------------------------------------------------------
@@ -166,18 +171,9 @@ resource "aws_cloudfront_distribution" "frontend" {
     allowed_methods  = ["GET", "HEAD"]
     cached_methods   = ["GET", "HEAD"]
     target_origin_id = "S3-${var.frontend_bucket_name}"
-
-    forwarded_values {
-      query_string = false
-      cookies {
-        forward = "none"
-      }
-    }
+    cache_policy_id  = data.aws_cloudfront_cache_policy.caching_optimized.id
 
     viewer_protocol_policy = "redirect-to-https"
-    min_ttl                = 0
-    default_ttl            = 3600
-    max_ttl                = 86400
     compress               = true
 
     function_association {
@@ -207,6 +203,13 @@ resource "aws_cloudfront_distribution" "frontend" {
     acm_certificate_arn      = data.aws_acm_certificate.frontend.arn
     ssl_support_method       = "sni-only"
     minimum_protocol_version = "TLSv1.2_2021"
+  }
+
+  # The WAF web ACL attached from the console (#83) is managed there, not here:
+  # it is a cost item on its own (AWS WAF pricing) that the budget of ADR 0009
+  # does not include, so attaching or removing it stays a deliberate decision.
+  lifecycle {
+    ignore_changes = [web_acl_id]
   }
 
   tags = merge(

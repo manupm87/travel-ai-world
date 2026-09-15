@@ -93,6 +93,9 @@ terraform validate
    ```
 
    `crane` copies registry-to-registry, so no Docker daemon is needed in the devcontainer.
+   Lambda only accepts a single-platform image manifest: images built before the workflow set
+   `provenance: false` are OCI indexes, and their `linux/amd64` child digest
+   (`crane digest --platform linux/amd64 <ref>`) is the one to pin.
 
 2. Everything else, then the schema:
 
