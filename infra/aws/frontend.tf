@@ -1,23 +1,68 @@
 # Frontend — S3 + CloudFront + ACM + Route 53
-# Documentación manual: docs/runbooks/frontend-https-aws.md
-# NOTA: Requiere que el dominio esté en Route 53 (hosted zone) y validado en ACM.
+# The first deployment was done by hand (docs/runbooks/frontend-https-aws.md);
+# the zone and the certificate were imported into the state afterwards
+# (ADR 0010). The registrar must point the domain at `name_servers`.
 
 # -----------------------------------------------------------------------------
-# Data sources — Hosted Zone y ACM Certificate existentes (creados manualmente)
+# Domain roots: the public hosted zone and the certificate CloudFront and the
+# Cognito custom domain serve. Both are protected from `terraform destroy`:
+# losing the zone changes the name servers and takes the whole domain down.
 # -----------------------------------------------------------------------------
 
-data "aws_route53_zone" "main" {
-  name         = var.domain_name
-  private_zone = false
+resource "aws_route53_zone" "main" {
+  name = var.domain_name
+  tags = var.tags
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
-data "aws_acm_certificate" "frontend" {
-  domain      = var.domain_name
-  types       = ["AMAZON_ISSUED"]
-  most_recent = true
-
-  # El certificado debe estar en us-east-1 para CloudFront
+# CloudFront only accepts certificates from us-east-1, whatever the region of
+# everything else. One certificate covers the apex and every subdomain
+# (`auth.<domain>` for Cognito among them).
+resource "aws_acm_certificate" "frontend" {
   provider = aws.us_east_1
+
+  domain_name               = var.domain_name
+  subject_alternative_names = ["*.${var.domain_name}"]
+  validation_method         = "DNS"
+  tags                      = var.tags
+
+  lifecycle {
+    create_before_destroy = true
+    prevent_destroy       = true
+  }
+}
+
+# ACM proves ownership through one CNAME per name; the apex and the wildcard
+# share the same record, hence `allow_overwrite`. Keys are the names (known at
+# plan time), not the record names (known only once the certificate exists).
+resource "aws_route53_record" "certificate_validation" {
+  for_each = {
+    for option in aws_acm_certificate.frontend.domain_validation_options :
+    option.domain_name => {
+      name   = option.resource_record_name
+      type   = option.resource_record_type
+      record = option.resource_record_value
+    }
+  }
+
+  zone_id         = aws_route53_zone.main.zone_id
+  name            = each.value.name
+  type            = each.value.type
+  ttl             = 300
+  records         = [each.value.record]
+  allow_overwrite = true
+}
+
+# Waits for issuance; consumers take the ARN from here so a fresh apply does
+# not hand CloudFront or Cognito a certificate that is still pending.
+resource "aws_acm_certificate_validation" "frontend" {
+  provider = aws.us_east_1
+
+  certificate_arn         = aws_acm_certificate.frontend.arn
+  validation_record_fqdns = [for record in aws_route53_record.certificate_validation : record.fqdn]
 }
 
 # -----------------------------------------------------------------------------
@@ -200,7 +245,7 @@ resource "aws_cloudfront_distribution" "frontend" {
   }
 
   viewer_certificate {
-    acm_certificate_arn      = data.aws_acm_certificate.frontend.arn
+    acm_certificate_arn      = aws_acm_certificate_validation.frontend.certificate_arn
     ssl_support_method       = "sni-only"
     minimum_protocol_version = "TLSv1.2_2021"
   }
@@ -225,7 +270,7 @@ resource "aws_cloudfront_distribution" "frontend" {
 # -----------------------------------------------------------------------------
 
 resource "aws_route53_record" "frontend_a" {
-  zone_id = data.aws_route53_zone.main.zone_id
+  zone_id = aws_route53_zone.main.zone_id
   name    = var.domain_name
   type    = "A"
 
@@ -237,7 +282,7 @@ resource "aws_route53_record" "frontend_a" {
 }
 
 resource "aws_route53_record" "frontend_aaaa" {
-  zone_id = data.aws_route53_zone.main.zone_id
+  zone_id = aws_route53_zone.main.zone_id
   name    = var.domain_name
   type    = "AAAA"
 
@@ -252,7 +297,7 @@ resource "aws_route53_record" "frontend_aaaa" {
 resource "aws_route53_record" "frontend_www" {
   count = var.create_www_record ? 1 : 0
 
-  zone_id = data.aws_route53_zone.main.zone_id
+  zone_id = aws_route53_zone.main.zone_id
   name    = "www.${var.domain_name}"
   type    = "A"
 
@@ -266,6 +311,11 @@ resource "aws_route53_record" "frontend_www" {
 # -----------------------------------------------------------------------------
 # Outputs
 # -----------------------------------------------------------------------------
+
+output "name_servers" {
+  description = "Name servers of the hosted zone: what the registrar must delegate the domain to."
+  value       = aws_route53_zone.main.name_servers
+}
 
 output "frontend_bucket_name" {
   description = "Nombre del bucket S3 del frontend"

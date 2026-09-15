@@ -28,7 +28,7 @@ a Cognito ID token, health endpoints included.
 | `cognito.tf` | User pool, Google identity provider, public app client (code + PKCE), `admin` group, hosted-UI domain, the JWKS as output and environment |
 | `lambda.tf` | Two container-image functions with their roles (VPC access for `core-api`, Bedrock invoke for `ai-api`) and log groups; permissions for the gateway |
 | `apigateway.tf` | REST API (regional), Cognito authorizer, the two proxy resources, deployment and `prod` stage |
-| `frontend.tf` | Private S3 bucket (OAC), CloudFront with the S3 default behaviour, the `/api/*` behaviour to the gateway and a directory-index function, Route 53 aliases; the ACM certificate (us-east-1) and the hosted zone are read, not created |
+| `frontend.tf` | Private S3 bucket (OAC), CloudFront with the S3 default behaviour, the `/api/*` behaviour to the gateway and a directory-index function, Route 53 aliases; the public hosted zone and the ACM certificate (us-east-1, apex + wildcard, DNS-validated), both `prevent_destroy` (ADR 0010) |
 
 The images bake the Lambda Web Adapter and their `AWS_LWA_*` settings
 ([Docker runbook](../../docs/runbooks/docker.md#the-same-image-on-aws-lambda)); the functions
@@ -66,8 +66,12 @@ A successful browser login followed by `GetRoleCredentials ... No access` means 
 ## First deployment
 
 Prerequisites: the devcontainer (AWS CLI v2, Terraform ≥ 1.11, `crane`), an SSO session
-(`just aws-login`), the domain's public hosted zone in this account and its ACM certificate
-(domain + wildcard) issued in `us-east-1` ([frontend runbook](../../docs/runbooks/frontend-https-aws.md)).
+(`just aws-login`) and a registered domain (`domain_name`). Terraform creates its hosted zone and
+certificate; the certificate is only issued once the registrar delegates the domain to the
+`name_servers` output, so on a brand-new domain apply the zone first
+(`terraform apply -target=aws_route53_zone.main`), delegate, then continue. The account we use
+had both created by hand ([frontend runbook](../../docs/runbooks/frontend-https-aws.md)) and
+imported into the state (ADR 0010).
 
 Bootstrap first, once: state bucket, GitHub OIDC provider and CI role, following
 [`bootstrap/README.md`](bootstrap/README.md). It ends with the `terraform init` of this folder

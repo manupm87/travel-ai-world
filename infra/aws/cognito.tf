@@ -112,10 +112,10 @@ locals {
 resource "aws_cognito_user_pool_domain" "main" {
   user_pool_id = aws_cognito_user_pool.main.id
   # Prefix domains are global: the account id keeps it unique. With a custom
-  # domain, the ACM certificate must be in us-east-1 and cover that name, and
-  # the parent domain must already resolve (it does: the frontend's A record).
+  # domain, Cognito needs the us-east-1 certificate (the wildcard covers it)
+  # and the parent domain must already resolve (it does: the frontend's A record).
   domain          = local.use_custom_cognito_domain ? var.cognito_custom_domain : "${var.name_prefix}-${data.aws_caller_identity.current.account_id}"
-  certificate_arn = local.use_custom_cognito_domain ? data.aws_acm_certificate.frontend.arn : null
+  certificate_arn = local.use_custom_cognito_domain ? aws_acm_certificate_validation.frontend.certificate_arn : null
   # Classic hosted UI (version 1). The browser is sent straight to Google
   # (`identity_provider=Google`), so nobody sees this page; the "managed
   # login" designer (version 2) needs `aws_cognito_managed_login_branding`,
@@ -126,7 +126,7 @@ resource "aws_cognito_user_pool_domain" "main" {
 resource "aws_route53_record" "cognito" {
   count = local.use_custom_cognito_domain ? 1 : 0
 
-  zone_id = data.aws_route53_zone.main.zone_id
+  zone_id = aws_route53_zone.main.zone_id
   name    = var.cognito_custom_domain
   type    = "A"
 
