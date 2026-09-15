@@ -19,14 +19,20 @@ from travel_common.exceptions import BadRequest
 logger = logging.getLogger(__name__)
 
 # Relative to the working directory: `services/core_api/` locally, `/app` in the image.
-ALEMBIC_INI = Path("alembic.ini")
+ALEMBIC_DIR = Path("alembic")
 
 
-def upgrade_database(ini: Path = ALEMBIC_INI) -> None:
+def upgrade_database(scripts: Path = ALEMBIC_DIR) -> None:
     """`alembic upgrade head`, blocking. `env.py` opens its own event loop, so
-    call this from a worker thread when a loop is already running."""
-    logger.info("Applying migrations with %s", ini.resolve())
-    command.upgrade(Config(str(ini)), "head")
+    call this from a worker thread when a loop is already running.
+
+    No `alembic.ini`: reading it would make `env.py` reconfigure the logging
+    of the running web process. The database URL comes from settings anyway.
+    """
+    logger.info("Applying migrations from %s", scripts.resolve())
+    config = Config()
+    config.set_main_option("script_location", str(scripts))
+    command.upgrade(config, "head")
 
 
 async def migrate() -> None:

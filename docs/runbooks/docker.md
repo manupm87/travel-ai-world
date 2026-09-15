@@ -44,7 +44,7 @@ so a cold start never races a schema change; the deploy workflow runs them inste
 # CLI form: any container with the core-api image
 docker run --rm --env-file services/core_api/.env travel-ai-world/core-api:local migrate
 
-# Lambda form: the adapter delivers a non-HTTP payload as POST /events (never routed by the gateway)
+# Lambda form: the adapter delivers a non-HTTP payload as POST /events (404 outside Lambda; never routed by the gateway)
 aws lambda invoke --function-name <core-api function> --cli-binary-format raw-in-base64-out \
   --payload '{"command": "migrate"}' /dev/stdout
 ```

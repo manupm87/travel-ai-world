@@ -24,6 +24,15 @@ class CoreSettings(CommonSettings):
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
 
+    # Set by the Lambda runtime itself; never in a .env. Gates `POST /events`
+    # (direct-invocation commands) to the deployment that can only reach it
+    # through `aws lambda invoke`.
+    AWS_LAMBDA_FUNCTION_NAME: str = ""
+
+    @property
+    def on_lambda(self) -> bool:
+        return bool(self.AWS_LAMBDA_FUNCTION_NAME)
+
 
 @lru_cache
 def get_settings() -> CoreSettings:
