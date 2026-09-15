@@ -6,6 +6,9 @@
 [profile travel-ai-world]
 sso_session = travel-ai-world
 sso_account_id = 123456789012
+# The permission set assigned to you on the account (infra/aws/README.md, "Access").
+# TravelAIWorldDeveloper when we administer Identity Center; on the current course account the
+# organization grants AdministratorAccess instead.
 sso_role_name = TravelAIWorldDeveloper
 region = eu-west-1
 output = json

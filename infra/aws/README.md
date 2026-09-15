@@ -24,7 +24,10 @@ path. The frontend needs only `NEXT_PUBLIC_API_URL`.
 ## Access (once per account)
 
 Nobody uses access keys ([ADR 0007](../../docs/architecture/adr/0007-aws-cloud-and-auth.md)).
-In the AWS console, once:
+Identity Center lives in the **management account of the organization**, so what you can do
+depends on who administers it:
+
+**You administer Identity Center** (your own organization). In the console, once:
 
 1. **IAM Identity Center** → Enable (it creates an organization if there is none; free).
 2. **Users** → add yourself (email invitation) and any other maintainer.
@@ -32,8 +35,19 @@ In the AWS console, once:
    IAM statements of [`bootstrap/main.tf`](bootstrap/main.tf) is the right size for whoever runs
    Terraform by hand; read-only users get `ViewOnlyAccess`.
 4. **AWS accounts** → assign the user(s) to this account with that permission set.
-5. Copy the **start URL** (Settings) and the account id into `~/.aws/config` in the devcontainer
-   (see [`.devcontainer/README.md`](../../.devcontainer/README.md#aws)), then `just aws-login`.
+
+**Someone else administers it** (the account is a member of an organization you do not own,
+as with the current course account). Permission sets and assignments can only be created from
+the management account, not from this one, even with `AdministratorAccess`: ask the
+organization's administrator for an assignment and use whatever permission set they grant.
+`aws sso login` followed by `aws sso list-account-roles` shows the names you actually have.
+The current account grants `AdministratorAccess`; it cannot be narrowed from our side.
+
+Then copy the **start URL** (Settings), the account id and the permission set name into
+`~/.aws/config` in the devcontainer (`sso_role_name`; see
+[`.devcontainer/README.md`](../../.devcontainer/README.md#aws)) and run `just aws-login`.
+A successful browser login followed by `GetRoleCredentials ... No access` means the
+`sso_role_name` in the profile is not assigned to you on that account.
 
 ## First deployment
 

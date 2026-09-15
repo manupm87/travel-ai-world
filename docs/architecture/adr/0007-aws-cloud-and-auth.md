@@ -28,7 +28,8 @@ restricted as Secrets Manager.
   `travel-ai-world` seeded from `.devcontainer/aws-config.example` (account id, role, start URL,
   region: no secrets), `AWS_PROFILE` set by compose, `just aws-login` for the device-code flow.
   Tokens are short-lived and cached in the `aws_config` named volume; the host's `~/.aws` is never
-  mounted. The permission set is scoped to the project's resources, not `AdministratorAccess`.
+  mounted. The permission set should be scoped to the project's resources, not
+  `AdministratorAccess` (see the amendment below for the current account).
   Access keys (`aws_access_key_id`) are forbidden in `.env`, `terraform.tfvars`, the repo and
   the container.
 - **CI authentication is OIDC**: `deploy-backend.yml` assumes `AWS_ROLE_TO_ASSUME` through
@@ -38,7 +39,7 @@ restricted as Secrets Manager.
 - **Terraform state lives in a private S3 bucket** (versioned, SSE, public access blocked,
   native lockfile `use_lockfile = true`, so no DynamoDB table). The bucket, the GitHub OIDC
   provider and the CI role are created once by a small `infra/aws/bootstrap/` root with local
-  state; the main `infra/aws/` root then uses the S3 backend. That bootstrap is the next PR.
+  state; the main `infra/aws/` root then uses the S3 backend (`infra/aws/bootstrap/`, #73).
 
 ## Consequences
 
@@ -51,5 +52,13 @@ restricted as Secrets Manager.
   expires.
 - Bad: the first `terraform apply` of the bootstrap root is manual and keeps a local state file
   (ignored by git); losing it means importing three resources by hand.
+- Amendment (2026-09-15): the account we deploy to is a member of an organization whose
+  management account (and therefore Identity Center) we do not administer. Permission sets and
+  assignments can only be created there, so neither the console nor the bootstrap root can
+  create `TravelAIWorldDeveloper`; the organization grants `AdministratorAccess` and we use it.
+  The scoped permission set stays the target for any account whose Identity Center we own, and
+  the bootstrap root deliberately does not manage Identity Center resources. The bootstrap was
+  applied that day (state bucket, OIDC provider, CI role) and the main root initialised against
+  the S3 backend.
 - Revisit if a second environment (staging) appears: then the bootstrap should create one role
   and one state key per GitHub environment.
