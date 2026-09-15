@@ -5,6 +5,13 @@ for both clouds. This folder deploys the two services as **ECS Fargate** service
 **Application Load Balancer**, which acts as the API gateway: a single public origin, routed by
 path. The frontend needs only `NEXT_PUBLIC_API_URL`.
 
+> **This is the v1 shape.** The target (v2: CloudFront single origin, API Gateway REST with
+> response streaming, VPC Link → internal NLB, tasks in private subnets, `pgvector`, Bedrock) is
+> drawn in [`docs/architecture/aws-architecture.png`](../../docs/architecture/aws-architecture.png)
+> and decided in [ADR 0008](../../docs/architecture/adr/0008-aws-architecture-v2-edge-and-gateway.md).
+> This folder moves to v2 issue by issue; until then the ALB below has no HTTPS listener, so it
+> cannot serve a browser frontend in production.
+
 | Service | Image | Receives | ALB rule |
 |---|---|---|---|
 | `core-api` | `core-api` | `DB_*`, `GOOGLE_*`, `SECRET_KEY` | default action |

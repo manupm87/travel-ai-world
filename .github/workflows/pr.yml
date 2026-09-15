@@ -62,6 +62,8 @@ jobs:
               - '.github/**'
             docs:
               - '**/*.md'
+              - 'docs/architecture/diagrams/**'
+              - 'docs/architecture/*.png'
               - 'scripts/check_docs.py'
               - 'justfile'
               - '.github/**'

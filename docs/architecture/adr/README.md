@@ -11,6 +11,7 @@ One file per decision, numbered, never deleted (superseded ones get a new status
 | [0005](0005-trip-aggregate-nested-resources.md) | `Trip` is the aggregate root; child resources are nested and declarative | Accepted |
 | [0006](0006-frontend-trip-view-model.md) | The frontend renders a view model mapped from the backend contract | Accepted |
 | [0007](0007-aws-cloud-and-auth.md) | AWS is the deployment cloud; SSO locally, OIDC in CI, state in S3 | Accepted |
+| [0008](0008-aws-architecture-v2-edge-and-gateway.md) | AWS v2: CloudFront single origin, API Gateway REST with streaming, private Fargate | Proposed |
 
 ## Template
 

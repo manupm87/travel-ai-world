@@ -39,7 +39,8 @@ just lint           # ruff + pyright (backend, scripts) + eslint
 just test           # every backend package + frontend unit tests
 just test-core / test-ai / test-common / test-frontend / test-e2e
 just contracts      # export OpenAPI docs + regenerate frontend types (run after changing any schema/route)
-just docs-check     # documentation hygiene
+just docs-check     # documentation hygiene (incl. diagram freshness)
+just diagrams       # re-render docs/architecture/aws-architecture.png from docs/architecture/diagrams/
 just migrate / just migration "message"
 just docker-up      # proxy :8080 + core_api + ai_api + PostgreSQL
 just scrape         # run the city scraper (needs GOOGLE_API_KEY in its .env)
