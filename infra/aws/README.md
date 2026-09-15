@@ -40,9 +40,9 @@ In the AWS console, once:
 Prerequisites: the devcontainer (AWS CLI v2, Terraform ≥ 1.11, `crane`) and an SSO session
 (`just aws-login`).
 
-0. Bootstrap, once: state bucket, GitHub OIDC provider and CI role, following
-   [`bootstrap/README.md`](bootstrap/README.md). It ends with the `terraform init` of this
-   folder against the S3 backend.
+Bootstrap first, once: state bucket, GitHub OIDC provider and CI role, following
+[`bootstrap/README.md`](bootstrap/README.md). It ends with the `terraform init` of this folder
+against the S3 backend.
 
 ```bash
 cp terraform.tfvars.example terraform.tfvars      # fill in every value; the file is ignored by git
@@ -85,16 +85,6 @@ Later deploys: the "Deploy backend" workflow with `cloud=aws`. It assumes the bo
 through OIDC and initialises the same S3 backend; it needs the secrets `AWS_REGION`,
 `AWS_ROLE_TO_ASSUME`, the variable `AWS_TF_STATE_BUCKET` and the `TF_VAR_*` listed in the
 workflow header.
-
-## Debugging a running task
-
-The devcontainer includes the Session Manager plugin, so you can open a shell in a Fargate task
-(the task role needs `ssmmessages:*` and the service `enable_execute_command`):
-
-```bash
-aws ecs execute-command --cluster <cluster> --task <task-id> --container core-api --interactive --command /bin/sh
-aws logs tail /ecs/<name_prefix>-core-api --follow
-```
 
 ## Debugging a running task
 
