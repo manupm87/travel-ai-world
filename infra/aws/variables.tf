@@ -21,9 +21,9 @@ variable "ai_api_image" {
 }
 
 variable "core_api_memory_mb" {
-  description = "Memory of the core_api function (CPU scales with it)."
+  description = "Memory of the core_api function. CPU scales with it, and the init phase (SQLAlchemy import plus the VPC attachment) has 10 s: 1769 MB is one full vCPU."
   type        = number
-  default     = 1024
+  default     = 1769
 }
 
 variable "ai_api_memory_mb" {
@@ -121,9 +121,9 @@ variable "frontend_bucket_name" {
 }
 
 variable "cloudfront_price_class" {
-  description = "CloudFront price class (PriceClass_All, PriceClass_200, PriceClass_100)."
+  description = "CloudFront price class. A distribution on CloudFront's Free pricing plan only accepts PriceClass_All."
   type        = string
-  default     = "PriceClass_100" # Solo N. America y Europa (más barato)
+  default     = "PriceClass_All"
 }
 
 variable "create_www_record" {

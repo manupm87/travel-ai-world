@@ -38,10 +38,17 @@ def create_app(
     {API_V1_STR}/openapi.json.
     """
     configure_logging(settings.LOG_LEVEL)
-    if not settings.SECRET_KEY:
+    if settings.AUTH_MODE == "local" and not settings.SECRET_KEY:
         logger.warning(
             "SECRET_KEY is empty: issuing or verifying tokens will fail. "
             "Set it in this service's .env (same value in every service)."
+        )
+    if settings.AUTH_MODE == "cognito" and not (
+        settings.COGNITO_JWKS and settings.COGNITO_ISSUER and settings.COGNITO_CLIENT_ID
+    ):
+        logger.warning(
+            "AUTH_MODE=cognito but COGNITO_ISSUER, COGNITO_CLIENT_ID or COGNITO_JWKS "
+            "is empty: every token will be rejected."
         )
 
     base = docs_prefix.rstrip("/")

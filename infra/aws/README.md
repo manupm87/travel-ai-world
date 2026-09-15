@@ -160,7 +160,11 @@ curl -H "Authorization: Bearer $TOKEN" "$(terraform output -raw api_gateway_invo
 - `{"message":"Unauthorized"}` from the gateway → the authorizer rejected the token (expired, an
   access token instead of the ID token, or the wrong pool).
 - A function never becomes ready → the Web Adapter's readiness path answered non-2xx; the
-  function log shows the app's startup error.
+  function log shows the app's startup error. `INIT_REPORT ... Status: timeout` means the app
+  took more than the 10 s Lambda gives the init phase; the invocation still succeeds (Lambda
+  retries the init inside the invoke), but raise `core_api_memory_mb` for more CPU.
+- `Distributions with the Free pricing plan can't have the following features: Price class` →
+  keep `cloudfront_price_class = "PriceClass_All"` (the default).
 - The chat arrives all at once → the `/api/*` behaviour must keep `compress = false` and the
   `ai` integration `response_transfer_mode = "STREAM"`.
 - A page under a subfolder shows an S3 `AccessDenied` XML → the CloudFront function that maps
