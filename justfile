@@ -128,7 +128,7 @@ infra-fmt:
 infra-fmt-check:
     terraform fmt -check -recursive -diff infra
 
-# terraform init (no backend) + validate for one cloud: just infra-validate gcp|aws
+# terraform init (no backend) + validate for one root: just infra-validate gcp|aws|aws/bootstrap
 infra-validate cloud:
     cd infra/{{cloud}} && terraform init -backend=false -input=false >/dev/null && terraform validate
 

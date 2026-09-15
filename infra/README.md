@@ -32,8 +32,10 @@ services and why the frontend accepts two URLs: [ADR 0001](../docs/architecture/
   must be registered in the Google OAuth client.
 - **Migrations** run at container start in `core_api` only (`src/backend/docker/entrypoint.sh`).
 - **State**: commit `.terraform.lock.hcl`, never `*.tfstate` or `*.tfvars`. Sensitive variables end
-  up in the state, so use a remote backend with restricted access (GCS or S3) for team work; the CI
-  workflow requires one.
+  up in the state, so it lives in a remote backend with restricted access; the CI workflow
+  requires one. AWS: the private S3 bucket created by [`aws/bootstrap/`](aws/bootstrap/README.md)
+  (partial backend config passed at `init`). GCP: add a GCS bucket to `gcp/versions.tf` if you
+  ever apply it.
 - **The frontend is not deployed here**: it is a static export on GitHub Pages
   (`.github/workflows/deploy.yml`) or any static host.
 
@@ -48,5 +50,5 @@ services and why the frontend accepts two URLs: [ADR 0001](../docs/architecture/
    update `backend_cors_origins` and the Google OAuth client.
 
 ```bash
-just infra-fmt && just infra-validate gcp && just infra-validate aws    # CI runs the check variants changes in gcp/ or aws/
+just infra-fmt && just infra-validate gcp && just infra-validate aws && just infra-validate aws/bootstrap    # CI runs the check variants on changes in infra/
 ```

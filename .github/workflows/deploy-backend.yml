@@ -4,16 +4,18 @@ name: Deploy backend
 # cloud's registry and applies that cloud's Terraform with them.
 #
 # Prerequisites (one-off, per cloud):
-#   - A remote Terraform state backend configured in infra/<cloud>/
-#     (a GCS bucket or S3 bucket); CI cannot own local state.
+#   - A remote Terraform state backend: for AWS, apply infra/aws/bootstrap once
+#     (state bucket + GitHub OIDC provider + CI role); for GCP, a GCS bucket in
+#     infra/gcp/versions.tf. CI cannot own local state.
 #   - The container registry already created (first run only), because the
 #     images are copied before Terraform applies:
 #       terraform apply -target=google_artifact_registry_repository.backend  (GCP)
 #       terraform apply -target=aws_ecr_repository.services                 (AWS)
 #   - Repository secrets (see docs/runbooks/deploy.md and infra/README.md):
 #       GCP: GCP_PROJECT_ID, GCP_WORKLOAD_IDENTITY_PROVIDER, GCP_SERVICE_ACCOUNT
-#       AWS: AWS_REGION, AWS_ROLE_TO_ASSUME
-#     Repository variables (Settings → Variables): GCP_REGION (e.g. europe-west1)
+#       AWS: AWS_REGION, AWS_ROLE_TO_ASSUME (bootstrap output ci_role_arn)
+#     Repository variables (Settings → Variables): GCP_REGION (e.g. europe-west1),
+#       AWS_TF_STATE_BUCKET (bootstrap output state_bucket)
 #       both: TF_VAR_db_password, TF_VAR_nvidia_api_key, TF_VAR_secret_key,
 #             TF_VAR_google_client_id, TF_VAR_google_client_secret,
 #             TF_VAR_backend_cors_origins
@@ -108,7 +110,11 @@ jobs:
 
       - name: Registry target (AWS)
         if: inputs.cloud == 'aws'
+        env:
+          STATE_BUCKET: ${{ vars.AWS_TF_STATE_BUCKET }}
         run: |
+          test -n "$STATE_BUCKET" || { echo "::error::Set the repository variable AWS_TF_STATE_BUCKET (infra/aws/bootstrap output state_bucket)"; exit 1; }
+          echo "TF_INIT_ARGS=-backend-config=bucket=${STATE_BUCKET} -backend-config=region=${{ secrets.AWS_REGION }}" >> "$GITHUB_ENV"
           ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
           REGISTRY="${ACCOUNT}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com"
           aws ecr get-login-password --region "${{ secrets.AWS_REGION }}" \
@@ -130,7 +136,8 @@ jobs:
       # ── Terraform ────────────────────────────────────────────────────────
       - uses: hashicorp/setup-terraform@v3
 
-      - run: terraform init -input=false
+      # TF_INIT_ARGS: AWS passes its partial S3 backend config; GCP has none.
+      - run: terraform init -input=false ${TF_INIT_ARGS:-}
       - run: terraform validate
       - run: terraform plan -input=false -out=tfplan
 

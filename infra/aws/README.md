@@ -21,16 +21,33 @@ path. The frontend needs only `NEXT_PUBLIC_API_URL`.
 - ALB with two target groups, health checks on `/api/v1/health/` and `/api/v1/ai/health/`, and a
   300 s idle timeout for streaming responses.
 
+## Access (once per account)
+
+Nobody uses access keys ([ADR 0007](../../docs/architecture/adr/0007-aws-cloud-and-auth.md)).
+In the AWS console, once:
+
+1. **IAM Identity Center** → Enable (it creates an organization if there is none; free).
+2. **Users** → add yourself (email invitation) and any other maintainer.
+3. **Permission sets** → create `TravelAIWorldDeveloper`. `PowerUserAccess` plus the inline
+   IAM statements of [`bootstrap/main.tf`](bootstrap/main.tf) is the right size for whoever runs
+   Terraform by hand; read-only users get `ViewOnlyAccess`.
+4. **AWS accounts** → assign the user(s) to this account with that permission set.
+5. Copy the **start URL** (Settings) and the account id into `~/.aws/config` in the devcontainer
+   (see [`.devcontainer/README.md`](../../.devcontainer/README.md#aws)), then `just aws-login`.
+
 ## First deployment
 
-Prerequisites: an AWS account with IAM Identity Center enabled and a permission set assigned to
-you, plus the devcontainer (AWS CLI v2, Terraform, `crane`; see
-[`.devcontainer/README.md`](../../.devcontainer/README.md#aws)). Authenticate with
-`just aws-login` (SSO, short-lived tokens; access keys are not used anywhere in this project).
+Prerequisites: the devcontainer (AWS CLI v2, Terraform ≥ 1.11, `crane`) and an SSO session
+(`just aws-login`).
+
+0. Bootstrap, once: state bucket, GitHub OIDC provider and CI role, following
+   [`bootstrap/README.md`](bootstrap/README.md). It ends with the `terraform init` of this
+   folder against the S3 backend.
 
 ```bash
 cp terraform.tfvars.example terraform.tfvars      # fill in every value; the file is ignored by git
-terraform init && terraform validate
+terraform init -backend-config="bucket=$(terraform -chdir=bootstrap output -raw state_bucket)" -backend-config="region=eu-west-1"
+terraform validate
 ```
 
 1. Registry first:
@@ -64,9 +81,10 @@ terraform init && terraform validate
    npm run build
    ```
 
-Later deploys: the "Deploy backend" workflow with `cloud=aws`. It needs an S3 state backend in
-`versions.tf` and the secrets `AWS_REGION`, `AWS_ROLE_TO_ASSUME` (OIDC) plus the `TF_VAR_*`
-listed in the workflow header.
+Later deploys: the "Deploy backend" workflow with `cloud=aws`. It assumes the bootstrap's role
+through OIDC and initialises the same S3 backend; it needs the secrets `AWS_REGION`,
+`AWS_ROLE_TO_ASSUME`, the variable `AWS_TF_STATE_BUCKET` and the `TF_VAR_*` listed in the
+workflow header.
 
 ## Debugging a running task
 

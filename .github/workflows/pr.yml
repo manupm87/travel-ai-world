@@ -185,7 +185,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        cloud: [gcp, aws]
+        cloud: [gcp, aws, aws/bootstrap]
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
