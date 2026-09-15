@@ -12,8 +12,14 @@
 # /opt/extensions and only activates when the Lambda runtime API is present;
 # everywhere else uvicorn simply listens on :8000.
 
+# Global build args: FROM lines below reference them, so they are declared
+# before the first stage (stage-level ARG SERVICE re-declarations inherit them).
 ARG PYTHON_VERSION=3.12
 ARG LWA_VERSION=0.9.1
+ARG SERVICE
+
+# The adapter binary, as a stage: `COPY --from` does not expand variables.
+FROM public.ecr.aws/awsguru/aws-lambda-adapter:${LWA_VERSION} AS lwa
 
 # ── Stage 1: resolve and install into /opt/venv ─────────────────────────────
 FROM python:${PYTHON_VERSION}-slim AS builder
@@ -64,10 +70,9 @@ ENV AWS_LWA_INVOKE_MODE=response_stream \
 # ── Stage 2: minimal runtime ────────────────────────────────────────────────
 FROM lambda-env-${SERVICE}
 ARG SERVICE
-ARG LWA_VERSION
 WORKDIR /app
 
-COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:${LWA_VERSION} /lambda-adapter /opt/extensions/lambda-adapter
+COPY --from=lwa /lambda-adapter /opt/extensions/lambda-adapter
 COPY --from=builder /opt/venv /opt/venv
 COPY --from=builder /runtime /app
 COPY docker/entrypoint.sh /app/entrypoint.sh
