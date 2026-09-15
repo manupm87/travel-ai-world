@@ -1,6 +1,6 @@
 # 0009 — AWS v3 on a 30 €/month budget: Lambda instead of Fargate, Cognito for sign-in, no NAT
 
-**Status:** Proposed
+**Status:** Accepted (applied 2026-09-15)
 **Date:** 2026-09-15
 
 ## Context
@@ -105,7 +105,12 @@ The RDS free tier is the swing item; check the account's creation date before th
   sign-in (TRA-119); (2) Lambda Web Adapter + `migrate` command (TRA-120); (3) Terraform v3
   (TRA-121); (4) Bedrock adapter (TRA-122); (5) `pgvector` database and `Retriever` adapter
   (TRA-123). This ADR becomes **Accepted** when (3) is
-  applied. ADR 0008 is superseded for compute, network and secrets; its CloudFront, gateway,
-  streaming and data decisions carry over here.
+  applied (done 2026-09-15: PRs #85, #87, #88, #90, #92). ADR 0008 is superseded for compute,
+  network and secrets; its CloudFront, gateway, streaming and data decisions carry over here.
+- Found on the real account, not in the design: the distribution created by hand in #83 sits on
+  CloudFront's Free pricing plan (only `PriceClass_All`) and carries a console-attached WAF web
+  ACL (three managed rule groups, roughly 8 $/month) that Terraform ignores; keeping it is a
+  separate budget decision. Backend images must be single-platform manifests (the build sets
+  `provenance: false`).
 - Revisit if traffic grows past the free tiers or if ECS becomes a requirement: the v2 shape
   (ADR 0008) is the documented path back, at ~55 €/month.

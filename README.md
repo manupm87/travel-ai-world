@@ -4,7 +4,7 @@
 > day-by-day itinerary, streamed in real time.
 
 Live site: <https://kyrian-world.com> (static frontend on S3 + CloudFront; the API and the
-sign-in come from the same domain once `infra/aws/` is applied).
+sign-in come from the same domain: `infra/aws/`, ADR 0009).
 
 ## What is inside
 

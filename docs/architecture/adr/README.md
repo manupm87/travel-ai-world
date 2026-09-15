@@ -12,7 +12,7 @@ One file per decision, numbered, never deleted (superseded ones get a new status
 | [0006](0006-frontend-trip-view-model.md) | The frontend renders a view model mapped from the backend contract | Accepted |
 | [0007](0007-aws-cloud-and-auth.md) | AWS is the deployment cloud; SSO locally, OIDC in CI, state in S3 | Accepted |
 | [0008](0008-aws-architecture-v2-edge-and-gateway.md) | AWS v2: CloudFront single origin, API Gateway REST with streaming, private Fargate | Superseded by 0009 |
-| [0009](0009-lambda-cognito-budget.md) | AWS v3 on a 30 €/month budget: Lambda instead of Fargate, Cognito for sign-in, no NAT | Proposed |
+| [0009](0009-lambda-cognito-budget.md) | AWS v3 on a 30 €/month budget: Lambda instead of Fargate, Cognito for sign-in, no NAT | Accepted |
 
 ## Template
 
