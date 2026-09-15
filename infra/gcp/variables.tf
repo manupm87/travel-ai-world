@@ -34,7 +34,7 @@ variable "ai_api_image" {
 variable "nvidia_chat_model" {
   description = "Chat model served by NVIDIA for ai_api."
   type        = string
-  default     = "minimaxai/minimax-m3"
+  default     = "nvidia/nemotron-3-super-120b-a12b"
 }
 
 variable "db_name" {

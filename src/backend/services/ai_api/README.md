@@ -39,7 +39,9 @@ ai_api/
 └── testing.py      FakeProvider, settings_for_tests()
 ```
 
-Swap the model: `NVIDIA_CHAT_MODEL` in `.env`; tune sampling with `CHAT_*`. Swap the provider: a
+Swap the model: `NVIDIA_CHAT_MODEL` in `.env` (NVIDIA retires models without notice; a `410` from
+the provider means pick another one on build.nvidia.com); `NVIDIA_THINKING=true` lets reasoning
+models think first; tune sampling with `CHAT_*`. Swap the provider: a
 new class in `infrastructure/` implementing `LLMProvider`, built in `main.lifespan`.
 
 Errors: upstream status codes and bodies never reach the browser. A domain error mid-stream is sent

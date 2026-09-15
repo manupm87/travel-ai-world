@@ -13,6 +13,8 @@ from ai_api.infrastructure.sse import SSEParser
 from travel_common.exceptions import ProviderUnavailable
 
 UPSTREAM_STREAM = (
+    'data: {"choices": [{"delta": {"role": "assistant", "content": ""}}]}\n\n'
+    'data: {"choices": [{"delta": {"reasoning_content": "thinking..."}}]}\n\n'
     'data: {"choices": [{"delta": {"content": "Ho"}}]}\n\n'
     'data: {"choices": [{"delta": {"text": "la"}}]}\n\n'
     "data: not-json\n\n"
@@ -35,7 +37,7 @@ async def _collect(provider: NvidiaProvider) -> list[str]:
     return [d async for d in provider.stream([Message("user", "hi")])]
 
 
-async def test_streams_deltas_from_content_and_text_fields():
+async def test_streams_deltas_from_content_and_text_fields_only():
     seen: list[dict] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -53,6 +55,28 @@ async def test_streams_deltas_from_content_and_text_fields():
     assert seen[0]["max_tokens"] == 64
     assert seen[0]["temperature"] == 0.1
     assert seen[0]["top_p"] == 0.95
+    assert seen[0]["chat_template_kwargs"] == {"enable_thinking": False}
+
+
+async def test_thinking_flag_reaches_the_payload():
+    seen: list[dict] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(__import__("json").loads(request.content))
+        return httpx.Response(200, text=UPSTREAM_STREAM)
+
+    await _collect(_provider(handler, thinking=True))
+
+    assert seen[0]["chat_template_kwargs"] == {"enable_thinking": True}
+
+
+def test_from_settings_reads_model_and_thinking():
+    provider = NvidiaProvider.from_settings(
+        AISettings(NVIDIA_API_KEY="k", NVIDIA_CHAT_MODEL="m", NVIDIA_THINKING=True)
+    )
+
+    assert provider._model == "m"
+    assert provider._thinking is True
 
 
 async def test_reuses_one_client_across_calls():

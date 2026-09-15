@@ -34,6 +34,7 @@ class NvidiaProvider:
         client: httpx.AsyncClient,
         params: GenerationParams = GenerationParams(),
         retry: RetryPolicy = RetryPolicy(),
+        thinking: bool = False,
     ) -> None:
         self._api_key = api_key
         self._url = f"{base_url.rstrip('/')}/chat/completions"
@@ -41,6 +42,7 @@ class NvidiaProvider:
         self._client = client
         self._params = params
         self._retry = retry
+        self._thinking = thinking
 
     @classmethod
     def from_settings(cls, settings: AISettings) -> "NvidiaProvider":
@@ -62,6 +64,7 @@ class NvidiaProvider:
                 top_p=settings.CHAT_TOP_P,
             ),
             retry=RetryPolicy(max_retries=settings.NVIDIA_MAX_RETRIES),
+            thinking=settings.NVIDIA_THINKING,
         )
 
     @property
@@ -100,6 +103,10 @@ class NvidiaProvider:
             "model": self._model,
             "messages": [asdict(m) for m in messages],
             **asdict(self._params),
+            # Honoured by reasoning models (Nemotron, Qwen, ...), ignored by the
+            # rest. Reasoning, when on, arrives as `reasoning_content` deltas,
+            # which `_extract_delta` drops: only the answer is streamed.
+            "chat_template_kwargs": {"enable_thinking": self._thinking},
             "stream": True,
         }
         parser = SSEParser()
