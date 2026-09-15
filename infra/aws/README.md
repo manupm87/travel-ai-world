@@ -96,4 +96,14 @@ aws ecs execute-command --cluster <cluster> --task <task-id> --container core-ap
 aws logs tail /ecs/<name_prefix>-core-api --follow
 ```
 
+## Debugging a running task
+
+The devcontainer includes the Session Manager plugin, so you can open a shell in a Fargate task
+(the task role needs `ssmmessages:*` and the service `enable_execute_command`):
+
+```bash
+aws ecs execute-command --cluster <cluster> --task <task-id> --container core-api --interactive --command /bin/sh
+aws logs tail /ecs/<name_prefix>-core-api --follow
+```
+
 For production add an ACM certificate and an HTTPS listener to the ALB before publishing the domain.
