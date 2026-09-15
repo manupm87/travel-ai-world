@@ -8,9 +8,10 @@ Read the root [`AGENTS.md`](../../AGENTS.md) first. This file covers the `src/ba
 src/backend/
 ├── pyproject.toml          workspace root: members, dev deps, ruff, pytest
 ├── uv.lock                 ONE lockfile for every member (never edit by hand; `uv lock`)
-├── Dockerfile              one file, two images: --build-arg SERVICE=core_api|ai_api
+├── Dockerfile              one file, two images: --build-arg SERVICE=core_api|ai_api; Lambda Web Adapter
+│                           in /opt/extensions (per-service AWS_LWA_* stage), inert outside Lambda
 ├── docker-compose.yml      proxy :8080 → core_api / ai_api, PostgreSQL
-├── docker/                 entrypoint.sh, nginx.conf
+├── docker/                 entrypoint.sh (serve, or `migrate`; no auto-migration on Lambda), nginx.conf
 ├── scripts/export_openapi.py
 ├── libs/travel_common/     shared kernel (see rules below)
 ├── services/

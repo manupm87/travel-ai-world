@@ -6,8 +6,14 @@
 # SERVICE is the import package (services/<SERVICE>/<SERVICE>); the uv
 # package name is the same with dashes. Only that service and the workspace
 # libraries it depends on end up in the image.
+#
+# The same image runs in Docker Compose, on ECS and on AWS Lambda: the AWS
+# Lambda Web Adapter (ADR 0009) ships as a Lambda extension in
+# /opt/extensions and only activates when the Lambda runtime API is present;
+# everywhere else uvicorn simply listens on :8000.
 
 ARG PYTHON_VERSION=3.12
+ARG LWA_VERSION=0.9.1
 
 # ── Stage 1: resolve and install into /opt/venv ─────────────────────────────
 FROM python:${PYTHON_VERSION}-slim AS builder
@@ -43,11 +49,25 @@ RUN mkdir -p /runtime \
          cp -r "services/${SERVICE}/alembic" "services/${SERVICE}/alembic.ini" /runtime/; \
        fi
 
+# ── Stage 2a: per-service Lambda Web Adapter settings ───────────────────────
+# ENV cannot branch on a build arg, so each service has a one-line stage and
+# the runtime stage inherits from the matching one.
+FROM python:${PYTHON_VERSION}-slim AS lambda-env-core_api
+ENV AWS_LWA_INVOKE_MODE=buffered \
+    AWS_LWA_READINESS_CHECK_PATH=/api/v1/health/
+
+FROM python:${PYTHON_VERSION}-slim AS lambda-env-ai_api
+# Response streaming end to end: the SSE chat is not buffered by Lambda.
+ENV AWS_LWA_INVOKE_MODE=response_stream \
+    AWS_LWA_READINESS_CHECK_PATH=/api/v1/ai/health/
+
 # ── Stage 2: minimal runtime ────────────────────────────────────────────────
-FROM python:${PYTHON_VERSION}-slim
+FROM lambda-env-${SERVICE}
 ARG SERVICE
+ARG LWA_VERSION
 WORKDIR /app
 
+COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:${LWA_VERSION} /lambda-adapter /opt/extensions/lambda-adapter
 COPY --from=builder /opt/venv /opt/venv
 COPY --from=builder /runtime /app
 COPY docker/entrypoint.sh /app/entrypoint.sh
@@ -60,7 +80,8 @@ RUN useradd -m appuser \
 ENV PATH="/opt/venv/bin:$PATH" \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    SERVICE=${SERVICE}
+    SERVICE=${SERVICE} \
+    AWS_LWA_PORT=8000
 
 USER appuser
 EXPOSE 8000

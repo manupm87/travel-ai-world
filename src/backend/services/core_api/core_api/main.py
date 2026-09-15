@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from travel_common.http.app_factory import create_app
 
+from core_api.api.events import router as events_router
 from core_api.api.v1.api_router import build_api_router
 from core_api.config import get_settings
 from core_api.db.session import build_engine, build_session_factory
@@ -22,3 +23,5 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 
 app = create_app(get_settings(), [build_api_router(get_settings())], lifespan=lifespan)
+# Root-level, not versioned: where the Lambda Web Adapter delivers direct invocations.
+app.include_router(events_router)

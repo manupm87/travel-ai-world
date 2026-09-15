@@ -65,6 +65,27 @@ jobs:
         if: ${{ !inputs.push }}
         run: docker run --rm --entrypoint python -e SECRET_KEY=x ${{ inputs.service }}:pr -c "from ${{ inputs.service }}.main import app; print('ok')"
 
+      - name: Image carries the Lambda Web Adapter with the service's settings
+        if: ${{ !inputs.push }}
+        run: |
+          docker run --rm --entrypoint sh ${{ inputs.service }}:pr -c '
+            test -x /opt/extensions/lambda-adapter
+            echo "AWS_LWA_PORT=$AWS_LWA_PORT AWS_LWA_INVOKE_MODE=$AWS_LWA_INVOKE_MODE AWS_LWA_READINESS_CHECK_PATH=$AWS_LWA_READINESS_CHECK_PATH"
+            test "$AWS_LWA_PORT" = 8000
+            if [ "$SERVICE" = ai_api ]; then test "$AWS_LWA_INVOKE_MODE" = response_stream; else test "$AWS_LWA_INVOKE_MODE" = buffered; fi'
+
+      - name: "`migrate` without a database fails fast instead of serving"
+        if: ${{ !inputs.push && inputs.service == 'core_api' }}
+        run: |
+          set +e
+          out=$(timeout 60 docker run --rm -e SECRET_KEY=x -e DB_SERVER=127.0.0.1 -e DB_USER=x ${{ inputs.service }}:pr migrate 2>&1)
+          code=$?
+          set -e
+          echo "$out" | tail -5
+          test $code -ne 0
+          echo "$out" | grep -q "Running Alembic migrations"
+          ! echo "$out" | grep -q "Starting uvicorn"
+
       # core_api runs migrations at start and needs a database; its tests job
       # covers it. ai_api has no dependencies, so the container is started.
       - name: Image serves its health endpoint

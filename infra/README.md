@@ -34,7 +34,9 @@ Why two services and why the frontend accepts two URLs: [ADR 0001](../docs/archi
   client (it stays in Google Cloud) must list the Cognito domain's `/oauth2/idpresponse` as a
   redirect URI on AWS (see [`aws/README.md`](aws/README.md#sign-in-cognito)), and the frontend
   origin itself where the Google button is used (GCP, local).
-- **Migrations** run at container start in `core_api` only (`src/backend/docker/entrypoint.sh`).
+- **Migrations**: `core_api` only. At container start on Compose/ECS (`src/backend/docker/entrypoint.sh`);
+  on Lambda the deploy workflow invokes the function with `{"command": "migrate"}` (see the
+  [Docker runbook](../docs/runbooks/docker.md#the-same-image-on-aws-lambda)).
 - **State**: commit `.terraform.lock.hcl`, never `*.tfstate` or `*.tfvars`. Sensitive variables end
   up in the state, so it lives in a remote backend with restricted access; the CI workflow
   requires one. AWS: the private S3 bucket created by [`aws/bootstrap/`](aws/bootstrap/README.md)

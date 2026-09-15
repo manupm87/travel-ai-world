@@ -29,6 +29,7 @@ uv run uvicorn core_api.main:app --reload --port 8000    # http://localhost:8000
 | CRUD | `/trips/{id}/destinations/`, `/trips/{id}/itinerary-days/`, `/trips/{id}/accommodations/`, `/trips/{id}/transportations/` | Bearer (owner) | Nested under the owner's trip |
 | CRUD | `/trips/{id}/itinerary-days/{day_id}/activities/`, `.../meals/` | Bearer (owner) | Nested under a day of the owner's trip |
 | `GET` | `/health/`, `/health/db` | — | |
+| `POST` | `/events` (root, not versioned, not in the OpenAPI document) | — | `{"command": "migrate"}` from a direct Lambda invocation; unknown commands 400 |
 
 Every collection offers `GET /` (paginated with `skip`/`limit`), `POST /`, `GET/PATCH/DELETE /{item_id}`.
 A child that exists under another trip answers 404, never 403, so ids leak nothing
@@ -55,6 +56,8 @@ core_api/
 ├── repositories/      base.py (generic) + trip_repository.py, user_repository.py
 ├── models/            SQLAlchemy 2 typed tables; mixins + check_invariants() in base.py; enums.py
 ├── schemas/           Pydantic models; XUpdate = partial(XBase) (_partial.py); formats in _types.py
+├── ops.py             commands a deployed function runs on request (`migrate` = alembic upgrade head)
+├── api/events.py      POST /events: the Lambda Web Adapter's pass-through for direct invocations
 ├── pagination.py      Page(skip, limit)
 └── db/session.py      build_engine / build_session_factory + get_db (one transaction per request)
 ```

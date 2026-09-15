@@ -34,8 +34,8 @@ cd services/core_api && uv run alembic upgrade head && uv run uvicorn core_api.m
 cd services/ai_api   && uv run uvicorn ai_api.main:app --reload --port 8001
 ```
 
-Each service reads its own `.env` (copy the `.env.example` next to it). `SECRET_KEY` must be the
-same in both: `ai_api` verifies the tokens `core_api` issues.
+Each service reads its own `.env` (copy the `.env.example` next to it). `AUTH_MODE` and its
+settings must be the same in both: `ai_api` verifies the same tokens `core_api` accepts.
 
 ## Tests, lint, contracts
 
@@ -48,7 +48,9 @@ just contracts        # export OpenAPI → docs/api, regenerate frontend types
 ## Docker
 
 One `Dockerfile`, two images; `docker-compose.yml` adds nginx on `:8080` routing `/api/v1/ai/*` to
-`ai_api` and the rest to `core_api`. See the [Docker runbook](../../docs/runbooks/docker.md).
+`ai_api` and the rest to `core_api`. The same images run on AWS Lambda through the Lambda Web
+Adapter baked into the runtime stage; `entrypoint.sh migrate` (or a `{"command": "migrate"}`
+invocation) applies migrations. See the [Docker runbook](../../docs/runbooks/docker.md).
 
 ## Layout
 
