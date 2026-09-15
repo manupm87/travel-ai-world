@@ -15,8 +15,8 @@ with the same `just` recipes everyone uses.
 `src/backend/.venv`, `src/frontend/node_modules` and `src/frontend/.next` are named Docker volumes, so the
 host's copies (with their platform-specific binaries) are never touched.
 
-On first creation `post-create.sh` runs `just setup` (creates the `.env` files, `uv sync`,
-`npm install`), `just migrate` and installs Chromium for `just test-e2e`.
+On first creation `post-create.sh` runs `just setup` (creates the four `.env` files, including the
+scraper's, `uv sync`, `npm install`), `just migrate` and installs Chromium for `just test-e2e`.
 
 ## Database wiring
 

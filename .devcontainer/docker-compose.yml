@@ -47,6 +47,9 @@ services:
       DB_USER: postgres
       DB_PASSWORD: postgres
       DB_NAME: travel_ai_world
+      # The pyright PyPI wrapper nags when a newer pyright exists; the version is
+      # pinned by uv.lock, so the notice is noise in `just lint`.
+      PYRIGHT_PYTHON_IGNORE_WARNINGS: "1"
       # Playwright's Chromium is installed by post-create.sh into this path.
       PLAYWRIGHT_BROWSERS_PATH: /home/vscode/.cache/ms-playwright
       # SSO profile from .devcontainer/aws-config.example (copied to ~/.aws/config

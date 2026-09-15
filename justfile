@@ -28,6 +28,7 @@ setup:
     @[ -f {{core}}/.env ] || cp {{core}}/.env.example {{core}}/.env
     @[ -f {{ai}}/.env ] || cp {{ai}}/.env.example {{ai}}/.env
     @[ -f {{frontend}}/.env.local ] || cp {{frontend}}/.env.example {{frontend}}/.env.local
+    @[ -f {{scraper}}/.env ] || cp {{scraper}}/.env.example {{scraper}}/.env
     cd {{backend}} && uv sync --all-packages
     cd {{frontend}} && npm install
     @echo "Setup complete. Fill in SECRET_KEY (same value in both backend .env files), GOOGLE_* and NVIDIA_API_KEY."
