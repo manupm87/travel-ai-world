@@ -32,7 +32,7 @@ OAuth and in `backend_cors_origins`.
 ## Frontend manual en AWS (S3 + CloudFront)
 
 Si el frontend se despliega manualmente en AWS (no vía GitHub Pages), seguir el runbook
-[`manual-aws-frontend.md`](manual-aws-frontend.md). Documenta el paso a paso de:
+[`frontend-https-aws.md`](frontend-https-aws.md). Documenta el paso a paso de:
 
 - ACM Certificate (SSL en us-east-1)
 - CloudFront con OAC (Origin Access Control)

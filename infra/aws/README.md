@@ -10,8 +10,9 @@ path. The frontend needs only `NEXT_PUBLIC_API_URL`.
 > `pgvector`, Bedrock, no NAT and no load balancer, for a 30 €/month budget) is drawn in
 > [`docs/architecture/aws-architecture.drawio.svg`](../../docs/architecture/aws-architecture.drawio.svg)
 > and decided in [ADR 0009](../../docs/architecture/adr/0009-lambda-cognito-budget.md).
-> This folder moves to v3 issue by issue; until then the ALB below has no HTTPS listener, so it
-> cannot serve a browser frontend in production.
+> The frontend part of the target (S3 + CloudFront + Route 53 + ACM) is already here in
+> [`frontend.tf`](frontend.tf); the backend part below is still v1 and moves to v3 issue by
+> issue. Until then the ALB has no HTTPS listener, so the deployed frontend cannot call it.
 
 | Service | Image | Receives | ALB rule |
 |---|---|---|---|

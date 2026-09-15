@@ -56,8 +56,12 @@ The same two container images ([ADR 0001](0001-backend-split.md) stands) run on 
   function with a `migrate` command, since there is no container entrypoint any more.
 - **Unchanged from ADR 0008:** CloudFront as the single public origin (private S3 with OAC for
   the static export, `/api/*` to the gateway with caching off and `Authorization` forwarded),
-  ACM certificate in `us-east-1`, Route 53 delegated subdomain, Bedrock as the cloud LLM and
-  embeddings provider (NVIDIA stays for local development), one IAM role per function.
+  ACM certificate in `us-east-1`, Bedrock as the cloud LLM and embeddings provider (NVIDIA
+  stays for local development), one IAM role per function. The domain's hosted zone lives in
+  this account, so no delegation is needed; the zone, the certificate, the bucket and the
+  distribution already exist (`infra/aws/frontend.tf`, #83, and the
+  [frontend runbook](../../runbooks/frontend-https-aws.md)). What remains on the edge is the
+  `/api/*` behaviour towards the gateway.
 
 ### Estimated monthly cost (eu-west-1, list prices)
 
@@ -87,13 +91,15 @@ The RDS free tier is the swing item; check the account's creation date before th
   `Dockerfile` and a `migrate` command; RS256/JWKS verification in `travel_common` and the
   Cognito claims mapping in `core_api`; the frontend's sign-in moves from Google Identity Services
   to Cognito's managed login.
-- The frontend leaves GitHub Pages for S3 + CloudFront; `deploy.yml` syncs the export and
-  invalidates the distribution.
-- Terraform: `infra/aws/` replaces the ECS/ALB resources with Lambda, API Gateway, Cognito,
-  CloudFront, S3 and Route 53; `infra/gcp/` stays untouched as the documented alternative.
+- The frontend has left GitHub Pages for S3 + CloudFront (#83); `deploy.yml` still has to sync
+  the export and invalidate the distribution on every push.
+- Terraform: `infra/aws/` replaces the ECS/ALB resources with Lambda, API Gateway and Cognito
+  and extends the existing CloudFront distribution with the `/api/*` behaviour; `infra/gcp/`
+  stays untouched as the documented alternative.
 - Order of work, one issue each: (1) Cognito user pool + `travel_common` RS256 + frontend
-  sign-in; (2) Lambda Web Adapter + `migrate` command; (3) Terraform v3; (4) Bedrock adapter;
-  (5) `pgvector` database and `Retriever` adapter. This ADR becomes **Accepted** when (3) is
+  sign-in (TRA-119); (2) Lambda Web Adapter + `migrate` command (TRA-120); (3) Terraform v3
+  (TRA-121); (4) Bedrock adapter (TRA-122); (5) `pgvector` database and `Retriever` adapter
+  (TRA-123). This ADR becomes **Accepted** when (3) is
   applied. ADR 0008 is superseded for compute, network and secrets; its CloudFront, gateway,
   streaming and data decisions carry over here.
 - Revisit if traffic grows past the free tiers or if ECS becomes a requirement: the v2 shape
