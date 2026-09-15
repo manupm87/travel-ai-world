@@ -19,11 +19,12 @@ AI-powered travel planner. Static Next.js frontend + two FastAPI services:
 | `src/backend/services/ai_api/` | LLM chat streaming (NVIDIA), future RAG | `core_api` (with the caller's token) |
 | `src/backend/libs/travel_common/` | Shared kernel: Principal, settings, errors, JWT, app factory | — |
 | `src/backend/tools/scraper/` | City data ingestion scripts (JSON output, future RAG corpus) | Google Places, Wikipedia |
-| `infra/{gcp,aws}/` | Two-service deployment, one cloud per folder | — |
+| `infra/{gcp,aws}/` | Two-service deployment, one cloud per folder; **AWS is the deployed one** | — |
 | `docs/` | Architecture, ADRs, runbooks, OpenAPI documents, design file | — |
 
 Why two services: [docs/architecture/adr/0001-backend-split.md](docs/architecture/adr/0001-backend-split.md).
 Why this layout: [docs/architecture/adr/0004-repository-layout.md](docs/architecture/adr/0004-repository-layout.md).
+Why AWS, and how we authenticate (SSO locally, OIDC in CI): [docs/architecture/adr/0007-aws-cloud-and-auth.md](docs/architecture/adr/0007-aws-cloud-and-auth.md).
 Diagram and request flows: [docs/architecture/overview.md](docs/architecture/overview.md).
 
 ## Commands (one interface for everyone: `just`)
@@ -42,6 +43,7 @@ just docs-check     # documentation hygiene
 just migrate / just migration "message"
 just docker-up      # proxy :8080 + core_api + ai_api + PostgreSQL
 just scrape         # run the city scraper (needs GOOGLE_API_KEY in its .env)
+just aws-login      # AWS via IAM Identity Center (devcontainer); never access keys
 ```
 
 Windows: `winget install Casey.Just` and run the recipes from Git Bash or WSL (they are POSIX shell).

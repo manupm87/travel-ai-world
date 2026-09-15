@@ -23,8 +23,10 @@ path. The frontend needs only `NEXT_PUBLIC_API_URL`.
 
 ## First deployment
 
-Prerequisites: an AWS account, the AWS CLI authenticated (`aws sts get-caller-identity`),
-Terraform ≥ 1.6, Docker.
+Prerequisites: an AWS account with IAM Identity Center enabled and a permission set assigned to
+you, plus the devcontainer (AWS CLI v2, Terraform, `crane`; see
+[`.devcontainer/README.md`](../../.devcontainer/README.md#aws)). Authenticate with
+`just aws-login` (SSO, short-lived tokens; access keys are not used anywhere in this project).
 
 ```bash
 cp terraform.tfvars.example terraform.tfvars      # fill in every value; the file is ignored by git
@@ -37,13 +39,15 @@ terraform init && terraform validate
    terraform apply -target=aws_ecr_repository.services
    ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
    REG="$ACCOUNT.dkr.ecr.eu-west-1.amazonaws.com"
-   aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin "$REG"
+   aws ecr get-login-password --region eu-west-1 | crane auth login --username AWS --password-stdin "$REG"
    for svc in core-api ai-api; do
-     docker buildx imagetools create -t $REG/travel-ai-$svc:latest ghcr.io/manupm87/travel-ai-world/$svc:latest
+     crane copy ghcr.io/manupm87/travel-ai-world/$svc:latest $REG/travel-ai-$svc:latest
    done
    ```
 
-   Or build locally from `src/backend/` (`just docker-build`) and push both tags to `$REG`.
+   `crane` copies registry-to-registry, so no Docker daemon is needed in the devcontainer. On a
+   host with Docker, `docker buildx imagetools create -t <dst> <src>` does the same, or build
+   locally from `src/backend/` (`just docker-build`) and push both tags to `$REG`.
 
 2. Everything else:
 
@@ -63,5 +67,15 @@ terraform init && terraform validate
 Later deploys: the "Deploy backend" workflow with `cloud=aws`. It needs an S3 state backend in
 `versions.tf` and the secrets `AWS_REGION`, `AWS_ROLE_TO_ASSUME` (OIDC) plus the `TF_VAR_*`
 listed in the workflow header.
+
+## Debugging a running task
+
+The devcontainer includes the Session Manager plugin, so you can open a shell in a Fargate task
+(the task role needs `ssmmessages:*` and the service `enable_execute_command`):
+
+```bash
+aws ecs execute-command --cluster <cluster> --task <task-id> --container core-api --interactive --command /bin/sh
+aws logs tail /ecs/<name_prefix>-core-api --follow
+```
 
 For production add an ACM certificate and an HTTPS listener to the ALB before publishing the domain.

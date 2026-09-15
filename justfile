@@ -132,6 +132,11 @@ infra-fmt-check:
 infra-validate cloud:
     cd infra/{{cloud}} && terraform init -backend=false -input=false >/dev/null && terraform validate
 
+# Log in to AWS through IAM Identity Center (profile from AWS_PROFILE / ~/.aws/config)
+aws-login:
+    aws sso login
+    aws sts get-caller-identity
+
 # ── Database ─────────────────────────────────────────────────────────────────
 
 # Apply core_api migrations

@@ -1,8 +1,8 @@
 # `.devcontainer` — Development Container
 
 A reproducible VS Code environment for the monorepo: Node 24, Python 3.12 (via `uv`), `just`,
-`gh`, ripgrep/fd/jq, Claude Code (plus optional agent CLIs), Playwright's Chromium, and a
-PostgreSQL 16 container. **It does not run the application**: you start the services yourself
+`gh`, ripgrep/fd/jq, AWS CLI v2 + Terraform + `crane` + Session Manager plugin, Claude Code
+(plus optional agent CLIs), Playwright's Chromium, and a PostgreSQL 16 container. **It does not run the application**: you start the services yourself
 with the same `just` recipes everyone uses.
 
 ## What starts
@@ -45,6 +45,33 @@ credentials (`POSTGRES_*` only apply on first init). Wipe the volumes as above a
 inside the container, create the missing role with the old credentials
 (`psql -h db -U <old-user> -c "CREATE ROLE postgres LOGIN SUPERUSER PASSWORD 'postgres'"`) and
 re-run `bash .devcontainer/post-create.sh`.
+
+## AWS
+
+The container ships the tools the [AWS deployment](../infra/aws/README.md) needs and nothing
+else (no Docker daemon, no SAM/CDK):
+
+| Tool | Why | Pinned in |
+|---|---|---|
+| `aws` (CLI v2) | `sts`, `ecr`, `ecs`, `logs`, SSO login | latest at build |
+| `terraform` | `infra/aws/` (`just infra-fmt`, `just infra-validate aws`, plan/apply) | `TERRAFORM_VERSION` build arg |
+| `crane` | copy the GHCR images into ECR without a Docker daemon | `CRANE_VERSION` build arg |
+| `session-manager-plugin` | `aws ecs execute-command` into a running Fargate task | latest at build |
+
+**Authentication is IAM Identity Center (SSO), never access keys.** The compose file sets
+`AWS_PROFILE=travel-ai-world`; `post-create.sh` seeds `~/.aws/config` from
+[`aws-config.example`](aws-config.example) (account id, role name, start URL, region: nothing
+secret). Fill those in once, then:
+
+```bash
+just aws-login          # device-code login in the browser, then prints the identity
+```
+
+Tokens are short-lived and cached in `~/.aws/sso/cache`; `~/.aws` is the `aws_config` named
+volume, so both the profile and the cache survive "Rebuild Container". The host's `~/.aws` is
+**not** mounted: whatever runs in the container (including the coding agents) only ever holds
+the SSO session's temporary credentials, scoped by the permission set. Do not write
+`aws_access_key_id` anywhere; CI uses OIDC ([ADR 0007](../docs/architecture/adr/0007-aws-cloud-and-auth.md)).
 
 ## Coding agents
 

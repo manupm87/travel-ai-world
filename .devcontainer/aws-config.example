@@ -1,0 +1,16 @@
+# Copied to ~/.aws/config by post-create.sh (only if the file does not exist yet).
+# Nothing here is a secret. Credentials come from IAM Identity Center: `just aws-login`
+# opens a device-code login and caches short-lived tokens under ~/.aws/sso/cache.
+# Never put access keys (aws_access_key_id / aws_secret_access_key) in this file.
+
+[profile travel-ai-world]
+sso_session = travel-ai-world
+sso_account_id = 123456789012
+sso_role_name = TravelAIWorldDeveloper
+region = eu-west-1
+output = json
+
+[sso-session travel-ai-world]
+sso_start_url = https://d-xxxxxxxxxx.awsapps.com/start
+sso_region = eu-west-1
+sso_registration_scopes = sso:account:access

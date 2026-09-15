@@ -9,6 +9,10 @@
 # so the host's copies are never touched (they contain platform-specific
 # binaries). post-create.sh fixes their ownership on first run.
 #
+# AWS: `aws`, `terraform` and `crane` are installed; credentials come from IAM
+# Identity Center (`just aws-login`), never from access keys. ~/.aws is a named
+# volume so the SSO token cache survives rebuilds (the host's ~/.aws is not mounted).
+#
 # Agent CLIs: Claude Code is always installed; the others come from the
 # EXTRA_AGENT_CLIS build arg (override with DEVCONTAINER_EXTRA_AGENT_CLIS on the
 # host). Their logins and settings live in named volumes, so they survive
@@ -31,6 +35,7 @@ services:
       - agent_codex:/home/vscode/.codex
       - agent_gemini:/home/vscode/.gemini
       - agent_copilot:/home/vscode/.copilot
+      - aws_config:/home/vscode/.aws
       - shell_history:/commandhistory
     command: sleep infinity
     environment:
@@ -44,6 +49,9 @@ services:
       DB_NAME: travel_ai_world
       # Playwright's Chromium is installed by post-create.sh into this path.
       PLAYWRIGHT_BROWSERS_PATH: /home/vscode/.cache/ms-playwright
+      # SSO profile from .devcontainer/aws-config.example (copied to ~/.aws/config
+      # by post-create.sh). The region lives in the profile.
+      AWS_PROFILE: travel-ai-world
     depends_on:
       db:
         condition: service_healthy
@@ -71,5 +79,6 @@ volumes:
   agent_codex:
   agent_gemini:
   agent_copilot:
+  aws_config:
   shell_history:
   postgres_data:
