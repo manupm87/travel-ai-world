@@ -1,6 +1,6 @@
 # 0002 — Stateless JWT in `ai_api`; forward the user's token to `core_api`
 
-**Status:** Accepted
+**Status:** Superseded by [0009](0009-lambda-cognito-budget.md) (Cognito RS256 tokens replace the shared `SECRET_KEY`; the token is still forwarded `ai_api → core_api`)
 **Date:** 2026-09-07
 
 ## Context
