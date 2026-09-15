@@ -1,7 +1,7 @@
 # `.devcontainer` — Development Container
 
 A reproducible VS Code environment for the monorepo: Node 24, Python 3.12 (via `uv`), `just`,
-`gh`, ripgrep/fd/jq, Graphviz (`just diagrams`), AWS CLI v2 + Terraform + `crane` + Session Manager plugin, Claude Code
+`gh`, ripgrep/fd/jq, AWS CLI v2 + Terraform + `crane` + Session Manager plugin, Claude Code
 (plus optional agent CLIs), Playwright's Chromium, and a PostgreSQL 16 container. **It does not run the application**: you start the services yourself
 with the same `just` recipes everyone uses.
 
@@ -100,7 +100,7 @@ nothing here.
 ## VS Code extensions
 
 `devcontainer.json` installs only extensions tied to the project's tooling: Claude Code, Python +
-Pylance + Ruff, ESLint + Prettier + Tailwind, Vitest + Playwright, Terraform, TOML/YAML,
+Pylance + Ruff, ESLint + Prettier + Tailwind, Vitest + Playwright, Terraform, TOML/YAML, draw.io (`docs/architecture/*.drawio.svg`),
 GitHub Actions, `just` syntax and Mermaid preview. Personal ones (Copilot, Gemini Code Assist,
 GitLens, ...) go in **your** VS Code user settings so they follow you into every devcontainer:
 

@@ -29,8 +29,8 @@ certificate validation otherwise goes through them.
 
 ## Decision
 
-The target deployment, drawn in [`aws-architecture.png`](../aws-architecture.png) (source:
-[`diagrams/aws.py`](../diagrams/aws.py), `just diagrams`):
+The target deployment, drawn in [`aws-architecture.drawio.svg`](../aws-architecture.drawio.svg)
+(draw.io with the official AWS shape library; the SVG embeds its own source):
 
 - **One public origin: CloudFront.** Default behaviour serves the Next.js static export from a
   **private S3 bucket** (origin access control). A second behaviour forwards `/api/*` to the API

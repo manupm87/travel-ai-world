@@ -5,13 +5,10 @@
 - Every ADR has a Status line and is listed in the ADR index.
 - Every `just <recipe>` mentioned in an AGENTS.md exists in the justfile.
 - Every relative markdown link in the checked files resolves.
-- Every diagram-as-code source has been rendered since it last changed (`just diagrams`
-  writes the source's SHA-256 next to the image; no Graphviz needed here).
 
 Run: python3 scripts/check_docs.py
 """
 
-import hashlib
 import re
 import sys
 from pathlib import Path
@@ -47,14 +44,6 @@ REQUIRED = [
     "docs/api/core-api.openapi.json",
     "docs/api/ai-api.openapi.json",
 ]
-
-# Diagram source -> (rendered image, stamp written by the source's `render()`).
-DIAGRAMS = {
-    "docs/architecture/diagrams/aws.py": (
-        "docs/architecture/aws-architecture.png",
-        "docs/architecture/diagrams/aws.sha256",
-    ),
-}
 
 LINK_RE = re.compile(r"\[[^\]]*\]\(([^)\s#]+)(?:#[^)]*)?\)")
 JUST_RE = re.compile(r"`just ([a-z][a-z0-9-]*)")
@@ -105,17 +94,6 @@ def main() -> int:
             problems.append(f"{adr.relative_to(ROOT)}: no Status line")
         if adr.name not in index:
             problems.append(f"docs/architecture/adr/README.md: {adr.name} not listed")
-
-    for source, (image, stamp) in DIAGRAMS.items():
-        src, img, stp = ROOT / source, ROOT / image, ROOT / stamp
-        if not img.exists() or not stp.exists():
-            problems.append(f"{source}: not rendered (run `just diagrams`)")
-            continue
-        digest = hashlib.sha256(src.read_bytes()).hexdigest()
-        if stp.read_text(encoding="utf-8").strip() != digest:
-            problems.append(
-                f"{source}: changed since {image} was rendered (run `just diagrams`)"
-            )
 
     if problems:
         print("Documentation checks failed:")

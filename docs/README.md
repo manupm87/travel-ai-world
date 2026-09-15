@@ -2,7 +2,7 @@
 
 | Where | What |
 |---|---|
-| [architecture/overview.md](architecture/overview.md) | System diagram, request flows, service boundaries, [AWS target diagram](architecture/aws-architecture.png) (source in [architecture/diagrams/](architecture/diagrams/), `just diagrams`) |
+| [architecture/overview.md](architecture/overview.md) | System diagram, request flows, service boundaries, [AWS target diagram](architecture/aws-architecture.drawio.svg) (draw.io, editable in VS Code) |
 | [architecture/adr/](architecture/adr/README.md) | Architecture Decision Records (why things are the way they are) |
 | [runbooks/](runbooks/local-dev.md) | How to run, ship and release: [local-dev](runbooks/local-dev.md), [docker](runbooks/docker.md), [deploy](runbooks/deploy.md), [release](runbooks/release.md) |
 | [api/](api/) | Generated OpenAPI documents (`core-api`, `ai-api`) — source of the frontend's types |

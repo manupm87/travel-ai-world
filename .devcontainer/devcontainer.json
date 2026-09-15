@@ -43,7 +43,8 @@
         "redhat.vscode-yaml",
         "github.vscode-github-actions",
         "skellock.just",
-        "bierner.markdown-mermaid"
+        "bierner.markdown-mermaid",
+        "hediet.vscode-drawio"
       ],
       "settings": {
         "python.defaultInterpreterPath": "/workspace/src/backend/.venv/bin/python",

@@ -117,11 +117,13 @@ See [ADR 0003](adr/0003-frontend-two-base-urls.md) and the [deploy runbook](../r
 
 ### AWS target (v2)
 
-![AWS architecture v2](aws-architecture.png)
+![AWS architecture v2](aws-architecture.drawio.svg)
 
-Source: [`diagrams/aws.py`](diagrams/aws.py) (official AWS icons via the `diagrams` library;
-`just diagrams` re-renders it and `just docs-check` fails when the image is older than the
-source). Decisions and the migration order: [ADR 0008](adr/0008-aws-architecture-v2-edge-and-gateway.md).
+[`aws-architecture.drawio.svg`](aws-architecture.drawio.svg) is a draw.io diagram (official
+"AWS Architecture" shape library) saved as an SVG with the diagram XML embedded: GitHub renders
+it as is, and it is edited in place with the VS Code draw.io extension (installed by the
+devcontainer) or at app.diagrams.net (File → Open). No build step. Decisions and the migration
+order: [ADR 0008](adr/0008-aws-architecture-v2-edge-and-gateway.md).
 
 ## Known gaps (tracked)
 

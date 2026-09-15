@@ -58,7 +58,7 @@ lint: lint-backend lint-frontend
 
 # ruff (backend workspace + repo scripts, backend config) and pyright
 lint-backend:
-    cd {{backend}} && uv run ruff check . ../../scripts ../../docs/architecture/diagrams && uv run ruff format --check . ../../scripts ../../docs/architecture/diagrams
+    cd {{backend}} && uv run ruff check . ../../scripts && uv run ruff format --check . ../../scripts
     cd {{backend}} && uv run pyright
 
 # Static type check of the backend packages (pyright, standard mode)
@@ -71,7 +71,7 @@ lint-frontend:
 
 # Auto-format the backend and the repo scripts
 format:
-    cd {{backend}} && uv run ruff format . ../../scripts ../../docs/architecture/diagrams && uv run ruff check --fix . ../../scripts ../../docs/architecture/diagrams
+    cd {{backend}} && uv run ruff format . ../../scripts && uv run ruff check --fix . ../../scripts
 
 # All tests: backend packages + frontend unit tests
 test: test-backend test-frontend
@@ -115,13 +115,9 @@ contracts-check:
     cd {{backend}} && uv run python scripts/export_openapi.py --check
     cd {{frontend}} && npm run types:check
 
-# Documentation hygiene: required files present, links resolve, diagrams fresh
+# Documentation hygiene: required files present, links resolve
 docs-check:
     python3 scripts/check_docs.py
-
-# Render docs/architecture/*.png from docs/architecture/diagrams/*.py (needs Graphviz)
-diagrams:
-    cd {{backend}} && uv run python ../../docs/architecture/diagrams/aws.py
 
 # ── Infrastructure ───────────────────────────────────────────────────────────
 

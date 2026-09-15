@@ -11,8 +11,7 @@ ARG EXTRA_AGENT_CLIS="@openai/codex @google/gemini-cli @github/copilot"
 ARG TERRAFORM_VERSION=1.16
 ARG CRANE_VERSION=0.22.1
 
-# System dependencies. ripgrep / fd / jq are what coding agents shell out to;
-# graphviz renders docs/architecture/diagrams (`just diagrams`).
+# System dependencies. ripgrep / fd / jq are what coding agents shell out to.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     git \
@@ -22,7 +21,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ripgrep \
     fd-find \
     jq \
-    graphviz \
     gnupg \
     unzip \
     && ln -s /usr/bin/fdfind /usr/local/bin/fd \
