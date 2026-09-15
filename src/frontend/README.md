@@ -47,7 +47,7 @@ Types for requests and responses are generated, never hand-written: `src/types/g
 src/
 ├── app/            # Next.js App Router
 │   ├── layout.tsx        # Root: fonts, providers (Google OAuth, Auth, Theme, Language)
-│   ├── (marketing)/      # Public routes: layout = Header + Footer; page.tsx is the landing
+│   ├── (marketing)/      # Public routes: layout = Header + Footer; page.tsx is the landing; auth/callback/ ends a Cognito sign-in
 │   ├── (app)/            # Signed-in routes: layout = app shell + ProtectedRoute, once
 │   │   ├── dashboard/    # page.tsx (server) + DashboardClientPage.tsx
 │   │   └── trip/[id]/    # page.tsx (server, generateStaticParams) + TripClientPage.tsx
@@ -125,12 +125,14 @@ The app uses **Google OAuth 2.0** for frontend authentication. User state is man
 
 | Environment Variable | Required | Description |
 |---|---|---|
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Yes | Google Cloud Console OAuth Client ID |
+| `NEXT_PUBLIC_COGNITO_DOMAIN` | Deployed | The Cognito managed-login host (`terraform output cognito_domain`); with the client id below, sign-in goes through the user pool |
+| `NEXT_PUBLIC_COGNITO_CLIENT_ID` | Deployed | The pool's app client id (`terraform output cognito_client_id`) |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Local | Google Cloud Console OAuth Client ID, for the Google button when no pool is configured |
 | `NEXT_PUBLIC_API_URL` | No | `core_api` URL; when set, sign-in is verified server-side |
 | `NEXT_PUBLIC_AI_API_URL` | No | `ai_api` URL; defaults to `NEXT_PUBLIC_API_URL` |
 
 - **Local**: Add to `.env.local` (ignored by git).
-- **Production**: Configured as a **GitHub Repository Secret** named `GOOGLE_CLIENT_ID`, which is injected during the build step in `.github/workflows/deploy.yml`.
+- **Production**: the GitHub repository variables `COGNITO_DOMAIN` and `COGNITO_CLIENT_ID` (and the secret `GOOGLE_CLIENT_ID` for the fallback) are injected during the build step in `.github/workflows/deploy.yml`.
 
 ---
 

@@ -36,5 +36,5 @@ async def client(provider: FakeProvider) -> AsyncGenerator[AsyncClient, None]:
 
 @pytest.fixture
 def auth_headers() -> dict[str, str]:
-    principal = Principal(id=1, email="chat@example.com", role=Role.USER)
+    principal = Principal(subject="1", email="chat@example.com", role=Role.USER)
     return {"Authorization": f"Bearer {create_access_token(principal, TEST_SETTINGS)}"}

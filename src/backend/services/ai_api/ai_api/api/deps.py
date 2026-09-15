@@ -22,7 +22,10 @@ async def get_current_user(
     token: str = Depends(extract_bearer_token),
     settings: AISettings = Depends(get_settings),
 ) -> Principal:
-    """Stateless: the JWT alone identifies the caller (no database here)."""
+    """Stateless: the token alone identifies the caller (no database here).
+
+    Local HS256 tokens or the Cognito pool's RS256 ID tokens, per `AUTH_MODE`.
+    """
     return principal_from_token(token, settings)
 
 

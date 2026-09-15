@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { makeJwt, nowInSeconds } from "@/test/jwt";
 import {
+  REFRESH_TOKEN_STORAGE_KEY,
   TOKEN_STORAGE_KEY,
   USER_STORAGE_KEY,
   clearSession,
@@ -8,11 +9,15 @@ import {
   getSnapshot,
   isTokenUsable,
   pruneInvalidSession,
+  readRefreshToken,
   readSession,
   readToken,
   resolveUser,
   subscribe,
+  tokenExpiresWithin,
+  userFromIdToken,
   writeSession,
+  writeToken,
 } from "./session";
 
 const user = { id: "1", email: "a@b.c", name: "Ada", picture: undefined };
@@ -37,10 +42,64 @@ describe("session", () => {
     expect(readSession()).toEqual({ token: validToken, profile: user });
   });
 
-  it("clears both keys", () => {
-    writeSession(validToken, user);
+  it("clears every key", () => {
+    writeSession(validToken, user, "refresh-1");
     clearSession();
     expect(readSession()).toEqual({ token: null, profile: null });
+    expect(readRefreshToken()).toBeNull();
+  });
+
+  it("keeps a refresh token only when the login provided one", () => {
+    writeSession(validToken, user, "refresh-1");
+    expect(localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY)).toBe("refresh-1");
+
+    writeSession(validToken, user);
+    expect(readRefreshToken()).toBeNull();
+  });
+
+  it("replaces only the bearer token on a refresh", () => {
+    writeSession(expiredToken, user, "refresh-1");
+    writeToken(validToken);
+    expect(readSession()).toEqual({ token: validToken, profile: user });
+    expect(readRefreshToken()).toBe("refresh-1");
+  });
+
+  describe("tokenExpiresWithin", () => {
+    it("is true for expired, soon-to-expire and malformed tokens", () => {
+      expect(tokenExpiresWithin(expiredToken, 0)).toBe(true);
+      expect(tokenExpiresWithin(makeJwt({ exp: nowInSeconds() + 30 }), 60)).toBe(true);
+      expect(tokenExpiresWithin("garbage", 60)).toBe(true);
+    });
+
+    it("is false for fresh and expiry-less tokens", () => {
+      expect(tokenExpiresWithin(validToken, 60)).toBe(false);
+      expect(tokenExpiresWithin(makeJwt({ sub: "1" }), 60)).toBe(false);
+    });
+  });
+
+  describe("userFromIdToken", () => {
+    it("maps the ID token claims to a User", () => {
+      const token = makeJwt({
+        sub: "sub-1",
+        email: "ada@example.com",
+        name: "Ada",
+        picture: "https://example.com/a.png",
+        exp: nowInSeconds() + 60,
+      });
+      expect(userFromIdToken(token)).toEqual({
+        id: "sub-1",
+        email: "ada@example.com",
+        name: "Ada",
+        picture: "https://example.com/a.png",
+      });
+    });
+
+    it("rejects expired and malformed tokens, and defaults a missing name", () => {
+      expect(userFromIdToken(expiredToken)).toBeNull();
+      expect(userFromIdToken("garbage")).toBeNull();
+      expect(userFromIdToken(makeJwt({ email: "x" }))).toBeNull();
+      expect(userFromIdToken(makeJwt({ sub: "1", email: "x" }))?.name).toBe("");
+    });
   });
 
   it("tolerates a corrupt profile", () => {
@@ -122,6 +181,13 @@ describe("session", () => {
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
       pruneInvalidSession();
       expect(readSession()).toEqual({ token: null, profile: null });
+    });
+
+    it("keeps an expired session that a refresh token can renew", () => {
+      writeSession(expiredToken, user, "refresh-1");
+      pruneInvalidSession();
+      expect(readSession()).toEqual({ token: expiredToken, profile: user });
+      expect(readRefreshToken()).toBe("refresh-1");
     });
 
     it("keeps a valid session", () => {

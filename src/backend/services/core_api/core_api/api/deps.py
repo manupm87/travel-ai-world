@@ -9,10 +9,9 @@ from fastapi import Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from travel_common.exceptions import Forbidden
 from travel_common.http.auth import extract_bearer_token
-from travel_common.principal import Principal
-from travel_common.security import principal_from_token
 
 from core_api.auth.google import GoogleTokenInfoVerifier, IdentityVerifier
+from core_api.auth.principal import AccountPrincipal
 from core_api.config import CoreSettings, get_settings
 from core_api.db.session import get_db
 from core_api.models.accommodation import Accommodation
@@ -27,7 +26,7 @@ from core_api.pagination import MAX_PAGE_SIZE, Page
 from core_api.repositories.base import BaseRepository
 from core_api.repositories.trip_repository import TripRepository
 from core_api.repositories.user_repository import UserRepository
-from core_api.services.auth_service import SignIn
+from core_api.services.auth_service import Authenticate, SignIn
 from core_api.services.base import BaseService
 from core_api.services.trip_service import TripService
 from core_api.services.user_service import UserService
@@ -75,24 +74,25 @@ get_transportation_service = provide(BaseService, Transportation)
 # ── Authentication ───────────────────────────────────────────────────────────
 
 
+def get_authenticate(
+    users: UserService = Depends(get_user_service),
+    settings: CoreSettings = Depends(get_settings),
+) -> Authenticate:
+    return Authenticate(users, settings)
+
+
 async def get_current_user(
     token: str = Depends(extract_bearer_token),
-    settings: CoreSettings = Depends(get_settings),
-    user_service: UserService = Depends(get_user_service),
-) -> Principal:
-    """Verify the JWT, then confirm the account still exists and is active.
-
-    The database is the source of truth for role and status: a revoked or
-    demoted user is cut off immediately, not when the token expires.
-    """
-    claims = principal_from_token(token, settings)
-    user = await user_service.get_active(claims.id)
-    return Principal(id=user.id, email=user.email, role=user.role)
+    authenticate: Authenticate = Depends(get_authenticate),
+) -> AccountPrincipal:
+    """The account behind the bearer token; 401 when the token or the account
+    is no good. Local tokens are looked up, Cognito tokens are upserted."""
+    return await authenticate(token)
 
 
 async def get_current_admin_user(
-    principal: Principal = Depends(get_current_user),
-) -> Principal:
+    principal: AccountPrincipal = Depends(get_current_user),
+) -> AccountPrincipal:
     if not principal.is_admin:
         raise Forbidden("The user doesn't have enough privileges")
     return principal
@@ -122,7 +122,7 @@ def get_sign_in(
 
 async def get_owned_trip(
     trip_id: UUID,
-    principal: Principal = Depends(get_current_user),
+    principal: AccountPrincipal = Depends(get_current_user),
     trips: TripService = Depends(get_trip_service),
 ) -> Trip:
     return await trips.get_owned(trip_id, principal)

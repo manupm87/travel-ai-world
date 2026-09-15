@@ -1,7 +1,6 @@
 """Trip endpoints — every trip is private to the user who owns it."""
 
 from fastapi import APIRouter, Depends, status
-from travel_common.principal import Principal
 
 from core_api.api.deps import (
     get_current_user,
@@ -9,6 +8,7 @@ from core_api.api.deps import (
     get_trip_service,
     page_params,
 )
+from core_api.auth.principal import AccountPrincipal
 from core_api.models.trip import Trip
 from core_api.pagination import Page
 from core_api.schemas.trip import TripCreate, TripResponse, TripUpdate
@@ -20,7 +20,7 @@ router = APIRouter()
 @router.get("/", response_model=list[TripResponse])
 async def read_trips(
     page: Page = Depends(page_params),
-    principal: Principal = Depends(get_current_user),
+    principal: AccountPrincipal = Depends(get_current_user),
     service: TripService = Depends(get_trip_service),
 ):
     """The caller's trips (paginated)."""
@@ -30,7 +30,7 @@ async def read_trips(
 @router.post("/", response_model=TripResponse, status_code=status.HTTP_201_CREATED)
 async def create_trip(
     trip_in: TripCreate,
-    principal: Principal = Depends(get_current_user),
+    principal: AccountPrincipal = Depends(get_current_user),
     service: TripService = Depends(get_trip_service),
 ):
     """Create a trip owned by the caller."""

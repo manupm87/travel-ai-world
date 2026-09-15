@@ -16,7 +16,9 @@ testing.py      FakeProvider + settings_for_tests() for any test suite
 ```
 
 - Routes live under `/api/v1/ai/*` so a proxy can route by prefix. Keep it that way.
-- Auth is **stateless**: `principal_from_token(token, settings)`; no user lookup.
+- Auth is **stateless**: `principal_from_token(token, settings)`; no user lookup. `AUTH_MODE` picks
+  the issuer (local HS256 with `SECRET_KEY`, or the Cognito pool's RS256 ID tokens against
+  `COGNITO_JWKS`); `tests/test_cognito_mode.py` covers the second with `CognitoTestIssuer`.
 - Adding a provider: implement `LLMProvider` in `infrastructure/`, build it in `main.lifespan` and
   put it on `app.state.llm_provider`. The use case and the endpoint do not change. Sampling comes
   from `AISettings` (`CHAT_*`) as a `GenerationParams`, never from literals in the adapter.
@@ -34,4 +36,4 @@ uv run uvicorn ai_api.main:app --reload --port 8001
 uv run pytest        # no network, no key: FakeProvider + httpx.MockTransport
 ```
 
-Env: `.env.example` (`NVIDIA_API_KEY`, `SECRET_KEY` = core_api's, `CORE_API_URL`).
+Env: `.env.example` (`NVIDIA_API_KEY`, `CORE_API_URL`, and the same `AUTH_MODE`/`SECRET_KEY`/`COGNITO_*` as core_api).

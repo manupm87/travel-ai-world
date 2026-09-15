@@ -37,7 +37,21 @@ vi.mock("@react-oauth/google", () => ({
 }));
 
 const login = vi.fn();
+const loginWithRedirect = vi.fn();
 const onClose = vi.fn();
+
+function useCognito() {
+  vi.mocked(useAuth).mockReturnValue({
+    login,
+    loginWithRedirect,
+    completeLogin: vi.fn(),
+    logout: vi.fn(),
+    provider: "cognito",
+    user: null,
+    isAuthenticated: false,
+    isLoading: false,
+  });
+}
 
 function renderModal(isOpen = true) {
   return render(
@@ -54,7 +68,10 @@ describe("LoginModal", () => {
     login.mockResolvedValue(undefined);
     vi.mocked(useAuth).mockReturnValue({
       login,
+      loginWithRedirect,
+      completeLogin: vi.fn(),
       logout: vi.fn(),
+      provider: "google",
       user: null,
       isAuthenticated: false,
       isLoading: false,
@@ -107,6 +124,34 @@ describe("LoginModal", () => {
     fireEvent.click(screen.getByText("google-error"));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(en.auth.loginError);
+  });
+
+  it("in Cognito mode offers one button that leaves for the managed login", async () => {
+    useCognito();
+    loginWithRedirect.mockResolvedValue(undefined);
+    searchParams = new URLSearchParams({ redirect: "/trip/japan" });
+    renderModal();
+
+    expect(screen.queryByText("google-success")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: en.auth.continueWithGoogle }));
+
+    await waitFor(() => expect(loginWithRedirect).toHaveBeenCalledWith("/trip/japan"));
+    expect(screen.getByRole("button", { name: en.auth.redirecting })).toBeDisabled();
+    expect(login).not.toHaveBeenCalled();
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it("in Cognito mode drops an external redirect and reports a failed start", async () => {
+    useCognito();
+    loginWithRedirect.mockRejectedValue(new Error("no crypto"));
+    searchParams = new URLSearchParams({ redirect: "https://evil.example" });
+    renderModal();
+
+    fireEvent.click(screen.getByRole("button", { name: en.auth.continueWithGoogle }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(en.auth.loginError);
+    expect(loginWithRedirect).toHaveBeenCalledWith(null);
+    expect(screen.getByRole("button", { name: en.auth.continueWithGoogle })).toBeEnabled();
   });
 
   it("closes from the backdrop and the close button", () => {

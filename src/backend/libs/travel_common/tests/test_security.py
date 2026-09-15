@@ -1,22 +1,35 @@
-"""Tokens round-trip the whole Principal, so stateless services can trust them."""
+"""Local-mode tokens round-trip the whole Principal, so stateless services can trust them."""
 
 import jwt
 import pytest
 from travel_common.config import CommonSettings
 from travel_common.exceptions import Unauthorized
 from travel_common.principal import Principal, Role
-from travel_common.security import create_access_token, principal_from_token
+from travel_common.security import (
+    create_access_token,
+    principal_from_token,
+    verify_token,
+)
 
 settings = CommonSettings(SECRET_KEY="unit-test-secret-key-with-32-bytes-min")
 
 
 def test_token_round_trips_principal():
-    principal = Principal(id=42, email="ada@example.com", role=Role.ADMIN)
+    principal = Principal(subject="42", email="ada@example.com", role=Role.ADMIN)
 
     assert (
         principal_from_token(create_access_token(principal, settings), settings)
         == principal
     )
+
+
+def test_local_claims_carry_no_profile():
+    principal = Principal(subject="42", email="ada@example.com")
+
+    claims = verify_token(create_access_token(principal, settings), settings)
+
+    assert (claims.name, claims.picture) == ("", None)
+    assert claims.principal == principal
 
 
 def test_token_without_role_claim_is_rejected():
@@ -35,7 +48,7 @@ def test_garbage_token_is_rejected():
 
 def test_empty_secret_key_is_a_401_not_a_500():
     unconfigured = CommonSettings(SECRET_KEY="")
-    principal = Principal(id=1, email="ada@example.com", role=Role.USER)
+    principal = Principal(subject="1", email="ada@example.com", role=Role.USER)
     token = create_access_token(principal, settings)
 
     with pytest.raises(Unauthorized):

@@ -119,6 +119,22 @@ variable "create_www_record" {
   default     = false
 }
 
+# -----------------------------------------------------------------------------
+# Sign-in (Cognito)
+# -----------------------------------------------------------------------------
+
+variable "cognito_custom_domain" {
+  description = "Custom managed-login host (e.g. auth.kyrian-world.com). Empty uses the pool's default *.amazoncognito.com host. Needs the us-east-1 ACM certificate to cover it."
+  type        = string
+  default     = ""
+}
+
+variable "cognito_dev_origins" {
+  description = "Extra browser origins allowed to sign in (callback = <origin>/auth/callback/)."
+  type        = list(string)
+  default     = ["http://localhost:3000"]
+}
+
 variable "tags" {
   description = "Tags to apply to all resources."
   type        = map(string)

@@ -42,7 +42,7 @@ async def chat(
     """
     logger.info(
         "Chat request from user %s (%d history turns)",
-        principal.id,
+        principal.subject,
         len(request.history),
     )
     history = [Message(m.role, m.content) for m in request.history]

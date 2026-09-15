@@ -25,6 +25,7 @@ class ExternalIdentity:
     email: str
     name: str = ""
     picture: str | None = None
+    provider: str = "google"
 
 
 class IdentityVerifier(Protocol):

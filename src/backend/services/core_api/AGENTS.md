@@ -17,11 +17,17 @@ models/*.py             tables (DeclarativeBase, SQLAlchemy 2 style)
 - **Settings are injected**, never imported as a singleton: `Depends(get_settings)` in dependables,
   `get_settings()` at the composition root (`main.py`, `alembic/env.py`). The engine is built in the
   app `lifespan` and the session factory lives on `app.state`; `get_db` reads it from the request.
-- `api/deps.py`: `get_current_user` (JWT **plus** a DB check that the account is active) returns a
-  `Principal`; `provide(Service, Model[, Repository])` wires services — do not write per-entity factories.
-- **Sign-in is a use case** (`services/auth_service.py::SignIn`) behind the `IdentityVerifier` port
-  (`auth/google.py`); `GoogleTokenInfoVerifier` is its only adapter today. The endpoint just calls it;
-  tests override `get_identity_verifier` with a fake.
+- `api/deps.py`: `get_current_user` runs the `Authenticate` use case (`services/auth_service.py`):
+  `travel_common.security.verify_token` **plus** the database. Local mode looks the account up by
+  the token's subject; Cognito mode upserts it from the claims (profile and `admin` group) on every
+  request. Inactive accounts are 401 in both. It returns an `AccountPrincipal`
+  (`auth/principal.py`: a `Principal` plus the `users.id`); `provide(Service, Model[, Repository])`
+  wires services — do not write per-entity factories.
+- **Local-mode sign-in is a use case** (`services/auth_service.py::SignIn`) behind the
+  `IdentityVerifier` port (`auth/google.py`); `GoogleTokenInfoVerifier` is its only adapter. The
+  `/auth` router is mounted only when `AUTH_MODE=local` (`api/v1/api_router.py::build_api_router`);
+  with Cognito the pool issues the tokens. Tests override `get_identity_verifier` with a fake, and
+  `tests/api/test_cognito_mode.py` builds a second app with `CognitoTestIssuer` settings.
 - **`Trip` is the aggregate root** (ADR 0005). Child collections are nested under
   `/trips/{trip_id}/...` and authorised once by `get_owned_trip` (or `get_owned_itinerary_day`
   for activities and meals). Services scope every query with `get_in(id, trip_id=...)` /

@@ -35,6 +35,9 @@ jobs:
           # The basePath is the repo name, derived so a fork or rename keeps working.
           NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
           NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          # Cognito managed login (repository variables; empty keeps the Google flow)
+          NEXT_PUBLIC_COGNITO_DOMAIN: ${{ vars.COGNITO_DOMAIN }}
+          NEXT_PUBLIC_COGNITO_CLIENT_ID: ${{ vars.COGNITO_CLIENT_ID }}
           NODE_ENV: production
 
         run: npm run build

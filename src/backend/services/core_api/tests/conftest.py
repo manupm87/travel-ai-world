@@ -97,7 +97,7 @@ async def make_user(db: AsyncSession, email: str, role: Role = Role.USER) -> Use
 
 
 def headers_for(user: User) -> dict[str, str]:
-    principal = Principal(id=user.id, email=user.email, role=user.role)
+    principal = Principal(subject=str(user.id), email=user.email, role=user.role)
     return {"Authorization": f"Bearer {create_access_token(principal, settings)}"}
 
 

@@ -6,6 +6,7 @@ import { GoogleLogin } from "@react-oauth/google";
 import { X } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
+import { Button } from "@/components/ui/Button";
 import { safeRedirectPath } from "@/utils/safeRedirect";
 
 interface LoginModalProps {
@@ -14,20 +15,26 @@ interface LoginModalProps {
 }
 
 /**
- * A modal that provides Google Sign-In options.
+ * The sign-in dialog. One button, two flows behind it:
+ * - Cognito (deployed): leaves for the pool's managed login and comes back
+ *   through `/auth/callback/`, which honours the redirect.
+ * - Google (local): the Google Identity Services button; the credential goes
+ *   to core_api and the modal navigates itself.
  *
- * After a successful sign-in it honours a `?redirect=` query parameter, but
- * only for same-origin paths (see `safeRedirectPath`); otherwise it goes to
- * the dashboard.
+ * A `?redirect=` query parameter is honoured only for same-origin paths (see
+ * `safeRedirectPath`); otherwise the destination is the dashboard.
  */
 export function LoginModal({ isOpen, onClose }: LoginModalProps) {
-  const { login } = useAuth();
+  const { provider, login, loginWithRedirect } = useAuth();
   const { t } = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
+  const [leaving, setLeaving] = useState(false);
 
   if (!isOpen) return null;
+
+  const redirect = safeRedirectPath(searchParams.get("redirect"));
 
   const handleCredential = async (credential: string) => {
     setError(null);
@@ -38,7 +45,18 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
       return;
     }
     onClose();
-    router.push(safeRedirectPath(searchParams.get("redirect")) ?? "/dashboard");
+    router.push(redirect ?? "/dashboard");
+  };
+
+  const handleRedirect = async () => {
+    setError(null);
+    setLeaving(true);
+    try {
+      await loginWithRedirect(redirect);
+    } catch {
+      setLeaving(false);
+      setError(t.auth.loginError);
+    }
   };
 
   return (
@@ -72,18 +90,30 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
         </div>
 
         <div className="flex flex-col items-center gap-4">
-          <GoogleLogin
-            onSuccess={(credentialResponse) => {
-              if (credentialResponse.credential) {
-                void handleCredential(credentialResponse.credential);
-              }
-            }}
-            onError={() => setError(t.auth.loginError)}
-            useOneTap
-            theme="filled_blue"
-            shape="pill"
-            text="continue_with"
-          />
+          {provider === "cognito" ? (
+            <Button
+              type="button"
+              size="sm"
+              className="w-full rounded-full py-3"
+              disabled={leaving}
+              onClick={() => void handleRedirect()}
+            >
+              {leaving ? t.auth.redirecting : t.auth.continueWithGoogle}
+            </Button>
+          ) : (
+            <GoogleLogin
+              onSuccess={(credentialResponse) => {
+                if (credentialResponse.credential) {
+                  void handleCredential(credentialResponse.credential);
+                }
+              }}
+              onError={() => setError(t.auth.loginError)}
+              useOneTap
+              theme="filled_blue"
+              shape="pill"
+              text="continue_with"
+            />
+          )}
 
           {error && (
             <p role="alert" className="text-sm text-center text-error">

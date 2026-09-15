@@ -1,7 +1,7 @@
 # Architecture overview
 
 Travel AI World is a static Next.js frontend and two FastAPI services that share nothing at
-runtime except a JWT signing key. See [ADR 0001](adr/0001-backend-split.md) for why.
+runtime except the way they verify bearer tokens. See [ADR 0001](adr/0001-backend-split.md) for why.
 
 ## Containers
 
@@ -12,7 +12,8 @@ flowchart LR
     Core["core_api<br/>FastAPI · SQLAlchemy<br/>auth · users · trips"]
     AI["ai_api<br/>FastAPI · httpx<br/>chat streaming · RAG (future)"]
     PG[("PostgreSQL")]
-    Google["Google OAuth<br/>tokeninfo"]
+    Cognito["Cognito user pool<br/>(Google IdP) · deployed"]
+    Google["Google OAuth<br/>tokeninfo · local"]
     NVIDIA["NVIDIA<br/>chat completions"]
     Vec[("Vector store<br/>(future, owned by ai_api)")]
 
@@ -21,8 +22,9 @@ flowchart LR
     Proxy -->|"everything else"| Core
     Browser -. "or two base URLs" .-> Core
     Browser -. "or two base URLs" .-> AI
+    Browser -->|"managed login, code + PKCE"| Cognito
     Core --> PG
-    Core --> Google
+    Core -. "local mode only" .-> Google
     AI --> NVIDIA
     AI -. "future" .-> Vec
     AI -->|"HTTP, caller's bearer token"| Core
@@ -30,9 +32,9 @@ flowchart LR
 
 | Component | Owns | Never touches |
 |---|---|---|
-| `core_api` | users, trips and their children; Google sign-in; JWT issuing | LLM providers |
+| `core_api` | users, trips and their children; account upsert and revocation; local-mode sign-in and token issuing | LLM providers |
 | `ai_api` | prompts, providers, retrieval, streaming | the relational database, ORM models |
-| `travel_common` | `Principal`, settings base, domain errors, JWT codec, app factory | anything used by one service only |
+| `travel_common` | `Principal`, settings base, domain errors, token verification (local HS256, Cognito RS256), app factory | anything used by one service only |
 
 Calls go in one direction only: `ai_api → core_api`. `core_api` works with `ai_api` down.
 
@@ -53,6 +55,39 @@ ports. Each service's `AGENTS.md` documents its own.
 
 ## Identity
 
+Two token issuers, one contract, selected by `AUTH_MODE` in both services
+([ADR 0009](adr/0009-lambda-cognito-budget.md)): `travel_common.security.verify_token` yields
+`Claims(subject, email, role, name, picture)`, endpoints see a `Principal(subject, email, role)`,
+and `core_api` extends it with the account id (`AccountPrincipal`) after its database check.
+
+**Deployed (`AUTH_MODE=cognito`).** The Amazon Cognito user pool signs people in with Google and
+issues RS256 ID tokens; the services verify them offline against the pool's JWKS, which Terraform
+passes as configuration. No token is issued by our code and no secret is shared between services.
+
+```mermaid
+sequenceDiagram
+    participant B as Browser
+    participant P as Cognito (managed login)
+    participant G as Google
+    participant C as core_api
+    participant A as ai_api
+    B->>P: /oauth2/authorize (code + PKCE, identity_provider=Google)
+    P->>G: OAuth 2.0 (client id/secret held by Cognito)
+    G-->>P: Google ID token
+    P-->>B: redirect /auth/callback/?code&state
+    B->>P: /oauth2/token {code, code_verifier}
+    P-->>B: ID token (RS256) + refresh token
+    B->>C: GET /api/v1/users/me · Bearer ID token
+    C->>C: verify against JWKS · upsert user from claims · is_active?
+    C-->>B: profile
+    B->>A: POST /api/v1/ai/chat · Bearer ID token
+    A->>A: verify against JWKS · Principal from claims
+```
+
+**Local (`AUTH_MODE=local`, the default).** The Google Identity Services button gives the browser
+a Google ID token; `core_api` verifies it with Google's `tokeninfo`, upserts the account and issues
+its own HS256 token with `SECRET_KEY`, shared with `ai_api`.
+
 ```mermaid
 sequenceDiagram
     participant B as Browser
@@ -63,15 +98,19 @@ sequenceDiagram
     B->>C: POST /api/v1/auth/google {credential}
     C->>G: tokeninfo?id_token
     G-->>C: sub, email, aud
-    C->>C: upsert user · build Principal(id, email, role)
+    C->>C: upsert user · build Principal(subject=id, email, role)
     C-->>B: JWT {sub, email, role, exp} + profile
 ```
 
-The JWT carries the whole `Principal`, so:
+In both modes:
 
-- `core_api` verifies the signature **and** checks the account in the database (revocation is immediate).
-- `ai_api` verifies the signature only (stateless). A deactivated user can keep chatting until the
-  token expires (60 min). See [ADR 0002](adr/0002-auth-between-services.md).
+- `core_api` verifies the token **and** checks the account in the database on every request:
+  a deactivated user is cut off immediately. In Cognito mode the row is upserted from the claims
+  on first sight and the `admin` role mirrors the pool's `admin` group; in local mode the database
+  owns the role (`PATCH /users/{id}/role`).
+- `ai_api` verifies the token only (stateless). A deactivated user can keep chatting until the
+  token expires (60 min). See [ADR 0002](adr/0002-auth-between-services.md) (superseded for the
+  issuer, still the rule for the boundary).
 
 ## Chat
 
@@ -81,7 +120,7 @@ sequenceDiagram
     participant A as ai_api
     participant N as NVIDIA
     B->>A: POST /api/v1/ai/chat {message, history} + Bearer
-    A->>A: principal_from_token
+    A->>A: principal_from_token (local HS256 or Cognito RS256)
     A->>A: StreamChat: [system] + history + [user]
     A->>N: chat/completions (stream)
     N-->>A: SSE deltas

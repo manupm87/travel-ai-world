@@ -262,7 +262,12 @@ const en: Translations = {
     welcomeBack: "Welcome back",
     subtitle: "Join Travel AI World to save your itineraries and explore the world.",
     terms: "By continuing, you agree to our Terms of Service and Privacy Policy.",
-    loginError: "We couldn't sign you in. Please try again."
+    loginError: "We couldn't sign you in. Please try again.",
+    continueWithGoogle: "Continue with Google",
+    redirecting: "Redirecting…",
+    completingSignIn: "Completing your sign-in…",
+    callbackError: "We couldn't complete your sign-in. Please start again.",
+    backHome: "Back to the home page",
   },
   notFound: {
     subtitle: "404 - Lost in Paradise",

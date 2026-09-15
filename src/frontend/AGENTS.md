@@ -9,10 +9,14 @@ TypeScript 5, Tailwind CSS v4.
   `src/i18n/{types,en,es}.ts`. Placeholders via `interpolate(t.x, { name })`. Dates and money via
   `useFormatters()` (`src/hooks/useFormatters.ts`), never `language === "en" ? "en-US" : ...`.
   Language metadata (flag, native name, locale) lives only in `LANGUAGES` (`src/i18n/index.ts`).
-- **Network only in `src/services/`**: `http.ts` (base URLs, auth header, error parsing),
-  `session.ts` (the only owner of the `localStorage` session), `auth.ts` (core_api),
-  `chat.ts` (ai_api), `trips.ts` (fixtures today; owns `toTrip`, the only place that turns a
-  `TripResponse` into the `Trip` view model — ADR 0006). Components never `fetch` or touch the session storage.
+- **Network only in `src/services/`**: `http.ts` (base URLs, auth header, error parsing, silent
+  token refresh before authenticated calls), `session.ts` (the only owner of the `localStorage`
+  session: token, profile, refresh token), `cognito.ts` (the deployed sign-in: managed login with
+  code + PKCE, `/auth/callback/`, refresh, logout — no SDK), `auth.ts` (the local Google flow
+  through core_api), `chat.ts` (ai_api), `trips.ts` (fixtures today; owns `toTrip`, the only place
+  that turns a `TripResponse` into the `Trip` view model — ADR 0006). Components never `fetch` or
+  touch the session storage. `AuthContext.provider` (`"cognito" | "google"`) says which sign-in the
+  build has; it is decided by `NEXT_PUBLIC_COGNITO_DOMAIN` + `NEXT_PUBLIC_COGNITO_CLIENT_ID`.
 - **`src/types/trip.ts` is a view model**, not a response shape: components render it, `services/trips.ts`
   builds it from the generated `TripResponse`. Fixtures in `src/mocks/*.ts` are `TripResponse` objects
   checked with `satisfies`; add derived facts (e.g. `ItineraryDay.kind`) in the mapper, not in JSX.
@@ -32,8 +36,9 @@ TypeScript 5, Tailwind CSS v4.
   `src/types/`, imports first, `console` is a warning. `tsconfig` has `noUncheckedIndexedAccess`:
   key lookups on i18n ids (`step.id`, `feat.id`, `TripStatus`) instead of indexing parallel arrays.
 - Files: components `PascalCase.tsx`, utilities and hooks `camelCase.ts`, locales `<code>.ts`.
-- Routes live in groups: `app/(marketing)/` (public; layout = Header + Footer) and `app/(app)/`
-  (signed-in; layout = shell + `ProtectedRoute`). Do not wrap pages in `ProtectedRoute` again.
+- Routes live in groups: `app/(marketing)/` (public; layout = Header + Footer, includes
+  `auth/callback/`, where Cognito sends the browser back) and `app/(app)/` (signed-in; layout =
+  shell + `ProtectedRoute`). Do not wrap pages in `ProtectedRoute` again.
 - `/trip/[id]` (`app/(app)/trip/[id]/`) is split in `page.tsx` (server, `generateStaticParams`) +
   `TripClientPage.tsx` (client).
 - Tests: `renderWithProviders` from `src/test/render.tsx` and the typed builders in

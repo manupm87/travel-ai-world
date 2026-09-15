@@ -1,12 +1,13 @@
 # ai_api
 
 Everything that talks to language models: today a streaming chat proxy to NVIDIA-hosted models,
-tomorrow retrieval over the scraped city data. No database; authenticates with the JWT alone.
+tomorrow retrieval over the scraped city data. No database; authenticates with the bearer token
+alone (core_api's HS256 JWT locally, the Cognito pool's RS256 ID token when deployed).
 
 ## Run
 
 ```bash
-cp .env.example .env       # SECRET_KEY (same as core_api), NVIDIA_API_KEY, CORE_API_URL
+cp .env.example .env       # AUTH_MODE + SECRET_KEY or COGNITO_* (same as core_api), NVIDIA_API_KEY, CORE_API_URL
 uv run uvicorn ai_api.main:app --reload --port 8001    # http://localhost:8001/api/v1/ai/docs
 ```
 

@@ -171,6 +171,11 @@ export interface Translations {
     subtitle: string;
     terms: string;
     loginError: string;
+    continueWithGoogle: string;
+    redirecting: string;
+    completingSignIn: string;
+    callbackError: string;
+    backHome: string;
   };
   notFound: {
     subtitle: string;

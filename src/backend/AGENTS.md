@@ -33,13 +33,16 @@ uv run python scripts/export_openapi.py  # → docs/api/*.openapi.json (then `np
 
 ## Rules
 
-- **`travel_common` holds only what crosses a service boundary**: `Principal`, `CommonSettings`,
-  domain exceptions, JWT codec, bearer extraction, the FastAPI app factory and error handlers.
+- **`travel_common` holds only what crosses a service boundary**: `Principal`/`Claims`, `CommonSettings`,
+  domain exceptions, token verification (`security.py` dispatches on `AUTH_MODE`: local HS256 or
+  `cognito.py`'s RS256/JWKS), bearer extraction, the FastAPI app factory and error handlers, plus
+  `testing.py` (`CognitoTestIssuer`) for every package's tests.
   If a thing is used by one service, it belongs to that service. Never add SQLAlchemy or httpx-based
   clients to `travel_common`.
 - **Settings**: each service subclasses `CommonSettings` and exposes `get_settings()` (cached);
-  inject it with `Depends(get_settings)` — no module-level `settings` singleton. JWT helpers take
-  `settings` explicitly. `SECRET_KEY` must be the same value in both services' `.env`.
+  inject it with `Depends(get_settings)` — no module-level `settings` singleton. Token helpers take
+  `settings` explicitly. `AUTH_MODE` and its settings (`SECRET_KEY` in local mode; `COGNITO_ISSUER`,
+  `COGNITO_CLIENT_ID`, `COGNITO_JWKS` in Cognito mode) must be the same in both services' `.env`.
 - **Process resources** (database engines, HTTP clients) are created in the app `lifespan` passed to
   `create_app(..., lifespan=...)` and stored on `app.state`, never at import time.
 - **Errors**: services raise `travel_common.exceptions.*`; `travel_common.http.error_handlers` maps

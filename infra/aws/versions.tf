@@ -7,6 +7,11 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    # Reads the user pool's JWKS at plan time (cognito.tf).
+    http = {
+      source  = "hashicorp/http"
+      version = "~> 3.4"
+    }
   }
 
   # Partial configuration: the bucket (contains the account id) and the region

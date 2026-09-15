@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { ensureFreshToken } from "./cognito";
 import {
   ApiError,
   UnauthorizedError,
@@ -11,6 +12,8 @@ import {
   requestRaw,
 } from "./http";
 import { writeSession, clearSession } from "./session";
+
+vi.mock("./cognito", () => ({ ensureFreshToken: vi.fn(async () => {}) }));
 
 /** Re-imports http.ts so module-level env reads see the stubbed variables. */
 async function loadWithEnv(env: Record<string, string | undefined>) {
@@ -123,6 +126,16 @@ describe("http", () => {
       expect(init.method).toBe("POST");
       expect(init.body).toBe(JSON.stringify({ a: 1 }));
       expect((init.headers as Record<string, string>)["Content-Type"]).toBe("application/json");
+    });
+
+    it("asks the Cognito service for a fresh token before an authenticated call", async () => {
+      writeSession("tok", { id: "1", email: "a@b.c", name: "A" });
+      fetchMock.mockResolvedValue(new Response("{}", { status: 200 }));
+
+      await requestRaw("ai", "/ai/chat", { auth: true });
+      await requestRaw("ai", "/ai/health");
+
+      expect(ensureFreshToken).toHaveBeenCalledTimes(1);
     });
 
     it("attaches the bearer token when `auth` is set", async () => {

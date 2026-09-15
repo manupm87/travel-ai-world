@@ -4,7 +4,8 @@
 
 - Node.js 24 (`src/frontend/.nvmrc`), Python 3.12 (`src/backend/.python-version`), [uv](https://github.com/astral-sh/uv), [just](https://just.systems)
 - PostgreSQL 16 (local, Docker, or the devcontainer's)
-- A Google OAuth client ID; an NVIDIA API key for the chat
+- A Google OAuth client ID (the local flow keeps `AUTH_MODE=local`; the deployed Cognito flow is
+  described in [`infra/aws/README.md`](../../infra/aws/README.md#sign-in-cognito)); an NVIDIA API key for the chat
 
 ## First run
 

@@ -11,9 +11,11 @@ pick one, apply only its folder. Nothing is created until you run `terraform app
 | [`aws/`](aws/README.md) | ECS Fargate ×2 + RDS + ECR + ALB + Secrets Manager | one ALB (routes `/api/v1/ai/*`) | `NEXT_PUBLIC_API_URL` |
 
 Both deploy `core_api` and `ai_api` as separate services, each with its own identity and access
-**only to its secrets**. `SECRET_KEY` is the same secret in both: `ai_api` verifies the JWTs
-`core_api` issues ([ADR 0002](../docs/architecture/adr/0002-auth-between-services.md)). Why two
-services and why the frontend accepts two URLs: [ADR 0001](../docs/architecture/adr/0001-backend-split.md),
+**only to its secrets**. On AWS the two services run in `AUTH_MODE=cognito`: a Cognito user pool
+signs people in with Google and both services verify its RS256 tokens offline
+([ADR 0009](../docs/architecture/adr/0009-lambda-cognito-budget.md)); on GCP they still share
+`SECRET_KEY` and `core_api` issues the tokens ([ADR 0002](../docs/architecture/adr/0002-auth-between-services.md)).
+Why two services and why the frontend accepts two URLs: [ADR 0001](../docs/architecture/adr/0001-backend-split.md),
 [ADR 0003](../docs/architecture/adr/0003-frontend-two-base-urls.md).
 
 ## What is shared by both clouds
@@ -28,8 +30,10 @@ services and why the frontend accepts two URLs: [ADR 0001](../docs/architecture/
   `google_client_secret`, `nvidia_api_key`) stored in the cloud's secret manager and injected per
   service. Locally they go in `terraform.tfvars` (ignored by git; start from `terraform.tfvars.example`).
   In CI they arrive as `TF_VAR_*` repository secrets.
-- **CORS and OAuth**: `backend_cors_origins` must list the deployed frontend origin, and that origin
-  must be registered in the Google OAuth client.
+- **CORS and OAuth**: `backend_cors_origins` must list the deployed frontend origin. The Google OAuth
+  client (it stays in Google Cloud) must list the Cognito domain's `/oauth2/idpresponse` as a
+  redirect URI on AWS (see [`aws/README.md`](aws/README.md#sign-in-cognito)), and the frontend
+  origin itself where the Google button is used (GCP, local).
 - **Migrations** run at container start in `core_api` only (`src/backend/docker/entrypoint.sh`).
 - **State**: commit `.terraform.lock.hcl`, never `*.tfstate` or `*.tfvars`. Sensitive variables end
   up in the state, so it lives in a remote backend with restricted access; the CI workflow

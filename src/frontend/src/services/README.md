@@ -6,9 +6,10 @@ components trivial to mock in tests.
 
 | File | Talks to | Exports |
 |---|---|---|
-| `http.ts` | — | `request<T>(service, path, options)` / `requestRaw(...)` (the one `fetch` wrapper: JSON body, optional bearer token, non-2xx → `ApiError { status, code }`, 401 → `UnauthorizedError extends ApiError`), `apiUrl`, `authHeaders`, `parseErrorBody`, `readErrorMessage`, `isApiAvailable`, `isAiAvailable` |
-| `session.ts` | `localStorage` | The only owner of the persisted session: `readSession`, `readToken`, `writeSession`, `clearSession`, `pruneInvalidSession`, plus `subscribe`/`getSnapshot` for `useSyncExternalStore` |
-| `auth.ts` | `core_api` | `loginWithGoogle(credential)` (API vs static mode, writes the session, throws on an invalid credential), `verifyGoogleToken(credential)` |
+| `http.ts` | — | `request<T>(service, path, options)` / `requestRaw(...)` (the one `fetch` wrapper: JSON body, optional bearer token refreshed first when about to expire, non-2xx → `ApiError { status, code }`, 401 → `UnauthorizedError extends ApiError`), `apiUrl`, `authHeaders`, `parseErrorBody`, `readErrorMessage`, `isApiAvailable`, `isAiAvailable` |
+| `session.ts` | `localStorage` | The only owner of the persisted session (token, profile, refresh token): `readSession`, `readToken`, `readRefreshToken`, `writeSession`, `writeToken`, `clearSession`, `pruneInvalidSession`, `userFromIdToken`, `tokenExpiresWithin`, plus `subscribe`/`getSnapshot` for `useSyncExternalStore` |
+| `cognito.ts` | the Cognito user pool (`NEXT_PUBLIC_COGNITO_DOMAIN`) | The deployed sign-in, no SDK: `startCognitoLogin(redirect)` (code + PKCE, leaves for the managed login), `completeCognitoLogin(params)` (on `/auth/callback/`: state check, code exchange, writes the session), `ensureFreshToken` / `refreshCognitoSession` (refresh-token grant, single-flight), `logoutFromCognito`, `isCognitoAvailable`, and the pure `buildAuthorizeUrl` / `buildLogoutUrl` / `pkceChallenge` |
+| `auth.ts` | `core_api` | The local Google flow: `loginWithGoogle(credential)` (API vs static mode, writes the session, throws on an invalid credential), `verifyGoogleToken(credential)` |
 | `chat.ts` | `ai_api` | `streamChat(message, history, { signal })` — async generator over SSE, cancellable with an `AbortSignal`; `parseSseEvents(buffer)` — the pure SSE line parser it is built on |
 | `trips.ts` | fixtures in `src/mocks/*.ts` (backend shape) until the API serves trips | `getTripById`, `getTripSummaries`, `getAllTripIds`, and the mappers `toTrip` / `toTripSummary` (`TripResponse` → view model, [ADR 0006](../../../../docs/architecture/adr/0006-frontend-trip-view-model.md)) |
 

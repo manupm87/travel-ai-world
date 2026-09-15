@@ -262,7 +262,12 @@ const es: Translations = {
     welcomeBack: "Bienvenido de nuevo",
     subtitle: "Únete a Travel AI World para guardar tus itinerarios y explorar el mundo.",
     terms: "Al continuar, aceptas nuestros Términos de Uso y nuestra Política de Privacidad.",
-    loginError: "No hemos podido iniciar tu sesión. Inténtalo de nuevo."
+    loginError: "No hemos podido iniciar tu sesión. Inténtalo de nuevo.",
+    continueWithGoogle: "Continuar con Google",
+    redirecting: "Redirigiendo…",
+    completingSignIn: "Completando tu inicio de sesión…",
+    callbackError: "No hemos podido completar tu inicio de sesión. Vuelve a intentarlo.",
+    backHome: "Volver a la página principal",
   },
   notFound: {
     subtitle: "404 - Perdido en el Paraíso",

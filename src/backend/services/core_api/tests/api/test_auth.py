@@ -56,7 +56,7 @@ async def test_first_sign_in_creates_the_account_and_issues_our_token(
 
     principal = principal_from_token(body["access_token"], get_settings())
     assert principal.email == identity.email
-    assert principal.id == body["user"]["id"]
+    assert principal.subject == str(body["user"]["id"])
 
     me = await client.get(
         "/api/v1/users/me", headers={"Authorization": f"Bearer {body['access_token']}"}

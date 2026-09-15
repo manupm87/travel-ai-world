@@ -26,6 +26,9 @@ const setAuth = (authenticated: boolean) =>
     logout,
     login: vi.fn(),
     isLoading: false,
+    provider: "google" as const,
+    loginWithRedirect: vi.fn(),
+    completeLogin: vi.fn(),
   });
 
 describe("UserMenu", () => {

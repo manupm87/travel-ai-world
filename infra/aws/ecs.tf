@@ -26,7 +26,7 @@ module "core_api" {
   security_groups  = [aws_security_group.ecs.id]
   target_group_arn = aws_lb_target_group.core_api.arn
 
-  env = merge(local.frontend_env, {
+  env = merge(local.frontend_env, local.cognito_backend_env, {
     DB_SERVER = aws_db_instance.main.address
     DB_PORT   = "5432"
     DB_USER   = var.db_user
@@ -55,7 +55,7 @@ module "ai_api" {
   security_groups  = [aws_security_group.ecs.id]
   target_group_arn = aws_lb_target_group.ai_api.arn
 
-  env = merge(local.frontend_env, {
+  env = merge(local.frontend_env, local.cognito_backend_env, {
     CORE_API_URL      = "http://${aws_lb.backend.dns_name}"
     NVIDIA_CHAT_MODEL = var.nvidia_chat_model
   })

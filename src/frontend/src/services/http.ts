@@ -11,6 +11,7 @@
  * gracefully disabled.
  */
 
+import { ensureFreshToken } from "./cognito";
 import { readToken } from "./session";
 
 export type Service = "core" | "ai";
@@ -125,12 +126,14 @@ export interface RequestOptions extends Omit<RequestInit, "body"> {
  * Performs a request against a service and resolves with the raw `Response`
  * only when it is 2xx. Any other status becomes an `ApiError`
  * (`UnauthorizedError` for 401) carrying the backend's message and code.
+ * With `auth`, a Cognito session about to expire is refreshed first.
  */
 export async function requestRaw(
   service: Service,
   path: string,
   { json, auth = false, headers, ...init }: RequestOptions = {}
 ): Promise<Response> {
+  if (auth) await ensureFreshToken();
   const res = await fetch(apiUrl(service, path), {
     ...init,
     headers: {

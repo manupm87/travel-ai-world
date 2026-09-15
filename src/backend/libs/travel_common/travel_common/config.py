@@ -1,9 +1,11 @@
 """Settings every service shares. Each service subclasses and adds its own."""
 
 import re
-from typing import ClassVar
+from typing import ClassVar, Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+AuthMode = Literal["local", "cognito"]
 
 
 class CommonSettings(BaseSettings):
@@ -15,10 +17,25 @@ class CommonSettings(BaseSettings):
     # allow_credentials=True forbids "*", so this must never be a wildcard.
     BACKEND_CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:5173"]
 
-    # JWT. SECRET_KEY must be identical in every service that verifies tokens.
+    # Who issues the bearer tokens both services verify (ADR 0009):
+    #   local   — core_api's POST /auth/google issues HS256 tokens with SECRET_KEY
+    #             (development, Docker Compose).
+    #   cognito — an Amazon Cognito user pool issues RS256 ID tokens; the services
+    #             verify them offline against COGNITO_JWKS (deployed).
+    AUTH_MODE: AuthMode = "local"
+
+    # Local mode. SECRET_KEY must be identical in every service that verifies tokens.
     SECRET_KEY: str = ""
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+
+    # Cognito mode. The issuer is https://cognito-idp.<region>.amazonaws.com/<pool id>,
+    # the audience is the app client id, and COGNITO_JWKS is the pool's
+    # .well-known/jwks.json document as a JSON string (Terraform reads it at
+    # deploy time; no function fetches keys at runtime).
+    COGNITO_ISSUER: str = ""
+    COGNITO_CLIENT_ID: str = ""
+    COGNITO_JWKS: str = ""
 
     # Root log level for the application's own loggers (uvicorn keeps its own).
     LOG_LEVEL: str = "INFO"

@@ -1,12 +1,15 @@
 # core_api
 
-Google OAuth sign-in, users and trip data (trips, destinations, itinerary days, activities, meals,
-accommodations, transportations) on PostgreSQL. Issues the JWTs every service trusts.
+Users and trip data (trips, destinations, itinerary days, activities, meals, accommodations,
+transportations) on PostgreSQL. Owns the account behind every bearer token: in local mode it also
+signs people in with Google and issues the JWTs every service trusts; in Cognito mode
+([ADR 0009](../../../../docs/architecture/adr/0009-lambda-cognito-budget.md)) the user pool issues
+them and this service upserts the account from the claims.
 
 ## Run
 
 ```bash
-cp .env.example .env       # SECRET_KEY, GOOGLE_*, DB_*
+cp .env.example .env       # AUTH_MODE=local: SECRET_KEY, GOOGLE_*, DB_* (Cognito mode: COGNITO_*)
 uv run alembic upgrade head
 uv run uvicorn core_api.main:app --reload --port 8000    # http://localhost:8000/docs
 ```
@@ -15,7 +18,7 @@ uv run uvicorn core_api.main:app --reload --port 8000    # http://localhost:8000
 
 | Method | Path | Auth | Notes |
 |---|---|---|---|
-| `POST` | `/auth/google` | — | Google ID token → our JWT + profile |
+| `POST` | `/auth/google` | — | Local mode only: Google ID token → our JWT + profile (absent when `AUTH_MODE=cognito`) |
 | `GET` | `/users/me` | Bearer | Own profile |
 | `GET` | `/users/` | Admin | List users |
 | `GET` | `/users/{id}` | Admin | Profiles are not public |
@@ -39,15 +42,16 @@ Errors: `{"detail": {"message": "...", "error_code": "NOT_FOUND" | "FORBIDDEN" |
 
 ```text
 core_api/
-├── main.py            create_app(get_settings(), [api_router], lifespan=...) — engine on app.state
+├── main.py            create_app(get_settings(), [build_api_router(settings)], lifespan=...) — engine on app.state
 ├── config.py          CoreSettings(CommonSettings): DB_*, GOOGLE_*; get_settings() (injected)
-├── api/deps.py        get_current_user (JWT + DB check) → Principal; provide() wiring;
+├── api/deps.py        get_current_user (token + DB check) → AccountPrincipal; provide() wiring;
 │                      get_owned_trip / get_owned_itinerary_day (aggregate boundary); get_sign_in
-├── api/v1/endpoints/  thin controllers for auth, users, trips, health
+├── api/v1/endpoints/  thin controllers for auth (local mode only), users, trips, health
 ├── api/v1/resources.py  CHILD_RESOURCES + child_router(): the nested CRUD collections
-├── auth/google.py     IdentityVerifier port + GoogleTokenInfoVerifier adapter
+├── auth/google.py     IdentityVerifier port + GoogleTokenInfoVerifier adapter (local mode)
+├── auth/principal.py  AccountPrincipal = Principal + users.id
 ├── services/          base.py (generic; every child entity) + trip_service.py, user_service.py,
-│                      auth_service.py (SignIn use case)
+│                      auth_service.py (Authenticate: both modes; SignIn: local issuer)
 ├── repositories/      base.py (generic) + trip_repository.py, user_repository.py
 ├── models/            SQLAlchemy 2 typed tables; mixins + check_invariants() in base.py; enums.py
 ├── schemas/           Pydantic models; XUpdate = partial(XBase) (_partial.py); formats in _types.py

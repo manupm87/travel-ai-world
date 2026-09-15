@@ -16,8 +16,8 @@ path. The frontend needs only `NEXT_PUBLIC_API_URL`.
 
 | Service | Image | Receives | ALB rule |
 |---|---|---|---|
-| `core-api` | `core-api` | `DB_*`, `GOOGLE_*`, `SECRET_KEY` | default action |
-| `ai-api` | `ai-api` | `NVIDIA_API_KEY`, `SECRET_KEY`, `CORE_API_URL` (the ALB URL) | `/api/v1/ai/*` |
+| `core-api` | `core-api` | `DB_*`, `AUTH_MODE=cognito` + `COGNITO_*`, and still `GOOGLE_*`, `SECRET_KEY` (unused in Cognito mode) | default action |
+| `ai-api` | `ai-api` | `NVIDIA_API_KEY`, `AUTH_MODE=cognito` + `COGNITO_*`, `CORE_API_URL` (the ALB URL) | `/api/v1/ai/*` |
 
 ## What Terraform creates
 
@@ -29,6 +29,38 @@ path. The frontend needs only `NEXT_PUBLIC_API_URL`.
 - One ECS cluster and two Fargate services (module `modules/ecs_service`).
 - ALB with two target groups, health checks on `/api/v1/health/` and `/api/v1/ai/health/`, and a
   300 s idle timeout for streaming responses.
+- Sign-in (`cognito.tf`, the first piece of v3, applicable on its own): a Cognito user pool, Google
+  as its only identity provider, a public app client (authorization code + PKCE, refresh tokens for
+  30 days), the `admin` group, a hosted-UI domain, and the pool's JWKS read at plan time so both
+  services get `COGNITO_JWKS` as an environment variable. See [Sign-in (Cognito)](#sign-in-cognito).
+
+## Sign-in (Cognito)
+
+The Google OAuth client stays in Google Cloud; Cognito uses it on the backend's behalf. After the
+first `terraform apply`:
+
+1. **Google Cloud console → APIs & Services → Credentials → the OAuth client** (the same
+   `google_client_id` / `google_client_secret` Terraform receives). Add, using
+   `terraform output -raw cognito_domain`:
+   - Authorised JavaScript origins: `https://<cognito_domain>`
+   - Authorised redirect URIs: `https://<cognito_domain>/oauth2/idpresponse`
+
+   Until this is done Google answers `redirect_uri_mismatch` when Cognito hands off to it.
+2. **Frontend build**: `NEXT_PUBLIC_COGNITO_DOMAIN=$(terraform output -raw cognito_domain)` and
+   `NEXT_PUBLIC_COGNITO_CLIENT_ID=$(terraform output -raw cognito_client_id)` (GitHub repository
+   variables `COGNITO_DOMAIN` / `COGNITO_CLIENT_ID` for `deploy.yml`). The app client accepts
+   `https://<domain_name>/auth/callback/` and every `cognito_dev_origins` entry (default
+   `http://localhost:3000`), so a local frontend can sign in against the deployed pool.
+3. **Backend**: the ECS task definitions already receive `AUTH_MODE=cognito`, `COGNITO_ISSUER`,
+   `COGNITO_CLIENT_ID` and `COGNITO_JWKS` from the same outputs; run them locally with
+   `terraform output -raw cognito_jwks` in `.env` to test against the real pool.
+4. **Administrators**: add the user to the `admin` group in the pool (console or
+   `aws cognito-idp admin-add-user-to-group`); the role travels in the ID token as `cognito:groups`.
+
+The domain is the pool's default host (`<name_prefix>-<account id>.auth.<region>.amazoncognito.com`)
+until `cognito_custom_domain` (e.g. `auth.kyrian-world.com`) is set, which needs the `us-east-1`
+certificate to cover that name. Key rotation: the pool's signing keys are stable, but if `cognito_jwks`
+ever changes, a `terraform apply` refreshes the services' environment.
 
 ## Access (once per account)
 

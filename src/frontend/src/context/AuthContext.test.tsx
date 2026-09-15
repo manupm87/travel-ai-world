@@ -3,11 +3,28 @@ import { renderHook, act } from "@testing-library/react";
 import React from "react";
 import { AuthProvider, useAuth } from "./AuthContext";
 import { loginWithGoogle } from "@/services/auth";
-import { writeSession } from "@/services/session";
+import {
+  completeCognitoLogin,
+  isCognitoAvailable,
+  logoutFromCognito,
+  needsRefresh,
+  refreshCognitoSession,
+  startCognitoLogin,
+} from "@/services/cognito";
+import { writeSession, writeToken } from "@/services/session";
 import { makeJwt, nowInSeconds } from "@/test/jwt";
 
 vi.mock("@/services/auth", () => ({
   loginWithGoogle: vi.fn(),
+}));
+
+vi.mock("@/services/cognito", () => ({
+  isCognitoAvailable: vi.fn(() => false),
+  needsRefresh: vi.fn(() => false),
+  refreshCognitoSession: vi.fn(),
+  startCognitoLogin: vi.fn(),
+  completeCognitoLogin: vi.fn(),
+  logoutFromCognito: vi.fn(),
 }));
 
 const user = {
@@ -123,6 +140,72 @@ describe("AuthContext", () => {
     expect(result.current.user).toBeNull();
     expect(localStorage.getItem("travel_ai_token")).toBeNull();
     expect(localStorage.getItem("travel_ai_user")).toBeNull();
+  });
+
+  it("reports the Google provider when no user pool is configured", () => {
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    expect(result.current.provider).toBe("google");
+  });
+
+  describe("in Cognito mode", () => {
+    beforeEach(() => {
+      vi.mocked(isCognitoAvailable).mockReturnValue(true);
+    });
+
+    afterEach(() => {
+      vi.mocked(isCognitoAvailable).mockReturnValue(false);
+      vi.mocked(needsRefresh).mockReturnValue(false);
+    });
+
+    it("delegates the redirect login, the callback and the logout to the service", async () => {
+      vi.mocked(completeCognitoLogin).mockResolvedValue({ user, redirect: "/trip/japan" });
+      const { result } = renderHook(() => useAuth(), { wrapper });
+      expect(result.current.provider).toBe("cognito");
+
+      await act(async () => {
+        await result.current.loginWithRedirect("/trip/japan");
+      });
+      expect(startCognitoLogin).toHaveBeenCalledWith("/trip/japan");
+
+      const params = new URLSearchParams({ code: "c", state: "s" });
+      let redirect: string | null = null;
+      await act(async () => {
+        redirect = await result.current.completeLogin(params);
+      });
+      expect(completeCognitoLogin).toHaveBeenCalledWith(params);
+      expect(redirect).toBe("/trip/japan");
+
+      act(() => {
+        result.current.logout();
+      });
+      expect(logoutFromCognito).toHaveBeenCalled();
+    });
+
+    it("stays loading while an expired session is being refreshed", async () => {
+      writeSession(makeJwt({ sub: "123", exp: 1 }), user, "refresh-1");
+      vi.mocked(needsRefresh).mockReturnValue(true);
+      let finish!: () => void;
+      vi.mocked(refreshCognitoSession).mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            finish = () => {
+              writeToken(validToken);
+              resolve(validToken);
+            };
+          })
+      );
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+      expect(result.current.isLoading).toBe(true);
+      expect(result.current.user).toBeNull();
+
+      await act(async () => {
+        finish();
+      });
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.user).toEqual(user);
+    });
   });
 
   it("throws when used outside the provider", () => {

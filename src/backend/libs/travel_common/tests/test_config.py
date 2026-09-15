@@ -25,8 +25,12 @@ def test_common_settings_have_no_unused_fields():
         "VERSION",
         "API_V1_STR",
         "BACKEND_CORS_ORIGINS",
+        "AUTH_MODE",
         "SECRET_KEY",
         "ALGORITHM",
         "ACCESS_TOKEN_EXPIRE_MINUTES",
+        "COGNITO_ISSUER",
+        "COGNITO_CLIENT_ID",
+        "COGNITO_JWKS",
         "LOG_LEVEL",
     }
