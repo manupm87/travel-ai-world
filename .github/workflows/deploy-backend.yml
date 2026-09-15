@@ -166,4 +166,14 @@ jobs:
           aws lambda invoke --function-name "$fn" --cli-binary-format raw-in-base64-out \
             --payload '{"command": "migrate"}' response.json
           cat response.json; echo
-          grep -q '"status": *"ok"' response.json
+          # The Web Adapter may wrap the app's answer as {"statusCode", "body": "<json>"}.
+          python3 - <<'PY'
+          import json, sys
+          data = json.load(open("response.json"))
+          if isinstance(data, dict) and "body" in data:
+              status_code = int(data.get("statusCode", 0))
+              data = json.loads(data["body"]) if isinstance(data["body"], str) else data["body"]
+              assert status_code == 200, f"core_api answered {status_code}: {data}"
+          assert data.get("status") == "ok", f"migrate did not report ok: {data}"
+          print("migrations applied")
+          PY
