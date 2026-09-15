@@ -4,7 +4,7 @@ Este documento detalla el despliegue manual del frontend estático de Travel AI 
 
 ## Arquitectura resultante
 
-```
+```text
 Usuario → Route 53 (kyrian-world.com) → CloudFront (HTTPS) → S3 (privado, OAC)
                 ↓
          ACM Certificate (us-east-1)
@@ -103,6 +103,7 @@ CloudFront genera automáticamente la política. Verificar que existe en S3:
 
 1. Ir a **S3** → Bucket `kyrian-world.com` → **Permissions** → **Bucket policy**.
 2. Debe contener una política con:
+
    ```json
    {
      "Effect": "Allow",
@@ -116,6 +117,7 @@ CloudFront genera automáticamente la política. Verificar que existe en S3:
      }
    }
    ```
+
 3. (Opcional) Activar **Block all public access** en el bucket.
 
 ---
@@ -144,6 +146,7 @@ nslookup kyrian-world.com
 ```
 
 **Prueba en navegador:**
+
 - `http://kyrian-world.com` → Redirige a `https://kyrian-world.com` ✅
 - Candado SSL válido ✅
 - Carga la aplicación Travel AI World ✅
