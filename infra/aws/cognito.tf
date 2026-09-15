@@ -92,12 +92,14 @@ resource "aws_cognito_user_group" "admin" {
 }
 
 # -----------------------------------------------------------------------------
-# Managed login domain: the pool's default host now, a custom host later.
+# Managed login domain: `auth.<domain>` by default, the pool's own host if
+# `cognito_subdomain` is emptied.
 # -----------------------------------------------------------------------------
 
 locals {
-  use_custom_cognito_domain = var.cognito_custom_domain != ""
-  cognito_domain            = local.use_custom_cognito_domain ? var.cognito_custom_domain : "${aws_cognito_user_pool_domain.main.domain}.auth.${var.region}.amazoncognito.com"
+  use_custom_cognito_domain = var.cognito_subdomain != ""
+  cognito_custom_domain     = local.use_custom_cognito_domain ? "${var.cognito_subdomain}.${var.domain_name}" : ""
+  cognito_domain            = local.use_custom_cognito_domain ? local.cognito_custom_domain : "${aws_cognito_user_pool_domain.main.domain}.auth.${var.region}.amazoncognito.com"
 
   cognito_callback_urls = concat(
     ["https://${var.domain_name}/auth/callback/"],
@@ -114,7 +116,7 @@ resource "aws_cognito_user_pool_domain" "main" {
   # Prefix domains are global: the account id keeps it unique. With a custom
   # domain, Cognito needs the us-east-1 certificate (the wildcard covers it)
   # and the parent domain must already resolve (it does: the frontend's A record).
-  domain          = local.use_custom_cognito_domain ? var.cognito_custom_domain : "${var.name_prefix}-${data.aws_caller_identity.current.account_id}"
+  domain          = local.use_custom_cognito_domain ? local.cognito_custom_domain : "${var.name_prefix}-${data.aws_caller_identity.current.account_id}"
   certificate_arn = local.use_custom_cognito_domain ? aws_acm_certificate_validation.frontend.certificate_arn : null
   # Classic hosted UI (version 1). The browser is sent straight to Google
   # (`identity_provider=Google`), so nobody sees this page; the "managed
@@ -127,7 +129,7 @@ resource "aws_route53_record" "cognito" {
   count = local.use_custom_cognito_domain ? 1 : 0
 
   zone_id = aws_route53_zone.main.zone_id
-  name    = var.cognito_custom_domain
+  name    = local.cognito_custom_domain
   type    = "A"
 
   alias {

@@ -147,8 +147,9 @@ first `terraform apply`:
 4. **Administrators**: add the user to the `admin` group in the pool (console or
    `aws cognito-idp admin-add-user-to-group`); the role travels in the ID token as `cognito:groups`.
 
-The domain is the pool's default host (`<name_prefix>-<account id>.auth.<region>.amazoncognito.com`)
-until `cognito_custom_domain` (e.g. `auth.<domain>`, covered by the wildcard certificate) is set.
+The managed-login host is `auth.<domain>` by default (`cognito_subdomain`, covered by the wildcard
+certificate); set it to `""` to fall back to the pool's own host
+(`<name_prefix>-<account id>.auth.<region>.amazoncognito.com`).
 Key rotation: the pool's signing keys are stable, but if `cognito_jwks` ever changes, a
 `terraform apply` refreshes the functions' environment.
 

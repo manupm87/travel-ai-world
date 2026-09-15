@@ -136,10 +136,10 @@ variable "create_www_record" {
 # Sign-in (Cognito)
 # -----------------------------------------------------------------------------
 
-variable "cognito_custom_domain" {
-  description = "Custom managed-login host (e.g. auth.kyrian-world.com). Empty uses the pool's default *.amazoncognito.com host. Needs the us-east-1 ACM certificate to cover it."
+variable "cognito_subdomain" {
+  description = "Label of the managed-login host under domain_name (\"auth\" -> auth.<domain>, covered by the wildcard certificate). Empty keeps the pool's default *.amazoncognito.com host. A default, not a tfvars value, so the CI apply and a local apply agree."
   type        = string
-  default     = ""
+  default     = "auth"
 }
 
 variable "cognito_dev_origins" {

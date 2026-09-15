@@ -17,4 +17,4 @@ domain_name          = "www.example.com"
 frontend_bucket_name = "www.example.com"
 
 # Optional: the Cognito managed-login host (the certificate must cover it).
-# cognito_custom_domain = "auth.example.com"
+# cognito_subdomain = "auth"   # "" keeps the pool's default *.amazoncognito.com host
