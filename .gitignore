@@ -57,3 +57,7 @@ Thumbs.db
 .superpowers/
 .cursor/
 .debug/
+
+# Terraform plan files embed every variable value, secrets included
+tfplan
+*.tfplan
