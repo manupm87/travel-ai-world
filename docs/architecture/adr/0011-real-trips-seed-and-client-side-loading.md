@@ -1,10 +1,10 @@
 # 0011 — Real trips: backend-seeded demo data, client-side loading, `/trip/?id=`, dev mirrors prod
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-09-16
 
-Drafted with the seed (TRA-128); the viewer issue of TRA-107 flips it to Accepted once the
-frontend reads the API.
+Drafted with the seed (TRA-128); accepted with the trip viewer (TRA-130), once the dashboard
+(TRA-129) and the viewer read the API.
 
 ## Context
 
@@ -63,6 +63,15 @@ account on request gives the same demo without touching sign-in; revisit if onbo
   serving one static page for every trip.
 - Bad: the frontend cannot render a trip without the API; storybook-style previews need a fake
   service, not a fixture.
+- What happened (TRA-129, TRA-130): the dashboard reads `GET /api/v1/trips/` through `useTrips`
+  and the viewer reads `GET /api/v1/trips/{id}` through `useTrip` at `/trip/?id=<uuid>`, one
+  static shell (`app/(app)/trip/page.tsx` with a `Suspense` boundary around the client page, which
+  `useSearchParams` requires on a static export). `src/frontend/src/mocks/` is gone; the Japan
+  trip survives only as the test fixture `src/test/fixtures/trip-japan.ts`. The `toTrip` /
+  `toTripSummary` mappers did not change: the components never saw anything but the view model.
+  A 403 (someone else's trip) renders the same not-found page as a 404, on purpose. The route
+  guard keeps the query string in its `redirect` parameter so a signed-out deep link comes back
+  to the same trip.
 - Revisit: the seed ships with the image and runs in-process on Lambda (`/events`); if the data
   grows beyond a few trips, move it out of the package and stream it. When new accounts should
   start with content, reconsider the copy-on-sign-in alternative with the data now in place.

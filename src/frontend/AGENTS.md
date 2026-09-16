@@ -14,19 +14,23 @@ TypeScript 5, Tailwind CSS v4.
   session: token, profile, refresh token), `cognito.ts` (the deployed sign-in: managed login with
   code + PKCE, `/auth/callback/`, refresh, logout — no SDK), `auth.ts` (the local Google flow
   through core_api), `chat.ts` (ai_api), `trips.ts` (`listTrips` reads the dashboard's trips from
-  `GET /api/v1/trips/`; the fixtures in `src/mocks/` serve only the trip viewer until it moves to
-  the API too; owns `toTrip`, the only place that turns a `TripResponse` into the `Trip` view
-  model — ADR 0006). Components never `fetch` or touch the session storage.
+  `GET /api/v1/trips/`; `getTrip` reads the viewer's trip from `GET /api/v1/trips/{id}` and
+  resolves `null` on 404 and on 403, so someone else's id looks exactly like a missing one; owns
+  `toTrip`, the only place that turns a `TripResponse` into the `Trip` view model — ADR 0006).
+  Components never `fetch` or touch the session storage.
   `AuthContext.provider` (`"cognito" | "google"`) says which sign-in the build has; it is decided by
   `NEXT_PUBLIC_COGNITO_DOMAIN` + `NEXT_PUBLIC_COGNITO_CLIENT_ID`.
 - **Hooks own async state, components render it**: `src/hooks/useTrips.ts` loads the dashboard's
   trips (`status: "loading" | "ready" | "error"`, `reload()`, aborts on unmount, clears the session
-  on a 401 so the route guard redirects); `useChatStream.ts` does the same for the planner. A page
+  on a 401 so the route guard redirects); `useTrip.ts` loads one trip for the viewer the same way,
+  with `"not-found"` as a fourth status (a missing or malformed id is not-found without a request;
+  `getTrip`'s `null` is not-found too); `useChatStream.ts` does the same for the planner. A page
   that needs per-user data is a static shell (`page.tsx`) plus a client component using the hook,
   never a server-side fetch: the export is static.
 - **`src/types/trip.ts` is a view model**, not a response shape: components render it, `services/trips.ts`
-  builds it from the generated `TripResponse`. Fixtures in `src/mocks/*.ts` are `TripResponse` objects
-  checked with `satisfies`; add derived facts (e.g. `ItineraryDay.kind`) in the mapper, not in JSX.
+  builds it from the generated `TripResponse`. There are no fixtures in the app: the only
+  `TripResponse` object in the repo is the test fixture `src/test/fixtures/trip-japan.ts` (checked
+  with `satisfies`); add derived facts (e.g. `ItineraryDay.kind`) in the mapper, not in JSX.
 - **Types from the backend are generated**: `src/types/generated/{core-api,ai-api}.ts` via
   `npm run types:generate` (from `docs/api/*.openapi.json`). Do not edit them; do not redeclare
   response shapes by hand — import `components["schemas"]["..."]`.
@@ -39,17 +43,21 @@ TypeScript 5, Tailwind CSS v4.
   `text-red-400` or `rgba(79,110,247,…)`. Compose classes with `cn()` (`src/utils/cn.ts`) so a
   consumer's `p-8` reliably overrides a primitive's `p-6`.
 - **Lint enforces the boundaries** (`eslint.config.mjs`): no `fetch` outside `src/services/`, no
-  `@/mocks/*` outside `src/services/`, no `@/types/generated/*` outside `src/services/` and
-  `src/types/`, imports first, `console` is a warning. `tsconfig` has `noUncheckedIndexedAccess`:
+  `@/types/generated/*` outside `src/services/` and `src/types/`, imports first, `console` is a
+  warning. `tsconfig` has `noUncheckedIndexedAccess`:
   key lookups on i18n ids (`step.id`, `feat.id`, `TripStatus`) instead of indexing parallel arrays.
 - Files: components `PascalCase.tsx`, utilities and hooks `camelCase.ts`, locales `<code>.ts`.
 - Routes live in groups: `app/(marketing)/` (public; layout = Header + Footer, includes
   `auth/callback/`, where Cognito sends the browser back) and `app/(app)/` (signed-in; layout =
   shell + `ProtectedRoute`). Do not wrap pages in `ProtectedRoute` again.
-- `/trip/[id]` (`app/(app)/trip/[id]/`) is split in `page.tsx` (server, `generateStaticParams`) +
-  `TripClientPage.tsx` (client).
+- The trip viewer is `/trip/?id=<uuid>` (`app/(app)/trip/`), one static shell for every trip:
+  `page.tsx` (server; wraps the client page in `Suspense`, which `useSearchParams` needs on a static
+  export or the build fails) + `TripClientPage.tsx` (client; reads `?id=`, drives `useTrip`, renders
+  loading / not-found / error / the viewer sections). Never a `/trip/[id]` route: the export cannot
+  serve per-user ids (ADR 0011). Links to a trip are `/trip/?id=${encodeURIComponent(id)}`.
 - Tests: `renderWithProviders` from `src/test/render.tsx` and the typed builders in
-  `src/test/fixtures.ts`; assert on roles/names/`data-*` state and on `en.ts` copy, not on class names.
+  `src/test/fixtures.ts` (`src/test/fixtures/trip-japan.ts` when a test needs a whole `TripResponse`);
+  assert on roles/names/`data-*` state and on `en.ts` copy, not on class names.
   Do not mock `Card`/`Section`/`Container`/`next/link` or `lucide-react` icon by icon.
 
 ## Commands

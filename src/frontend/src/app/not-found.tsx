@@ -18,8 +18,9 @@ export default function NotFound() {
   const pathname = usePathname();
   const router = useRouter();
 
-  const isRedirecting =
-    pathname.includes('/trip/') || pathname.includes('/dashboard/');
+  // Unknown trip ids are handled by the viewer itself (`/trip/?id=`), so
+  // only stray `/dashboard/*` paths still get the short redirect home.
+  const isRedirecting = pathname.includes('/dashboard/');
 
   useEffect(() => {
     if (!isRedirecting) return;

@@ -59,6 +59,13 @@ const en: Translations = {
       activities: "ACTIVITIES",
       transport: "TRANSPORT",
     },
+    loading: "Loading your trip…",
+    notFoundTitle: "We couldn't find that trip",
+    notFoundDescription: "It may have been deleted, or the link may be wrong. Your trips are waiting for you on the dashboard.",
+    backToDashboard: "Back to my trips",
+    errorTitle: "We couldn't load your trip",
+    errorDescription: "Something went wrong while talking to the server. Check your connection and try again.",
+    retry: "Try again",
   },
   hero: {
     badge: "AI-Powered Travel Planning",

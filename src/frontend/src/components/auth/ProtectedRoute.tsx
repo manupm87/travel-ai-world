@@ -19,9 +19,9 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      // Redirect to home if not authenticated
-      // We could also pass the current path as a redirect parameter
-      router.push(`/?redirect=${encodeURIComponent(pathname)}`);
+      // Redirect to home, remembering where to come back to. The query string
+      // is part of the destination: the trip viewer's id lives there.
+      router.push(`/?redirect=${encodeURIComponent(pathname + window.location.search)}`);
     }
   }, [isAuthenticated, isLoading, router, pathname]);
 

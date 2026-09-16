@@ -16,7 +16,7 @@ describe("TripSection", () => {
     const cards = screen.getAllByRole("link");
     expect(cards).toHaveLength(2);
     expect(cards[0]).toHaveTextContent("Trip 1");
-    expect(cards[0]).toHaveAttribute("href", "/trip/1");
+    expect(cards[0]).toHaveAttribute("href", "/trip?id=1");
     expect(cards[1]).toHaveTextContent("Trip 2");
   });
 

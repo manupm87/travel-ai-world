@@ -108,6 +108,15 @@ export interface Translations {
       activities: string;
       transport: string;
     };
+    /** Spinner copy while the trip loads from the API. */
+    loading: string;
+    /** No such trip for this account (a 404, a 403 or a malformed id). */
+    notFoundTitle: string;
+    notFoundDescription: string;
+    backToDashboard: string;
+    errorTitle: string;
+    errorDescription: string;
+    retry: string;
   };
   hero: {
     badge: string;

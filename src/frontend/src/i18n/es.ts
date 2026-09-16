@@ -59,6 +59,13 @@ const es: Translations = {
       activities: "ACTIVIDADES",
       transport: "TRANSPORTE",
     },
+    loading: "Cargando tu viaje…",
+    notFoundTitle: "No encontramos ese viaje",
+    notFoundDescription: "Puede que se haya borrado o que el enlace sea incorrecto. Tus viajes te esperan en el panel.",
+    backToDashboard: "Volver a mis viajes",
+    errorTitle: "No pudimos cargar tu viaje",
+    errorDescription: "Algo salió mal al hablar con el servidor. Comprueba tu conexión e inténtalo de nuevo.",
+    retry: "Intentar de nuevo",
   },
   hero: {
     badge: "Planificación de Viajes con IA",

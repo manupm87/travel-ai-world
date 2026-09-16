@@ -50,17 +50,16 @@ src/
 │   ├── (marketing)/      # Public routes: layout = Header + Footer; page.tsx is the landing; auth/callback/ ends a Cognito sign-in
 │   ├── (app)/            # Signed-in routes: layout = app shell + ProtectedRoute, once
 │   │   ├── dashboard/    # page.tsx (server) + DashboardClientPage.tsx
-│   │   └── trip/[id]/    # page.tsx (server, generateStaticParams) + TripClientPage.tsx
+│   │   └── trip/         # page.tsx (static shell, Suspense) + TripClientPage.tsx (?id=, useTrip)
 │   └── error.tsx, loading.tsx, not-found.tsx
 ├── components/     # UI by feature: ui/, layout/, landing/, planner/, dashboard/, trip-viewer/, auth/, common/
 ├── context/        # Providers: AuthContext, LanguageContext, ThemeContext
-├── hooks/          # useTrips, useChatStream, useFormatters, useStickToBottom, useAutoResizeTextarea, useScrolled, useClickOutside
+├── hooks/          # useTrips, useTrip, useChatStream, useFormatters, useStickToBottom, useAutoResizeTextarea, useScrolled, useClickOutside
 ├── i18n/           # types.ts (contract), en.ts, es.ts, index.ts (locales + LANGUAGES), interpolate.ts
 ├── services/       # The only place that talks to the network -> [README](src/services/README.md)
-├── mocks/          # TripResponse fixtures (backend shape, `satisfies`-checked); trip viewer only, via services/trips.ts
 ├── types/          # Hand-written domain types + generated/ (from OpenAPI, never edited)
 ├── utils/          # Pure helpers (cn, formatting, country flags, localStorage store, safe redirect)
-└── test/           # Vitest setup + renderWithProviders (render.tsx) + typed fixtures (fixtures.ts)
+└── test/           # Vitest setup + renderWithProviders (render.tsx) + typed fixtures (fixtures.ts, fixtures/trip-japan.ts)
 ```
 
 Route groups `(marketing)` and `(app)` do not appear in URLs; they exist so the header/footer and the
@@ -156,7 +155,7 @@ Defined in `globals.css` as CSS custom properties and consumed directly in Tailw
 |---|---|---|
 | `/` | ✅ Live | Full landing page |
 | `/dashboard` | ✅ Live | The signed-in user's trips from `core_api` (`useTrips`, client-side; loading / error / empty states) and the AI planner card (`PlannerCard`) |
-| `/trip/[id]` | ✅ Live | Interactive itinerary viewer (mock data) |
+| `/trip/?id=<uuid>` | ✅ Live | Interactive itinerary viewer for one trip from `core_api` (`useTrip`, client-side; loading / not-found / error states) |
 | anything else | ✅ | `not-found.tsx`, exported as `404.html` |
 
 ---
@@ -177,18 +176,23 @@ as `route/index.html`; a CloudFront Function maps `/route/` to that key. See the
 | `basePath` | `/travel-ai-world` (prod only) | Project pages live at `/<repo-name>/` on GH Pages |
 | `images.unoptimized` | `true` | Image optimisation requires a server; disabled for static export |
 
-### Dynamic route: `/trip/[id]`
+### The trip viewer: `/trip/?id=<uuid>`
 
-Next.js App Router can't mix `"use client"` and `generateStaticParams` in the same file, so the route is split:
+Trips belong to users and get their ids from the database, so no `/trip/<id>/` page can exist at
+build time: a static export needs `dynamicParams = false` with every id enumerated, and an edge
+rewrite would fix only the served build, not `next dev` or Playwright (ADR 0011). The viewer is
+therefore **one static shell** with the id in the query string:
 
-- **`page.tsx`** — server component; `generateStaticParams()` returns every id known to `services/trips.ts`
-  (today the four fixtures in `src/mocks/`), so one HTML page is prerendered per trip, and
-  `dynamicParams = false` rejects any other id at build time.
-- **`TripClientPage.tsx`** — client component; receives the resolved `Trip` as a prop and renders the
-  interactive viewer.
+- **`page.tsx`** — server component; renders `TripClientPage` inside a `Suspense` boundary
+  (required: `useSearchParams` on a prerendered route bails out to client rendering up to the
+  nearest boundary, and the export build fails without one).
+- **`TripClientPage.tsx`** — client component; `useSearchParams().get("id")` feeds `useTrip(id)`
+  (`src/hooks/useTrip.ts`), which asks `services/trips.ts#getTrip` for `GET /api/v1/trips/{id}` and
+  renders loading, not-found (no id, malformed id, 404 or 403), error (+ retry) or the viewer.
 
-Ids that were not prerendered fall through to the exported `404.html`; `not-found.tsx` shows a short
-"redirecting" state for `/trip/*` and `/dashboard/*` paths and sends the visitor home.
+The export contains `out/trip/index.html` only; `/trip/<anything>/` is a plain 404. Dashboard cards
+link to `/trip/?id=<uuid>`, and the route guard keeps the query string in its `redirect` parameter
+so a signed-out deep link comes back to the same trip after sign-in.
 
 ### Per-user data on a static export: `/dashboard`
 
@@ -197,8 +201,8 @@ is a static shell; `DashboardClientPage.tsx` (client) calls `useTrips()` (`src/h
 which asks `services/trips.ts#listTrips` for `GET /api/v1/trips/` with the session token once the
 session is known, and renders one of four states: loading (`LoadingSpinner`), error (translated
 message + retry), empty (`EmptyDashboard`) or the trips grouped by status. A 401 clears the session
-and the route guard sends the visitor home. The trip viewer follows the same pattern next (ADR 0006,
-decision 4); until then it still prerenders the fixtures.
+and the route guard sends the visitor home. The trip viewer follows the same pattern with `useTrip`
+(above).
 
 ---
 
@@ -240,9 +244,9 @@ drive the same headless Chromium (`npx playwright install --with-deps chromium` 
 1. Set `NEXT_PUBLIC_API_URL=http://localhost:8000` and `NEXT_PUBLIC_AI_API_URL=http://localhost:8001`
    in `.env.local` (one URL is enough behind the Docker Compose proxy on `:8080`).
 2. `services/auth.ts` (`loginWithGoogle`) talks to `core_api`; `services/chat.ts` (`streamChat`)
-   consumes `ai_api`'s SSE stream; `services/trips.ts` (`listTrips`) lists the dashboard's trips from
-   `core_api`, mapped through `toTripSummary`; the trip viewer still reads the fixtures in `src/mocks/`
-   through `toTrip` (ADR 0006).
+   consumes `ai_api`'s SSE stream; `services/trips.ts` (`listTrips`, `getTrip`) reads the dashboard's
+   trips and the viewer's trip from `core_api`, mapped through `toTripSummary` / `toTrip` (ADR 0006).
+   There is no fixture fallback: without `core_api` the signed-in pages show their error state.
 3. `components/planner/PlannerCard.tsx` streams real answers when `ai_api` is reachable
    (`useChatStream`, which also aborts the stream on unmount). Without an AI URL (the GitHub Pages
    build) the composer stays usable but sending is disabled and `t.planner.unavailable` explains why.

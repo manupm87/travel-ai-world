@@ -31,9 +31,15 @@ describe("TripCard", () => {
     }
   });
 
-  it("links to the trip page", () => {
+  it("links to the trip viewer with the id in the query string", () => {
     renderWithProviders(<TripCard trip={trip} />);
-    expect(screen.getByRole("link")).toHaveAttribute("href", "/trip/1");
+    // next/link normalises the path here; `trailingSlash: true` adds the slash back at runtime.
+    expect(screen.getByRole("link")).toHaveAttribute("href", "/trip?id=1");
+  });
+
+  it("URL-encodes the id", () => {
+    renderWithProviders(<TripCard trip={{ ...trip, id: "a b&c" }} />);
+    expect(screen.getByRole("link")).toHaveAttribute("href", "/trip?id=a%20b%26c");
   });
 
   it("renders the cover image with the title as alt text", () => {

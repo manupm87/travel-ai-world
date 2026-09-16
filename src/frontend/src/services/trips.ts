@@ -5,11 +5,11 @@
  * `TripResponse` (generated from core_api's OpenAPI) and the `Trip` view model
  * the components render (ADR 0006).
  *
- * The dashboard reads the signed-in user's trips from core_api (`listTrips`,
- * `GET /api/v1/trips/`, fetched in the browser with the session token). The
- * trip viewer still reads the fixtures in `src/mocks/*.ts` (written in the
- * backend's exact shape and checked with `satisfies`) through `getTripById` /
- * `getAllTripIds`, until it moves to `GET /api/v1/trips/{id}` as well.
+ * Every DTO comes from core_api, fetched in the browser with the session
+ * token: the dashboard lists the signed-in user's trips (`listTrips`,
+ * `GET /api/v1/trips/`) and the viewer loads one (`getTrip`,
+ * `GET /api/v1/trips/{id}`). The pages are static shells; nothing about a
+ * trip is known at build time (ADR 0011).
  */
 
 import type { components } from "@/types/generated/core-api";
@@ -26,7 +26,7 @@ import type {
   TripResponse,
 } from "@/types/trip";
 import type { TripSummary } from "@/types/trip-summary";
-import { request } from "./http";
+import { ApiError, request } from "./http";
 
 export type { TripResponse };
 type DestinationResponse = components["schemas"]["DestinationResponse"];
@@ -62,26 +62,29 @@ export async function listTrips({ signal }: ListTripsOptions = {}): Promise<Trip
   return dtos.map(toTripSummary);
 }
 
-// ── Fixtures (backend shape, trip viewer only) ───────────────────────────────
-
-const tripModules: Record<string, () => Promise<{ default: TripResponse }>> = {
-  trip_euro_2026: () => import("@/mocks/trip-grand-european-tour"),
-  trip_japan_2026: () => import("@/mocks/trip-japan"),
-  trip_ny_2025: () => import("@/mocks/trip-new-york"),
-  trip_prague_vienna_budapest_2024: () => import("@/mocks/trip-prague-vienna-budapest"),
-};
-
-/** Ids of every trip the static export prerenders. */
-export function getAllTripIds(): string[] {
-  return Object.keys(tripModules);
+export interface GetTripOptions {
+  /** Cancels the request (the caller unmounted or asked for another id). */
+  signal?: AbortSignal;
 }
 
-/** One trip as the viewer renders it, or null when the id is unknown. */
-export async function getTripById(id: string): Promise<Trip | null> {
-  const loader = tripModules[id];
-  if (!loader) return null;
-  const { default: dto } = await loader();
-  return toTrip(dto);
+/**
+ * One trip as the viewer renders it, or `null` when there is nothing to show:
+ * a 404 (no such trip) and a 403 (someone else's trip) both resolve to `null`,
+ * so the UI shows the same "not found" page and leaks nothing about other
+ * users' ids. Any other failure rethrows (`UnauthorizedError` on 401, or when
+ * there is no session, before any network call).
+ */
+export async function getTrip(id: string, { signal }: GetTripOptions = {}): Promise<Trip | null> {
+  try {
+    const dto = await request<TripResponse>("core", `/trips/${encodeURIComponent(id)}`, {
+      auth: true,
+      signal,
+    });
+    return toTrip(dto);
+  } catch (err) {
+    if (err instanceof ApiError && (err.status === 404 || err.status === 403)) return null;
+    throw err;
+  }
 }
 
 // ── Mapping ─────────────────────────────────────────────────────────────────

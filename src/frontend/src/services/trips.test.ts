@@ -1,12 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import japan from "@/mocks/trip-japan";
+import japan from "@/test/fixtures/trip-japan";
 
 import { ApiError, UnauthorizedError } from "./http";
 import { clearSession, writeSession } from "./session";
 import {
-  getAllTripIds,
-  getTripById,
+  getTrip,
   itineraryDayKind,
   listTrips,
   toTrip,
@@ -114,22 +113,6 @@ describe("toTripSummary", () => {
   });
 });
 
-describe("fixtures-backed service", () => {
-  it("lists the prerendered ids", () => {
-    expect(getAllTripIds()).toContain("trip_euro_2026");
-  });
-
-  it("returns null for an unknown id and a mapped trip for a known one", async () => {
-    expect(await getTripById("unknown_trip_id")).toBeNull();
-    const trip = await getTripById("trip_euro_2026");
-    expect(trip?.title).toBeDefined();
-    // The legs that used to carry `departure`/`arrival` (a fixture bug) now map like the rest.
-    const timed = trip?.transportation.filter((tr) => tr.type !== "metro") ?? [];
-    expect(timed.length).toBeGreaterThan(0);
-    expect(timed.every((tr) => /^\d{4}-\d{2}-\d{2}T/.test(tr.departureTime))).toBe(true);
-  });
-});
-
 describe("listTrips", () => {
   const fetchMock = vi.fn();
 
@@ -199,6 +182,88 @@ describe("listTrips", () => {
     clearSession();
 
     await expect(listTrips()).rejects.toBeInstanceOf(UnauthorizedError);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("getTrip", () => {
+  const fetchMock = vi.fn();
+
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal("fetch", fetchMock);
+    writeSession("tok", { id: "1", email: "a@b.c", name: "A" });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    clearSession();
+  });
+
+  it("asks core_api for the id with the bearer token and maps the DTO to the view model", async () => {
+    fetchMock.mockResolvedValue(new Response(JSON.stringify(japan), { status: 200 }));
+    const controller = new AbortController();
+
+    const trip = await getTrip("trip_japan_2026", { signal: controller.signal });
+
+    expect(trip).toEqual(toTrip(japan));
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toMatch(/\/api\/v1\/trips\/trip_japan_2026$/);
+    expect((init.headers as Record<string, string>).Authorization).toBe("Bearer tok");
+    expect(init.signal).toBe(controller.signal);
+  });
+
+  it("URL-encodes the id", async () => {
+    fetchMock.mockResolvedValue(new Response(JSON.stringify(minimal), { status: 200 }));
+
+    await getTrip("a/b?c");
+
+    const [url] = fetchMock.mock.calls[0] as [string];
+    expect(url).toMatch(/\/api\/v1\/trips\/a%2Fb%3Fc$/);
+  });
+
+  it("resolves null on 404 (no such trip)", async () => {
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({ detail: { message: "Trip not found", error_code: "ENTITY_NOT_FOUND" } }),
+        { status: 404 }
+      )
+    );
+
+    await expect(getTrip("00000000-0000-0000-0000-000000000000")).resolves.toBeNull();
+  });
+
+  it("resolves null on 403 (someone else's trip) so the UI cannot tell it apart", async () => {
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ detail: { message: "Forbidden", error_code: "FORBIDDEN" } }), {
+        status: 403,
+      })
+    );
+
+    await expect(getTrip("t1")).resolves.toBeNull();
+  });
+
+  it("rethrows any other failure as an ApiError", async () => {
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ detail: "Internal Server Error" }), { status: 500 })
+    );
+
+    const err = await getTrip("t1").catch((e: unknown) => e);
+
+    expect(err).toBeInstanceOf(ApiError);
+    expect(err).toMatchObject({ status: 500 });
+  });
+
+  it("throws UnauthorizedError on 401", async () => {
+    fetchMock.mockResolvedValue(new Response(JSON.stringify({ detail: "expired" }), { status: 401 }));
+
+    await expect(getTrip("t1")).rejects.toBeInstanceOf(UnauthorizedError);
+  });
+
+  it("throws UnauthorizedError without a token and never touches the network", async () => {
+    clearSession();
+
+    await expect(getTrip("t1")).rejects.toBeInstanceOf(UnauthorizedError);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });

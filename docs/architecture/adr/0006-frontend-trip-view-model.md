@@ -45,5 +45,8 @@ id (`generateStaticParams` + `dynamicParams = false`); that cannot hold once tri
 - Negative: the mapper is ~200 lines of deliberate boilerplate, and fixtures are TypeScript modules
   rather than JSON (they must be, for literal types to be checked).
 - Open: `Activity.category` and `Accommodation.type` remain free strings on both sides; promote
-  them to enums in core_api when the planner starts producing them. The client-side data strategy
-  above is decided but not yet implemented (tracked in `docs/architecture/code-quality-review.md`).
+  them to enums in core_api when the planner starts producing them.
+- Done: the client-side data strategy above is implemented (dashboard: `listTrips` / `useTrips`;
+  viewer: `getTrip` / `useTrip`), with one change to point 4: the viewer lives at `/trip/?id=<uuid>`
+  instead of a `/trip/[id]` placeholder, and the fixtures are gone except for one test fixture.
+  See [ADR 0011](0011-real-trips-seed-and-client-side-loading.md).

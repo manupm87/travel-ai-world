@@ -14,9 +14,9 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
   ]),
 
-  // Project rules (see src/frontend/AGENTS.md): the network and the mocks are
-  // reached only through src/services/, generated types only through
-  // src/services/ and src/types/, and imports come first in a module.
+  // Project rules (see src/frontend/AGENTS.md): the network is reached only
+  // through src/services/, generated types only through src/services/ and
+  // src/types/, and imports come first in a module.
   {
     files: ["src/**/*.{ts,tsx}"],
     rules: {
@@ -31,10 +31,6 @@ const eslintConfig = defineConfig([
         "error",
         {
           patterns: [
-            {
-              group: ["@/mocks/*"],
-              message: "Fixtures are read by src/services/ only.",
-            },
             {
               group: ["@/types/generated/*"],
               message:

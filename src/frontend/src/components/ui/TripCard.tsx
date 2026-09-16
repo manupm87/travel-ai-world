@@ -23,7 +23,7 @@ const STATUS_STYLES: Record<TripStatus, string> = {
  * Renders a high-level preview of a Trip for lists/grids. Displays the trip's
  * cover image, status (Planning/Planned/Finished), dates, title, and destinations.
  *
- * Includes built-in hover states and links directly to the full Trip Viewer route.
+ * Includes built-in hover states and links to the trip viewer (`/trip/?id=<id>`).
  *
  * @param trip - The TripSummary object containing preview data.
  */
@@ -37,7 +37,7 @@ export default function TripCard({ trip }: TripCardProps) {
   };
 
   return (
-    <Link href={`/trip/${trip.id}`} className="block group w-full max-w-[400px] md:max-w-none">
+    <Link href={`/trip/?id=${encodeURIComponent(trip.id)}`} className="block group w-full max-w-[400px] md:max-w-none">
       <div className="flex flex-col rounded-2xl bg-bg-surface border border-border-card overflow-hidden transition-all duration-300 group-hover:border-accent group-hover:-translate-y-1">
         {/* Cover Image Container */}
         <div className="relative w-full h-[200px] bg-border-card overflow-hidden">

@@ -1,5 +1,7 @@
-// Fixture in the exact shape of core_api's `TripResponse`. `satisfies` makes the
-// compiler reject any drift from the generated contract (enum values included).
+// Test fixture: a full trip in the exact shape of core_api's `TripResponse`
+// (the same demo trip `core_api`'s seed loads). `satisfies` makes the compiler
+// reject any drift from the generated contract (enum values included). Used by
+// `services/trips.test.ts` and by component tests that need a whole trip.
 import type { TripResponse } from "@/types/trip";
 
 const trip = {

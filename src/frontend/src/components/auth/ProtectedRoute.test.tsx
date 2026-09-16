@@ -59,6 +59,21 @@ describe("ProtectedRoute", () => {
     expect(mockPush).toHaveBeenCalledWith("/?redirect=%2Ftrip%2Fjapan");
   });
 
+  it("keeps the query string in the redirect (the trip viewer's id lives there)", () => {
+    auth({ isAuthenticated: false, isLoading: false });
+    window.history.replaceState(null, "", "/trip/?id=abc");
+    try {
+      render(
+        <ProtectedRoute>
+          <p>secret</p>
+        </ProtectedRoute>
+      );
+      expect(mockPush).toHaveBeenCalledWith("/?redirect=%2Ftrip%2Fjapan%3Fid%3Dabc");
+    } finally {
+      window.history.replaceState(null, "", "/");
+    }
+  });
+
   it("renders children when signed in", () => {
     auth({ isAuthenticated: true, isLoading: false });
     render(
