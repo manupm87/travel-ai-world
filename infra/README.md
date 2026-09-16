@@ -31,7 +31,8 @@ Why two services and why the frontend accepts two URLs: [ADR 0001](../docs/archi
   service; AWS sets them as encrypted Lambda environment variables (a VPC without endpoints
   cannot reach Secrets Manager; ADR 0009) and hands the Google client to Cognito. Locally they go
   in `terraform.tfvars` (ignored by git; start from `terraform.tfvars.example`). In CI they arrive
-  as `TF_VAR_*` repository secrets.
+  as `TF_VAR_*` secrets of the cloud's GitHub environment (`aws`, `gcp`), which must match the
+  local tfvars ([deploy runbook](../docs/runbooks/deploy.md)).
 - **CORS and OAuth**: `backend_cors_origins` must list the deployed frontend origin. The Google OAuth
   client (it stays in Google Cloud) must list the Cognito domain's `/oauth2/idpresponse` as a
   redirect URI on AWS (see [`aws/README.md`](aws/README.md#sign-in-cognito)), and the frontend

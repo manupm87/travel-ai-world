@@ -19,9 +19,12 @@ name: Deploy backend
 #     Repository variables (Settings → Variables): GCP_REGION (e.g. europe-west1),
 #       AWS_TF_STATE_BUCKET (bootstrap output state_bucket),
 #       FRONTEND_DOMAIN (AWS: TF_VAR_domain_name; the bucket has the same name)
+#     Environment secrets (Settings → Environments → aws / gcp → Secrets):
 #       both: TF_VAR_db_password, TF_VAR_nvidia_api_key, TF_VAR_google_client_id,
 #             TF_VAR_google_client_secret, TF_VAR_backend_cors_origins;
 #       GCP only: TF_VAR_secret_key
+#     They must match what the state was applied with: a missing one arrives
+#     as an empty string and the plan resets that value (TRA-133).
 #
 # `apply=false` (default) only plans, so the workflow is safe to try.
 
