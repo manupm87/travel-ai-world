@@ -27,8 +27,8 @@ jobs:
       infra: ${{ steps.filter.outputs.infra }}
       docs: ${{ steps.filter.outputs.docs }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
+      - uses: actions/checkout@v7
+      - uses: dorny/paths-filter@v4
         id: filter
         with:
           filters: |
@@ -78,9 +78,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-uv
-      - uses: extractions/setup-just@v2
+      - uses: extractions/setup-just@v4
       - run: just lint-backend
 
   backend-common:
@@ -93,7 +93,7 @@ jobs:
       run:
         working-directory: src/backend/libs/travel_common
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-uv
       - run: uv run pytest -q
 
@@ -128,7 +128,7 @@ jobs:
       DB_NAME: fastapi_db
       SECRET_KEY: ci-test-secret-key-that-is-long-enough-32b
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-uv
       - name: Import validation
         run: uv run python -c "from core_api.main import app; print('core_api imports OK')"
@@ -148,7 +148,7 @@ jobs:
       run:
         working-directory: src/backend/services/ai_api
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-uv
       - name: Import validation
         run: uv run python -c "from ai_api.main import app; print('ai_api imports OK')"
@@ -174,10 +174,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-uv
       - uses: ./.github/actions/setup-frontend
-      - uses: extractions/setup-just@v2
+      - uses: extractions/setup-just@v4
       - name: OpenAPI documents and generated types match the code
         run: just contracts-check
 
@@ -196,9 +196,9 @@ jobs:
       # Google client id (a build-time public value) comes from here.
       NEXT_PUBLIC_GOOGLE_CLIENT_ID: placeholder
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-frontend
-      - uses: extractions/setup-just@v2
+      - uses: extractions/setup-just@v4
 
       - name: Service .env files from the templates (throwaway values)
         working-directory: src/backend/services
@@ -279,9 +279,9 @@ jobs:
       matrix:
         cloud: [gcp, aws, aws/bootstrap]
     steps:
-      - uses: actions/checkout@v4
-      - uses: hashicorp/setup-terraform@v3
-      - uses: extractions/setup-just@v2
+      - uses: actions/checkout@v7
+      - uses: hashicorp/setup-terraform@v4
+      - uses: extractions/setup-just@v4
       - run: just infra-fmt-check
       - run: just infra-validate ${{ matrix.cloud }}
 
@@ -292,12 +292,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: extractions/setup-just@v2
+      - uses: actions/checkout@v7
+      - uses: extractions/setup-just@v4
       - name: Required files, ADR index, just recipes, relative links
         run: just docs-check
       - name: markdownlint
-        uses: DavidAnson/markdownlint-cli2-action@v19
+        uses: DavidAnson/markdownlint-cli2-action@v24
         with:
           globs: |
             **/*.md
@@ -316,9 +316,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-frontend
-      - uses: extractions/setup-just@v2
+      - uses: extractions/setup-just@v4
 
       - name: Lint
         run: just lint-frontend
