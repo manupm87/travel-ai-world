@@ -36,20 +36,30 @@ uvicorn on `AWS_LWA_PORT=8000` and waits for the readiness path before the first
 The values are baked into the image (one tiny stage per service in the `Dockerfile`), so
 Terraform does not have to repeat them; the function's own environment can still override them.
 
-**Migrations.** Outside Lambda the entrypoint applies them at start, as before
-(`MIGRATE_ON_START=false` opts out). On Lambda (`AWS_LAMBDA_FUNCTION_NAME` is set) it does not,
-so a cold start never races a schema change; the deploy workflow runs them instead:
+**Commands.** `core_api/ops.py` holds the commands an image can run instead of serving:
+`migrate` (`alembic upgrade head`) and `seed <email>` (the four demo trips for that account,
+[ADR 0011](../architecture/adr/0011-real-trips-seed-and-client-side-loading.md)). Outside Lambda
+the entrypoint applies migrations at start, as before (`MIGRATE_ON_START=false` opts out). On
+Lambda (`AWS_LAMBDA_FUNCTION_NAME` is set) it does not, so a cold start never races a schema
+change; the deploy workflow runs them instead:
 
 ```bash
 # CLI form: any container with the core-api image
 docker run --rm --env-file services/core_api/.env travel-ai-world/core-api:local migrate
+docker run --rm --env-file services/core_api/.env travel-ai-world/core-api:local seed you@example.com
+
+# Compose form: the running core_api container (its DB_SERVER already points at the stack's PostgreSQL)
+docker compose exec core_api /app/entrypoint.sh seed you@example.com
 
 # Lambda form: the adapter delivers a non-HTTP payload as POST /events (404 outside Lambda; never routed by the gateway)
 aws lambda invoke --function-name <core-api function> --cli-binary-format raw-in-base64-out \
   --payload '{"command": "migrate"}' /dev/stdout
+aws lambda invoke --function-name <core-api function> --cli-binary-format raw-in-base64-out \
+  --payload '{"command": "seed", "args": {"email": "you@example.com"}}' /dev/stdout
 ```
 
-Both end in `alembic upgrade head` (`core_api/ops.py`); an unknown command answers 400.
+Every form ends in `core_api.ops.run_command`; an unknown command, or `seed` without an email,
+answers 400 (exit code 1 from the CLI).
 
 **Trying it locally with the Runtime Interface Emulator** (optional; needs Docker and the
 [`aws-lambda-rie`](https://github.com/aws/aws-lambda-runtime-interface-emulator) binary in `~/.aws-lambda-rie/`):

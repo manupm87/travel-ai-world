@@ -54,11 +54,20 @@ models/*.py             tables (DeclarativeBase, SQLAlchemy 2 style)
 - **One transaction per request**: `db/session.py::unit_of_work` commits when the request succeeds
   and rolls back on any exception (domain errors included). Repositories only `flush`; never call
   `commit()` from a repository or a service.
+- **Seed** (`seed/`, ADR 0011): the four demo trips are `TripResponse`-shaped JSON files in
+  `seed/data/`; `seed_demo_trips(session_factory, email)` loads them for one account (created if
+  missing, adopted by the real sign-in because both modes match by email) through `TripService` /
+  `BaseService.create`, so the Create schemas and `check_invariants()` apply and the database
+  generates the UUIDs (the loader remaps the fixture ids). Idempotent by `(owner, title)`, one unit
+  of work per run. One implementation, three entry points, all through `ops.py`: `just seed <email>`,
+  `entrypoint.sh seed <email>` (Compose) and `{"command": "seed", "args": {"email": ...}}` on
+  `POST /events` (Lambda). Never load data with raw SQL.
 
 ## Commands
 
 ```bash
 uv run uvicorn core_api.main:app --reload --port 8000
+uv run python -m core_api.ops seed you@example.com   # demo trips for that account (just seed)
 uv run pytest                      # PostgreSQL: creates <DB_NAME>_test and empties it between tests
                                    # each request gets its own session; use `db_session` only to arrange data
 uv run alembic upgrade head

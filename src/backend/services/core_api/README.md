@@ -11,8 +11,15 @@ them and this service upserts the account from the claims.
 ```bash
 cp .env.example .env       # AUTH_MODE=local: SECRET_KEY, GOOGLE_*, DB_* (Cognito mode: COGNITO_*)
 uv run alembic upgrade head
+uv run python -m core_api.ops seed you@example.com       # optional: the four demo trips for that account
 uv run uvicorn core_api.main:app --reload --port 8000    # http://localhost:8000/docs
 ```
+
+`seed` (`just seed you@example.com` from the repo root) creates the account if it does not exist
+and loads the demo trips through the services, so the same rules apply as to a request; running
+it again replaces those trips and leaves the account's other trips alone. The same command runs
+in the container (`entrypoint.sh seed <email>`) and on Lambda (`{"command": "seed", "args":
+{"email": "..."}}` on `/events`); see [ADR 0011](../../../../docs/architecture/adr/0011-real-trips-seed-and-client-side-loading.md).
 
 ## Endpoints (`/api/v1`)
 

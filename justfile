@@ -148,6 +148,10 @@ migrate:
 migration message:
     cd {{core}} && uv run alembic revision --autogenerate -m "{{message}}"
 
+# Load the four demo trips for an account (created if missing; re-runs replace them): just seed you@example.com
+seed email:
+    cd {{core}} && uv run python -m core_api.ops seed {{email}}
+
 # ── Build & Docker ───────────────────────────────────────────────────────────
 
 # Production static export of the frontend

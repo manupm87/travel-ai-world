@@ -90,6 +90,20 @@ jobs:
           echo "$out" | grep -q "Running Alembic migrations"
           ! echo "$out" | grep -q "Starting uvicorn"
 
+      - name: "`seed` ships its data and fails fast without a database"
+        if: ${{ !inputs.push && inputs.service == 'core_api' }}
+        run: |
+          docker run --rm --entrypoint python -e SECRET_KEY=x ${{ inputs.service }}:pr \
+            -c "from core_api.seed import load_demo_trips; n = len(load_demo_trips()); print(n, 'demo trips'); assert n == 4"
+          set +e
+          out=$(timeout 60 docker run --rm -e SECRET_KEY=x -e DB_SERVER=127.0.0.1 -e DB_USER=x ${{ inputs.service }}:pr seed you@example.com 2>&1)
+          code=$?
+          set -e
+          echo "$out" | tail -5
+          test $code -ne 0
+          echo "$out" | grep -q "Seeding demo trips"
+          ! echo "$out" | grep -q "Starting uvicorn"
+
       # core_api runs migrations at start and needs a database; its tests job
       # covers it. ai_api has no dependencies, so the container is started.
       - name: Image serves its health endpoint
