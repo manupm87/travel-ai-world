@@ -28,7 +28,7 @@ a Cognito ID token, health endpoints included.
 | `cognito.tf` | User pool, Google identity provider, public app client (code + PKCE), `admin` group, hosted-UI domain, the JWKS as output and environment |
 | `lambda.tf` | Two container-image functions with their roles (VPC access for `core-api`, Bedrock invoke for `ai-api`) and log groups; permissions for the gateway |
 | `apigateway.tf` | REST API (regional), Cognito authorizer, the two proxy resources, deployment and `prod` stage |
-| `frontend.tf` | Private S3 bucket (OAC), CloudFront with the S3 default behaviour, the `/api/*` behaviour to the gateway and a directory-index function, Route 53 aliases; the public hosted zone and the ACM certificate (us-east-1, apex + wildcard, DNS-validated), both `prevent_destroy` (ADR 0010) |
+| `frontend.tf` | Private S3 bucket (OAC), CloudFront with the S3 default behaviour, the `/api/*` behaviour to the gateway and a directory-index function, S3's 403 for a missing page served as the export's `404.html` with status 404, Route 53 aliases; the public hosted zone and the ACM certificate (us-east-1, apex + wildcard, DNS-validated), both `prevent_destroy` (ADR 0010) |
 
 The images bake the Lambda Web Adapter and their `AWS_LWA_*` settings
 ([Docker runbook](../../docs/runbooks/docker.md#the-same-image-on-aws-lambda)); the functions
@@ -173,4 +173,8 @@ curl -H "Authorization: Bearer $TOKEN" "$(terraform output -raw api_gateway_invo
 - The chat arrives all at once → the `/api/*` behaviour must keep `compress = false` and the
   `ai` integration `response_transfer_mode = "STREAM"`.
 - A page under a subfolder shows an S3 `AccessDenied` XML → the CloudFront function that maps
-  `/x/` to `/x/index.html` is not attached, or the export was not synced.
+  `/x/` to `/x/index.html` is not attached, or the export was not synced. An unknown path
+  shows the XML instead of the not-found page → the `custom_error_response` (403 →
+  `/404.html`, 404) is missing, or `404.html` is not at the root of the bucket.
+- An API call answers 404 with HTML → the API returned 403 (someone else's resource, an
+  authorizer deny); the distribution-wide error response maps it. API 404s stay JSON.

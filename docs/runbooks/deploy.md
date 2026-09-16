@@ -102,6 +102,9 @@ second account, run the command again with that email.
 El paso a paso manual con el que se creó el certificado ACM, la zona de Route 53, el bucket y la
 distribución está en [`frontend-https-aws.md`](frontend-https-aws.md). Terraform gestiona hoy el
 bucket, la distribución y los registros DNS en `infra/aws/frontend.tf`; el certificado y la zona
-se leen como *data sources*. Las páginas de error 403/404 → `index.html` de aquel runbook se
+se importaron al estado (ADR 0010). Las páginas de error 403/404 → `index.html` de aquel runbook se
 sustituyeron por una CloudFront Function que resuelve `/ruta/` a `/ruta/index.html`, porque las
 páginas de error se aplican a toda la distribución y convertían los 403/404 de la API en HTML.
+Desde TRA-134 queda una sola, más estrecha: el 403 que S3 da para una ruta inexistente se sirve
+como `404.html` con estado 404 y sin caché de errores; los 404 JSON de la API no se tocan y un
+403 de la API llega como 404 (el frontend ya trata ambos como "no encontrado").

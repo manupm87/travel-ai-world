@@ -238,6 +238,20 @@ resource "aws_cloudfront_distribution" "frontend" {
     compress                 = false # SSE must reach the browser chunk by chunk
   }
 
+  # A missing key in the private bucket answers 403 (CloudFront may not list
+  # it), so 403 alone is enough to show the export's not-found page with a
+  # real 404. Error responses apply to every behaviour: mapping 404 as well
+  # would replace the API's JSON 404s (a trip that does not exist). An API 403
+  # becomes this 404 too, which the frontend already reads as "not found"
+  # (`services/trips.ts`). No error caching: `/api/*` is not cached per user,
+  # so a cached 403 for one caller would be served to the next.
+  custom_error_response {
+    error_code            = 403
+    response_code         = 404
+    response_page_path    = "/404.html"
+    error_caching_min_ttl = 0
+  }
+
   restrictions {
     geo_restriction {
       restriction_type = "none"
