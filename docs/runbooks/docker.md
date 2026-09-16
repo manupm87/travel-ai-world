@@ -117,8 +117,12 @@ just docker-up      # mkdir -p src/frontend/out, then docker compose up --build 
 
 The command-line variables override `.env.local` (the Google client id and the rest still come
 from it); `NEXT_PUBLIC_AI_API_URL` is emptied because it defaults to the core URL
-([ADR 0003](../architecture/adr/0003-frontend-two-base-urls.md)). Rebuild and the proxy serves
-the new export at once: the bind mount is live.
+([ADR 0003](../architecture/adr/0003-frontend-two-base-urls.md)). `just stack-up` ends by
+recreating the proxy container (`docker compose up -d --force-recreate --no-deps proxy`), and
+that step matters: `next build` deletes and recreates `src/frontend/out/`, so a proxy that was
+already running keeps the old, unlinked directory bind-mounted and answers its own 404 on every
+page. Rerun `just stack-up` after a frontend change; `just build-stack` alone while the stack is
+up leaves the proxy on the stale directory until it is recreated (or `just docker-down` + up).
 
 **Without a frontend build** (`just docker-up` alone) the proxy still starts and `/api/*` works;
 `/` and every page answer nginx's own 404 because `src/frontend/out/` is empty. Docker would
@@ -134,8 +138,10 @@ needs `http://localhost:8080` among its authorised JavaScript origins (as `:3000
 Docker: it writes both service `.env` files from the `.env.example` templates with throwaway
 values, runs `just stack-up`, waits for `/api/v1/health/` through the proxy and asserts with
 `curl` that `/` and `/dashboard/` are HTML 200s, both health endpoints answer JSON,
-`/does-not-exist/` is Next's page with a 404 and `/api/v1/trips/` is the API's 401 JSON. The
-containers' logs are printed on failure and `docker compose down -v` always runs.
+`/does-not-exist/` is Next's page with a 404 and `/api/v1/trips/` is the API's 401 JSON. It then
+runs `just stack-up` a second time and checks that `/` still answers, which proves the proxy is
+recreated onto the rebuilt `out/`. The containers' logs are printed on failure and
+`docker compose down -v` always runs.
 
 ## Troubleshooting
 

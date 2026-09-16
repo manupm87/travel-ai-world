@@ -245,6 +245,15 @@ jobs:
           fetch /does-not-exist/     404 text/html         'Lost in Paradise'
           fetch /api/v1/trips/       401 application/json  '"detail"'
 
+      # `next build` recreates out/; without the proxy recreate in `just stack-up`
+      # nginx would keep the unlinked directory and 404 on every page from here on.
+      - name: A second `just stack-up` still serves the rebuilt export
+        run: |
+          just stack-up
+          status=$(curl -sS -o body -w '%{http_code}' http://localhost:8080/)
+          echo "GET / -> $status"
+          test "$status" = "200" && grep -q '<html' body
+
       - name: Container logs
         if: failure()
         working-directory: src/backend

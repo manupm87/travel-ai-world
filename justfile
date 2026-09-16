@@ -176,8 +176,11 @@ docker-down:
 build-stack:
     cd {{frontend}} && NEXT_PUBLIC_API_URL=http://localhost:8080 NEXT_PUBLIC_AI_API_URL= npm run build
 
-# Full stack as deployed on http://localhost:8080: export + proxy + core_api + ai_api + PostgreSQL
+# Full stack as deployed on http://localhost:8080: export + proxy + core_api + ai_api + PostgreSQL.
+# `next build` deletes and recreates out/, so a proxy that was already running would keep the
+# old, unlinked directory (404 on every page): recreate it so the bind mount is the new one.
 stack-up: build-stack docker-up
+    cd {{backend}} && docker compose --env-file services/core_api/.env up -d --force-recreate --no-deps proxy
 
 # Stop the full stack (same as docker-down)
 stack-down: docker-down
