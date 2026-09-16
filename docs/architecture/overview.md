@@ -169,5 +169,7 @@ edge and gateway decisions come from [ADR 0008](adr/0008-aws-architecture-v2-edg
 ## Known gaps (tracked)
 
 - No rate limiting or per-user AI quotas; add at the proxy/gateway when needed.
-- `src/frontend/src/services/trips.ts` still serves fixtures (in the backend's shape, mapped by
-  `toTrip`; the client-side fetch strategy is decided in [ADR 0006](adr/0006-frontend-trip-view-model.md)).
+- The trip viewer (`/trip/[id]`) still prerenders the fixtures served by
+  `src/frontend/src/services/trips.ts` (in the backend's shape, mapped by `toTrip`); the dashboard
+  already lists the signed-in user's trips from `core_api` (`listTrips`, client-side, as decided in
+  [ADR 0006](adr/0006-frontend-trip-view-model.md)).
