@@ -132,8 +132,8 @@ test.describe("Signed in with a minted local token", () => {
     await page.goto("/trip/?id=3f2504e0-4f89-11d3-9a0c-0305e82c3301");
 
     await expect(
-      page.getByRole("heading", { name: "We couldn't find that trip" })
-    ).toBeVisible();
+      page.getByRole("heading", { name: "DELIBERATE FAILURE: proves the report upload (TRA-131)" })
+    ).toBeVisible({ timeout: 3_000 });
     await expect(page.getByRole("link", { name: "Back to my trips" })).toHaveAttribute(
       "href",
       /\/dashboard\/?$/
