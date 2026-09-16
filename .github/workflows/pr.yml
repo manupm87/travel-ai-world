@@ -271,14 +271,18 @@ jobs:
       - name: Seed the demo trips and mint a local token for that account (TRA-131)
         working-directory: src/backend
         run: |
+          set -euo pipefail
           compose="docker compose --env-file services/core_api/.env"
           $compose exec -T core_api /app/entrypoint.sh seed "$E2E_EMAIL"
           token=$($compose exec -T core_api python -m core_api.devtools token "$E2E_EMAIL")
           echo "::add-mask::$token"
           test "$(printf '%s' "$token" | wc -l)" = 0
           echo "E2E_TOKEN=$token" >> "$GITHUB_ENV"
-          # The token opens the API through the proxy before any browser tries it.
-          curl -fsS -H "Authorization: Bearer $token" http://localhost:8080/api/v1/trips/ | grep -o '"title"' | wc -l
+          # The token must open the API through the proxy before any browser tries it:
+          # pipefail makes a 401 from curl fail the step, and the count catches an empty list.
+          count=$(curl -fsS -H "Authorization: Bearer $token" http://localhost:8080/api/v1/trips/ | grep -o '"title"' | wc -l)
+          echo "GET /api/v1/trips/ with the token -> $count title(s)"
+          test "$count" -ge 1
 
       - name: E2E tests against the stack (smoke, prerender and the signed-in trips)
         run: just test-e2e-stack
