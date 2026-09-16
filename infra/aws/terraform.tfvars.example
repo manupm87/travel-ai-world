@@ -8,8 +8,9 @@ ai_api_image   = "123456789012.dkr.ecr.eu-west-1.amazonaws.com/travel-ai-ai-api@
 # Use real values only in a local ignored terraform.tfvars file or CI variables.
 db_password          = "replace-me"
 nvidia_api_key       = "replace-me"
-google_client_id     = "replace-me.apps.googleusercontent.com"
 google_client_secret = "replace-me"
+# google_client_id defaults to the project's OAuth client (variables.tf); set it only
+# together with the secret of another client.
 
 # The frontend (CloudFront + S3) and the API share this domain; it must be a
 # public hosted zone in this account with the ACM certificate in us-east-1.

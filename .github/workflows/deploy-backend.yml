@@ -19,12 +19,15 @@ name: Deploy backend
 #     Repository variables (Settings → Variables): GCP_REGION (e.g. europe-west1),
 #       AWS_TF_STATE_BUCKET (bootstrap output state_bucket),
 #       FRONTEND_DOMAIN (AWS: TF_VAR_domain_name; the bucket has the same name)
-#     Environment secrets (Settings → Environments → aws / gcp → Secrets):
-#       both: TF_VAR_db_password, TF_VAR_nvidia_api_key, TF_VAR_google_client_id,
-#             TF_VAR_google_client_secret, TF_VAR_backend_cors_origins;
+#     Environment secrets (Settings → Environments → aws / gcp → Secrets), only
+#     the real secrets:
+#       both: TF_VAR_db_password, TF_VAR_nvidia_api_key, TF_VAR_google_client_secret;
 #       GCP only: TF_VAR_secret_key
 #     They must match what the state was applied with: a missing one arrives
-#     as an empty string and the plan resets that value (TRA-133).
+#     as an empty string and the plan resets that value (TRA-133). Non-secret
+#     inputs are defaults in infra/aws/variables.tf; GCP, which has none, reads
+#     TF_VAR_google_client_id and TF_VAR_backend_cors_origins from the gcp
+#     environment's variables.
 #
 # `apply=false` (default) only plans, so the workflow is safe to try.
 
@@ -70,9 +73,7 @@ jobs:
       TF_VAR_db_password: ${{ secrets.TF_VAR_db_password }}
       TF_VAR_nvidia_api_key: ${{ secrets.TF_VAR_nvidia_api_key }}
       TF_VAR_secret_key: ${{ secrets.TF_VAR_secret_key }}
-      TF_VAR_google_client_id: ${{ secrets.TF_VAR_google_client_id }}
       TF_VAR_google_client_secret: ${{ secrets.TF_VAR_google_client_secret }}
-      TF_VAR_backend_cors_origins: ${{ secrets.TF_VAR_backend_cors_origins }}
     steps:
       - uses: actions/checkout@v4
 
@@ -105,6 +106,9 @@ jobs:
           echo "REGISTRY=${REGION}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/travel-ai-images" >> "$GITHUB_ENV"
           echo "TF_VAR_project_id=${{ secrets.GCP_PROJECT_ID }}" >> "$GITHUB_ENV"
           echo "TF_VAR_region=${REGION}" >> "$GITHUB_ENV"
+          # Not secrets, and GCP has no defaults for them (AWS does: variables.tf).
+          echo "TF_VAR_google_client_id=${{ vars.TF_VAR_google_client_id }}" >> "$GITHUB_ENV"
+          echo "TF_VAR_backend_cors_origins=${{ vars.TF_VAR_backend_cors_origins }}" >> "$GITHUB_ENV"
 
       # ── AWS ──────────────────────────────────────────────────────────────
       - name: Authenticate to AWS

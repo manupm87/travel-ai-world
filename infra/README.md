@@ -26,8 +26,8 @@ Why two services and why the frontend accepts two URLs: [ADR 0001](../docs/archi
   `crane copy ghcr.io/manupm87/travel-ai-world/<image>:<tag> <registry>/<image>:<tag>` (no Docker
   daemon needed; installed in the devcontainer) or `docker buildx imagetools create`, or build
   locally from `src/backend/` (`just docker-build`).
-- **Secrets** are Terraform variables (`db_password`, `google_client_id`, `google_client_secret`,
-  `nvidia_api_key`; GCP also `secret_key`). GCP stores them in Secret Manager and injects them per
+- **Secrets** are Terraform variables (`db_password`, `google_client_secret`, `nvidia_api_key`;
+  GCP also `secret_key`; `google_client_id` travels with them but is public). GCP stores them in Secret Manager and injects them per
   service; AWS sets them as encrypted Lambda environment variables (a VPC without endpoints
   cannot reach Secrets Manager; ADR 0009) and hands the Google client to Cognito. Locally they go
   in `terraform.tfvars` (ignored by git; start from `terraform.tfvars.example`). In CI they arrive

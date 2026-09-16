@@ -68,10 +68,12 @@ variable "nvidia_api_key" {
   sensitive   = true
 }
 
+# Not a secret: the client ID travels in Google's sign-in URL. The secret is
+# `google_client_secret`.
 variable "google_client_id" {
   description = "Google OAuth client ID (used by the Cognito identity provider)."
   type        = string
-  sensitive   = true
+  default     = "842848562647-4v03rhptgrhgi85c4dfkum790m3sngke.apps.googleusercontent.com"
 }
 
 variable "google_client_secret" {

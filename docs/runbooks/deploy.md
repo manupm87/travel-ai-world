@@ -24,12 +24,12 @@ two-step decision:
    `FRONTEND_DOMAIN` (AWS) or `GCP_REGION` (GCP). CI never holds cloud credentials: AWS is
    reached through OIDC with the bootstrap's role, restricted to the `aws` GitHub environment.
 
-   **The `aws` environment must hold every `TF_VAR_*` the applied state was built with**:
-   `TF_VAR_db_password`, `TF_VAR_nvidia_api_key`, `TF_VAR_google_client_id`,
-   `TF_VAR_google_client_secret` (the values of the local `terraform.tfvars`) and
-   `TF_VAR_backend_cors_origins` (`["http://localhost:3000"]`, the variable's default, while the
-   local tfvars does not set it). A missing secret reaches Terraform as an empty string, and the
-   plan then resets the RDS password, the Lambda secrets and Cognito's Google client (TRA-133).
+   **The `aws` environment must hold every secret the applied state was built with**:
+   `TF_VAR_db_password`, `TF_VAR_nvidia_api_key` and `TF_VAR_google_client_secret` (the values of
+   the local `terraform.tfvars`). Only secrets live there: non-secret inputs such as
+   `google_client_id` and `backend_cors_origins` are defaults in `infra/aws/variables.tf`. A missing
+   secret reaches Terraform as an empty string, and the plan then resets the RDS password, the
+   Lambda secrets and Cognito's Google client (TRA-133).
    Whenever one of these values changes (a rotation), update the secret **and** the local
    tfvars together. Before any `apply=true`, run with `apply=false` and require the plan to show
    only the two Lambda `image_uri` changes.
