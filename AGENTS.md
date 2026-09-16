@@ -41,7 +41,9 @@ just test-core / test-ai / test-common / test-frontend / test-e2e
 just contracts      # export OpenAPI docs + regenerate frontend types (run after changing any schema/route)
 just docs-check     # documentation hygiene
 just migrate / just migration "message"
-just docker-up      # proxy :8080 + core_api + ai_api + PostgreSQL
+just docker-up      # backend only: proxy :8080 + core_api + ai_api + PostgreSQL (no Node)
+just stack-up       # the stack as deployed: frontend export + the above on one origin :8080
+just build-stack    # only the export for :8080 (what stack-up runs before docker-up)
 just scrape         # run the city scraper (needs GOOGLE_API_KEY in its .env)
 just aws-login      # AWS via IAM Identity Center (devcontainer); never access keys
 ```

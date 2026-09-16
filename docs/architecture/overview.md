@@ -8,7 +8,7 @@ runtime except the way they verify bearer tokens. See [ADR 0001](adr/0001-backen
 ```mermaid
 flowchart LR
     Browser["Browser<br/>Next.js static export"]
-    Proxy["Reverse proxy<br/>(nginx / ALB)<br/>optional"]
+    Proxy["Reverse proxy<br/>(nginx in Compose / CloudFront)<br/>optional"]
     Core["core_api<br/>FastAPI · SQLAlchemy<br/>auth · users · trips"]
     AI["ai_api<br/>FastAPI · httpx<br/>chat streaming · RAG (future)"]
     PG[("PostgreSQL")]
@@ -17,9 +17,9 @@ flowchart LR
     NVIDIA["NVIDIA<br/>chat completions"]
     Vec[("Vector store<br/>(future, owned by ai_api)")]
 
-    Browser -->|"/api/v1/*"| Proxy
+    Browser -->|"/ (static export) and /api/*"| Proxy
     Proxy -->|"/api/v1/ai/*"| AI
-    Proxy -->|"everything else"| Core
+    Proxy -->|"/api/*"| Core
     Browser -. "or two base URLs" .-> Core
     Browser -. "or two base URLs" .-> AI
     Browser -->|"managed login, code + PKCE"| Cognito
@@ -147,7 +147,7 @@ regenerates `src/frontend/src/types/generated/*.ts`; CI fails on drift.
 | Environment | Origin(s) | Frontend env |
 |---|---|---|
 | Local `just dev-*` | `:8000` core, `:8001` ai | `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_AI_API_URL` |
-| Docker Compose | nginx `:8080` | `NEXT_PUBLIC_API_URL` only |
+| Docker Compose (`just stack-up`) | nginx `:8080`: the export at `/`, the APIs at `/api/*` (same origin, like AWS) | `NEXT_PUBLIC_API_URL=http://localhost:8080` only, set by the recipe |
 | AWS v3 (CloudFront → S3 + API Gateway → Lambda, `infra/aws/`) | one CloudFront domain | `NEXT_PUBLIC_API_URL=https://<domain>` (same origin) + `NEXT_PUBLIC_COGNITO_*` |
 | GCP (two Cloud Run) | two URLs | both variables |
 

@@ -1,7 +1,9 @@
-# Local stack: PostgreSQL + core_api + ai_api behind one nginx origin.
+# Local stack: PostgreSQL + core_api + ai_api + the frontend export behind one
+# nginx origin, the same shape as CloudFront in production.
 #
-#   just docker-up          (or: docker compose --env-file services/core_api/.env up --build -d)
-#   http://localhost:8080   -> proxy (what the frontend should use)
+#   just stack-up           full stack: frontend export built for :8080 + everything below
+#   just docker-up          backend only (no Node needed; "/" answers 404, /api/* works)
+#   http://localhost:8080   -> proxy: "/" static export, /api/* core_api, /api/v1/ai/* ai_api
 #   http://localhost:8000   -> core_api directly
 #   http://localhost:8001   -> ai_api directly
 #
@@ -11,6 +13,11 @@
 # `just docker-up` does) to keep PostgreSQL and core_api on the same credentials.
 # PostgreSQL itself receives only those three values, never the service's .env
 # (which holds SECRET_KEY and the Google client secret).
+#
+# The proxy bind-mounts ../frontend/out (the static export, gitignored) read-only.
+# Docker creates a missing bind-mount source as a root-owned directory, which
+# would later break `next build` on Linux; `just docker-up` runs `mkdir -p`
+# first so the folder always belongs to you.
 
 services:
   proxy:
@@ -19,6 +26,7 @@ services:
       - "8080:80"
     volumes:
       - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ../frontend/out:/usr/share/nginx/html:ro
     depends_on:
       core_api:
         condition: service_healthy

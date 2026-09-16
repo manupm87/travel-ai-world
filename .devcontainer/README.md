@@ -111,6 +111,7 @@ GitLens, ...) go in **your** VS Code user settings so they follow you into every
 
 ## Production-like stack
 
-`src/backend/docker-compose.yml` (`just docker-up`: built images + nginx on `:8080`) is meant to run
+`src/backend/docker-compose.yml` (`just stack-up`: frontend export + built images + nginx on
+`:8080`, one origin as in production; `just docker-up` for the backend alone) is meant to run
 **on the host**, not from inside the devcontainer, because it bind-mounts paths relative to
 the host filesystem.

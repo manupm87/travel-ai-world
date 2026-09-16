@@ -23,6 +23,7 @@ jobs:
       ai: ${{ steps.filter.outputs.ai }}
       backend: ${{ steps.filter.outputs.backend }}
       frontend: ${{ steps.filter.outputs.frontend }}
+      stack: ${{ steps.filter.outputs.stack }}
       infra: ${{ steps.filter.outputs.infra }}
       docs: ${{ steps.filter.outputs.docs }}
     steps:
@@ -55,6 +56,10 @@ jobs:
               - '.github/**'
             frontend:
               - 'src/frontend/**'
+              - 'justfile'
+              - '.github/**'
+            stack:
+              - 'src/**'
               - 'justfile'
               - '.github/**'
             infra:
@@ -175,6 +180,80 @@ jobs:
       - uses: extractions/setup-just@v2
       - name: OpenAPI documents and generated types match the code
         run: just contracts-check
+
+  # The Compose stack as deployed: the frontend export and both APIs on one
+  # origin (:8080), routed by nginx the way CloudFront routes in production.
+  # The devcontainer has no Docker, so this job is where the stack is proven.
+  # TRA-131 extends it with the seed and the Playwright suite.
+  stack-smoke:
+    name: Compose stack smoke (one origin)
+    needs: changes
+    if: needs.changes.outputs.stack == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # `just build-stack` reads .env.local when present; CI has none, so the
+      # Google client id (a build-time public value) comes from here.
+      NEXT_PUBLIC_GOOGLE_CLIENT_ID: placeholder
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-frontend
+      - uses: extractions/setup-just@v2
+
+      - name: Service .env files from the templates (throwaway values)
+        working-directory: src/backend/services
+        run: |
+          key=$(openssl rand -hex 32)
+          for service in core_api ai_api; do
+            sed -e "s|^SECRET_KEY=.*|SECRET_KEY=\"$key\"|" \
+                -e 's|^GOOGLE_CLIENT_ID=.*|GOOGLE_CLIENT_ID="placeholder"|' \
+                -e 's|^NVIDIA_API_KEY=.*|NVIDIA_API_KEY="placeholder"|' \
+                -e 's|^DB_PASSWORD=.*|DB_PASSWORD="postgres"|' \
+                -e 's|^DB_NAME=.*|DB_NAME="travel_ai_world"|' \
+                "$service/.env.example" > "$service/.env"
+          done
+          grep -c '^SECRET_KEY="[0-9a-f]\{64\}"$' core_api/.env ai_api/.env
+
+      - name: Export for the Compose origin, then build and start the stack
+        run: just stack-up
+
+      - name: Wait for the proxy to route to core_api
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:8080/api/v1/health/ >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          echo "core_api never answered through the proxy" >&2
+          exit 1
+
+      - name: Acceptance criteria (TRA-127)
+        run: |
+          set -euo pipefail
+          fetch() { # fetch <path> <expected status> <expected content-type substring> <expected body substring>
+            local status
+            status=$(curl -sS -o body -w '%{http_code}' -D headers "http://localhost:8080$1")
+            echo "GET $1 -> $status"
+            test "$status" = "$2"
+            grep -i "^content-type:.*$3" headers >/dev/null
+            grep -q "$4" body
+          }
+          fetch /                    200 text/html         '<html'
+          fetch /dashboard/          200 text/html         '<html'
+          fetch /dashboard           200 text/html         '<html'
+          fetch /api/v1/health/      200 application/json  '"status"'
+          fetch /api/v1/ai/health/   200 application/json  '"status"'
+          fetch /does-not-exist/     404 text/html         'Lost in Paradise'
+          fetch /api/v1/trips/       401 application/json  '"detail"'
+
+      - name: Container logs
+        if: failure()
+        working-directory: src/backend
+        run: docker compose --env-file services/core_api/.env logs --no-color
+
+      - name: Tear down
+        if: always()
+        working-directory: src/backend
+        run: docker compose --env-file services/core_api/.env down -v
 
   infra:
     name: Terraform (${{ matrix.cloud }})

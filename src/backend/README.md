@@ -48,7 +48,9 @@ just contracts        # export OpenAPI → docs/api, regenerate frontend types
 ## Docker
 
 One `Dockerfile`, two images; `docker-compose.yml` adds nginx on `:8080` routing `/api/v1/ai/*` to
-`ai_api` and the rest to `core_api`. The same images run on AWS Lambda through the Lambda Web
+`ai_api`, `/api/*` to `core_api` and everything else to the frontend's static export
+(`../frontend/out`, bind-mounted; `just stack-up` builds it, `just docker-up` skips it). The same
+origin for pages and API is what CloudFront does in production. The same images run on AWS Lambda through the Lambda Web
 Adapter baked into the runtime stage; `entrypoint.sh migrate` (or a `{"command": "migrate"}`
 invocation) applies migrations. See the [Docker runbook](../../docs/runbooks/docker.md).
 

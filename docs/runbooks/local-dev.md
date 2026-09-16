@@ -34,6 +34,18 @@ just dev-ai        # http://localhost:8001/api/v1/ai/docs
 just dev-frontend  # http://localhost:3000
 ```
 
+## Which mode
+
+| You want to | Run | Frontend talks to |
+|---|---|---|
+| Edit code with hot reload (the daily loop) | `just dev-core`, `just dev-ai`, `just dev-frontend` | `:8000` and `:8001` cross-origin (CORS, `.env.local` values above) |
+| Same, against the built backend images | `just docker-up` + `just dev-frontend` | `:8080` cross-origin: set `NEXT_PUBLIC_API_URL=http://localhost:8080`, `NEXT_PUBLIC_AI_API_URL=` |
+| See the stack as deployed, on one origin | `just stack-up` (needs Docker) | itself: the export and `/api/*` on `http://localhost:8080`, no CORS |
+
+The last one mirrors CloudFront in production and is what CI's `stack-smoke` job runs; details
+in the [Docker runbook](docker.md#the-stack-as-deployed). It rebuilds the export, so it is for
+checking a change end to end, not for editing.
+
 ## Before pushing
 
 ```bash

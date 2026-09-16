@@ -69,14 +69,15 @@ image with the right settings and that `migrate` exits instead of serving.
 ## Local stack
 
 ```bash
-just docker-up      # builds and starts proxy + core_api + ai_api + PostgreSQL
+just stack-up       # frontend export for :8080 + proxy + core_api + ai_api + PostgreSQL
+just docker-up      # the same without the frontend build (backend only, no Node needed)
 just docker-logs ai_api
-just docker-down
+just docker-down    # or: just stack-down
 ```
 
 | URL | Service |
 |---|---|
-| <http://localhost:8080> | nginx proxy — point `NEXT_PUBLIC_API_URL` here |
+| <http://localhost:8080> | nginx: the frontend export at `/`, `core_api` at `/api/*`, `ai_api` at `/api/v1/ai/*` |
 | <http://localhost:8000/docs> | core_api directly |
 | <http://localhost:8001/api/v1/ai/docs> | ai_api directly |
 | localhost:5432 | PostgreSQL (`DB_USER`/`DB_PASSWORD` from `core_api/.env`) |
@@ -84,7 +85,57 @@ just docker-down
 `docker-compose.yml` reads `services/core_api/.env` and `services/ai_api/.env`; `DB_SERVER` and
 `CORE_API_URL` are overridden to the Compose service names. PostgreSQL receives only `POSTGRES_*`
 (interpolated from `DB_*` via `--env-file`), never the whole `.env`. The proxy waits for both
-services' health checks before it starts routing.
+services' health checks before it starts routing. Migrations run when `core_api` starts
+(`MIGRATE_ON_START`, see above), in both recipes.
+
+## The stack as deployed
+
+`just stack-up` is the production shape on one machine: **one origin**, `http://localhost:8080`,
+serves the static export and the API, exactly as CloudFront does in AWS
+(`infra/aws/frontend.tf`: the S3 export behind `/`, API Gateway behind `/api/*`). The browser
+never crosses origins, so CORS is not involved and the e2e suite can run against it unchanged.
+
+| nginx `location` | Goes to | Notes |
+|---|---|---|
+| `/api/v1/ai/` | `ai_api` | buffering off, 300 s read timeout: the chat streams as SSE |
+| `/api/` | `core_api` | only the API path reaches the backend, like the gateway in prod |
+| `/` | `/usr/share/nginx/html` (bind mount of `src/frontend/out`, read-only) | `try_files $uri $uri/index.html $uri.html =404`, `error_page 404 /404.html` |
+
+The `try_files` line is the CloudFront `directory_index` function in nginx terms:
+`next.config.ts` sets `trailingSlash: true`, so the export has `dashboard/index.html`,
+`trip/<id>/index.html`, and both `/dashboard/` and `/dashboard` resolve to that file. An unknown
+path answers Next's `404.html` with a real 404 status. Backend errors pass through untouched
+(`proxy_intercept_errors` is off), so `/api/v1/trips/` without a token is the API's 401 JSON,
+not an HTML page. Hashed assets under `/_next/static/` are cached for a year; HTML is not.
+
+The recipe is two steps that can be run separately:
+
+```bash
+just build-stack    # NEXT_PUBLIC_API_URL=http://localhost:8080 NEXT_PUBLIC_AI_API_URL= npm run build
+just docker-up      # mkdir -p src/frontend/out, then docker compose up --build -d
+```
+
+The command-line variables override `.env.local` (the Google client id and the rest still come
+from it); `NEXT_PUBLIC_AI_API_URL` is emptied because it defaults to the core URL
+([ADR 0003](../architecture/adr/0003-frontend-two-base-urls.md)). Rebuild and the proxy serves
+the new export at once: the bind mount is live.
+
+**Without a frontend build** (`just docker-up` alone) the proxy still starts and `/api/*` works;
+`/` and every page answer nginx's own 404 because `src/frontend/out/` is empty. Docker would
+create a missing bind-mount source itself, as a root-owned directory that later breaks
+`next build` on Linux, so the recipe runs `mkdir -p` first and the folder stays yours.
+
+Sign-in on `:8080` uses the local Google flow: `core_api` keeps `AUTH_MODE=local` and verifies
+the browser's Google credential with `GOOGLE_CLIENT_ID`, so the OAuth client in Google Cloud
+needs `http://localhost:8080` among its authorised JavaScript origins (as `:3000` already is).
+
+**In CI** the `stack-smoke` job of `.github/workflows/pr.yml` (path-filtered on `src/**`, the
+`justfile` and the workflows) is where the stack is proven, because the devcontainer has no
+Docker: it writes both service `.env` files from the `.env.example` templates with throwaway
+values, runs `just stack-up`, waits for `/api/v1/health/` through the proxy and asserts with
+`curl` that `/` and `/dashboard/` are HTML 200s, both health endpoints answer JSON,
+`/does-not-exist/` is Next's page with a 404 and `/api/v1/trips/` is the API's 401 JSON. The
+containers' logs are printed on failure and `docker compose down -v` always runs.
 
 ## Troubleshooting
 

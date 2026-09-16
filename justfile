@@ -159,13 +159,28 @@ docker-build:
     cd {{backend}} && docker build --build-arg SERVICE=core_api -t travel-ai-world/core-api:local .
     cd {{backend}} && docker build --build-arg SERVICE=ai_api -t travel-ai-world/ai-api:local .
 
-# Start proxy + core_api + ai_api + PostgreSQL
+# Backend-only stack: proxy :8080 + core_api + ai_api + PostgreSQL (no Node needed).
+# The proxy serves whatever is in {{frontend}}/out; without a build "/" answers 404
+# and /api/* still works. mkdir keeps the bind-mount source owned by you, not root.
 docker-up:
+    mkdir -p {{frontend}}/out
     cd {{backend}} && docker compose --env-file services/core_api/.env up --build -d
 
 # Stop the Compose stack
 docker-down:
     cd {{backend}} && docker compose down
+
+# Frontend export for the Compose origin: the API is same-origin on :8080, so
+# NEXT_PUBLIC_AI_API_URL is emptied (it defaults to the core URL, ADR 0003).
+# Command-line variables override .env.local; the rest (Google client id) still comes from it.
+build-stack:
+    cd {{frontend}} && NEXT_PUBLIC_API_URL=http://localhost:8080 NEXT_PUBLIC_AI_API_URL= npm run build
+
+# Full stack as deployed on http://localhost:8080: export + proxy + core_api + ai_api + PostgreSQL
+stack-up: build-stack docker-up
+
+# Stop the full stack (same as docker-down)
+stack-down: docker-down
 
 # Tail logs: just docker-logs core_api | ai_api | proxy
 docker-logs service="core_api":

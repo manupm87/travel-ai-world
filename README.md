@@ -48,6 +48,7 @@ just dev-ai         # ai_api      http://localhost:8001/api/v1/ai/docs
 just dev-frontend   # frontend    http://localhost:3000
 just lint · just test · just contracts · just docs-check
 just docker-up      # nginx :8080 + core_api + ai_api + PostgreSQL from built images
+just stack-up       # the same plus the frontend export, on one origin http://localhost:8080 (as in prod)
 ```
 
 `just` alone lists every recipe. Step by step, including the variables to fill in:
@@ -67,7 +68,7 @@ just docker-up      # nginx :8080 + core_api + ai_api + PostgreSQL from built im
 
 | Workflow | Trigger | Does |
 |---|---|---|
-| `pr.yml` | pull request | path-filtered jobs: ruff, per-package tests (PostgreSQL for `core_api`), Docker builds, contract drift, eslint + Vitest + Playwright + `next build`, docs hygiene |
+| `pr.yml` | pull request | path-filtered jobs: ruff, per-package tests (PostgreSQL for `core_api`), Docker builds, Compose stack smoke (export + APIs on one origin), contract drift, eslint + Vitest + Playwright + `next build`, docs hygiene |
 | `deploy.yml` | push to `main` touching `src/frontend/` | static export → S3 + CloudFront invalidation (AWS) |
 | `backend-images.yml` | push to `main` touching `src/backend/` | publishes `ghcr.io/manupm87/travel-ai-world/{core-api,ai-api}` |
 | `deploy-backend.yml` | manual | copies the images to GCP or AWS and runs Terraform (plan by default) |
