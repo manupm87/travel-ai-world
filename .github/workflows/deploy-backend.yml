@@ -135,17 +135,22 @@ jobs:
           echo "TF_VAR_frontend_bucket_name=${{ vars.FRONTEND_DOMAIN }}" >> "$GITHUB_ENV"
 
       # ── Promote images (registry-to-registry copy, no rebuild) ───────────
+      # crane copies the manifest byte for byte, so the digest in the cloud
+      # registry is the GHCR one. `docker buildx imagetools create` wraps even a
+      # single-platform image in an OCI index, which Lambda rejects ("image
+      # manifest ... media type is not supported"). crane reads the registry
+      # logins above from ~/.docker/config.json.
+      - uses: imjasonh/setup-crane@v0.7
+
       - name: Copy images from GHCR
         run: |
           for svc in core-api ai-api; do
             if [ "${{ inputs.cloud }}" = "aws" ]; then dst="${REGISTRY}/travel-ai-${svc}"; else dst="${REGISTRY}/${svc}"; fi
-            docker buildx imagetools create \
-              --tag "${dst}:${{ inputs.image_tag }}" \
-              "${GHCR_PREFIX}/${svc}:${{ inputs.image_tag }}"
+            crane copy "${GHCR_PREFIX}/${svc}:${{ inputs.image_tag }}" "${dst}:${{ inputs.image_tag }}"
             ref="${dst}:${{ inputs.image_tag }}"
             if [ "${{ inputs.cloud }}" = "aws" ]; then
               # Lambda redeploys only when the image URI changes: pin the digest.
-              digest=$(docker buildx imagetools inspect --format '{{.Manifest.Digest}}' "$ref")
+              digest=$(crane digest "$ref")
               ref="${dst}@${digest}"
             fi
             echo "TF_VAR_$(echo $svc | tr - _)_image=${ref}" >> "$GITHUB_ENV"

@@ -24,8 +24,10 @@ Why two services and why the frontend accepts two URLs: [ADR 0001](../docs/archi
   `ghcr.io/manupm87/travel-ai-world/{core-api,ai-api}` (tags: commit SHA and `latest`). Terraform
   only references image URLs; copy them into the cloud registry with
   `crane copy ghcr.io/manupm87/travel-ai-world/<image>:<tag> <registry>/<image>:<tag>` (no Docker
-  daemon needed; installed in the devcontainer) or `docker buildx imagetools create`, or build
+  daemon needed; installed in the devcontainer; keeps the digest), or build
   locally from `src/backend/` (`just docker-build`).
+  Not `docker buildx imagetools create` for AWS: it wraps the image in an OCI index, which Lambda
+  rejects ("image manifest ... media type is not supported").
 - **Secrets** are Terraform variables (`db_password`, `google_client_secret`, `nvidia_api_key`;
   GCP also `secret_key`; `google_client_id` travels with them but is public). GCP stores them in Secret Manager and injects them per
   service; AWS sets them as encrypted Lambda environment variables (a VPC without endpoints
