@@ -59,7 +59,8 @@ aws lambda invoke --function-name <core-api function> --cli-binary-format raw-in
 ```
 
 Every form ends in `core_api.ops.run_command`; an unknown command, or `seed` without an email,
-answers 400 (exit code 1 from the CLI).
+answers 400 (exit code 1 from the CLI). The deployed sequence (promote the image, then seed by
+hand, what to expect in CloudWatch) is in [deploy.md](deploy.md#seed-demo-data).
 
 **Trying it locally with the Runtime Interface Emulator** (optional; needs Docker and the
 [`aws-lambda-rie`](https://github.com/aws/aws-lambda-runtime-interface-emulator) binary in `~/.aws-lambda-rie/`):
