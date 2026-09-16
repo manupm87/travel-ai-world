@@ -250,9 +250,13 @@ jobs:
       - name: A second `just stack-up` still serves the rebuilt export
         run: |
           just stack-up
-          status=$(curl -sS -o body -w '%{http_code}' http://localhost:8080/)
-          echo "GET / -> $status"
-          test "$status" = "200" && grep -q '<html' body
+          # The recreated proxy needs a moment before nginx listens; retry like the first wait.
+          for i in $(seq 1 30); do
+            if status=$(curl -sS -o body -w '%{http_code}' http://localhost:8080/); then break; fi
+            sleep 1
+          done
+          echo "GET / -> ${status:-no answer}"
+          test "${status:-}" = "200" && grep -q '<html' body
 
       - name: Container logs
         if: failure()
