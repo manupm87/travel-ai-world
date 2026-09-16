@@ -59,6 +59,14 @@ TypeScript 5, Tailwind CSS v4.
   `src/test/fixtures.ts` (`src/test/fixtures/trip-japan.ts` when a test needs a whole `TripResponse`);
   assert on roles/names/`data-*` state and on `en.ts` copy, not on class names.
   Do not mock `Card`/`Section`/`Container`/`next/link` or `lucide-react` icon by icon.
+- Playwright, three configs over one `e2e/` folder: `playwright.config.ts` (`just test-e2e`: starts
+  `next dev` on :3000, the landing-page smoke suite, for the daily loop), `playwright.static.config.ts`
+  (`just test-e2e-static`: `next build` served on :3100, adds `prerender.spec.ts`; CI's `frontend`
+  job) and `playwright.stack.config.ts` (`just test-e2e-stack`: the running Compose stack on :8080,
+  nothing started, every spec; CI's `e2e-stack` job). `trips.spec.ts` is the signed-in suite over the
+  seeded trips: it writes `E2E_TOKEN` (`just dev-token <email>`) and the profile into `localStorage`
+  with `page.addInitScript` before navigating, using the keys exported by `services/session.ts`, and
+  skips itself entirely when `E2E_TOKEN` is unset, so the other two modes need no backend.
 
 ## Commands
 

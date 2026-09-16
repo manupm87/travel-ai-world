@@ -35,6 +35,25 @@ just dev-ai        # http://localhost:8001/api/v1/ai/docs
 just dev-frontend  # http://localhost:3000
 ```
 
+## Signing in without Google
+
+`core_api` runs with `AUTH_MODE=local` and trusts HS256 tokens signed with `SECRET_KEY`, so a
+token can be minted from the shell for any existing account instead of going through the Google
+button (which needs a real client id and a browser session):
+
+```bash
+just seed you@example.com                # creates the account (with the demo trips) if needed
+just dev-token you@example.com           # prints the JWT POST /auth/google would issue (exit 1 if no such account)
+```
+
+The browser signs in when the token and the profile are in `localStorage` under the keys of
+`src/frontend/src/services/session.ts`: `travel_ai_token` = the JWT, `travel_ai_user` =
+`{"id": "<the token's sub>", "email": "...", "name": "..."}`. The Playwright suite does this with
+`page.addInitScript` (`src/frontend/e2e/trips.spec.ts`), and a coding agent does it with the
+Playwright MCP's `browser_evaluate` (`.claude/commands/check-site.md`, mode 2). The command is
+`python -m core_api.devtools`, deliberately not an `ops` command: `ops` is what the Lambda's
+`/events` exposes. In Cognito mode it refuses, since the pool issues those tokens.
+
 ## Which mode
 
 | You want to | Run | Frontend talks to |
@@ -43,9 +62,34 @@ just dev-frontend  # http://localhost:3000
 | Same, against the built backend images | `just docker-up` + `just dev-frontend` | `:8080` cross-origin: set `NEXT_PUBLIC_API_URL=http://localhost:8080`, `NEXT_PUBLIC_AI_API_URL=` |
 | See the stack as deployed, on one origin | `just stack-up` (needs Docker) | itself: the export and `/api/*` on `http://localhost:8080`, no CORS |
 
-The last one mirrors CloudFront in production and is what CI's `stack-smoke` job runs; details
+The last one mirrors CloudFront in production and is what CI's `e2e-stack` job runs; details
 in the [Docker runbook](docker.md#the-stack-as-deployed). It rebuilds the export, so it is for
 checking a change end to end, not for editing.
+
+## End-to-end tests
+
+Three Playwright configs share `src/frontend/e2e/`:
+
+| Recipe | Serves | Runs | Where |
+|---|---|---|---|
+| `just test-e2e` | `next dev` on :3000 (started for you) | `smoke.spec.ts`, the landing page | the daily loop |
+| `just test-e2e-static` | `next build` on :3100 (started for you) | smoke + `prerender.spec.ts` | CI's `frontend` job |
+| `just test-e2e-stack` | the Compose stack on :8080 (already up) | everything, incl. the signed-in `trips.spec.ts` | CI's `e2e-stack` job |
+
+The signed-in suite needs the seeded account and its token; without `E2E_TOKEN` it skips itself,
+so the first two modes stay backend-free:
+
+```bash
+just stack-up                                   # needs Docker
+just seed you@example.com
+E2E_TOKEN=$(just dev-token you@example.com) just test-e2e-stack
+cd src/frontend && npx playwright show-report   # after a failure
+```
+
+`E2E_EMAIL` overrides the profile's email (it defaults to the token's `email` claim). The
+devcontainer has no Docker, so there the same spec can be pointed at the dev servers instead:
+`PLAYWRIGHT_BASE_URL=http://localhost:3000 E2E_TOKEN=$(just dev-token you@example.com) just test-e2e-stack`
+with `just dev-core` and `just dev-frontend` running; the Compose origin itself is proven in CI.
 
 ## Before pushing
 

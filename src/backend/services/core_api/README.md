@@ -12,6 +12,7 @@ them and this service upserts the account from the claims.
 cp .env.example .env       # AUTH_MODE=local: SECRET_KEY, GOOGLE_*, DB_* (Cognito mode: COGNITO_*)
 uv run alembic upgrade head
 uv run python -m core_api.ops seed you@example.com       # optional: the four demo trips for that account
+uv run python -m core_api.devtools token you@example.com # optional: a local JWT for that account (see below)
 uv run uvicorn core_api.main:app --reload --port 8000    # http://localhost:8000/docs
 ```
 
@@ -20,6 +21,13 @@ and loads the demo trips through the services, so the same rules apply as to a r
 it again replaces those trips and leaves the account's other trips alone. The same command runs
 in the container (`entrypoint.sh seed <email>`) and on Lambda (`{"command": "seed", "args":
 {"email": "..."}}` on `/events`); see [ADR 0011](../../../../docs/architecture/adr/0011-real-trips-seed-and-client-side-loading.md).
+
+`devtools token` (`just dev-token you@example.com`) prints the local-mode JWT `POST /auth/google`
+would issue for that account, so a browser can be signed in without Google: the Playwright suite
+(`just test-e2e-stack`) and the Playwright MCP write it into `localStorage`
+(`docs/runbooks/local-dev.md`). The account must exist and be active (seed first; exit 1 otherwise),
+and `AUTH_MODE` must be `local`. It is deliberately not an `ops` command: `ops` is what `/events`
+exposes, and nothing in the running service imports `devtools`.
 
 ## Endpoints (`/api/v1`)
 

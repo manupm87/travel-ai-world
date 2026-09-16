@@ -183,10 +183,12 @@ jobs:
 
   # The Compose stack as deployed: the frontend export and both APIs on one
   # origin (:8080), routed by nginx the way CloudFront routes in production.
-  # The devcontainer has no Docker, so this job is where the stack is proven.
-  # TRA-131 extends it with the seed and the Playwright suite.
-  stack-smoke:
-    name: Compose stack smoke (one origin)
+  # The devcontainer has no Docker, so this job is where the stack is proven:
+  # the curl checks of TRA-127, then the seed and the signed-in Playwright
+  # suite of TRA-131 (a local token minted in the container, no Google).
+  # Both images build in ~40 s (the uv cache layer), so no GHA layer cache.
+  e2e-stack:
+    name: Compose stack e2e (one origin, seeded, signed in)
     needs: changes
     if: needs.changes.outputs.stack == 'true'
     runs-on: ubuntu-latest
@@ -195,6 +197,7 @@ jobs:
       # `just build-stack` reads .env.local when present; CI has none, so the
       # Google client id (a build-time public value) comes from here.
       NEXT_PUBLIC_GOOGLE_CLIENT_ID: placeholder
+      E2E_EMAIL: e2e@example.com
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-frontend
@@ -213,6 +216,10 @@ jobs:
                 "$service/.env.example" > "$service/.env"
           done
           grep -c '^SECRET_KEY="[0-9a-f]\{64\}"$' core_api/.env ai_api/.env
+
+      - name: Install Playwright browsers
+        working-directory: src/frontend
+        run: npx playwright install --with-deps chromium
 
       - name: Export for the Compose origin, then build and start the stack
         run: just stack-up
@@ -257,6 +264,32 @@ jobs:
           done
           echo "GET / -> ${status:-no answer}"
           test "${status:-}" = "200" && grep -q '<html' body
+
+      # Seed and token run inside the core_api container: it already holds
+      # SECRET_KEY and the database, so the runner needs no Python toolchain.
+      # `python -m core_api.devtools token` is exactly what `just dev-token` runs.
+      - name: Seed the demo trips and mint a local token for that account (TRA-131)
+        working-directory: src/backend
+        run: |
+          compose="docker compose --env-file services/core_api/.env"
+          $compose exec -T core_api /app/entrypoint.sh seed "$E2E_EMAIL"
+          token=$($compose exec -T core_api python -m core_api.devtools token "$E2E_EMAIL")
+          echo "::add-mask::$token"
+          test "$(printf '%s' "$token" | wc -l)" = 0
+          echo "E2E_TOKEN=$token" >> "$GITHUB_ENV"
+          # The token opens the API through the proxy before any browser tries it.
+          curl -fsS -H "Authorization: Bearer $token" http://localhost:8080/api/v1/trips/ | grep -o '"title"' | wc -l
+
+      - name: E2E tests against the stack (smoke, prerender and the signed-in trips)
+        run: just test-e2e-stack
+
+      - name: Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-stack
+          path: src/frontend/playwright-report/
+          retention-days: 7
 
       - name: Container logs
         if: failure()

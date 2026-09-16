@@ -142,16 +142,44 @@ create a missing bind-mount source itself, as a root-owned directory that later 
 Sign-in on `:8080` uses the local Google flow: `core_api` keeps `AUTH_MODE=local` and verifies
 the browser's Google credential with `GOOGLE_CLIENT_ID`, so the OAuth client in Google Cloud
 needs `http://localhost:8080` among its authorised JavaScript origins (as `:3000` already is).
+Without a Google client, sign in with a minted token instead (next section).
 
-**In CI** the `stack-smoke` job of `.github/workflows/pr.yml` (path-filtered on `src/**`, the
+### End-to-end tests against the stack
+
+The stack is the only local mode with a backend, so the signed-in Playwright suite
+(`src/frontend/e2e/trips.spec.ts`: the dashboard and the trip viewer over the seeded trips) runs
+against it. Three commands: seed an account, mint its token, run the suite.
+
+```bash
+just stack-up
+just seed you@example.com                                          # or, inside the container:
+docker compose exec core_api /app/entrypoint.sh seed you@example.com
+E2E_TOKEN=$(just dev-token you@example.com) just test-e2e-stack     # or, inside the container:
+E2E_TOKEN=$(docker compose exec -T core_api python -m core_api.devtools token you@example.com) just test-e2e-stack
+```
+
+`just dev-token` runs `python -m core_api.devtools token <email>` with the host's
+`services/core_api/.env` (the Compose stack publishes PostgreSQL on :5432, so the same `.env`
+reaches it); the container form needs no Python on the host and is what CI uses. Either way the
+token is the HS256 JWT `POST /auth/google` would issue, signed with the stack's `SECRET_KEY`. The
+suite writes it into `localStorage` before the first navigation and is skipped without
+`E2E_TOKEN` (`docs/runbooks/local-dev.md#end-to-end-tests`).
+
+**In CI** the `e2e-stack` job of `.github/workflows/pr.yml` (path-filtered on `src/**`, the
 `justfile` and the workflows) is where the stack is proven, because the devcontainer has no
 Docker: it writes both service `.env` files from the `.env.example` templates with throwaway
-values, runs `just stack-up`, waits for `/api/v1/health/` through the proxy and asserts with
-`curl` that `/` and `/dashboard/` are HTML 200s, both health endpoints answer JSON,
+values (a `SECRET_KEY` generated in the job, placeholders for the Google and NVIDIA keys), installs
+Playwright's Chromium, runs `just stack-up`, waits for `/api/v1/health/` through the proxy and
+asserts with `curl` that `/` and `/dashboard/` are HTML 200s, both health endpoints answer JSON,
 `/does-not-exist/` is Next's page with a 404 and `/api/v1/trips/` is the API's 401 JSON. It then
 runs `just stack-up` a second time and checks that `/` still answers, which proves the proxy is
-recreated onto the rebuilt `out/`. The containers' logs are printed on failure and
-`docker compose down -v` always runs.
+recreated onto the rebuilt `out/`. Then it seeds `e2e@example.com` and mints its token inside the
+`core_api` container (`entrypoint.sh seed`, `python -m core_api.devtools token`; the token is
+masked in the log), checks the token opens `/api/v1/trips/` through the proxy, and runs
+`just test-e2e-stack`: the smoke and prerender specs plus the signed-in trips suite. The Playwright
+report is uploaded as the `playwright-report-stack` artifact and the containers' logs are printed
+when it fails; `docker compose down -v` always runs. The job takes about four minutes; both images
+build in under a minute from the cached dependency layer, so it uses no registry or GHA layer cache.
 
 ## Troubleshooting
 

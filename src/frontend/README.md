@@ -226,13 +226,18 @@ copy from `src/i18n/en.ts`, rather than on Tailwind class names.
 
 ### End-to-End (E2E) Testing
 
-Powered by **Playwright**.
+Powered by **Playwright**, with three configs over the one `e2e/` folder:
 
 ```bash
-npm run test:e2e
+npm run test:e2e           # playwright.config.ts: starts `next dev` on :3000, the landing-page smoke suite
+npm run test:e2e:static    # playwright.static.config.ts: `next build` served on :3100, adds prerender.spec.ts
+npm run test:e2e:stack     # playwright.stack.config.ts: the Compose stack already running on :8080, every spec
 ```
 
-Verifies complete user flows, like creating a trip and navigating the dashboard.
+`e2e/trips.spec.ts` is the signed-in suite (dashboard and trip viewer over the seeded trips). It
+signs in by writing `E2E_TOKEN`, a local-mode JWT from `just dev-token <email>`, and the profile
+into `localStorage` before the first navigation, and skips itself when `E2E_TOKEN` is unset. The
+full flow is in the [local development runbook](../../docs/runbooks/local-dev.md#end-to-end-tests).
 
 `@playwright/mcp` is also a devDependency: the repo's `.mcp.json` runs it so coding agents can
 drive the same headless Chromium (`npx playwright install --with-deps chromium` installs it).

@@ -99,9 +99,15 @@ test-frontend:
 test-e2e:
     cd {{frontend}} && npx playwright test
 
-# Playwright E2E over the static export (what CI runs)
+# Playwright E2E over the static export (what CI's `frontend` job runs)
 test-e2e-static:
     cd {{frontend}} && npm run test:e2e:static
+
+# Playwright E2E against the running Compose stack on :8080, signed in with a minted token
+# (what CI's `e2e-stack` job runs): just stack-up && just seed you@example.com &&
+# E2E_TOKEN=$(just dev-token you@example.com) just test-e2e-stack
+test-e2e-stack:
+    cd {{frontend}} && npm run test:e2e:stack
 
 # ── Contracts & docs ─────────────────────────────────────────────────────────
 
@@ -151,6 +157,11 @@ migration message:
 # Load the four demo trips for an account (created if missing; re-runs replace them): just seed you@example.com
 seed email:
     cd {{core}} && uv run python -m core_api.ops seed {{email}}
+
+# Print a local-mode JWT for an existing account (seed it first), to sign in without Google:
+# E2E_TOKEN=$(just dev-token you@example.com). Dev-only: not an `ops` command, never on /events.
+dev-token email:
+    @cd {{core}} && uv run --quiet python -m core_api.devtools token {{email}}
 
 # ── Build & Docker ───────────────────────────────────────────────────────────
 

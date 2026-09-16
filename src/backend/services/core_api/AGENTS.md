@@ -62,12 +62,19 @@ models/*.py             tables (DeclarativeBase, SQLAlchemy 2 style)
   of work per run. One implementation, three entry points, all through `ops.py`: `just seed <email>`,
   `entrypoint.sh seed <email>` (Compose) and `{"command": "seed", "args": {"email": ...}}` on
   `POST /events` (Lambda). Never load data with raw SQL.
+- **Dev-only helpers live in `devtools.py`, never in `ops.py`**: `python -m core_api.devtools token
+  <email>` (`just dev-token <email>`) prints the local-mode JWT the sign-in would issue for an
+  existing, active account (`sub` = its id, `email`, `role`, `exp`), so the Playwright suite and the
+  Playwright MCP sign in without Google. `ops.COMMANDS` is the surface `POST /events` exposes, so a
+  token minter must not be one of them; nothing in the service imports `devtools`
+  (`tests/test_devtools.py` checks both). Refuses in Cognito mode: those tokens come from the pool.
 
 ## Commands
 
 ```bash
 uv run uvicorn core_api.main:app --reload --port 8000
 uv run python -m core_api.ops seed you@example.com   # demo trips for that account (just seed)
+uv run python -m core_api.devtools token you@example.com   # local JWT for that account (just dev-token)
 uv run pytest                      # PostgreSQL: creates <DB_NAME>_test and empties it between tests
                                    # each request gets its own session; use `db_session` only to arrange data
 uv run alembic upgrade head

@@ -12,6 +12,7 @@
     "lint": "eslint",
     "test:e2e": "playwright test",
     "test:e2e:static": "next build && playwright test --config playwright.static.config.ts",
+    "test:e2e:stack": "playwright test --config playwright.stack.config.ts",
     "test:unit": "vitest run",
     "types:generate": "openapi-typescript ../../docs/api/core-api.openapi.json -o src/types/generated/core-api.ts && openapi-typescript ../../docs/api/ai-api.openapi.json -o src/types/generated/ai-api.ts",
     "types:check": "npm run types:generate && git diff --exit-code -- src/types/generated"
