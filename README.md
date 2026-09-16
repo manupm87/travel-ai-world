@@ -78,10 +78,10 @@ Runbooks: [docker](docs/runbooks/docker.md) · [deploy](docs/runbooks/deploy.md)
 ## Roadmap
 
 - [x] Landing page, EN/ES i18n, light/dark theme
-- [x] Google OAuth 2.0, dashboard and itinerary viewer (mock trips today)
+- [x] Google OAuth 2.0, dashboard and itinerary viewer
 - [x] Backend split into `core_api` and `ai_api` with a shared library; AI chat streaming
 - [x] CI/CD: path-filtered checks, contract checks, image publishing, Pages deploy, Terraform for two clouds
-- [ ] Dashboard and viewer backed by `core_api` trips instead of mocks
+- [x] Dashboard and viewer backed by `core_api` trips instead of mocks
 - [ ] Structured itineraries from chat, saved through `core_api`
 - [ ] RAG over the scraped city data (`ai_api` `Retriever` port)
 - [ ] PDF export
