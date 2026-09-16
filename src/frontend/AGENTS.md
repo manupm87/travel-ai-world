@@ -13,10 +13,17 @@ TypeScript 5, Tailwind CSS v4.
   token refresh before authenticated calls), `session.ts` (the only owner of the `localStorage`
   session: token, profile, refresh token), `cognito.ts` (the deployed sign-in: managed login with
   code + PKCE, `/auth/callback/`, refresh, logout — no SDK), `auth.ts` (the local Google flow
-  through core_api), `chat.ts` (ai_api), `trips.ts` (fixtures today; owns `toTrip`, the only place
-  that turns a `TripResponse` into the `Trip` view model — ADR 0006). Components never `fetch` or
-  touch the session storage. `AuthContext.provider` (`"cognito" | "google"`) says which sign-in the
-  build has; it is decided by `NEXT_PUBLIC_COGNITO_DOMAIN` + `NEXT_PUBLIC_COGNITO_CLIENT_ID`.
+  through core_api), `chat.ts` (ai_api), `trips.ts` (`listTrips` reads the dashboard's trips from
+  `GET /api/v1/trips/`; the fixtures in `src/mocks/` serve only the trip viewer until it moves to
+  the API too; owns `toTrip`, the only place that turns a `TripResponse` into the `Trip` view
+  model — ADR 0006). Components never `fetch` or touch the session storage.
+  `AuthContext.provider` (`"cognito" | "google"`) says which sign-in the build has; it is decided by
+  `NEXT_PUBLIC_COGNITO_DOMAIN` + `NEXT_PUBLIC_COGNITO_CLIENT_ID`.
+- **Hooks own async state, components render it**: `src/hooks/useTrips.ts` loads the dashboard's
+  trips (`status: "loading" | "ready" | "error"`, `reload()`, aborts on unmount, clears the session
+  on a 401 so the route guard redirects); `useChatStream.ts` does the same for the planner. A page
+  that needs per-user data is a static shell (`page.tsx`) plus a client component using the hook,
+  never a server-side fetch: the export is static.
 - **`src/types/trip.ts` is a view model**, not a response shape: components render it, `services/trips.ts`
   builds it from the generated `TripResponse`. Fixtures in `src/mocks/*.ts` are `TripResponse` objects
   checked with `satisfies`; add derived facts (e.g. `ItineraryDay.kind`) in the mapper, not in JSX.

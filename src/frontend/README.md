@@ -54,10 +54,10 @@ src/
 │   └── error.tsx, loading.tsx, not-found.tsx
 ├── components/     # UI by feature: ui/, layout/, landing/, planner/, dashboard/, trip-viewer/, auth/, common/
 ├── context/        # Providers: AuthContext, LanguageContext, ThemeContext
-├── hooks/          # useFormatters, useChatStream, useStickToBottom, useAutoResizeTextarea, useScrolled, useClickOutside
+├── hooks/          # useTrips, useChatStream, useFormatters, useStickToBottom, useAutoResizeTextarea, useScrolled, useClickOutside
 ├── i18n/           # types.ts (contract), en.ts, es.ts, index.ts (locales + LANGUAGES), interpolate.ts
 ├── services/       # The only place that talks to the network -> [README](src/services/README.md)
-├── mocks/          # TripResponse fixtures (backend shape, `satisfies`-checked) used by services/trips.ts
+├── mocks/          # TripResponse fixtures (backend shape, `satisfies`-checked); trip viewer only, via services/trips.ts
 ├── types/          # Hand-written domain types + generated/ (from OpenAPI, never edited)
 ├── utils/          # Pure helpers (cn, formatting, country flags, localStorage store, safe redirect)
 └── test/           # Vitest setup + renderWithProviders (render.tsx) + typed fixtures (fixtures.ts)
@@ -155,7 +155,7 @@ Defined in `globals.css` as CSS custom properties and consumed directly in Tailw
 | Route | Status | Description |
 |---|---|---|
 | `/` | ✅ Live | Full landing page |
-| `/dashboard` | ✅ Live | Trips overview (mock data) and the AI planner card (`PlannerCard`) |
+| `/dashboard` | ✅ Live | The signed-in user's trips from `core_api` (`useTrips`, client-side; loading / error / empty states) and the AI planner card (`PlannerCard`) |
 | `/trip/[id]` | ✅ Live | Interactive itinerary viewer (mock data) |
 | anything else | ✅ | `not-found.tsx`, exported as `404.html` |
 
@@ -188,8 +188,17 @@ Next.js App Router can't mix `"use client"` and `generateStaticParams` in the sa
   interactive viewer.
 
 Ids that were not prerendered fall through to the exported `404.html`; `not-found.tsx` shows a short
-"redirecting" state for `/trip/*` and `/dashboard/*` paths and sends the visitor home. Serving
-per-user trips on a static export is an open question tracked in the code-quality review (plan row 5).
+"redirecting" state for `/trip/*` and `/dashboard/*` paths and sends the visitor home.
+
+### Per-user data on a static export: `/dashboard`
+
+Trips belong to the signed-in user, so nothing about them exists at build time. `dashboard/page.tsx`
+is a static shell; `DashboardClientPage.tsx` (client) calls `useTrips()` (`src/hooks/useTrips.ts`),
+which asks `services/trips.ts#listTrips` for `GET /api/v1/trips/` with the session token once the
+session is known, and renders one of four states: loading (`LoadingSpinner`), error (translated
+message + retry), empty (`EmptyDashboard`) or the trips grouped by status. A 401 clears the session
+and the route guard sends the visitor home. The trip viewer follows the same pattern next (ADR 0006,
+decision 4); until then it still prerenders the fixtures.
 
 ---
 
@@ -231,8 +240,9 @@ drive the same headless Chromium (`npx playwright install --with-deps chromium` 
 1. Set `NEXT_PUBLIC_API_URL=http://localhost:8000` and `NEXT_PUBLIC_AI_API_URL=http://localhost:8001`
    in `.env.local` (one URL is enough behind the Docker Compose proxy on `:8080`).
 2. `services/auth.ts` (`loginWithGoogle`) talks to `core_api`; `services/chat.ts` (`streamChat`)
-   consumes `ai_api`'s SSE stream; `services/trips.ts` still serves the fixtures in `src/mocks/`,
-   mapped through `toTrip` (ADR 0006).
+   consumes `ai_api`'s SSE stream; `services/trips.ts` (`listTrips`) lists the dashboard's trips from
+   `core_api`, mapped through `toTripSummary`; the trip viewer still reads the fixtures in `src/mocks/`
+   through `toTrip` (ADR 0006).
 3. `components/planner/PlannerCard.tsx` streams real answers when `ai_api` is reachable
    (`useChatStream`, which also aborts the stream on unmount). Without an AI URL (the GitHub Pages
    build) the composer stays usable but sending is disabled and `t.planner.unavailable` explains why.

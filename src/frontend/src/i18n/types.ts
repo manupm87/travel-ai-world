@@ -163,6 +163,11 @@ export interface Translations {
     sections: Record<TripStatus, string>;
     emptyTitle: string;
     emptyDescription: string;
+    /** Spinner copy while the trips load from the API. */
+    loading: string;
+    errorTitle: string;
+    errorDescription: string;
+    retry: string;
   };
   auth: {
     login: string;

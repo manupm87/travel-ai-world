@@ -3,9 +3,13 @@
  *
  * `toTrip` / `toTripSummary` are the anti-corruption layer between
  * `TripResponse` (generated from core_api's OpenAPI) and the `Trip` view model
- * the components render. Today the DTOs come from the fixtures in
- * `src/mocks/*.ts`, written in the backend's exact shape and checked with
- * `satisfies`; tomorrow they come from `GET /api/v1/trips/`.
+ * the components render (ADR 0006).
+ *
+ * The dashboard reads the signed-in user's trips from core_api (`listTrips`,
+ * `GET /api/v1/trips/`, fetched in the browser with the session token). The
+ * trip viewer still reads the fixtures in `src/mocks/*.ts` (written in the
+ * backend's exact shape and checked with `satisfies`) through `getTripById` /
+ * `getAllTripIds`, until it moves to `GET /api/v1/trips/{id}` as well.
  */
 
 import type { components } from "@/types/generated/core-api";
@@ -22,6 +26,7 @@ import type {
   TripResponse,
 } from "@/types/trip";
 import type { TripSummary } from "@/types/trip-summary";
+import { request } from "./http";
 
 export type { TripResponse };
 type DestinationResponse = components["schemas"]["DestinationResponse"];
@@ -31,7 +36,33 @@ type MealResponse = components["schemas"]["MealResponse"];
 type AccommodationResponse = components["schemas"]["AccommodationResponse"];
 type TransportationResponse = components["schemas"]["TransportationResponse"];
 
-// ── Fixtures (backend shape) ─────────────────────────────────────────────────
+// ── API ──────────────────────────────────────────────────────────────────────
+
+/**
+ * How many trips one dashboard load asks for. Well above what anyone has
+ * today; a paginated or summaries endpoint is the follow-up when that changes.
+ */
+const LIST_LIMIT = 100;
+
+export interface ListTripsOptions {
+  /** Cancels the request (the caller unmounted or asked again). */
+  signal?: AbortSignal;
+}
+
+/**
+ * The caller's trips as dashboard cards, in the order the API returns them.
+ * Needs a session: without a token `http.ts` throws `UnauthorizedError`
+ * before any network call; a rejected token becomes the same error after it.
+ */
+export async function listTrips({ signal }: ListTripsOptions = {}): Promise<TripSummary[]> {
+  const dtos = await request<TripResponse[]>("core", `/trips/?limit=${LIST_LIMIT}`, {
+    auth: true,
+    signal,
+  });
+  return dtos.map(toTripSummary);
+}
+
+// ── Fixtures (backend shape, trip viewer only) ───────────────────────────────
 
 const tripModules: Record<string, () => Promise<{ default: TripResponse }>> = {
   trip_euro_2026: () => import("@/mocks/trip-grand-european-tour"),
@@ -51,12 +82,6 @@ export async function getTripById(id: string): Promise<Trip | null> {
   if (!loader) return null;
   const { default: dto } = await loader();
   return toTrip(dto);
-}
-
-/** Dashboard cards, derived from the same source as the full trips. */
-export async function getTripSummaries(): Promise<TripSummary[]> {
-  const dtos = await Promise.all(Object.values(tripModules).map((load) => load()));
-  return dtos.map(({ default: dto }) => toTripSummary(dto));
 }
 
 // ── Mapping ─────────────────────────────────────────────────────────────────

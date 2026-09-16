@@ -1,12 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import japan from "@/mocks/trip-japan";
 
+import { ApiError, UnauthorizedError } from "./http";
+import { clearSession, writeSession } from "./session";
 import {
   getAllTripIds,
   getTripById,
-  getTripSummaries,
   itineraryDayKind,
+  listTrips,
   toTrip,
   toTripSummary,
   type TripResponse,
@@ -126,10 +128,77 @@ describe("fixtures-backed service", () => {
     expect(timed.length).toBeGreaterThan(0);
     expect(timed.every((tr) => /^\d{4}-\d{2}-\d{2}T/.test(tr.departureTime))).toBe(true);
   });
+});
 
-  it("derives the summaries from the same fixtures", async () => {
-    const summaries = await getTripSummaries();
-    expect(summaries.map((s) => s.id).sort()).toEqual(getAllTripIds().sort());
-    expect(summaries.every((s) => s.imageUrl.startsWith("https://"))).toBe(true);
+describe("listTrips", () => {
+  const fetchMock = vi.fn();
+
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal("fetch", fetchMock);
+    writeSession("tok", { id: "1", email: "a@b.c", name: "A" });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    clearSession();
+  });
+
+  it("asks core_api with the bearer token and maps the DTOs to summaries", async () => {
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify([japan, { ...minimal, id: "t2", title: "Second" }]), {
+        status: 200,
+      })
+    );
+    const controller = new AbortController();
+
+    const summaries = await listTrips({ signal: controller.signal });
+
+    expect(summaries).toEqual([
+      toTripSummary(japan),
+      {
+        id: "t2",
+        title: "Second",
+        destinations: [],
+        startDate: "",
+        endDate: "",
+        status: "planning",
+        imageUrl: "",
+      },
+    ]);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toMatch(/\/api\/v1\/trips\/\?limit=100$/);
+    expect((init.headers as Record<string, string>).Authorization).toBe("Bearer tok");
+    expect(init.signal).toBe(controller.signal);
+  });
+
+  it("turns a non-2xx answer into an ApiError carrying the backend's error_code", async () => {
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({ detail: { message: "Database down", error_code: "DB_UNAVAILABLE" } }),
+        { status: 503 }
+      )
+    );
+
+    const err = await listTrips().catch((e: unknown) => e);
+
+    expect(err).toBeInstanceOf(ApiError);
+    expect(err).not.toBeInstanceOf(UnauthorizedError);
+    expect(err).toMatchObject({ status: 503, code: "DB_UNAVAILABLE", message: "Database down" });
+  });
+
+  it("throws UnauthorizedError on 401", async () => {
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ detail: "expired" }), { status: 401 })
+    );
+
+    await expect(listTrips()).rejects.toBeInstanceOf(UnauthorizedError);
+  });
+
+  it("throws UnauthorizedError without a token and never touches the network", async () => {
+    clearSession();
+
+    await expect(listTrips()).rejects.toBeInstanceOf(UnauthorizedError);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

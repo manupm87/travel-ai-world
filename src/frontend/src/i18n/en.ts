@@ -255,6 +255,10 @@ const en: Translations = {
     },
     emptyTitle: "Your atlas is waiting",
     emptyDescription: "You haven't planned any journeys yet. Start your next adventure with our AI planner.",
+    loading: "Loading your trips…",
+    errorTitle: "We couldn't load your trips",
+    errorDescription: "Something went wrong while talking to the server. Check your connection and try again.",
+    retry: "Try again",
   },
   auth: {
     login: "Log In",

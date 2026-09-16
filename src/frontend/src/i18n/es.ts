@@ -255,6 +255,10 @@ const es: Translations = {
     },
     emptyTitle: "Tu atlas está esperando",
     emptyDescription: "Aún no has planificado ningún viaje. Comienza tu próxima aventura con nuestro planificador IA.",
+    loading: "Cargando tus viajes…",
+    errorTitle: "No hemos podido cargar tus viajes",
+    errorDescription: "Algo ha fallado al hablar con el servidor. Comprueba tu conexión e inténtalo de nuevo.",
+    retry: "Reintentar",
   },
   auth: {
     login: "Iniciar Sesión",

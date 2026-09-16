@@ -2,10 +2,15 @@
 
 import { useLanguage } from "@/context/LanguageContext";
 
+interface LoadingSpinnerProps {
+  /** What is loading, already translated; defaults to the generic copy. */
+  label?: string;
+}
+
 /**
  * A reusable loading spinner component.
  */
-export default function LoadingSpinner() {
+export default function LoadingSpinner({ label }: LoadingSpinnerProps) {
   const { t } = useLanguage();
 
   return (
@@ -13,7 +18,7 @@ export default function LoadingSpinner() {
       <div className="flex items-center gap-3">
         <div className="border-accent h-6 w-6 animate-spin rounded-full border-t-2 border-r-2" />
         <span className="text-text-secondary font-medium tracking-wide text-sm">
-          {t.common.loading}
+          {label ?? t.common.loading}
         </span>
       </div>
     </div>

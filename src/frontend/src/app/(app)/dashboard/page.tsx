@@ -1,15 +1,11 @@
-import { getTripSummaries } from "@/services/trips";
 import DashboardClientPage from "./DashboardClientPage";
 
-
 /**
- * Dashboard (`/dashboard`) Server Route.
- * 
- * This Server Component is responsible for fetching the user's trip summaries
- * from the API service layer during the server-side rendering phase.
- * It then passes this structured data to the `DashboardClientPage` for rendering.
+ * Dashboard (`/dashboard`) route: a static shell.
+ *
+ * Trips are per user, so nothing about them is known at build time; the
+ * client page fetches them from core_api with the session token (ADR 0006).
  */
-export default async function DashboardPage() {
-  const trips = await getTripSummaries();
-  return <DashboardClientPage initialTrips={trips} />;
+export default function DashboardPage() {
+  return <DashboardClientPage />;
 }
