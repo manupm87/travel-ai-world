@@ -197,8 +197,10 @@ data "aws_iam_policy_document" "bench" {
   }
 
   statement {
-    sid       = "QueryS3Vectors"
-    actions   = ["s3vectors:QueryVectors", "s3vectors:GetIndex"]
+    sid = "QueryS3Vectors"
+    # GetVectors as well: a QueryVectors that asks for metadata needs it, and
+    # without it the call fails with AccessDenied naming GetVectors.
+    actions   = ["s3vectors:QueryVectors", "s3vectors:GetVectors", "s3vectors:GetIndex"]
     resources = [local.vector_index_arn]
   }
 
