@@ -6,9 +6,11 @@
 # S3 throughput. Reindexing means rebuilding the image, which is what a spike
 # wants anyway.
 #
-# Build from src/backend/tools (so the corpus and the artefact are in context):
-#   docker build -f vector_store_bench/qdrant_lambda/Dockerfile \
-#     --platform linux/amd64 -t qdrant-lambda vector_store_bench/../
+# Build from src/backend/tools (so the corpus and the artefact are in context).
+# --provenance=false --sbom=false: Lambda rejects the OCI index buildx would
+# otherwise produce to carry attestations.
+#   docker buildx build --platform linux/amd64 --provenance=false --sbom=false \
+#     -f vector_store_bench/qdrant_lambda/Dockerfile -t <repo>:budapest --push .
 ARG QDRANT_VERSION=v1.12.5
 ARG LWA_VERSION=0.9.1
 

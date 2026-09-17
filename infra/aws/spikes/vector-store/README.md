@@ -44,9 +44,12 @@ repo=$(terraform output -raw ecr_repository_url)
 cd ../../../src/backend/tools
 aws ecr get-login-password --region eu-west-1 \
   | docker login --username AWS --password-stdin "${repo%/*}"
-docker build --platform linux/amd64 \
-  -f vector_store_bench/qdrant_lambda/Dockerfile -t "${repo}:budapest" .
-docker push "${repo}:budapest"
+# --provenance/--sbom off: buildx would otherwise wrap the image in an OCI index
+# to attach attestations, and Lambda only accepts a plain Docker V2 schema 2
+# manifest ("The image manifest, config or layer media type ... is not
+# supported"). The same flags as .github/workflows/_build-image.yml.
+docker buildx build --platform linux/amd64 --provenance=false --sbom=false \
+  -f vector_store_bench/qdrant_lambda/Dockerfile -t "${repo}:budapest" --push .
 
 # 3. Package the bench function (a current boto3 travels in the zip: the runtime's
 #    own boto3 has no s3vectors client).
