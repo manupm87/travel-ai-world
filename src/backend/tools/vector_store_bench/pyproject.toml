@@ -1,0 +1,25 @@
+# Vector store spike (TRA-151): measures Qdrant-as-a-Lambda against Amazon S3
+# Vectors on the committed Budapest corpus. Throwaway by design, but reproducible:
+# the numbers in docs/architecture/vector-store-spike.md come from these commands.
+# A workspace member, never imported by a service.
+#
+#   uv run python -m vector_store_bench --help
+[project]
+name = "vector-store-bench"
+version = "0.1.1"
+description = "Travel AI World spike: vector store candidates measured on the Budapest corpus"
+requires-python = ">=3.12"
+dependencies = [
+    "boto3>=1.40",
+    "numpy>=2.1",
+    "pydantic>=2.11",
+    "qdrant-client>=1.12",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+addopts = "--import-mode=importlib"
+pythonpath = ["."]
+testpaths = ["tests"]
