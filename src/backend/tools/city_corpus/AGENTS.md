@@ -13,7 +13,9 @@ city_corpus/
 ├── normalize.py         wikitext → text, chunking, slugs, wiki URLs, id de-duplication
 ├── http.py              ApiClient: User-Agent, maxlag, retries, on-disk cache
 ├── config/cities.py     CityConfig per city
-└── sources/             wikivoyage.py, wikipedia.py (fetch + parse, one module per source)
+└── sources/             one module per source (fetch + parse): wikivoyage.py, wikipedia.py,
+                         osm.py (Overpass, merge/new), districts.py (boundaries, shapely),
+                         wikidata.py (Wikidata + Commons licences), climate.py (Open-Meteo)
 data/<city>/             committed output (source of truth for the vector store)
 tests/                   fixtures only; never hit the network
 ```
@@ -24,10 +26,13 @@ tests/                   fixtures only; never hit the network
   inputs, no wall-clock values except the cached fetch time, ids derived from content and page
   order. A change that alters ids re-keys the vector store; call it out in the PR.
 - **`doc_id` is a contract** with the indexer and the planner's cards; keep its formats (README).
-- **Licence-clean sources only** (Wikivoyage, Wikipedia, and the open sources of TRA-139). Never add
-  Google Places content, TripAdvisor or Booking data. Every document carries `source_url` and `license`.
-- **Be polite to Wikimedia**: all requests go through `ApiClient` (serial, User-Agent, `maxlag`,
-  backoff, cache). Do not parallelize beyond 2 concurrent requests.
+- **Licence-clean sources only**: Wikivoyage, Wikipedia, OpenStreetMap, Wikidata/Commons, Open-Meteo.
+  Never add Google Places content, TripAdvisor or Booking data. Every document carries `source_url` and a
+  `license` matching its source; images carry `image_license`/`image_author`, and non-free files are skipped.
+- **Be polite to Wikimedia and Overpass**: all requests go through `ApiClient` (serial, User-Agent,
+  `maxlag`, per-host pauses, backoff, cache). Do not parallelize beyond 2 concurrent requests.
+- **Enrichment never deletes or overwrites**: it fills empty fields only. Documents about the same place
+  share `entity_id` instead of being merged.
 - **Regenerate and commit `data/`** when parsing changes, and paste the manifest counts in the PR.
 - Full ruff rule set and pyright apply here (unlike `tools/scraper`); `logging`, never `print`.
 - Never import this package from a service; the indexer reads the JSONL file.

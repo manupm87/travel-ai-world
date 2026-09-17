@@ -1,7 +1,8 @@
 """The corpus document: one line of `documents.jsonl`, one point in the vector store.
 
 The field set is the payload schema of ADR 0012; the listing extras (`alt`, `address`,
-...) are optional metadata the cards can show. `text` is what gets embedded.
+...) and the enrichment fields (`image_license`, `opening_hours`, ...) are optional
+metadata the cards can show. `text` is what gets embedded.
 """
 
 from enum import StrEnum
@@ -25,6 +26,8 @@ class Category(StrEnum):
 class Source(StrEnum):
     WIKIVOYAGE = "wikivoyage"
     WIKIPEDIA = "wikipedia"
+    OPENSTREETMAP = "openstreetmap"
+    OPEN_METEO = "open-meteo"
 
 
 class Kind(StrEnum):
@@ -33,6 +36,8 @@ class Kind(StrEnum):
 
 
 CC_BY_SA = "CC BY-SA 4.0"
+ODBL = "ODbL 1.0"
+CC_BY = "CC BY 4.0"
 
 
 class CorpusDocument(BaseModel):
@@ -66,3 +71,14 @@ class CorpusDocument(BaseModel):
     checkin: str | None = None
     checkout: str | None = None
     image: str | None = None
+    # Enrichment (Wikidata, Commons, OpenStreetMap).
+    entity_id: str | None = None
+    name_es: str | None = None
+    heritage: str | None = None
+    image_license: str | None = None
+    image_author: str | None = None
+    osm_id: str | None = None
+    opening_hours: str | None = None
+    stars: str | None = None
+    cuisine: str | None = None
+    wheelchair: str | None = None

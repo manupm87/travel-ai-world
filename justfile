@@ -52,7 +52,8 @@ dev-frontend:
 scrape:
     cd {{scraper}} && uv run python main.py
 
-# Build a city's knowledge-base corpus (Wikivoyage + Wikipedia → data/<city>/documents.jsonl).
+# Build a city's knowledge-base corpus (Wikivoyage, Wikipedia, OpenStreetMap, Wikidata, Open-Meteo
+# → data/<city>/documents.jsonl).
 # Downloads are cached in {{corpus}}/.cache; delete it to fetch fresh revisions.
 corpus city="budapest":
     cd {{corpus}} && uv run python -m city_corpus build {{city}}

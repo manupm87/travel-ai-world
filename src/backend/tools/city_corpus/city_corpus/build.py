@@ -1,23 +1,47 @@
-"""Build a city's corpus: fetch, parse, validate, write JSONL + manifest."""
+"""Build a city's corpus: fetch, parse, enrich, validate, write JSONL + manifest."""
 
 import json
 import logging
 from collections import Counter
 from dataclasses import dataclass, field
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
 from city_corpus.config.cities import CityConfig
 from city_corpus.http import ApiClient
-from city_corpus.models import Category, CorpusDocument, Kind, Source
-from city_corpus.sources import wikipedia, wikivoyage
+from city_corpus.models import (
+    CC_BY,
+    CC_BY_SA,
+    ODBL,
+    Category,
+    CorpusDocument,
+    Kind,
+    Source,
+)
+from city_corpus.sources import climate, districts, osm, wikidata, wikipedia, wikivoyage
 
 logger = logging.getLogger(__name__)
 
+
+class Stage(StrEnum):
+    WIKIVOYAGE = "wikivoyage"
+    WIKIPEDIA = "wikipedia"
+    OPENSTREETMAP = "openstreetmap"  # also district boundaries
+    WIKIDATA = "wikidata"  # and Commons image licences
+    CLIMATE = "climate"
+
+
 MIN_TEXT_CHARS = 40
-ALL_SOURCES = (Source.WIKIVOYAGE, Source.WIKIPEDIA)
+ALL_STAGES = tuple(Stage)
+LICENCES = {
+    Source.WIKIVOYAGE: CC_BY_SA,
+    Source.WIKIPEDIA: CC_BY_SA,
+    Source.OPENSTREETMAP: ODBL,
+    Source.OPEN_METEO: CC_BY,
+}
 # Always present in each JSONL line (null when unknown): the ADR 0012 payload schema.
-# Listing extras are written only when they have a value.
+# Listing extras and enrichment fields are written only when they have a value.
 PAYLOAD_FIELDS = {
     "doc_id",
     "city",
@@ -57,45 +81,143 @@ class BuildResult:
     fetched_at: list[str] = field(default_factory=list)
     coordinates_outside_bbox: int = 0
     listings_skipped: int = 0
+    # Enrichment counters, reported under `enrichment` in the manifest.
+    enrichment: dict[str, Any] = field(default_factory=dict)
 
 
 def collect(
-    city: CityConfig, client: ApiClient, sources: tuple[Source, ...] = ALL_SOURCES
+    city: CityConfig, client: ApiClient, stages: tuple[Stage, ...] = ALL_STAGES
 ) -> BuildResult:
     result = BuildResult(documents=[])
-    if Source.WIKIVOYAGE in sources:
-        stats = wikivoyage.ParseStats()
-        for site in city.wikivoyage:
-            for title in wikivoyage.list_titles(client, site):
-                page, fetched_at = wikivoyage.fetch_page(client, site.lang, title)
-                logger.info(
-                    "wikivoyage:%s:%s rev %d", page.lang, page.title, page.revision_id
-                )
-                result.revisions[f"wikivoyage:{page.lang}:{page.title}"] = (
-                    page.revision_id
-                )
-                result.fetched_at.append(fetched_at)
-                result.documents += wikivoyage.parse_page(page, city, stats)
-        result.coordinates_outside_bbox += stats.coordinates_outside_bbox
-        result.listings_skipped += stats.listings_skipped
-
-    if Source.WIKIPEDIA in sources:
-        lang = city.wikipedia_lang
-        page_ids: set[int] = set()
-        for category in city.wikipedia_categories:
-            members = wikipedia.category_members(client, lang, category)
-            if not members:
-                logger.warning("Category:%s has no articles", category)
-            page_ids.update(members)
-        for page_id in sorted(page_ids):
-            article, fetched_at = wikipedia.fetch_article(client, lang, page_id)
-            logger.info(
-                "wikipedia:%s:%s rev %d", lang, article.title, article.revision_id
-            )
-            result.revisions[f"wikipedia:{lang}:{article.title}"] = article.revision_id
-            result.fetched_at.append(fetched_at)
-            result.documents += wikipedia.parse_article(article, city)
+    if Stage.WIKIVOYAGE in stages:
+        _collect_wikivoyage(city, client, result)
+    if Stage.WIKIPEDIA in stages:
+        _collect_wikipedia(city, client, result)
+    locator = None
+    if Stage.OPENSTREETMAP in stages:
+        locator = _collect_osm(city, client, result)
+    if Stage.WIKIDATA in stages:
+        _enrich_wikidata(city, client, result)
+    if locator:
+        _assign_districts(result, locator)
+    if Stage.CLIMATE in stages:
+        fetched = climate.fetch(client, city)
+        result.fetched_at.append(fetched.fetched_at)
+        result.documents += climate.documents(climate.aggregate(fetched.data), city)
     return result
+
+
+def _collect_wikivoyage(
+    city: CityConfig, client: ApiClient, result: BuildResult
+) -> None:
+    stats = wikivoyage.ParseStats()
+    for site in city.wikivoyage:
+        for title in wikivoyage.list_titles(client, site):
+            page, fetched_at = wikivoyage.fetch_page(client, site.lang, title)
+            logger.info(
+                "wikivoyage:%s:%s rev %d", page.lang, page.title, page.revision_id
+            )
+            result.revisions[f"wikivoyage:{page.lang}:{page.title}"] = page.revision_id
+            result.fetched_at.append(fetched_at)
+            result.documents += wikivoyage.parse_page(page, city, stats)
+    result.coordinates_outside_bbox += stats.coordinates_outside_bbox
+    result.listings_skipped += stats.listings_skipped
+
+
+def _collect_wikipedia(
+    city: CityConfig, client: ApiClient, result: BuildResult
+) -> None:
+    lang = city.wikipedia_lang
+    page_ids: set[int] = set()
+    for category in city.wikipedia_categories:
+        members = wikipedia.category_members(client, lang, category)
+        if not members:
+            logger.warning("Category:%s has no articles", category)
+        page_ids.update(members)
+    for page_id in sorted(page_ids):
+        article, fetched_at = wikipedia.fetch_article(client, lang, page_id)
+        logger.info("wikipedia:%s:%s rev %d", lang, article.title, article.revision_id)
+        result.revisions[f"wikipedia:{lang}:{article.title}"] = article.revision_id
+        result.fetched_at.append(fetched_at)
+        result.documents += wikipedia.parse_article(article, city)
+
+
+def _collect_osm(
+    city: CityConfig, client: ApiClient, result: BuildResult
+) -> districts.DistrictLocator:
+    boundaries_response = districts.fetch_boundaries(client, city)
+    result.fetched_at.append(boundaries_response.fetched_at)
+    boundaries = districts.parse_boundaries(boundaries_response.data)
+    anchors = [
+        (d.district, d.lat, d.lon)
+        for d in result.documents
+        if d.source == Source.WIKIVOYAGE
+        and d.kind == Kind.LISTING
+        and d.district
+        and d.lat is not None
+        and d.lon is not None
+    ]
+    locator = districts.DistrictLocator(boundaries, city.district_guides, anchors)
+    missing = sorted(set(city.district_guides) - {b.ref for b in boundaries})
+    if missing:
+        logger.warning("no OSM boundary for districts %s", ", ".join(missing))
+
+    links = osm.fetch_wikidata_links(client, city)
+    result.fetched_at.append(links.fetched_at)
+    linked = osm.link_wikidata(result.documents, links.data)
+
+    stats = osm.OsmStats()
+    responses = osm.fetch(client, city)
+    result.fetched_at += [fetched.fetched_at for _, fetched in responses]
+    found = osm.places(((q, f.data) for q, f in responses), city, stats)
+    result.documents += osm.merge(result.documents, found, city, locator, stats)
+    result.enrichment["openstreetmap"] = {
+        "as_of": stats.timestamp,
+        "district_boundaries": len(boundaries),
+        "documents_linked_to_wikidata": linked,
+        "elements": stats.elements,
+        "candidates": stats.candidates,
+        "merged_into_existing": stats.merged,
+        "new_documents": stats.new,
+        "outside_bbox": stats.outside_bbox,
+        "skipped_too_short": stats.too_short,
+    }
+    return locator
+
+
+def _enrich_wikidata(city: CityConfig, client: ApiClient, result: BuildResult) -> None:
+    stats = wikidata.WikidataStats()
+    qids = {d.wikidata for d in result.documents if d.wikidata}
+    entities = wikidata.fetch_entities(client, qids)
+    heritage_ids = {h for e in entities.values() for h in e.heritage_ids}
+    heritage_labels = wikidata.fetch_labels(client, heritage_ids)
+    files = {
+        f for d in result.documents for f in wikidata.image_candidates(d, entities)
+    }
+    images = wikidata.fetch_image_info(client, files)
+    result.documents = [
+        wikidata.enrich(d, city, entities, heritage_labels, images, stats)
+        for d in result.documents
+    ]
+    free = sum(1 for info in images.values() if info and wikidata.is_free(info.licence))
+    result.enrichment["wikidata"] = {
+        "ids": len(qids),
+        "entities": len({e.qid for e in entities.values()}),
+        "image_files_checked": len(files),
+        "image_files_free": free,
+        "document_images_skipped_non_free": stats.images_non_free,
+    }
+
+
+def _assign_districts(result: BuildResult, locator: districts.DistrictLocator) -> None:
+    assigned = 0
+    for index, doc in enumerate(result.documents):
+        if doc.district is None and doc.lat is not None and doc.lon is not None:
+            district = locator.locate(doc.lat, doc.lon)
+            if district:
+                result.documents[index] = doc.model_copy(update={"district": district})
+                assigned += 1
+    result.enrichment["districts_assigned_by_boundary"] = assigned
 
 
 def validate(documents: list[CorpusDocument], city: CityConfig) -> list[str]:
@@ -120,6 +242,8 @@ def validate(documents: list[CorpusDocument], city: CityConfig) -> list[str]:
             and not city.bbox.contains(doc.lat, doc.lon)
         ):
             problems.append(f"{where}: ({doc.lat}, {doc.lon}) outside the city bbox")
+        if doc.license != LICENCES[doc.source]:
+            problems.append(f"{where}: license {doc.license!r} for {doc.source.value}")
         if doc.price_tier is not None and doc.price_tier not in (1, 2, 3):
             problems.append(f"{where}: price_tier {doc.price_tier} not in 1-3")
     return problems
@@ -134,6 +258,8 @@ def to_json_line(doc: CorpusDocument) -> str:
 def manifest(city: CityConfig, result: BuildResult) -> dict[str, Any]:
     docs = result.documents
     listings = [d for d in docs if d.kind == Kind.LISTING]
+    see = [d for d in docs if d.category == Category.SEE]
+    see_with_image = sum(1 for d in see if d.image_url)
 
     def counts(values: list[str]) -> dict[str, int]:
         return dict(sorted(Counter(values).items()))
@@ -153,6 +279,25 @@ def manifest(city: CityConfig, result: BuildResult) -> dict[str, Any]:
         "by_category": counts([d.category.value for d in docs]),
         "by_district": counts([d.district or "(city-wide)" for d in docs]),
         "districts_missing": sorted(set(city.districts) - wikivoyage_districts),
+        "images": {
+            "with_image": sum(1 for d in docs if d.image_url),
+            "see_documents": len(see),
+            "see_with_image": see_with_image,
+            "see_image_coverage": round(see_with_image / len(see), 3) if see else None,
+        },
+        # City-wide prose and listings without coordinates cannot have a district.
+        "sleep_without_district": sorted(
+            d.doc_id for d in docs if d.category == Category.SLEEP and not d.district
+        ),
+        "sleep_listings_with_coordinates_without_district": sum(
+            1
+            for d in docs
+            if d.category == Category.SLEEP
+            and d.kind == Kind.LISTING
+            and d.lat is not None
+            and not d.district
+        ),
+        "enrichment": result.enrichment,
         "coordinates_dropped_outside_bbox": result.coordinates_outside_bbox,
         "listings_skipped": result.listings_skipped,
         "revisions": dict(sorted(result.revisions.items())),

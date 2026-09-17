@@ -34,6 +34,14 @@ class CityConfig:
     # OpenStreetMap area name (used by the enrichment step, TRA-139).
     osm_area: str
     districts: tuple[str, ...] = field(default_factory=tuple)
+    # OpenStreetMap administrative level of the city's districts.
+    district_admin_level: int = 9
+    # District `ref` → the Wikivoyage guide(s) covering it. A district split between
+    # several guides is resolved by the nearest Wikivoyage listing of those guides.
+    district_guides: dict[str, tuple[str, ...]] = field(default_factory=dict)
+    # Point for climate normals (city centre).
+    centre: tuple[float, float] = (0.0, 0.0)
+    timezone: str = "UTC"
 
 
 BUDAPEST = CityConfig(
@@ -54,6 +62,34 @@ BUDAPEST = CityConfig(
         "Bridges in Budapest",
     ),
     osm_area="Budapest",
+    centre=(47.4979, 19.0402),
+    timezone="Europe/Budapest",
+    # From the Districts section of en.wikivoyage.org/wiki/Budapest.
+    district_guides={
+        "1": ("Budavár", "Víziváros"),
+        "2": ("North Buda",),
+        "3": ("Óbuda", "Aquincum"),
+        "4": ("North Pest",),
+        "5": ("Belváros",),
+        "6": ("Terézváros",),
+        "7": ("Erzsébetváros",),
+        "8": ("Józsefváros",),
+        "9": ("Ferencváros",),
+        "10": ("Kőbánya",),
+        "11": ("South Buda",),
+        "12": ("Hegyvidék",),
+        "13": ("Angyalföld",),
+        "14": ("Városliget", "Zugló"),
+        "15": ("North Pest",),
+        "16": ("East Pest",),
+        "17": ("East Pest",),
+        "18": ("South Pest",),
+        "19": ("South Pest",),
+        "20": ("South Pest",),
+        "21": ("Csepel",),
+        "22": ("South Buda",),
+        "23": ("South Pest",),
+    },
     districts=(
         "Angyalföld",
         "Aquincum",

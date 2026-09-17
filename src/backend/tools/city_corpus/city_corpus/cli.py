@@ -5,10 +5,9 @@ import logging
 import sys
 from pathlib import Path
 
-from city_corpus.build import ALL_SOURCES, CorpusValidationError, collect, write
+from city_corpus.build import ALL_STAGES, CorpusValidationError, Stage, collect, write
 from city_corpus.config.cities import CITIES
 from city_corpus.http import ApiClient, CacheMiss
-from city_corpus.models import Source
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CACHE = PACKAGE_ROOT / ".cache"
@@ -17,9 +16,9 @@ DEFAULT_DATA = PACKAGE_ROOT / "data"
 logger = logging.getLogger("city_corpus")
 
 
-def _sources(value: str) -> tuple[Source, ...]:
+def _stages(value: str) -> tuple[Stage, ...]:
     try:
-        return tuple(Source(s.strip()) for s in value.split(",") if s.strip())
+        return tuple(Stage(s.strip()) for s in value.split(",") if s.strip())
     except ValueError as exc:
         raise argparse.ArgumentTypeError(str(exc)) from exc
 
@@ -31,9 +30,9 @@ def main(argv: list[str] | None = None) -> int:
     build.add_argument("city", choices=sorted(CITIES))
     build.add_argument(
         "--sources",
-        type=_sources,
-        default=ALL_SOURCES,
-        help="comma-separated: wikivoyage,wikipedia (default: all)",
+        type=_stages,
+        default=ALL_STAGES,
+        help=f"comma-separated: {','.join(ALL_STAGES)} (default: all)",
     )
     build.add_argument(
         "--offline", action="store_true", help="use only the cache; fail on a miss"

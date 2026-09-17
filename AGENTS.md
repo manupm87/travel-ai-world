@@ -19,7 +19,7 @@ AI-powered travel planner. Static Next.js frontend + two FastAPI services:
 | `src/backend/services/ai_api/` | LLM chat streaming (NVIDIA), future RAG | `core_api` (with the caller's token) |
 | `src/backend/libs/travel_common/` | Shared kernel: Principal, settings, errors, JWT, app factory | — |
 | `src/backend/tools/scraper/` | City data ingestion scripts (JSON output) | Google Places, Wikipedia |
-| `src/backend/tools/city_corpus/` | RAG corpus builder: licence-clean city documents as JSONL (committed) | Wikivoyage, Wikipedia |
+| `src/backend/tools/city_corpus/` | RAG corpus builder: licence-clean city documents as JSONL (committed) | Wikivoyage, Wikipedia, OpenStreetMap, Wikidata, Open-Meteo |
 | `infra/{gcp,aws}/` | Two-service deployment, one cloud per folder; **AWS is the deployed one** | — |
 | `docs/` | Architecture, ADRs, runbooks, OpenAPI documents, design file | — |
 
@@ -46,7 +46,7 @@ just docker-up      # backend only: proxy :8080 + core_api + ai_api + PostgreSQL
 just stack-up       # the stack as deployed: frontend export + the above on one origin :8080
 just build-stack    # only the export for :8080 (what stack-up runs before docker-up)
 just scrape         # run the city scraper (needs GOOGLE_API_KEY in its .env)
-just corpus         # build the RAG corpus (Wikivoyage + Wikipedia → tools/city_corpus/data/<city>/)
+just corpus         # build the RAG corpus (Wikivoyage, Wikipedia, OSM, Wikidata, Open-Meteo → tools/city_corpus/data/<city>/)
 just aws-login      # AWS via IAM Identity Center (devcontainer); never access keys
 ```
 
