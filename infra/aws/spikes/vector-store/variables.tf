@@ -51,14 +51,8 @@ variable "bench_zip" {
   default     = ""
 }
 
-variable "vector_bucket" {
-  description = "S3 Vectors bucket of the main stack (candidate B), queried read-only."
-  type        = string
-  default     = "travel-ai-vectors"
-}
-
 variable "vector_index" {
-  description = "S3 Vectors index of the main stack."
+  description = "Name of the spike's own S3 Vectors index (candidate B)."
   type        = string
   default     = "city-kb"
 }

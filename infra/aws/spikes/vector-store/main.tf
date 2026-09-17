@@ -37,9 +37,8 @@ data "aws_caller_identity" "current" {}
 locals {
   prefix = "${var.name_prefix}-spike-vs"
   # Relative to this module, not to the directory terraform is run from.
-  bench_zip = var.bench_zip != "" ? var.bench_zip : "${path.module}/../../../../src/backend/tools/vector_store_bench/bench_lambda/bench.zip"
-  # The index of the main stack (ADR 0014), queried read-only by the bench.
-  vector_index_arn = "arn:aws:s3vectors:${var.region}:${data.aws_caller_identity.current.account_id}:bucket/${var.vector_bucket}/index/${var.vector_index}"
+  bench_zip        = var.bench_zip != "" ? var.bench_zip : "${path.module}/../../../../src/backend/tools/vector_store_bench/bench_lambda/bench.zip"
+  vector_index_arn = aws_s3vectors_index.city_kb.index_arn
   embeddings_arn   = "arn:aws:bedrock:${var.region}::foundation-model/${var.embeddings_model}"
 }
 
@@ -68,6 +67,38 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "artifacts" {
     apply_server_side_encryption_by_default {
       sse_algorithm = "AES256"
     }
+  }
+}
+
+# ── Candidate B: its own S3 Vectors store ────────────────────────────────────
+#
+# A copy of the main stack's index (ADR 0014), not the index itself: the spike
+# fills and queries its own, so measuring never touches what TRA-152 deploys.
+
+resource "aws_s3vectors_vector_bucket" "spike" {
+  vector_bucket_name = "${local.prefix}-vectors"
+  force_destroy      = true
+}
+
+resource "aws_s3vectors_index" "city_kb" {
+  vector_bucket_name = aws_s3vectors_vector_bucket.spike.vector_bucket_name
+  index_name         = var.vector_index
+  data_type          = "float32"
+  dimension          = var.embeddings_dimensions
+  distance_metric    = "cosine"
+
+  metadata_configuration {
+    # The same split as ADR 0014, so the comparison measures the store and not a
+    # different payload. `tour_type` and `price_model` (TRA-154) stay filterable.
+    non_filterable_metadata_keys = [
+      "text",
+      "doc_id",
+      "name",
+      "url",
+      "source_url",
+      "heading_path",
+      "extra",
+    ]
   }
 }
 
@@ -171,6 +202,9 @@ data "aws_iam_policy_document" "bench" {
     resources = [local.vector_index_arn]
   }
 
+  # The spike fills its own index from a laptop, so the bench role never needs
+  # to write; PutVectors is done with the operator's SSO session.
+
   # Since October 2025 a function URL needs both actions; granting only
   # InvokeFunctionUrl answers 403 with "Forbidden. For troubleshooting Function
   # URL authorization issues ...". InvokedViaFunctionUrl keeps the second action
@@ -232,7 +266,7 @@ resource "aws_lambda_function" "bench" {
   environment {
     variables = {
       QDRANT_URL            = each.value.function_url
-      VECTOR_BUCKET         = var.vector_bucket
+      VECTOR_BUCKET         = aws_s3vectors_vector_bucket.spike.vector_bucket_name
       VECTOR_INDEX          = var.vector_index
       EMBEDDINGS_MODEL      = var.embeddings_model
       EMBEDDINGS_DIMENSIONS = tostring(var.embeddings_dimensions)

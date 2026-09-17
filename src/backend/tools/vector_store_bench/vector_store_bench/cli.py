@@ -118,6 +118,17 @@ def measure_latency(args: argparse.Namespace) -> int:
     return 0
 
 
+def index_s3vectors(args: argparse.Namespace) -> int:
+    from vector_store_bench.stores.s3vectors_store import S3VectorsStore
+
+    documents = {d.doc_id: d for d in corpus.load(args.corpus)}
+    embeddings = artifact.read(args.artifacts)
+    store = S3VectorsStore(args.bucket, args.index)
+    written = store.put(embeddings.doc_ids, embeddings.vectors, documents)
+    sys.stdout.write(f"{written} vectors → s3://{args.bucket}/{args.index}\n")
+    return 0
+
+
 def push_artifact(args: argparse.Namespace) -> int:
     keys = artifact.push(args.artifacts, args.bucket, args.prefix)
     sys.stdout.write(
@@ -184,6 +195,13 @@ def main(argv: list[str] | None = None) -> int:
         "--csv", type=Path, default=PACKAGE_ROOT / "results" / "latency.csv"
     )
     timing.set_defaults(handler=measure_latency)
+
+    filling = commands.add_parser("index-s3vectors", help="fill the spike's own index")
+    filling.add_argument("--bucket", required=True)
+    filling.add_argument("--index", default="city-kb")
+    filling.add_argument("--corpus", type=Path, default=DEFAULT_CORPUS)
+    filling.add_argument("--artifacts", type=Path, default=DEFAULT_ARTIFACTS)
+    filling.set_defaults(handler=index_s3vectors)
 
     for name, handler_fn, help_text in (
         ("push-artifact", push_artifact, "upload the embeddings artefact to S3"),

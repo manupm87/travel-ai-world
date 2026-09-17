@@ -3,6 +3,11 @@ output "artifacts_bucket" {
   value       = aws_s3_bucket.artifacts.bucket
 }
 
+output "vector_bucket" {
+  description = "The spike's own S3 Vectors bucket; fill it with `index-s3vectors`."
+  value       = aws_s3vectors_vector_bucket.spike.vector_bucket_name
+}
+
 output "ecr_repository_url" {
   description = "Push the Qdrant image here before the first apply."
   value       = aws_ecr_repository.qdrant.repository_url
