@@ -1,5 +1,6 @@
 """Build a city's corpus: fetch, parse, enrich, validate, write JSONL + manifest."""
 
+import datetime as dt
 import json
 import logging
 from collections import Counter
@@ -19,7 +20,15 @@ from city_corpus.models import (
     Kind,
     Source,
 )
-from city_corpus.sources import climate, districts, osm, wikidata, wikipedia, wikivoyage
+from city_corpus.sources import (
+    climate,
+    districts,
+    osm,
+    tours,
+    wikidata,
+    wikipedia,
+    wikivoyage,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +39,7 @@ class Stage(StrEnum):
     OPENSTREETMAP = "openstreetmap"  # also district boundaries
     WIKIDATA = "wikidata"  # and Commons image licences
     CLIMATE = "climate"
+    TOURS = "tours"  # curated/<city>/tours.toml
 
 
 MIN_TEXT_CHARS = 40
@@ -39,7 +49,9 @@ LICENCES = {
     Source.WIKIPEDIA: CC_BY_SA,
     Source.OPENSTREETMAP: ODBL,
     Source.OPEN_METEO: CC_BY,
+    Source.CURATED: CC_BY_SA,
 }
+CURATED_DIR = Path(__file__).resolve().parents[1] / "curated"
 # Always present in each JSONL line (null when unknown): the ADR 0012 payload schema.
 # Listing extras and enrichment fields are written only when they have a value.
 PAYLOAD_FIELDS = {
@@ -86,7 +98,10 @@ class BuildResult:
 
 
 def collect(
-    city: CityConfig, client: ApiClient, stages: tuple[Stage, ...] = ALL_STAGES
+    city: CityConfig,
+    client: ApiClient,
+    stages: tuple[Stage, ...] = ALL_STAGES,
+    curated_dir: Path = CURATED_DIR,
 ) -> BuildResult:
     result = BuildResult(documents=[])
     if Stage.WIKIVOYAGE in stages:
@@ -104,6 +119,14 @@ def collect(
         fetched = climate.fetch(client, city)
         result.fetched_at.append(fetched.fetched_at)
         result.documents += climate.documents(climate.aggregate(fetched.data), city)
+    if Stage.TOURS in stages:
+        curated = tours.load(curated_dir / city.slug / "tours.toml", city)
+        tours.warn_stale(curated.tours, dt.date.today())
+        result.enrichment["tours"] = {
+            "curated": len(curated.tours),
+            **tours.reclassify(result.documents, curated.reclassify),
+        }
+        result.documents += tours.documents(curated.tours, city, locator)
     return result
 
 
