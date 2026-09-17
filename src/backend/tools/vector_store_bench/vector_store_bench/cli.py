@@ -100,6 +100,9 @@ def measure_latency(args: argparse.Namespace) -> int:
             queries,
             repeat=args.repeat,
             limit=args.limit,
+            candidates=tuple(
+                c.strip() for c in args.candidates.split(",") if c.strip()
+            ),
         )
     latency.write_csv(args.csv, samples)
     rows = latency.summarise(samples)
