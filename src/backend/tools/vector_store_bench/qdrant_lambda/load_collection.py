@@ -96,20 +96,25 @@ def main() -> int:
     return 0 if count == len(doc_ids) else 1
 
 
-def _wait_for_one_segment(client: QdrantClient, timeout_s: int = 600) -> int:
-    """The optimizer merges in the background; the image must not be frozen
-    mid-merge or the cold start pays for the leftovers."""
+def _wait_for_one_segment(client: QdrantClient, timeout_s: int = 180) -> int:
+    """Wait for the optimizer to settle, not for a particular number.
+
+    The image must not be frozen mid-merge, or the cold start pays for the
+    leftovers. But a small collection may legitimately stop at more than one
+    segment, so the wait ends when the count stops moving and the collection is
+    green, and the caller reports whatever it got.
+    """
     deadline = time.monotonic() + timeout_s
-    segments = -1
+    stable = 0
+    previous = -1
     while time.monotonic() < deadline:
         info = client.get_collection(COLLECTION)
         segments = info.segments_count or 0
-        if info.status == models.CollectionStatus.GREEN and segments <= 1:
+        green = info.status == models.CollectionStatus.GREEN
+        stable = stable + 1 if green and segments == previous else 0
+        previous = segments
+        if green and (segments <= 1 or stable >= 3):
             return segments
         time.sleep(2)
-    print(f"warning: still {segments} segments after {timeout_s}s", file=sys.stderr)
-    return segments
-
-
-if __name__ == "__main__":
-    sys.exit(main())
+    print(f"warning: optimizer still moving after {timeout_s}s", file=sys.stderr)
+    return previous
