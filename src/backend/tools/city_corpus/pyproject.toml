@@ -1,0 +1,24 @@
+# City knowledge-base corpus (TRA-138): Wikivoyage and Wikipedia → documents.jsonl,
+# the source of truth that the indexer embeds. A workspace member so it shares the
+# lockfile, the virtualenv and the lint policy; scripts, not an installable package.
+# Run it from this directory:
+#
+#   uv run python -m city_corpus build budapest     (or `just corpus` from the repo root)
+[project]
+name = "city-corpus"
+version = "0.1.1"
+description = "Travel AI World city corpus: licence-clean Wikivoyage and Wikipedia documents as JSONL"
+requires-python = ">=3.12"
+dependencies = [
+    "httpx>=0.28.1",
+    "mwparserfromhell>=0.7",
+    "pydantic>=2.11",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+addopts = "--import-mode=importlib"
+pythonpath = ["."]
+testpaths = ["tests"]

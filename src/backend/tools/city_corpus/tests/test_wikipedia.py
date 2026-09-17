@@ -1,0 +1,61 @@
+from city_corpus.config.cities import BUDAPEST
+from city_corpus.models import Category
+from city_corpus.sources.wikipedia import WikipediaArticle, parse_article
+
+EXTRACT = """The Chain Bridge is a suspension bridge over the Danube in Budapest.
+It opened in 1849.
+
+
+== History ==
+Count István Széchenyi promoted the bridge after being delayed by ice for a week.
+
+
+=== Destruction ===
+Retreating German troops blew it up in 1945; it was rebuilt by 1949.
+
+
+== References ==
+Some book, ISBN 963007236 {{isbn}}: Check isbn value: length (help)
+"""
+
+
+def _article(
+    lat: float | None = 47.4989, lon: float | None = 19.0439
+) -> WikipediaArticle:
+    return WikipediaArticle(
+        lang="en",
+        page_id=123,
+        title="Széchenyi Chain Bridge",
+        revision_id=9,
+        extract=EXTRACT,
+        wikidata="Q12345",
+        lat=lat,
+        lon=lon,
+    )
+
+
+def test_sections_become_chunks() -> None:
+    docs = {d.doc_id: d for d in parse_article(_article(), BUDAPEST)}
+
+    assert sorted(docs) == ["wp:en:123#s0-c1", "wp:en:123#s1-c1", "wp:en:123#s2-c1"]
+    lead = docs["wp:en:123#s0-c1"]
+    assert lead.category == Category.SEE
+    assert lead.text == (
+        "Széchenyi Chain Bridge\n\n"
+        "The Chain Bridge is a suspension bridge over the Danube in Budapest.\n\n"
+        "It opened in 1849."
+    )
+    assert (lead.lat, lead.lon, lead.wikidata) == (47.4989, 19.0439, "Q12345")
+    assert (
+        lead.source_url == "https://en.wikipedia.org/wiki/Sz%C3%A9chenyi_Chain_Bridge"
+    )
+
+    destruction = docs["wp:en:123#s2-c1"]
+    assert destruction.category == Category.HISTORY
+    assert destruction.heading_path == "Széchenyi Chain Bridge › History › Destruction"
+    assert destruction.source_url.endswith("#Destruction")
+
+
+def test_coordinates_outside_the_city_are_dropped() -> None:
+    docs = parse_article(_article(lat=47.62, lon=19.5), BUDAPEST)
+    assert all(d.lat is None and d.lon is None for d in docs)

@@ -15,6 +15,7 @@ How they fit: [architecture overview](../../docs/architecture/overview.md).
 | `ai-api` | [`services/ai_api/`](services/ai_api/README.md) | Chat streaming over NVIDIA models; future RAG |
 | `travel-common` | [`libs/travel_common/`](libs/travel_common/README.md) | Identity, settings, errors, JWT, app factory |
 | `city-scraper` | [`tools/scraper/`](tools/scraper/README.md) | Data ingestion scripts (workspace member, never deployed) |
+| `city-corpus` | [`tools/city_corpus/`](tools/city_corpus/README.md) | Licence-clean city knowledge base (Wikivoyage, Wikipedia) as JSONL for RAG (never deployed) |
 
 ## Quick start
 

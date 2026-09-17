@@ -43,6 +43,8 @@ crash.log
 crash.*.log
 
 # Scraper datasets are versioned for reproducible retrieval ingestion.
+# city_corpus: data/ is committed (source of truth); raw API downloads are not.
+src/backend/tools/city_corpus/.cache/
 
 # Editors, OS, logs
 .vscode/

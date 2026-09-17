@@ -15,6 +15,7 @@ core := "src/backend/services/core_api"
 ai := "src/backend/services/ai_api"
 common := "src/backend/libs/travel_common"
 scraper := "src/backend/tools/scraper"
+corpus := "src/backend/tools/city_corpus"
 frontend := "src/frontend"
 
 # List available recipes
@@ -51,6 +52,11 @@ dev-frontend:
 scrape:
     cd {{scraper}} && uv run python main.py
 
+# Build a city's knowledge-base corpus (Wikivoyage + Wikipedia → data/<city>/documents.jsonl).
+# Downloads are cached in {{corpus}}/.cache; delete it to fetch fresh revisions.
+corpus city="budapest":
+    cd {{corpus}} && uv run python -m city_corpus build {{city}}
+
 # ── Quality ──────────────────────────────────────────────────────────────────
 
 # Lint backend (ruff, incl. scripts/) and frontend (eslint)
@@ -77,7 +83,7 @@ format:
 test: test-backend test-frontend
 
 # Every backend package (needs PostgreSQL for core_api)
-test-backend: test-common test-core test-ai
+test-backend: test-common test-core test-ai test-corpus
 
 # travel_common unit tests
 test-common:
@@ -90,6 +96,10 @@ test-core:
 # ai_api tests (no network, no key)
 test-ai:
     cd {{ai}} && uv run pytest -q
+
+# city_corpus tests (fixtures only, no network)
+test-corpus:
+    cd {{corpus}} && uv run pytest -q
 
 # Frontend unit tests (vitest)
 test-frontend:

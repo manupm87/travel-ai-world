@@ -21,6 +21,7 @@ jobs:
       common: ${{ steps.filter.outputs.common }}
       core: ${{ steps.filter.outputs.core }}
       ai: ${{ steps.filter.outputs.ai }}
+      corpus: ${{ steps.filter.outputs.corpus }}
       backend: ${{ steps.filter.outputs.backend }}
       frontend: ${{ steps.filter.outputs.frontend }}
       stack: ${{ steps.filter.outputs.stack }}
@@ -46,6 +47,11 @@ jobs:
             ai:
               - 'src/backend/services/ai_api/**'
               - 'src/backend/libs/**'
+              - 'src/backend/pyproject.toml'
+              - 'src/backend/uv.lock'
+              - '.github/**'
+            corpus:
+              - 'src/backend/tools/city_corpus/**'
               - 'src/backend/pyproject.toml'
               - 'src/backend/uv.lock'
               - '.github/**'
@@ -152,6 +158,20 @@ jobs:
       - uses: ./.github/actions/setup-uv
       - name: Import validation
         run: uv run python -c "from ai_api.main import app; print('ai_api imports OK')"
+      - run: uv run pytest -q
+
+  backend-corpus:
+    name: city_corpus tests
+    needs: changes
+    if: needs.changes.outputs.corpus == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: src/backend/tools/city_corpus
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-uv
       - run: uv run pytest -q
 
   docker-build:

@@ -39,6 +39,7 @@ COPY libs/travel_common/pyproject.toml libs/travel_common/
 COPY services/core_api/pyproject.toml services/core_api/
 COPY services/ai_api/pyproject.toml services/ai_api/
 COPY tools/scraper/pyproject.toml tools/scraper/
+COPY tools/city_corpus/pyproject.toml tools/city_corpus/
 RUN uv sync --frozen --no-dev --no-install-workspace \
     --package "$(echo "$SERVICE" | tr _ -)"
 

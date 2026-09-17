@@ -1,0 +1,50 @@
+{{Pagebanner|Test Banner.png|pgname=Belváros}}
+'''Belváros''' or Downtown is the V. District of [[Budapest]]. It holds the [[Hungarian Parliament Building|Parliament]] and the ''Basilica''.
+[[File:Hungary budapest district 5.jpg|thumb|right|District 5]]
+
+== Get in ==
+Take {{station|Deák Ferenc tér|M1}} or walk {{km|1.5}} from the river.
+* {{go
+| name=Vigadó tér pier | lat=47.49630 | long=19.04900
+| content=Boats to Szentendre leave from here.
+}}
+
+== See ==
+=== Along the Danube ===
+The promenade is best at dusk.<ref>A citation</ref> Entry is free.
+
+* {{see
+| name=Parliament Building | alt=Országház | url=https://www.parlament.hu/ | email=
+| address=Kossuth Lajos tér 1-3 | lat=47.50711 | long=19.04561 | directions={{station|Kossuth Lajos tér|M2}}
+| phone=+36 1 441-4904 | hours=Daily 08:00–18:00 | price={{HUF|12000}}
+| wikidata=Q11819 | image=Parliament.jpg
+| content=The '''largest''' building in [[Hungary]].
+}}
+* {{see
+| name=Parliament Building | lat=47.50711 | long=19.04561
+| content=A duplicate name that needs a distinct identifier.
+}}
+* {{see
+| name=Far Away Castle | lat=48.9 | long=20.1
+| content=Coordinates outside the city box are dropped.
+}}
+* {{see | name= | content=No name, skipped. }}
+
+== Buy ==
+* {{buy | name=Great Market Hall | lat=47.48700 | long=19.05850 | content=Paprika, salami and souvenirs on three floors.}}
+
+== Eat ==
+=== Budget ===
+* {{eat | name=Hummus Bar | lat=47.49500 | long=19.05300 | price=HUF 2500 | content=Cheap and filling.}}
+=== Splurge ===
+* {{eat | name=Onyx | lat=47.49820 | long=19.04970 | content=Michelin-starred Hungarian tasting menus.}}
+
+== Sleep ==
+=== Mid-range ===
+* {{listing | type=sleep | name=Hotel Central | lat=47.49700 | long=19.05100 | checkin=14:00 | checkout=11:00 | content=Rooms facing the square.}}
+
+== Stay safe ==
+Pickpockets work the tram lines; keep valuables in inside pockets and watch bags.
+
+== Go next ==
+Szentendre is a short boat ride north and makes a pleasant day trip away from the city.

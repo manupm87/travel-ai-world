@@ -18,7 +18,8 @@ AI-powered travel planner. Static Next.js frontend + two FastAPI services:
 | `src/backend/services/core_api/` | Google auth, users, trips CRUD | PostgreSQL |
 | `src/backend/services/ai_api/` | LLM chat streaming (NVIDIA), future RAG | `core_api` (with the caller's token) |
 | `src/backend/libs/travel_common/` | Shared kernel: Principal, settings, errors, JWT, app factory | — |
-| `src/backend/tools/scraper/` | City data ingestion scripts (JSON output, future RAG corpus) | Google Places, Wikipedia |
+| `src/backend/tools/scraper/` | City data ingestion scripts (JSON output) | Google Places, Wikipedia |
+| `src/backend/tools/city_corpus/` | RAG corpus builder: licence-clean city documents as JSONL (committed) | Wikivoyage, Wikipedia |
 | `infra/{gcp,aws}/` | Two-service deployment, one cloud per folder; **AWS is the deployed one** | — |
 | `docs/` | Architecture, ADRs, runbooks, OpenAPI documents, design file | — |
 
@@ -37,7 +38,7 @@ just dev-ai         # ai_api    :8001 (hot reload)
 just dev-frontend   # Next.js   :3000
 just lint           # ruff + pyright (backend, scripts) + eslint
 just test           # every backend package + frontend unit tests
-just test-core / test-ai / test-common / test-frontend / test-e2e
+just test-core / test-ai / test-common / test-corpus / test-frontend / test-e2e
 just contracts      # export OpenAPI docs + regenerate frontend types (run after changing any schema/route)
 just docs-check     # documentation hygiene
 just migrate / just migration "message"
@@ -45,6 +46,7 @@ just docker-up      # backend only: proxy :8080 + core_api + ai_api + PostgreSQL
 just stack-up       # the stack as deployed: frontend export + the above on one origin :8080
 just build-stack    # only the export for :8080 (what stack-up runs before docker-up)
 just scrape         # run the city scraper (needs GOOGLE_API_KEY in its .env)
+just corpus         # build the RAG corpus (Wikivoyage + Wikipedia → tools/city_corpus/data/<city>/)
 just aws-login      # AWS via IAM Identity Center (devcontainer); never access keys
 ```
 
@@ -73,7 +75,7 @@ Windows: `winget install Casey.Just` and run the recipes from Git Bash or WSL (t
 
 - Python 3.12, `uv` workspace at `src/backend/` (one lockfile), ruff (line length 88; rules E4/E7/E9/F +
   I, UP, B, SIM, N, RUF, ASYNC, S — see `src/backend/pyproject.toml`) and pyright (standard mode) over
-  `libs/` and `services/`. The scraper keeps the E/F-only policy.
+  `libs/`, `services/` and `tools/city_corpus`. The scraper keeps the E/F-only policy.
 - TypeScript strict, Tailwind v4 (CSS custom properties, no `tailwind.config.js`), Vitest, Playwright.
 - Commits: conventional prefixes (`feat`, `fix`, `refactor`, `build`, `ci`, `docs`, `infra`, `test`, `chore`).
 - Branches: `<type>/TRA-<n>-<short-title>` (e.g. `feat/TRA-123-trip-list`): the same prefixes as
