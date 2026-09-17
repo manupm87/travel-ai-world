@@ -43,7 +43,9 @@ def main() -> int:
         raise SystemExit(
             f"corpus has {len(documents)} documents, the artefact expects {expected}"
         )
-    print(f"loading {len(doc_ids)} vectors of {vectors.shape[1]} dimensions", flush=True)
+    print(
+        f"loading {len(doc_ids)} vectors of {vectors.shape[1]} dimensions", flush=True
+    )
     client = QdrantClient(url="http://127.0.0.1:6333", timeout=120)
     if client.collection_exists(COLLECTION):
         client.delete_collection(COLLECTION)
@@ -133,3 +135,7 @@ def _wait_for_one_segment(client: QdrantClient, timeout_s: int = 180) -> int:
         time.sleep(2)
     print(f"warning: optimizer still moving after {timeout_s}s", file=sys.stderr)
     return previous
+
+
+if __name__ == "__main__":
+    sys.exit(main())
