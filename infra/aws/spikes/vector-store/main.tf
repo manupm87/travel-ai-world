@@ -120,6 +120,19 @@ resource "aws_lambda_function_url" "qdrant" {
   invoke_mode        = "BUFFERED"
 }
 
+# A Function URL with AWS_IAM needs both sides: the caller's identity policy
+# (below) and this resource-based policy. Without it Lambda answers 403 and the
+# request never reaches the container, so Qdrant logs nothing.
+resource "aws_lambda_permission" "qdrant_url" {
+  for_each = aws_lambda_function.qdrant
+
+  statement_id           = "AllowBenchInvokeFunctionUrl"
+  action                 = "lambda:InvokeFunctionUrl"
+  function_name          = each.value.function_name
+  principal              = aws_iam_role.bench.arn
+  function_url_auth_type = "AWS_IAM"
+}
+
 # ── The bench function ───────────────────────────────────────────────────────
 
 data "aws_iam_policy_document" "lambda_assume" {
