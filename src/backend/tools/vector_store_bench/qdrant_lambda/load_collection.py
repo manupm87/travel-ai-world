@@ -6,6 +6,7 @@ S3 Vectors holds (ADR 0014), so both candidates answer with the same fields.
 
 import json
 import sys
+import time
 from pathlib import Path
 
 import numpy as np
@@ -39,6 +40,11 @@ def main() -> int:
                 size=vectors.shape[1], distance=models.Distance.COSINE
             )
         },
+        # One segment instead of the default handful: on Lambda the collection is
+        # opened from scratch at every cold start, and recovering thirteen small
+        # segments cost about 1.5 s of the 3 s init. Vectors stay in RAM
+        # (on_disk defaults to false): queries matter more than resident memory.
+        optimizers_config=models.OptimizersConfigDiff(default_segment_number=1),
     )
 
     filterable = (
@@ -82,8 +88,27 @@ def main() -> int:
         )
 
     count = client.count(COLLECTION, exact=True).count
-    print(f"loaded {count} points of {manifest['dimensions']} dimensions")
+    segments = _wait_for_one_segment(client)
+    print(
+        f"loaded {count} points of {manifest['dimensions']} dimensions "
+        f"in {segments} segment(s)"
+    )
     return 0 if count == len(doc_ids) else 1
+
+
+def _wait_for_one_segment(client: QdrantClient, timeout_s: int = 600) -> int:
+    """The optimizer merges in the background; the image must not be frozen
+    mid-merge or the cold start pays for the leftovers."""
+    deadline = time.monotonic() + timeout_s
+    segments = -1
+    while time.monotonic() < deadline:
+        info = client.get_collection(COLLECTION)
+        segments = info.segments_count or 0
+        if info.status == models.CollectionStatus.GREEN and segments <= 1:
+            return segments
+        time.sleep(2)
+    print(f"warning: still {segments} segments after {timeout_s}s", file=sys.stderr)
+    return segments
 
 
 if __name__ == "__main__":

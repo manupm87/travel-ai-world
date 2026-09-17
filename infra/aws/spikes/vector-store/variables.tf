@@ -28,7 +28,7 @@ variable "architecture" {
 }
 
 variable "qdrant_memory_sizes" {
-  description = "Memory sizes to measure Qdrant at (one function each)."
+  description = "Memory sizes to measure Qdrant at (one function each). 2048 is the one to deploy: at 1024 the container peaked at 1,012 MB of its 1,024."
   type        = list(number)
   default     = [1024, 2048]
 }

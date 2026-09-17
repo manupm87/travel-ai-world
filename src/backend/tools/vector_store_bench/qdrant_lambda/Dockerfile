@@ -47,10 +47,14 @@ RUN set -e; \
     kill -TERM "$qdrant_pid"; \
     wait "$qdrant_pid" || true
 
+# One archive instead of a directory tree: at cold start /tmp is filled by a
+# single sequential read rather than hundreds of small file copies.
+RUN tar -cf /storage.tar -C /qdrant storage && ls -lh /storage.tar
+
 # ── Runtime: the official image plus the adapter ─────────────────────────────
 FROM qdrant/qdrant:${QDRANT_VERSION}
 COPY --from=lwa /lambda-adapter /opt/extensions/lambda-adapter
-COPY --from=builder /qdrant/storage /opt/qdrant-storage
+COPY --from=builder /storage.tar /opt/qdrant-storage.tar
 COPY vector_store_bench/qdrant_lambda/entrypoint.sh /entrypoint.sh
 USER root
 RUN chmod +x /entrypoint.sh

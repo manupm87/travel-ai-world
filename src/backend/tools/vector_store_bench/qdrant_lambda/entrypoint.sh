@@ -1,12 +1,15 @@
 #!/bin/sh
-# Lambda gives every execution environment a writable /tmp and nothing else, so
-# the collection built into the image is copied there once per cold start. The
-# copy is part of the init duration the spike measures.
+# Lambda gives every execution environment a writable /tmp and nothing else, and
+# Qdrant demands a writable storage directory even when it only reads
+# (qdrant/qdrant#3321), so the collection travels as a tar in the image and is
+# unpacked once per cold start. That extraction is part of the init duration the
+# spike measures.
 set -e
 
 if [ ! -d /tmp/storage ]; then
-  echo "==> copying the collection into /tmp"
-  cp -r /opt/qdrant-storage /tmp/storage
+  echo "==> extracting the collection into /tmp"
+  tar -xf /opt/qdrant-storage.tar -C /tmp
+  echo "==> extracted"
 fi
 
 exec /qdrant/qdrant
