@@ -80,10 +80,15 @@ def measure(
     repeat: int,
     limit: int,
     candidates: Sequence[str] = CANDIDATES,
+    store_function: str | None = None,
 ) -> list[Sample]:
+    """`store_function` is the Qdrant function: a cold run has to start it cold
+    too, otherwise the number is only the bench's own cold start."""
     samples: list[Sample] = []
     for candidate in candidates:
         logger.info("%s: cold run of %s", function_name, candidate)
+        if candidate == "qdrant" and store_function:
+            force_cold(client, store_function)
         force_cold(client, function_name)
         cold = invoke(
             client,

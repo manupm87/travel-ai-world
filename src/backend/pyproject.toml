@@ -32,7 +32,16 @@ dev = [
 [tool.ruff]
 line-length = 88
 target-version = "py312"
-exclude = [".git", "__pycache__", "alembic", ".venv"]
+exclude = [
+    ".git",
+    "__pycache__",
+    "alembic",
+    ".venv",
+    # Build output of the spike's bench zip: a vendored boto3, not our code.
+    "tools/vector_store_bench/bench_lambda/build",
+]
+# Honour `exclude` even when a path is passed on the command line.
+force-exclude = true
 
 [tool.ruff.lint]
 # Explicit rule set so a linter upgrade never silently changes the policy.

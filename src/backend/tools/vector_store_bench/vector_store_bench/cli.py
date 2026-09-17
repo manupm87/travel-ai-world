@@ -100,6 +100,7 @@ def measure_latency(args: argparse.Namespace) -> int:
             queries,
             repeat=args.repeat,
             limit=args.limit,
+            store_function=args.qdrant_function.format(size=size.strip()),
             candidates=tuple(
                 c.strip() for c in args.candidates.split(",") if c.strip()
             ),
@@ -163,6 +164,11 @@ def main(argv: list[str] | None = None) -> int:
         "--function",
         default="travel-ai-spike-vs-bench-{size}",
         help="bench function name",
+    )
+    timing.add_argument(
+        "--qdrant-function",
+        default="travel-ai-spike-vs-qdrant-{size}",
+        help="the Qdrant function, so a cold run starts the store cold as well",
     )
     timing.add_argument("--region", default="eu-west-1")
     timing.add_argument(
