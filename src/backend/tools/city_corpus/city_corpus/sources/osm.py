@@ -435,5 +435,9 @@ def _new_document(
         address=address,
         phone=tags.get("phone") or tags.get("contact:phone") or None,
         image=_commons_file(tags),
-        **fields,
+        osm_id=fields["osm_id"],
+        opening_hours=fields["opening_hours"],
+        stars=fields["stars"],
+        cuisine=fields["cuisine"],
+        wheelchair=fields["wheelchair"],
     )

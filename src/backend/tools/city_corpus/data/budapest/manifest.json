@@ -1,41 +1,43 @@
 {
   "city": "budapest",
   "built_at": "2026-09-17T17:02:23Z",
-  "documents": 6070,
-  "listings": 5238,
-  "listings_with_coordinates": 5093,
+  "documents": 6082,
+  "listings": 5250,
+  "listings_with_coordinates": 5105,
   "by_source": {
+    "curated": 12,
     "open-meteo": 12,
     "openstreetmap": 3143,
     "wikipedia": 536,
     "wikivoyage": 2379
   },
   "by_lang": {
-    "en": 5958,
+    "en": 5970,
     "es": 112
   },
   "by_kind": {
-    "listing": 5238,
+    "listing": 5250,
     "prose": 832
   },
   "by_category": {
     "climate": 14,
-    "do": 549,
-    "drink": 815,
+    "do": 541,
+    "drink": 814,
     "eat": 2480,
     "history": 475,
     "neighbourhood": 27,
     "practical": 118,
-    "see": 992,
+    "see": 991,
     "sleep": 433,
-    "transport": 167
+    "tour": 24,
+    "transport": 165
   },
   "by_district": {
     "(city-wide)": 317,
     "Angyalföld": 319,
     "Aquincum": 225,
-    "Belváros": 753,
-    "Budavár": 250,
+    "Belváros": 760,
+    "Budavár": 252,
     "Csepel": 138,
     "East Pest": 242,
     "Erzsébetváros": 419,
@@ -47,18 +49,18 @@
     "North Pest": 168,
     "South Buda": 424,
     "South Pest": 175,
-    "Terézváros": 396,
+    "Terézváros": 398,
     "Városliget": 191,
-    "Víziváros": 306,
+    "Víziváros": 307,
     "Zugló": 157,
     "Óbuda": 286
   },
   "districts_missing": [],
   "images": {
     "with_image": 1337,
-    "see_documents": 992,
+    "see_documents": 991,
     "see_with_image": 637,
-    "see_image_coverage": 0.642
+    "see_image_coverage": 0.643
   },
   "sleep_without_district": [
     "wv:en:Budapest#section:sleep:c1",
@@ -89,7 +91,12 @@
       "image_files_free": 968,
       "document_images_skipped_non_free": 7
     },
-    "districts_assigned_by_boundary": 505
+    "districts_assigned_by_boundary": 505,
+    "tours": {
+      "curated": 12,
+      "reclassified_as_tour": 12,
+      "reclassify_entries_missing": 0
+    }
   },
   "coordinates_dropped_outside_bbox": 1,
   "listings_skipped": 47,

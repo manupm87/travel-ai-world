@@ -1,0 +1,349 @@
+# Budapest tours, maintained by hand (TRA-154). See ../../README.md, "Tours file".
+#
+# Every fact below was read on the operator's own website on the `checked` date;
+# summaries are our own words. Only public, scheduled tours with a published meeting
+# point, schedule, duration and language are listed. Deliberately not here:
+#   * Strawberry Tours - the meeting point is only sent after booking.
+#   * Generation Tours - its own site publishes no schedule (it links to freetour.com).
+#   * freetourbudapest.eu - contradictory, partly templated pages.
+#   * Walkative! and SANDEMANs - resellers: their Budapest tours are run by
+#     Trip to Budapest and Go Zeppelin, which are listed below.
+# Meeting point coordinates come from OpenStreetMap (Nominatim) for the landmark the
+# operator names, not from the operator.
+
+[[tour]]
+id = "trip-to-budapest-pest"
+name = "Free Budapest Tour"
+operator = "Trip to Budapest"
+operator_url = "https://www.triptobudapest.hu/"
+url = "https://www.triptobudapest.hu/tour/free-budapest-tour/"
+tour_type = "walking"
+price_model = "tip-based"
+summary = """
+First-day introduction to the Pest side, about 3.5 km on foot. It runs from Erzsébet \
+tér past St Stephen's Basilica, Vörösmarty tér and Váci Street to the Danube \
+promenade, the Academy of Sciences and the Shoes on the Danube memorial, ending at \
+the Parliament."""
+meeting_point = "Erzsébet tér, in the park by the Budapest Eye, next to the Danubius fountain (look for the blue FREE TOUR sign)"
+address = "Erzsébet tér, 1051 Budapest"
+lat = 47.498212
+lon = 19.051996
+start_times = ["10:30", "16:30"]
+days = "daily"
+duration_minutes = 120
+languages = ["English"]
+booking_required = true
+checked = 2026-09-17
+notes = """
+The tour page's FAQ says booking is required; the homepage says it is recommended but \
+not mandatory. Runs from 5 participants; groups of 8 or more must contact the \
+operator 24 h ahead. Resold by Walkative! as "Budapest Pest & Danube Free Walking Tour"."""
+
+[[tour]]
+id = "trip-to-budapest-buda-castle"
+name = "Free Buda Castle Tour"
+operator = "Trip to Budapest"
+operator_url = "https://www.triptobudapest.hu/"
+url = "https://www.triptobudapest.hu/tours/free-buda-castle-tour/"
+tour_type = "walking"
+price_model = "tip-based"
+summary = """
+Climb from the Buda riverbank into the Castle District for its medieval and royal \
+history. Stops include St Anne's Church, Fisherman's Bastion, Holy Trinity Square and \
+Matthias Church, the Hospital in the Rock, the old Jewish quarter of the hill and the \
+Tóth Árpád promenade, ending at the Royal Palace."""
+meeting_point = "Batthyány tér, about 30 m from the metro exit in the middle of the square (look for the blue FREE TOUR flag)"
+address = "Batthyány tér, 1011 Budapest"
+lat = 47.506872
+lon = 19.037782
+start_times = ["10:30", "14:30"]
+days = "daily at 10:30; Thursday to Sunday also at 14:30"
+duration_minutes = 120
+languages = ["English"]
+booking_required = true
+checked = 2026-09-17
+notes = "Booking is not stated on this page; Walkative!, which resells it, calls booking obligatory."
+
+[[tour]]
+id = "trip-to-budapest-communism"
+name = "Free Communism Tour"
+operator = "Trip to Budapest"
+operator_url = "https://www.triptobudapest.hu/"
+url = "https://www.triptobudapest.hu/tours/communist-tour-budapest/"
+tour_type = "walking"
+price_model = "tip-based"
+summary = """
+A short walk, closer to a lecture, about daily life under the post-war regime and how \
+it is remembered. It covers Liberty Square and its competing monuments, a hidden \
+bunker exit, the last Soviet memorial in the centre and sites of the 1956 uprising, \
+ending near the Parliament."""
+meeting_point = "Erzsébet tér, in the park by the Budapest Eye, next to the Danubius fountain (look for the FREE TOUR sign)"
+address = "Erzsébet tér, 1051 Budapest"
+lat = 47.498212
+lon = 19.051996
+start_times = ["15:30"]
+days = "Tuesday and Saturday"
+duration_minutes = 120
+languages = ["English"]
+booking_required = true
+checked = 2026-09-17
+notes = """
+Operator says 1.5-2 hours (~2 km); the longer figure is recorded. The page gives the \
+season start as 31 March without a year, so the winter schedule is unclear."""
+
+[[tour]]
+id = "trip-to-budapest-jewish-district"
+name = "Free Jewish District Tour"
+operator = "Trip to Budapest"
+operator_url = "https://www.triptobudapest.hu/"
+url = "https://www.triptobudapest.hu/tour/free-jewish-district-tour/"
+tour_type = "walking"
+price_model = "tip-based"
+summary = """
+Walk through District VII combining Jewish history with the quarter's nightlife. It \
+passes the Raoul Wallenberg memorial, Madách Square, the Dohány, Rumbach and Kazinczy \
+street synagogues from outside, street art, Gozsdu Courtyard and the Szimpla Kert ruin bar."""
+meeting_point = "Erzsébet tér, in the park by the Budapest Eye, next to the fountain (look for the FREE TOUR sign and blue flags)"
+address = "Erzsébet tér, 1051 Budapest"
+lat = 47.498212
+lon = 19.051996
+start_times = ["10:30", "15:30"]
+days = "daily at 10:30; Thursday to Sunday also at 15:30"
+duration_minutes = 120
+languages = ["English"]
+booking_required = true
+checked = 2026-09-17
+notes = """
+Operator says 1.5-2 hours (~2.5 km); Walkative!, which resells it, says 2.5 hours. \
+Synagogues are seen from the outside."""
+
+[[tour]]
+id = "trip-to-budapest-art-nouveau"
+name = "Free Budapest Art Nouveau Walking Tour"
+operator = "Trip to Budapest"
+operator_url = "https://www.triptobudapest.hu/"
+url = "https://www.triptobudapest.hu/tour/free-budapest-art-nouveau-architecture-walking-tour/"
+tour_type = "walking"
+price_model = "tip-based"
+summary = """
+Architecture walk about Budapest around 1900 and the Hungarian Secession. It runs from \
+Kossuth tér through Liberty Square and Lipótváros to the Postal Savings Bank, then \
+along Andrássy Avenue past the Drechsler Palace to Liszt Ferenc Square and the Music Academy."""
+meeting_point = "Kossuth tér, in front of the steps of the Parliament Visitor Centre (look for the FREE TOUR sign)"
+address = "Kossuth Lajos tér, 1055 Budapest"
+lat = 47.505719
+lon = 19.044980
+start_times = ["15:30"]
+days = "Monday and Friday (not in January or February)"
+duration_minutes = 120
+languages = ["English"]
+booking_required = true
+checked = 2026-09-17
+
+[[tour]]
+id = "luna-pest-downtown"
+name = "Budapest Downtown Free Walking Tour"
+operator = "Luna Walking Tours"
+operator_url = "https://lunawalking.com/"
+url = "https://lunawalking.com/pest-downtown/"
+tour_type = "walking"
+price_model = "tip-based"
+summary = """
+Introduction to downtown Pest from St Stephen's Basilica to the Parliament, past \
+Erzsébet tér and the Budapest Eye, Vörösmarty Square, Váci Street and Fashion Street, \
+the riverbank, the Chain Bridge, Gresham Palace and the Shoes on the Danube memorial. \
+The guide waits until 11:05. Booking costs €3; the tour itself is pay what you feel."""
+meeting_point = "Behind St Stephen's Basilica, on its right-hand side (look for the purple umbrella)"
+address = "Szent István tér, corner of Bajcsy-Zsilinszky út, 1051 Budapest"
+lat = 47.500777
+lon = 19.053965
+start_times = ["11:00"]
+days = "daily"
+duration_minutes = 120
+languages = ["English"]
+booking_required = true
+checked = 2026-09-17
+notes = """
+The page states a minimum of 2 guests, its own FAQ a minimum of 5. Spanish, German and \
+Italian are private tours only. The €3 is a reservation fee, not the tour price."""
+
+[[tour]]
+id = "luna-buda-castle"
+name = "Buda Castle: From Fisherman's Bastion to the Royal Palace"
+operator = "Luna Walking Tours"
+operator_url = "https://lunawalking.com/"
+url = "https://lunawalking.com/buda-castle-tour/"
+tour_type = "walking"
+price_model = "tip-based"
+summary = """
+Loop of the Castle District taking in both its monuments and its quiet residential \
+streets: Holy Trinity Square and column, Fisherman's Bastion, Matthias Church, the \
+Ruszwurm café, the Carmelite monastery and Sándor Palace, the funicular and the \
+panorama over the Chain Bridge, ending at the Royal Palace. Booking costs €3."""
+meeting_point = "At the Holy Trinity Column by Matthias Church (look for the purple umbrella)"
+address = "Szentháromság tér, 1014 Budapest"
+lat = 47.501656
+lon = 19.034218
+start_times = ["10:00", "15:00"]
+days = "Monday, Friday and Saturday at 10:00 and 15:00; Tuesday to Thursday and Sunday at 15:00"
+duration_minutes = 120
+languages = ["English"]
+booking_required = true
+checked = 2026-09-17
+notes = """
+Three schedules on the operator's own site disagree; the days above follow the detail \
+table on the tour page. The meeting-points page says only "every day at 15:00"."""
+
+[[tour]]
+id = "go-zeppelin-best-of-budapest"
+name = "Best of Budapest Free Walking Tour"
+operator = "Go Zeppelin Tours Budapest"
+operator_url = "https://gozeppelintours.com/en/"
+url = "https://gozeppelintours.com/en/free-walking-tour-budapest-general/"
+tour_type = "walking"
+price_model = "tip-based"
+summary = """
+Overview walk through Pest linking the Habsburg, wartime and communist chapters of the \
+city: the Parliament, Liberty Square with the Soviet memorial and the occupation \
+monument, the Sisi statue, the Little Boulevard, St Stephen's Basilica and the Chain \
+Bridge, ending by the Great Synagogue."""
+meeting_point = "Behind St Stephen's Basilica, by the hop-on hop-off bus stop (look for the guide's umbrella)"
+address = "Szent István tér, 1051 Budapest"
+lat = 47.500777
+lon = 19.053965
+start_times = ["11:00"]
+days = "daily"
+duration_minutes = 150
+languages = ["English", "Spanish"]
+booking_required = true
+checked = 2026-09-17
+notes = """
+Start time from the operator's own booking widget, sampled on several dates; the page \
+text only says morning and afternoon. Runs with at least 10 people, maximum 40; groups \
+of 6 or more pay a minimum of €8 per person. SANDEMANs sells this tour as its own."""
+
+[[tour]]
+id = "go-zeppelin-buda-castle"
+name = "Buda & Castle District Free Walking Tour"
+operator = "Go Zeppelin Tours Budapest"
+operator_url = "https://gozeppelintours.com/en/"
+url = "https://gozeppelintours.com/en/free-walking-tour-buda/"
+tour_type = "walking"
+price_model = "tip-based"
+summary = """
+Walk across the Castle District through its medieval, Ottoman and royal layers: the \
+Royal Palace and Matthias Fountain, the Várkert Bazár gardens, Dísz tér, the Mary \
+Magdalene tower and Vienna Gate, Holy Trinity Square, Matthias Church and the \
+Fisherman's Bastion."""
+meeting_point = "Szentháromság tér, in front of Matthias Church on Castle Hill (look for the purple umbrella)"
+address = "Szentháromság tér, 1014 Budapest"
+lat = 47.501656
+lon = 19.034218
+start_times = ["15:00"]
+days = "daily"
+duration_minutes = 135
+languages = ["English", "Spanish"]
+booking_required = true
+checked = 2026-09-17
+notes = """
+Start time from the operator's booking widget. The page's narrative says the walk \
+begins at the foot of the hill and crosses the Chain Bridge, which contradicts the \
+stated meeting point on top of the hill. Minimum 10, maximum 40 people."""
+
+[[tour]]
+id = "go-zeppelin-jewish-quarter"
+name = "Jewish Quarter Free Tour: World War II and the Holocaust"
+operator = "Go Zeppelin Tours Budapest"
+operator_url = "https://gozeppelintours.com/en/"
+url = "https://gozeppelintours.com/en/free-walking-tour-jewish-quarter/"
+tour_type = "walking"
+price_model = "tip-based"
+summary = """
+Walk through the former ghetto about the Nazi occupation and the community today: the \
+Great Synagogue and the cemetery behind it, the Tree of Life memorial, murals, the \
+Righteous Among the Nations monument, Gozsdu Court, the Rumbach and Orthodox \
+synagogues, the remains of the ghetto wall and Szimpla Kert."""
+meeting_point = "Erzsébet tér, next to the Budapest Eye (look for the guide's blue free-tour flag)"
+address = "Erzsébet tér, 1051 Budapest"
+lat = 47.498212
+lon = 19.051996
+start_times = ["15:30"]
+days = "daily"
+duration_minutes = 135
+languages = ["English", "Spanish"]
+booking_required = true
+checked = 2026-09-17
+notes = """
+Start time from the operator's booking widget. SANDEMANs resells it and calls it a \
+2-hour tour. Minimum 10, maximum 40 people; groups of 6 or more pay at least €8 each."""
+
+[[tour]]
+id = "by-locals-pest-english"
+name = "Free Budapest Walking Tour By Locals"
+operator = "Budapest Free Walking Tours (Free Budapest Tour)"
+operator_url = "https://freebudapesttour.com/"
+url = "https://freebudapesttour.com/"
+tour_type = "walking"
+price_model = "tip-based"
+summary = """
+Long introduction from the Opera House to the Parliament, following Andrássy Avenue \
+and the M1 metro line to Erzsébet tér, then Vörösmarty Square and Váci Street, the \
+promenade with the Little Princess and tram 2, the Chain Bridge, St Stephen's \
+Basilica, Gresham Palace and Liberty Square."""
+meeting_point = "Outside the Hungarian State Opera House (the guide waits with a black umbrella with English flags)"
+address = "Andrássy út 22, 1061 Budapest"
+lat = 47.502870
+lon = 19.058158
+start_times = ["11:00"]
+days = "daily"
+duration_minutes = 150
+languages = ["English"]
+booking_required = true
+checked = 2026-09-17
+notes = """
+The site contradicts itself: 11:00 in the page data, 10:30 on its /pest/ page. Needs \
+at least 8 participants, otherwise guests join another company's tour. Suggested tip €15."""
+
+[[tour]]
+id = "by-locals-pest-spanish"
+name = "Free Tour de Budapest en Español"
+operator = "Budapest Free Walking Tours (Free Budapest Tour)"
+operator_url = "https://freebudapesttour.com/"
+url = "https://freebudapesttour.com/es/"
+tour_type = "walking"
+price_model = "tip-based"
+summary = """
+Spanish-language version of the same introduction, from the Opera House to the \
+Parliament by way of the Chain Bridge and St Stephen's Basilica. Places are limited \
+and only booked spots are held."""
+meeting_point = "Outside the Hungarian State Opera House"
+address = "Andrássy út 22, 1061 Budapest"
+lat = 47.502870
+lon = 19.058158
+start_times = ["11:00"]
+days = "daily"
+duration_minutes = 150
+languages = ["Spanish"]
+booking_required = true
+checked = 2026-09-17
+notes = "Times come from the page data only; the visible calendar needs JavaScript. Suggested tip €20."
+
+# Documents from the other sources that are tours, or that the automatic rule wrongly
+# takes for tours. Checked against the corpus on 2026-09-17.
+[reclassify]
+include = [
+    # Danube dinner cruises and a wine-tasting cruise, listed under Do and Drink.
+    { doc_id = "wv:en:Budapest#do:hungaria-koncert", tour_type = "boat" },
+    { doc_id = "wv:en:Budapest/Belváros#drink:wine-tasting-on-boat", tour_type = "boat" },
+    # Sightseeing boat operator, mapped in OSM as an attraction.
+    { doc_id = "osm:node/4561975612", tour_type = "boat" },
+    # Guided rides on Margaret Island, listed under Get around.
+    { doc_id = "wv:en:Budapest/Angyalföld#transport:horse-drawn-chariot", tour_type = "other" },
+    { doc_id = "wv:en:Budapest/Angyalföld#transport:small-train", tour_type = "other" },
+    # Bike rental that also runs guided city rides.
+    { doc_id = "wv:en:Budapest/Terézváros#do:yellow-zebra-bikes", tour_type = "bike" },
+]
+exclude = [
+    # A protected hiking area, filed by Wikivoyage under a "Walking tours" heading.
+    "wv:en:Budapest/Hegyvidék#do:buda-protected-landscape-area",
+]

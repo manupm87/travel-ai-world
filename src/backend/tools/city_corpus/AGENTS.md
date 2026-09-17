@@ -15,7 +15,9 @@ city_corpus/
 ├── config/cities.py     CityConfig per city
 └── sources/             one module per source (fetch + parse): wikivoyage.py, wikipedia.py,
                          osm.py (Overpass, merge/new), districts.py (boundaries, shapely),
-                         wikidata.py (Wikidata + Commons licences), climate.py (Open-Meteo)
+                         wikidata.py (Wikidata + Commons licences), climate.py (Open-Meteo),
+                         tours.py (curated tours + the `tour` reclassification rule)
+curated/<city>/          hand-maintained inputs (tours.toml); see README "Tours file"
 data/<city>/             committed output (source of truth for the vector store)
 tests/                   fixtures only; never hit the network
 ```
@@ -26,7 +28,10 @@ tests/                   fixtures only; never hit the network
   inputs, no wall-clock values except the cached fetch time, ids derived from content and page
   order. A change that alters ids re-keys the vector store; call it out in the PR.
 - **`doc_id` is a contract** with the indexer and the planner's cards; keep its formats (README).
-- **Licence-clean sources only**: Wikivoyage, Wikipedia, OpenStreetMap, Wikidata/Commons, Open-Meteo.
+- **Curated tours are facts plus our own words**: read each fact on the operator's own site (not
+  aggregators such as GuruWalk or Tripadvisor), never copy descriptions or photos, set `checked`.
+  Rentals and public transport are not tours.
+- **Licence-clean sources only**: Wikivoyage, Wikipedia, OpenStreetMap, Wikidata/Commons, Open-Meteo, curated files.
   Never add Google Places content, TripAdvisor or Booking data. Every document carries `source_url` and a
   `license` matching its source; images carry `image_license`/`image_author`, and non-free files are skipped.
 - **Be polite to Wikimedia and Overpass**: all requests go through `ApiClient` (serial, User-Agent,

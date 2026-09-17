@@ -21,6 +21,7 @@ class Category(StrEnum):
     TRANSPORT = "transport"
     CLIMATE = "climate"
     NEIGHBOURHOOD = "neighbourhood"
+    TOUR = "tour"
 
 
 class Source(StrEnum):
@@ -28,6 +29,7 @@ class Source(StrEnum):
     WIKIPEDIA = "wikipedia"
     OPENSTREETMAP = "openstreetmap"
     OPEN_METEO = "open-meteo"
+    CURATED = "curated"  # hand-maintained files in curated/, written in our own words
 
 
 class Kind(StrEnum):
@@ -82,3 +84,13 @@ class CorpusDocument(BaseModel):
     stars: str | None = None
     cuisine: str | None = None
     wheelchair: str | None = None
+    # Tours: `tour_type` for every tour document; the rest for curated ones.
+    tour_type: str | None = None
+    operator: str | None = None
+    start_times: list[str] | None = None
+    days: str | None = None
+    duration_minutes: int | None = None
+    languages: list[str] | None = None
+    price_model: str | None = None
+    booking_required: bool | None = None
+    checked: str | None = None

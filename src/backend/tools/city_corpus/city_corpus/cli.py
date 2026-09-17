@@ -8,6 +8,7 @@ from pathlib import Path
 from city_corpus.build import ALL_STAGES, CorpusValidationError, Stage, collect, write
 from city_corpus.config.cities import CITIES
 from city_corpus.http import ApiClient, CacheMiss
+from city_corpus.sources.tours import TourDataError
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CACHE = PACKAGE_ROOT / ".cache"
@@ -52,7 +53,7 @@ def main(argv: list[str] | None = None) -> int:
         with ApiClient(args.cache_dir, offline=args.offline) as client:
             result = collect(city, client, args.sources)
         info = write(out_dir, city, result)
-    except (CacheMiss, CorpusValidationError) as exc:
+    except (CacheMiss, CorpusValidationError, TourDataError) as exc:
         logger.error("%s", exc)
         return 1
 
