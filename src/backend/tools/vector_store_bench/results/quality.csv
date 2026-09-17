@@ -1,0 +1,6 @@
+strategy,queries,recall@5,recall@10,mrr,agreement@10_vs_exact
+exact dense (numpy),32,0.688,0.812,0.591,
+BM25 only,32,0.578,0.646,0.505,0.353
+exact dense + BM25 (RRF),32,0.693,0.76,0.651,0.644
+qdrant dense,32,0.688,0.812,0.591,1.0
+qdrant dense + BM25 (RRF),32,0.693,0.76,0.651,0.644

@@ -63,3 +63,4 @@ Thumbs.db
 # Terraform plan files embed every variable value, secrets included
 tfplan
 *.tfplan
+src/backend/tools/vector_store_bench/.artifacts/
