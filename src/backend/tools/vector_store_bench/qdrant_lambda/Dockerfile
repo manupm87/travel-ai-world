@@ -32,15 +32,18 @@ COPY vector_store_bench/qdrant_lambda/load_collection.py /build/load_collection.
 ENV QDRANT__STORAGE__STORAGE_PATH=/qdrant/storage \
     QDRANT__TELEMETRY_DISABLED=true \
     PYTHONPATH=/build
-RUN /qdrant/qdrant & \
-    for i in $(seq 1 60); do \
-      /opt/loader/bin/python -c "import socket,sys; socket.create_connection(('127.0.0.1',6333),1)" 2>/dev/null && break; \
+# The image has no pkill, so the server is stopped by its own PID, and with
+# SIGTERM rather than SIGKILL: Qdrant flushes the collection on the way out.
+RUN set -e; \
+    /qdrant/qdrant & \
+    qdrant_pid=$!; \
+    for _ in $(seq 1 60); do \
+      /opt/loader/bin/python -c "import socket; socket.create_connection(('127.0.0.1', 6333), 1)" 2>/dev/null && break; \
       sleep 1; \
     done; \
-    /opt/loader/bin/python /build/load_collection.py \
-    && sleep 2 \
-    && pkill -f /qdrant/qdrant \
-    && sleep 3
+    /opt/loader/bin/python /build/load_collection.py; \
+    kill -TERM "$qdrant_pid"; \
+    wait "$qdrant_pid" || true
 
 # ── Runtime: the official image plus the adapter ─────────────────────────────
 FROM qdrant/qdrant:${QDRANT_VERSION}
