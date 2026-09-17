@@ -168,6 +168,11 @@ def main(argv: list[str] | None = None) -> int:
     timing.add_argument(
         "--repeat", type=int, default=4, help="passes over the eval set"
     )
+    timing.add_argument(
+        "--candidates",
+        default=",".join(latency.CANDIDATES),
+        help="measure only some of them, e.g. qdrant (if S3 Vectors is not filled yet)",
+    )
     timing.add_argument("--limit", type=int, default=10)
     timing.add_argument(
         "--csv", type=Path, default=PACKAGE_ROOT / "results" / "latency.csv"
