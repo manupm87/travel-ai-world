@@ -22,6 +22,7 @@ jobs:
       core: ${{ steps.filter.outputs.core }}
       ai: ${{ steps.filter.outputs.ai }}
       corpus: ${{ steps.filter.outputs.corpus }}
+      bench: ${{ steps.filter.outputs.bench }}
       backend: ${{ steps.filter.outputs.backend }}
       frontend: ${{ steps.filter.outputs.frontend }}
       stack: ${{ steps.filter.outputs.stack }}
@@ -52,6 +53,11 @@ jobs:
               - '.github/**'
             corpus:
               - 'src/backend/tools/city_corpus/**'
+              - 'src/backend/pyproject.toml'
+              - 'src/backend/uv.lock'
+              - '.github/**'
+            bench:
+              - 'src/backend/tools/vector_store_bench/**'
               - 'src/backend/pyproject.toml'
               - 'src/backend/uv.lock'
               - '.github/**'
@@ -169,6 +175,20 @@ jobs:
     defaults:
       run:
         working-directory: src/backend/tools/city_corpus
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-uv
+      - run: uv run pytest -q
+
+  backend-bench:
+    name: vector_store_bench tests
+    needs: changes
+    if: needs.changes.outputs.bench == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: src/backend/tools/vector_store_bench
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-uv
