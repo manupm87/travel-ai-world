@@ -46,9 +46,9 @@ variable "bench_memory_mb" {
 }
 
 variable "bench_zip" {
-  description = "Path to the packaged bench function (bench_lambda/build.sh writes it)."
+  description = "Override the path to the packaged bench function; empty uses the one bench_lambda/build.sh writes."
   type        = string
-  default     = "../../../src/backend/tools/vector_store_bench/bench_lambda/bench.zip"
+  default     = ""
 }
 
 variable "vector_bucket" {

@@ -36,6 +36,8 @@ data "aws_caller_identity" "current" {}
 
 locals {
   prefix = "${var.name_prefix}-spike-vs"
+  # Relative to this module, not to the directory terraform is run from.
+  bench_zip = var.bench_zip != "" ? var.bench_zip : "${path.module}/../../../../src/backend/tools/vector_store_bench/bench_lambda/bench.zip"
   # The index of the main stack (ADR 0014), queried read-only by the bench.
   vector_index_arn = "arn:aws:s3vectors:${var.region}:${data.aws_caller_identity.current.account_id}:bucket/${var.vector_bucket}/index/${var.vector_index}"
   embeddings_arn   = "arn:aws:bedrock:${var.region}::foundation-model/${var.embeddings_model}"
@@ -180,8 +182,8 @@ resource "aws_lambda_function" "bench" {
   role             = aws_iam_role.bench.arn
   handler          = "handler.handler"
   runtime          = "python3.12"
-  filename         = var.bench_zip
-  source_code_hash = filebase64sha256(var.bench_zip)
+  filename         = local.bench_zip
+  source_code_hash = filebase64sha256(local.bench_zip)
   memory_size      = var.bench_memory_mb
   timeout          = 300
   architectures    = ["x86_64"] # the zip is pure Python; the arch only has to be valid
