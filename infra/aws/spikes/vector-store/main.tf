@@ -108,6 +108,18 @@ resource "aws_lambda_function" "qdrant" {
   ephemeral_storage {
     size = var.qdrant_tmp_mb # the collection is copied into /tmp at every cold start
   }
+
+  # Everything Qdrant writes must live in /tmp: the image's filesystem is
+  # read-only on Lambda, and it panics at startup creating its snapshots
+  # directory ("Can't create Snapshots directory: ReadOnlyFilesystem").
+  environment {
+    variables = {
+      QDRANT__STORAGE__STORAGE_PATH   = "/tmp/storage"
+      QDRANT__STORAGE__SNAPSHOTS_PATH = "/tmp/snapshots"
+      QDRANT__STORAGE__TEMP_PATH      = "/tmp/qdrant-temp"
+      QDRANT__TELEMETRY_DISABLED      = "true"
+    }
+  }
 }
 
 # AWS_IAM, never NONE: the store is reachable only by a signed request, so a
@@ -159,8 +171,12 @@ data "aws_iam_policy_document" "bench" {
     resources = [local.vector_index_arn]
   }
 
+  # Since October 2025 a function URL needs both actions; granting only
+  # InvokeFunctionUrl answers 403 with "Forbidden. For troubleshooting Function
+  # URL authorization issues ...". InvokedViaFunctionUrl keeps the second action
+  # from becoming a plain invoke permission.
   statement {
-    sid       = "CallQdrant"
+    sid       = "CallQdrantUrl"
     actions   = ["lambda:InvokeFunctionUrl"]
     resources = [for f in aws_lambda_function.qdrant : f.arn]
 
@@ -168,6 +184,18 @@ data "aws_iam_policy_document" "bench" {
       test     = "StringEquals"
       variable = "lambda:FunctionUrlAuthType"
       values   = ["AWS_IAM"]
+    }
+  }
+
+  statement {
+    sid       = "CallQdrantFunction"
+    actions   = ["lambda:InvokeFunction"]
+    resources = [for f in aws_lambda_function.qdrant : f.arn]
+
+    condition {
+      test     = "Bool"
+      variable = "lambda:InvokedViaFunctionUrl"
+      values   = ["true"]
     }
   }
 }
