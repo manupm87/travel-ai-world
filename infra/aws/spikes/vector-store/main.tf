@@ -8,7 +8,9 @@
 # `terraform destroy` here can never touch production. Destroy it after measuring.
 
 terraform {
-  required_version = ">= 1.11.0"
+  # Lower than the main stack on purpose: that one needs 1.11 for the S3
+  # backend's native lockfile, and this stack keeps its state locally.
+  required_version = ">= 1.9.0"
 
   required_providers {
     aws = {
