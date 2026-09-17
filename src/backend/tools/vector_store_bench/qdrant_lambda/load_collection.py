@@ -30,6 +30,19 @@ def main() -> int:
                 document = json.loads(line)
                 documents[document["doc_id"]] = document
 
+    # The artefact, the ids and the manifest have to agree, or the image ships a
+    # collection that is silently smaller than the corpus (it once shipped one
+    # built from a 20-vector test file, and nothing complained).
+    expected = int(manifest["documents"])
+    if not (expected == len(doc_ids) == vectors.shape[0]):
+        raise SystemExit(
+            f"artefact mismatch: manifest says {expected}, ids.json has "
+            f"{len(doc_ids)}, vectors.npy has {vectors.shape[0]}"
+        )
+    if len(documents) < expected:
+        raise SystemExit(
+            f"corpus has {len(documents)} documents, the artefact expects {expected}"
+        )
     print(f"loading {len(doc_ids)} vectors of {vectors.shape[1]} dimensions", flush=True)
     client = QdrantClient(url="http://127.0.0.1:6333", timeout=120)
     if client.collection_exists(COLLECTION):
