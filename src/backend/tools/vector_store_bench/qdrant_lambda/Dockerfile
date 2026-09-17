@@ -34,8 +34,9 @@ COPY vector_store_bench/qdrant_lambda/load_collection.py /build/load_collection.
 ENV QDRANT__STORAGE__STORAGE_PATH=/qdrant/storage \
     QDRANT__TELEMETRY_DISABLED=true \
     PYTHONPATH=/build
-# The image has no pkill, so the server is stopped by its own PID, and with
-# SIGTERM rather than SIGKILL: Qdrant flushes the collection on the way out.
+# The archive is made in this same layer, right after Qdrant has exited: a
+# separate RUN produced an empty collections/ directory. `&&` on the loader so a
+# failure fails the build instead of shipping an empty collection.
 RUN set -e; \
     /qdrant/qdrant & \
     qdrant_pid=$!; \
@@ -43,13 +44,12 @@ RUN set -e; \
       /opt/loader/bin/python -c "import socket; socket.create_connection(('127.0.0.1', 6333), 1)" 2>/dev/null && break; \
       sleep 1; \
     done; \
-    /opt/loader/bin/python /build/load_collection.py; \
-    kill -TERM "$qdrant_pid"; \
-    wait "$qdrant_pid" || true
-
-# One archive instead of a directory tree: at cold start /tmp is filled by a
-# single sequential read rather than hundreds of small file copies.
-RUN tar -cf /storage.tar -C /qdrant storage && ls -lh /storage.tar
+    /opt/loader/bin/python /build/load_collection.py \
+    && kill -TERM "$qdrant_pid" \
+    && { wait "$qdrant_pid" || true; } \
+    && echo "==> collection on disk:" && du -sh /qdrant/storage/collections/* \
+    && tar -cf /storage.tar -C /qdrant storage \
+    && ls -lh /storage.tar
 
 # ── Runtime: the official image plus the adapter ─────────────────────────────
 FROM qdrant/qdrant:${QDRANT_VERSION}
