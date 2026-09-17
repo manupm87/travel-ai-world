@@ -18,6 +18,11 @@ One file per decision, numbered, never deleted (superseded ones get a new status
 | [0013](0013-chat-conversations-in-core-api.md) | Chat conversations are stored by `core_api` and written by `ai_api` over HTTP | Accepted |
 | [0014](0014-vector-store-s3-vectors.md) | The vector store is Amazon S3 Vectors, filled from the committed corpus | Accepted |
 
+## Inputs
+
+- [Vector store spike](../vector-store-spike.md) — Qdrant as a Lambda measured against
+  Amazon S3 Vectors on the Budapest corpus (TRA-151); feeds ADR 0012 and cross-checks ADR 0014.
+
 ## Template
 
 ```markdown

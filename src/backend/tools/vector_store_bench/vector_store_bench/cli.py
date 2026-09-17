@@ -7,7 +7,7 @@ from pathlib import Path
 
 import numpy as np
 
-from vector_store_bench import artifact, corpus, evalset, quality
+from vector_store_bench import artifact, corpus, evalset, latency, quality
 from vector_store_bench.embedder import TitanEmbedder
 from vector_store_bench.stores.qdrant_store import QdrantStore
 
@@ -85,6 +85,35 @@ def measure_quality(args: argparse.Namespace) -> int:
     return 0
 
 
+def measure_latency(args: argparse.Namespace) -> int:
+    import boto3
+
+    client = boto3.client("lambda", region_name=args.region)
+    queries = evalset.load()
+    samples: list[latency.Sample] = []
+    for size in args.sizes.split(","):
+        function_name = args.function.format(size=size.strip())
+        samples += latency.measure(
+            client,
+            function_name,
+            size.strip(),
+            queries,
+            repeat=args.repeat,
+            limit=args.limit,
+        )
+    latency.write_csv(args.csv, samples)
+    rows = latency.summarise(samples)
+    headers = list(rows[0])
+    widths = [max(len(h), *(len(str(r[h])) for r in rows)) for h in headers]
+    lines = ["  ".join(h.ljust(w) for h, w in zip(headers, widths, strict=True))]
+    lines += [
+        "  ".join(str(r[h]).ljust(w) for h, w in zip(headers, widths, strict=True))
+        for r in rows
+    ]
+    sys.stdout.write("\n".join(lines) + f"\n\nCSV → {args.csv}\n")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="vector_store_bench")
     parser.add_argument("-v", "--verbose", action="store_true")
@@ -108,6 +137,25 @@ def main(argv: list[str] | None = None) -> int:
         "--csv", type=Path, default=PACKAGE_ROOT / "results" / "quality.csv"
     )
     measure.set_defaults(handler=measure_quality)
+
+    timing = commands.add_parser("latency", help="time both candidates from AWS")
+    timing.add_argument(
+        "--sizes", default="1024,2048", help="Qdrant memory sizes to use"
+    )
+    timing.add_argument(
+        "--function",
+        default="travel-ai-spike-vs-bench-{size}",
+        help="bench function name",
+    )
+    timing.add_argument("--region", default="eu-west-1")
+    timing.add_argument(
+        "--repeat", type=int, default=4, help="passes over the eval set"
+    )
+    timing.add_argument("--limit", type=int, default=10)
+    timing.add_argument(
+        "--csv", type=Path, default=PACKAGE_ROOT / "results" / "latency.csv"
+    )
+    timing.set_defaults(handler=measure_latency)
 
     args = parser.parse_args(argv)
     logging.basicConfig(

@@ -37,6 +37,8 @@ REQUIRED = [
     "src/backend/tools/scraper/.env.example",
     "src/backend/tools/city_corpus/README.md",
     "src/backend/tools/city_corpus/AGENTS.md",
+    "src/backend/tools/vector_store_bench/README.md",
+    "src/backend/tools/vector_store_bench/AGENTS.md",
     "src/frontend/README.md",
     "src/frontend/AGENTS.md",
     "src/frontend/.env.example",
