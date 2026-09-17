@@ -43,6 +43,7 @@ class Document(BaseModel):
     lang: str
     name: str | None = None
     district: str | None = None
+    url: str | None = None
     price_tier: int | None = None
     tour_type: str | None = None
     price_model: str | None = None

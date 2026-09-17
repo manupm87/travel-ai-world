@@ -171,10 +171,14 @@ Revisit A if one of these becomes true:
 
 The throwaway stack (`infra/aws/spikes/vector-store/`) held its own ECR repository, two
 Qdrant functions, two bench functions, an S3 bucket and its own S3 Vectors index, all
-tagged `spike=vector-store`. It never touched the main stack's index. **Still up as of
-2026-09-17 22:45 UTC**; this line is replaced with the date of the `terraform destroy`
-before the pull request is merged. The local state file stays in the working copy and is
-never committed.
+tagged `spike=vector-store`. It never touched the main stack's index. **Destroyed on
+2026-09-17** with `terraform destroy`, confirmed by Manuel. The local state file stays in
+the working copy and is never committed.
+
+The code stays: the Terraform, the image recipe and the bench package are kept so the
+whole measurement can be run again from scratch (`terraform apply`, build, `just corpus`
+is not even needed — the artefact's checksums prove the vectors). Rerunning it costs about
+$0.02 of embeddings and the ten minutes of an image build.
 
 The bench package stays in the repository as the origin of these numbers, and because
 `eval/` and the embeddings artefact are reused by TRA-148 and TRA-152.
