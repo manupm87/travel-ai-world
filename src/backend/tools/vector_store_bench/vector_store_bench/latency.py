@@ -188,6 +188,9 @@ def write_csv(path: Path, samples: Sequence[Sample]) -> None:
                     sample.embed_ms,
                     sample.search_ms,
                     sample.total_ms,
-                    " ".join(sample.hits),
+                    # JSON, not a space-joined list: doc_ids contain spaces
+                    # ("Budapest/North Buda#do:..."), and splitting on those
+                    # silently turned every hit into fragments.
+                    json.dumps(sample.hits, ensure_ascii=False),
                 ]
             )
