@@ -154,11 +154,7 @@ def test_documents(tmp_path: Path) -> None:
 def test_days_that_already_spell_out_the_times_are_not_repeated(tmp_path: Path) -> None:
     text = VALID.replace('days = "daily"', 'days = "daily at 10:30; Sat also at 14:00"')
     curated = tours.load(_write(tmp_path, text), BUDAPEST)
-    [doc] = [
-        d
-        for d in tours.documents(curated.tours, BUDAPEST, None)
-        if "10:30" in d.hours or ""
-    ]
+    _, doc = tours.documents(curated.tours, BUDAPEST, None)
     assert doc.hours == "daily at 10:30; Sat also at 14:00"
     assert "Starts: daily at 10:30; Sat also at 14:00. Duration:" in doc.text
 
