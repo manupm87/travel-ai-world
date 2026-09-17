@@ -47,7 +47,9 @@ RUN set -e; \
     /opt/loader/bin/python /build/load_collection.py \
     && kill -TERM "$qdrant_pid" \
     && { wait "$qdrant_pid" || true; } \
-    && echo "==> collection on disk:" && du -sh /qdrant/storage/collections/* \
+    && echo "==> where did Qdrant put the collection?" \
+    && find / -maxdepth 4 -type d -name "city-kb" -not -path "/proc/*" 2>/dev/null \
+    && echo "==> storage tree:" && ls -la /qdrant/storage /build/storage /tmp/storage 2>&1 | head -30 \
     && tar -cf /storage.tar -C /qdrant storage \
     && ls -lh /storage.tar
 

@@ -30,6 +30,7 @@ def main() -> int:
                 document = json.loads(line)
                 documents[document["doc_id"]] = document
 
+    print(f"loading {len(doc_ids)} vectors of {vectors.shape[1]} dimensions", flush=True)
     client = QdrantClient(url="http://127.0.0.1:6333", timeout=120)
     if client.collection_exists(COLLECTION):
         client.delete_collection(COLLECTION)
@@ -86,6 +87,7 @@ def main() -> int:
             ),
             wait=True,
         )
+        print(f"  upserted {stop}/{len(doc_ids)}", flush=True)
 
     count = client.count(COLLECTION, exact=True).count
     segments = _wait_for_one_segment(client)
