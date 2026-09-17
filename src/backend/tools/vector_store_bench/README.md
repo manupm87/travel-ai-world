@@ -24,7 +24,10 @@ identically. Anything else and the comparison measures the embeddings, not the s
 ```bash
 # 1. Embed the corpus once (~576k tokens, about $0.012, 11 min). Needs `just aws-login`.
 uv run python -m vector_store_bench -v embed
-#    → .artifacts/budapest/{vectors.npy,ids.json,manifest.json} (gitignored, 24 MB)
+#    → .artifacts/budapest/{vectors.npy,ids.json,manifest.json}
+
+# 1b. Or take the vectors someone already produced (checksum-verified on arrival):
+uv run python -m vector_store_bench pull-artifact --bucket "$(terraform -chdir=../../../../infra/aws/spikes/vector-store output -raw artifacts_bucket)"
 
 # 2. Quality: recall@5, recall@10, MRR, agreement with exact search. No AWS stack needed.
 uv run python -m vector_store_bench -v quality      # → results/quality.csv
@@ -33,8 +36,28 @@ uv run python -m vector_store_bench -v quality      # → results/quality.csv
 uv run python -m vector_store_bench -v latency      # → results/latency.csv
 ```
 
-`manifest.json` carries the sha256 of both the corpus and the vectors, so the same
-artefact can fill S3 Vectors (TRA-152) without embedding twice.
+## What is committed and what is not
+
+`vectors.npy` is 24 MB of float32 that gzip cannot shrink, and git keeps every version of
+a binary whole: committing it would roughly double the repository on the first commit and
+add another 22 MB per reindex, forever. It stays out. In the repository:
+
+| File | Size | Why |
+|---|---|---|
+| `.artifacts/<city>/manifest.json` | 4 KB | The contract plus the sha256 of the corpus and of the vectors: anyone can prove they generated the same matrix |
+| `.artifacts/<city>/query_vectors.npy` | 132 KB | The 32 evaluation queries embedded, in the order of `eval/budapest-queries.jsonl`, so results can be re-scored without calling Bedrock |
+| `results/*.csv` | KB | The numbers the report quotes |
+
+The matrix itself lives in the spike's S3 bucket while the spike runs:
+
+```bash
+bucket=$(terraform -chdir=../../../../infra/aws/spikes/vector-store output -raw artifacts_bucket)
+uv run python -m vector_store_bench push-artifact --bucket "$bucket"
+```
+
+`pull-artifact` fails loudly if the downloaded matrix does not match the manifest, which is
+how we know both candidates were filled from the same vectors. Regenerating is always an
+option: Titan is deterministic, so `embed` reproduces the same file for $0.012.
 
 ## Layout
 

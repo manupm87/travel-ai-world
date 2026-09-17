@@ -63,4 +63,7 @@ Thumbs.db
 # Terraform plan files embed every variable value, secrets included
 tfplan
 *.tfplan
-src/backend/tools/vector_store_bench/.artifacts/
+# Spike artefacts: the 24 MB vector matrix stays out of git (it is deterministic and
+# lives in S3); the manifest and the query vectors are small and are committed.
+src/backend/tools/vector_store_bench/.artifacts/**/vectors.npy
+src/backend/tools/vector_store_bench/.artifacts/**/ids.json

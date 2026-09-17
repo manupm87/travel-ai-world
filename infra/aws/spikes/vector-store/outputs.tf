@@ -1,3 +1,8 @@
+output "artifacts_bucket" {
+  description = "Where the shared embeddings artefact lives while the spike runs."
+  value       = aws_s3_bucket.artifacts.bucket
+}
+
 output "ecr_repository_url" {
   description = "Push the Qdrant image here before the first apply."
   value       = aws_ecr_repository.qdrant.repository_url

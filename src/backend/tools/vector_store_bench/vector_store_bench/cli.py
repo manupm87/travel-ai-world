@@ -114,6 +114,20 @@ def measure_latency(args: argparse.Namespace) -> int:
     return 0
 
 
+def push_artifact(args: argparse.Namespace) -> int:
+    keys = artifact.push(args.artifacts, args.bucket, args.prefix)
+    sys.stdout.write(
+        f"uploaded to s3://{args.bucket}/{args.prefix}\n" + "\n".join(keys) + "\n"
+    )
+    return 0
+
+
+def pull_artifact(args: argparse.Namespace) -> int:
+    artifact.pull(args.artifacts, args.bucket, args.prefix)
+    sys.stdout.write(f"{args.artifacts} matches the manifest's checksum\n")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="vector_store_bench")
     parser.add_argument("-v", "--verbose", action="store_true")
@@ -156,6 +170,16 @@ def main(argv: list[str] | None = None) -> int:
         "--csv", type=Path, default=PACKAGE_ROOT / "results" / "latency.csv"
     )
     timing.set_defaults(handler=measure_latency)
+
+    for name, handler_fn, help_text in (
+        ("push-artifact", push_artifact, "upload the embeddings artefact to S3"),
+        ("pull-artifact", pull_artifact, "download it and verify its checksum"),
+    ):
+        transfer = commands.add_parser(name, help=help_text)
+        transfer.add_argument("--bucket", required=True)
+        transfer.add_argument("--prefix", default="embeddings/budapest")
+        transfer.add_argument("--artifacts", type=Path, default=DEFAULT_ARTIFACTS)
+        transfer.set_defaults(handler=handler_fn)
 
     args = parser.parse_args(argv)
     logging.basicConfig(

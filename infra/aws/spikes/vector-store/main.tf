@@ -39,6 +39,34 @@ locals {
   embeddings_arn   = "arn:aws:bedrock:${var.region}::foundation-model/${var.embeddings_model}"
 }
 
+# ── Shared artefacts ─────────────────────────────────────────────────────────
+
+# The embeddings artefact (24 MB of float32) is deterministic but expensive to
+# regenerate in wall-clock time, and both candidates must be filled from exactly
+# the same vectors. It is too big for git, so it lives here while the spike does.
+resource "aws_s3_bucket" "artifacts" {
+  bucket        = "${local.prefix}-artifacts-${data.aws_caller_identity.current.account_id}"
+  force_destroy = true # a spike bucket: destroy must not need a manual empty
+}
+
+resource "aws_s3_bucket_public_access_block" "artifacts" {
+  bucket                  = aws_s3_bucket.artifacts.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "artifacts" {
+  bucket = aws_s3_bucket.artifacts.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
 # ── Candidate A: Qdrant as its own Lambda ────────────────────────────────────
 
 resource "aws_ecr_repository" "qdrant" {

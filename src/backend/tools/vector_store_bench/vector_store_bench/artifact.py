@@ -68,6 +68,46 @@ def write(
     return manifest
 
 
+FILES = ("vectors.npy", "ids.json", "manifest.json")
+
+
+def push(directory: Path, bucket: str, prefix: str, client: object = None) -> list[str]:
+    """Upload the artefact so both candidates can be filled from the same vectors."""
+    if client is None:
+        import boto3
+
+        client = boto3.client("s3")
+    keys = []
+    for name in FILES:
+        key = f"{prefix.strip('/')}/{name}"
+        client.upload_file(str(directory / name), bucket, key)  # type: ignore[attr-defined]
+        keys.append(key)
+    return keys
+
+
+def pull(
+    directory: Path, bucket: str, prefix: str, client: object = None
+) -> list[Path]:
+    """Download it, then check the vectors are the ones the manifest names."""
+    if client is None:
+        import boto3
+
+        client = boto3.client("s3")
+    directory.mkdir(parents=True, exist_ok=True)
+    paths = []
+    for name in FILES:
+        path = directory / name
+        client.download_file(bucket, f"{prefix.strip('/')}/{name}", str(path))  # type: ignore[attr-defined]
+        paths.append(path)
+    manifest = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))
+    digest = sha256(directory / "vectors.npy")
+    if digest != manifest["vectors_sha256"]:
+        raise ValueError(
+            f"vectors.npy is {digest}, the manifest says {manifest['vectors_sha256']}"
+        )
+    return paths
+
+
 def read(directory: Path) -> Embeddings:
     vectors = np.load(directory / "vectors.npy")
     doc_ids = json.loads((directory / "ids.json").read_text(encoding="utf-8"))
