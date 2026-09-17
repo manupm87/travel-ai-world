@@ -62,5 +62,32 @@ uv run python scripts/export_openapi.py  # → docs/api/*.openapi.json (then `np
   `assert` and hold fake secrets, `tools/scraper/**` keeps the old E/F-only set (`tools/city_corpus` gets
   the full set and pyright). Type-check with pyright
   (`[tool.pyright]`); prefer fixing the type over `# pyright: ignore`, and justify every ignore.
+- **Runtime model (Lambda): nothing runs after the response.** In production both services are the
+  same FastAPI app, but each one runs inside an AWS Lambda execution environment behind the
+  [Lambda Web Adapter](https://github.com/awslabs/aws-lambda-web-adapter) (ADR 0009). The adapter
+  starts uvicorn once per environment and turns each invocation into an HTTP request to it. Two
+  documented consequences drive the rules below ([execution environment lifecycle](https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtime-environment.html),
+  [concurrency](https://docs.aws.amazon.com/lambda/latest/dg/lambda-concurrency.html)):
+  *"this execution environment is busy and cannot process other requests"*, and *"background
+  processes or callbacks ... resume if Lambda reuses the execution environment"* — between
+  invocations the whole process is frozen.
+
+  Works as you expect: `async`/`await` and `asyncio.gather` **inside** one request (they finish
+  before you respond); the app `lifespan` for per-environment resources (engines, HTTP clients);
+  streaming responses (`ai_api` runs in `response_stream` mode); `/tmp` and `lru_cache` as a
+  per-environment cache — `travel_common/cognito.py` caches the JWKS this way, so a cached key set
+  can outlive a rotation by the life of the environment.
+
+  Never in a service: `BackgroundTasks` or any work scheduled after the response (it freezes
+  mid-flight and resumes minutes later, or never); fire-and-forget `asyncio.create_task`; threads,
+  timers or schedulers; in-memory queues, counters or anything shared between requests (each
+  request may hit a different environment); WebSockets; anything slower than the function timeout
+  (30 s `core_api`, 900 s `ai_api`). `lifespan` shutdown is best-effort: the shutdown phase is
+  capped at 2 s before `SIGKILL`.
+
+  Where that work goes instead: a CLI command run outside the request path (`city_corpus`,
+  `core_api.ops`, the `migrate`/`seed` entrypoints), or its own scheduled function. If a request
+  genuinely needs to hand off work, it must leave the process (a queue or another function), not
+  live in it.
 - **Logging**: `create_app` calls `travel_common.http.logging.configure_logging(settings.LOG_LEVEL)`
   once; modules use `logging.getLogger(__name__)`, never `print`.

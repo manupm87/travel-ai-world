@@ -84,6 +84,12 @@ The RDS free tier is the swing item; check the account's creation date before th
   (the backend has no inbound or outbound path except the gateway and the database); no shared
   secret, no Google verification code, no NVIDIA key in the cloud; streaming preserved; the same
   images everywhere.
+- Bad: the services may no longer do anything after returning a response. A Lambda execution
+  environment serves one request at a time and is frozen between invocations, so background tasks,
+  fire-and-forget coroutines, schedulers and in-memory state shared between requests break in
+  production while working locally in Compose. The rule and its alternatives (a CLI command or a
+  separate scheduled function) are in [`src/backend/AGENTS.md`](../../../src/backend/AGENTS.md);
+  this is the price of the decision, not an incidental detail.
 - Bad: cold starts on the first request after idle; Lambda's 15-minute cap on a chat response;
   local development needs either a real Cognito pool (no official emulator) or the existing
   Google flow kept as a local adapter behind the same `Principal` contract, which is the plan.
