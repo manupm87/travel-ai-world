@@ -59,3 +59,20 @@ def test_sections_become_chunks() -> None:
 def test_coordinates_outside_the_city_are_dropped() -> None:
     docs = parse_article(_article(lat=47.62, lon=19.5), BUDAPEST)
     assert all(d.lat is None and d.lon is None for d in docs)
+
+
+def test_is_located_needs_coordinates_inside_the_city() -> None:
+    from city_corpus.sources.wikipedia import is_located
+
+    assert is_located(_article(), BUDAPEST)
+    assert not is_located(_article(lat=None, lon=None), BUDAPEST)
+    assert not is_located(_article(lat=47.62, lon=19.5), BUDAPEST)  # outside the bbox
+
+
+def test_broad_categories_require_coordinates() -> None:
+    """`Buildings and structures in Budapest` also holds embassies and offices."""
+    by_name = {c.name: c for c in BUDAPEST.wikipedia_categories}
+
+    assert by_name["Buildings and structures in Budapest"].require_coordinates
+    assert not by_name["Museums in Budapest"].require_coordinates
+    assert not any("Hungary" in name for name in by_name), "city-scoped categories only"

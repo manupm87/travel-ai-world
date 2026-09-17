@@ -13,7 +13,7 @@ Budapest is the configured city.
 |---|---|---|
 | [en.wikivoyage.org](https://en.wikivoyage.org/wiki/Budapest) | `Budapest` and its 20 district guides (`Budapest/*`, redirects excluded): every listing template (`see`, `do`, `buy`, `eat`, `drink`, `sleep`, `go`, `listing`) and the prose of each section | CC BY-SA 4.0 |
 | [es.wikivoyage.org](https://es.wikivoyage.org/wiki/Budapest) | The city page (mostly prose) | CC BY-SA 4.0 |
-| [en.wikipedia.org](https://en.wikipedia.org/) | Articles in `Tourist attractions in Budapest`, `Museums in Budapest`, `Thermal baths in Budapest`, `Bridges in Budapest` | CC BY-SA 4.0 |
+| [en.wikipedia.org](https://en.wikipedia.org/) | Articles in ten city-scoped categories: tourist attractions, museums, thermal baths, bridges, buildings and structures, squares, churches, monuments and memorials, synagogues, parks | CC BY-SA 4.0 |
 | [OpenStreetMap](https://www.openstreetmap.org/) (Overpass API) | Hotels, hostels, guest houses, apartments; restaurants, cafés; bars, pubs; museums, attractions, viewpoints, historic places, galleries with a Wikidata item; named parks; thermal baths. Also the 23 district boundaries and the Wikidata tags used to link listings | ODbL 1.0 |
 | [Wikidata](https://www.wikidata.org/) + [Commons](https://commons.wikimedia.org/) | Enrichment only (no documents): image, official website, coordinates, heritage status, Spanish label. Images keep their own licence and author | CC0 (Wikidata); per file (Commons) |
 | [Open-Meteo](https://open-meteo.com/) historical API | Daily 1996–2025 weather → 12 monthly climate documents | CC BY 4.0 |
@@ -22,6 +22,12 @@ Budapest is the configured city.
 `Category:Baths in Budapest` (named in TRA-138) has no articles; the bath articles are in
 `Category:Thermal baths in Budapest`. Google Places content, TripAdvisor and Booking are forbidden
 sources (ToS).
+
+Categories are city-scoped on purpose: `Landmarks in Hungary` and `Castles in Hungary` would add 46
+articles, most of them outside Budapest. A category may set `require_coordinates`, which admits only
+articles located inside the bounding box — `Buildings and structures in Budapest` needs it, or it
+brings in embassies and government offices alongside the sights (12 skipped for Budapest). The
+manifest reports documents per category and what each one skipped.
 
 ## Pipeline
 

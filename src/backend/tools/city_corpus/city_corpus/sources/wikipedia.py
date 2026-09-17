@@ -121,14 +121,19 @@ def _sections(extract: str) -> list[tuple[list[str], str]]:
     return [(path, "\n".join(lines)) for path, lines in sections]
 
 
-def parse_article(article: WikipediaArticle, city: CityConfig) -> list[CorpusDocument]:
-    host = f"{article.lang}.wikipedia.org"
-    claim = unique_ids()
-    in_city = (
+def is_located(article: WikipediaArticle, city: CityConfig) -> bool:
+    """Does the article carry coordinates inside the city?"""
+    return (
         article.lat is not None
         and article.lon is not None
         and city.bbox.contains(article.lat, article.lon)
     )
+
+
+def parse_article(article: WikipediaArticle, city: CityConfig) -> list[CorpusDocument]:
+    host = f"{article.lang}.wikipedia.org"
+    claim = unique_ids()
+    in_city = is_located(article, city)
     lat = round(article.lat, 6) if in_city and article.lat is not None else None
     lon = round(article.lon, 6) if in_city and article.lon is not None else None
     documents: list[CorpusDocument] = []

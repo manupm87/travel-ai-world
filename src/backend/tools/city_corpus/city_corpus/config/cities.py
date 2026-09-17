@@ -23,6 +23,19 @@ class WikivoyageSite:
 
 
 @dataclass(frozen=True)
+class WikipediaCategory:
+    """A category to read, and whether its members must be located to count.
+
+    Broad categories (`Buildings and structures in ...`) hold embassies and
+    government offices next to the sights; requiring coordinates keeps the
+    unplaceable ones out without hand-listing exceptions.
+    """
+
+    name: str
+    require_coordinates: bool = False
+
+
+@dataclass(frozen=True)
 class CityConfig:
     slug: str
     name: str
@@ -30,7 +43,7 @@ class CityConfig:
     bbox: BBox
     wikivoyage: tuple[WikivoyageSite, ...]
     wikipedia_lang: str
-    wikipedia_categories: tuple[str, ...]
+    wikipedia_categories: tuple[WikipediaCategory, ...]
     # OpenStreetMap area name (used by the enrichment step, TRA-139).
     osm_area: str
     districts: tuple[str, ...] = field(default_factory=tuple)
@@ -55,11 +68,21 @@ BUDAPEST = CityConfig(
     ),
     wikipedia_lang="en",
     wikipedia_categories=(
-        "Tourist attractions in Budapest",
-        "Museums in Budapest",
+        WikipediaCategory("Tourist attractions in Budapest"),
+        WikipediaCategory("Museums in Budapest"),
         # `Category:Baths in Budapest` is empty; the articles live here.
-        "Thermal baths in Budapest",
-        "Bridges in Budapest",
+        WikipediaCategory("Thermal baths in Budapest"),
+        WikipediaCategory("Bridges in Budapest"),
+        # TRA-157. City-scoped only: `Landmarks in Hungary` and `Castles in
+        # Hungary` would add 46 articles, most of them outside the city.
+        WikipediaCategory(
+            "Buildings and structures in Budapest", require_coordinates=True
+        ),
+        WikipediaCategory("Squares in Budapest"),
+        WikipediaCategory("Churches in Budapest"),
+        WikipediaCategory("Monuments and memorials in Budapest"),
+        WikipediaCategory("Synagogues in Budapest"),
+        WikipediaCategory("Parks in Budapest"),
     ),
     osm_area="Budapest",
     centre=(47.4979, 19.0402),

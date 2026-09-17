@@ -151,18 +151,40 @@ def _collect_wikipedia(
     city: CityConfig, client: ApiClient, result: BuildResult
 ) -> None:
     lang = city.wikipedia_lang
-    page_ids: set[int] = set()
+    # A page can sit in several categories: it is admitted unqualified as soon as
+    # one category asks for no coordinates.
+    needs_coordinates: dict[int, bool] = {}
+    first_category: dict[int, str] = {}
     for category in city.wikipedia_categories:
-        members = wikipedia.category_members(client, lang, category)
+        members = wikipedia.category_members(client, lang, category.name)
         if not members:
-            logger.warning("Category:%s has no articles", category)
-        page_ids.update(members)
-    for page_id in sorted(page_ids):
+            logger.warning("Category:%s has no articles", category.name)
+        for page_id in members:
+            first_category.setdefault(page_id, category.name)
+            needs_coordinates[page_id] = (
+                needs_coordinates.get(page_id, True) and category.require_coordinates
+            )
+
+    per_category: Counter[str] = Counter()
+    skipped: Counter[str] = Counter()
+    for page_id in sorted(needs_coordinates):
         article, fetched_at = wikipedia.fetch_article(client, lang, page_id)
+        result.fetched_at.append(fetched_at)
+        category_name = first_category[page_id]
+        if needs_coordinates[page_id] and not wikipedia.is_located(article, city):
+            logger.info("skipping %s: no coordinates in the city", article.title)
+            skipped[category_name] += 1
+            continue
         logger.info("wikipedia:%s:%s rev %d", lang, article.title, article.revision_id)
         result.revisions[f"wikipedia:{lang}:{article.title}"] = article.revision_id
-        result.fetched_at.append(fetched_at)
-        result.documents += wikipedia.parse_article(article, city)
+        documents = wikipedia.parse_article(article, city)
+        per_category[category_name] += len(documents)
+        result.documents += documents
+    result.enrichment["wikipedia"] = {
+        "articles": len(needs_coordinates) - sum(skipped.values()),
+        "documents_per_category": dict(sorted(per_category.items())),
+        "skipped_without_coordinates": dict(sorted(skipped.items())),
+    }
 
 
 def _collect_osm(
