@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { useLanguage } from "@/context/LanguageContext";
 import { interpolate } from "@/i18n";
@@ -102,14 +102,31 @@ export function TripPanel({
     return day ? day.slots[partOf(slot)].map((card) => card.id) : [];
   };
 
+  const changingGroup = changing ? groupFor(changing) : null;
+
+  // "Change" asks for the slot's options itself, once per opening: nobody
+  // should meet an empty sheet and have to click again.
+  const askedForRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!changing) {
+      askedForRef.current = null;
+      return;
+    }
+    const key = `${changing.day}:${partOf(changing)}`;
+    if (changingGroup || askedForRef.current === key) return;
+    askedForRef.current = key;
+    onAskAlternatives(changing);
+  }, [changing, changingGroup, onAskAlternatives]);
+
   const sheet = (
     <AlternativesSheet
       open={changing !== null}
       slot={changing}
-      group={changing ? groupFor(changing) : null}
+      group={changingGroup}
       currentIds={changing ? currentIdsFor(changing) : []}
       shortlist={state.shortlist}
       disabled={state.status === "streaming"}
+      loading={state.status === "streaming"}
       onClose={() => setChanging(null)}
       onSelect={onSelect}
       onDismiss={onDismiss}

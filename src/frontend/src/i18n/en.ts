@@ -253,6 +253,7 @@ const en: Translations = {
       close: "Close alternatives",
       current: "Current",
       none: "No alternatives for this slot yet.",
+      loading: "Finding alternatives…",
       askMore: "Ask for more options in the chat",
       askMessage: "Alternatives for day {day} · {part}",
       askStayMessage: "Other hotel options, please",

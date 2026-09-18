@@ -271,6 +271,8 @@ export interface Translations {
       close: string;
       current: string;
       none: string;
+      /** While the options for the slot are streaming in. */
+      loading: string;
       askMore: string;
       /** The message sent to ask for options: "Alternatives for day {day} · {part}" */
       askMessage: string;

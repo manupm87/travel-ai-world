@@ -253,6 +253,7 @@ const es: Translations = {
       close: "Cerrar alternativas",
       current: "Actual",
       none: "Todavía no hay alternativas para este hueco.",
+      loading: "Buscando alternativas…",
       askMore: "Pedir más opciones en el chat",
       askMessage: "Alternativas para el día {day} · {part}",
       askStayMessage: "Otras opciones de hotel, por favor",

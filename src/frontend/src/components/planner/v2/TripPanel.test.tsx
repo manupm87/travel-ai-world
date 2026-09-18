@@ -123,18 +123,21 @@ describe("TripPanel", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
-  it("asks the chat for options when the slot has no group", () => {
+  it("asks the chat for options by itself when the slot has no group, and stays open", () => {
     const { onAskAlternatives } = renderPanel();
 
     fireEvent.click(dayHeader(2));
     fireEvent.click(screen.getByRole("button", { name: `${p.change}: ${BATHS.gellert.title}` }));
 
-    expect(screen.getByText(en.plan.alternatives.none)).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("button", { name: en.plan.alternatives.askMore }));
-
+    // Asked once on opening, without a second click; the sheet waits for the answer.
+    expect(onAskAlternatives).toHaveBeenCalledTimes(1);
     expect(onAskAlternatives).toHaveBeenCalledWith({ day: 2, part: "afternoon" });
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    // "Ask for more" is still there for a second batch, and keeps the sheet open.
+    fireEvent.click(screen.getByRole("button", { name: en.plan.alternatives.askMore }));
+    expect(onAskAlternatives).toHaveBeenCalledTimes(2);
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
   it("removes a card from its slot", () => {

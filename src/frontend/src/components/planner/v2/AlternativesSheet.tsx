@@ -17,6 +17,8 @@ export interface AlternativesSheetProps {
   currentIds: string[];
   shortlist: string[];
   disabled?: boolean;
+  /** The options for this slot are on their way (a turn is streaming). */
+  loading?: boolean;
   onClose: () => void;
   onSelect: (groupId: string, cardIds: string[]) => void;
   onDismiss: (groupId: string, cardId: string) => void;
@@ -36,6 +38,7 @@ export function AlternativesSheet({
   currentIds,
   shortlist,
   disabled = false,
+  loading = false,
   onClose,
   onSelect,
   onDismiss,
@@ -162,6 +165,14 @@ export function AlternativesSheet({
                 className="w-full"
               />
             ))
+          ) : loading ? (
+            <p role="status" className="flex items-center gap-2 text-sm text-text-secondary">
+              <span
+                aria-hidden="true"
+                className="h-4 w-4 animate-spin rounded-full border-2 border-accent border-t-transparent"
+              />
+              {a.loading}
+            </p>
           ) : (
             <p className="text-sm text-text-secondary">{a.none}</p>
           )}
@@ -173,11 +184,9 @@ export function AlternativesSheet({
           </span>
           <button
             type="button"
-            onClick={() => {
-              onAskMore(slot);
-              onClose();
-            }}
-            className="rounded-lg px-2 py-1 text-xs font-medium text-accent transition hover:text-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+            onClick={() => onAskMore(slot)}
+            disabled={disabled}
+            className="rounded-lg px-2 py-1 text-xs font-medium text-accent transition hover:text-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {a.askMore}
           </button>

@@ -119,18 +119,15 @@ test.describe("Planner page — /plan/", () => {
     // A price is never a number.
     await expect(page.getByText(/\d+\s?€/)).toHaveCount(0);
 
-    // 5. "Change" on day 2's afternoon: no alternatives yet, ask for them.
+    // 5. "Change" on day 2's afternoon: the sheet asks for the options itself.
     await page.getByRole("button", { name: /\bDay 2\b/ }).click();
     await expect(page.getByText("40 minutes on foot from the previous stop")).toBeVisible();
     await page.getByRole("button", { name: "Change: Gellért Baths" }).click();
     const sheet = page.getByRole("dialog", { name: "Day 2 · Afternoon" });
     await expect(sheet).toBeVisible();
-    await expect(sheet.getByText("No alternatives for this slot yet.")).toBeVisible();
-    await sheet.getByRole("button", { name: "Ask for more options in the chat" }).click();
     await expect(page.getByRole("region", { name: /Thermal baths for day 2/ })).toBeVisible();
 
-    // 6. Reopen the sheet: the alternatives are there; Rudas replaces Gellért.
-    await page.getByRole("button", { name: "Change: Gellért Baths" }).click();
+    // 6. The alternatives are in the sheet without a second click; Rudas replaces Gellért.
     await expect(sheet.getByRole("article", { name: "Rudas Baths" })).toBeVisible();
     await sheet
       .getByRole("article", { name: "Rudas Baths" })
@@ -186,6 +183,16 @@ test.describe("Planner page — /plan/", () => {
     await expect(page.getByRole("heading", { name: "3 days in Budapest" })).toBeVisible({
       timeout: 15_000,
     });
+
+    // "Change" on a demo slot lists three photographed alternatives by itself.
+    await page.getByRole("button", { name: "Change: Great Market Hall" }).click();
+    const sheet = page.getByRole("dialog", { name: "Day 1 · Morning" });
+    await expect(sheet.getByRole("article")).toHaveCount(3, { timeout: 15_000 });
+    await expect(sheet.getByRole("article").first().getByRole("img")).toHaveAttribute(
+      "src",
+      /commons\.wikimedia\.org/
+    );
+    await page.getByRole("button", { name: "Close alternatives" }).click();
 
     // Photos come from Wikimedia Commons, with their credit.
     const photo = card(page, "Hotel Rum Budapest").getByRole("img", { name: "Hotel Rum Budapest" });

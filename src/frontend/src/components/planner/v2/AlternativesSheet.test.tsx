@@ -85,7 +85,7 @@ describe("AlternativesSheet", () => {
     expect(onClose).toHaveBeenCalledTimes(2);
   });
 
-  it("offers to ask the chat when the slot has no options yet", () => {
+  it("offers to ask the chat when the slot has no options yet, staying open", () => {
     const { onAskMore, onClose } = renderSheet({ group: null });
 
     expect(screen.getByText(a.none)).toBeInTheDocument();
@@ -94,7 +94,14 @@ describe("AlternativesSheet", () => {
     fireEvent.click(screen.getByRole("button", { name: a.askMore }));
 
     expect(onAskMore).toHaveBeenCalledWith({ day: 2, part: "afternoon" });
-    expect(onClose).toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("shows that the options are on their way while the turn streams", () => {
+    renderSheet({ group: null, loading: true });
+
+    expect(screen.getByRole("status")).toHaveTextContent(a.loading);
+    expect(screen.queryByText(a.none)).not.toBeInTheDocument();
   });
 
   it("selects a card into the slot and closes", () => {
