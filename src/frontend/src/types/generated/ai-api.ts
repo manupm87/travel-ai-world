@@ -81,6 +81,17 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** BriefEvent */
+        BriefEvent: {
+            brief: components["schemas"]["TripBrief"];
+            /** Missing */
+            missing: ("destination" | "origin" | "travellers" | "dates" | "interests")[];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "brief";
+        };
         /**
          * ChatMessage
          * @description A single message replayed from the conversation history.
@@ -119,10 +130,322 @@ export interface components {
              */
             thread_id?: string | null;
         };
+        /**
+         * DaySlots
+         * @description Card ids per part of the day. Every part is sent, empty or not, so the
+         *     generated type matches the page's `Record<DayPart, string[]>`.
+         */
+        DaySlots: {
+            /** Afternoon */
+            afternoon: string[];
+            /** Evening */
+            evening: string[];
+            /** Morning */
+            morning: string[];
+            /** Night */
+            night: string[];
+        };
+        /** DaySnapshot */
+        DaySnapshot: {
+            /** Day */
+            day: number;
+            slots: components["schemas"]["DaySlots"];
+        };
+        /** DoneEvent */
+        DoneEvent: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "done";
+        };
+        /** ErrorEvent */
+        ErrorEvent: {
+            /** Error */
+            error: string;
+            /** Error Code */
+            error_code: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "error";
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        ItineraryOp: components["schemas"]["SetStayOp"] | components["schemas"]["PutActivityOp"] | components["schemas"]["RemoveActivityOp"] | components["schemas"]["SetDayTitleOp"] | components["schemas"]["SetRouteOp"] | components["schemas"]["SetWeatherOp"] | components["schemas"]["WarnOp"];
+        /** ItineraryPatchEvent */
+        ItineraryPatchEvent: {
+            /** Ops */
+            ops: (components["schemas"]["SetStayOp"] | components["schemas"]["PutActivityOp"] | components["schemas"]["RemoveActivityOp"] | components["schemas"]["SetDayTitleOp"] | components["schemas"]["SetRouteOp"] | components["schemas"]["SetWeatherOp"] | components["schemas"]["WarnOp"])[];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "itinerary_patch";
+        };
+        /**
+         * ItinerarySnapshot
+         * @description What the client holds: the stay and the days, as card ids.
+         */
+        ItinerarySnapshot: {
+            /** Days */
+            days: components["schemas"]["DaySnapshot"][];
+            /** Stay Card Id */
+            stay_card_id: string | null;
+        };
+        /**
+         * OptionCard
+         * @description One selectable card, hydrated from the corpus document `id` names.
+         *
+         *     Everything but `why` comes from the document's metadata; the model only
+         *     picks ids and explains its pick.
+         */
+        OptionCard: {
+            /** Category */
+            category: string;
+            /** Deep Link */
+            deep_link: string | null;
+            /** District */
+            district: string | null;
+            /** Hours */
+            hours: string | null;
+            /** Id */
+            id: string;
+            /** Image Credit */
+            image_credit: string | null;
+            /** Image Url */
+            image_url: string | null;
+            /** Lat */
+            lat: number | null;
+            /** License */
+            license: string;
+            /** Lon */
+            lon: number | null;
+            /** Price Tier */
+            price_tier: (1 | 2 | 3) | null;
+            /** Rating Text */
+            rating_text: string | null;
+            /** Source */
+            source: string;
+            /** Source Url */
+            source_url: string;
+            /** Subtitle */
+            subtitle: string | null;
+            /** Title */
+            title: string;
+            /** Why */
+            why: string;
+        };
+        /**
+         * OptionsEvent
+         * @description A carousel the user can pick from; `group_id` names it in the next turn.
+         */
+        OptionsEvent: {
+            /** Cards */
+            cards: components["schemas"]["OptionCard"][];
+            /** Group Id */
+            group_id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "neighbourhood" | "hotel" | "experience" | "restaurant" | "flight" | "day_template";
+            /** Prompt */
+            prompt: string;
+            /**
+             * Selection
+             * @enum {string}
+             */
+            selection: "single" | "multi";
+            slot: components["schemas"]["Slot"] | null;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "options";
+        };
+        PlannerEvent: components["schemas"]["TextEvent"] | components["schemas"]["BriefEvent"] | components["schemas"]["OptionsEvent"] | components["schemas"]["ItineraryPatchEvent"] | components["schemas"]["ErrorEvent"] | components["schemas"]["DoneEvent"];
+        /**
+         * PlannerTurn
+         * @description One turn: a message, a structured action, or both.
+         */
+        PlannerTurn: {
+            /** Action */
+            action: (components["schemas"]["SelectAction"] | components["schemas"]["RemoveAction"]) | null;
+            brief: components["schemas"]["TripBrief"] | null;
+            /**
+             * History
+             * @description Text turns before this one, oldest first
+             */
+            history: components["schemas"]["ChatMessage"][];
+            itinerary: components["schemas"]["ItinerarySnapshot"] | null;
+            /** Message */
+            message: string | null;
+            /**
+             * Trip Id
+             * @description Reserved: the Trip this draft will be saved to
+             */
+            trip_id: string | null;
+        };
+        /** PutActivityOp */
+        PutActivityOp: {
+            card: components["schemas"]["OptionCard"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            op: "put_activity";
+            slot: components["schemas"]["Slot"];
+        };
+        /**
+         * RemoveAction
+         * @description An activity taken out of a slot.
+         */
+        RemoveAction: {
+            /** Card Id */
+            card_id: string;
+            slot: components["schemas"]["Slot"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "remove";
+        };
+        /** RemoveActivityOp */
+        RemoveActivityOp: {
+            /** Card Id */
+            card_id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            op: "remove_activity";
+            slot: components["schemas"]["Slot"];
+        };
+        /**
+         * SelectAction
+         * @description Cards chosen in a carousel the server sent earlier (`group_id`).
+         */
+        SelectAction: {
+            /** Card Ids */
+            card_ids: string[];
+            /** Group Id */
+            group_id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "select";
+        };
+        /** SetDayTitleOp */
+        SetDayTitleOp: {
+            /** Day */
+            day: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            op: "set_day_title";
+            /** Title */
+            title: string;
+        };
+        /**
+         * SetRouteOp
+         * @description The journey there and back: a prefilled search, never a price.
+         */
+        SetRouteOp: {
+            /** Deep Link */
+            deep_link: string | null;
+            /** Destination */
+            destination: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            op: "set_route";
+            /** Origin */
+            origin: string;
+            /** Outbound Date */
+            outbound_date: string | null;
+            /** Return Date */
+            return_date: string | null;
+        };
+        /** SetStayOp */
+        SetStayOp: {
+            card: components["schemas"]["OptionCard"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            op: "set_stay";
+        };
+        /** SetWeatherOp */
+        SetWeatherOp: {
+            /** Day */
+            day: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            op: "set_weather";
+            /** Source */
+            source: string;
+            /** Summary */
+            summary: string;
+            /** T Max */
+            t_max: number | null;
+            /** T Min */
+            t_min: number | null;
+        };
+        /**
+         * Slot
+         * @description A part of a day; `part` is null when the server did not pin one.
+         */
+        Slot: {
+            /** Day */
+            day: number;
+            /** Part */
+            part: ("morning" | "afternoon" | "evening" | "night") | null;
+        };
+        /** TextEvent */
+        TextEvent: {
+            /** Delta */
+            delta: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "text";
+        };
+        /**
+         * TripBrief
+         * @description What the planner knows about the trip; the client sends it back each turn.
+         */
+        TripBrief: {
+            /** Adults */
+            adults: number | null;
+            /** Budget Tier */
+            budget_tier: (1 | 2 | 3) | null;
+            /** Children */
+            children: number | null;
+            /** Destination */
+            destination: string | null;
+            /** End Date */
+            end_date: string | null;
+            /** Interests */
+            interests: string[];
+            /** Nights */
+            nights: number | null;
+            /** Origin */
+            origin: string | null;
+            /** Pace */
+            pace: ("relaxed" | "balanced" | "intense") | null;
+            /** Start Date */
+            start_date: string | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -136,6 +459,22 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /** WarnOp */
+        WarnOp: {
+            /**
+             * Code
+             * @enum {string}
+             */
+            code: "too_far" | "closed" | "overloaded_day" | "unverified_price";
+            /** Message */
+            message: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            op: "warn";
+            slot: components["schemas"]["Slot"] | null;
         };
     };
     responses: never;

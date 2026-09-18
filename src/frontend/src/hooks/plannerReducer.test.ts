@@ -389,6 +389,15 @@ describe("plannerReducer — error event", () => {
     expect(state.error).toBe("unauthorized");
   });
 
+  it("is case-insensitive: the backend's upper-case error_code UNAUTHORIZED still maps to unauthorized", () => {
+    const state = plannerReducer(initialPlannerState(), {
+      type: "event",
+      event: { type: "error", error: "no token", error_code: "UNAUTHORIZED" },
+    });
+    expect(state.status).toBe("error");
+    expect(state.error).toBe("unauthorized");
+  });
+
   it("sets a generic error kind for any other error_code", () => {
     const state = plannerReducer(initialPlannerState(), {
       type: "event",

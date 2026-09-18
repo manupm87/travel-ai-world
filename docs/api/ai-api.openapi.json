@@ -1,6 +1,39 @@
 {
   "components": {
     "schemas": {
+      "BriefEvent": {
+        "properties": {
+          "brief": {
+            "$ref": "#/components/schemas/TripBrief"
+          },
+          "missing": {
+            "items": {
+              "enum": [
+                "destination",
+                "origin",
+                "travellers",
+                "dates",
+                "interests"
+              ],
+              "type": "string"
+            },
+            "title": "Missing",
+            "type": "array"
+          },
+          "type": {
+            "const": "brief",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "brief",
+          "missing"
+        ],
+        "title": "BriefEvent",
+        "type": "object"
+      },
       "ChatMessage": {
         "description": "A single message replayed from the conversation history.",
         "properties": {
@@ -66,6 +99,107 @@
         "title": "ChatRequest",
         "type": "object"
       },
+      "DaySlots": {
+        "description": "Card ids per part of the day. Every part is sent, empty or not, so the\ngenerated type matches the page's `Record<DayPart, string[]>`.",
+        "properties": {
+          "afternoon": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Afternoon",
+            "type": "array"
+          },
+          "evening": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Evening",
+            "type": "array"
+          },
+          "morning": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Morning",
+            "type": "array"
+          },
+          "night": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Night",
+            "type": "array"
+          }
+        },
+        "required": [
+          "morning",
+          "afternoon",
+          "evening",
+          "night"
+        ],
+        "title": "DaySlots",
+        "type": "object"
+      },
+      "DaySnapshot": {
+        "properties": {
+          "day": {
+            "minimum": 1,
+            "title": "Day",
+            "type": "integer"
+          },
+          "slots": {
+            "$ref": "#/components/schemas/DaySlots"
+          }
+        },
+        "required": [
+          "day",
+          "slots"
+        ],
+        "title": "DaySnapshot",
+        "type": "object"
+      },
+      "DoneEvent": {
+        "properties": {
+          "type": {
+            "const": "done",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "title": "DoneEvent",
+        "type": "object"
+      },
+      "ErrorEvent": {
+        "properties": {
+          "error": {
+            "title": "Error",
+            "type": "string"
+          },
+          "error_code": {
+            "title": "Error Code",
+            "type": "string"
+          },
+          "type": {
+            "const": "error",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "error",
+          "error_code"
+        ],
+        "title": "ErrorEvent",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -77,6 +211,943 @@
           }
         },
         "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "ItineraryOp": {
+        "discriminator": {
+          "mapping": {
+            "put_activity": "#/components/schemas/PutActivityOp",
+            "remove_activity": "#/components/schemas/RemoveActivityOp",
+            "set_day_title": "#/components/schemas/SetDayTitleOp",
+            "set_route": "#/components/schemas/SetRouteOp",
+            "set_stay": "#/components/schemas/SetStayOp",
+            "set_weather": "#/components/schemas/SetWeatherOp",
+            "warn": "#/components/schemas/WarnOp"
+          },
+          "propertyName": "op"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/SetStayOp"
+          },
+          {
+            "$ref": "#/components/schemas/PutActivityOp"
+          },
+          {
+            "$ref": "#/components/schemas/RemoveActivityOp"
+          },
+          {
+            "$ref": "#/components/schemas/SetDayTitleOp"
+          },
+          {
+            "$ref": "#/components/schemas/SetRouteOp"
+          },
+          {
+            "$ref": "#/components/schemas/SetWeatherOp"
+          },
+          {
+            "$ref": "#/components/schemas/WarnOp"
+          }
+        ]
+      },
+      "ItineraryPatchEvent": {
+        "properties": {
+          "ops": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "put_activity": "#/components/schemas/PutActivityOp",
+                  "remove_activity": "#/components/schemas/RemoveActivityOp",
+                  "set_day_title": "#/components/schemas/SetDayTitleOp",
+                  "set_route": "#/components/schemas/SetRouteOp",
+                  "set_stay": "#/components/schemas/SetStayOp",
+                  "set_weather": "#/components/schemas/SetWeatherOp",
+                  "warn": "#/components/schemas/WarnOp"
+                },
+                "propertyName": "op"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/SetStayOp"
+                },
+                {
+                  "$ref": "#/components/schemas/PutActivityOp"
+                },
+                {
+                  "$ref": "#/components/schemas/RemoveActivityOp"
+                },
+                {
+                  "$ref": "#/components/schemas/SetDayTitleOp"
+                },
+                {
+                  "$ref": "#/components/schemas/SetRouteOp"
+                },
+                {
+                  "$ref": "#/components/schemas/SetWeatherOp"
+                },
+                {
+                  "$ref": "#/components/schemas/WarnOp"
+                }
+              ]
+            },
+            "title": "Ops",
+            "type": "array"
+          },
+          "type": {
+            "const": "itinerary_patch",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "ops"
+        ],
+        "title": "ItineraryPatchEvent",
+        "type": "object"
+      },
+      "ItinerarySnapshot": {
+        "description": "What the client holds: the stay and the days, as card ids.",
+        "properties": {
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/DaySnapshot"
+            },
+            "maxItems": 14,
+            "title": "Days",
+            "type": "array"
+          },
+          "stay_card_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stay Card Id"
+          }
+        },
+        "required": [
+          "stay_card_id",
+          "days"
+        ],
+        "title": "ItinerarySnapshot",
+        "type": "object"
+      },
+      "OptionCard": {
+        "description": "One selectable card, hydrated from the corpus document `id` names.\n\nEverything but `why` comes from the document's metadata; the model only\npicks ids and explains its pick.",
+        "properties": {
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "deep_link": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deep Link"
+          },
+          "district": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "District"
+          },
+          "hours": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hours"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "image_credit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Credit"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "lat": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lat"
+          },
+          "license": {
+            "title": "License",
+            "type": "string"
+          },
+          "lon": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lon"
+          },
+          "price_tier": {
+            "anyOf": [
+              {
+                "enum": [
+                  1,
+                  2,
+                  3
+                ],
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price Tier"
+          },
+          "rating_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating Text"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "source_url": {
+            "title": "Source Url",
+            "type": "string"
+          },
+          "subtitle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subtitle"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "why": {
+            "maxLength": 140,
+            "title": "Why",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "subtitle",
+          "district",
+          "category",
+          "image_url",
+          "image_credit",
+          "price_tier",
+          "rating_text",
+          "hours",
+          "lat",
+          "lon",
+          "why",
+          "source",
+          "source_url",
+          "license",
+          "deep_link"
+        ],
+        "title": "OptionCard",
+        "type": "object"
+      },
+      "OptionsEvent": {
+        "description": "A carousel the user can pick from; `group_id` names it in the next turn.",
+        "properties": {
+          "cards": {
+            "items": {
+              "$ref": "#/components/schemas/OptionCard"
+            },
+            "title": "Cards",
+            "type": "array"
+          },
+          "group_id": {
+            "title": "Group Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "neighbourhood",
+              "hotel",
+              "experience",
+              "restaurant",
+              "flight",
+              "day_template"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "prompt": {
+            "title": "Prompt",
+            "type": "string"
+          },
+          "selection": {
+            "enum": [
+              "single",
+              "multi"
+            ],
+            "title": "Selection",
+            "type": "string"
+          },
+          "slot": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Slot"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "type": {
+            "const": "options",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "group_id",
+          "kind",
+          "prompt",
+          "slot",
+          "selection",
+          "cards"
+        ],
+        "title": "OptionsEvent",
+        "type": "object"
+      },
+      "PlannerEvent": {
+        "discriminator": {
+          "mapping": {
+            "brief": "#/components/schemas/BriefEvent",
+            "done": "#/components/schemas/DoneEvent",
+            "error": "#/components/schemas/ErrorEvent",
+            "itinerary_patch": "#/components/schemas/ItineraryPatchEvent",
+            "options": "#/components/schemas/OptionsEvent",
+            "text": "#/components/schemas/TextEvent"
+          },
+          "propertyName": "type"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/TextEvent"
+          },
+          {
+            "$ref": "#/components/schemas/BriefEvent"
+          },
+          {
+            "$ref": "#/components/schemas/OptionsEvent"
+          },
+          {
+            "$ref": "#/components/schemas/ItineraryPatchEvent"
+          },
+          {
+            "$ref": "#/components/schemas/ErrorEvent"
+          },
+          {
+            "$ref": "#/components/schemas/DoneEvent"
+          }
+        ]
+      },
+      "PlannerTurn": {
+        "description": "One turn: a message, a structured action, or both.",
+        "properties": {
+          "action": {
+            "anyOf": [
+              {
+                "discriminator": {
+                  "mapping": {
+                    "remove": "#/components/schemas/RemoveAction",
+                    "select": "#/components/schemas/SelectAction"
+                  },
+                  "propertyName": "type"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/SelectAction"
+                  },
+                  {
+                    "$ref": "#/components/schemas/RemoveAction"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Action"
+          },
+          "brief": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TripBrief"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "history": {
+            "description": "Text turns before this one, oldest first",
+            "items": {
+              "$ref": "#/components/schemas/ChatMessage"
+            },
+            "maxItems": 40,
+            "title": "History",
+            "type": "array"
+          },
+          "itinerary": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ItinerarySnapshot"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          },
+          "trip_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Reserved: the Trip this draft will be saved to",
+            "title": "Trip Id"
+          }
+        },
+        "required": [
+          "message",
+          "action",
+          "history",
+          "brief",
+          "itinerary",
+          "trip_id"
+        ],
+        "title": "PlannerTurn",
+        "type": "object"
+      },
+      "PutActivityOp": {
+        "properties": {
+          "card": {
+            "$ref": "#/components/schemas/OptionCard"
+          },
+          "op": {
+            "const": "put_activity",
+            "title": "Op",
+            "type": "string"
+          },
+          "slot": {
+            "$ref": "#/components/schemas/Slot"
+          }
+        },
+        "required": [
+          "op",
+          "slot",
+          "card"
+        ],
+        "title": "PutActivityOp",
+        "type": "object"
+      },
+      "RemoveAction": {
+        "description": "An activity taken out of a slot.",
+        "properties": {
+          "card_id": {
+            "minLength": 1,
+            "title": "Card Id",
+            "type": "string"
+          },
+          "slot": {
+            "$ref": "#/components/schemas/Slot"
+          },
+          "type": {
+            "const": "remove",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "slot",
+          "card_id"
+        ],
+        "title": "RemoveAction",
+        "type": "object"
+      },
+      "RemoveActivityOp": {
+        "properties": {
+          "card_id": {
+            "title": "Card Id",
+            "type": "string"
+          },
+          "op": {
+            "const": "remove_activity",
+            "title": "Op",
+            "type": "string"
+          },
+          "slot": {
+            "$ref": "#/components/schemas/Slot"
+          }
+        },
+        "required": [
+          "op",
+          "slot",
+          "card_id"
+        ],
+        "title": "RemoveActivityOp",
+        "type": "object"
+      },
+      "SelectAction": {
+        "description": "Cards chosen in a carousel the server sent earlier (`group_id`).",
+        "properties": {
+          "card_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Card Ids",
+            "type": "array"
+          },
+          "group_id": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Group Id",
+            "type": "string"
+          },
+          "type": {
+            "const": "select",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "group_id",
+          "card_ids"
+        ],
+        "title": "SelectAction",
+        "type": "object"
+      },
+      "SetDayTitleOp": {
+        "properties": {
+          "day": {
+            "minimum": 1,
+            "title": "Day",
+            "type": "integer"
+          },
+          "op": {
+            "const": "set_day_title",
+            "title": "Op",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "op",
+          "day",
+          "title"
+        ],
+        "title": "SetDayTitleOp",
+        "type": "object"
+      },
+      "SetRouteOp": {
+        "description": "The journey there and back: a prefilled search, never a price.",
+        "properties": {
+          "deep_link": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deep Link"
+          },
+          "destination": {
+            "title": "Destination",
+            "type": "string"
+          },
+          "op": {
+            "const": "set_route",
+            "title": "Op",
+            "type": "string"
+          },
+          "origin": {
+            "title": "Origin",
+            "type": "string"
+          },
+          "outbound_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outbound Date"
+          },
+          "return_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Return Date"
+          }
+        },
+        "required": [
+          "op",
+          "origin",
+          "destination",
+          "outbound_date",
+          "return_date",
+          "deep_link"
+        ],
+        "title": "SetRouteOp",
+        "type": "object"
+      },
+      "SetStayOp": {
+        "properties": {
+          "card": {
+            "$ref": "#/components/schemas/OptionCard"
+          },
+          "op": {
+            "const": "set_stay",
+            "title": "Op",
+            "type": "string"
+          }
+        },
+        "required": [
+          "op",
+          "card"
+        ],
+        "title": "SetStayOp",
+        "type": "object"
+      },
+      "SetWeatherOp": {
+        "properties": {
+          "day": {
+            "minimum": 1,
+            "title": "Day",
+            "type": "integer"
+          },
+          "op": {
+            "const": "set_weather",
+            "title": "Op",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "t_max": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "T Max"
+          },
+          "t_min": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "T Min"
+          }
+        },
+        "required": [
+          "op",
+          "day",
+          "summary",
+          "t_max",
+          "t_min",
+          "source"
+        ],
+        "title": "SetWeatherOp",
+        "type": "object"
+      },
+      "Slot": {
+        "description": "A part of a day; `part` is null when the server did not pin one.",
+        "properties": {
+          "day": {
+            "minimum": 1,
+            "title": "Day",
+            "type": "integer"
+          },
+          "part": {
+            "anyOf": [
+              {
+                "enum": [
+                  "morning",
+                  "afternoon",
+                  "evening",
+                  "night"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Part"
+          }
+        },
+        "required": [
+          "day",
+          "part"
+        ],
+        "title": "Slot",
+        "type": "object"
+      },
+      "TextEvent": {
+        "properties": {
+          "delta": {
+            "title": "Delta",
+            "type": "string"
+          },
+          "type": {
+            "const": "text",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "delta"
+        ],
+        "title": "TextEvent",
+        "type": "object"
+      },
+      "TripBrief": {
+        "description": "What the planner knows about the trip; the client sends it back each turn.",
+        "properties": {
+          "adults": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adults"
+          },
+          "budget_tier": {
+            "anyOf": [
+              {
+                "enum": [
+                  1,
+                  2,
+                  3
+                ],
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Tier"
+          },
+          "children": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Children"
+          },
+          "destination": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Destination"
+          },
+          "end_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Date"
+          },
+          "interests": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Interests",
+            "type": "array"
+          },
+          "nights": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nights"
+          },
+          "origin": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Origin"
+          },
+          "pace": {
+            "anyOf": [
+              {
+                "enum": [
+                  "relaxed",
+                  "balanced",
+                  "intense"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pace"
+          },
+          "start_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Date"
+          }
+        },
+        "required": [
+          "destination",
+          "origin",
+          "start_date",
+          "end_date",
+          "nights",
+          "adults",
+          "children",
+          "budget_tier",
+          "interests",
+          "pace"
+        ],
+        "title": "TripBrief",
         "type": "object"
       },
       "ValidationError": {
@@ -117,6 +1188,47 @@
           "type"
         ],
         "title": "ValidationError",
+        "type": "object"
+      },
+      "WarnOp": {
+        "properties": {
+          "code": {
+            "enum": [
+              "too_far",
+              "closed",
+              "overloaded_day",
+              "unverified_price"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "op": {
+            "const": "warn",
+            "title": "Op",
+            "type": "string"
+          },
+          "slot": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Slot"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "op",
+          "slot",
+          "code",
+          "message"
+        ],
+        "title": "WarnOp",
         "type": "object"
       }
     },

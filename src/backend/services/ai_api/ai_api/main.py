@@ -7,6 +7,7 @@ from travel_common.http.app_factory import create_app
 from ai_api.api.v1.api_router import api_router
 from ai_api.config import get_settings
 from ai_api.infrastructure.providers import build_llm_provider, build_retriever
+from ai_api.openapi import register_stream_schemas
 
 
 @asynccontextmanager
@@ -36,3 +37,6 @@ app = create_app(
     docs_prefix=f"{settings.API_V1_STR}{api_router.prefix}",
     lifespan=lifespan,
 )
+# The planner streams typed events no route declares (TRA-142): put them in
+# the OpenAPI document so `just contracts` generates them for the frontend.
+register_stream_schemas(app)

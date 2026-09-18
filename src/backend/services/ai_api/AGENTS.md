@@ -13,6 +13,8 @@ infrastructure/ adapters: nvidia_provider.py, bedrock_provider.py, bedrock_embed
                 Bedrock adapters), s3vectors.py + s3vectors_retriever.py, providers.py (settings → adapters),
                 sse.py, retry.py, core_api_client.py
 api/            deps.py (per-request wiring; process resources come from app.state), v1/endpoints/{chat,health}.py
+schemas/        chat.py (request), planner.py (PlannerTurn request), planner_events.py (SSE v2 events, ADR 0015)
+openapi.py      puts the planner's stream models into the OpenAPI document (no route declares them)
 main.py         lifespan builds the provider and the retriever once (providers.build_*) and closes them
 indexing.py     CLI that fills the vector index from a corpus JSONL (just index); never runs in a request
 prompts.py      every prompt string (system prompt, RAG context template, format_context)
@@ -46,6 +48,13 @@ testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever + s
 - SSE wire format to the browser is fixed (`data: {"content"}`, `data: {"thread_id"}`,
   `data: {"error", "error_code"}`, `data: [DONE]`); the frontend's `services/chat.ts` depends on it. Upstream bodies and unexpected
   exceptions never reach the client: `sse.py` sends the domain message or a generic one and logs the rest.
+- **The planner's stream is typed (SSE v2, ADR 0015):** `schemas/planner_events.py` is a discriminated
+  union on `type` (`text`, `brief`, `options`, `itinerary_patch`, `error`, `done`), ops on `op`, flat fields,
+  **no field optional on the wire** (unknown → `null`; no defaults on the models, so the generated TypeScript
+  has no `?`). Build events with the constructors at the bottom of that module (`text()`, `patch()`, ...),
+  frame them with `sse.sse_events`. A streamed body has no response model, so `openapi.py` wraps
+  `app.openapi()` and adds `PlannerEvent`, `ItineraryOp`, `PlannerTurn` and their models to
+  `components.schemas`: any new event or op only needs to join the union, then `just contracts`.
 - **Conversations live in `core_api`** (ADR 0013), never here: `ai_api` stays stateless and has no
   database. `RecordConversation` wraps the answer stream and, once the answer is complete, appends
   the question and the answer (sources, model, tokens, latency from `ChatTrace`) through

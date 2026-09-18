@@ -321,7 +321,7 @@ function applyEvent(state: PlannerState, event: PlannerEvent): PlannerState {
       return {
         ...state,
         status: "error",
-        error: event.error_code === "unauthorized" ? "unauthorized" : "generic",
+        error: event.error_code.toLowerCase() === "unauthorized" ? "unauthorized" : "generic",
         messages: dropEmptyTail(state.messages),
       };
     case "done":
