@@ -5,7 +5,7 @@ import {
   USER_MESSAGES,
   toSseBody,
   turnFor,
-} from "../src/test/fixtures/planner-budapest";
+} from "../src/data/planner-demo/session";
 import type { PlannerTurn } from "../src/types/planner";
 
 /**
@@ -157,6 +157,43 @@ test.describe("Planner page — /plan/", () => {
 
     await tabs.getByRole("tab", { name: "Map" }).click();
     await expect(page.getByText(/The map arrives with the next release/)).toBeVisible();
+  });
+
+  test("without the planner route, the recorded session answers with a demo banner", async ({
+    page,
+  }) => {
+    // Today's production shape: ai_api is deployed, /planner is not (TRA-143 pending).
+    await page.unroute("**/api/v1/ai/planner");
+    await page.route("**/api/v1/ai/planner", (route) =>
+      route.fulfill({
+        status: 404,
+        contentType: "application/json",
+        body: JSON.stringify({ detail: "Not Found" }),
+      })
+    );
+    await page.goto("/plan/");
+
+    await send(page, USER_MESSAGES.opening);
+    await expect(page.getByRole("status").filter({ hasText: "Demo mode" })).toBeVisible();
+    await expect(page.getByText("Which dates suit you best?")).toBeVisible({ timeout: 15_000 });
+
+    const refine = page.getByRole("region", { name: "Let's refine a bit:" });
+    await refine.getByLabel("From", { exact: true }).fill("2026-10-23");
+    await refine.getByLabel("To", { exact: true }).fill("2026-10-27");
+    await refine.getByRole("button", { name: "Confirm" }).click();
+    await card(page, "Belváros").getByRole("button", { name: "Choose" }).click({ timeout: 15_000 });
+    await card(page, "Hotel Rum Budapest").getByRole("button", { name: "Choose" }).click({ timeout: 15_000 });
+    await expect(page.getByRole("heading", { name: "5 days in Budapest" })).toBeVisible({
+      timeout: 15_000,
+    });
+
+    // Photos come from Wikimedia Commons, with their credit.
+    const photo = card(page, "Hotel Rum Budapest").getByRole("img", { name: "Hotel Rum Budapest" });
+    await expect(photo).toHaveAttribute("src", /commons\.wikimedia\.org/);
+
+    // The banner can be hidden for the tab.
+    await page.getByRole("button", { name: "Hide this notice" }).click();
+    await expect(page.getByRole("status").filter({ hasText: "Demo mode" })).toHaveCount(0);
   });
 
   test("?q= from the landing planner sends the prompt as the first turn", async ({ page }) => {

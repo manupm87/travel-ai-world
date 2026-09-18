@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useReducer, useRef } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { UnauthorizedError } from "@/services/http";
 import { streamPlannerTurn } from "@/services/planner";
 import {
@@ -52,6 +52,10 @@ export function usePlanner() {
       writePlannerDraft(toPlannerDraft(state));
     }
   }, [state]);
+
+  /** True once a turn was answered by the synthetic session (TRA-158). */
+  const [demo, setDemo] = useState(false);
+  const markDemo = useCallback(() => setDemo(true), []);
 
   const controllerRef = useRef<AbortController | null>(null);
   /** Streamed text not yet committed to React state (flushed once per frame). */
@@ -127,7 +131,10 @@ export function usePlanner() {
       };
 
       try {
-        for await (const event of streamPlannerTurn(request, { signal: controller.signal })) {
+        for await (const event of streamPlannerTurn(request, {
+          signal: controller.signal,
+          onDemo: markDemo,
+        })) {
           if (controller.signal.aborted) return;
           if (event.type === "text") {
             pendingTextRef.current += event.delta;
@@ -152,7 +159,7 @@ export function usePlanner() {
         if (controllerRef.current === controller) controllerRef.current = null;
       }
     },
-    [abort, flushText]
+    [abort, flushText, markDemo]
   );
 
   /** Free text from the composer, the suggestion chips or the checklist. */
@@ -209,7 +216,7 @@ export function usePlanner() {
     dispatch({ type: "reset" }); // the persist effect clears the stored draft
   }, [abort]);
 
-  return { state, sendMessage, answer, select, remove, dismiss, toggleShortlist, reset, abort };
+  return { state, demo, sendMessage, answer, select, remove, dismiss, toggleShortlist, reset, abort };
 }
 
 export type UsePlannerResult = ReturnType<typeof usePlanner>;

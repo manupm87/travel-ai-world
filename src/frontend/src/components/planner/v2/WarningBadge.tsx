@@ -17,7 +17,7 @@ export function WarningBadge({ warning }: { warning: ItineraryWarning }) {
     <span
       role="status"
       data-warning={warning.code}
-      className="inline-flex items-start gap-1.5 rounded-lg border border-warning/30 bg-warning/10 px-2 py-1 text-xs leading-snug text-warning"
+      className="inline-flex animate-scale-in items-start gap-1.5 rounded-lg border border-warning/30 bg-warning/10 px-2 py-1 text-xs leading-snug text-warning"
     >
       <AlertTriangle size={12} aria-hidden="true" className="mt-0.5 shrink-0" />
       <span>{text}</span>

@@ -6,7 +6,7 @@ import {
   GROUP_IDS,
   HOTELS,
   NEIGHBOURHOODS,
-} from "@/test/fixtures/planner-budapest";
+} from "@/data/planner-demo/session";
 import { BRIEF_FIELDS, EMPTY_BRIEF, type ItineraryOp, type Slot } from "@/types/planner";
 import {
   applyItineraryOp,

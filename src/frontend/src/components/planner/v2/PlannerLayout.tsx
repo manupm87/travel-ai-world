@@ -9,6 +9,8 @@ export type PlannerTab = "chat" | "trip" | "map";
 const TABS = ["chat", "trip", "map"] as const satisfies readonly PlannerTab[];
 
 export interface PlannerLayoutProps {
+  /** Optional strip above the tabs (the demo-mode banner); `null` shows none. */
+  banner?: ReactNode;
   chat: ReactNode;
   panel: ReactNode;
   /** Shown on its own tab on small screens; on desktop the panel embeds it. */
@@ -20,7 +22,7 @@ export interface PlannerLayoutProps {
  * scrolling independently under the fixed header; on small screens three
  * tabs (Chat / Trip / Map) over one full-height pane.
  */
-export function PlannerLayout({ chat, panel, map }: PlannerLayoutProps) {
+export function PlannerLayout({ banner = null, chat, panel, map }: PlannerLayoutProps) {
   const { t } = useLanguage();
   const [tab, setTab] = useState<PlannerTab>("chat");
   const baseId = useId();
@@ -44,6 +46,8 @@ export function PlannerLayout({ chat, panel, map }: PlannerLayoutProps) {
   return (
     <div className="flex h-[calc(100vh-var(--header-h))] min-h-0 flex-col">
       <h1 className="sr-only">{t.plan.title}</h1>
+
+      {banner && <div className="shrink-0">{banner}</div>}
 
       {/* Small screens: tabs. The tab roles stay on the panes at every width:
           above `lg` the tablist is hidden and the three panes simply show,
@@ -89,7 +93,9 @@ export function PlannerLayout({ chat, panel, map }: PlannerLayoutProps) {
           aria-labelledby={tabId("chat")}
           className={cn(
             "min-h-0 flex-col border-border p-4 lg:flex lg:border-r",
-            tab === "chat" ? "flex" : "hidden"
+            // The fade runs when the class appears, i.e. when the tab becomes
+            // the active one: no remount, so the pane keeps its own state.
+            tab === "chat" ? "flex animate-fade-in" : "hidden"
           )}
         >
           {chat}
@@ -100,7 +106,7 @@ export function PlannerLayout({ chat, panel, map }: PlannerLayoutProps) {
           aria-labelledby={tabId("trip")}
           className={cn(
             "min-h-0 overflow-y-auto bg-bg-secondary lg:block",
-            tab === "trip" ? "block" : "hidden"
+            tab === "trip" ? "block animate-fade-in" : "hidden"
           )}
         >
           {panel}
@@ -111,7 +117,7 @@ export function PlannerLayout({ chat, panel, map }: PlannerLayoutProps) {
           aria-labelledby={tabId("map")}
           className={cn(
             "min-h-0 overflow-y-auto bg-bg-secondary p-4 lg:hidden",
-            tab === "map" ? "block" : "hidden"
+            tab === "map" ? "block animate-fade-in" : "hidden"
           )}
         >
           {map}

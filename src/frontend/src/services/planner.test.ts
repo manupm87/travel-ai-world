@@ -1,12 +1,21 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { TURNS, toSseBody } from "@/test/fixtures/planner-budapest";
+import { TURNS, toSseBody } from "@/data/planner-demo/session";
 import type { OptionCard, PlannerEvent, PlannerTurn } from "@/types/planner";
 import { EMPTY_BRIEF } from "@/types/planner";
 import { apiUrl, ApiError, UnauthorizedError } from "./http";
 import { parsePlannerEvents, streamPlannerTurn, toPlannerEvent } from "./planner";
 import { clearSession, writeSession } from "./session";
+
+// The planner falls back to the recorded session when no ai_api URL is
+// configured (TRA-158); the stream tests below want the network path, so the
+// backend is "configured" unless a test says otherwise.
+let aiAvailable = true;
+vi.mock("./http", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./http")>();
+  return { ...actual, isAiAvailable: () => aiAvailable };
+});
 
 describe("parsePlannerEvents", () => {
   it("parses a typed text event", () => {
@@ -432,5 +441,61 @@ describe("streamPlannerTurn", () => {
     await expect(
       collect(streamPlannerTurn(TURN, { signal: controller.signal }))
     ).rejects.toBe(abortError);
+  });
+});
+
+describe("streamPlannerTurn — demo fallback (TRA-158)", () => {
+  const fetchMock = vi.fn();
+  const turn: PlannerTurn = {
+    message: "5 days in Budapest from Madrid with my partner, late October. We love food, thermal baths and history.",
+    action: null,
+    history: [],
+    brief: null,
+    itinerary: null,
+    trip_id: null,
+  };
+
+  beforeEach(() => {
+    aiAvailable = true;
+    fetchMock.mockReset();
+    vi.stubGlobal("fetch", fetchMock);
+    writeSession("tok", { id: "1", email: "a@b.c", name: "A" });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    clearSession();
+  });
+
+  it("answers from the recorded session when the planner route is not deployed (404)", async () => {
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ detail: "Not Found" }), { status: 404 })
+    );
+    const onDemo = vi.fn();
+
+    const events = await collect(streamPlannerTurn(turn, { onDemo }));
+
+    expect(onDemo).toHaveBeenCalledTimes(1);
+    expect(events.at(-1)).toEqual({ type: "done" });
+    expect(events.some((e) => e.type === "brief")).toBe(true);
+  });
+
+  it("still surfaces other failures (a 500 is not a missing route)", async () => {
+    fetchMock.mockResolvedValue(new Response("boom", { status: 500 }));
+    const onDemo = vi.fn();
+
+    await expect(collect(streamPlannerTurn(turn, { onDemo }))).rejects.toBeInstanceOf(ApiError);
+    expect(onDemo).not.toHaveBeenCalled();
+  });
+
+  it("skips the network entirely when no ai_api URL is configured", async () => {
+    aiAvailable = false;
+    const onDemo = vi.fn();
+
+    const events = await collect(streamPlannerTurn(turn, { onDemo }));
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(onDemo).toHaveBeenCalledTimes(1);
+    expect(events.at(-1)).toEqual({ type: "done" });
   });
 });

@@ -262,6 +262,12 @@ const en: Translations = {
       generic: "Sorry, something went wrong while planning. Please try again.",
       unauthorized: "Your session has expired. Log in again to keep planning.",
     },
+    demo: {
+      title: "Demo mode",
+      body:
+        "The planner's backend is not connected yet, so this is a recorded Budapest session: real places, photos and sources, but the same answers for everyone. Nothing is saved.",
+      dismiss: "Hide this notice",
+    },
   },
   howItWorks: {
     label: "How It Works",

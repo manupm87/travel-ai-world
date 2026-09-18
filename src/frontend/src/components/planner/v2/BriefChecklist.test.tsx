@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { fireEvent, renderWithProviders, screen } from "@/test/render";
 import en from "@/i18n/en";
 import { interpolate } from "@/i18n";
-import { BRIEF_AFTER_FIRST_MESSAGE, BRIEF_COMPLETE } from "@/test/fixtures/planner-budapest";
+import { BRIEF_AFTER_FIRST_MESSAGE, BRIEF_COMPLETE } from "@/data/planner-demo/session";
 import { BriefChecklist } from "./BriefChecklist";
 
 const c = en.plan.checklist;

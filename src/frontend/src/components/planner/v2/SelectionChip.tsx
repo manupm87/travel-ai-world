@@ -17,7 +17,7 @@ export function SelectionChip({ titles }: SelectionChipProps) {
 
   return (
     <div className="flex justify-end">
-      <span className="inline-flex max-w-[80%] items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-3 py-1 text-xs text-text-primary">
+      <span className="inline-flex max-w-[80%] animate-scale-in items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-3 py-1 text-xs text-text-primary">
         <Check size={12} aria-hidden="true" className="shrink-0 text-accent" />
         {interpolate(t.plan.chosen, { titles: titles.join(", ") })}
       </span>

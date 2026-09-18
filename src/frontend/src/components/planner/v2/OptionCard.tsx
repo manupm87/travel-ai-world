@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Check, ExternalLink, Heart, Sparkles } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { interpolate } from "@/i18n";
@@ -19,6 +20,8 @@ export interface OptionCardProps {
   shortlisted?: boolean;
   /** A turn is streaming: the choice buttons wait. */
   disabled?: boolean;
+  /** Position in its carousel: staggers the entrance by 70 ms per card. */
+  index?: number;
   onChoose: () => void;
   onDismiss?: () => void;
   onToggleShortlist?: () => void;
@@ -39,12 +42,14 @@ export function OptionCard({
   current = false,
   shortlisted = false,
   disabled = false,
+  index = 0,
   onChoose,
   onDismiss,
   onToggleShortlist,
   className,
 }: OptionCardProps) {
   const { t } = useLanguage();
+  const [image, setImage] = useState<"loading" | "loaded" | "error">("loading");
   const p = t.plan;
 
   const meta = [
@@ -63,36 +68,64 @@ export function OptionCard({
 
   const primaryDisabled = disabled || current || (selected && selection === "single");
 
+  // The gradient block is both the "no image" state and the placeholder under a
+  // loading one; an image that fails to load falls back to it for good.
+  const hasImage = !!card.image_url && image !== "error";
+  const creditText = card.image_credit
+    ? interpolate(p.card.imageCredit, { credit: card.image_credit }) +
+      (card.license ? ` · ${card.license}` : "")
+    : null;
+
   return (
     <article
       data-card-id={card.id}
       data-selected={selected || undefined}
       aria-label={card.title}
+      style={{ animationDelay: `${index * 70}ms` }}
       className={cn(
-        "flex w-[260px] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border bg-bg-card text-left transition-colors",
+        "group flex w-[260px] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border bg-bg-card text-left",
+        "animate-fade-up transition-[border-color,box-shadow] duration-300 motion-reduce:transition-none",
         selected ? "border-accent shadow-accent-glow" : "border-border",
         className
       )}
     >
-      <div className="relative h-32 w-full bg-bg-surface">
-        {card.image_url ? (
+      <div className="relative h-32 w-full overflow-hidden bg-bg-surface">
+        {(!hasImage || image === "loading") && (
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-gradient-to-br from-accent/30 via-purple/20 to-bg-surface"
+          >
+            {hasImage && (
+              <div className="h-full w-full animate-shimmer bg-gradient-to-r from-transparent via-white/10 to-transparent bg-[length:200%_100%]" />
+            )}
+          </div>
+        )}
+        {hasImage && (
           // Remote Wikimedia images on a static export: no optimizer to route them through.
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={card.image_url}
+            src={card.image_url ?? undefined}
             alt={card.title}
-            title={card.image_credit ? interpolate(p.card.imageCredit, { credit: card.image_credit }) : undefined}
+            title={creditText ?? undefined}
             loading="lazy"
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <div
-            aria-hidden="true"
-            className="h-full w-full bg-gradient-to-br from-accent/30 via-purple/20 to-bg-surface"
+            onLoad={() => setImage("loaded")}
+            onError={() => setImage("error")}
+            className={cn(
+              "relative h-full w-full object-cover transition-opacity duration-500 motion-reduce:transition-none",
+              image === "loaded" ? "opacity-100" : "opacity-0"
+            )}
           />
         )}
+        {hasImage && creditText && (
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 bottom-0 truncate bg-bg-primary/75 px-2 py-1 text-[10px] leading-tight text-text-secondary opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100 motion-reduce:transition-none"
+          >
+            {creditText}
+          </span>
+        )}
         {selected && (
-          <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[11px] font-medium text-white">
+          <span className="absolute left-2 top-2 inline-flex animate-scale-in items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[11px] font-medium text-white">
             <Check size={12} aria-hidden="true" />
             {p.card.chosen}
           </span>

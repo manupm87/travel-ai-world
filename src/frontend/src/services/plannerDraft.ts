@@ -67,6 +67,21 @@ export function writePlannerDraft(draft: PlannerDraft): void {
   }
 }
 
+const DEMO_BANNER_KEY = "travel_ai_planner_demo_banner";
+
+/** True once the demo banner was dismissed in this tab. */
+export function isDemoBannerDismissed(): boolean {
+  return storage()?.getItem(DEMO_BANNER_KEY) === "dismissed";
+}
+
+export function dismissDemoBanner(): void {
+  try {
+    storage()?.setItem(DEMO_BANNER_KEY, "dismissed");
+  } catch {
+    // Storage disabled: the banner comes back on reload, which is fine.
+  }
+}
+
 export function clearPlannerDraft(): void {
   try {
     storage()?.removeItem(PLANNER_DRAFT_KEY);

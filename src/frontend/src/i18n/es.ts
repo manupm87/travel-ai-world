@@ -262,6 +262,12 @@ const es: Translations = {
       generic: "Lo siento, algo ha fallado al planificar. Inténtalo de nuevo.",
       unauthorized: "Tu sesión ha caducado. Vuelve a iniciar sesión para seguir planificando.",
     },
+    demo: {
+      title: "Modo demo",
+      body:
+        "El backend del planificador aún no está conectado, así que esto es una sesión de Budapest grabada: lugares, fotos y fuentes reales, pero las mismas respuestas para todos. No se guarda nada.",
+      dismiss: "Ocultar este aviso",
+    },
   },
   howItWorks: {
     label: "Cómo Funciona",

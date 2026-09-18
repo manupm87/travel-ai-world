@@ -152,7 +152,7 @@ export function TripPanel({
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-y-auto p-4">
-      <header className="flex flex-wrap items-start gap-3">
+      <header className="flex animate-fade-up flex-wrap items-start gap-3">
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <span className="text-[10px] font-medium uppercase tracking-wider text-text-secondary">
             {p.draft}
@@ -191,7 +191,9 @@ export function TripPanel({
 
       {itinerary.route && <RouteStrip route={itinerary.route} />}
 
-      <MapPlaceholder itinerary={itinerary} />
+      <div className="animate-fade-up">
+        <MapPlaceholder itinerary={itinerary} />
+      </div>
 
       {itinerary.stay && (
         <StayCard
@@ -208,6 +210,7 @@ export function TripPanel({
           date={dateForDay(brief.start_date, day.day)}
           warnings={itinerary.warnings}
           defaultOpen={index === 0}
+          index={index}
           onChange={(slot) => setChanging(slot)}
           onRemove={onRemove}
         />

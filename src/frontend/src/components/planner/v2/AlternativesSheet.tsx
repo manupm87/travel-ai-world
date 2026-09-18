@@ -112,14 +112,14 @@ export function AlternativesSheet({
       <div
         aria-hidden="true"
         onClick={onClose}
-        className="fixed inset-0 z-40 bg-bg-primary/60 backdrop-blur-sm"
+        className="fixed inset-0 z-40 animate-fade-in bg-bg-primary/60 backdrop-blur-sm"
       />
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="fixed inset-x-0 bottom-0 z-50 flex max-h-[85vh] flex-col rounded-t-2xl border border-border bg-bg-card shadow-accent-glow lg:inset-y-0 lg:left-auto lg:right-0 lg:max-h-none lg:w-[420px] lg:rounded-none lg:rounded-l-2xl"
+        className="fixed inset-x-0 bottom-0 z-50 flex max-h-[85vh] animate-slide-in-up flex-col rounded-t-2xl border border-border bg-bg-card shadow-accent-glow lg:inset-y-0 lg:left-auto lg:right-0 lg:max-h-none lg:w-[420px] lg:animate-slide-in-right lg:rounded-none lg:rounded-l-2xl"
       >
         <div className="flex items-start gap-3 border-b border-border px-4 py-3">
           <div className="flex min-w-0 flex-1 flex-col">

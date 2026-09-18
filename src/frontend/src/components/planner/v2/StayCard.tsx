@@ -26,7 +26,7 @@ export function StayCard({ stay, nights, onChange }: StayCardProps) {
   ].filter((part): part is string => !!part);
 
   return (
-    <Card className="flex gap-3 p-3">
+    <Card className="flex animate-fade-up gap-3 p-3">
       <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-bg-surface">
         {stay.image_url ? (
           // Remote Wikimedia images on a static export: no optimizer to route them through.

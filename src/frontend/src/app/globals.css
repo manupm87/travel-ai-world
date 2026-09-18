@@ -82,6 +82,65 @@
   --font-heading: var(--font-heading), system-ui, sans-serif;
 }
 
+/* ---------------------------------------------------------------------------
+   Motion
+   Tailwind v4 has no animation plugin here, so `animate-in fade-in …` classes
+   are no-ops: the planner's motion comes from these keyframes plus the
+   `--animate-*` theme tokens below, which give us `animate-fade-up`,
+   `animate-fade-in`, `animate-scale-in`, `animate-slide-in-right`,
+   `animate-slide-in-up`, `animate-shimmer` and `animate-pulse-ring`.
+   Entrances stay under 0.6 s; only the two looping ones (shimmer, pulse-ring)
+   run longer, because a placeholder sweep at 0.6 s reads as a flicker.
+   `prefers-reduced-motion` is handled globally at the bottom of this file, so
+   no component needs a per-element guard.
+   --------------------------------------------------------------------------- */
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(100%); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes slide-in-up {
+  from { opacity: 0; transform: translateY(100%); }
+  to { opacity: 1; transform: none; }
+}
+
+/* A soft sweep across a 200 %-wide gradient: the image placeholder's "loading". */
+@keyframes shimmer {
+  from { background-position: 150% 0; }
+  to { background-position: -50% 0; }
+}
+
+@keyframes pulse-ring {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.06); }
+}
+
+@theme {
+  --animate-fade-in: fade-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-fade-up: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-scale-in: scale-in 0.3s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+  --animate-slide-in-right: slide-in-right 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-slide-in-up: slide-in-up 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-shimmer: shimmer 1.4s linear infinite;
+  --animate-pulse-ring: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
   font-weight: 500;
@@ -112,4 +171,17 @@ body {
 ::selection {
   background-color: rgba(79, 110, 247, 0.3);
   color: #fff;
+}
+
+/* One global opt-out: every animation and transition collapses to an instant,
+   so components never need their own `prefers-reduced-motion` branch. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

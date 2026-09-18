@@ -4,7 +4,7 @@ import en from "@/i18n/en";
 import { interpolate } from "@/i18n";
 import type { OptionGroupState } from "@/hooks/plannerReducer";
 import type { OptionCard } from "@/types/planner";
-import { BATHS, GROUP_IDS, NEIGHBOURHOODS } from "@/test/fixtures/planner-budapest";
+import { BATHS, GROUP_IDS, NEIGHBOURHOODS } from "@/data/planner-demo/session";
 import { OptionCarousel } from "./OptionCarousel";
 
 const p = en.plan;
@@ -64,11 +64,11 @@ describe("OptionCarousel", () => {
 
     fireEvent.click(within(cardNamed("Belváros")).getByRole("button", { name: p.card.choose }));
 
-    expect(onSelect).toHaveBeenCalledWith(GROUP_IDS.neighbourhoods, ["wv:belvaros"]);
+    expect(onSelect).toHaveBeenCalledWith(GROUP_IDS.neighbourhoods, [NEIGHBOURHOODS.belvaros.id]);
   });
 
   it("marks the chosen card and locks the others once the group is answered", () => {
-    renderCarousel({ selectedIds: ["wv:belvaros"] });
+    renderCarousel({ selectedIds: [NEIGHBOURHOODS.belvaros.id] });
 
     expect(within(cardNamed("Belváros")).getAllByText(p.card.chosen).length).toBeGreaterThan(0);
     for (const title of ["Erzsébetváros", "Budavár"]) {
@@ -96,8 +96,8 @@ describe("OptionCarousel", () => {
     );
 
     expect(onSelect).toHaveBeenCalledWith(GROUP_IDS.baths, [
-      "wv:rudas-baths",
-      "wv:szechenyi-baths",
+      BATHS.rudas.id,
+      BATHS.szechenyi.id,
     ]);
   });
 
@@ -107,11 +107,11 @@ describe("OptionCarousel", () => {
     fireEvent.click(
       within(cardNamed("Belváros")).getByRole("button", { name: p.card.notInterested })
     );
-    expect(onDismiss).toHaveBeenCalledWith(GROUP_IDS.neighbourhoods, "wv:belvaros");
+    expect(onDismiss).toHaveBeenCalledWith(GROUP_IDS.neighbourhoods, NEIGHBOURHOODS.belvaros.id);
 
     rerender(
       <OptionCarousel
-        group={group({ dismissedIds: ["wv:belvaros"] })}
+        group={group({ dismissedIds: [NEIGHBOURHOODS.belvaros.id] })}
         shortlist={[]}
         onSelect={vi.fn()}
         onDismiss={vi.fn()}
@@ -131,6 +131,11 @@ describe("OptionCarousel", () => {
       hours: null,
       price_tier: 2,
       why: "Roman ruins and quiet riverside streets",
+      // The image-credit overlay carries its own licence version ("CC BY-SA
+      // 4.0"), which is not a price: this card has no credit so the assertion
+      // below stays about the copy the card writes itself.
+      image_credit: null,
+      license: "",
     };
     renderCarousel({ cards: [priced] });
 

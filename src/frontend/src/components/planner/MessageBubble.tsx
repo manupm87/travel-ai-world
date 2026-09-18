@@ -15,7 +15,7 @@ export function MessageBubble({ message, isPending = false, errorText }: Message
   const isUser = message.role === "user";
 
   return (
-    <div className={cn("flex gap-2.5", isUser ? "flex-row-reverse" : "flex-row")}>
+    <div className={cn("flex animate-fade-up gap-2.5", isUser ? "flex-row-reverse" : "flex-row")}>
       <div
         className={cn(
           "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg",

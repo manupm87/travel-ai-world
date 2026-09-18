@@ -34,7 +34,7 @@ export function RouteStrip({ route }: { route: RouteInfo }) {
   ].slice(0, routeLegs(route));
 
   return (
-    <Card className="flex flex-col gap-3 p-4">
+    <Card className="flex animate-fade-up flex-col gap-3 p-4">
       <ul className="flex flex-col gap-3">
         {legs.map((leg) => (
           <li key={leg.key} className="flex flex-wrap items-center gap-x-3 gap-y-1">

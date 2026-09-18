@@ -93,7 +93,7 @@ export function OptionCarousel({
       aria-roledescription={p.carousel.roleDescription}
       aria-label={interpolate(p.carousel.label, { prompt: group.prompt })}
       data-group-id={group.group_id}
-      className="flex flex-col gap-2"
+      className="flex animate-fade-in flex-col gap-2"
     >
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-[13px] font-medium text-text-primary">{group.prompt}</h3>
@@ -122,10 +122,11 @@ export function OptionCarousel({
         onKeyDown={handleKeyDown}
         className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        {cards.map((card) => (
+        {cards.map((card, index) => (
           <li key={card.id} className="flex snap-start">
             <OptionCard
               card={card}
+              index={index}
               slot={group.slot}
               selection={group.selection}
               selected={isSelected(card.id)}

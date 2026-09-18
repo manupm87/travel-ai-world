@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { ChatColumn } from "@/components/planner/v2/ChatColumn";
+import { DemoBanner } from "@/components/planner/v2/DemoBanner";
 import { MapPlaceholder } from "@/components/planner/v2/MapPlaceholder";
 import { PlannerLayout } from "@/components/planner/v2/PlannerLayout";
 import { TripPanel } from "@/components/planner/v2/TripPanel";
@@ -10,7 +11,6 @@ import { useLanguage } from "@/context/LanguageContext";
 import { partOf } from "@/hooks/plannerReducer";
 import { usePlanner } from "@/hooks/usePlanner";
 import { interpolate } from "@/i18n";
-import { isAiAvailable } from "@/services/http";
 import type { Slot } from "@/types/planner";
 
 /**
@@ -27,6 +27,7 @@ export default function PlannerClientPage() {
   const query = useSearchParams().get("q");
   const {
     state,
+    demo,
     sendMessage,
     answer,
     select,
@@ -35,21 +36,19 @@ export default function PlannerClientPage() {
     toggleShortlist,
     reset,
   } = usePlanner();
-  const unavailable = !isAiAvailable();
+  // No backend, or no `/planner` route yet: the recorded session answers
+  // instead (TRA-158) and the banner says so, so the page is never "unavailable".
+  const unavailable = false;
 
   const sentQuery = useRef(false);
   const hasMessages = state.messages.length > 0;
   useEffect(() => {
-    if (sentQuery.current || !query?.trim() || unavailable || hasMessages) return;
+    if (sentQuery.current || !query?.trim() || hasMessages) return;
     sentQuery.current = true;
     sendMessage(query);
-  }, [query, unavailable, hasMessages, sendMessage]);
+  }, [query, hasMessages, sendMessage]);
 
-  const errorText = unavailable
-    ? null
-    : state.error
-      ? t.plan.errors[state.error]
-      : null;
+  const errorText = state.error ? t.plan.errors[state.error] : null;
 
   const generate = useCallback(() => {
     sendMessage(t.plan.checklist.generateMessage);
@@ -74,6 +73,7 @@ export default function PlannerClientPage() {
 
   return (
     <PlannerLayout
+      banner={demo ? <DemoBanner /> : null}
       chat={
         <ChatColumn
           state={state}

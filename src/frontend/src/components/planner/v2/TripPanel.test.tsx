@@ -15,7 +15,7 @@ import {
   FIRST_ITINERARY_OPS,
   GROUP_IDS,
   HOTELS,
-} from "@/test/fixtures/planner-budapest";
+} from "@/data/planner-demo/session";
 import { TripPanel } from "./TripPanel";
 
 const p = en.plan.panel;

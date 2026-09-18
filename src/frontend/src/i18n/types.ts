@@ -283,6 +283,12 @@ export interface Translations {
       generic: string;
       unauthorized: string;
     };
+    /** Shown while the synthetic session answers instead of ai_api (TRA-158). */
+    demo: {
+      title: string;
+      body: string;
+      dismiss: string;
+    };
   };
   howItWorks: {
     label: string;

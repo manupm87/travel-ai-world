@@ -4,7 +4,7 @@ import { fireEvent, renderWithProviders, screen, within } from "@/test/render";
 import en from "@/i18n/en";
 import { interpolate } from "@/i18n";
 import { EMPTY_ITINERARY, applyItineraryOps } from "@/hooks/plannerReducer";
-import { BATHS, FIRST_ITINERARY_OPS } from "@/test/fixtures/planner-budapest";
+import { BATHS, FIRST_ITINERARY_OPS } from "@/data/planner-demo/session";
 import { DayCard } from "./DayCard";
 
 const p = en.plan.panel;

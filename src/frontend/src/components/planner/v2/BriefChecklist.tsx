@@ -32,6 +32,7 @@ export function BriefChecklist({ brief, missing, disabled = false, onGenerate }:
 
   const total = BRIEF_FIELDS.length;
   const done = total - missing.length;
+  const canGenerate = missing.length === 0 && !disabled;
 
   const dateValue = (): string | null => {
     if (!brief.start_date || !brief.end_date) return null;
@@ -104,10 +105,15 @@ export function BriefChecklist({ brief, missing, disabled = false, onGenerate }:
           return (
             <li key={field} className="flex items-start gap-3">
               <span
+                // Remounting on the state change replays the pop: the check
+                // marks the moment the chat filled that field in.
+                key={isDone ? "done" : "pending"}
                 data-done={isDone || undefined}
                 className={cn(
                   "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border",
-                  isDone ? "border-accent bg-accent text-white" : "border-border-soft text-transparent"
+                  isDone
+                    ? "animate-scale-in border-accent bg-accent text-white"
+                    : "border-border-soft text-transparent"
                 )}
               >
                 <Check size={12} aria-hidden="true" />
@@ -131,8 +137,12 @@ export function BriefChecklist({ brief, missing, disabled = false, onGenerate }:
       <div className="flex flex-col gap-2">
         <Button
           size="sm"
-          className="w-full px-5 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
-          disabled={missing.length > 0 || disabled}
+          className={cn(
+            "w-full px-5 py-3 text-sm transition-shadow duration-300 motion-reduce:transition-none",
+            "disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40",
+            canGenerate && "shadow-accent-glow"
+          )}
+          disabled={!canGenerate}
           onClick={onGenerate}
         >
           {c.generate}

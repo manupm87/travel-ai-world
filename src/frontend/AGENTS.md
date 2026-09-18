@@ -68,10 +68,15 @@ TypeScript 5, Tailwind CSS v4.
   (SSE v2, TRA-142) is mirrored by hand in `src/types/planner.ts` until `ai_api` exports it through
   `just contracts`; when it does, replace the declarations by re-exports of the generated types and
   keep the helpers. A price is only ever a tier (`€`/`€€`/`€€€`), never a number. The recorded
-  Budapest session in `src/test/fixtures/planner-budapest.ts` (+ `.sse`) is the test double for
-  the endpoint in unit tests and in `e2e/planner.spec.ts`, which mocks the route with it.
-  `MapPlaceholder` is what the map issue (TRA-147) replaces; the "Save trip" button waits for the
-  persistence issue (TRA-146).
+  Budapest session lives in `src/data/planner-demo/session.ts` (real corpus ids, Wikimedia Commons
+  photos with credits) and ships: `services/plannerDemo.ts` plays it as a synthetic backend
+  whenever `streamPlannerTurn` finds no ai_api URL or a 404/405 on `/planner` (TRA-158), the hook
+  reports `demo: true` and the page shows `DemoBanner`; the day the real route answers, no demo,
+  no banner. The same session is the test double in unit tests and in `e2e/planner.spec.ts`
+  (route mocked with it, plus one test where the route answers 404). Motion comes from the
+  keyframes in `globals.css` (`animate-fade-up`, `animate-scale-in`, ...; `prefers-reduced-motion`
+  is honoured globally). `MapPlaceholder` is what the map issue (TRA-147) replaces; the "Save
+  trip" button waits for the persistence issue (TRA-146).
 - Tests: `renderWithProviders` from `src/test/render.tsx` and the typed builders in
   `src/test/fixtures.ts` (`src/test/fixtures/trip-japan.ts` when a test needs a whole `TripResponse`);
   assert on roles/names/`data-*` state and on `en.ts` copy, not on class names.

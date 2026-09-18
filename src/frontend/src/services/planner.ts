@@ -22,7 +22,8 @@ import {
   OPTION_KINDS,
   WARN_CODES,
 } from "@/types/planner";
-import { requestRaw } from "./http";
+import { ApiError, isAiAvailable, requestRaw } from "./http";
+import { streamDemoTurn } from "./plannerDemo";
 
 export interface ParsedPlannerEvents {
   events: PlannerEvent[];
@@ -263,6 +264,16 @@ export function parsePlannerEvents(buffer: string): ParsedPlannerEvents {
 export interface StreamPlannerOptions {
   /** Abort the request and stop reading the stream. */
   signal?: AbortSignal;
+  /**
+   * Called once when the turn is answered by the synthetic session instead
+   * of ai_api (no backend configured, or `/planner` not deployed yet: TRA-158).
+   */
+  onDemo?: () => void;
+}
+
+/** A 404/405 from the planner route means it is not deployed: not a failure. */
+function isRouteMissing(err: unknown): boolean {
+  return err instanceof ApiError && (err.status === 404 || err.status === 405);
 }
 
 /**
@@ -273,14 +284,28 @@ export interface StreamPlannerOptions {
  */
 export async function* streamPlannerTurn(
   turn: PlannerTurn,
-  { signal }: StreamPlannerOptions = {}
+  { signal, onDemo }: StreamPlannerOptions = {}
 ): AsyncGenerator<PlannerEvent, void, unknown> {
-  const res = await requestRaw("ai", "/ai/planner", {
-    method: "POST",
-    json: turn,
-    auth: true,
-    signal,
-  });
+  if (!isAiAvailable()) {
+    onDemo?.();
+    yield* streamDemoTurn(turn, { signal });
+    return;
+  }
+
+  let res: Response;
+  try {
+    res = await requestRaw("ai", "/ai/planner", {
+      method: "POST",
+      json: turn,
+      auth: true,
+      signal,
+    });
+  } catch (err) {
+    if (!isRouteMissing(err)) throw err;
+    onDemo?.();
+    yield* streamDemoTurn(turn, { signal });
+    return;
+  }
 
   const reader = res.body?.getReader();
   if (!reader) throw new Error("No response body");

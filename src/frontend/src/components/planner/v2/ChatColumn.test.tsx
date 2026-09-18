@@ -8,7 +8,7 @@ import {
   type PlannerMessage,
   type PlannerState,
 } from "@/hooks/plannerReducer";
-import { GROUP_IDS, NEIGHBOURHOODS } from "@/test/fixtures/planner-budapest";
+import { GROUP_IDS, NEIGHBOURHOODS } from "@/data/planner-demo/session";
 import { ChatColumn } from "./ChatColumn";
 
 const p = en.plan;
@@ -20,7 +20,7 @@ const neighbourhoods: OptionGroupState = {
   slot: null,
   selection: "single",
   cards: [NEIGHBOURHOODS.belvaros, NEIGHBOURHOODS.erzsebetvaros],
-  selectedIds: ["wv:belvaros"],
+  selectedIds: [NEIGHBOURHOODS.belvaros.id],
   dismissedIds: [],
 };
 

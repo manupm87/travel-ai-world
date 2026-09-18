@@ -137,7 +137,8 @@ The planner page (`/plan/`, TRA-144) consumes the typed successor of that stream
 (`data: {"type": "text" | "brief" | "options" | "itinerary_patch" | "error"}` then `[DONE]`,
 TRA-142), through `src/frontend/src/services/planner.ts`; until `ai_api` ships `POST /api/v1/ai/planner`
 (TRA-143) the contract lives as a hand-kept mirror in `src/frontend/src/types/planner.ts` and the
-page is exercised against the recorded session in `src/frontend/src/test/fixtures/planner-budapest.ts`.
+page answers from the recorded session in `src/frontend/src/data/planner-demo/session.ts` through
+`services/plannerDemo.ts`, behind a demo banner (TRA-158); the same session is the test double.
 Conversations are stored by `core_api` ([ADR 0013](adr/0013-chat-conversations-in-core-api.md)):
 `ai_api` keeps no state and reaches no database.
 

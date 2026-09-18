@@ -4,7 +4,7 @@ import { fireEvent, renderWithProviders, screen, within } from "@/test/render";
 import en from "@/i18n/en";
 import { interpolate } from "@/i18n";
 import type { OptionGroupState } from "@/hooks/plannerReducer";
-import { BATHS, GROUP_IDS } from "@/test/fixtures/planner-budapest";
+import { BATHS, GROUP_IDS } from "@/data/planner-demo/session";
 import { AlternativesSheet } from "./AlternativesSheet";
 
 const a = en.plan.alternatives;

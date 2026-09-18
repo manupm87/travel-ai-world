@@ -9,7 +9,7 @@ import {
   HOTELS,
   TURNS,
   USER_MESSAGES,
-} from "@/test/fixtures/planner-budapest";
+} from "@/data/planner-demo/session";
 import { BRIEF_FIELDS, EMPTY_BRIEF, type PlannerEvent, type PlannerTurn } from "@/types/planner";
 import { EMPTY_ITINERARY, type PlannerDraft } from "./plannerReducer";
 import { usePlanner } from "./usePlanner";
