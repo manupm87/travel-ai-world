@@ -64,7 +64,7 @@ describe("TripPanel", () => {
     expect(
       screen.getByRole("heading", {
         level: 2,
-        name: interpolate(p.heading, { count: 5, destination: "Budapest" }),
+        name: interpolate(p.heading, { count: 3, destination: "Budapest" }),
       })
     ).toBeInTheDocument();
     expect(screen.getByText(p.draft)).toBeInTheDocument();
@@ -151,7 +151,7 @@ describe("TripPanel", () => {
 
     expect(screen.getByText(en.plan.checklist.title)).toBeInTheDocument();
     expect(
-      screen.queryByRole("heading", { name: interpolate(p.heading, { count: 5, destination: "Budapest" }) })
+      screen.queryByRole("heading", { name: interpolate(p.heading, { count: 3, destination: "Budapest" }) })
     ).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: en.plan.checklist.generate }));

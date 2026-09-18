@@ -30,17 +30,15 @@ import {
 describe("applyItineraryOps", () => {
   const itinerary = applyItineraryOps(EMPTY_ITINERARY, FIRST_ITINERARY_OPS);
 
-  it("sorts the five days by day number", () => {
-    expect(itinerary.days.map((d) => d.day)).toEqual([1, 2, 3, 4, 5]);
+  it("sorts the three days by day number", () => {
+    expect(itinerary.days.map((d) => d.day)).toEqual([1, 2, 3]);
   });
 
   it("sets each day's title", () => {
     expect(itinerary.days.map((d) => d.title)).toEqual([
-      "Arrival and a first walk around Belváros",
+      "Arrival: Belváros and the Danube",
       "Buda: the castle and thermal baths",
-      "Monumental Pest: Parliament and the basilica",
-      "Jewish Quarter, Great Synagogue and ruin bars",
-      "Market morning and departure",
+      "Monumental Pest and the Jewish Quarter",
     ]);
   });
 
@@ -49,8 +47,6 @@ describe("applyItineraryOps", () => {
       "Cloudy",
       "Sunny",
       "Rain",
-      "Cloudy",
-      "Sunny",
     ]);
   });
 
@@ -63,7 +59,7 @@ describe("applyItineraryOps", () => {
       origin: "Madrid",
       destination: "Budapest",
       outbound_date: "2026-10-23",
-      return_date: "2026-10-27",
+      return_date: "2026-10-25",
       deep_link: "https://www.google.com/travel/flights?q=Flights%20from%20MAD%20to%20BUD",
     });
   });
@@ -179,7 +175,12 @@ describe("toItinerarySnapshot", () => {
     expect(snapshot.stay_card_id).toBe(HOTELS.rum.id);
     const day2 = snapshot.days.find((d) => d.day === 2);
     expect(day2?.slots.afternoon).toEqual([BATHS.gellert.id]);
-    expect(day2?.slots.evening).toEqual([]);
+    // Every part of every day is filled in the recorded trip (TRA-159).
+    for (const day of snapshot.days) {
+      for (const part of ["morning", "afternoon", "evening", "night"] as const) {
+        expect(day.slots[part]).toHaveLength(1);
+      }
+    }
   });
 
   it("is empty for an empty itinerary", () => {

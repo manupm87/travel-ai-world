@@ -1,7 +1,7 @@
 /**
  * A recorded Budapest planning session (SSE v2 events, TRA-142), turn by
- * turn: the brief, the neighbourhood and hotel carousels, the first 5-day
- * itinerary and a "Change" on day 2's afternoon.
+ * turn: the brief, the neighbourhood and hotel carousels, the first 3-day
+ * itinerary (every part of every day filled) and a "Change" on day 2's afternoon.
  *
  * It ships with the app: `services/plannerDemo.ts` plays it as a synthetic
  * backend while `ai_api` has no `/planner` route (TRA-158), and the unit
@@ -12,6 +12,7 @@
  */
 
 import type {
+  DayPart,
   ItineraryOp,
   OptionCard,
   OptionsGroup,
@@ -78,8 +79,8 @@ export const BRIEF_AFTER_FIRST_MESSAGE: TripBrief = {
 export const BRIEF_COMPLETE: TripBrief = {
   ...BRIEF_AFTER_FIRST_MESSAGE,
   start_date: "2026-10-23",
-  end_date: "2026-10-27",
-  nights: 4,
+  end_date: "2026-10-25",
+  nights: 2,
 };
 
 // ─── Cards ────────────────────────────────────────────────────────────────────
@@ -255,14 +256,14 @@ export const ACTIVITIES = {
   }),
   castleLunch: card({
     id: "wv:en:Budapest/Budavár#eat:halaszbastya-restaurant",
-    title: "Lunch in Budavár",
-    subtitle: "Hungarian cuisine",
+    title: "Dinner in Budavár",
+    subtitle: "Hungarian cuisine at Halászbástya",
     district: "Budavár",
     category: "eat",
     price_tier: 2,
     lat: 47.5023,
     lon: 19.0351,
-    why: "Goulash within the castle walls",
+    why: "Goulash within the castle walls, tables by the bastion",
     source_url: "https://en.wikivoyage.org/wiki/Budapest/Budav%C3%A1r#Eat",
     ...photo("Goulash hungarian.jpg", "RitaE", "CC0"),
   }),
@@ -488,9 +489,228 @@ export const EXTRAS = {
   }),
 };
 
+/** More photographed places, so every "Change" has fresh options (TRA-159). */
+export const MORE = {
+  matthiasChurch: card({
+    id: "wv:en:Budapest/Budavár#see:matthias-church",
+    title: "Matthias Church",
+    district: "Budavár",
+    category: "see",
+    hours: "09:00–17:00",
+    lat: 47.502,
+    lon: 19.0341,
+    why: "Diamond-tiled roof and the coronation church of the Habsburg kings",
+    source_url: "https://en.wikivoyage.org/wiki/Budapest/Budav%C3%A1r#See",
+    ...photo("Matthias Church 2014 01.jpg", "Perituss", "CC0"),
+  }),
+  heroesSquare: card({
+    id: "wp:en:2613261#s0-c1",
+    title: "Heroes' Square",
+    district: "Városliget",
+    category: "see",
+    hours: "24/7",
+    lat: 47.515,
+    lon: 19.0778,
+    why: "The Millennium Monument at the top of Andrássy út",
+    ...WIKIPEDIA,
+    source_url: "https://en.wikipedia.org/wiki/Heroes%27_Square_(Budapest)",
+    ...photo("HUN-2015-Budapest-Heroes’ Square.jpg", "Godot13", "Attribution"),
+  }),
+  vajdahunyad: card({
+    id: "wv:en:Budapest/Városliget#see:vajdahunyad-castle",
+    title: "Vajdahunyad Castle",
+    district: "Városliget",
+    category: "see",
+    hours: "1 h",
+    lat: 47.5148,
+    lon: 19.0822,
+    why: "A castle built for an exhibition, copying styles from all over Hungary",
+    source_url: "https://en.wikivoyage.org/wiki/Budapest/V%C3%A1rosliget#See",
+    ...photo("Vajdahunyad vára Budapest September 2013.jpg", "Felix König", "CC BY 3.0"),
+  }),
+  houseOfTerror: card({
+    id: "wp:en:2641959#s0-c1",
+    title: "House of Terror",
+    district: "Terézváros",
+    category: "see",
+    hours: "10:00–18:00, closed Mon",
+    lat: 47.5071,
+    lon: 19.0648,
+    why: "The 20th century in one building on Andrássy út; allow two hours",
+    ...WIKIPEDIA,
+    source_url: "https://en.wikipedia.org/wiki/House_of_Terror",
+    ...photo("Budapest - Terror Háza Múzeum (37766898364).jpg", "Fred Romero", "CC BY 2.0"),
+  }),
+  shoes: card({
+    id: "wv:en:Budapest/Belváros#see:shoes-on-the-danube-memorial",
+    title: "Shoes on the Danube Bank",
+    district: "Belváros",
+    category: "see",
+    hours: "24/7",
+    lat: 47.5039,
+    lon: 19.0451,
+    why: "A quiet memorial on the embankment, ten minutes from the Parliament",
+    source_url: "https://en.wikivoyage.org/wiki/Budapest/Belv%C3%A1ros#See",
+    ...photo(
+      "Girl contemplates Shoes on the Danube Bank (Budapest, Hungary).jpg",
+      "Jules Verne Times Two",
+      "CC BY-SA 4.0"
+    ),
+  }),
+  citadella: card({
+    id: "wv:en:Budapest/South Buda#see:citadella",
+    title: "Citadella and the Liberty Statue",
+    district: "Gellérthegy",
+    category: "do",
+    hours: "1–2 h",
+    lat: 47.4868,
+    lon: 19.0468,
+    why: "The best panorama of the city, twenty minutes uphill from Gellért",
+    source_url: "https://en.wikivoyage.org/wiki/Budapest/South_Buda#See",
+    ...photo(
+      "Liberty Statue at The Citadella on Gellert Hill (42972655021).jpg",
+      "Nan Palmero",
+      "CC BY 2.0"
+    ),
+  }),
+  lukacs: card({
+    id: "wv:en:Budapest/North Buda#do:thermal-bath-szent-lukacs",
+    title: "Lukács Baths",
+    district: "North Buda",
+    category: "do",
+    price_tier: 1,
+    hours: "07:00–19:00",
+    lat: 47.5183,
+    lon: 19.0369,
+    why: "Where locals go; cheaper and calmer than the famous ones",
+    source_url: "https://en.wikivoyage.org/wiki/Budapest/North_Buda#Do",
+    ...photo("Budapest, Lukács fürdő, 4.jpg", "Christo", "CC BY-SA 4.0"),
+  }),
+  varosliget: card({
+    id: "wv:en:Budapest/Városliget",
+    title: "Városliget park",
+    district: "Városliget",
+    category: "do",
+    hours: "2 h",
+    lat: 47.5147,
+    lon: 19.0813,
+    why: "Boating lake, the zoo and Széchenyi in one green square kilometre",
+    source_url: "https://en.wikivoyage.org/wiki/Budapest/V%C3%A1rosliget",
+    ...photo("Budapest, Városliget, 28.jpg", "Christo", "CC BY-SA 4.0"),
+  }),
+  ruszwurm: card({
+    id: "wv:en:Budapest/Budavár#drink:ruszwurm-confectionery",
+    title: "Ruszwurm Confectionery",
+    subtitle: "Cakes since 1827",
+    district: "Budavár",
+    category: "eat",
+    price_tier: 2,
+    hours: "10:00–19:00",
+    lat: 47.5017,
+    lon: 19.0338,
+    why: "Krémes in a tiny Biedermeier room by Matthias Church",
+    source_url: "https://en.wikivoyage.org/wiki/Budapest/Budav%C3%A1r#Drink",
+    ...photo("Ruszwurm Cukrászda, Budapest.jpg", "dpotera", "CC BY 2.0"),
+  }),
+  mazelTov: card({
+    id: "osm:node/3990944430",
+    title: "Mazel Tov",
+    subtitle: "Ruin bar and kitchen",
+    district: "Erzsébetváros",
+    category: "drink",
+    price_tier: 2,
+    hours: "12:00–00:00",
+    lat: 47.4988,
+    lon: 19.0628,
+    why: "The polished ruin bar: strings of lights, Middle Eastern plates",
+    ...OSM,
+    source_url: "https://www.openstreetmap.org/node/3990944430",
+    ...photo("Mazel Tov Ruin Bar (42253982234).jpg", "Nan Palmero", "CC BY 2.0"),
+  }),
+  a38: card({
+    id: "wv:en:Budapest/South Buda#drink:a38",
+    title: "A38 Ship",
+    subtitle: "Concerts on a Ukrainian cargo ship",
+    district: "South Buda",
+    category: "drink",
+    price_tier: 2,
+    hours: "11:00–23:00",
+    lat: 47.4756,
+    lon: 19.0605,
+    why: "Live music below deck, the Danube above it",
+    source_url: "https://en.wikivoyage.org/wiki/Budapest/South_Buda#Drink",
+    ...photo("A38 (ship, Budapest).JPG", "Rakás", "CC BY-SA 4.0"),
+  }),
+  bastionNight: card({
+    id: "wp:en:3733065#s0-c1",
+    title: "Fisherman's Bastion by night",
+    district: "Budavár",
+    category: "do",
+    hours: "1 h",
+    lat: 47.5022,
+    lon: 19.0348,
+    why: "Free after dark, the Parliament lit up across the river",
+    ...WIKIPEDIA,
+    source_url: "https://en.wikipedia.org/wiki/Fisherman%27s_Bastion",
+    ...photo(
+      "Fisherman's Bastion, Budapest by night - panoramio (6).jpg",
+      "Nikolai Karaneschev",
+      "CC BY 3.0"
+    ),
+  }),
+};
+
+/**
+ * Where a "Change" draws from, by part of the day: what is already in the
+ * trip is skipped, so with three days there are always three fresh cards.
+ */
+export const POOLS: Record<DayPart, OptionCard[]> = {
+  morning: [
+    ACTIVITIES.greatMarket,
+    ACTIVITIES.fishermansBastion,
+    ACTIVITIES.parliament,
+    MORE.matthiasChurch,
+    MORE.heroesSquare,
+    MORE.vajdahunyad,
+    MORE.houseOfTerror,
+    MORE.shoes,
+    EXTRAS.margaretIsland,
+  ],
+  afternoon: [
+    EXTRAS.basilica,
+    BATHS.gellert,
+    ACTIVITIES.synagogue,
+    BATHS.rudas,
+    BATHS.szechenyi,
+    BATHS.veliBej,
+    MORE.lukacs,
+    MORE.citadella,
+    MORE.varosliget,
+    EXTRAS.opera,
+  ],
+  evening: [
+    RESTAURANTS.menza,
+    RESTAURANTS.friciPapa,
+    EXTRAS.newYorkCafe,
+    RESTAURANTS.langos,
+    EXTRAS.gerbeaud,
+    ACTIVITIES.castleLunch,
+    MORE.ruszwurm,
+  ],
+  night: [
+    ACTIVITIES.danubeWalk,
+    ACTIVITIES.szimpla,
+    MORE.mazelTov,
+    EXTRAS.gozsdu,
+    MORE.a38,
+    MORE.bastionNight,
+    EXTRAS.libertyBridge,
+  ],
+};
+
 /** Every card the session knows, by id (the demo resolves selections with it). */
 export const ALL_CARDS: Record<string, OptionCard> = Object.fromEntries(
-  [NEIGHBOURHOODS, HOTELS, BATHS, ACTIVITIES, RESTAURANTS, EXTRAS]
+  [NEIGHBOURHOODS, HOTELS, BATHS, ACTIVITIES, RESTAURANTS, EXTRAS, MORE]
     .flatMap((group) => Object.values(group))
     .map((c) => [c.id, c])
 );
@@ -504,30 +724,27 @@ export const FIRST_ITINERARY_OPS: ItineraryOp[] = [
     origin: "Madrid",
     destination: "Budapest",
     outbound_date: "2026-10-23",
-    return_date: "2026-10-27",
+    return_date: "2026-10-25",
     deep_link: "https://www.google.com/travel/flights?q=Flights%20from%20MAD%20to%20BUD",
   },
-  { op: "set_day_title", day: 1, title: "Arrival and a first walk around Belváros" },
+  { op: "set_day_title", day: 1, title: "Arrival: Belváros and the Danube" },
   { op: "set_day_title", day: 2, title: "Buda: the castle and thermal baths" },
-  { op: "set_day_title", day: 3, title: "Monumental Pest: Parliament and the basilica" },
-  { op: "set_day_title", day: 4, title: "Jewish Quarter, Great Synagogue and ruin bars" },
-  { op: "set_day_title", day: 5, title: "Market morning and departure" },
+  { op: "set_day_title", day: 3, title: "Monumental Pest and the Jewish Quarter" },
   { op: "set_weather", day: 1, summary: "Cloudy", t_max: 14, t_min: 7, source: "Open-Meteo" },
   { op: "set_weather", day: 2, summary: "Sunny", t_max: 13, t_min: 6, source: "Open-Meteo" },
   { op: "set_weather", day: 3, summary: "Rain", t_max: 12, t_min: 6, source: "Open-Meteo" },
-  { op: "set_weather", day: 4, summary: "Cloudy", t_max: 12, t_min: 5, source: "Open-Meteo" },
-  { op: "set_weather", day: 5, summary: "Sunny", t_max: 11, t_min: 4, source: "Open-Meteo" },
-  { op: "put_activity", slot: { day: 1, part: "evening" }, card: ACTIVITIES.danubeWalk },
+  { op: "put_activity", slot: { day: 1, part: "morning" }, card: ACTIVITIES.greatMarket },
+  { op: "put_activity", slot: { day: 1, part: "afternoon" }, card: EXTRAS.basilica },
+  { op: "put_activity", slot: { day: 1, part: "evening" }, card: RESTAURANTS.menza },
+  { op: "put_activity", slot: { day: 1, part: "night" }, card: ACTIVITIES.danubeWalk },
   { op: "put_activity", slot: { day: 2, part: "morning" }, card: ACTIVITIES.fishermansBastion },
-  { op: "put_activity", slot: { day: 2, part: "morning" }, card: ACTIVITIES.castleLunch },
   { op: "put_activity", slot: { day: 2, part: "afternoon" }, card: BATHS.gellert },
-  { op: "put_activity", slot: { day: 2, part: "night" }, card: ACTIVITIES.danubeWalk },
+  { op: "put_activity", slot: { day: 2, part: "evening" }, card: RESTAURANTS.friciPapa },
+  { op: "put_activity", slot: { day: 2, part: "night" }, card: ACTIVITIES.szimpla },
   { op: "put_activity", slot: { day: 3, part: "morning" }, card: ACTIVITIES.parliament },
-  { op: "put_activity", slot: { day: 3, part: "afternoon" }, card: EXTRAS.basilica },
-  { op: "put_activity", slot: { day: 4, part: "morning" }, card: ACTIVITIES.synagogue },
-  { op: "put_activity", slot: { day: 4, part: "evening" }, card: RESTAURANTS.friciPapa },
-  { op: "put_activity", slot: { day: 4, part: "night" }, card: ACTIVITIES.szimpla },
-  { op: "put_activity", slot: { day: 5, part: "morning" }, card: ACTIVITIES.greatMarket },
+  { op: "put_activity", slot: { day: 3, part: "afternoon" }, card: ACTIVITIES.synagogue },
+  { op: "put_activity", slot: { day: 3, part: "evening" }, card: EXTRAS.newYorkCafe },
+  { op: "put_activity", slot: { day: 3, part: "night" }, card: MORE.mazelTov },
   {
     op: "warn",
     slot: { day: 2, part: "afternoon" },
@@ -539,8 +756,8 @@ export const FIRST_ITINERARY_OPS: ItineraryOp[] = [
 /** The user's messages, in the order the session sends them. */
 export const USER_MESSAGES = {
   opening:
-    "5 days in Budapest from Madrid with my partner, late October. We love food, thermal baths and history.",
-  dates: "Dates: 2026-10-23 to 2026-10-27",
+    "3 days in Budapest from Madrid with my partner, late October. We love food, thermal baths and history.",
+  dates: "Dates: 2026-10-23 to 2026-10-25",
   generate: "Generate the trip",
   alternatives: "Alternatives for day 2 · afternoon",
 } as const;
@@ -613,7 +830,7 @@ export const TURNS = {
     { type: "itinerary_patch", ops: FIRST_ITINERARY_OPS },
     {
       type: "text",
-      delta: "Done. I've put together a first 5-day itinerary; press Change on any slot to see alternatives.",
+      delta: "Done. I've put together a first 3-day itinerary, every part of the day filled; press Change on any slot to see alternatives.",
     },
     { type: "done" },
   ],

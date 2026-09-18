@@ -72,10 +72,10 @@ describe("demoEventsFor", () => {
     expect(recorded).toEqual(TURNS.alternatives);
 
     const other = demoEventsFor(
-      turn({ message: "Alternatives for day 4 · Night", brief: BRIEF_COMPLETE, itinerary: ITINERARY })
+      turn({ message: "Alternatives for day 3 · Night", brief: BRIEF_COMPLETE, itinerary: ITINERARY })
     );
     const group = other.find((e) => e.type === "options");
-    expect(group).toMatchObject({ slot: { day: 4, part: "night" }, selection: "single" });
+    expect(group).toMatchObject({ slot: { day: 3, part: "night" }, selection: "single" });
     const ids = group && group.type === "options" ? group.cards.map((c) => c.id) : [];
     expect(ids).toHaveLength(3);
     // Nothing already in the trip is offered again.
@@ -86,15 +86,15 @@ describe("demoEventsFor", () => {
   it("puts a picked alternative into its slot, replacing what was there", () => {
     const events = demoEventsFor(
       turn({
-        action: { type: "select", group_id: "g-alt-day4-night", card_ids: [EXTRAS.gozsdu.id] },
+        action: { type: "select", group_id: "g-alt-day2-night", card_ids: [EXTRAS.gozsdu.id] },
         itinerary: ITINERARY,
       })
     );
     const patch = events.find((e) => e.type === "itinerary_patch");
     expect(patch).toMatchObject({
       ops: [
-        { op: "remove_activity", slot: { day: 4, part: "night" }, card_id: "wv:en:Budapest/Erzsébetváros#drink:szimpla-kert-mozi" },
-        { op: "put_activity", slot: { day: 4, part: "night" }, card: EXTRAS.gozsdu },
+        { op: "remove_activity", slot: { day: 2, part: "night" }, card_id: "wv:en:Budapest/Erzsébetváros#drink:szimpla-kert-mozi" },
+        { op: "put_activity", slot: { day: 2, part: "night" }, card: EXTRAS.gozsdu },
       ],
     });
   });

@@ -35,7 +35,7 @@ describe("BriefChecklist", () => {
 
     expect(screen.getByText(interpolate(c.progress, { done: 5, total: 5 }))).toBeInTheDocument();
     expect(screen.queryByText(c.pending)).not.toBeInTheDocument();
-    expect(screen.getByText(new RegExp(interpolate(c.nights, { nights: 4 })))).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(interpolate(c.nights, { nights: 2 })))).toBeInTheDocument();
 
     const button = screen.getByRole("button", { name: c.generate });
     expect(button).toBeEnabled();

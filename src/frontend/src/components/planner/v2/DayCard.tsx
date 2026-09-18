@@ -157,6 +157,28 @@ export function DayCard({
                             key={card.id}
                             className="flex animate-fade-in flex-wrap items-start gap-x-3 gap-y-2 rounded-xl border border-border bg-bg-surface px-3 py-2"
                           >
+                            <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-bg-card">
+                              {card.image_url ? (
+                                // Remote Wikimedia images on a static export: no optimizer to route them through.
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={card.image_url}
+                                  alt=""
+                                  title={
+                                    card.image_credit
+                                      ? interpolate(t.plan.card.imageCredit, { credit: card.image_credit })
+                                      : undefined
+                                  }
+                                  loading="lazy"
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <div
+                                  aria-hidden="true"
+                                  className="h-full w-full bg-gradient-to-br from-accent/30 via-purple/20 to-bg-surface"
+                                />
+                              )}
+                            </div>
                             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                               <span className="text-sm font-medium leading-tight text-text-primary">
                                 {card.title}

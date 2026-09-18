@@ -10,7 +10,7 @@ import type { PlannerTurn } from "../src/types/planner";
 
 /**
  * The planner page (`/plan/`, TRA-144) driven by the recorded Budapest
- * session: brief → neighbourhood and hotel carousels → a 5-day itinerary
+ * session: brief → neighbourhood and hotel carousels → a 3-day itinerary
  * with a chosen hotel → "Change" on day 2's afternoon.
  *
  * `ai_api`'s `/planner` endpoint is a later issue (TRA-143), so the route is
@@ -79,7 +79,7 @@ test.describe("Planner page — /plan/", () => {
     await mockPlanner(page);
   });
 
-  test("from the brief to a 5-day itinerary with a chosen hotel, then a slot change", async ({
+  test("from the brief to a 3-day itinerary with a chosen hotel, then a slot change", async ({
     page,
   }) => {
     await page.goto("/plan/");
@@ -93,7 +93,7 @@ test.describe("Planner page — /plan/", () => {
     // 2. Quick reply for the dates: the brief is complete, the neighbourhoods arrive.
     const refine = page.getByRole("region", { name: "Let's refine a bit:" });
     await refine.getByLabel("From", { exact: true }).fill("2026-10-23");
-    await refine.getByLabel("To", { exact: true }).fill("2026-10-27");
+    await refine.getByLabel("To", { exact: true }).fill("2026-10-25");
     await refine.getByRole("button", { name: "Confirm" }).click();
     await expect(page.getByText("5 of 5 details ready")).toBeVisible();
     const neighbourhoods = page.getByRole("region", {
@@ -110,12 +110,12 @@ test.describe("Planner page — /plan/", () => {
 
     // 4. Pick the hotel: the panel becomes the itinerary.
     await card(page, "Hotel Rum Budapest").getByRole("button", { name: "Choose" }).click();
-    await expect(page.getByRole("heading", { name: "5 days in Budapest" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "3 days in Budapest" })).toBeVisible();
     await expect(page.getByText("Hotel Rum Budapest").first()).toBeVisible();
     const flights = page.getByRole("link", { name: "Search flights" }).first();
     await expect(flights).toHaveAttribute("href", /google\.com\/travel\/flights/);
     await expect(flights).toHaveAttribute("rel", /noopener/);
-    await expect(page.getByRole("button", { name: /\bDay 5\b/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /\bDay 3\b/ })).toBeVisible();
     // A price is never a number.
     await expect(page.getByText(/\d+\s?€/)).toHaveCount(0);
 
@@ -179,11 +179,11 @@ test.describe("Planner page — /plan/", () => {
 
     const refine = page.getByRole("region", { name: "Let's refine a bit:" });
     await refine.getByLabel("From", { exact: true }).fill("2026-10-23");
-    await refine.getByLabel("To", { exact: true }).fill("2026-10-27");
+    await refine.getByLabel("To", { exact: true }).fill("2026-10-25");
     await refine.getByRole("button", { name: "Confirm" }).click();
     await card(page, "Belváros").getByRole("button", { name: "Choose" }).click({ timeout: 15_000 });
     await card(page, "Hotel Rum Budapest").getByRole("button", { name: "Choose" }).click({ timeout: 15_000 });
-    await expect(page.getByRole("heading", { name: "5 days in Budapest" })).toBeVisible({
+    await expect(page.getByRole("heading", { name: "3 days in Budapest" })).toBeVisible({
       timeout: 15_000,
     });
 

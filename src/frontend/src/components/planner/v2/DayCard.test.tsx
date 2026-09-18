@@ -42,7 +42,8 @@ describe("DayCard", () => {
   });
 
   it("expands into the four parts of the day and shows the slot's warning", () => {
-    renderDay();
+    // An evening emptied by hand: the recorded trip fills every part.
+    renderDay({ day: { ...day2, slots: { ...day2.slots, evening: [] } } });
 
     fireEvent.click(header());
 

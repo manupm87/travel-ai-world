@@ -10,12 +10,12 @@
 
 import {
   ALL_CARDS,
-  EXTRAS,
+  BATHS,
   GROUPS,
   GROUP_IDS,
   HOTELS,
+  POOLS,
   TURNS,
-  BATHS,
 } from "@/data/planner-demo/session";
 import type {
   DayPart,
@@ -88,11 +88,11 @@ export function slotFromMessage(message: string): Slot | null {
   return { day: Number(day[1]), part };
 }
 
-/** Three alternatives for a slot that has no recorded carousel: extras not yet in the trip. */
+/** Three alternatives for any slot: that part of the day's pool, minus what the trip already has. */
 function alternativesFor(slot: Slot, itinerary: ItinerarySnapshot | null): OptionsGroup {
   const taken = allItineraryIds(itinerary);
-  const pool = [...Object.values(EXTRAS), ...Object.values(BATHS)].filter((c) => !taken.has(c.id));
   const part = slot.part ?? "morning";
+  const pool = POOLS[part].filter((c) => !taken.has(c.id));
   return {
     group_id: `g-alt-day${slot.day}-${part}`,
     kind: "experience",
@@ -209,13 +209,14 @@ function answerMessage(turn: PlannerTurn): PlannerEvent[] {
     ];
   }
   if (/hotel/.test(lower)) {
+    const current = turn.itinerary?.stay_card_id;
     return [
       text("Other stays near Belváros:"),
       options({
         ...GROUPS.hotels,
-        group_id: "g-hotels-more",
+        group_id: `g-hotels-more-${history.length}`,
         prompt: "Other hotels",
-        cards: [HOTELS.mercure, HOTELS.basilica, HOTELS.cheaper],
+        cards: Object.values(HOTELS).filter((h) => h.id !== current).slice(0, 3),
       }),
       DONE,
     ];
