@@ -182,6 +182,11 @@ PLANNER_TEXTS: dict[str, dict[str, str]] = {
         "stale_group": "That list is gone; ask me again and I will bring fresh options.",
         "acknowledged": "Noted. Anything else to adjust?",
         "weather_normals": "Typical {month}: highs {t_max:.0f} °C, lows {t_min:.0f} °C",
+        "day_title": "Day {day}",
+        "warn_too_far": "{a} → {b} is {km:.1f} km; plan transport",
+        "warn_overloaded_day": "Day {day} has {count} activities for a {pace} pace",
+        "warn_closed": "{title} looks closed on {weekday}",
+        "warn_unverified_price": "Prices are not verified; check the venue.",
     },
     "es": {
         "not_covered": (
@@ -207,7 +212,30 @@ PLANNER_TEXTS: dict[str, dict[str, str]] = {
         "stale_group": "Esa lista ya no está; pídemelo otra vez y traigo opciones nuevas.",
         "acknowledged": "Anotado. ¿Algo más que ajustar?",
         "weather_normals": "Un {month} típico: máximas {t_max:.0f} °C, mínimas {t_min:.0f} °C",
+        "day_title": "Día {day}",
+        "warn_too_far": "{a} → {b} están a {km:.1f} km; prevé transporte",
+        "warn_overloaded_day": "El día {day} tiene {count} actividades para un ritmo {pace}",
+        "warn_closed": "{title} parece cerrado el {weekday}",
+        "warn_unverified_price": "Los precios no están verificados; consulta el local.",
     },
+}
+
+WEEKDAY_NAMES: dict[str, list[str]] = {
+    "en": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+    ],
+    "es": ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"],
+}
+
+PACE_NAMES: dict[str, dict[str, str]] = {
+    "en": {"relaxed": "relaxed", "balanced": "balanced", "intense": "intense"},
+    "es": {"relaxed": "tranquilo", "balanced": "equilibrado", "intense": "intenso"},
 }
 
 PART_NAMES: dict[str, dict[str, str]] = {

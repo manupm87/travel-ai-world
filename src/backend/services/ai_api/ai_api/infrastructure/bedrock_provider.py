@@ -248,8 +248,9 @@ def _record_usage(response: Mapping[str, Any], model: str, usage: Usage | None) 
         )
     if usage is not None:
         usage.model = model
-        usage.input_tokens = reported.get("inputTokens")
-        usage.output_tokens = reported.get("outputTokens")
+        if reported:
+            usage.input_tokens = reported.get("inputTokens")
+            usage.output_tokens = reported.get("outputTokens")
 
 
 def _output_text(response: Mapping[str, Any]) -> str:

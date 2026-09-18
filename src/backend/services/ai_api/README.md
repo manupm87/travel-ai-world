@@ -1,8 +1,8 @@
 # ai_api
 
-Everything that talks to language models: a streaming chat over NVIDIA-hosted models (local
-development) or Amazon Bedrock (deployed), grounded in a corpus of city documents searched in
-Amazon S3 Vectors. No database; authenticates with the bearer token alone (core_api's HS256 JWT
+Everything that talks to language models: a streaming chat and a trip planner over NVIDIA-hosted
+models (local development) or Amazon Bedrock (deployed), grounded in a corpus of city documents
+searched in Amazon S3 Vectors. No database; authenticates with the bearer token alone (core_api's HS256 JWT
 locally, the Cognito pool's RS256 ID token when deployed).
 
 ## Run
@@ -17,6 +17,7 @@ uv run uvicorn ai_api.main:app --reload --port 8001    # http://localhost:8001/a
 | Method | Path | Auth | Notes |
 |---|---|---|---|
 | `POST` | `/chat` | Bearer | SSE stream: `data: {"content"}` ×n, `data: {"thread_id"}` when the exchange was recorded, `data: {"error", "error_code"}` on failure, `data: [DONE]` |
+| `POST` | `/planner` | Bearer | The trip planner (ADR 0015): body `PlannerTurn` (message or `select`/`remove` action + brief + itinerary snapshot + transcript); SSE v2 stream of typed events (`text`, `brief`, `options`, `itinerary_patch`, `error`) then `[DONE]`; 503 without `RETRIEVAL_ENABLED` |
 | `GET` | `/health/` | — | |
 | `GET` | `/health/provider` | — | 503 when the active provider is not configured (no `NVIDIA_API_KEY`, or an empty `BEDROCK_CHAT_MODEL`); answers its `name` |
 
@@ -32,15 +33,16 @@ Full contract: [`docs/api/ai-api.openapi.json`](../../../../docs/api/ai-api.open
 ```text
 ai_api/
 ├── main.py         lifespan: one provider (by LLM_PROVIDER) and, with RETRIEVAL_ENABLED, one retriever per process, on app.state
-├── config.py       AISettings: LLM_PROVIDER, NVIDIA_*, BEDROCK_*, CHAT_*, RETRIEVAL_*, VECTOR_*, EMBEDDINGS_*
-├── prompts.py      CHAT_SYSTEM_PROMPT, RAG_CONTEXT_PROMPT, format_context()
+├── config.py       AISettings: LLM_PROVIDER, NVIDIA_*, BEDROCK_*, CHAT_*, RETRIEVAL_*, VECTOR_*, EMBEDDINGS_*, PLANNER_*, OPEN_METEO_*
+├── prompts.py      CHAT_SYSTEM_PROMPT, RAG_CONTEXT_PROMPT, format_context(), the planner prompts and its fixed en/es sentences
+├── openapi.py      registers the planner's stream models in the OpenAPI document (no route declares them)
 ├── indexing.py     python -m ai_api.indexing <documents.jsonl>: fills the vector index (just index)
-├── domain/         models.py (Message, Document, RetrievalFilters, GenerationParams, Usage, ChatTrace, ChatTurn) · ports.py (LLMProvider, Embedder, Retriever, TripGateway, ConversationGateway)
-├── application/    stream_chat.py, record_conversation.py — the use cases, depend only on ports
-├── infrastructure/ nvidia_provider.py · bedrock_provider.py · bedrock_embedder.py · bedrock.py (client config and retry rules both Bedrock adapters share) · s3vectors.py (client, keys, metadata split) · s3vectors_retriever.py · providers.py (settings → adapters) · sse.py · retry.py · core_api_client.py
-├── api/            deps.py (wiring) · v1/endpoints/chat.py, health.py
-├── schemas/chat.py
-└── testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, settings_for_tests()
+├── domain/         models.py (Message, Document, RetrievalFilters, GenerationParams, Usage, ChatTrace, ChatTurn, DayWeather, RouteSuggestion) · ports.py (LLMProvider, Embedder, Retriever, WeatherForecast, TripGateway, ConversationGateway)
+├── application/    stream_chat.py, record_conversation.py, plan_trip.py — the use cases, depend only on ports · structured.py (JSON out of a completion) · cards.py · validate.py · language.py
+├── infrastructure/ nvidia_provider.py · bedrock_provider.py · bedrock_embedder.py · bedrock.py (client config and retry rules both Bedrock adapters share) · s3vectors.py (client, keys, metadata split) · s3vectors_retriever.py · providers.py (settings → adapters) · open_meteo.py · static_flight_search.py (+ data/airports.json) · sse.py · retry.py · core_api_client.py
+├── api/            deps.py (wiring) · v1/endpoints/chat.py, planner.py, health.py
+├── schemas/        chat.py · planner.py (PlannerTurn) · planner_events.py (SSE v2 events and ops)
+└── testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, documents_from_corpus(), settings_for_tests()
 ```
 
 Swap the model: `NVIDIA_CHAT_MODEL` in `.env` (NVIDIA retires models without notice; a `410` from

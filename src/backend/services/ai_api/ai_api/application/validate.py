@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from datetime import date
 from itertools import pairwise
 
+from ai_api.prompts import PACE_NAMES, WEEKDAY_NAMES, planner_text
 from ai_api.schemas.planner_events import (
     DAY_PARTS,
     DayPart,
@@ -68,7 +69,9 @@ def _ordered(placed: Sequence[Placed]) -> list[Placed]:
     return [item for _, item in indexed]
 
 
-def distance_warnings(placed: Sequence[Placed], *, max_km: float = 3.5) -> list[WarnOp]:
+def distance_warnings(
+    placed: Sequence[Placed], *, max_km: float = 3.5, language: str = "en"
+) -> list[WarnOp]:
     """`too_far` between consecutive activities of the same day."""
     ordered = _ordered(placed)
     warnings: list[WarnOp] = []
@@ -86,22 +89,36 @@ def distance_warnings(placed: Sequence[Placed], *, max_km: float = 3.5) -> list[
             warnings.append(
                 warn(
                     "too_far",
-                    f"{previous.card.title} → {current.card.title} is "
-                    f"{distance:.1f} km; plan transport",
+                    planner_text(
+                        language,
+                        "warn_too_far",
+                        a=previous.card.title,
+                        b=current.card.title,
+                        km=distance,
+                    ),
                     slot=current.slot,
                 )
             )
     return warnings
 
 
-def load_warning(day: int, count: int, pace: Pace | None) -> WarnOp | None:
+def load_warning(
+    day: int, count: int, pace: Pace | None, *, language: str = "en"
+) -> WarnOp | None:
     """`overloaded_day` when a day carries more than its pace's limit."""
-    limit = _LOAD_LIMITS[pace] if pace in _LOAD_LIMITS else _LOAD_LIMITS[_DEFAULT_PACE]
-    if count <= limit:
+    pace_key = pace or _DEFAULT_PACE
+    if count <= _LOAD_LIMITS[pace_key]:
         return None
+    pace_names = PACE_NAMES.get(language) or PACE_NAMES["en"]
     return warn(
         "overloaded_day",
-        f"Day {day} has {count} activities for a {pace or _DEFAULT_PACE} pace",
+        planner_text(
+            language,
+            "warn_overloaded_day",
+            day=day,
+            count=count,
+            pace=pace_names[pace_key],
+        ),
         slot=Slot(day=day, part=None),
     )
 
@@ -136,18 +153,28 @@ _DAY_ALIASES: dict[str, int] = {
 }
 _DAY_TOKENS = "|".join(sorted(_DAY_ALIASES, key=len, reverse=True))
 _DASHES = "-–"  # noqa: RUF001 — hyphen and the en dash hours are often typeset with
+# A run is a day, or several days chained by "-"/","/"/" (with or without
+# spaces around them) or by plain whitespace ("Sat Sun", "Fri Sat"): real
+# corpus hours mix both styles, and treating them as one run keeps a whole
+# group's "is it followed by a time range?" check together (see below).
+_DAY_SEP = rf"(?:\s*[{_DASHES},/]\s*|\s+)"
 _DAY_RUN_RE = re.compile(
-    rf"\b(?:{_DAY_TOKENS})s?(?:\s*[{_DASHES},/]\s*(?:{_DAY_TOKENS})s?)*\b",
+    rf"\b(?:{_DAY_TOKENS})s?(?:{_DAY_SEP}(?:{_DAY_TOKENS})s?)*\b",
     re.IGNORECASE,
 )
-_DAY_RANGE_RE = re.compile(
-    rf"^(?:{_DAY_TOKENS})s?\s*[{_DASHES}]\s*(?:{_DAY_TOKENS})s?$", re.IGNORECASE
+# One day, or one day-dash-day range, pulled out of a run for expansion.
+_DAY_UNIT_RE = re.compile(
+    rf"(?:{_DAY_TOKENS})s?(?:\s*[{_DASHES}]\s*(?:{_DAY_TOKENS})s?)?", re.IGNORECASE
 )
 _TIME_AFTER_RE = re.compile(
     rf"^\s*(?:from\s+)?\d{{1,2}}([:.]\d{{2}})?\s*h?\s*(?:[{_DASHES}]|to)"
     rf"\s*\d{{1,2}}([:.]\d{{2}})?\s*h?",
     re.IGNORECASE,
 )
+# "24 hr" / "24h" / "24 hours", the other common way to say "open all day"
+# right after a day list, which is not a time *range* so `_TIME_AFTER_RE`
+# would miss it (e.g. "Sat Sun 24 hr").
+_ROUND_THE_CLOCK_AFTER_RE = re.compile(r"^\s*24\s*(?:h|hrs?|hours?)\b", re.IGNORECASE)
 _CLOSED_BEFORE_RE = re.compile(r"closed\s*(?:on\s*)?$", re.IGNORECASE)
 _CLOSED_AFTER_RE = re.compile(r"^\s*(?:is\s+)?closed\b", re.IGNORECASE)
 _OFF_AFTER_RE = re.compile(r"^\s*off\b", re.IGNORECASE)
@@ -165,18 +192,17 @@ def _weekday_from_word(word: str) -> int | None:
 
 
 def _expand_run(run: str) -> set[int]:
+    """Every weekday a run names, whether chained by punctuation or spaces."""
     days: set[int] = set()
-    for group in re.split(r"[,/]", run):
-        group = group.strip()
-        if not group:
-            continue
-        if _DAY_RANGE_RE.match(group):
-            start_word, end_word = re.split(rf"\s*[{_DASHES}]\s*", group, maxsplit=1)
-            start, end = _weekday_from_word(start_word), _weekday_from_word(end_word)
+    for unit in _DAY_UNIT_RE.finditer(run):
+        text = unit.group(0).strip()
+        halves = re.split(rf"\s*[{_DASHES}]\s*", text, maxsplit=1)
+        if len(halves) == 2:  # a day-dash-day range
+            start, end = _weekday_from_word(halves[0]), _weekday_from_word(halves[1])
             if start is not None and end is not None:
                 days |= _range_days(start, end)
             continue
-        single = _weekday_from_word(group)
+        single = _weekday_from_word(text)
         if single is not None:
             days.add(single)
     return days
@@ -216,7 +242,7 @@ def is_closed_on(hours: str | None, weekday: int) -> bool:
             or _OFF_AFTER_RE.match(after)
         ):
             closed_days |= days
-        elif _TIME_AFTER_RE.match(after):
+        elif _TIME_AFTER_RE.match(after) or _ROUND_THE_CLOCK_AFTER_RE.match(after):
             open_days |= days
 
     if weekday in closed_days:
@@ -224,8 +250,11 @@ def is_closed_on(hours: str | None, weekday: int) -> bool:
     return len(open_days) >= _MIN_OPEN_DAYS_TO_INFER_CLOSED and weekday not in open_days
 
 
-def closed_warnings(placed: Sequence[Placed], on: Mapping[int, date]) -> list[WarnOp]:
+def closed_warnings(
+    placed: Sequence[Placed], on: Mapping[int, date], *, language: str = "en"
+) -> list[WarnOp]:
     """`closed` for a card whose hours say it is shut on its day's weekday."""
+    weekday_names = WEEKDAY_NAMES.get(language) or WEEKDAY_NAMES["en"]
     warnings: list[WarnOp] = []
     for item in placed:
         day_date = on.get(item.slot.day)
@@ -235,7 +264,12 @@ def closed_warnings(placed: Sequence[Placed], on: Mapping[int, date]) -> list[Wa
             warnings.append(
                 warn(
                     "closed",
-                    f"{item.card.title} looks closed on {day_date.strftime('%A')}",
+                    planner_text(
+                        language,
+                        "warn_closed",
+                        title=item.card.title,
+                        weekday=weekday_names[day_date.weekday()],
+                    ),
                     slot=item.slot,
                 )
             )
@@ -245,7 +279,9 @@ def closed_warnings(placed: Sequence[Placed], on: Mapping[int, date]) -> list[Wa
 # ─── prices in model-written text ──────────────────────────────────────────
 
 _CURRENCY_SYMBOLS = "€$£"
-_CURRENCY_WORDS = "EUR|USD|GBP|HUF|Ft"
+# "Ft" only capitalised (never lowercase "ft", the imperial unit); the other
+# three-letter codes and the spelled-out forint are safe in lowercase too.
+_CURRENCY_WORDS = "EUR|USD|GBP|HUF|Ft|eur|usd|gbp|huf|(?i:forints?)"
 _AMOUNT = r"\d+(?:[.,]\d+)*"
 _PRICE_RE = re.compile(
     rf"""
@@ -264,14 +300,19 @@ def strip_prices(text: str) -> tuple[str, bool]:
 
 
 def validate_day(
-    day: int, placed: Sequence[Placed], *, pace: Pace | None, on: date | None
+    day: int,
+    placed: Sequence[Placed],
+    *,
+    pace: Pace | None,
+    on: date | None,
+    language: str = "en",
 ) -> list[WarnOp]:
     """Every warning for one day: distance, then load, then closed."""
     day_placed = [item for item in placed if item.slot.day == day]
-    warnings = distance_warnings(day_placed)
-    load = load_warning(day, len(day_placed), pace)
+    warnings = distance_warnings(day_placed, language=language)
+    load = load_warning(day, len(day_placed), pace, language=language)
     if load is not None:
         warnings.append(load)
     if on is not None:
-        warnings.extend(closed_warnings(day_placed, {day: on}))
+        warnings.extend(closed_warnings(day_placed, {day: on}, language=language))
     return warnings

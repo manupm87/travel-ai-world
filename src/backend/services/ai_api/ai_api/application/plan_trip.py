@@ -13,12 +13,13 @@ retrieved is dropped. Prices are tiers, flights a prefilled search link,
 weather a forecast or the corpus's climate normals.
 """
 
+import asyncio
 import logging
 import re
 from collections.abc import AsyncIterator, Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import date, timedelta
-from typing import Literal
+from typing import Literal, cast
 
 from pydantic import BaseModel, Field
 from travel_common.exceptions import DomainError
@@ -41,6 +42,7 @@ from ai_api.prompts import (
     PICK_HOTELS_PROMPT,
     PICK_OPTIONS_PROMPT,
     PLANNER_PERSONA,
+    PLANNER_TEXTS,
     RAG_CONTEXT_PROMPT,
     RANK_NEIGHBOURHOODS_PROMPT,
     SKELETON_PROMPT,
@@ -218,15 +220,6 @@ class Turn:
         itinerary = self.request.itinerary
         return itinerary is not None and len(itinerary.days) > 0
 
-    def slot_ids(self, slot: Slot) -> list[str]:
-        itinerary = self.request.itinerary
-        if itinerary is None:
-            return []
-        for day in itinerary.days:
-            if day.day == slot.day:
-                return list(getattr(day.slots, slot.part or "morning"))
-        return []
-
     def history(self, limit: int = 12) -> list[Message]:
         return [Message(m.role, m.content) for m in self.request.history[-limit:]]
 
@@ -386,7 +379,7 @@ class PlanTrip:
         self._provider = provider
         self._retriever = retriever
         self._weather = weather
-        self._cities = tuple(cities)
+        self._cities = tuple(c for c in (city_key(city) for city in cities) if c)
         self._max_days = max_days
         self._candidate_count = candidates
         self._today = today
@@ -438,8 +431,27 @@ class PlanTrip:
                 yield event
 
     async def _before_stay(self, turn: Turn) -> AsyncIterator[PlannerEvent]:
-        """Brief first; then neighbourhoods, or the whole draft on request."""
-        brief = await self._extract_brief(turn)
+        """Brief first; then neighbourhoods, or the whole draft on request.
+
+        Once the neighbourhoods have been offered (the transcript holds the
+        sentence that introduced them) and the message changes nothing in the
+        brief, the user is talking, not answering the checklist: answer as chat
+        instead of offering the same carousel again.
+        """
+        offered = _neighbourhoods_offered(turn)
+        if (
+            offered
+            and not turn.brief.missing()
+            and not GENERATE_WORDS.search(turn.message)
+        ):
+            brief = await self._extract_brief(turn)
+            if brief == turn.brief:
+                async for event in self._chat(turn):
+                    yield event
+                return
+            turn.brief = brief
+        else:
+            brief = await self._extract_brief(turn)
         city = city_key(brief.destination)
         if city is not None and city not in self._cities:
             covered = self._cities[0].capitalize()
@@ -480,7 +492,11 @@ class PlanTrip:
             *turn.history(6),
             Message("user", turn.message),
         ]
-        update = await complete_json(self._provider, messages, BriefUpdate)
+        try:
+            update = await complete_json(self._provider, messages, BriefUpdate)
+        except DomainError as exc:
+            logger.warning("Brief kept as the client sent it: %s", exc.message)
+            return turn.brief
         return _merge_brief(turn.brief, update)
 
     async def _ask_missing(self, turn: Turn) -> AsyncIterator[PlannerEvent]:
@@ -614,7 +630,11 @@ class PlanTrip:
     async def _auto_stay_and_draft(self, turn: Turn) -> AsyncIterator[PlannerEvent]:
         """'Choose for me': the best neighbourhood, its best stay, the draft."""
         neighbourhoods = await self._rank_neighbourhoods(turn)
-        district = neighbourhoods[0].title if neighbourhoods else None
+        district = (
+            (neighbourhoods[0].district or neighbourhoods[0].title)
+            if neighbourhoods
+            else None
+        )
         candidates, _ = await self._hotel_candidates(turn, district, cheaper=False)
         if not candidates:
             yield text(planner_text(turn.language, "no_hotels"))
@@ -648,13 +668,19 @@ class PlanTrip:
         if route_ops:
             yield patch(*route_ops)
 
-        weather = await self._weather_by_day(turn, stay, days)
-        skeleton = await self._skeleton(turn, stay, days)
+        weather, skeleton = await asyncio.gather(
+            self._weather_by_day(turn, stay, days), self._skeleton(turn, stay, days)
+        )
 
         for day in range(1, days + 1):
-            sketch = skeleton.get(day) or SkeletonDay(day=day, title=f"Day {day}")
+            sketch = skeleton.get(day) or SkeletonDay(
+                day=day, title=planner_text(turn.language, "day_title", day=day)
+            )
+            # The title goes out before the searches and the pick, so the page
+            # shows the day taking shape and the stream never sits silent long.
+            yield patch(set_day_title(day, sketch.title))
             picks = await self._day_picks(turn, sketch, days, plan)
-            ops: list[Op] = [set_day_title(day, sketch.title)]
+            ops: list[Op] = []
             placed: list[Placed] = []
             price_seen = False
             for part in DAY_PARTS:
@@ -666,12 +692,20 @@ class PlanTrip:
                     ops.append(put_activity(slot, card))
                     placed.append(Placed(slot=slot, card=card))
                     turn.use(document)
-            ops.extend(validate_day(day, placed, pace=pace, on=_date_of(brief, day)))
+            ops.extend(
+                validate_day(
+                    day,
+                    placed,
+                    pace=pace,
+                    on=_date_of(brief, day),
+                    language=turn.language,
+                )
+            )
             if price_seen:
                 ops.append(
                     warn(
                         "unverified_price",
-                        "Prices are not verified; check the venue.",
+                        planner_text(turn.language, "warn_unverified_price"),
                         slot=Slot(day=day, part=None),
                     )
                 )
@@ -682,7 +716,8 @@ class PlanTrip:
                         day, w.summary, t_max=w.t_max, t_min=w.t_min, source=w.source
                     )
                 )
-            yield patch(*ops)
+            if ops:
+                yield patch(*ops)
 
         yield text(planner_text(turn.language, "draft_done", days=days))
 
@@ -796,7 +831,9 @@ class PlanTrip:
         for sketch in skeleton.days:
             if 1 <= sketch.day <= days and sketch.day not in result:
                 sketch.districts = [d for d in sketch.districts if d in names][:2]
-                sketch.title = strip_prices(sketch.title)[0][:60] or f"Day {sketch.day}"
+                sketch.title = strip_prices(sketch.title)[0][:60] or planner_text(
+                    turn.language, "day_title", day=sketch.day
+                )
                 result[sketch.day] = sketch
         return result
 
@@ -805,23 +842,28 @@ class PlanTrip:
     ) -> dict[DayPart, list[tuple[Document, str]]]:
         """Candidates per part, one structured pick, unknown ids dropped,
         shortfalls filled with the top candidates so the day is complete."""
-        candidates: dict[DayPart, list[Document]] = {}
         theme = " ".join([sketch.theme, sketch.title, *turn.brief.interests]).strip()
-        for part, count in plan.items():
+
+        async def candidates_for(part: DayPart, count: int) -> list[Document]:
             categories, tier = self._part_categories(turn, part)
-            query = (
-                f"{theme} {part}"
-                if part in ("morning", "afternoon")
-                else (
-                    f"dinner restaurant {theme}"
-                    if part == "evening"
-                    else f"bar evening {theme}"
-                )
-            )
+            if part in ("morning", "afternoon"):
+                query = f"{theme} {part}"
+            elif part == "evening":
+                query = f"dinner restaurant {theme}"
+            else:
+                query = f"bar evening {theme}"
             found = await self._candidates(
                 turn, query, categories, sketch.districts, tier
             )
-            candidates[part] = found[: max(self._candidate_count, count)]
+            return found[: max(self._candidate_count, count)]
+
+        # The four parts are independent searches: in flight together.
+        found_per_part = await asyncio.gather(
+            *(candidates_for(part, count) for part, count in plan.items())
+        )
+        candidates: dict[DayPart, list[Document]] = dict(
+            zip(plan.keys(), found_per_part, strict=True)
+        )
 
         known = {d.id: d for docs in candidates.values() for d in docs}
         picks_by_part: dict[DayPart, list[Pick]] = {}
@@ -1002,6 +1044,7 @@ class PlanTrip:
         else:
             categories, tier = SIGHT_CATEGORIES, None
         request = query or turn.message or " ".join(turn.brief.interests)
+        await self._seed_used_titles(turn)
         candidates = await self._candidates(turn, request, categories, (), tier)
         candidates = [d for d in candidates if d.id not in turn.used_ids]
         if not candidates:
@@ -1106,6 +1149,18 @@ class PlanTrip:
             query.strip() or "places", limit=limit, filters=filters
         )
 
+    async def _seed_used_titles(self, turn: Turn) -> None:
+        """Names of what the trip already holds, so an alternative is never
+        the same place under another source's name."""
+        if turn.used_titles or not turn.used_ids:
+            return
+        try:
+            held = await self._retriever.fetch(sorted(turn.used_ids))
+        except DomainError as exc:
+            logger.warning("Could not read the itinerary's places: %s", exc.message)
+            return
+        turn.used_titles.extend(title_words(title_of(d)) for d in held)
+
     async def _fetch_one(self, doc_id: str) -> Document | None:
         found = await self._retriever.fetch([doc_id])
         return found[0] if found else None
@@ -1123,7 +1178,7 @@ def _slot_of_group(group: str) -> Slot | None:
     match = re.fullmatch(r"slot:(\d+):(morning|afternoon|evening|night)", group)
     if match is None:
         return None
-    part: DayPart = match.group(2)  # type: ignore[assignment]
+    part = cast(DayPart, match.group(2))
     return Slot(day=int(match.group(1)), part=part)
 
 
@@ -1133,7 +1188,18 @@ def _alternatives_slot(message: str) -> Slot | None:
     if match is None:
         return None
     part = PART_WORDS.get(match.group(2).lower())
+    if part is None:
+        return None  # a wording this build does not know: let the model classify
     return Slot(day=int(match.group(1)), part=part)
+
+
+def _neighbourhoods_offered(turn: Turn) -> bool:
+    """Whether an earlier turn introduced the neighbourhood carousel."""
+    intros = {texts["neighbourhoods"] for texts in PLANNER_TEXTS.values()}
+    return any(
+        m.role == "assistant" and any(m.content.startswith(i) for i in intros)
+        for m in turn.request.history
+    )
 
 
 def _itinerary_summary(turn: Turn) -> str:

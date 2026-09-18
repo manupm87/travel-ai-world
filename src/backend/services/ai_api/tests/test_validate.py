@@ -123,6 +123,19 @@ class TestDistanceWarnings:
         # Close together, so no warning, but this must not raise.
         assert distance_warnings(placed) == []
 
+    def test_spanish_message(self) -> None:
+        near = _card(id="a", title="Parlamento", lat=47.50, lon=19.05)
+        far = _card(id="b", title="Lugar Lejano", lat=47.55, lon=19.05)
+        placed = [
+            Placed(Slot(day=1, part="morning"), near),
+            Placed(Slot(day=1, part="afternoon"), far),
+        ]
+        warnings = distance_warnings(placed, language="es")
+        assert len(warnings) == 1
+        assert warnings[0].message == (
+            "Parlamento → Lugar Lejano están a 5.6 km; prevé transporte"
+        )
+
 
 class TestLoadWarning:
     @pytest.mark.parametrize(
@@ -147,6 +160,13 @@ class TestLoadWarning:
         warning = load_warning(1, 5, None)
         assert warning is not None
         assert "balanced pace" in warning.message
+
+    def test_spanish_message(self) -> None:
+        warning = load_warning(2, 5, "balanced", language="es")
+        assert warning is not None
+        assert (
+            warning.message == "El día 2 tiene 5 actividades para un ritmo equilibrado"
+        )
 
 
 class TestIsClosedOn:
@@ -186,6 +206,24 @@ class TestIsClosedOn:
                 0,
                 False,
             ),
+            # Regressions: a day list joined by a space ("Sat Sun", "Fri Sat")
+            # must be credited as open, same as one joined by "," or "-".
+            # Getting this wrong made the "≥5 open days ⇒ the rest is closed"
+            # rule declare the space-joined day closed.
+            (
+                "Cash desk: Mon-Fri 06:00-21:00, Sat Sun 06:00-16:00",
+                5,  # Saturday
+                False,
+            ),
+            ("Sun-Thu 11:00-24:00, Fri Sat 11:00-02:00", 4, False),  # Friday
+            ("Mon-Fri 20:00-08:00, Sat Sun 24 hr", 5, False),  # Saturday
+            ("Mon-Fri 20:00-08:00, Sat Sun 24 hr", 6, False),  # Sunday
+            (
+                "Mar–Oct: Mon 12:00–21:00, Tue–Thu 11:00–22:00, "
+                "Fri Sat 11:00–23:00, Sun 11:00–21:30",
+                4,  # Friday
+                False,
+            ),
         ],
     )
     def test_table(self, hours: str | None, weekday: int, expected: bool) -> None:
@@ -212,6 +250,17 @@ class TestClosedWarnings:
         placed = [Placed(Slot(day=1, part="morning"), card)]
         assert closed_warnings(placed, {1: date(2026, 9, 21)}) == []
 
+    def test_spanish_message(self) -> None:
+        card = _card(id="p", title="Mercado Dominical", hours="closed Sun")
+        placed = [Placed(Slot(day=3, part="morning"), card)]
+        warnings = closed_warnings(
+            placed,
+            {3: date(2026, 9, 20)},
+            language="es",  # a Sunday
+        )
+        assert len(warnings) == 1
+        assert warnings[0].message == "Mercado Dominical parece cerrado el domingo"
+
 
 class TestStripPrices:
     @pytest.mark.parametrize(
@@ -229,6 +278,17 @@ class TestStripPrices:
                 "Double €345-555, suites €345-4600",
                 "Double (price not shown)-555, suites (price not shown)-4600",
             ),
+            ("5000 forints", "(price not shown)"),
+            ("50 Forint", "(price not shown)"),
+            ("1 forint", "(price not shown)"),
+            ("huf 15000", "(price not shown)"),
+            ("15000 huf", "(price not shown)"),
+            ("eur 50", "(price not shown)"),
+            ("50 eur", "(price not shown)"),
+            ("usd 20", "(price not shown)"),
+            ("20 usd", "(price not shown)"),
+            ("gbp 10", "(price not shown)"),
+            ("10 gbp", "(price not shown)"),
         ],
     )
     def test_strips_amounts_with_a_currency(self, text: str, expected: str) -> None:
@@ -248,6 +308,10 @@ class TestStripPrices:
             "120",
             "Mo-Su 12:00-24:00",
             "Andrássy út 22, 1061 Budapest",
+            "5 ft tall",
+            "The tower is 96 ft high",
+            "for the win",
+            "forintxyz nonsense word",
         ],
     )
     def test_never_strips_bare_numbers(self, text: str) -> None:

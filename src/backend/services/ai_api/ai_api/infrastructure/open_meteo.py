@@ -72,7 +72,7 @@ class OpenMeteoForecast:
         *,
         base_url: str = "https://api.open-meteo.com/v1/forecast",
         horizon_days: int = 16,
-        timezone: str = "Europe/Budapest",
+        timezone: str = "auto",
         today: Callable[[], date] | None = None,
     ) -> None:
         self._client = client
@@ -106,7 +106,8 @@ class OpenMeteoForecast:
         Days the upstream does not return are simply absent: a trip that
         starts inside the horizon and ends outside it gets the days it can.
         """
-        horizon = self._today() + timedelta(days=self._horizon_days)
+        # The API serves today plus (horizon - 1) days; one day past it is a 400.
+        horizon = self._today() + timedelta(days=self._horizon_days - 1)
         if start > horizon:
             logger.debug("Open-Meteo skipped: %s is beyond the forecast horizon", start)
             return []

@@ -781,3 +781,106 @@ async def test_free_text_options_are_introduced_as_findings_not_alternatives():
     )
 
     assert joined_text(events).startswith("Here is what I found")
+
+
+# ─── Talking before a stay is chosen ─────────────────────────────────────────
+
+
+async def test_a_question_after_the_neighbourhoods_were_offered_is_answered_not_repeated():
+    use_case, provider, _ = planner(
+        [json.dumps({})], deltas=("Belváros ", "is quieter.")
+    )
+
+    events = await run(
+        use_case(
+            turn(
+                "which one is quieter?",
+                brief=brief(),
+                history=[
+                    ("user", "Dates: 2026-10-20 · 2026-10-24"),
+                    (
+                        "assistant",
+                        "These neighbourhoods fit your trip. Where would you like to stay?",
+                    ),
+                ],
+            )
+        )
+    )
+
+    assert not only(events, OptionsEvent) and not only(events, BriefEvent)
+    assert joined_text(events) == "Belváros is quieter."
+    # One extraction (unchanged brief), then the streamed answer: no ranking call.
+    assert len(provider.completions) == 1 and len(provider.calls) == 1
+
+
+async def test_a_change_of_brief_after_the_offer_ranks_neighbourhoods_again():
+    use_case, _, _ = planner([json.dumps({"budget_tier": 3}), picks(BELVAROS)])
+
+    events = await run(
+        use_case(
+            turn(
+                "actually make it high-end",
+                brief=brief(budget_tier=2),
+                history=[
+                    (
+                        "assistant",
+                        "These neighbourhoods fit your trip. Where would you like to stay?",
+                    )
+                ],
+            )
+        )
+    )
+
+    [brief_event] = only(events, BriefEvent)
+    assert brief_event.brief.budget_tier == 3
+    assert only(events, OptionsEvent)
+
+
+async def test_the_day_title_is_streamed_before_the_days_activities():
+    use_case, _, _ = planner([skeleton(1)])
+
+    events = await run(
+        use_case(
+            turn(
+                action={
+                    "type": "select",
+                    "group_id": "hotels:x",
+                    "card_ids": [ASTORIA],
+                },
+                brief=brief(start_date=date(2026, 10, 20), end_date=date(2026, 10, 20)),
+            )
+        )
+    )
+
+    patches = only(events, ItineraryPatchEvent)
+    kinds = [[op.op for op in p.ops] for p in patches]
+    assert kinds[0] == ["set_stay"] and kinds[1] == ["set_route"]
+    assert kinds[2] == ["set_day_title"]
+    assert "put_activity" in kinds[3]
+
+
+async def test_spanish_warnings_and_day_titles():
+    use_case, _, _ = planner(deltas=("not json",))
+
+    events = await run(
+        use_case(
+            turn(
+                action={
+                    "type": "select",
+                    "group_id": "hotels:x",
+                    "card_ids": [ASTORIA],
+                },
+                brief=brief(start_date=date(2026, 10, 20), end_date=date(2026, 10, 20)),
+                history=[
+                    ("user", "Quiero un viaje a Budapest desde Madrid para dos adultos")
+                ],
+            )
+        )
+    )
+
+    [title] = ops_of(events, "set_day_title")
+    assert title.title == "Día 1"
+    for warning in ops_of(events, "warn"):
+        assert " km" not in warning.message or "prevé transporte" in warning.message
+    [weather] = ops_of(events, "set_weather")
+    assert weather.summary.startswith("Un octubre típico")

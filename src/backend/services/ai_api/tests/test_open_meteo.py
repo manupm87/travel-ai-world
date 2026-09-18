@@ -51,7 +51,7 @@ async def test_asks_for_the_requested_range_and_maps_every_day():
     assert params["latitude"] == "47.5"
     assert params["longitude"] == "19.05"
     assert params["daily"] == "temperature_2m_max,temperature_2m_min,weathercode"
-    assert params["timezone"] == "Europe/Budapest"
+    assert params["timezone"] == "auto"
     assert params["start_date"] == "2026-09-20"
     assert params["end_date"] == "2026-09-22"
     assert days[0] == DayWeather(
@@ -85,7 +85,7 @@ async def test_the_end_is_clamped_to_the_horizon():
         47.5, 19.05, date(2026, 9, 20), date(2026, 10, 30)
     )
 
-    assert seen[0].url.params["end_date"] == "2026-10-04"
+    assert seen[0].url.params["end_date"] == "2026-10-03"
 
 
 async def test_a_custom_timezone_travels():

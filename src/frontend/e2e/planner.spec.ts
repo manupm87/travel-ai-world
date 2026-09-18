@@ -13,9 +13,10 @@ import type { PlannerTurn } from "../src/types/planner";
  * session: brief → neighbourhood and hotel carousels → a 3-day itinerary
  * with a chosen hotel → "Change" on day 2's afternoon.
  *
- * `ai_api`'s `/planner` endpoint is a later issue (TRA-143), so the route is
- * mocked here with the same fixture the unit tests use, picked per turn by
- * the message or the structured action the page sends. Sign-in follows
+ * `ai_api`'s `/planner` route (TRA-143) answers from the corpus and a model,
+ * so it is mocked here with the same fixture the unit tests use, picked per
+ * turn by the message or the structured action the page sends: the e2e run
+ * stays deterministic and needs no AWS. Sign-in follows
  * `trips.spec.ts`: `E2E_TOKEN` written into `localStorage` before the first
  * navigation; without it the file is skipped, so the static suite needs no
  * backend. `just test-e2e-stack` (CI's `e2e-stack` job) is the runner.

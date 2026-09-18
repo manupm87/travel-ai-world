@@ -131,10 +131,10 @@ class NvidiaProvider:
                 return _output_text(response.json(), usage)
         raise ProviderUnavailable(UPSTREAM_ERROR_MESSAGE)  # pragma: no cover
 
-    def _headers(self) -> dict[str, str]:
+    def _headers(self, *, stream: bool = False) -> dict[str, str]:
         return {
             "Authorization": f"Bearer {self._api_key}",
-            "Accept": "text/event-stream",
+            "Accept": "text/event-stream" if stream else "application/json",
             "Content-Type": "application/json",
         }
 
@@ -152,7 +152,7 @@ class NvidiaProvider:
     async def _stream_once(
         self, messages: Sequence[Message], usage: Usage | None
     ) -> AsyncIterator[str]:
-        headers = self._headers()
+        headers = self._headers(stream=True)
         payload = self._payload(messages) | {
             "stream": True,
             # A last chunk with the token counts (OpenAI-compatible APIs).
