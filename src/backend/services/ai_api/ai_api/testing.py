@@ -5,6 +5,7 @@ import hashlib
 import math
 import uuid
 from collections.abc import AsyncIterator, Sequence
+from pathlib import Path
 
 from travel_common.exceptions import DomainError, EntityNotFound
 
@@ -23,7 +24,13 @@ def settings_for_tests() -> AISettings:
 
 
 class FakeProvider:
-    """Records what it was asked and streams a canned answer."""
+    """Records what it was asked and answers from a script.
+
+    `stream` yields `deltas`; `complete` pops the next entry of `replies`
+    (a JSON string for structured output) and falls back to the joined
+    deltas when the script runs out. Every call is kept in `calls` /
+    `completions`, so a test can assert what the model was shown.
+    """
 
     name = "fake"
 
@@ -31,10 +38,13 @@ class FakeProvider:
         self,
         deltas: Sequence[str] = ("Hola", " mundo"),
         usage: Usage | None = None,
+        replies: Sequence[str] = (),
     ) -> None:
         self.deltas = list(deltas)
         self.usage = usage or Usage(model="fake-model", input_tokens=3, output_tokens=2)
         self.calls: list[list[Message]] = []
+        self.replies = list(replies)
+        self.completions: list[list[Message]] = []
 
     async def stream(
         self, messages: Sequence[Message], *, usage: Usage | None = None
@@ -42,6 +52,18 @@ class FakeProvider:
         self.calls.append(list(messages))
         for delta in self.deltas:
             yield delta
+        self._fill(usage)
+
+    async def complete(
+        self, messages: Sequence[Message], *, usage: Usage | None = None
+    ) -> str:
+        self.completions.append(list(messages))
+        self._fill(usage)
+        if self.replies:
+            return self.replies.pop(0)
+        return "".join(self.deltas)
+
+    def _fill(self, usage: Usage | None) -> None:
         if usage is not None:
             usage.model = self.usage.model
             usage.input_tokens = self.usage.input_tokens
@@ -116,7 +138,13 @@ class FakeEmbedder:
 
 class FakeRetriever:
     """Returns canned passages and records every search; `fail_with` makes
-    each search raise instead."""
+    each search raise instead.
+
+    Filters are honoured the way the store does it (a document without the
+    key a condition names is left out), so a planner test over a corpus
+    sample sees the same narrowing as production. The order is the
+    documents' own; there is no similarity.
+    """
 
     def __init__(
         self,
@@ -126,6 +154,7 @@ class FakeRetriever:
         self.documents = list(documents)
         self.fail_with = fail_with
         self.searches: list[tuple[str, int, RetrievalFilters | None]] = []
+        self.fetches: list[list[str]] = []
 
     async def search(
         self,
@@ -137,4 +166,57 @@ class FakeRetriever:
         self.searches.append((query, limit, filters))
         if self.fail_with is not None:
             raise self.fail_with
-        return self.documents[:limit]
+        if filters is None:
+            return self.documents[:limit]
+        return [d for d in self.documents if matches(d, filters)][:limit]
+
+    async def fetch(self, ids: Sequence[str]) -> list[Document]:
+        self.fetches.append(list(ids))
+        if self.fail_with is not None:
+            raise self.fail_with
+        wanted = set(ids)
+        return [d for d in self.documents if d.id in wanted]
+
+
+def matches(document: Document, filters: RetrievalFilters) -> bool:
+    """Whether the store would return this document under these filters."""
+    m = document.metadata
+    if filters.city and m.get("city") != filters.city:
+        return False
+    if filters.districts and m.get("district") not in filters.districts:
+        return False
+    if filters.categories and m.get("category") not in filters.categories:
+        return False
+    if filters.kinds and m.get("kind") not in filters.kinds:
+        return False
+    if filters.price_tier_max is not None:
+        tier = m.get("price_tier")
+        if not isinstance(tier, int | float) or tier > filters.price_tier_max:
+            return False
+    if filters.bbox is not None:
+        lat, lon = m.get("lat"), m.get("lon")
+        if not isinstance(lat, int | float) or not isinstance(lon, int | float):
+            return False
+        min_lat, min_lon, max_lat, max_lon = filters.bbox
+        if not (min_lat <= lat <= max_lat and min_lon <= lon <= max_lon):
+            return False
+    return True
+
+
+def documents_from_corpus(path: Path, *, limit: int | None = None) -> list[Document]:
+    """Corpus JSONL lines as the retriever would return them.
+
+    Goes through `indexing.metadata_for`, so a document carries exactly the
+    metadata the store keeps (`extra` as JSON, `text` as the content), and a
+    test over a corpus sample exercises the same hydration as production.
+    """
+    from ai_api.indexing import metadata_for, read_corpus
+
+    documents: list[Document] = []
+    for corpus_document in read_corpus(path, limit=limit):
+        metadata = metadata_for(corpus_document)
+        content = str(metadata.pop("text", ""))
+        documents.append(
+            Document(id=corpus_document.doc_id, content=content, metadata=metadata)
+        )
+    return documents

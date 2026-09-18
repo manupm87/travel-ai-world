@@ -1,6 +1,7 @@
 from functools import lru_cache
 from typing import Literal
 
+from pydantic import Field
 from travel_common.config import CommonSettings
 
 LLMProviderName = Literal["nvidia", "bedrock"]
@@ -72,6 +73,19 @@ class AISettings(CommonSettings):
     # Titan embeds one text per call; this many calls travel at a time while
     # a corpus is being indexed.
     EMBEDDINGS_CONCURRENCY: int = 8
+
+    # Planner (ADR 0015). Needs retrieval: every card is a corpus document.
+    # Cities the corpus covers; a brief for another destination is answered
+    # with a polite "not yet" instead of invented places.
+    PLANNER_CITIES: list[str] = Field(default_factory=lambda: ["budapest"])
+    # Longest draft generated in one turn (days) and how many retrieved
+    # documents the model chooses from per part of a day.
+    PLANNER_MAX_DAYS: int = 7
+    PLANNER_CANDIDATES: int = 8
+    # Daily forecast for dates within reach; beyond it the corpus's climate
+    # normals are used. A failure never fails a plan.
+    OPEN_METEO_URL: str = "https://api.open-meteo.com/v1/forecast"
+    OPEN_METEO_TIMEOUT: float = 5.0
 
 
 @lru_cache

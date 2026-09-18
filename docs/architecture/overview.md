@@ -140,14 +140,41 @@ reach the model as a second system turn and the recorded answer as its `sources`
 filled out of band by `just index` from the corpus committed under `tools/city_corpus/data/`.
 
 Wire format is fixed by `ai_api/infrastructure/sse.py` and consumed by `src/frontend/src/services/chat.ts`.
-The planner page (`/plan/`, TRA-144) consumes the typed successor of that stream, SSE v2
-(`data: {"type": "text" | "brief" | "options" | "itinerary_patch" | "error"}` then `[DONE]`,
-TRA-142), through `src/frontend/src/services/planner.ts`; until `ai_api` ships `POST /api/v1/ai/planner`
-(TRA-143) the contract lives as a hand-kept mirror in `src/frontend/src/types/planner.ts` and the
-page answers from the recorded session in `src/frontend/src/data/planner-demo/session.ts` through
-`services/plannerDemo.ts`, behind a demo banner (TRA-158); the same session is the test double.
 Conversations are stored by `core_api` ([ADR 0013](adr/0013-chat-conversations-in-core-api.md)):
 `ai_api` keeps no state and reaches no database.
+
+## Planner
+
+The planner page (`/plan/`) talks to `POST /api/v1/ai/planner`, the typed successor of the chat
+stream: SSE v2 ([ADR 0015](adr/0015-planner-sse-v2-stateless-orchestration.md)), one JSON event per
+`data:` line (`text`, `brief`, `options`, `itinerary_patch`, `error`) then `[DONE]`, with the models
+generated for both sides by `just contracts`.
+
+```mermaid
+sequenceDiagram
+    participant B as Browser (/plan/)
+    participant A as ai_api (PlanTrip)
+    participant V as S3 Vectors (+ Titan)
+    participant N as LLM (Bedrock or NVIDIA)
+    participant W as Open-Meteo
+    B->>A: POST /api/v1/ai/planner {message | action, history, brief, itinerary} + Bearer
+    A->>N: extract/merge the brief (JSON) → data: {"type":"brief", missing}
+    A->>N: one short question while a field is missing → data: {"type":"text"}
+    A->>V: neighbourhoods · stays (district, tier) · places per part of the day (filters)
+    A->>N: rank / pick ids among the retrieved documents + one-line "why"
+    A-->>B: data: {"type":"options", group_id, cards} (cards hydrated from the corpus)
+    B->>A: {action: {type: "select", group_id, card_ids}} (applied optimistically)
+    A->>W: daily forecast (≤ 16 days) — else the corpus's climate normals
+    A-->>B: data: {"type":"itinerary_patch", ops: set_stay · set_route · set_day_title · put_activity · set_weather · warn}
+    Note over A: stateless: the group id says what a selection means (nb, hotels:<district>, slot:<day>:<part>)
+```
+
+Every card is a retrieved corpus document (`application/cards.py`); ids the model returns that were
+not retrieved are dropped, prices are tiers, flights a prefilled search link (`static_flight_search.py`),
+and `application/validate.py` adds `warn` ops (distance, load per pace, closed that weekday, a price
+in model text). Without the route (a 404) or without an `ai_api` URL the page plays the recorded
+session in `src/frontend/src/data/planner-demo/session.ts` behind a demo banner (TRA-158); the same
+session is the test double for the page.
 
 ## Service-to-service calls
 

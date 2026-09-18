@@ -147,7 +147,7 @@
       "DaySnapshot": {
         "properties": {
           "day": {
-            "minimum": 1,
+            "minimum": 1.0,
             "title": "Day",
             "type": "integer"
           },
@@ -965,7 +965,7 @@
         "description": "A part of a day; `part` is null when the server did not pin one.",
         "properties": {
           "day": {
-            "minimum": 1,
+            "minimum": 1.0,
             "title": "Day",
             "type": "integer"
           },
@@ -1326,6 +1326,56 @@
         "summary": "Provider Health",
         "tags": [
           "Health"
+        ]
+      }
+    },
+    "/api/v1/ai/planner": {
+      "post": {
+        "description": "Stream the planner's answer to one turn for the authenticated user.\n\nThe service keeps no state: the turn carries the brief, the itinerary\nsnapshot and the transcript. Events are discriminated on `type` (`text`,\n`brief`, `options`, `itinerary_patch`, `error`, `done`); the stream ends\nwith `data: [DONE]`. Needs retrieval (`RETRIEVAL_ENABLED`): every card is\na corpus document, so without a store the endpoint answers 503.",
+        "operationId": "planner_api_v1_ai_planner_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlannerTurn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              },
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlannerEvent"
+                }
+              }
+            },
+            "description": "Server-Sent Events: one `PlannerEvent` JSON object per `data:` line, `data: [DONE]` last."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Planner",
+        "tags": [
+          "Planner"
         ]
       }
     }

@@ -51,11 +51,13 @@ _KEY_NAMESPACE = uuid.NAMESPACE_URL
 
 
 class S3VectorsClient(Protocol):
-    """The four operations we use; boto3's `s3vectors` client satisfies it."""
+    """The five operations we use; boto3's `s3vectors` client satisfies it."""
 
     def put_vectors(self, **kwargs: Any) -> Any: ...
 
     def query_vectors(self, **kwargs: Any) -> Any: ...
+
+    def get_vectors(self, **kwargs: Any) -> Any: ...
 
     def list_vectors(self, **kwargs: Any) -> Any: ...
 

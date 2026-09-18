@@ -241,3 +241,27 @@ async def test_build_llm_provider_picks_the_adapter_by_setting():
     assert isinstance(nvidia, NvidiaProvider)
     assert (bedrock.name, nvidia.name) == ("bedrock", "nvidia")
     await nvidia.aclose()
+
+
+async def test_complete_records_the_usage_the_response_reports():
+    client = FakeClient(
+        {
+            "output": {
+                "message": {"content": [{"text": "Viaje"}, {"text": " a Roma"}]}
+            },
+            "usage": {"inputTokens": 41, "outputTokens": 5},
+        }
+    )
+    usage = Usage()
+
+    answer = await _provider(client).complete([Message("user", "título")], usage=usage)
+
+    assert answer == "Viaje a Roma"
+    assert usage == Usage(model="eu.anthropic.test", input_tokens=41, output_tokens=5)
+
+
+async def test_complete_refuses_when_the_provider_is_not_configured():
+    provider = BedrockProvider(client=FakeClient(), model="")
+
+    with pytest.raises(ProviderUnavailable):
+        await provider.complete([Message("user", "x")])

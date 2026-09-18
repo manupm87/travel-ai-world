@@ -77,6 +77,32 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/ai/planner": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Planner
+         * @description Stream the planner's answer to one turn for the authenticated user.
+         *
+         *     The service keeps no state: the turn carries the brief, the itinerary
+         *     snapshot and the transcript. Events are discriminated on `type` (`text`,
+         *     `brief`, `options`, `itinerary_patch`, `error`, `done`); the stream ends
+         *     with `data: [DONE]`. Needs retrieval (`RETRIEVAL_ENABLED`): every card is
+         *     a corpus document, so without a store the endpoint answers 503.
+         */
+        post: operations["planner_api_v1_ai_planner_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -554,6 +580,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+        };
+    };
+    planner_api_v1_ai_planner_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlannerTurn"];
+            };
+        };
+        responses: {
+            /** @description Server-Sent Events: one `PlannerEvent` JSON object per `data:` line, `data: [DONE]` last. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                    "text/event-stream": components["schemas"]["PlannerEvent"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

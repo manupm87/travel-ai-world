@@ -15,6 +15,7 @@ boto3 is synchronous: the call runs in a worker thread through
 
 import asyncio
 import logging
+from collections.abc import Sequence
 from typing import Any
 
 from botocore.exceptions import BotoCoreError, ClientError
@@ -23,12 +24,15 @@ from travel_common.exceptions import ProviderUnavailable
 from ai_api.config import AISettings
 from ai_api.domain.models import Document, RetrievalFilters
 from ai_api.domain.ports import Embedder
-from ai_api.infrastructure.s3vectors import S3VectorsClient, build_client
+from ai_api.infrastructure.s3vectors import S3VectorsClient, build_client, vector_key
 
 logger = logging.getLogger(__name__)
 
 # What the browser sees. The store's codes and messages stay in the logs.
 UPSTREAM_ERROR_MESSAGE = "Vector store error"
+
+# Keys per GetVectors call, the API's maximum.
+FETCH_BATCH_SIZE = 100
 
 
 class S3VectorsRetriever:
@@ -94,6 +98,31 @@ class S3VectorsRetriever:
             len(documents),
             ", ".join(f"{d.id}@{d.metadata.get('distance')}" for d in documents[:5]),
         )
+        return documents
+
+    async def fetch(self, ids: Sequence[str]) -> list[Document]:
+        """The documents behind these ids (GetVectors by key), unknown ones left out.
+
+        Keys are derived from the ids the way `indexing` stores them, so a
+        card the client selected is hydrated from the store, never from the
+        client.
+        """
+        documents: list[Document] = []
+        unique = list(dict.fromkeys(ids))
+        for start in range(0, len(unique), FETCH_BATCH_SIZE):
+            batch = unique[start : start + FETCH_BATCH_SIZE]
+            try:
+                response = await asyncio.to_thread(
+                    self._client.get_vectors,
+                    vectorBucketName=self._bucket,
+                    indexName=self._index,
+                    keys=[vector_key(doc_id) for doc_id in batch],
+                    returnMetadata=True,
+                )
+            except (ClientError, BotoCoreError) as exc:
+                logger.error("Vector fetch failed: %s", exc)
+                raise ProviderUnavailable(UPSTREAM_ERROR_MESSAGE) from exc
+            documents.extend(_document(v) for v in response.get("vectors", []))
         return documents
 
 

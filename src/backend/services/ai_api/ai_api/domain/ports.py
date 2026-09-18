@@ -4,10 +4,12 @@ Adapters in `infrastructure/` implement these; tests substitute fakes.
 """
 
 from collections.abc import AsyncIterator, Sequence
+from datetime import date
 from typing import Any, Protocol
 
 from ai_api.domain.models import (
     ChatTurn,
+    DayWeather,
     Document,
     Message,
     RetrievalFilters,
@@ -23,6 +25,16 @@ class LLMProvider(Protocol):
 
         When `usage` is given, fill in the model and the token counts the
         upstream reports, by the time the stream ends.
+        """
+        ...
+
+    async def complete(
+        self, messages: Sequence[Message], *, usage: Usage | None = None
+    ) -> str:
+        """One whole answer, not streamed: what structured output is parsed from.
+
+        Same failure and `usage` rules as `stream`. `application.structured`
+        turns it into a validated model with a repair retry.
         """
         ...
 
@@ -58,6 +70,24 @@ class Retriever(Protocol):
         limit: int = 5,
         filters: RetrievalFilters | None = None,
     ) -> list[Document]: ...
+
+    async def fetch(self, ids: Sequence[str]) -> list[Document]:
+        """The documents with these ids, in no particular order; unknown ids
+        are left out. How a card the client selected is hydrated again."""
+        ...
+
+
+class WeatherForecast(Protocol):
+    """A daily forecast for a place and a range of dates.
+
+    Returns nothing (an empty list) when the dates are beyond the forecast
+    horizon or the upstream fails: the caller falls back to climate normals.
+    Never raises for a weather problem.
+    """
+
+    async def daily(
+        self, lat: float, lon: float, start: date, end: date
+    ) -> list[DayWeather]: ...
 
 
 class TripGateway(Protocol):

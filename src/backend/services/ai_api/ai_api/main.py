@@ -6,6 +6,7 @@ from travel_common.http.app_factory import create_app
 
 from ai_api.api.v1.api_router import api_router
 from ai_api.config import get_settings
+from ai_api.infrastructure.open_meteo import OpenMeteoForecast
 from ai_api.infrastructure.providers import build_llm_provider, build_retriever
 from ai_api.openapi import register_stream_schemas
 
@@ -20,14 +21,17 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
     provider = build_llm_provider(settings)
     retriever = build_retriever(settings)
+    weather = OpenMeteoForecast.from_settings(settings)
     app.state.llm_provider = provider
     app.state.retriever = retriever
+    app.state.weather = weather
     try:
         yield
     finally:
         await provider.aclose()
         if retriever is not None:
             await retriever.aclose()
+        await weather.aclose()
 
 
 settings = get_settings()

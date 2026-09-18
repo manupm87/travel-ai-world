@@ -11,6 +11,7 @@ from travel_common.http.auth import extract_bearer_token
 from travel_common.principal import Principal
 from travel_common.security import principal_from_token
 
+from ai_api.application.plan_trip import PlanTrip
 from ai_api.application.record_conversation import RecordConversation
 from ai_api.application.stream_chat import StreamChat
 from ai_api.config import AISettings, get_settings
@@ -19,6 +20,7 @@ from ai_api.domain.ports import (
     LLMProvider,
     Retriever,
     TripGateway,
+    WeatherForecast,
 )
 from ai_api.infrastructure.core_api_client import CoreApiClient
 from ai_api.infrastructure.providers import ChatProvider
@@ -58,6 +60,30 @@ def get_stream_chat(
         CHAT_SYSTEM_PROMPT,
         retriever=retriever,
         retrieval_limit=settings.RETRIEVAL_LIMIT,
+    )
+
+
+def get_weather(request: Request) -> WeatherForecast | None:
+    """The forecast adapter built in `lifespan`, or None (normals only)."""
+    return getattr(request.app.state, "weather", None)
+
+
+def get_plan_trip(
+    provider: LLMProvider = Depends(get_llm_provider),
+    retriever: Retriever | None = Depends(get_retriever),
+    weather: WeatherForecast | None = Depends(get_weather),
+    settings: AISettings = Depends(get_settings),
+) -> PlanTrip:
+    """The planner needs the corpus: without retrieval it cannot show a card."""
+    if retriever is None:
+        raise ProviderUnavailable("Trip planner needs retrieval (RETRIEVAL_ENABLED)")
+    return PlanTrip(
+        provider,
+        retriever,
+        weather=weather,
+        cities=settings.PLANNER_CITIES,
+        max_days=settings.PLANNER_MAX_DAYS,
+        candidates=settings.PLANNER_CANDIDATES,
     )
 
 

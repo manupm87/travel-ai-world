@@ -76,6 +76,9 @@ class FakeStore:
             del self.vectors[key]
         return {}
 
+    def get_vectors(self, **kwargs: Any) -> Any:  # pragma: no cover - unused
+        raise NotImplementedError
+
     def query_vectors(self, **kwargs: Any) -> Any:  # pragma: no cover - unused
         raise NotImplementedError
 

@@ -120,13 +120,16 @@ class BedrockProvider:
         self,
         messages: Sequence[Message],
         *,
+        usage: Usage | None = None,
         model: str | None = None,
         max_tokens: int | None = None,
     ) -> str:
-        """One non-streamed answer, for short jobs such as conversation titles.
+        """One non-streamed answer: structured output, titles, short jobs.
 
         `model` overrides the chat model (a cheaper one for trivial tasks).
         """
+        if not self.is_configured:
+            raise ProviderUnavailable("AI provider not configured")
         request = self._request(messages, model=model, max_tokens=max_tokens)
         for delay in self._retry.delays():
             try:
@@ -138,6 +141,7 @@ class BedrockProvider:
                 logger.warning("Bedrock error (%s); retrying in %.0fs", exc, delay)
                 await asyncio.sleep(delay)
             else:
+                _record_usage(response, request["modelId"], usage)
                 return _output_text(response)
         raise ProviderUnavailable(UPSTREAM_ERROR_MESSAGE)  # pragma: no cover
 
@@ -231,6 +235,21 @@ def _extract_delta(
             usage.input_tokens = reported.get("inputTokens")
             usage.output_tokens = reported.get("outputTokens")
     return None
+
+
+def _record_usage(response: Mapping[str, Any], model: str, usage: Usage | None) -> None:
+    reported = response.get("usage") or {}
+    if reported:
+        logger.info(
+            "Bedrock usage model=%s input_tokens=%s output_tokens=%s",
+            model,
+            reported.get("inputTokens"),
+            reported.get("outputTokens"),
+        )
+    if usage is not None:
+        usage.model = model
+        usage.input_tokens = reported.get("inputTokens")
+        usage.output_tokens = reported.get("outputTokens")
 
 
 def _output_text(response: Mapping[str, Any]) -> str:

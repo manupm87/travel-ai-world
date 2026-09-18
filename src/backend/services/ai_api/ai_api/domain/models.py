@@ -1,6 +1,7 @@
 """Pure domain types. No framework imports."""
 
 from dataclasses import dataclass, field
+from datetime import date
 from typing import Literal
 
 ChatRole = Literal["system", "user", "assistant"]
@@ -86,6 +87,28 @@ class ThreadSaved:
     """Stream event: the exchange was recorded in this conversation."""
 
     thread_id: str
+
+
+@dataclass(frozen=True, slots=True)
+class DayWeather:
+    """One day's weather as a forecast or a climate normal describes it."""
+
+    day: date
+    summary: str
+    t_max: float | None
+    t_min: float | None
+    source: str
+
+
+@dataclass(frozen=True, slots=True)
+class RouteSuggestion:
+    """How to get there: a prefilled search, never a price or a time."""
+
+    origin: str
+    destination: str
+    origin_iata: str | None
+    destination_iata: str | None
+    deep_link: str
 
 
 @dataclass(frozen=True, slots=True)

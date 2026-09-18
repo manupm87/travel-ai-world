@@ -1,0 +1,55 @@
+[
+  { "iata": "MAD", "city": "Madrid", "aliases": ["madrid"] },
+  { "iata": "BCN", "city": "Barcelona", "aliases": ["barcelona", "barna"] },
+  { "iata": "VLC", "city": "Valencia", "aliases": ["valencia", "valència"] },
+  { "iata": "AGP", "city": "Málaga", "aliases": ["malaga", "málaga", "costa del sol"] },
+  { "iata": "SVQ", "city": "Sevilla", "aliases": ["sevilla", "seville", "séville"] },
+  { "iata": "BIO", "city": "Bilbao", "aliases": ["bilbao", "bilbo"] },
+  {
+    "iata": "PMI",
+    "city": "Palma",
+    "aliases": ["palma", "palma de mallorca", "mallorca", "majorca"]
+  },
+  { "iata": "LIS", "city": "Lisbon", "aliases": ["lisbon", "lisboa", "lisbonne"] },
+  { "iata": "OPO", "city": "Porto", "aliases": ["porto", "oporto"] },
+  { "iata": "CDG", "city": "Paris", "aliases": ["paris", "parís"] },
+  { "iata": "LHR", "city": "London", "aliases": ["london", "londres", "londra"] },
+  { "iata": "AMS", "city": "Amsterdam", "aliases": ["amsterdam", "ámsterdam"] },
+  { "iata": "BER", "city": "Berlin", "aliases": ["berlin", "berlín"] },
+  {
+    "iata": "MUC",
+    "city": "Munich",
+    "aliases": ["munich", "münchen", "munchen", "muenchen", "múnich"]
+  },
+  {
+    "iata": "FRA",
+    "city": "Frankfurt",
+    "aliases": ["frankfurt", "frankfurt am main", "fráncfort"]
+  },
+  { "iata": "FCO", "city": "Rome", "aliases": ["rome", "roma"] },
+  { "iata": "MXP", "city": "Milan", "aliases": ["milan", "milano", "milán"] },
+  { "iata": "VIE", "city": "Vienna", "aliases": ["vienna", "wien", "viena"] },
+  { "iata": "PRG", "city": "Prague", "aliases": ["prague", "praha", "praga"] },
+  { "iata": "BUD", "city": "Budapest", "aliases": ["budapest"] },
+  {
+    "iata": "BRU",
+    "city": "Brussels",
+    "aliases": ["brussels", "bruxelles", "brussel", "bruselas"]
+  },
+  { "iata": "DUB", "city": "Dublin", "aliases": ["dublin", "dublín"] },
+  { "iata": "ZRH", "city": "Zurich", "aliases": ["zurich", "zürich", "zúrich"] },
+  {
+    "iata": "CPH",
+    "city": "Copenhagen",
+    "aliases": ["copenhagen", "københavn", "kobenhavn", "copenhague"]
+  },
+  { "iata": "ARN", "city": "Stockholm", "aliases": ["stockholm", "estocolmo"] },
+  { "iata": "WAW", "city": "Warsaw", "aliases": ["warsaw", "warszawa", "varsovia"] },
+  { "iata": "ATH", "city": "Athens", "aliases": ["athens", "athina", "atenas"] },
+  { "iata": "IST", "city": "Istanbul", "aliases": ["istanbul", "estambul"] },
+  {
+    "iata": "JFK",
+    "city": "New York",
+    "aliases": ["new york", "nueva york", "newyork", "nyc"]
+  }
+]

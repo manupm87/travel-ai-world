@@ -6,13 +6,18 @@ models and retrieval. It has **no database** and never imports `core_api`.
 ## Layout (ports and adapters)
 
 ```text
-domain/         Message, ChatRole, Document, RetrievalFilters, GenerationParams, Usage, ChatTrace, ChatTurn, ThreadSaved
-                + Protocols: LLMProvider, Embedder, Retriever, TripGateway, ConversationGateway
-application/    use cases (StreamChat, RecordConversation). Depend only on domain ports.
+domain/         Message, ChatRole, Document, RetrievalFilters, GenerationParams, Usage, ChatTrace, ChatTurn, ThreadSaved,
+                DayWeather, RouteSuggestion
+                + Protocols: LLMProvider (stream + complete), Embedder, Retriever (search + fetch), WeatherForecast,
+                TripGateway, ConversationGateway
+application/    use cases (StreamChat, RecordConversation, PlanTrip) and their pure helpers: structured.py
+                (complete_json: JSON out of `LLMProvider.complete`, one repair retry), cards.py (OptionCard from a
+                Document), validate.py (distance, load, closed, prices), language.py. Depend only on domain ports.
 infrastructure/ adapters: nvidia_provider.py, bedrock_provider.py, bedrock_embedder.py, bedrock.py (shared by both
                 Bedrock adapters), s3vectors.py + s3vectors_retriever.py, providers.py (settings → adapters),
+                open_meteo.py (forecast), static_flight_search.py + data/airports.json (route deep links),
                 sse.py, retry.py, core_api_client.py
-api/            deps.py (per-request wiring; process resources come from app.state), v1/endpoints/{chat,health}.py
+api/            deps.py (per-request wiring; process resources come from app.state), v1/endpoints/{chat,planner,health}.py
 schemas/        chat.py (request), planner.py (PlannerTurn request), planner_events.py (SSE v2 events, ADR 0015)
 openapi.py      puts the planner's stream models into the OpenAPI document (no route declares them)
 main.py         lifespan builds the provider and the retriever once (providers.build_*) and closes them
@@ -45,6 +50,16 @@ testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever + s
   inside `$and` (two keys side by side are an `Invalid filter`).
 - The corpus contract is mirrored in `indexing.CorpusDocument`, never imported from `city_corpus`.
 - Persisting planner results goes through `TripGateway` with the caller's token.
+- **The planner (`POST /api/v1/ai/planner`, ADR 0015)** is `application/plan_trip.py`: stateless, driven by the
+  request (brief + itinerary snapshot + transcript + message or `select`/`remove` action). Group ids carry their
+  meaning (`nb`, `hotels:<district>`, `slot:<day>:<part>`) so a selection is read back without a session. The
+  model only extracts the brief, ranks/picks ids among retrieved documents and writes `why`; cards come from
+  `cards.py` over the document's metadata, ids not retrieved are dropped, `why` and titles go through
+  `strip_prices`. It needs the retriever (503 without `RETRIEVAL_ENABLED`); a failed structured call degrades
+  (top candidates, plain day titles, chat intent) rather than failing the turn. Prompts and the fixed
+  en/es sentences live in `prompts.py`. Weather: Open-Meteo within 16 days, else the corpus's
+  `om:climate:<city>:<MM>` normal fetched by id. Tests drive it with `FakeProvider(replies=[...])`,
+  `FakeRetriever` (filter-aware) and `testing.documents_from_corpus(tests/fixtures/budapest_sample.jsonl)`.
 - SSE wire format to the browser is fixed (`data: {"content"}`, `data: {"thread_id"}`,
   `data: {"error", "error_code"}`, `data: [DONE]`); the frontend's `services/chat.ts` depends on it. Upstream bodies and unexpected
   exceptions never reach the client: `sse.py` sends the domain message or a generic one and logs the rest.

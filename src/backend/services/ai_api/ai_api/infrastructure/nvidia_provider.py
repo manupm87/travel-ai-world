@@ -9,6 +9,7 @@ import json
 import logging
 from collections.abc import AsyncIterator, Sequence
 from dataclasses import asdict
+from typing import Any
 
 import httpx
 from travel_common.exceptions import ProviderUnavailable
@@ -99,15 +100,46 @@ class NvidiaProvider:
                 logger.warning("NVIDIA API error (%s); retrying in %.0fs", exc, delay)
                 await asyncio.sleep(delay)
 
-    async def _stream_once(
-        self, messages: Sequence[Message], usage: Usage | None
-    ) -> AsyncIterator[str]:
-        headers = {
+    async def complete(
+        self, messages: Sequence[Message], *, usage: Usage | None = None
+    ) -> str:
+        """One whole answer (no stream), for structured output."""
+        if not self.is_configured:
+            raise ProviderUnavailable("AI provider not configured")
+        if usage is not None:
+            usage.model = self._model
+        payload = self._payload(messages) | {"stream": False}
+        for delay in self._retry.delays():
+            try:
+                response = await self._client.post(
+                    self._url, headers=self._headers(), json=payload
+                )
+                if response.status_code != 200:
+                    raise httpx.HTTPStatusError(
+                        f"NVIDIA API returned {response.status_code}: "
+                        f"{response.text[:500]}",
+                        request=response.request,
+                        response=response,
+                    )
+            except httpx.HTTPError as exc:
+                if delay is None:
+                    logger.error("NVIDIA API failed: %s", exc)
+                    raise ProviderUnavailable(UPSTREAM_ERROR_MESSAGE) from exc
+                logger.warning("NVIDIA API error (%s); retrying in %.0fs", exc, delay)
+                await asyncio.sleep(delay)
+            else:
+                return _output_text(response.json(), usage)
+        raise ProviderUnavailable(UPSTREAM_ERROR_MESSAGE)  # pragma: no cover
+
+    def _headers(self) -> dict[str, str]:
+        return {
             "Authorization": f"Bearer {self._api_key}",
             "Accept": "text/event-stream",
             "Content-Type": "application/json",
         }
-        payload = {
+
+    def _payload(self, messages: Sequence[Message]) -> dict[str, Any]:
+        return {
             "model": self._model,
             "messages": [asdict(m) for m in messages],
             **asdict(self._params),
@@ -115,6 +147,13 @@ class NvidiaProvider:
             # rest. Reasoning, when on, arrives as `reasoning_content` deltas,
             # which `_extract_delta` drops: only the answer is streamed.
             "chat_template_kwargs": {"enable_thinking": self._thinking},
+        }
+
+    async def _stream_once(
+        self, messages: Sequence[Message], usage: Usage | None
+    ) -> AsyncIterator[str]:
+        headers = self._headers()
+        payload = self._payload(messages) | {
             "stream": True,
             # A last chunk with the token counts (OpenAI-compatible APIs).
             "stream_options": {"include_usage": True},
@@ -135,6 +174,19 @@ class NvidiaProvider:
                     delta = _extract_delta(data, usage)
                     if delta:
                         yield delta
+
+
+def _output_text(parsed: dict[str, Any], usage: Usage | None = None) -> str:
+    """The answer of a non-streamed completion, with its token counts."""
+    reported = parsed.get("usage")
+    if usage is not None and reported:
+        usage.input_tokens = reported.get("prompt_tokens")
+        usage.output_tokens = reported.get("completion_tokens")
+    choices = parsed.get("choices") or []
+    if not choices:
+        return ""
+    message = choices[0].get("message") or {}
+    return str(message.get("content") or "")
 
 
 def _extract_delta(data: str, usage: Usage | None = None) -> str | None:

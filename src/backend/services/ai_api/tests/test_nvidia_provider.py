@@ -173,3 +173,76 @@ def test_sse_parser_reassembles_lines_split_across_chunks():
     assert parser.feed('data: {"a"') == []
     assert parser.feed(": 1}\n\ndata: [DO") == ['{"a": 1}']
     assert parser.feed("NE]\n") == ["[DONE]"]
+
+
+COMPLETION = {
+    "choices": [{"message": {"role": "assistant", "content": '{"title": "Madrid"}'}}],
+    "usage": {"prompt_tokens": 31, "completion_tokens": 7},
+}
+
+
+async def test_complete_returns_the_whole_answer_with_its_usage():
+    seen: list[dict] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(__import__("json").loads(request.content))
+        return httpx.Response(200, json=COMPLETION)
+
+    usage = Usage()
+    provider = _provider(handler)
+
+    answer = await provider.complete([Message("user", "título")], usage=usage)
+
+    assert answer == '{"title": "Madrid"}'
+    assert usage == Usage(model="m", input_tokens=31, output_tokens=7)
+    # Structured output is parsed whole: nothing is streamed.
+    assert seen[0]["stream"] is False
+    assert "stream_options" not in seen[0]
+    assert seen[0]["messages"] == [{"role": "user", "content": "título"}]
+
+
+async def test_complete_without_choices_is_an_empty_answer():
+    provider = _provider(lambda request: httpx.Response(200, json={"choices": []}))
+
+    assert await provider.complete([Message("user", "x")]) == ""
+
+
+async def test_complete_retries_a_server_error_then_succeeds():
+    attempts = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal attempts
+        attempts += 1
+        if attempts == 1:
+            return httpx.Response(503, text="overloaded")
+        return httpx.Response(200, json=COMPLETION)
+
+    answer = await _provider(handler, retries=1).complete([Message("user", "x")])
+
+    assert answer == '{"title": "Madrid"}'
+    assert attempts == 2
+
+
+async def test_complete_gives_up_after_the_last_retry():
+    attempts = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal attempts
+        attempts += 1
+        return httpx.Response(500, text="secret internal detail")
+
+    with pytest.raises(ProviderUnavailable) as info:
+        await _provider(handler, retries=1).complete([Message("user", "x")])
+
+    assert attempts == 2
+    assert info.value.message == UPSTREAM_ERROR_MESSAGE
+    assert "secret" not in str(info.value)
+
+
+async def test_complete_refuses_when_the_provider_is_not_configured():
+    provider = NvidiaProvider(
+        api_key="", base_url="https://x", model="m", client=httpx.AsyncClient()
+    )
+
+    with pytest.raises(ProviderUnavailable):
+        await provider.complete([Message("user", "x")])
