@@ -12,6 +12,7 @@ from ai_api.domain.models import (
     DayWeather,
     Document,
     Message,
+    Photo,
     RetrievalFilters,
     Usage,
 )
@@ -88,6 +89,16 @@ class WeatherForecast(Protocol):
     async def daily(
         self, lat: float, lon: float, start: date, end: date
     ) -> list[DayWeather]: ...
+
+
+class PhotoFinder(Protocol):
+    """A picture of a named place at these coordinates, or None.
+
+    Never raises for a lookup problem: a card without a photo is worse than
+    one with, but a plan without cards is worse than both.
+    """
+
+    async def find(self, name: str, lat: float, lon: float) -> Photo | None: ...
 
 
 class TripGateway(Protocol):

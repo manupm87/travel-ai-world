@@ -16,6 +16,7 @@ application/    use cases (StreamChat, RecordConversation, PlanTrip) and their p
 infrastructure/ adapters: nvidia_provider.py, bedrock_provider.py, bedrock_embedder.py, bedrock.py (shared by both
                 Bedrock adapters), s3vectors.py + s3vectors_retriever.py, providers.py (settings → adapters),
                 open_meteo.py (forecast), static_flight_search.py + data/airports.json (route deep links),
+                commons_photos.py (a Wikimedia Commons photo near a venue, TRA-161),
                 sse.py, retry.py, core_api_client.py
 api/            deps.py (per-request wiring; process resources come from app.state), v1/endpoints/{chat,planner,health}.py
 schemas/        chat.py (request), planner.py (PlannerTurn request), planner_events.py (SSE v2 events, ADR 0015)
@@ -58,8 +59,11 @@ testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever + s
   `strip_prices`. It needs the retriever (503 without `RETRIEVAL_ENABLED`); a failed structured call degrades
   (top candidates, plain day titles, chat intent) rather than failing the turn. Prompts and the fixed
   en/es sentences live in `prompts.py`. Weather: Open-Meteo within 16 days, else the corpus's
-  `om:climate:<city>:<MM>` normal fetched by id. Tests drive it with `FakeProvider(replies=[...])`,
-  `FakeRetriever` (filter-aware) and `testing.documents_from_corpus(tests/fixtures/budapest_sample.jsonl)`.
+  `om:climate:<city>:<MM>` normal fetched by id. **Every card is pictured** (TRA-161): candidates are ordered
+  pictured-first, a card without a corpus image is looked up on Commons at its coordinates (`PhotoFinder`,
+  `PHOTOS_ENABLED`) and, failing that, gets an illustrative photo of its category credited as such
+  (`application/photos.py`). Tests drive it with `FakeProvider(replies=[...])`, `FakeRetriever` (filter-aware),
+  `FakePhotoFinder` and `testing.documents_from_corpus(tests/fixtures/budapest_sample.jsonl)`.
 - SSE wire format to the browser is fixed (`data: {"content"}`, `data: {"thread_id"}`,
   `data: {"error", "error_code"}`, `data: [DONE]`); the frontend's `services/chat.ts` depends on it. Upstream bodies and unexpected
   exceptions never reach the client: `sse.py` sends the domain message or a generic one and logs the rest.

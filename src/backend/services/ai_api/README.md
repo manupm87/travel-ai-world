@@ -33,13 +33,13 @@ Full contract: [`docs/api/ai-api.openapi.json`](../../../../docs/api/ai-api.open
 ```text
 ai_api/
 ├── main.py         lifespan: one provider (by LLM_PROVIDER) and, with RETRIEVAL_ENABLED, one retriever per process, on app.state
-├── config.py       AISettings: LLM_PROVIDER, NVIDIA_*, BEDROCK_*, CHAT_*, RETRIEVAL_*, VECTOR_*, EMBEDDINGS_*, PLANNER_*, OPEN_METEO_*
+├── config.py       AISettings: LLM_PROVIDER, NVIDIA_*, BEDROCK_*, CHAT_*, RETRIEVAL_*, VECTOR_*, EMBEDDINGS_*, PLANNER_*, OPEN_METEO_*, PHOTOS_ENABLED, COMMONS_*
 ├── prompts.py      CHAT_SYSTEM_PROMPT, RAG_CONTEXT_PROMPT, format_context(), the planner prompts and its fixed en/es sentences
 ├── openapi.py      registers the planner's stream models in the OpenAPI document (no route declares them)
 ├── indexing.py     python -m ai_api.indexing <documents.jsonl>: fills the vector index (just index)
 ├── domain/         models.py (Message, Document, RetrievalFilters, GenerationParams, Usage, ChatTrace, ChatTurn, DayWeather, RouteSuggestion) · ports.py (LLMProvider, Embedder, Retriever, WeatherForecast, TripGateway, ConversationGateway)
-├── application/    stream_chat.py, record_conversation.py, plan_trip.py — the use cases, depend only on ports · structured.py (JSON out of a completion) · cards.py · validate.py · language.py
-├── infrastructure/ nvidia_provider.py · bedrock_provider.py · bedrock_embedder.py · bedrock.py (client config and retry rules both Bedrock adapters share) · s3vectors.py (client, keys, metadata split) · s3vectors_retriever.py · providers.py (settings → adapters) · open_meteo.py · static_flight_search.py (+ data/airports.json) · sse.py · retry.py · core_api_client.py
+├── application/    stream_chat.py, record_conversation.py, plan_trip.py — the use cases, depend only on ports · structured.py (JSON out of a completion) · cards.py · photos.py · validate.py · language.py
+├── infrastructure/ nvidia_provider.py · bedrock_provider.py · bedrock_embedder.py · bedrock.py (client config and retry rules both Bedrock adapters share) · s3vectors.py (client, keys, metadata split) · s3vectors_retriever.py · providers.py (settings → adapters) · open_meteo.py · static_flight_search.py (+ data/airports.json) · commons_photos.py · sse.py · retry.py · core_api_client.py
 ├── api/            deps.py (wiring) · v1/endpoints/chat.py, planner.py, health.py
 ├── schemas/        chat.py · planner.py (PlannerTurn) · planner_events.py (SSE v2 events and ops)
 └── testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, documents_from_corpus(), settings_for_tests()

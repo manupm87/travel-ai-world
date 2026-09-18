@@ -120,7 +120,8 @@ DAY_PICKS_PROMPT = (
     "district | tier | summary`:\n{candidates}\n\n"
     "Choose exactly {plan} from the corresponding lists (a list with fewer "
     "entries than asked: take what there is). Prefer places that sit well "
-    "together and match the theme; do not pick the same place twice. For each "
+    "together and match the theme; among equals prefer one marked `photo`; do "
+    "not pick the same place twice. For each "
     "pick, one sentence (under 140 characters, in {language}) saying why it "
     "belongs here. Never mention a price. Use only ids from the lists."
 )

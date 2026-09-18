@@ -18,6 +18,7 @@ from ai_api.config import AISettings, get_settings
 from ai_api.domain.ports import (
     ConversationGateway,
     LLMProvider,
+    PhotoFinder,
     Retriever,
     TripGateway,
     WeatherForecast,
@@ -68,10 +69,16 @@ def get_weather(request: Request) -> WeatherForecast | None:
     return getattr(request.app.state, "weather", None)
 
 
+def get_photos(request: Request) -> PhotoFinder | None:
+    """The Commons lookup built in `lifespan`, or None (illustrative photos only)."""
+    return getattr(request.app.state, "photos", None)
+
+
 def get_plan_trip(
     provider: LLMProvider = Depends(get_llm_provider),
     retriever: Retriever | None = Depends(get_retriever),
     weather: WeatherForecast | None = Depends(get_weather),
+    photos: PhotoFinder | None = Depends(get_photos),
     settings: AISettings = Depends(get_settings),
 ) -> PlanTrip:
     """The planner needs the corpus: without retrieval it cannot show a card."""
@@ -81,6 +88,7 @@ def get_plan_trip(
         provider,
         retriever,
         weather=weather,
+        photos=photos,
         cities=settings.PLANNER_CITIES,
         max_days=settings.PLANNER_MAX_DAYS,
         candidates=settings.PLANNER_CANDIDATES,

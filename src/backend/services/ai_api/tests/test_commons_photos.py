@@ -1,0 +1,293 @@
+"""CommonsPhotos against a mocked HTTP transport: no network, no key."""
+
+import logging
+
+import httpx
+import pytest
+from ai_api.domain.models import Photo
+from ai_api.infrastructure.commons_photos import (
+    RADIUS_M,
+    USER_AGENT,
+    CommonsPhotos,
+    choose_file,
+    credit_line,
+    file_url,
+)
+from ai_api.testing import settings_for_tests
+
+API_URL = "https://commons.test/w/api.php"
+
+
+def _photos(handler, **kwargs) -> CommonsPhotos:
+    return CommonsPhotos(
+        httpx.AsyncClient(transport=httpx.MockTransport(handler)),
+        api_url=API_URL,
+        **kwargs,
+    )
+
+
+def _geosearch_response(files: list[dict[str, object]]) -> httpx.Response:
+    return httpx.Response(200, json={"query": {"geosearch": files}})
+
+
+def _imageinfo_response(
+    title: str, *, artist: str | None, licence: str | None
+) -> httpx.Response:
+    extmetadata: dict[str, object] = {}
+    if artist is not None:
+        extmetadata["Artist"] = {
+            "value": f'<a href="//commons.wikimedia.org/wiki/User:{artist}">{artist}</a>'
+        }
+    if licence is not None:
+        extmetadata["LicenseShortName"] = {"value": licence}
+    return httpx.Response(
+        200,
+        json={
+            "query": {
+                "pages": {
+                    "123": {
+                        "title": title,
+                        "imageinfo": [{"extmetadata": extmetadata}],
+                    }
+                }
+            }
+        },
+    )
+
+
+def _found(
+    geosearch_files: list[dict[str, object]],
+    *,
+    artist: str | None = "Antissimo",
+    licence: str | None = "CC BY-SA 3.0",
+):
+    """A handler that answers geosearch then imageinfo for the chosen file."""
+    seen: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request)
+        params = request.url.params
+        if params.get("list") == "geosearch":
+            return _geosearch_response(geosearch_files)
+        title = params["titles"]
+        return _imageinfo_response(title, artist=artist, licence=licence)
+
+    return handler, seen
+
+
+# ─── choose_file: pure selection logic ───────────────────────────────────────
+
+
+class TestChooseFile:
+    def test_a_title_naming_the_venue_wins_over_a_nearer_file(self) -> None:
+        files = [
+            {"title": "File:Andrássy út corner.jpg", "dist": 8.0},
+            {"title": "File:Náncsi néni Restaurant.jpg", "dist": 45.0},
+        ]
+        assert choose_file("Náncsi néni Restaurant", files) == (
+            "File:Náncsi néni Restaurant.jpg"
+        )
+
+    def test_without_a_name_match_the_nearest_within_30m_wins(self) -> None:
+        files = [
+            {"title": "File:Street view one.jpg", "dist": 12.0},
+            {"title": "File:Street view two.jpg", "dist": 25.0},
+        ]
+        assert choose_file("Some Bistro", files) == "File:Street view one.jpg"
+
+    def test_beyond_30m_without_a_name_match_is_none(self) -> None:
+        files = [{"title": "File:Far away shot.jpg", "dist": 35.0}]
+        assert choose_file("Some Bistro", files) is None
+
+    @pytest.mark.parametrize(
+        "title",
+        [
+            "File:Commemorative plaque for the poet.jpg",
+            "File:Bronze relief on the wall.jpg",
+            "File:Byzantine mosaic detail.jpg",
+            "File:Liturgical chasuble displayed.jpg",
+            "File:Tourist map of the district.jpg",
+        ],
+    )
+    def test_skip_word_titles_are_never_chosen(self, title: str) -> None:
+        files = [{"title": title, "dist": 2.0}]
+        assert choose_file("Anything", files) is None
+
+    @pytest.mark.parametrize(
+        "title",
+        [
+            "File:Site plan diagram.svg",
+            "File:Menu scan document.pdf",
+        ],
+    )
+    def test_non_image_extensions_are_never_chosen(self, title: str) -> None:
+        files = [{"title": title, "dist": 2.0}]
+        assert choose_file("Anything", files) is None
+
+    def test_stop_words_in_the_name_do_not_count_as_a_match(self) -> None:
+        """ "Budapest", "Bar" and "Restaurant" are all stop words: the file
+        must be picked by distance, not by a spurious name match."""
+        files = [{"title": "File:Building facade shot.jpg", "dist": 10.0}]
+        assert choose_file("Budapest Bar Restaurant", files) == (
+            "File:Building facade shot.jpg"
+        )
+        far = [{"title": "File:Building facade shot.jpg", "dist": 35.0}]
+        assert choose_file("Budapest Bar Restaurant", far) is None
+
+
+# ─── file_url / credit_line: pure formatting ─────────────────────────────────
+
+
+class TestFileUrl:
+    def test_percent_encodes_the_filename(self) -> None:
+        url = file_url("File:Náncsi néni Restaurant.jpg", 800)
+        assert url == (
+            "https://commons.wikimedia.org/wiki/Special:FilePath/"
+            "N%C3%A1ncsi%20n%C3%A9ni%20Restaurant.jpg?width=800"
+        )
+
+    def test_a_custom_width_travels(self) -> None:
+        assert file_url("File:Plain.jpg", 400).endswith("?width=400")
+
+
+class TestCreditLine:
+    def test_author_and_licence(self) -> None:
+        assert credit_line("Antissimo", "CC BY-SA 3.0") == (
+            "Antissimo (CC BY-SA 3.0) · Wikimedia Commons"
+        )
+
+    def test_author_only(self) -> None:
+        assert credit_line("Antissimo", None) == "Antissimo · Wikimedia Commons"
+
+    def test_licence_only(self) -> None:
+        assert credit_line(None, "CC0") == "(CC0) · Wikimedia Commons"
+
+    def test_neither_is_wikimedia_commons_alone(self) -> None:
+        assert credit_line(None, None) == "Wikimedia Commons"
+
+
+# ─── CommonsPhotos.find: the two-call happy path ─────────────────────────────
+
+
+async def test_a_named_match_is_returned_with_its_credit() -> None:
+    handler, seen = _found(
+        [{"title": "File:Náncsi néni Restaurant.jpg", "dist": 12.0}],
+        artist="Antissimo",
+        licence="CC BY-SA 3.0",
+    )
+
+    photo = await _photos(handler).find("Náncsi néni Restaurant", 47.5, 19.05)
+
+    assert photo == Photo(
+        url=(
+            "https://commons.wikimedia.org/wiki/Special:FilePath/"
+            "N%C3%A1ncsi%20n%C3%A9ni%20Restaurant.jpg?width=800"
+        ),
+        credit="Antissimo (CC BY-SA 3.0) · Wikimedia Commons",
+    )
+    assert len(seen) == 2
+
+
+async def test_the_credit_strips_html_from_the_artist_field() -> None:
+    handler, _ = _found(
+        [{"title": "File:Courtyard view.jpg", "dist": 5.0}],
+        artist="J. Doe",
+        licence="CC BY-SA 4.0",
+    )
+
+    photo = await _photos(handler).find("Some Place", 47.5, 19.05)
+
+    assert photo is not None
+    assert photo.credit == "J. Doe (CC BY-SA 4.0) · Wikimedia Commons"
+    assert "<a" not in photo.credit
+
+
+async def test_no_author_or_licence_credits_wikimedia_commons_alone() -> None:
+    handler, _ = _found(
+        [{"title": "File:Courtyard view.jpg", "dist": 5.0}], artist=None, licence=None
+    )
+
+    photo = await _photos(handler).find("Some Place", 47.5, 19.05)
+
+    assert photo is not None
+    assert photo.credit == "Wikimedia Commons"
+
+
+async def test_no_usable_file_is_none_and_makes_no_second_call() -> None:
+    handler, seen = _found([{"title": "File:Far away shot.jpg", "dist": 45.0}])
+
+    photo = await _photos(handler).find("Some Place", 47.5, 19.05)
+
+    assert photo is None
+    assert len(seen) == 1
+
+
+# ─── The geosearch request shape ─────────────────────────────────────────────
+
+
+async def test_geosearch_request_carries_the_expected_params() -> None:
+    handler, seen = _found([{"title": "File:Courtyard view.jpg", "dist": 5.0}])
+
+    await _photos(handler).find("Some Place", 47.5071, 19.0458)
+
+    params = seen[0].url.params
+    assert str(seen[0].url).startswith(f"{API_URL}?")
+    assert params["action"] == "query"
+    assert params["list"] == "geosearch"
+    assert params["gscoord"] == "47.5071|19.0458"
+    assert params["gsradius"] == str(RADIUS_M)
+    assert params["gsnamespace"] == "6"
+    assert params["format"] == "json"
+
+
+def test_from_settings_sets_the_api_url_and_the_user_agent() -> None:
+    photos = CommonsPhotos.from_settings(settings_for_tests())
+
+    assert photos._api_url == settings_for_tests().COMMONS_API_URL
+    assert photos._client.headers["user-agent"] == USER_AGENT
+    assert photos._client.timeout.read == settings_for_tests().COMMONS_TIMEOUT
+
+
+# ─── Failures answer None, never raise ───────────────────────────────────────
+
+
+async def test_an_upstream_500_is_none_not_an_exception(caplog) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(500, text="upstream detail")
+
+    with caplog.at_level(logging.WARNING):
+        photo = await _photos(handler).find("Some Place", 47.5, 19.05)
+
+    assert photo is None
+    assert "Commons photo lookup failed" in caplog.text
+
+
+async def test_a_connection_error_is_none(caplog) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        raise httpx.ConnectError("no route to host", request=request)
+
+    with caplog.at_level(logging.WARNING):
+        photo = await _photos(handler).find("Some Place", 47.5, 19.05)
+
+    assert photo is None
+    assert "Commons photo lookup failed" in caplog.text
+
+
+async def test_malformed_json_is_none(caplog) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, text="<html>not json</html>")
+
+    with caplog.at_level(logging.WARNING):
+        photo = await _photos(handler).find("Some Place", 47.5, 19.05)
+
+    assert photo is None
+    assert "Commons photo lookup failed" in caplog.text
+
+
+async def test_the_client_closes() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return _geosearch_response([])
+
+    photos = _photos(handler)
+    await photos.aclose()
+    assert photos._client.is_closed

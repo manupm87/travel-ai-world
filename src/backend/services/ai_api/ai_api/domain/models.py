@@ -101,6 +101,14 @@ class DayWeather:
 
 
 @dataclass(frozen=True, slots=True)
+class Photo:
+    """A licence-clean picture of a place, with the credit its licence asks for."""
+
+    url: str
+    credit: str
+
+
+@dataclass(frozen=True, slots=True)
 class RouteSuggestion:
     """How to get there: a prefilled search, never a price or a time."""
 

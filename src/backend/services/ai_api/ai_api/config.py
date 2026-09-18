@@ -86,6 +86,11 @@ class AISettings(CommonSettings):
     # normals are used. A failure never fails a plan.
     OPEN_METEO_URL: str = "https://api.open-meteo.com/v1/forecast"
     OPEN_METEO_TIMEOUT: float = 5.0
+    # A card without a corpus image is looked up on Wikimedia Commons at the
+    # venue's coordinates (TRA-161); off, only the illustrative fallback shows.
+    PHOTOS_ENABLED: bool = True
+    COMMONS_API_URL: str = "https://commons.wikimedia.org/w/api.php"
+    COMMONS_TIMEOUT: float = 4.0
 
 
 @lru_cache

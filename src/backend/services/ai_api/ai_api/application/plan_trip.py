@@ -26,10 +26,11 @@ from travel_common.exceptions import DomainError
 
 from ai_api.application.cards import card_from_document, cards_for, title_of
 from ai_api.application.language import Language, detect_language
+from ai_api.application.photos import ensure_photos
 from ai_api.application.structured import complete_json
 from ai_api.application.validate import Placed, strip_prices, validate_day
 from ai_api.domain.models import DayWeather, Document, Message, RetrievalFilters
-from ai_api.domain.ports import LLMProvider, Retriever, WeatherForecast
+from ai_api.domain.ports import LLMProvider, PhotoFinder, Retriever, WeatherForecast
 from ai_api.infrastructure.static_flight_search import route_for
 from ai_api.prompts import (
     ASK_MISSING_PROMPT,
@@ -253,6 +254,15 @@ def city_key(destination: str | None) -> str | None:
     return re.sub(r"[^a-z0-9]+", "-", head).strip("-") or None
 
 
+def has_image(document: Document) -> bool:
+    return '"image_url"' in str(document.metadata.get("extra") or "")
+
+
+def image_first(documents: Iterable[Document]) -> list[Document]:
+    """Stable: pictured places first, the rest in the order they came."""
+    return sorted(documents, key=lambda d: not has_image(d))
+
+
 def is_place(document: Document) -> bool:
     """A card needs a name and a location; section prose has neither."""
     m = document.metadata
@@ -266,6 +276,8 @@ def _line(document: Document, *, tier: bool = True) -> str:
     parts.append(str(m.get("district") or "-"))
     if tier:
         parts.append(f"tier {m.get('price_tier') or '-'}")
+    if has_image(document):
+        parts.append("photo")
     parts.append(summary)
     return " | ".join(parts)
 
@@ -371,6 +383,7 @@ class PlanTrip:
         retriever: Retriever,
         *,
         weather: WeatherForecast | None = None,
+        photos: PhotoFinder | None = None,
         cities: Sequence[str] = ("budapest",),
         max_days: int = 7,
         candidates: int = 8,
@@ -379,6 +392,7 @@ class PlanTrip:
         self._provider = provider
         self._retriever = retriever
         self._weather = weather
+        self._photos = photos
         self._cities = tuple(c for c in (city_key(city) for city in cities) if c)
         self._max_days = max_days
         self._candidate_count = candidates
@@ -549,9 +563,9 @@ class PlanTrip:
             language=LANGUAGE_NAMES[turn.language],
         )
         picks = await self._pick(turn, prompt, candidates, OPTIONS_COUNT)
-        return [
-            card_from_document(known[p.id], self._clean(turn, p.why)) for p in picks
-        ]
+        return await self._with_photos(
+            [card_from_document(known[p.id], self._clean(turn, p.why)) for p in picks]
+        )
 
     async def _neighbourhood_options(self, turn: Turn) -> AsyncIterator[PlannerEvent]:
         cards = await self._rank_neighbourhoods(turn)
@@ -590,7 +604,9 @@ class PlanTrip:
                 districts=districts,
                 tier=tier_max,
             )
-            found = [d for d in found if is_place(d) and d.id != turn.stay_id]
+            found = image_first(
+                d for d in found if is_place(d) and d.id != turn.stay_id
+            )
             if len(found) >= OPTIONS_COUNT:
                 return found, district if districts else None
         return found, None
@@ -615,9 +631,9 @@ class PlanTrip:
             language=LANGUAGE_NAMES[turn.language],
         )
         picks = await self._pick(turn, prompt, candidates, OPTIONS_COUNT)
-        cards = [
-            card_from_document(known[p.id], self._clean(turn, p.why)) for p in picks
-        ]
+        cards = await self._with_photos(
+            [card_from_document(known[p.id], self._clean(turn, p.why)) for p in picks]
+        )
         label = area or (turn.brief.destination or self._cities[0]).title()
         yield text(planner_text(turn.language, "hotels", district=label))
         yield options(
@@ -639,7 +655,7 @@ class PlanTrip:
         if not candidates:
             yield text(planner_text(turn.language, "no_hotels"))
             return
-        stay = card_from_document(candidates[0])
+        [stay] = await self._with_photos([card_from_document(candidates[0])])
         async for event in self._set_stay_and_draft(turn, stay):
             yield event
 
@@ -683,15 +699,18 @@ class PlanTrip:
             ops: list[Op] = []
             placed: list[Placed] = []
             price_seen = False
+            slots: list[Slot] = []
+            cards: list[OptionCard] = []
             for part in DAY_PARTS:
                 for document, why in picks.get(part, []):
                     clean, found = strip_prices(why)
                     price_seen = price_seen or found
-                    slot = Slot(day=day, part=part)
-                    card = card_from_document(document, clean)
-                    ops.append(put_activity(slot, card))
-                    placed.append(Placed(slot=slot, card=card))
+                    slots.append(Slot(day=day, part=part))
+                    cards.append(card_from_document(document, clean))
                     turn.use(document)
+            for slot, card in zip(slots, await self._with_photos(cards), strict=True):
+                ops.append(put_activity(slot, card))
+                placed.append(Placed(slot=slot, card=card))
             ops.extend(
                 validate_day(
                     day,
@@ -958,7 +977,7 @@ class PlanTrip:
                 if is_place(document):
                     seen.add(document.id)
                     collected.append(document)
-        return collected[:wanted]
+        return image_first(collected)[:wanted]
 
     # ── Selections ───────────────────────────────────────────────────────
 
@@ -980,7 +999,7 @@ class PlanTrip:
             return
 
         if group.startswith("hotels:"):
-            stay = card_from_document(picked[0])
+            [stay] = await self._with_photos([card_from_document(picked[0])])
             async for event in self._set_stay_and_draft(turn, stay):
                 yield event
             return
@@ -989,7 +1008,7 @@ class PlanTrip:
         if slot is None:
             yield text(planner_text(turn.language, "stale_group"))
             return
-        cards = cards_for(picked, {})
+        cards = await self._with_photos(cards_for(picked, {}))
         yield patch(*(put_activity(slot, card) for card in cards))
         yield text(
             planner_text(
@@ -1062,9 +1081,9 @@ class PlanTrip:
             language=LANGUAGE_NAMES[turn.language],
         )
         picks = await self._pick(turn, prompt, candidates, OPTIONS_COUNT)
-        cards = [
-            card_from_document(known[p.id], self._clean(turn, p.why)) for p in picks
-        ]
+        cards = await self._with_photos(
+            [card_from_document(known[p.id], self._clean(turn, p.why)) for p in picks]
+        )
         prompt_text = planner_text(turn.language, heading, day=slot.day, part=part_name)
         yield text(prompt_text)
         yield options(
@@ -1106,6 +1125,10 @@ class PlanTrip:
             yield text(delta)
 
     # ── Shared helpers ───────────────────────────────────────────────────
+
+    async def _with_photos(self, cards: list[OptionCard]) -> list[OptionCard]:
+        """Every card pictured: its own, one found near it, or an illustrative one."""
+        return await ensure_photos(cards, self._photos)
 
     def _persona(self, turn: Turn) -> str:
         return PLANNER_PERSONA.format(language=LANGUAGE_NAMES[turn.language])

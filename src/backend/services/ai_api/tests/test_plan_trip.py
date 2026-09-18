@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 from ai_api.application.plan_trip import PlanTrip, city_key
-from ai_api.domain.models import DayWeather, Document
+from ai_api.domain.models import DayWeather, Document, Photo
 from ai_api.schemas.planner import PlannerTurn
 from ai_api.schemas.planner_events import (
     BriefEvent,
@@ -23,7 +23,12 @@ from ai_api.schemas.planner_events import (
     TextEvent,
     TripBrief,
 )
-from ai_api.testing import FakeProvider, FakeRetriever, documents_from_corpus
+from ai_api.testing import (
+    FakePhotoFinder,
+    FakeProvider,
+    FakeRetriever,
+    documents_from_corpus,
+)
 
 FIXTURE = Path(__file__).parent / "fixtures" / "budapest_sample.jsonl"
 CORPUS = documents_from_corpus(FIXTURE)
@@ -116,6 +121,7 @@ def planner(
     deltas: Sequence[str] = ("Which ", "dates?"),
     documents: Sequence[Document] = CORPUS,
     weather: FakeWeather | None = None,
+    photos: FakePhotoFinder | None = None,
 ) -> tuple[PlanTrip, FakeProvider, FakeRetriever]:
     provider = FakeProvider(deltas=deltas, replies=replies)
     retriever = FakeRetriever(documents)
@@ -123,6 +129,7 @@ def planner(
         provider,
         retriever,
         weather=weather,
+        photos=photos,
         max_days=7,
         candidates=8,
         today=lambda: TODAY,
@@ -884,3 +891,71 @@ async def test_spanish_warnings_and_day_titles():
         assert " km" not in warning.message or "prevé transporte" in warning.message
     [weather] = ops_of(events, "set_weather")
     assert weather.summary.startswith("Un octubre típico")
+
+
+# ─── Photos on every card (TRA-161) ──────────────────────────────────────────
+
+
+async def test_every_activity_and_the_stay_carry_a_photo():
+    finder = FakePhotoFinder(
+        {
+            "Anna Cafe": Photo(
+                "https://commons.wikimedia.org/x.jpg",
+                "Someone (CC0) · Wikimedia Commons",
+            )
+        }
+    )
+    use_case, _, _ = planner(
+        [skeleton(1), day_picks(evening=[{"id": ANNA_CAFE, "why": "Close."}])],
+        photos=finder,
+    )
+
+    events = await run(
+        use_case(
+            turn(
+                action={
+                    "type": "select",
+                    "group_id": "hotels:x",
+                    "card_ids": [ASTORIA],
+                },
+                brief=brief(start_date=date(2026, 10, 20), end_date=date(2026, 10, 20)),
+            )
+        )
+    )
+
+    [stay] = ops_of(events, "set_stay")
+    activities = ops_of(events, "put_activity")
+    assert stay.card.image_url and stay.card.image_credit
+    assert all(a.card.image_url and a.card.image_credit for a in activities)
+    by_id = {a.card.id: a.card for a in activities}
+    # Found near the venue: the finder's photo, with its credit.
+    assert by_id[ANNA_CAFE].image_url == "https://commons.wikimedia.org/x.jpg"
+    # The corpus image wins when there is one: no lookup for it.
+    assert (
+        PARLIAMENT not in [BY_ID[ANNA_CAFE].id for _ in ()]
+        and ("Parliament", 47.507, 19.046) not in finder.lookups
+    )
+    looked_up = {name for name, _, _ in finder.lookups}
+    assert "Anna Cafe" in looked_up and "Parliament" not in looked_up
+    # Nothing found and no corpus image: an illustrative photo, credited as such.
+    assert stay.card.image_credit.startswith("Illustrative photo")
+
+
+async def test_pictured_places_are_offered_first():
+    use_case, provider, _ = planner([picks()])
+
+    events = await run(
+        use_case(
+            turn(
+                "Alternatives for day 1 · morning",
+                brief=brief(),
+                stay=ASTORIA,
+                days=[{}],
+            )
+        )
+    )
+
+    [group] = only(events, OptionsEvent)
+    assert all(c.image_url for c in group.cards)
+    shown = provider.completions[0][-2].content
+    assert "| photo |" in shown

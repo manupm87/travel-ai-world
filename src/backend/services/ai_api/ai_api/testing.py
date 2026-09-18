@@ -14,6 +14,7 @@ from ai_api.domain.models import (
     ChatTurn,
     Document,
     Message,
+    Photo,
     RetrievalFilters,
     Usage,
 )
@@ -176,6 +177,18 @@ class FakeRetriever:
             raise self.fail_with
         wanted = set(ids)
         return [d for d in self.documents if d.id in wanted]
+
+
+class FakePhotoFinder:
+    """Answers one photo per place it knows (by name), records every lookup."""
+
+    def __init__(self, photos: dict[str, Photo] | None = None) -> None:
+        self.photos = photos or {}
+        self.lookups: list[tuple[str, float, float]] = []
+
+    async def find(self, name: str, lat: float, lon: float) -> Photo | None:
+        self.lookups.append((name, lat, lon))
+        return self.photos.get(name)
 
 
 def matches(document: Document, filters: RetrievalFilters) -> bool:
