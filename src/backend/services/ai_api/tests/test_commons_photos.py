@@ -61,12 +61,15 @@ def _found(
     artist: str | None = "Antissimo",
     licence: str | None = "CC BY-SA 3.0",
 ):
-    """A handler that answers geosearch then imageinfo for the chosen file."""
+    """A handler that answers an empty name search, the geosearch, then
+    imageinfo for the chosen file."""
     seen: list[httpx.Request] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
         seen.append(request)
         params = request.url.params
+        if params.get("list") == "search":
+            return httpx.Response(200, json={"query": {"search": []}})
         if params.get("list") == "geosearch":
             return _geosearch_response(geosearch_files)
         title = params["titles"]
@@ -185,7 +188,7 @@ async def test_a_named_match_is_returned_with_its_credit() -> None:
         ),
         credit="Antissimo (CC BY-SA 3.0) · Wikimedia Commons",
     )
-    assert len(seen) == 2
+    assert [r.url.params.get("list") for r in seen] == ["search", "geosearch", None]
 
 
 async def test_the_credit_strips_html_from_the_artist_field() -> None:
@@ -219,7 +222,7 @@ async def test_no_usable_file_is_none_and_makes_no_second_call() -> None:
     photo = await _photos(handler).find("Some Place", 47.5, 19.05)
 
     assert photo is None
-    assert len(seen) == 1
+    assert [r.url.params.get("list") for r in seen] == ["geosearch"]
 
 
 # ─── The geosearch request shape ─────────────────────────────────────────────
@@ -291,3 +294,105 @@ async def test_the_client_closes() -> None:
     photos = _photos(handler)
     await photos.aclose()
     assert photos._client.is_closed
+
+
+# ─── Search by name first (TRA-162) ──────────────────────────────────────────
+
+
+def _search_hits(*titles: str) -> dict:
+    return {"query": {"search": [{"title": t} for t in titles]}}
+
+
+def _by_list(handlers: dict[str, dict | int]) -> tuple[httpx.MockTransport, list[str]]:
+    """Answers per `list=`/`prop=` parameter; an int answers that status."""
+    seen: list[str] = []
+
+    def handle(request: httpx.Request) -> httpx.Response:
+        kind = request.url.params.get("list") or request.url.params.get("prop") or ""
+        seen.append(kind)
+        answer = handlers.get(kind, 404)
+        if isinstance(answer, int):
+            return httpx.Response(answer, json={"error": "nope"})
+        return httpx.Response(200, json=answer)
+
+    return httpx.MockTransport(handle), seen
+
+
+CREDIT = {
+    "query": {
+        "pages": {
+            "1": {
+                "imageinfo": [
+                    {
+                        "extmetadata": {
+                            "Artist": {"value": "Someone"},
+                            "LicenseShortName": {"value": "CC BY 4.0"},
+                        }
+                    }
+                ]
+            }
+        }
+    }
+}
+
+
+async def test_a_photo_named_after_the_venue_wins_without_a_geosearch():
+    transport, seen = _by_list(
+        {
+            "search": _search_hits("File:Fruska bistro sign, Lágymányos Bay Park.jpg"),
+            "geosearch": {"query": {"geosearch": []}},
+            "imageinfo": CREDIT,
+        }
+    )
+    finder = CommonsPhotos(httpx.AsyncClient(transport=transport))
+
+    photo = await finder.find("Fruska bisztró", 47.47, 19.05)
+
+    assert photo is not None and "Fruska%20bistro" in photo.url
+    assert photo.credit == "Someone (CC BY 4.0) · Wikimedia Commons"
+    assert seen == ["search", "imageinfo"]
+
+
+async def test_a_generic_word_in_a_search_result_is_not_a_match():
+    transport, seen = _by_list(
+        {
+            "search": _search_hits(
+                "File:Pflum building, Park street, Pesterzsébet.jpg"
+            ),
+            "geosearch": {"query": {"geosearch": []}},
+        }
+    )
+    finder = CommonsPhotos(httpx.AsyncClient(transport=transport))
+
+    photo = await finder.find("Stefánia Park Cafe", 47.43, 19.11)
+
+    assert photo is None
+    assert seen == ["search", "geosearch"]
+
+
+async def test_a_rate_limited_search_still_tries_the_geosearch(caplog):
+    transport, seen = _by_list(
+        {
+            "search": 429,
+            "geosearch": {
+                "query": {"geosearch": [{"title": "File:Cortile front.jpg", "dist": 4}]}
+            },
+            "imageinfo": CREDIT,
+        }
+    )
+    finder = CommonsPhotos(httpx.AsyncClient(transport=transport))
+
+    photo = await finder.find("Cortile Hotel", 47.51, 19.06)
+
+    assert photo is not None and "Cortile%20front" in photo.url
+    assert seen == ["search", "geosearch", "imageinfo"]
+    assert "Commons name search failed" in caplog.text
+
+
+def test_names_made_of_generic_words_skip_the_search():
+    from ai_api.infrastructure.commons_photos import distinctive_words
+
+    assert distinctive_words("Green House Cafe") == set()
+    assert distinctive_words("Chop Chop") == set()
+    assert distinctive_words("Cortile Hotel") == {"cortile"}
+    assert distinctive_words("Stefánia Park Cafe") == {"stefánia"}

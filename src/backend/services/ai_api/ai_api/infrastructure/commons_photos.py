@@ -3,8 +3,10 @@
 Most restaurants, bars and hotels in the corpus come from OpenStreetMap and
 carry no picture. Commons knows where its photos were taken, so a file
 geotagged at the venue's coordinates is usually the venue itself or its
-street. Two calls per lookup: `geosearch` in the File namespace around the
-point, then `imageinfo` for the author and the licence the credit line needs.
+street. Up to three calls per lookup: a full-text `search` for the venue's
+name (many photos are named after the place but carry no geotag), else a
+`geosearch` in the File namespace around the point, then `imageinfo` for the
+author and the licence the credit line needs.
 
 Every photo on Commons is licence-clean by construction; the credit still has
 to name the author and the licence, which is what `Photo.credit` carries.
@@ -35,6 +37,49 @@ NEAREST_RADIUS_M = 30
 """A photo that does not name the venue must be this close to count."""
 
 RESULTS = 10
+
+# Words that name nothing on their own: a title holding one of them is not
+# evidence that the photo shows the venue.
+GENERIC_WORDS = frozenset(
+    {
+        "park",
+        "house",
+        "green",
+        "grand",
+        "royal",
+        "central",
+        "square",
+        "market",
+        "garden",
+        "corner",
+        "little",
+        "small",
+        "old",
+        "new",
+        "city",
+        "castle",
+        "palace",
+        "bridge",
+        "river",
+        "station",
+        "plaza",
+        "place",
+        "food",
+        "wine",
+        "beer",
+        "coffee",
+        "kitchen",
+        "chop",
+        "pizza",
+        "pizzeria",
+        "burger",
+        "sushi",
+        "grill",
+        "terrace",
+        "hungarian",
+        "magyar",
+    }
+)
 
 # Files that are not a picture of a place, whatever their coordinates.
 SKIP_WORDS = re.compile(
@@ -98,9 +143,11 @@ class CommonsPhotos:
         await self._client.aclose()
 
     async def find(self, name: str, lat: float, lon: float) -> Photo | None:
+        title = await self._by_name(name)
         try:
-            files = await self._geosearch(lat, lon)
-            title = choose_file(name, files)
+            if title is None:
+                files = await self._geosearch(lat, lon)
+                title = choose_file(name, files)
             if title is None:
                 return None
             author, licence = await self._credit(title)
@@ -110,6 +157,33 @@ class CommonsPhotos:
         return Photo(
             url=file_url(title, self._width), credit=credit_line(author, licence)
         )
+
+    async def _by_name(self, name: str) -> str | None:
+        """A file named after the venue, or None; a failed search (Commons
+        rate-limits this endpoint) still leaves the geosearch to try."""
+        if not distinctive_words(name):
+            return None
+        try:
+            response = await self._client.get(
+                self._api_url,
+                params={
+                    "action": "query",
+                    "list": "search",
+                    "srsearch": f"{name} Budapest",
+                    "srnamespace": 6,
+                    "srlimit": 5,
+                    "format": "json",
+                },
+            )
+            response.raise_for_status()
+            found = [
+                {"title": hit.get("title")}
+                for hit in response.json()["query"]["search"]
+            ]
+        except (httpx.HTTPError, ValueError, KeyError, TypeError) as exc:
+            logger.warning("Commons name search failed for %r: %s", name, exc)
+            return None
+        return choose_named(name, found)
 
     async def _geosearch(self, lat: float, lon: float) -> list[dict[str, Any]]:
         response = await self._client.get(
@@ -150,6 +224,38 @@ class CommonsPhotos:
         return None, None
 
 
+def distinctive_words(name: str) -> set[str]:
+    """The words of a venue name that could only mean this venue."""
+    return {
+        w.lower()
+        for w in _NAME_WORDS.findall(name)
+        if len(w) >= 5 and w.lower() not in _STOP and w.lower() not in GENERIC_WORDS
+    }
+
+
+def _usable(files: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [
+        f
+        for f in files
+        if isinstance(f.get("title"), str)
+        and f["title"].startswith("File:")
+        and not SKIP_WORDS.search(f["title"])
+        and f["title"].lower().endswith((".jpg", ".jpeg", ".png", ".webp"))
+    ]
+
+
+def choose_named(name: str, files: list[dict[str, Any]]) -> str | None:
+    """A search result whose title carries a distinctive word of the name, or
+    the whole name; search results are not near the venue, so nothing less."""
+    words = distinctive_words(name)
+    whole = " ".join(name.lower().split())
+    for f in _usable(files):
+        lowered = f["title"].lower()
+        if whole in lowered or any(w in lowered for w in words):
+            return str(f["title"])
+    return None
+
+
 def choose_file(name: str, files: list[dict[str, Any]]) -> str | None:
     """The file that names the venue, else the nearest one close enough.
 
@@ -158,14 +264,7 @@ def choose_file(name: str, files: list[dict[str, Any]]) -> str | None:
     few metres is its street or façade, still worth showing.
     """
     words = {w.lower() for w in _NAME_WORDS.findall(name) if w.lower() not in _STOP}
-    usable = [
-        f
-        for f in files
-        if isinstance(f.get("title"), str)
-        and f["title"].startswith("File:")
-        and not SKIP_WORDS.search(f["title"])
-        and f["title"].lower().endswith((".jpg", ".jpeg", ".png", ".webp"))
-    ]
+    usable = _usable(files)
     for f in usable:
         lowered = f["title"].lower()
         if any(w in lowered for w in words):
