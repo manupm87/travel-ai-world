@@ -18,6 +18,8 @@ interface PromptComposerProps {
   canSubmit: boolean;
   /** No ai_api configured: explain instead of failing silently. */
   unavailable: boolean;
+  /** Overrides the landing card's copy (the planner page asks for a change). */
+  placeholder?: string;
 }
 
 /** Textarea + send button. Enter sends, Shift+Enter inserts a newline. */
@@ -30,6 +32,7 @@ export function PromptComposer({
   isStreaming,
   canSubmit,
   unavailable,
+  placeholder,
 }: PromptComposerProps) {
   const { t } = useLanguage();
   const p = t.planner;
@@ -50,7 +53,7 @@ export function PromptComposer({
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
         onInput={onResize}
-        placeholder={p.placeholder}
+        placeholder={placeholder ?? p.placeholder}
         disabled={isStreaming}
         rows={3}
         aria-label={p.title}

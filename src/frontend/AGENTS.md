@@ -24,7 +24,11 @@ TypeScript 5, Tailwind CSS v4.
   trips (`status: "loading" | "ready" | "error"`, `reload()`, aborts on unmount, clears the session
   on a 401 so the route guard redirects); `useTrip.ts` loads one trip for the viewer the same way,
   with `"not-found"` as a fourth status (a missing or malformed id is not-found without a request;
-  `getTrip`'s `null` is not-found too); `useChatStream.ts` does the same for the planner. A page
+  `getTrip`'s `null` is not-found too); `useChatStream.ts` does the same for the landing's
+  `PlannerCard`; `usePlanner.ts` drives the planner page over the pure reducer in
+  `plannerReducer.ts` (every transition, including `applyItineraryOps`, is unit-tested without React;
+  the hook owns the stream, aborts it on a new turn, and keeps the per-tab draft through
+  `services/plannerDraft.ts`). A page
   that needs per-user data is a static shell (`page.tsx`) plus a client component using the hook,
   never a server-side fetch: the export is static.
 - **`src/types/trip.ts` is a view model**, not a response shape: components render it, `services/trips.ts`
@@ -55,6 +59,19 @@ TypeScript 5, Tailwind CSS v4.
   export or the build fails) + `TripClientPage.tsx` (client; reads `?id=`, drives `useTrip`, renders
   loading / not-found / error / the viewer sections). Never a `/trip/[id]` route: the export cannot
   serve per-user ids (ADR 0011). Links to a trip are `/trip/?id=${encodeURIComponent(id)}`.
+- The planner is `/plan/` (`app/(app)/plan/`, optionally `?q=<prompt>` from the landing's
+  `PlannerCard`), the same static-shell + client-page pattern: `PlannerClientPage.tsx` wires
+  `usePlanner` to `components/planner/v2/` (layout A from the TRA-136 mockups: `PlannerLayout`
+  with desktop columns / mobile tabs, `ChatColumn` with `QuickReplies`, `OptionCarousel` and
+  `OptionCard`, `TripPanel` with `BriefChecklist`, `RouteStrip`, `MapPlaceholder`, `StayCard`,
+  `DayCard`, `WarningBadge` and the `AlternativesSheet` behind every "Change"). The wire contract
+  (SSE v2, TRA-142) is mirrored by hand in `src/types/planner.ts` until `ai_api` exports it through
+  `just contracts`; when it does, replace the declarations by re-exports of the generated types and
+  keep the helpers. A price is only ever a tier (`€`/`€€`/`€€€`), never a number. The recorded
+  Budapest session in `src/test/fixtures/planner-budapest.ts` (+ `.sse`) is the test double for
+  the endpoint in unit tests and in `e2e/planner.spec.ts`, which mocks the route with it.
+  `MapPlaceholder` is what the map issue (TRA-147) replaces; the "Save trip" button waits for the
+  persistence issue (TRA-146).
 - Tests: `renderWithProviders` from `src/test/render.tsx` and the typed builders in
   `src/test/fixtures.ts` (`src/test/fixtures/trip-japan.ts` when a test needs a whole `TripResponse`);
   assert on roles/names/`data-*` state and on `en.ts` copy, not on class names.
@@ -67,6 +84,7 @@ TypeScript 5, Tailwind CSS v4.
   seeded trips: it writes `E2E_TOKEN` (`just dev-token <email>`) and the profile into `localStorage`
   with `page.addInitScript` before navigating, using the keys exported by `services/session.ts`, and
   skips itself entirely when `E2E_TOKEN` is unset, so the other two modes need no backend.
+  `planner.spec.ts` signs in the same way and mocks `/api/v1/ai/planner` with the recorded session.
 
 ## Commands
 

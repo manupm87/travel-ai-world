@@ -1,0 +1,10 @@
+data: {"type": "text", "delta": "Perfect. For food, thermal baths and history "}
+data: {"type": "text", "delta": "these neighbourhoods fit."}
+data: {"type": "brief", "brief": {"destination": "Budapest", "origin": "Madrid", "start_date": "2026-10-23", "end_date": "2026-10-27", "nights": 4, "adults": 2, "children": 0, "budget_tier": 2, "interests": ["food", "thermal_baths", "history"], "pace": "balanced"}, "missing": []}
+data: {"type": "options", "group_id": "g-neighbourhoods", "kind": "neighbourhood", "prompt": "Where would you like to stay?", "slot": null, "selection": "single", "cards": [{"id": "wv:belvaros", "title": "Belváros", "subtitle": "Downtown", "district": "Pest", "category": "district", "image_url": null, "image_credit": null, "price_tier": 2, "rating_text": null, "hours": null, "lat": 47.4925, "lon": 19.0513, "why": "By the Danube and the Great Market Hall", "source": "Wikivoyage", "source_url": "https://en.wikivoyage.org/wiki/Budapest/Belv%C3%A1ros", "license": "CC BY-SA 4.0", "deep_link": null}, {"id": "wv:budavar", "title": "Budavár", "subtitle": "Castle District", "district": "Buda", "category": "district", "image_url": null, "image_credit": null, "price_tier": 3, "rating_text": null, "hours": null, "lat": null, "lon": null, "why": "Quiet at night, views of the Parliament", "source": "Wikivoyage", "source_url": "https://en.wikivoyage.org/wiki/Budapest/Budav%C3%A1r", "license": "CC BY-SA 4.0", "deep_link": null}]}
+data: {"type": "itinerary_patch", "ops": [{"op": "set_route", "origin": "Madrid", "destination": "Budapest", "outbound_date": "2026-10-23", "return_date": "2026-10-27", "deep_link": "https://www.google.com/travel/flights?q=Flights%20from%20MAD%20to%20BUD"}, {"op": "warn", "slot": null, "code": "unverified_price", "message": "Flight prices are not shown in phase 1"}]}
+data: {"type": "future_event", "payload": "ignored by this build"}
+data: not json at all
+data: {"content": "legacy chunk"}
+data: [DONE]
+data: {"type": "text", "delta": "after done, never read"}

@@ -2,6 +2,7 @@
 // Add new locales here: "en" | "es" | "fr" ... and describe them in LANGUAGES
 // (src/i18n/index.ts). The compiler flags whichever of the two you forget.
 import type { TripStatus } from "@/types/trip-summary";
+import type { BriefField, DayPart, WarnCode } from "@/types/planner";
 
 export type Language = "en" | "es";
 
@@ -139,6 +140,149 @@ export interface Translations {
     unavailable: string;
     errorFallback: string;
     errorUnauthorized: string;
+  };
+
+  /** The planner page (`/plan/`): chat + option cards + live itinerary (TRA-144). */
+  plan: {
+    title: string;
+    subtitle: string;
+    tabs: { chat: string; trip: string; map: string };
+    /** Dashboard link into the page. */
+    openPlanner: string;
+    /** Landing/dashboard `PlannerCard`: continue the typed prompt on the page. */
+    openWithPrompt: string;
+    composerPlaceholder: string;
+    /** "Chosen: {titles}" chip in the transcript. */
+    chosen: string;
+    /** Shortcut requests under the composer. */
+    suggestions: string[];
+    quickReplies: {
+      title: string;
+      confirm: string;
+      destination: string;
+      destinationPlaceholder: string;
+      origin: string;
+      originPlaceholder: string;
+      dates: string;
+      from: string;
+      to: string;
+      travellers: string;
+      adults: string;
+      children: string;
+      increase: string;
+      decrease: string;
+      budget: string;
+      interests: string;
+      interestOptions: { id: string; label: string }[];
+      /** The message sent with the answers, e.g. "Dates: {from} to {to}". */
+      summary: {
+        destination: string;
+        origin: string;
+        dates: string;
+        travellers: string;
+        budget: string;
+        interests: string;
+      };
+    };
+    /** `€`, `€€`, `€€€` labels and their long names; a price is never a number. */
+    priceTiers: Record<"1" | "2" | "3", string>;
+    priceTierNames: Record<"1" | "2" | "3", string>;
+    parts: Record<DayPart, string>;
+    card: {
+      choose: string;
+      chosen: string;
+      /** "Add to day {day} · {part}" */
+      addToSlot: string;
+      /** "Add {count}" (multi-selection footer) */
+      addCount: string;
+      notInterested: string;
+      shortlist: string;
+      unshortlist: string;
+      /** "Source: {source}" */
+      source: string;
+      /** "Photo: {credit}" */
+      imageCredit: string;
+      alreadyInDay: string;
+    };
+    carousel: {
+      /** aria-label: "Options: {prompt}" */
+      label: string;
+      /** aria-roledescription, read aloud by screen readers. */
+      roleDescription: string;
+      previous: string;
+      next: string;
+    };
+    checklist: {
+      title: string;
+      /** "{done} of {total} details ready" */
+      progress: string;
+      fields: Record<BriefField, string>;
+      pending: string;
+      /** "{nights} nights" and its singular. */
+      nights: string;
+      nightOne: string;
+      /** "{adults} adults" / "{adults} adults, {children} children" */
+      adults: string;
+      adultsAndChildren: string;
+      generate: string;
+      generateHint: string;
+      /** The text sent when "Generate my trip" is pressed. */
+      generateMessage: string;
+    };
+    panel: {
+      draft: string;
+      /** "{count} days in {destination}" */
+      heading: string;
+      headingNoDestination: string;
+      days: string;
+      dayOne: string;
+      experiences: string;
+      /** Singular of `experiences`. */
+      experienceOne: string;
+      hotel: string;
+      legs: string;
+      legOne: string;
+      save: string;
+      saveHint: string;
+      reset: string;
+      /** "Route {from} → {to}" */
+      route: string;
+      searchFlights: string;
+      mapTitle: string;
+      mapPlaceholder: string;
+      /** "Stay · {nights} nights" */
+      stay: string;
+      stayNoNights: string;
+      change: string;
+      remove: string;
+      /** "Day {day}" */
+      day: string;
+      showDay: string;
+      hideDay: string;
+      emptySlot: string;
+      priceNote: string;
+      weatherSource: string;
+      warnings: Record<WarnCode, string>;
+    };
+    alternatives: {
+      title: string;
+      /** "Day {day} · {part}" */
+      slot: string;
+      close: string;
+      current: string;
+      none: string;
+      askMore: string;
+      /** The message sent to ask for options: "Alternatives for day {day} · {part}" */
+      askMessage: string;
+      /** The message sent from the stay card's "Change". */
+      askStayMessage: string;
+      /** "Shortlist · {count}" */
+      shortlist: string;
+    };
+    errors: {
+      generic: string;
+      unauthorized: string;
+    };
   };
   howItWorks: {
     label: string;

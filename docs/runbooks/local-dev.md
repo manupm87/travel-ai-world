@@ -74,7 +74,7 @@ Three Playwright configs share `src/frontend/e2e/`:
 |---|---|---|---|
 | `just test-e2e` | `next dev` on :3000 (started for you) | `smoke.spec.ts`, the landing page | the daily loop |
 | `just test-e2e-static` | `next build` on :3100 (started for you) | smoke + `prerender.spec.ts` | CI's `frontend` job |
-| `just test-e2e-stack` | the Compose stack on :8080 (already up) | everything, incl. the signed-in `trips.spec.ts` | CI's `e2e-stack` job |
+| `just test-e2e-stack` | the Compose stack on :8080 (already up) | everything, incl. the signed-in `trips.spec.ts` and `planner.spec.ts` (the planner page over the recorded Budapest session, `/ai/planner` mocked in the browser) | CI's `e2e-stack` job |
 
 The signed-in suite needs the seeded account and its token; without `E2E_TOKEN` it skips itself,
 so the first two modes stay backend-free:

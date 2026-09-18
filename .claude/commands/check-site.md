@@ -7,7 +7,7 @@ Use after UI or content changes. Two modes.
 ```bash
 just test-e2e                      # starts `next dev` on :3000 and runs src/frontend/e2e/smoke.spec.ts
 just test-e2e-static               # `next build` served on :3100: smoke + e2e/prerender.spec.ts (CI's `frontend` job)
-just test-e2e-stack                # the running Compose stack on :8080, every spec incl. the signed-in e2e/trips.spec.ts
+just test-e2e-stack                # the running Compose stack on :8080, every spec incl. the signed-in e2e/trips.spec.ts and e2e/planner.spec.ts (mocked /ai/planner)
 cd src/frontend && npx playwright show-report
 PLAYWRIGHT_BASE_URL=https://manupm87.github.io/travel-ai-world npx playwright test   # against the live site
 ```

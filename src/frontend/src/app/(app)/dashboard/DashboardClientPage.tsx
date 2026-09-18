@@ -1,5 +1,6 @@
 "use client";
 
+import { Sparkles } from "lucide-react";
 import EmptyDashboard from "@/components/dashboard/EmptyDashboard";
 import PlannerCard from "@/components/planner/PlannerCard";
 import { TripSection } from "@/components/dashboard/TripSection";
@@ -25,6 +26,13 @@ export default function DashboardClientPage() {
 
   return (
     <>
+      <Section variant="transparent" padding="small" className="pt-10">
+        <Button href="/plan/" size="sm" className="self-start">
+          <Sparkles size={14} aria-hidden="true" className="mr-2" />
+          {t.plan.openPlanner}
+        </Button>
+      </Section>
+
       <PlannerCard transparent />
 
       {status === "loading" && (

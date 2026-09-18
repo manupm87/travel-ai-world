@@ -156,6 +156,7 @@ Defined in `globals.css` as CSS custom properties and consumed directly in Tailw
 | `/` | ✅ Live | Full landing page |
 | `/dashboard` | ✅ Live | The signed-in user's trips from `core_api` (`useTrips`, client-side; loading / error / empty states) and the AI planner card (`PlannerCard`) |
 | `/trip/?id=<uuid>` | ✅ Live | Interactive itinerary viewer for one trip from `core_api` (`useTrip`, client-side; loading / not-found / error states) |
+| `/plan/` (`/plan/?q=<prompt>`) | ✅ Live | The trip planner (layout A, TRA-144): chat with quick replies and option-card carousels on the left, brief checklist that becomes the live itinerary on the right (`usePlanner`, client-side; SSE v2 events from `ai_api`'s `/planner`, mocked from the recorded Budapest session until TRA-143 lands) |
 | anything else | ✅ | `not-found.tsx`, exported as `404.html` |
 
 ---

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useLanguage } from "@/context/LanguageContext";
 import { Container } from "@/components/ui/Container";
 import { SectionLabel } from "@/components/ui/SectionLabel";
@@ -92,6 +93,13 @@ export default function PlannerCard({ transparent = false }: PlannerCardProps) {
           />
 
           {messages.length === 0 && <ExamplePills onPick={handleExampleClick} />}
+
+          <Link
+            href={input.trim() ? `/plan/?q=${encodeURIComponent(input.trim())}` : "/plan/"}
+            className="self-end text-[13px] font-medium text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 rounded"
+          >
+            {t.plan.openWithPrompt}
+          </Link>
         </div>
       </Container>
     </section>
