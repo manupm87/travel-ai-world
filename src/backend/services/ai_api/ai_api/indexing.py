@@ -7,8 +7,11 @@ upserts it into the index Terraform created. The bucket and the index are never
 created here: this command only fills one that already exists.
 
 Re-running it is safe. A document always lands under the same key, so a second
-run overwrites instead of duplicating, and keys the file no longer mentions are
-deleted at the end — which is how a rebuilt corpus replaces the one in the index.
+run overwrites instead of duplicating, and the keys of the file's city that the
+file no longer mentions are deleted at the end — which is how a rebuilt corpus
+replaces the one in the index. One index holds every city: a run only touches
+the vectors whose `city` is the file's, so loading Bologna leaves Budapest as
+it was.
 
 The corpus contract is mirrored, not imported: `city_corpus` is a tool and this
 is a service, and they share a file format and nothing else. Fields this module
@@ -83,6 +86,7 @@ class Report:
     documents: int = 0
     vectors_written: int = 0
     vectors_deleted: int = 0
+    city: str = ""
     tokens: int = 0
     seconds: float = 0.0
     max_filterable_bytes: int = 0
@@ -91,7 +95,8 @@ class Report:
 
     def summary(self) -> str:
         return (
-            f"{self.documents} documents read, {self.vectors_written} vectors written, "
+            f"{self.city or 'no city'}: {self.documents} documents read, "
+            f"{self.vectors_written} vectors written, "
             f"{self.vectors_deleted} deleted, {self.tokens} tokens embedded, "
             f"{self.seconds:.1f}s. Largest metadata: {self.max_filterable_bytes} B "
             f"filterable of {MAX_FILTERABLE_BYTES}, {self.max_total_bytes} B total "
@@ -188,6 +193,13 @@ async def index_corpus(
 
     for document in read_corpus(path, limit=limit):
         report.documents += 1
+        # A file is one city: the prune step trusts that to leave the others alone.
+        if report.city and document.city != report.city:
+            raise SystemExit(
+                f"{path}: {document.doc_id} is in {document.city!r}, "
+                f"the file is {report.city!r}"
+            )
+        report.city = document.city
         if not measure(metadata_for(document), report, document.doc_id):
             continue
         keys_in_file.add(vector_key(document.doc_id))
@@ -199,8 +211,11 @@ async def index_corpus(
     # Only a complete, clean run knows what the index should no longer hold:
     # pruning after `--limit`, a dry run or a skipped document would delete
     # everything that run did not look at.
-    if prune and not dry_run and limit is None and not report.oversized:
-        report.vectors_deleted = await prune_stale(settings, client, keys_in_file)
+    complete = prune and not dry_run and limit is None and not report.oversized
+    if complete and report.city:
+        report.vectors_deleted = await prune_stale(
+            settings, client, keys_in_file, report.city
+        )
 
     report.tokens = usage.input_tokens or 0
     report.seconds = time.perf_counter() - started
@@ -237,28 +252,44 @@ async def write_batch(
 
 
 async def prune_stale(
-    settings: AISettings, client: S3VectorsClient, keys_in_file: set[str]
+    settings: AISettings, client: S3VectorsClient, keys_in_file: set[str], city: str
 ) -> int:
-    """Delete what the index holds and the file no longer mentions."""
+    """Delete what the index holds for `city` and the file no longer mentions.
+
+    ListVectors cannot filter, so every vector is listed with its metadata and
+    the choice is made here: another city's vectors are never candidates, and
+    a vector with no `city` at all (written before the key existed) is left
+    alone and counted, to be dealt with by hand rather than silently.
+    """
     stale: list[str] = []
+    other_cities = 0
+    without_city = 0
     token: str | None = None
     while True:
         request: dict[str, Any] = {
             "vectorBucketName": settings.VECTOR_BUCKET,
             "indexName": settings.VECTOR_INDEX,
             "maxResults": 1_000,
+            "returnMetadata": True,
         }
         if token:
             request["nextToken"] = token
         page = await asyncio.to_thread(client.list_vectors, **request)
-        stale.extend(
-            vector["key"]
-            for vector in page.get("vectors", [])
-            if vector["key"] not in keys_in_file
-        )
+        for vector in page.get("vectors", []):
+            vector_city = (vector.get("metadata") or {}).get("city")
+            if vector_city is None:
+                without_city += 1
+            elif vector_city != city:
+                other_cities += 1
+            elif vector["key"] not in keys_in_file:
+                stale.append(vector["key"])
         token = page.get("nextToken")
         if not token:
             break
+    if other_cities:
+        logger.info("Left %d vectors of other cities untouched", other_cities)
+    if without_city:
+        logger.warning("%d vectors carry no city and were not pruned", without_city)
 
     for start in range(0, len(stale), DELETE_BATCH_SIZE):
         await asyncio.to_thread(
@@ -268,7 +299,7 @@ async def prune_stale(
             keys=stale[start : start + DELETE_BATCH_SIZE],
         )
     if stale:
-        logger.info("Deleted %d vectors no longer in the corpus", len(stale))
+        logger.info("Deleted %d %s vectors no longer in the corpus", len(stale), city)
     return len(stale)
 
 
@@ -285,7 +316,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--no-prune",
         action="store_true",
-        help="keep vectors the file no longer mentions",
+        help="keep the city's vectors the file no longer mentions",
     )
     parser.add_argument(
         "--dry-run",

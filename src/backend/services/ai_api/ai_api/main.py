@@ -8,7 +8,11 @@ from ai_api.api.v1.api_router import api_router
 from ai_api.config import get_settings
 from ai_api.infrastructure.commons_photos import CommonsPhotos
 from ai_api.infrastructure.open_meteo import OpenMeteoForecast
-from ai_api.infrastructure.providers import build_llm_provider, build_retriever
+from ai_api.infrastructure.providers import (
+    build_llm_provider,
+    build_retriever,
+    planner_cities,
+)
 from ai_api.openapi import register_stream_schemas
 
 
@@ -17,7 +21,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """One provider (NVIDIA or Bedrock, per LLM_PROVIDER) and one client per process.
 
     The retriever, when RETRIEVAL_ENABLED, is built the same way: once per
-    execution environment, with its own clients, never per request.
+    execution environment, with its own clients, never per request. The cities
+    the planner covers are read once from the packaged manifest.
     """
     settings = get_settings()
     provider = build_llm_provider(settings)
@@ -28,6 +33,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.retriever = retriever
     app.state.weather = weather
     app.state.photos = photos
+    app.state.cities = planner_cities(settings)
     try:
         yield
     finally:

@@ -33,3 +33,27 @@ Read the report before opening the PR:
 A failing gate is a configuration problem to fix and rebuild, never a reason to lower a threshold
 for one city. If a threshold is wrong for every city, change it in `readiness.py` with the reason in
 the PR.
+
+## Cities manifest
+
+`just corpus` ends by rewriting `src/backend/tools/city_corpus/data/cities.json` (every configured
+city with a built corpus: slug, name, aliases, centre, time zone, document count) and copying it to
+`src/backend/services/ai_api/ai_api/data/cities.json`, which ships in the backend image and is where
+the planner takes its destinations from. Commit both copies; CI fails when they differ. A new city
+therefore needs a backend deploy after the merge (the manifest is inside the image), but no
+Terraform change and no environment variable.
+
+## Index
+
+```bash
+just aws-login
+just index city=<slug> flags=--dry-run   # parse and measure only, no AWS call
+just index city=<slug>                   # embed, upsert by key, prune that city's stale vectors
+```
+
+One S3 Vectors index holds every city. A run reads one city's file (a mixed file is refused),
+upserts its documents and deletes only the vectors of **that** city the file no longer mentions:
+Budapest is untouched by a Bologna run. To remove a city, delete its `cities/<slug>.toml` and
+`data/<slug>/`, run `just corpus-manifest`, and index a file with the city's remaining documents
+(none → an empty file is refused; delete the vectors by hand with `--dry-run` first to see the
+count). `flags=--no-prune` keeps stale vectors for a rehearsal.

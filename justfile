@@ -58,6 +58,14 @@ scrape:
 corpus city="budapest":
     cd {{corpus}} && uv run python -m city_corpus build {{city}}
     cd {{corpus}} && uv run python -m city_corpus report {{city}}
+    just corpus-manifest
+
+# Rewrite the cities manifest ({{corpus}}/data/cities.json: every configured city with a built
+# corpus) and copy it into ai_api's package data, where the service reads its destinations from.
+# CI fails when the two copies differ (ai_api tests/test_cities_manifest.py).
+corpus-manifest:
+    cd {{corpus}} && uv run python -m city_corpus manifest
+    cp {{corpus}}/data/cities.json {{ai}}/ai_api/data/cities.json
 
 # Readiness report of a built corpus → data/<city>/report.md + report.json; exit 1 when a
 # threshold (config/readiness.py) is missed. Add flags="--no-gate" to only print.
@@ -71,8 +79,8 @@ corpus-discover name:
     cd {{corpus}} && uv run python -m city_corpus discover "{{name}}"
 
 # Load a city's corpus into the S3 Vectors index (ADR 0014): embeds with Titan, upserts by key,
-# deletes what the file no longer has. Needs an AWS session (just aws-login). Extra flags go
-# through: --dry-run only measures, --limit N loads a sample.
+# deletes that city's vectors the file no longer has (other cities are left alone). Needs an AWS
+# session (just aws-login). Extra flags go through: --dry-run only measures, --limit N loads a sample.
 index city="budapest" *flags="":
     cd {{ai}} && uv run python -m ai_api.indexing ../../tools/city_corpus/data/{{city}}/documents.jsonl {{flags}}
 

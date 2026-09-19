@@ -8,8 +8,9 @@ contract are in [README.md](README.md).
 ```text
 city_corpus/
 ├── cli.py               argparse: `build <city> [--sources] [--offline]`, `report <slug> [--no-gate]`,
-│                        `discover "<name>"`
+│                        `discover "<name>"`, `manifest`
 ├── build.py             collect → validate → write documents.jsonl + manifest.json
+├── manifest.py          data/cities.json: every configured city with a built corpus (ai_api ships a copy)
 ├── report.py            readiness report over documents.jsonl → report.md + report.json, gate
 ├── discover.py          draft cities/<slug>.draft.toml from Wikidata, Nominatim, Open-Meteo,
 │                        Overpass (tags only), Wikivoyage and Wikipedia; `# review` marks

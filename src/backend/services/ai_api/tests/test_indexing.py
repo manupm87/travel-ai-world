@@ -66,7 +66,13 @@ class FakeStore:
         keys = sorted(self.vectors)
         start = int(kwargs.get("nextToken") or 0)
         page = keys[start : start + self.page_size]
-        response: dict[str, Any] = {"vectors": [{"key": k} for k in page]}
+        vectors: list[dict[str, Any]] = []
+        for key in page:
+            vector: dict[str, Any] = {"key": key}
+            if kwargs.get("returnMetadata"):
+                vector["metadata"] = self.vectors[key].get("metadata", {})
+            vectors.append(vector)
+        response: dict[str, Any] = {"vectors": vectors}
         if start + self.page_size < len(keys):
             response["nextToken"] = str(start + self.page_size)
         return response
@@ -166,6 +172,37 @@ async def test_a_second_run_overwrites_and_prunes_what_the_file_dropped(tmp_path
     assert sorted(store.vectors) == sorted(
         vector_key(f"wv:en:Budapest#see:place-{n}") for n in range(3)
     )
+
+
+def _bologna(n: int) -> dict[str, Any]:
+    return _doc(
+        n, doc_id=f"wv:en:Bologna#see:place-{n}", city="bologna", lat=44.49, lon=11.34
+    )
+
+
+async def test_pruning_touches_only_the_file_s_city(tmp_path):
+    store = FakeStore()
+    budapest = [_doc(n) for n in range(3)]
+    bologna = [_bologna(n) for n in range(3)]
+    await _index(_corpus(tmp_path, budapest), store)
+    await _index(_corpus(tmp_path, bologna), store)
+    # A vector written before `city` was a metadata key: never a candidate.
+    store.vectors["legacy"] = {"key": "legacy", "metadata": {"text": "old"}}
+
+    report = await _index(_corpus(tmp_path, bologna[:1]), store)
+
+    assert (report.city, report.vectors_deleted) == ("bologna", 2)
+    assert sorted(store.vectors) == sorted(
+        [vector_key(d["doc_id"]) for d in budapest]
+        + [vector_key(bologna[0]["doc_id"]), "legacy"]
+    )
+
+
+async def test_a_file_mixing_cities_is_refused(tmp_path):
+    mixed = [_doc(1), _bologna(2)]
+
+    with pytest.raises(SystemExit, match="is in 'bologna', the file is 'budapest'"):
+        await _index(_corpus(tmp_path, mixed), FakeStore())
 
 
 async def test_a_limited_run_never_prunes(tmp_path):

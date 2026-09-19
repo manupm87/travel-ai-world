@@ -1,8 +1,10 @@
 """`python -m city_corpus build <city> [--sources ...] [--offline]`,
-`python -m city_corpus report <slug> [--no-gate]` and
-`python -m city_corpus discover "<City name>"`."""
+`python -m city_corpus report <slug> [--no-gate]`,
+`python -m city_corpus discover "<City name>"` and
+`python -m city_corpus manifest` (rewrite `data/cities.json`)."""
 
 import argparse
+import json
 import logging
 import sys
 from pathlib import Path
@@ -11,6 +13,7 @@ from city_corpus.build import ALL_STAGES, CorpusValidationError, Stage, collect,
 from city_corpus.config.cities import CITIES, CITIES_DIR
 from city_corpus.discover import DiscoveryError, discover, summary, write_draft
 from city_corpus.http import ApiClient, CacheMiss
+from city_corpus.manifest import write_cities_manifest
 from city_corpus.report import ReportError, write_report
 from city_corpus.sources.tours import TourDataError
 
@@ -63,6 +66,11 @@ def main(argv: list[str] | None = None) -> int:
     draft.add_argument("--cache-dir", type=Path, default=DEFAULT_CACHE)
     draft.add_argument("--out-dir", type=Path, default=CITIES_DIR)
     draft.add_argument("-v", "--verbose", action="store_true")
+    cities = commands.add_parser(
+        "manifest", help="rewrite data/cities.json from the built corpora"
+    )
+    cities.add_argument("--data-dir", type=Path, default=DEFAULT_DATA)
+    cities.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args(argv)
 
     logging.basicConfig(
@@ -73,7 +81,16 @@ def main(argv: list[str] | None = None) -> int:
         return _report(args.city, args.data_dir, gate=not args.no_gate)
     if args.command == "discover":
         return _discover(args)
+    if args.command == "manifest":
+        path = write_cities_manifest(args.data_dir, CITIES)
+        sys.stdout.write(f"{_manifest_summary(path)} → {path}\n")
+        return 0
     return _build(args)
+
+
+def _manifest_summary(path: Path) -> str:
+    entries = json.loads(path.read_text(encoding="utf-8"))
+    return ", ".join(f"{e['slug']} ({e['documents']})" for e in entries) or "no cities"
 
 
 def _report(slug: str, data_dir: Path, *, gate: bool) -> int:
@@ -114,6 +131,9 @@ def _build(args: argparse.Namespace) -> int:
     )
     if info["districts_missing"]:
         sys.stdout.write(f"districts missing: {', '.join(info['districts_missing'])}\n")
+    # The cities manifest lives beside the city folders (data/cities.json).
+    manifest_path = write_cities_manifest(out_dir.parent, CITIES)
+    sys.stdout.write(f"cities manifest: {_manifest_summary(manifest_path)}\n")
     return 0
 
 

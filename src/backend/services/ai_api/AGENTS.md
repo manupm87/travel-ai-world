@@ -16,6 +16,7 @@ application/    use cases (StreamChat, RecordConversation, PlanTrip) and their p
 infrastructure/ adapters: nvidia_provider.py, bedrock_provider.py, bedrock_embedder.py, bedrock.py (shared by both
                 Bedrock adapters), s3vectors.py + s3vectors_retriever.py, providers.py (settings → adapters),
                 open_meteo.py (forecast), static_flight_search.py + data/airports.json (route deep links),
+                cities.py + data/cities.json (the cities manifest the corpus tool writes; PLANNER_CITIES narrows it),
                 commons_photos.py (a Wikimedia Commons photo near a venue, TRA-161),
                 sse.py, retry.py, core_api_client.py
 api/            deps.py (per-request wiring; process resources come from app.state), v1/endpoints/{chat,planner,health}.py
@@ -49,6 +50,14 @@ testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, Ke
   `NON_FILTERABLE_KEYS` in `infrastructure/s3vectors.py` identical, and put new display fields in
   `extra` rather than a new key. Filterable keys can be added freely. Several filter conditions go
   inside `$and` (two keys side by side are an `Invalid filter`).
+- **One index, many cities; a run touches one.** A corpus file is one city (the command refuses a
+  mixed file) and the prune step deletes only that city's stale vectors, so `just index city=bologna`
+  leaves Budapest as it was. Vectors without a `city` are never pruned (they are logged).
+- **The cities come from the manifest, not from a variable.** `data/cities.json` (written by
+  `city_corpus`, copied by `just corpus-manifest`, packaged next to `airports.json`) is read once in
+  `lifespan` (`infrastructure/cities.py`); `PLANNER_CITIES` only narrows it for a local run. Adding a
+  city = a new corpus + a new image, never a Terraform or env change. Never edit the copy by hand:
+  `tests/test_cities_manifest.py` fails when it differs from the tool's file.
 - The corpus contract is mirrored in `indexing.CorpusDocument`, never imported from `city_corpus`.
 - Persisting planner results goes through `TripGateway` with the caller's token.
 - **The planner (`POST /api/v1/ai/planner`, ADR 0015)** is `application/plan_trip.py`: stateless, driven by the

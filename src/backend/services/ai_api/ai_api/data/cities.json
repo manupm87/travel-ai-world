@@ -1,0 +1,16 @@
+[
+  {
+    "slug": "budapest",
+    "name": "Budapest",
+    "aliases": [
+      "budapest"
+    ],
+    "centre": [
+      47.4979,
+      19.0402
+    ],
+    "timezone": "Europe/Budapest",
+    "documents": 6330,
+    "built_at": "2026-09-17T23:14:43Z"
+  }
+]

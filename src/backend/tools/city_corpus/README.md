@@ -119,6 +119,14 @@ The build validates before writing and fails on: duplicate or empty `doc_id`, `t
 characters, wrong `city`, unknown `category`, half coordinates or coordinates outside the bbox, or a
 `license` that does not match the `source`.
 
+`data/cities.json`, the **cities manifest**: one entry per configured city (`cities/<slug>.toml`)
+with a built corpus — `slug`, `name`, `aliases`, `centre`, `timezone`, `documents`, `built_at` —
+sorted by slug and rebuilt whole after every build (`python -m city_corpus manifest` rewrites it
+alone). `ai_api` reads its destinations from a copy packaged next to `airports.json`:
+`just corpus-manifest` (run by `just corpus`) writes the file and copies it there, and an `ai_api`
+test fails when the two differ. Adding a city therefore needs no deployment variable, only a corpus
+and a new backend image.
+
 ### Readiness report
 
 `report <slug>` reads `documents.jsonl` and writes `data/<slug>/report.md` (committed, for people)
@@ -211,10 +219,11 @@ writes it from scratch:
    name that is not in `districts`, or a slug/file-name mismatch stop the build with the file and key.
 3. For a new Wikivoyage language, add its section names to `SECTION_CATEGORIES` and its listing
    template names to `LISTING_TYPES` in `sources/wikivoyage.py`.
-4. `just corpus city="<slug>"`: it builds and then runs the readiness report. Iterate on the
-   configuration until the gate passes, then commit `cities/<slug>.toml` and `data/<slug>/`
-   (documents, manifest, report). Optional curated tours go in `curated/<slug>/tours.toml` (or the
-   path in `curated_tours`).
+4. `just corpus city="<slug>"`: it builds, runs the readiness report and rewrites the cities
+   manifest (with its `ai_api` copy). Iterate on the configuration until the gate passes, then
+   commit `cities/<slug>.toml`, `data/<slug>/` (documents, manifest, report), `data/cities.json` and
+   `src/backend/services/ai_api/ai_api/data/cities.json`. Optional curated tours go in
+   `curated/<slug>/tours.toml` (or the path in `curated_tours`).
 
 Wikidata folds its query service's lag into `maxlag`; a read-only request that gets such an answer is
 re-sent without the parameter instead of waiting (the lag can sit at minutes for hours).

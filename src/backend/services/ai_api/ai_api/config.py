@@ -1,7 +1,6 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field
 from travel_common.config import CommonSettings
 
 LLMProviderName = Literal["nvidia", "bedrock"]
@@ -75,9 +74,12 @@ class AISettings(CommonSettings):
     EMBEDDINGS_CONCURRENCY: int = 8
 
     # Planner (ADR 0015). Needs retrieval: every card is a corpus document.
-    # Cities the corpus covers; a brief for another destination is answered
-    # with a polite "not yet" instead of invented places.
-    PLANNER_CITIES: list[str] = Field(default_factory=lambda: ["budapest"])
+    # The cities come from the manifest shipped in the package
+    # (`data/cities.json`, written by the corpus tool); a brief for another
+    # destination is answered with a polite "not yet" instead of invented
+    # places. Unset means every city in the manifest; a list of slugs narrows
+    # it for a local run, and an unknown slug stops the service at start-up.
+    PLANNER_CITIES: list[str] | None = None
     # Longest draft generated in one turn (days) and how many retrieved
     # documents the model chooses from per part of a day.
     PLANNER_MAX_DAYS: int = 7

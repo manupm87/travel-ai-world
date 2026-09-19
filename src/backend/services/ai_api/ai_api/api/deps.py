@@ -23,8 +23,9 @@ from ai_api.domain.ports import (
     TripGateway,
     WeatherForecast,
 )
+from ai_api.infrastructure.cities import City
 from ai_api.infrastructure.core_api_client import CoreApiClient
-from ai_api.infrastructure.providers import ChatProvider
+from ai_api.infrastructure.providers import ChatProvider, planner_cities
 from ai_api.prompts import CHAT_SYSTEM_PROMPT
 
 
@@ -74,11 +75,23 @@ def get_photos(request: Request) -> PhotoFinder | None:
     return getattr(request.app.state, "photos", None)
 
 
+def get_cities(
+    request: Request, settings: AISettings = Depends(get_settings)
+) -> tuple[City, ...]:
+    """The cities loaded in `lifespan`; read from the manifest when there is
+    no lifespan (tests drive the app without one)."""
+    cities: tuple[City, ...] | None = getattr(request.app.state, "cities", None)
+    if cities is None:
+        cities = planner_cities(settings)
+    return cities
+
+
 def get_plan_trip(
     provider: LLMProvider = Depends(get_llm_provider),
     retriever: Retriever | None = Depends(get_retriever),
     weather: WeatherForecast | None = Depends(get_weather),
     photos: PhotoFinder | None = Depends(get_photos),
+    cities: tuple[City, ...] = Depends(get_cities),
     settings: AISettings = Depends(get_settings),
 ) -> PlanTrip:
     """The planner needs the corpus: without retrieval it cannot show a card."""
@@ -89,7 +102,7 @@ def get_plan_trip(
         retriever,
         weather=weather,
         photos=photos,
-        cities=settings.PLANNER_CITIES,
+        cities=[city.slug for city in cities],
         max_days=settings.PLANNER_MAX_DAYS,
         candidates=settings.PLANNER_CANDIDATES,
     )

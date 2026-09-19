@@ -39,7 +39,7 @@ ai_api/
 ├── indexing.py     python -m ai_api.indexing <documents.jsonl>: fills the vector index (just index)
 ├── domain/         models.py (Message, Document, RetrievalFilters, GenerationParams, Usage, ChatTrace, ChatTurn, DayWeather, RouteSuggestion) · ports.py (LLMProvider, Embedder, Retriever, WeatherForecast, TripGateway, ConversationGateway)
 ├── application/    stream_chat.py, record_conversation.py, plan_trip.py — the use cases, depend only on ports · structured.py (JSON out of a completion) · cards.py · photos.py · validate.py · language.py
-├── infrastructure/ nvidia_provider.py · bedrock_provider.py · bedrock_embedder.py · bedrock.py (client config and retry rules both Bedrock adapters share) · s3vectors.py (client, keys, metadata split) · s3vectors_retriever.py · providers.py (settings → adapters) · open_meteo.py · static_flight_search.py (+ data/airports.json) · commons_photos.py · sse.py · retry.py · core_api_client.py
+├── infrastructure/ nvidia_provider.py · bedrock_provider.py · bedrock_embedder.py · bedrock.py (client config and retry rules both Bedrock adapters share) · s3vectors.py (client, keys, metadata split) · s3vectors_retriever.py · providers.py (settings → adapters) · open_meteo.py · static_flight_search.py (+ data/airports.json) · cities.py (+ data/cities.json, the cities manifest the corpus tool writes) · commons_photos.py · sse.py · retry.py · core_api_client.py
 ├── api/            deps.py (wiring) · v1/endpoints/chat.py, planner.py, health.py
 ├── schemas/        chat.py · planner.py (PlannerTurn) · planner_events.py (SSE v2 events and ops)
 └── testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, documents_from_corpus(), settings_for_tests()
@@ -103,8 +103,10 @@ just index city=budapest flags=--dry-run   # parse and measure only, no AWS
 
 `python -m ai_api.indexing` reads the JSONL with its own model of the corpus contract (it never
 imports `city_corpus`), stores each document under `uuid5(doc_id)` — ASCII and stable, so a second
-run overwrites instead of duplicating — and, after a complete run, deletes the keys the file no
-longer has. The metadata is split as the index requires: filterable `city`, `category`,
+run overwrites instead of duplicating — and, after a complete run, deletes the keys of that city
+the file no longer has. One index holds every city: a file is one city (a mixed file is refused)
+and a run never touches another city's vectors, so `just index city=bologna` leaves Budapest as it
+was; vectors with no `city` metadata are logged, never pruned. The metadata is split as the index requires: filterable `city`, `category`,
 `district`, `kind`, `lang`, `source`, `price_tier`, `lat`, `lon`, `tour_type`, `price_model`;
 non-filterable `text`, `doc_id`, `name`, `url`, `source_url`, `heading_path` and `extra`, a JSON
 string with every other field (images, licence, hours, price...). The non-filterable list is frozen
