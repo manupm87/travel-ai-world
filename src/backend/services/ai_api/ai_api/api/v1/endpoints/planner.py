@@ -6,16 +6,28 @@ Thin controller over the `PlanTrip` use case. The wire format is SSE v2
 
 import logging
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from fastapi.responses import StreamingResponse
 from travel_common.principal import Principal
 
-from ai_api.api.deps import get_cities, get_current_user, get_plan_trip
+from ai_api.api.deps import (
+    get_card_detail,
+    get_cities,
+    get_current_user,
+    get_plan_trip,
+)
 from ai_api.api.v1.endpoints.chat import SSE_HEADERS
+from ai_api.application.card_detail import CardDetailLookup
 from ai_api.application.plan_trip import PlanTrip
 from ai_api.domain.models import City
 from ai_api.infrastructure.sse import sse_events
-from ai_api.schemas.planner import PlannerCity, PlannerTurn, planner_city
+from ai_api.schemas.planner import (
+    MAX_CARD_ID_CHARS,
+    CardDetail,
+    PlannerCity,
+    PlannerTurn,
+    planner_city,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +42,26 @@ async def cities(
     """The cities the planner can plan, from the corpus manifest shipped with
     the service: the page offers them as destinations."""
     return [planner_city(city) for city in covered]
+
+
+@router.get("/card", response_model=CardDetail)
+async def card(
+    id: str = Query(
+        min_length=1,
+        max_length=MAX_CARD_ID_CHARS,
+        description="The corpus document id the card carries, e.g. `osm:relation/13067`",
+    ),
+    principal: Principal = Depends(get_current_user),
+    detail: CardDetailLookup = Depends(get_card_detail),
+) -> CardDetail:
+    """One card in full: the article behind it, its address, phone and site.
+
+    The id travels as a query parameter because corpus ids contain slashes
+    and colons. It is read back from the store, so the answer never depends
+    on what the client kept; an id the index does not hold is a 404. Needs
+    retrieval (`RETRIEVAL_ENABLED`), like the planner itself.
+    """
+    return await detail(id)
 
 
 @router.post(

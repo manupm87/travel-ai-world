@@ -11,6 +11,7 @@ from travel_common.http.auth import extract_bearer_token
 from travel_common.principal import Principal
 from travel_common.security import principal_from_token
 
+from ai_api.application.card_detail import CardDetailLookup
 from ai_api.application.plan_trip import PlanTrip
 from ai_api.application.record_conversation import RecordConversation
 from ai_api.application.stream_chat import StreamChat
@@ -106,6 +107,15 @@ def get_plan_trip(
         max_days=settings.PLANNER_MAX_DAYS,
         candidates=settings.PLANNER_CANDIDATES,
     )
+
+
+def get_card_detail(
+    retriever: Retriever | None = Depends(get_retriever),
+) -> CardDetailLookup:
+    """A card is a corpus document: without a store there is nothing to open."""
+    if retriever is None:
+        raise ProviderUnavailable("Card details need retrieval (RETRIEVAL_ENABLED)")
+    return CardDetailLookup(retriever)
 
 
 def get_trip_gateway(settings: AISettings = Depends(get_settings)) -> TripGateway:

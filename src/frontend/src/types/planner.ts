@@ -63,6 +63,13 @@ export const DAY_PARTS = ["morning", "afternoon", "evening", "night"] as const s
  */
 export type OptionCard = components["schemas"]["OptionCard"];
 
+/**
+ * The same card in full (`GET /ai/planner/card?id=`), as the detail panel
+ * shows it: the corpus article behind the card, its address, phone and site.
+ * Additive over {@link OptionCard} — assignable wherever a card is expected.
+ */
+export type CardDetail = components["schemas"]["CardDetail"];
+
 export type OptionKind = components["schemas"]["OptionsEvent"]["kind"];
 
 export const OPTION_KINDS = [

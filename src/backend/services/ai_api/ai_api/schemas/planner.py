@@ -14,10 +14,13 @@ from pydantic import BaseModel, Field
 
 from ai_api.domain.models import City
 from ai_api.schemas.chat import MAX_HISTORY_TURNS, MAX_MESSAGE_CHARS, ChatMessage
-from ai_api.schemas.planner_events import Slot, TripBrief
+from ai_api.schemas.planner_events import OptionCard, Slot, TripBrief
 
 MAX_CARD_IDS = 20
 """Most ids a selection or a slot may carry."""
+
+MAX_CARD_ID_CHARS = 200
+"""A corpus id is a short key (`osm:relation/13067`), never a payload."""
 
 MAX_DAYS = 14
 """Longest itinerary a snapshot may describe."""
@@ -77,6 +80,32 @@ class PlannerTurn(BaseModel):
     itinerary: ItinerarySnapshot | None
     trip_id: UUID | None = Field(
         description="Reserved: the Trip this draft will be saved to"
+    )
+
+
+class CardDetail(OptionCard):
+    """One card in full (`GET /planner/card?id=`): what the panel shows when a
+    traveller opens an activity, on top of everything the carousel card has.
+
+    Additive over `OptionCard` and read from the same place — the corpus
+    document the id names — so the client never sends content, only an id.
+    Like every planner model, no field has a default: an unknown one travels
+    as `null` and the generated TypeScript keeps it required.
+    """
+
+    description: str = Field(
+        description=(
+            "The corpus document's own text, trimmed at a sentence boundary; "
+            "empty when the document carries none"
+        )
+    )
+    address: str | None
+    phone: str | None
+    website: str | None = Field(
+        description="The venue's own site, when it is not the source page"
+    )
+    heading_path: str | None = Field(
+        description="Where the document sits in the city's corpus"
     )
 
 

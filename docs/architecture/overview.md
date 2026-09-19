@@ -169,6 +169,11 @@ sequenceDiagram
     Note over A: stateless: the group id says what a selection means (nb, hotels:<district>, slot:<day>:<part>)
 ```
 
+A card the page holds is an id, so opening one asks the service for it again: `GET
+/api/v1/ai/planner/card?id=<doc id>` answers a `CardDetail` — the card's own fields plus the
+corpus document's text, its address, phone and site (`application/card_detail.py`). Nothing is
+taken from the client: an id the index does not hold is a 404.
+
 Every card is a retrieved corpus document (`application/cards.py`); ids the model returns that were
 not retrieved are dropped, prices are tiers, flights a prefilled search link (`static_flight_search.py`),
 and `application/validate.py` adds `warn` ops (distance, load per pace, closed that weekday, a price

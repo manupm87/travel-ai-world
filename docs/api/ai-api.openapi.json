@@ -34,6 +34,232 @@
         "title": "BriefEvent",
         "type": "object"
       },
+      "CardDetail": {
+        "description": "One card in full (`GET /planner/card?id=`): what the panel shows when a\ntraveller opens an activity, on top of everything the carousel card has.\n\nAdditive over `OptionCard` and read from the same place \u2014 the corpus\ndocument the id names \u2014 so the client never sends content, only an id.\nLike every planner model, no field has a default: an unknown one travels\nas `null` and the generated TypeScript keeps it required.",
+        "properties": {
+          "address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "deep_link": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deep Link"
+          },
+          "description": {
+            "description": "The corpus document's own text, trimmed at a sentence boundary; empty when the document carries none",
+            "title": "Description",
+            "type": "string"
+          },
+          "district": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "District"
+          },
+          "heading_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Where the document sits in the city's corpus",
+            "title": "Heading Path"
+          },
+          "hours": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hours"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "image_credit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Credit"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "lat": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lat"
+          },
+          "license": {
+            "title": "License",
+            "type": "string"
+          },
+          "lon": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lon"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "price_tier": {
+            "anyOf": [
+              {
+                "enum": [
+                  1,
+                  2,
+                  3
+                ],
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price Tier"
+          },
+          "rating_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating Text"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "source_url": {
+            "title": "Source Url",
+            "type": "string"
+          },
+          "subtitle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subtitle"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "website": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The venue's own site, when it is not the source page",
+            "title": "Website"
+          },
+          "why": {
+            "maxLength": 140,
+            "title": "Why",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "subtitle",
+          "district",
+          "category",
+          "image_url",
+          "image_credit",
+          "price_tier",
+          "rating_text",
+          "hours",
+          "lat",
+          "lon",
+          "why",
+          "source",
+          "source_url",
+          "license",
+          "deep_link",
+          "description",
+          "address",
+          "phone",
+          "website",
+          "heading_path"
+        ],
+        "title": "CardDetail",
+        "type": "object"
+      },
       "ChatMessage": {
         "description": "A single message replayed from the conversation history.",
         "properties": {
@@ -1414,6 +1640,58 @@
           }
         ],
         "summary": "Planner",
+        "tags": [
+          "Planner"
+        ]
+      }
+    },
+    "/api/v1/ai/planner/card": {
+      "get": {
+        "description": "One card in full: the article behind it, its address, phone and site.\n\nThe id travels as a query parameter because corpus ids contain slashes\nand colons. It is read back from the store, so the answer never depends\non what the client kept; an id the index does not hold is a 404. Needs\nretrieval (`RETRIEVAL_ENABLED`), like the planner itself.",
+        "operationId": "card_api_v1_ai_planner_card_get",
+        "parameters": [
+          {
+            "description": "The corpus document id the card carries, e.g. `osm:relation/13067`",
+            "in": "query",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "description": "The corpus document id the card carries, e.g. `osm:relation/13067`",
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CardDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Card",
         "tags": [
           "Planner"
         ]

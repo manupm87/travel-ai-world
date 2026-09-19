@@ -10,9 +10,10 @@ domain/         Message, ChatRole, Document, RetrievalFilters, GenerationParams,
                 DayWeather, RouteSuggestion
                 + Protocols: LLMProvider (stream + complete), Embedder, Retriever (search + fetch), WeatherForecast,
                 TripGateway, ConversationGateway
-application/    use cases (StreamChat, RecordConversation, PlanTrip) and their pure helpers: structured.py
-                (complete_json: JSON out of `LLMProvider.complete`, one repair retry), cards.py (OptionCard from a
-                Document), validate.py (distance, load, closed, prices), language.py. Depend only on domain ports.
+application/    use cases (StreamChat, RecordConversation, PlanTrip, CardDetailLookup) and their pure helpers:
+                structured.py (complete_json: JSON out of `LLMProvider.complete`, one repair retry), cards.py
+                (OptionCard — and the fuller CardDetail — from a Document), validate.py (distance, load, closed,
+                prices), language.py. Depend only on domain ports.
 infrastructure/ adapters: nvidia_provider.py, bedrock_provider.py, bedrock_embedder.py, bedrock.py (shared by both
                 Bedrock adapters), s3vectors.py + s3vectors_retriever.py, providers.py (settings → adapters),
                 open_meteo.py (forecast), static_flight_search.py + data/airports.json (route deep links),
@@ -20,7 +21,8 @@ infrastructure/ adapters: nvidia_provider.py, bedrock_provider.py, bedrock_embed
                 commons_photos.py (a Wikimedia Commons photo near a venue, TRA-161),
                 sse.py, retry.py, core_api_client.py
 api/            deps.py (per-request wiring; process resources come from app.state), v1/endpoints/{chat,planner,health}.py
-schemas/        chat.py (request), planner.py (PlannerTurn request), planner_events.py (SSE v2 events, ADR 0015)
+schemas/        chat.py (request), planner.py (PlannerTurn request, PlannerCity, CardDetail), planner_events.py
+                (SSE v2 events, ADR 0015)
 openapi.py      puts the planner's stream models into the OpenAPI document (no route declares them)
 main.py         lifespan builds the provider and the retriever once (providers.build_*) and closes them
 indexing.py     CLI that fills the vector index from a corpus JSONL (just index); never runs in a request

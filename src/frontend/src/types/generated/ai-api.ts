@@ -103,6 +103,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/ai/planner/card": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Card
+         * @description One card in full: the article behind it, its address, phone and site.
+         *
+         *     The id travels as a query parameter because corpus ids contain slashes
+         *     and colons. It is read back from the store, so the answer never depends
+         *     on what the client kept; an id the index does not hold is a 404. Needs
+         *     retrieval (`RETRIEVAL_ENABLED`), like the planner itself.
+         */
+        get: operations["card_api_v1_ai_planner_card_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ai/planner/cities": {
         parameters: {
             query?: never;
@@ -138,6 +163,71 @@ export interface components {
              * @enum {string}
              */
             type: "brief";
+        };
+        /**
+         * CardDetail
+         * @description One card in full (`GET /planner/card?id=`): what the panel shows when a
+         *     traveller opens an activity, on top of everything the carousel card has.
+         *
+         *     Additive over `OptionCard` and read from the same place — the corpus
+         *     document the id names — so the client never sends content, only an id.
+         *     Like every planner model, no field has a default: an unknown one travels
+         *     as `null` and the generated TypeScript keeps it required.
+         */
+        CardDetail: {
+            /** Address */
+            address: string | null;
+            /** Category */
+            category: string;
+            /** Deep Link */
+            deep_link: string | null;
+            /**
+             * Description
+             * @description The corpus document's own text, trimmed at a sentence boundary; empty when the document carries none
+             */
+            description: string;
+            /** District */
+            district: string | null;
+            /**
+             * Heading Path
+             * @description Where the document sits in the city's corpus
+             */
+            heading_path: string | null;
+            /** Hours */
+            hours: string | null;
+            /** Id */
+            id: string;
+            /** Image Credit */
+            image_credit: string | null;
+            /** Image Url */
+            image_url: string | null;
+            /** Lat */
+            lat: number | null;
+            /** License */
+            license: string;
+            /** Lon */
+            lon: number | null;
+            /** Phone */
+            phone: string | null;
+            /** Price Tier */
+            price_tier: (1 | 2 | 3) | null;
+            /** Rating Text */
+            rating_text: string | null;
+            /** Source */
+            source: string;
+            /** Source Url */
+            source_url: string;
+            /** Subtitle */
+            subtitle: string | null;
+            /** Title */
+            title: string;
+            /**
+             * Website
+             * @description The venue's own site, when it is not the source page
+             */
+            website: string | null;
+            /** Why */
+            why: string;
         };
         /**
          * ChatMessage
@@ -647,6 +737,38 @@ export interface operations {
                 content: {
                     "application/json": unknown;
                     "text/event-stream": components["schemas"]["PlannerEvent"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    card_api_v1_ai_planner_card_get: {
+        parameters: {
+            query: {
+                /** @description The corpus document id the card carries, e.g. `osm:relation/13067` */
+                id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CardDetail"];
                 };
             };
             /** @description Validation Error */
