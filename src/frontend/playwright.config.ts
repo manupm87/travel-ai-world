@@ -22,6 +22,11 @@ export default defineConfig({
     baseURL,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
+    // The planner's map is WebGL (MapLibre, TRA-147) and CI has no GPU, so
+    // Chromium renders it with SwiftShader — which recent builds only allow
+    // behind this flag. Without it MapLibre throws and the page shows the
+    // "map unavailable" fallback instead of pins.
+    launchOptions: { args: ["--enable-unsafe-swiftshader"] },
   },
 
   projects: [

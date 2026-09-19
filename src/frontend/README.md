@@ -156,7 +156,7 @@ Defined in `globals.css` as CSS custom properties and consumed directly in Tailw
 | `/` | ✅ Live | Full landing page |
 | `/dashboard` | ✅ Live | The signed-in user's trips from `core_api` (`useTrips`, client-side; loading / error / empty states) and the AI planner card (`PlannerCard`) |
 | `/trip/?id=<uuid>` | ✅ Live | Interactive itinerary viewer for one trip from `core_api` (`useTrip`, client-side; loading / not-found / error states) |
-| `/plan/` (`/plan/?q=<prompt>`) | ✅ Live | The trip planner (layout A, TRA-144): chat with quick replies and option-card carousels on the left, brief checklist that becomes the live itinerary on the right (`usePlanner`, client-side; SSE v2 events from `ai_api`'s `/planner`; until TRA-143 lands the page answers from the recorded Budapest session in `src/data/planner-demo/` and shows a demo banner) |
+| `/plan/` (`/plan/?q=<prompt>`) | ✅ Live | The trip planner (layout A, TRA-144): three columns on a laptop — chat with quick replies and option-card carousels, the brief checklist that becomes the live itinerary, and the map of the selected day (MapLibre GL over OpenFreeMap's keyless tiles, TRA-147/ADR 0016) — and the same three as tabs on a phone (`usePlanner`, client-side; SSE v2 events from `ai_api`'s `/planner`; until TRA-143 lands the page answers from the recorded Budapest session in `src/data/planner-demo/` and shows a demo banner) |
 | anything else | ✅ | `not-found.tsx`, exported as `404.html` |
 
 ---
@@ -257,5 +257,8 @@ drive the same headless Chromium (`npx playwright install --with-deps chromium` 
    (`useChatStream`, which also aborts the stream on unmount). Without an AI URL (the GitHub Pages
    build) the composer stays usable but sending is disabled and `t.planner.unavailable` explains why.
 4. `services/session.ts` keeps the session in `localStorage`, validates the JWT and prunes it on expiry.
+5. The planner's map needs no backend and no key: `maplibre-gl` fetches OpenFreeMap's hosted styles
+   (`tiles.openfreemap.org`) straight from the browser, only on `/plan/` and only through
+   `next/dynamic` with `ssr: false`. Offline, the basemap is blank and everything else still works.
 
 Backend details: [`src/backend/README.md`](../backend/README.md).

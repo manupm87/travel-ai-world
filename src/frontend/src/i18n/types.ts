@@ -250,12 +250,8 @@ export interface Translations {
       /** "Route {from} → {to}" */
       route: string;
       searchFlights: string;
-      mapTitle: string;
-      mapPlaceholder: string;
       /** Accessible name of the horizontal day strip. */
       daysNav: string;
-      /** The mapped stops of one day: "Stops of day {day}" */
-      stopsOfDay: string;
       /** "Stay · {nights} nights" */
       stay: string;
       stayNoNights: string;
@@ -290,6 +286,26 @@ export interface Translations {
     errors: {
       generic: string;
       unauthorized: string;
+    };
+    /** The day map (TRA-147): MapLibre GL over OpenFreeMap tiles. */
+    map: {
+      /** Accessible name of the map region: "Map of day {day}" */
+      region: string;
+      /** While the client-only map chunk loads. */
+      loading: string;
+      /** No card of the selected day carries coordinates yet. */
+      empty: string;
+      /** A numbered pin: "{index}. {title}" */
+      marker: string;
+      /** The hotel's pin: "Stay: {title}" */
+      stay: string;
+      /** The number badge beside a card in the panel: "Show on the map: {title}" */
+      showOnMap: string;
+      /** The browser has no WebGL 2, so there is no map to show. */
+      unsupported: string;
+      /** MapLibre's own zoom buttons, relabelled in the reader's language. */
+      zoomIn: string;
+      zoomOut: string;
     };
     /** Shown while the synthetic session answers instead of ai_api (TRA-158). */
     demo: {

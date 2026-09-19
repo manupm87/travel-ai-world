@@ -126,6 +126,10 @@ the planner takes its destinations from. Commit both copies; CI fails when they 
 therefore needs a backend deploy after the merge (the manifest is inside the image), but no
 Terraform change and no environment variable.
 
+There is **no map step**: the planner's map reads OpenFreeMap's global tiles from the browser and
+centres itself on the `centre` the manifest already carries (ADR 0016). Nothing per city is built,
+uploaded or configured.
+
 The PR carries `cities/<slug>.toml`, `data/<slug>/` (documents, manifest, report), the curated file
 if any, both manifest copies, the report's Readiness table, both smoke summaries and the deviations.
 `just lint`, `just test-corpus` and `just docs-check` pass; squash-merge when CI is green.

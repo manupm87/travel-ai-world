@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, renderWithProviders, screen, within } from "@/test/render";
 import en from "@/i18n/en";
@@ -18,6 +19,7 @@ import {
   GROUP_IDS,
   HOTELS,
 } from "@/data/planner-demo/session";
+import { toMapStops } from "./mapStops";
 import { TripPanel } from "./TripPanel";
 
 const p = en.plan.panel;
@@ -54,15 +56,23 @@ function renderPanel(state: Partial<PlannerState> = {}) {
     ...state,
   };
 
-  // The selected day belongs to the page, so the panel is driven here exactly
-  // as `PlannerClientPage` drives it.
+  // The selected day, the pins and the selected pin belong to the page, so the
+  // panel is driven here exactly as `PlannerClientPage` drives it.
   function Harness({ state: current }: { state: PlannerState }) {
     const [selectedDay, setSelectedDay] = useSelectedDay(current.itinerary);
+    const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
+    const mapStops = toMapStops(current.itinerary, selectedDay);
     return (
       <TripPanel
         state={current}
         selectedDay={selectedDay}
-        onSelectDay={setSelectedDay}
+        onSelectDay={(day) => {
+          setSelectedStopId(null);
+          setSelectedDay(day);
+        }}
+        mapStops={mapStops}
+        selectedStopId={selectedStopId}
+        onSelectStop={setSelectedStopId}
         {...handlers}
       />
     );
@@ -202,26 +212,45 @@ describe("TripPanel", () => {
     ).toBeInTheDocument();
   });
 
-  it("maps only the selected day, numbered in slot order", () => {
+  it("numbers the cards of the selected day with their pin, in slot order", () => {
     renderPanel();
 
-    const stops = (day: number) =>
-      within(screen.getByRole("list", { name: interpolate(p.stopsOfDay, { day }) }))
-        .getAllByRole("listitem")
-        .map((item) => item.textContent ?? "");
+    const badge = (title: string) =>
+      screen.getByRole("button", { name: interpolate(en.plan.map.showOnMap, { title }) });
 
-    // The stay opens the list, then the day's stops in slot order.
-    const dayOne = stops(1);
-    expect(dayOne[0]).toBe(`${p.stayNoNights} · ${HOTELS.rum.title}`);
-    expect(dayOne[1]).toBe(`1${ACTIVITIES.greatMarket.title}`);
-    expect(dayOne.some((label) => label.includes(BATHS.gellert.title))).toBe(false);
+    // The stay's badge is the map's "H" pin; the day's cards are numbered.
+    expect(badge(HOTELS.rum.title)).toHaveTextContent("H");
+    expect(badge(ACTIVITIES.greatMarket.title)).toHaveTextContent("1");
+    expect(
+      screen.queryByRole("button", {
+        name: interpolate(en.plan.map.showOnMap, { title: BATHS.gellert.title }),
+      })
+    ).not.toBeInTheDocument();
 
     fireEvent.click(dayTab(2));
 
-    const dayTwo = stops(2);
-    expect(dayTwo[1]).toBe(`1${ACTIVITIES.fishermansBastion.title}`);
-    expect(dayTwo[2]).toBe(`2${BATHS.gellert.title}`);
-    expect(dayTwo.some((label) => label.includes(ACTIVITIES.greatMarket.title))).toBe(false);
+    expect(badge(ACTIVITIES.fishermansBastion.title)).toHaveTextContent("1");
+    expect(badge(BATHS.gellert.title)).toHaveTextContent("2");
+    expect(
+      screen.queryByRole("button", {
+        name: interpolate(en.plan.map.showOnMap, { title: ACTIVITIES.greatMarket.title }),
+      })
+    ).not.toBeInTheDocument();
+  });
+
+  it("selects a pin from the card list and lets the same badge clear it", () => {
+    renderPanel();
+
+    const badge = screen.getByRole("button", {
+      name: interpolate(en.plan.map.showOnMap, { title: ACTIVITIES.greatMarket.title }),
+    });
+    expect(badge).toHaveAttribute("aria-pressed", "false");
+
+    fireEvent.click(badge);
+    expect(badge).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.click(badge);
+    expect(badge).toHaveAttribute("aria-pressed", "false");
   });
 
   it("falls back to the first day when the itinerary is emptied and rebuilt", () => {

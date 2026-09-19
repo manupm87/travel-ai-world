@@ -65,6 +65,31 @@ async function mockPlanner(page: Page) {
 const composer = (page: Page) =>
   page.getByPlaceholder("Ask for a change or search for something…");
 
+/**
+ * The map's tiles (TRA-147). OpenFreeMap is a third party: the suite blocks it
+ * so the run stays offline and deterministic. MapLibre's markers are ordinary
+ * DOM added when the map object is built, not when tiles arrive, so they are on
+ * screen anyway — which is exactly the property worth asserting.
+ */
+async function blockTiles(page: Page) {
+  await page.route("**/tiles.openfreemap.org/**", (route) => route.abort());
+}
+
+const mapPins = (page: Page) => page.locator("[data-map-stop]");
+
+/**
+ * MapLibre needs WebGL 2, and a headless Chromium without a GPU or SwiftShader
+ * has none (some CI images and devcontainers). The page is built for that: the
+ * map pane says so and the itinerary is untouched. The pin assertions therefore
+ * run only where WebGL 2 exists, and the fallback is asserted where it does not
+ * — never a skipped test, and never a flaky one.
+ */
+const hasWebGL = (page: Page) =>
+  page.evaluate(() => !!document.createElement("canvas").getContext("webgl2"));
+
+const MAP_UNSUPPORTED =
+  "This browser cannot display the map, but your itinerary is complete on the left.";
+
 async function send(page: Page, text: string) {
   await composer(page).fill(text);
   await page.getByRole("button", { name: "Send" }).click();
@@ -78,6 +103,7 @@ test.describe("Planner page — /plan/", () => {
   test.beforeEach(async ({ page }) => {
     await signIn(page, TOKEN!);
     await mockPlanner(page);
+    await blockTiles(page);
   });
 
   test("from the brief to a 3-day itinerary with a chosen hotel, then a slot change", async ({
@@ -123,9 +149,48 @@ test.describe("Planner page — /plan/", () => {
     // A price is never a number.
     await expect(page.getByText(/\d+\s?€/)).toHaveCount(0);
 
+    // 4b. The map column maps that same day: the hotel plus day 1's four stops,
+    //     numbered identically in the panel and on the map.
+    await expect(page.getByRole("region", { name: "Map of day 1" })).toBeVisible();
+    const marketBadge = page.getByRole("button", { name: "Show on the map: Great Market Hall" });
+    await expect(marketBadge).toHaveText("1");
+    await expect(
+      page.getByRole("button", { name: "Show on the map: Hotel Rum Budapest" })
+    ).toHaveText("H");
+
+    // The card's badge selects the stop.
+    await marketBadge.click();
+    await expect(marketBadge).toHaveAttribute("aria-pressed", "true");
+
+    const webgl = await hasWebGL(page);
+    if (webgl) {
+      await expect(mapPins(page)).toHaveCount(5);
+      await expect(mapPins(page).first()).toHaveText("H");
+      await expect(mapPins(page).nth(1)).toHaveAttribute("aria-current", "true");
+
+      // And a pin selects its card. The pin is clicked through `dispatchEvent`
+      // because the markers overlap on the canvas at this zoom.
+      await mapPins(page).nth(2).dispatchEvent("click");
+      await expect(mapPins(page).nth(1)).not.toHaveAttribute("aria-current", "true");
+      await expect(marketBadge).toHaveAttribute("aria-pressed", "false");
+      await expect(
+        page.getByRole("button", { name: "Show on the map: St. Stephen's Basilica" })
+      ).toHaveAttribute("aria-pressed", "true");
+    } else {
+      await expect(page.getByText(MAP_UNSUPPORTED)).toBeVisible();
+      await expect(mapPins(page)).toHaveCount(0);
+    }
+
     // 5. "Change" on day 2's afternoon: the strip swaps the day, then the
     //    sheet asks for the options itself.
     await days.getByRole("tab", { name: /\bDay 2\b/ }).click();
+    // The map follows the strip: day 2's stops, and nothing selected any more.
+    await expect(page.getByRole("region", { name: "Map of day 2" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Show on the map: Gellért Baths" })).toHaveText(
+      "2"
+    );
+    await expect(page.locator("[data-map-stop][aria-current]")).toHaveCount(0);
+    if (webgl) await expect(mapPins(page)).toHaveCount(5);
     await expect(page.getByRole("button", { name: "Change: Great Market Hall" })).toHaveCount(0);
     await expect(page.getByText("40 minutes on foot from the previous stop")).toBeVisible();
     await page.getByRole("button", { name: "Change: Gellért Baths" }).click();
@@ -144,14 +209,23 @@ test.describe("Planner page — /plan/", () => {
     await expect(page.getByRole("button", { name: "Change: Rudas Baths" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Change: Gellért Baths" })).toHaveCount(0);
 
-    // 7. On a phone the strip scrolls sideways; the page itself never does.
+    // 7. Three columns on a laptop, tabs on a phone; the page itself never
+    //    scrolls sideways at any of the three widths.
+    const overflow = () =>
+      page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth
+      );
+
+    for (const width of [1440, 1024]) {
+      await page.setViewportSize({ width, height: 900 });
+      await expect(page.getByRole("region", { name: "Map of day 2" })).toBeVisible();
+      expect(await overflow()).toBeLessThanOrEqual(1);
+    }
+
     await page.setViewportSize({ width: 375, height: 800 });
     await page.getByRole("tablist", { name: "Plan a trip" }).getByRole("tab", { name: "Trip" }).click();
     await expect(days.getByRole("tab", { name: /\bDay 2\b/ })).toBeVisible();
-    const overflow = await page.evaluate(
-      () => document.documentElement.scrollWidth - document.documentElement.clientWidth
-    );
-    expect(overflow).toBeLessThanOrEqual(1);
+    expect(await overflow()).toBeLessThanOrEqual(1);
   });
 
   test("on a phone the Chat / Trip / Map tabs switch panes", async ({ page }) => {
@@ -168,7 +242,9 @@ test.describe("Planner page — /plan/", () => {
     await expect(composer(page)).toBeHidden();
 
     await tabs.getByRole("tab", { name: "Map" }).click();
-    await expect(page.getByText(/The map arrives with the next release/)).toBeVisible();
+    // No itinerary yet, so the map opens on the world and says so.
+    await expect(page.getByRole("region", { name: "Map of day 1" })).toBeVisible();
+    await expect(page.getByText("No stop of this day has a location yet.")).toBeVisible();
   });
 
   test("without the planner route, the recorded session answers with a demo banner", async ({

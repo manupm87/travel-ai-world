@@ -229,10 +229,7 @@ const en: Translations = {
       reset: "Start over",
       route: "Route {from} → {to}",
       searchFlights: "Search flights",
-      mapTitle: "Map",
-      mapPlaceholder: "The map arrives with the next release. Your stops are listed below.",
       daysNav: "Days",
-      stopsOfDay: "Stops of day {day}",
       stay: "Stay · {nights} nights",
       stayNoNights: "Stay",
       change: "Change",
@@ -265,6 +262,17 @@ const en: Translations = {
     errors: {
       generic: "Sorry, something went wrong while planning. Please try again.",
       unauthorized: "Your session has expired. Log in again to keep planning.",
+    },
+    map: {
+      region: "Map of day {day}",
+      loading: "Loading the map…",
+      empty: "No stop of this day has a location yet.",
+      marker: "{index}. {title}",
+      stay: "Stay: {title}",
+      showOnMap: "Show on the map: {title}",
+      unsupported: "This browser cannot display the map, but your itinerary is complete on the left.",
+      zoomIn: "Zoom in",
+      zoomOut: "Zoom out",
     },
     demo: {
       title: "Demo mode",

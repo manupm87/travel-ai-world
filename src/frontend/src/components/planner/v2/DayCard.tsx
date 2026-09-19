@@ -9,6 +9,7 @@ import { interpolate } from "@/i18n";
 import { partOf, type DayDraft, type ItineraryWarning } from "@/hooks/plannerReducer";
 import { DAY_PARTS, type DayPart, type Slot } from "@/types/planner";
 import { cn } from "@/utils/cn";
+import { stopId, type MapStop } from "./mapStops";
 import { DATE_OPTIONS } from "./tripDates";
 import { WarningBadge } from "./WarningBadge";
 
@@ -26,6 +27,14 @@ export interface DayCardProps {
   static?: boolean;
   /** Position in the panel: staggers the entrance by 80 ms per day. */
   index?: number;
+  /**
+   * This day's pins (`toMapStops`), so a card that is on the map carries the
+   * pin's number and can select it. Empty (the default) hides the badges.
+   */
+  mapStops?: MapStop[];
+  /** The pin selected on the map, `null` for none. */
+  selectedStopId?: string | null;
+  onSelectStop?: (id: string | null) => void;
   onChange: (slot: Slot) => void;
   onRemove: (slot: Slot, cardId: string) => void;
 }
@@ -46,6 +55,9 @@ export function DayCard({
   defaultOpen = false,
   static: isStatic = false,
   index = 0,
+  mapStops = [],
+  selectedStopId = null,
+  onSelectStop,
   onChange,
   onRemove,
 }: DayCardProps) {
@@ -61,6 +73,11 @@ export function DayCard({
 
   const warningsFor = (part: DayPart) =>
     warnings.filter((w) => w.slot !== null && w.slot.day === day.day && partOf(w.slot) === part);
+
+  const stopFor = (part: DayPart, cardId: string): MapStop | null => {
+    const id = stopId(day.day, part, cardId);
+    return mapStops.find((stop) => stop.id === id) ?? null;
+  };
 
   const summary = (
     <>
@@ -168,11 +185,37 @@ export function DayCard({
                             : t.plan.priceTiers[String(card.price_tier) as "1" | "2" | "3"],
                         ].filter((entry): entry is string => !!entry);
 
+                        const stop = stopFor(part, card.id);
+                        const selected = stop !== null && stop.id === selectedStopId;
+
                         return (
                           <li
                             key={card.id}
-                            className="flex animate-fade-in flex-wrap items-start gap-x-3 gap-y-2 rounded-xl border border-border bg-bg-surface px-3 py-2"
+                            data-stop-row={stop?.id}
+                            data-selected={stop ? selected : undefined}
+                            className={cn(
+                              "flex animate-fade-in flex-wrap items-start gap-x-3 gap-y-2 rounded-xl border border-border bg-bg-surface px-3 py-2 transition-shadow motion-reduce:transition-none",
+                              selected && "border-accent ring-2 ring-accent/50"
+                            )}
                           >
+                            {stop && onSelectStop && (
+                              <button
+                                type="button"
+                                onClick={() => onSelectStop(selected ? null : stop.id)}
+                                aria-pressed={selected}
+                                aria-label={interpolate(t.plan.map.showOnMap, {
+                                  title: card.title,
+                                })}
+                                className={cn(
+                                  "flex h-6 w-6 shrink-0 items-center justify-center self-center rounded-full text-[11px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40",
+                                  selected
+                                    ? "bg-accent text-white"
+                                    : "bg-accent-soft text-text-primary hover:bg-accent hover:text-white"
+                                )}
+                              >
+                                {stop.index}
+                              </button>
+                            )}
                             <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-bg-card">
                               {card.image_url ? (
                                 // Remote Wikimedia images on a static export: no optimizer to route them through.

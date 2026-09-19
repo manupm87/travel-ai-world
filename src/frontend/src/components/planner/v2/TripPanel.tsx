@@ -16,7 +16,7 @@ import { AlternativesSheet } from "./AlternativesSheet";
 import { BriefChecklist } from "./BriefChecklist";
 import { DayCard } from "./DayCard";
 import { DayStrip } from "./DayStrip";
-import { MapPlaceholder } from "./MapPlaceholder";
+import type { MapStop } from "./mapStops";
 import { RouteStrip } from "./RouteStrip";
 import { StayCard } from "./StayCard";
 import { dateForDay, daysBetween } from "./tripDates";
@@ -27,6 +27,11 @@ export interface TripPanelProps {
   /** The day the strip, the day card and the map slot are showing. */
   selectedDay: number;
   onSelectDay: (day: number) => void;
+  /** The pins of that day (`toMapStops`), so the cards carry their numbers. */
+  mapStops: MapStop[];
+  /** The pin selected on the map, `null` for none. */
+  selectedStopId: string | null;
+  onSelectStop: (id: string | null) => void;
   onGenerate: () => void;
   onRemove: (slot: Slot, cardId: string) => void;
   onSelect: (groupId: string, cardIds: string[]) => void;
@@ -40,16 +45,21 @@ export interface TripPanelProps {
 const STAY_SLOT: Slot = { day: 0, part: null };
 
 /**
- * The planner's right column: the brief checklist until an itinerary exists,
- * then the draft trip (route, map, stay, the day strip and the one day it has
- * selected) and the alternatives sheet the "Change" buttons open. It owns
- * nothing but that sheet: every mutation, the selected day included, is a
+ * The planner's middle column: the brief checklist until an itinerary exists,
+ * then the draft trip (route, stay, the day strip and the one day it has
+ * selected) and the alternatives sheet the "Change" buttons open. The map is
+ * the column beside it (`TripMap`); what they share is `mapStops`, which gives
+ * every card here the number of its pin there. The panel owns nothing but the
+ * sheet: every mutation, the selected day and the selected pin included, is a
  * callback the page turns into a planner action.
  */
 export function TripPanel({
   state,
   selectedDay,
   onSelectDay,
+  mapStops,
+  selectedStopId,
+  onSelectStop,
   onGenerate,
   onRemove,
   onSelect,
@@ -61,8 +71,22 @@ export function TripPanel({
   const { t } = useLanguage();
   const [changing, setChanging] = useState<Slot | null>(null);
   const dayPanelId = useId();
+  const scrollerRef = useRef<HTMLDivElement>(null);
   const p = t.plan.panel;
   const { brief, itinerary } = state;
+
+  // Picking a pin on the map brings its card into view. `"nearest"` moves the
+  // panel's own scroller only as far as it must, so picking the card instead —
+  // it is already on screen — scrolls nothing.
+  useEffect(() => {
+    if (!selectedStopId) return;
+    const rows = scrollerRef.current?.querySelectorAll<HTMLElement>("[data-stop-row]") ?? [];
+    for (const row of rows) {
+      if (row.dataset.stopRow !== selectedStopId) continue;
+      row.scrollIntoView?.({ block: "nearest" });
+      return;
+    }
+  }, [selectedStopId]);
 
   const isStaySlot = (slot: Slot) => slot.day === STAY_SLOT.day;
 
@@ -154,9 +178,10 @@ export function TripPanel({
   // shrank between renders) falls back to the first day of the trip.
   const day = itinerary.days.find((d) => d.day === selectedDay) ?? itinerary.days[0] ?? null;
   const currentDay = day?.day ?? selectedDay;
+  const stayStop = mapStops.find((stop) => stop.kind === "stay") ?? null;
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-y-auto p-4">
+    <div ref={scrollerRef} className="flex h-full flex-col gap-4 overflow-y-auto p-4">
       <header className="flex animate-fade-up flex-wrap items-start gap-3">
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <span className="text-[10px] font-medium uppercase tracking-wider text-text-secondary">
@@ -196,14 +221,13 @@ export function TripPanel({
 
       {itinerary.route && <RouteStrip route={itinerary.route} />}
 
-      <div className="animate-fade-up">
-        <MapPlaceholder itinerary={itinerary} selectedDay={currentDay} />
-      </div>
-
       {itinerary.stay && (
         <StayCard
           stay={itinerary.stay}
           nights={brief.nights}
+          stopId={stayStop?.id ?? null}
+          selected={stayStop !== null && stayStop.id === selectedStopId}
+          onSelectStop={onSelectStop}
           onChange={() => setChanging(STAY_SLOT)}
         />
       )}
@@ -226,6 +250,9 @@ export function TripPanel({
             day={day}
             date={dateForDay(brief.start_date, day.day)}
             warnings={itinerary.warnings}
+            mapStops={mapStops}
+            selectedStopId={selectedStopId}
+            onSelectStop={onSelectStop}
             static
             onChange={(slot) => setChanging(slot)}
             onRemove={onRemove}

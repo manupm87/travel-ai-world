@@ -13,14 +13,15 @@ export interface PlannerLayoutProps {
   banner?: ReactNode;
   chat: ReactNode;
   panel: ReactNode;
-  /** Shown on its own tab on small screens; on desktop the panel embeds it. */
+  /** The third desktop column; on small screens its own tab (TRA-147). */
   map: ReactNode;
 }
 
 /**
- * Layout A: two columns on desktop (chat ~38 %, trip panel the rest), both
- * scrolling independently under the fixed header; on small screens three
- * tabs (Chat / Trip / Map) over one full-height pane.
+ * Layout A: three columns on desktop (chat ~30 %, trip panel ~40 %, map ~30 %)
+ * under the fixed header — the panel scrolls on its own, the map fills its
+ * column and the page never scrolls; on small screens the same three panes
+ * become tabs (Chat / Trip / Map) over one full-height pane.
  */
 export function PlannerLayout({ banner = null, chat, panel, map }: PlannerLayoutProps) {
   const { t } = useLanguage();
@@ -83,7 +84,7 @@ export function PlannerLayout({ banner = null, chat, panel, map }: PlannerLayout
         })}
       </div>
 
-      <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[minmax(0,38fr)_minmax(0,62fr)]">
+      <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[minmax(0,3fr)_minmax(0,4fr)_minmax(0,3fr)]">
         {/* Visibility is class-based on purpose: the `hidden` attribute is
             `display: none !important` in Tailwind's preflight and would beat
             the desktop override, where every pane shows. */}
@@ -116,7 +117,8 @@ export function PlannerLayout({ banner = null, chat, panel, map }: PlannerLayout
           role="tabpanel"
           aria-labelledby={tabId("map")}
           className={cn(
-            "min-h-0 overflow-y-auto bg-bg-secondary p-4 lg:hidden",
+            // No padding and no scroller of its own: the map fills the pane.
+            "min-h-0 bg-bg-secondary lg:block lg:min-w-[280px] lg:border-l lg:border-border",
             tab === "map" ? "block animate-fade-in" : "hidden"
           )}
         >

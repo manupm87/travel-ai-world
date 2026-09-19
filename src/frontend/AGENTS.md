@@ -20,6 +20,9 @@ TypeScript 5, Tailwind CSS v4.
   Components never `fetch` or touch the session storage.
   `AuthContext.provider` (`"cognito" | "google"`) says which sign-in the build has; it is decided by
   `NEXT_PUBLIC_COGNITO_DOMAIN` + `NEXT_PUBLIC_COGNITO_CLIENT_ID`.
+  The one sanctioned exception is the planner map's tiles: `maplibre-gl` fetches
+  `tiles.openfreemap.org` itself (ADR 0016). That is the library's own traffic, not app code —
+  no component gains the right to call `fetch`.
 - **Hooks own async state, components render it**: `src/hooks/useTrips.ts` loads the dashboard's
   trips (`status: "loading" | "ready" | "error"`, `reload()`, aborts on unmount, clears the session
   on a 401 so the route guard redirects); `useTrip.ts` loads one trip for the viewer the same way,
@@ -62,17 +65,28 @@ TypeScript 5, Tailwind CSS v4.
 - The planner is `/plan/` (`app/(app)/plan/`, optionally `?q=<prompt>` from the landing's
   `PlannerCard`), the same static-shell + client-page pattern: `PlannerClientPage.tsx` wires
   `usePlanner` to `components/planner/v2/` (layout A from the TRA-136 mockups: `PlannerLayout`
-  with desktop columns / mobile tabs, `ChatColumn` with `QuickReplies`, `OptionCarousel` and
-  `OptionCard`, `TripPanel` with `BriefChecklist`, `RouteStrip`, `MapPlaceholder`, `StayCard`,
-  `DayStrip`, `DayCard`, `WarningBadge` and the `AlternativesSheet` behind every "Change"). The
+  with three desktop columns — chat ≈ 30 %, trip panel ≈ 40 %, map ≈ 30 % — and the same three as
+  mobile tabs, `ChatColumn` with `QuickReplies`, `OptionCarousel` and `OptionCard`, `TripPanel`
+  with `BriefChecklist`, `RouteStrip`, `StayCard`, `DayStrip`, `DayCard`, `WarningBadge` and the
+  `AlternativesSheet` behind every "Change", `TripMap` in the third column). The
   itinerary is browsed **one day at a time** (TRA-176): `DayStrip` is a horizontal tablist of day
   chips (date, forecast, how many experiences; arrows, Home/End, the selected chip kept in sight by
   scrolling the strip itself — never `scrollIntoView`, which would drag the panel's own scroller) over
-  a single `DayCard` rendered `static` — no toggle, always open — and `MapPlaceholder`
-  maps that same day, its stops numbered in slot order. The selected day is state of
+  a single `DayCard` rendered `static` — no toggle, always open — and `TripMap`
+  maps that same day. The selected day is state of
   `PlannerClientPage` (`hooks/useSelectedDay.ts`), because the `panel` and the `map` slot of
   `PlannerLayout` both follow it; it falls back to the first day whenever the day it points at is
-  not in the itinerary — which is what makes a new trip open on day 1 — and is not persisted. Day dates come from `components/planner/v2/tripDates.ts`. The wire contract
+  not in the itinerary — which is what makes a new trip open on day 1 — and is not persisted. Day dates come from `components/planner/v2/tripDates.ts`.
+  The **map** (TRA-147, ADR 0016) is MapLibre GL over OpenFreeMap's keyless tiles: `mapStops.ts`
+  is pure (`toMapStops(itinerary, selectedDay)` → the stay as an unnumbered "H" pin then the day's
+  located cards numbered in slot order, plus `boundsOf`/`lineOf`), `TripMap.tsx` is the region and
+  the empty state and pulls `TripMapCanvas.tsx` in through `next/dynamic` with `ssr: false`
+  (MapLibre needs `window`, and this keeps it out of every other route's bundle), and the canvas
+  owns the instance: HTML markers, a straight `LineString` through the day (no routing — travel
+  times stay in `RouteStrip`), `fitBounds` per day and `setStyle` per theme. `PlannerClientPage`
+  calls `toMapStops` once and gives the list to both columns, so a card's badge in the panel and
+  its pin on the map always carry the same number; `selectedStopId` lives there too and is cleared
+  when the day changes. The wire contract
   (SSE v2, TRA-142) is mirrored by hand in `src/types/planner.ts` until `ai_api` exports it through
   `just contracts`; when it does, replace the declarations by re-exports of the generated types and
   keep the helpers. A price is only ever a tier (`€`/`€€`/`€€€`), never a number. The recorded
@@ -83,7 +97,7 @@ TypeScript 5, Tailwind CSS v4.
   no banner. The same session is the test double in unit tests and in `e2e/planner.spec.ts`
   (route mocked with it, plus one test where the route answers 404). Motion comes from the
   keyframes in `globals.css` (`animate-fade-up`, `animate-scale-in`, ...; `prefers-reduced-motion`
-  is honoured globally). `MapPlaceholder` is what the map issue (TRA-147) replaces; the "Save
+  is honoured globally). The "Save
   trip" button waits for the persistence issue (TRA-146). The page knows no city by name (TRA-168):
   `services/planner.ts::listCities` reads `GET /ai/planner/cities`, `hooks/usePlannerCities` loads it
   once, and `ChatColumn` turns it into one "Plan a trip to {city}" starter chip per city
@@ -102,7 +116,9 @@ TypeScript 5, Tailwind CSS v4.
   seeded trips: it writes `E2E_TOKEN` (`just dev-token <email>`) and the profile into `localStorage`
   with `page.addInitScript` before navigating, using the keys exported by `services/session.ts`, and
   skips itself entirely when `E2E_TOKEN` is unset, so the other two modes need no backend.
-  `planner.spec.ts` signs in the same way and mocks `/api/v1/ai/planner` with the recorded session.
+  `planner.spec.ts` signs in the same way, mocks `/api/v1/ai/planner` with the recorded session and
+  aborts `**/tiles.openfreemap.org/**`, so the run needs no third party: the pins are DOM added when
+  the map object is built, not when tiles arrive.
 
 ## Commands
 

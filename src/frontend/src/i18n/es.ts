@@ -229,10 +229,7 @@ const es: Translations = {
       reset: "Empezar de nuevo",
       route: "Ruta {from} → {to}",
       searchFlights: "Buscar vuelos",
-      mapTitle: "Mapa",
-      mapPlaceholder: "El mapa llega en la próxima entrega. Tus paradas están listadas abajo.",
       daysNav: "Días",
-      stopsOfDay: "Paradas del día {day}",
       stay: "Alojamiento · {nights} noches",
       stayNoNights: "Alojamiento",
       change: "Cambiar",
@@ -265,6 +262,17 @@ const es: Translations = {
     errors: {
       generic: "Lo siento, algo ha fallado al planificar. Inténtalo de nuevo.",
       unauthorized: "Tu sesión ha caducado. Vuelve a iniciar sesión para seguir planificando.",
+    },
+    map: {
+      region: "Mapa del día {day}",
+      loading: "Cargando el mapa…",
+      empty: "Ninguna parada de este día tiene ubicación todavía.",
+      marker: "{index}. {title}",
+      stay: "Alojamiento: {title}",
+      showOnMap: "Ver en el mapa: {title}",
+      unsupported: "Este navegador no puede mostrar el mapa, pero tu itinerario está completo a la izquierda.",
+      zoomIn: "Acercar",
+      zoomOut: "Alejar",
     },
     demo: {
       title: "Modo demo",
