@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, renderWithProviders, screen, within } from "@/test/render";
 import en from "@/i18n/en";
+import es from "@/i18n/es";
 import { interpolate } from "@/i18n";
+import { useLanguage } from "@/context/LanguageContext";
 import { EMPTY_ITINERARY, applyItineraryOps } from "@/hooks/plannerReducer";
 import { ACTIVITIES, FIRST_ITINERARY_OPS, HOTELS } from "@/data/planner-demo/session";
 
@@ -12,7 +14,7 @@ import { ACTIVITIES, FIRST_ITINERARY_OPS, HOTELS } from "@/data/planner-demo/ses
  * so they are queried through the testing library as any other button.
  */
 const maplibre = vi.hoisted(() => {
-  const handlers = new Map<string, () => void>();
+  const handlers = new Map<string, (() => void)[]>();
   const instances: MapStub[] = [];
   /** Makes the next `new Map()` throw, as a browser without WebGL 2 does. */
   const failNext = { value: false };
@@ -42,6 +44,23 @@ const maplibre = vi.hoisted(() => {
     }
   }
 
+  /**
+   * The real control renders two buttons with these classes and labels them in
+   * English; the component rewrites the labels, so the stub has to put the
+   * buttons on the page.
+   */
+  class NavigationControlStub {
+    element = document.createElement("div");
+    constructor() {
+      for (const name of ["zoom-in", "zoom-out"]) {
+        const button = document.createElement("button");
+        button.className = `maplibregl-ctrl-${name}`;
+        button.setAttribute("aria-label", name === "zoom-in" ? "Zoom in" : "Zoom out");
+        this.element.append(button);
+      }
+    }
+  }
+
   class MapStub {
     container: HTMLElement;
     style: string;
@@ -52,6 +71,12 @@ const maplibre = vi.hoisted(() => {
     sources = new Map<string, { data: unknown }>();
     layers = new Set<string>();
     removed = false;
+    /**
+     * As in MapLibre, where `isStyleLoaded()` is false whenever the sprite or
+     * any tile is in flight — after every `setStyle`, not only before the
+     * first render.
+     */
+    styleLoaded = true;
     constructor(options: { container: HTMLElement; style: string }) {
       if (failNext.value) {
         failNext.value = false;
@@ -65,6 +90,7 @@ const maplibre = vi.hoisted(() => {
     }
     addControl(control: unknown) {
       this.controls.push(control);
+      if (control instanceof NavigationControlStub) this.container.append(control.element);
       return this;
     }
     setStyle(style: string) {
@@ -72,24 +98,35 @@ const maplibre = vi.hoisted(() => {
       this.styles.push(style);
       this.sources.clear();
       this.layers.clear();
+      this.styleLoaded = false;
       return this;
     }
     isStyleLoaded() {
-      return true;
+      return this.styleLoaded;
     }
     on() {
       return this;
     }
-    off(type: string) {
-      handlers.delete(type);
+    off(type: string, handler: () => void) {
+      handlers.set(type, (handlers.get(type) ?? []).filter((one) => one !== handler));
       return this;
     }
+    /**
+     * As MapLibre's `Evented.once`: the handler runs on the next event of that
+     * type, then is dropped. `load` is fired once per map and is never
+     * replayed — the stub models that by never firing it at all, so code that
+     * waits for it after the first style is code that waits forever.
+     */
     once(type: string, handler: () => void) {
-      handlers.set(type, handler);
+      handlers.set(type, [...(handlers.get(type) ?? []), handler]);
       return this;
     }
     fire(type: string) {
-      handlers.get(type)?.();
+      const waiting = handlers.get(type) ?? [];
+      handlers.set(type, []);
+      // A style that has finished loading is a loaded style from then on.
+      if (type === "styledata") this.styleLoaded = true;
+      for (const handler of waiting) handler();
     }
     fitBounds(bounds: unknown, options: unknown) {
       this.fits.push({ bounds, options });
@@ -129,13 +166,13 @@ const maplibre = vi.hoisted(() => {
     }
   }
 
-  return { MapStub, MarkerStub, instances, handlers, failNext };
+  return { MapStub, MarkerStub, NavigationControlStub, instances, handlers, failNext };
 });
 
 vi.mock("maplibre-gl", () => ({
   Map: maplibre.MapStub,
   Marker: maplibre.MarkerStub,
-  NavigationControl: class {},
+  NavigationControl: maplibre.NavigationControlStub,
   LngLatBounds: class {},
 }));
 
@@ -257,6 +294,38 @@ describe("TripMapCanvas", () => {
     expect(markers()).toHaveLength(0);
   });
 
+  it("renumbers the pins when a card of the same day is removed", () => {
+    const onSelectStop = vi.fn();
+    const trimmed = applyItineraryOps(itinerary, [
+      {
+        op: "remove_activity",
+        slot: { day: 1, part: "morning" },
+        card_id: ACTIVITIES.greatMarket.id,
+      },
+    ]);
+    const canvas = (stops: ReturnType<typeof toMapStops>) => (
+      <TripMapCanvas
+        stops={stops}
+        centre={BUDAPEST}
+        selectedStopId={null}
+        onSelectStop={onSelectStop}
+      />
+    );
+    const view = renderWithProviders(canvas(stopsFor(1)));
+
+    // Every later card keeps its id — `<day>:<part>:<cardId>` — while its
+    // number shifts down, so the pins are updated, not rebuilt.
+    const after = toMapStops(trimmed, 1);
+    view.rerender(canvas(after));
+
+    expect(markers().map((marker) => marker.textContent)).toEqual(
+      after.map((stop) => (stop.kind === "stay" ? "H" : String(stop.index)))
+    );
+    expect(markers()[1]).toHaveAccessibleName(
+      interpolate(en.plan.map.marker, { index: 1, title: after[1]!.title })
+    );
+  });
+
   it("follows the theme: the dark style by default, the light one when it is set", () => {
     renderCanvas(1);
     const map = lastMap();
@@ -268,10 +337,60 @@ describe("TripMapCanvas", () => {
     });
 
     expect(map.style).toBe(STYLE_URLS.light);
-    // A new style drops the app's layers; they come back with `styledata`.
+    // A new style drops the app's layers and is not loaded yet; they come back
+    // when it is — with `styledata`, which fires again, and never with `load`,
+    // which the map fires once and never replays.
+    expect(map.isStyleLoaded()).toBe(false);
     expect(map.layers.has("trip-day-line")).toBe(false);
     map.fire("styledata");
     expect(map.layers.has("trip-day-line")).toBe(true);
+  });
+
+  it("draws the day's line when the style is still loading at the day change", () => {
+    const { show } = renderCanvas(1);
+    const map = lastMap();
+    // Tiles in flight: the style is not "loaded", as after any `setStyle`.
+    map.styleLoaded = false;
+    map.layers.clear();
+    map.sources.clear();
+
+    show(2);
+    expect(map.layers.has("trip-day-line")).toBe(false);
+
+    map.fire("styledata");
+    expect(map.layers.has("trip-day-line")).toBe(true);
+  });
+
+  it("labels the zoom controls in the reader's language, after a switch too", async () => {
+    function SwitchToSpanish() {
+      const { setLanguage } = useLanguage();
+      return (
+        <button type="button" onClick={() => setLanguage("es")}>
+          es
+        </button>
+      );
+    }
+    renderWithProviders(
+      <>
+        <SwitchToSpanish />
+        <TripMapCanvas
+          stops={stopsFor(1)}
+          centre={BUDAPEST}
+          selectedStopId={null}
+          onSelectStop={vi.fn()}
+        />
+      </>
+    );
+
+    expect(screen.getByRole("button", { name: en.plan.map.zoomIn })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "es" }));
+
+    expect(await screen.findByRole("button", { name: es.plan.map.zoomIn })).toHaveAttribute(
+      "title",
+      es.plan.map.zoomIn
+    );
+    expect(screen.getByRole("button", { name: es.plan.map.zoomOut })).toBeInTheDocument();
   });
 });
 

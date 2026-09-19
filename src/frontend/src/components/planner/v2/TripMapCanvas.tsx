@@ -60,6 +60,11 @@ function accentColour(): string {
   return value || ACCENT_FALLBACK;
 }
 
+/** What the pin shows: the day's number, or "H" for the stay. */
+function glyphOf(stop: MapStop): string {
+  return stop.kind === "stay" ? "H" : String(stop.index);
+}
+
 /**
  * The marker's DOM: a wrapper for MapLibre and a button for us.
  *
@@ -77,7 +82,7 @@ function markerElement(stop: MapStop, label: string): [HTMLElement, HTMLButtonEl
   button.dataset.mapStop = stop.id;
   button.dataset.selected = "false";
   button.setAttribute("aria-label", label);
-  button.textContent = stop.kind === "stay" ? "H" : String(stop.index);
+  button.textContent = glyphOf(stop);
   button.className = [
     "flex h-7 w-7 cursor-pointer items-center justify-center rounded-full",
     "border-2 border-bg-card text-xs font-semibold text-white shadow-accent-glow",
@@ -120,10 +125,13 @@ function drawLine(map: MapLibreMap, stops: MapStop[]): void {
     });
   };
 
-  // Without a style there is nowhere to put the source; when the tiles are
-  // unreachable `load` never fires and the day simply has no line.
+  // Without a style there is nowhere to put the source. `isStyleLoaded()` is
+  // false whenever tiles or the sprite are in flight — not only before the
+  // first render — so the wait has to be on an event that fires again:
+  // `styledata` fires when a style finishes loading and after every
+  // `setStyle`, while `load` fires once per map and is never replayed.
   if (map.isStyleLoaded()) apply();
-  else map.once("load", apply);
+  else map.once("styledata", apply);
 }
 
 /**
@@ -207,20 +215,10 @@ export function TripMapCanvas({
       setUnsupported(true);
       return;
     }
+    // MapLibre labels its own controls in English; the effect below rewrites
+    // them in the reader's language, on mount and on every language change.
     map.addControl(new NavigationControl({ showCompass: false }), "top-right");
     mapRef.current = map;
-
-    // MapLibre labels its controls in English; the page speaks the reader's
-    // language, so they are relabelled once the control's DOM exists.
-    for (const [selector, label] of [
-      [".maplibregl-ctrl-zoom-in", labelsRef.current.zoomIn],
-      [".maplibregl-ctrl-zoom-out", labelsRef.current.zoomOut],
-    ] as const) {
-      const button = container.querySelector(selector);
-      if (!button) continue;
-      button.setAttribute("aria-label", label);
-      button.setAttribute("title", label);
-    }
 
     const markers = markersRef.current;
     return () => {
@@ -241,13 +239,26 @@ export function TripMapCanvas({
     if (!map || !changed) return;
     map.setStyle(STYLE_URLS[theme]);
     // A new style drops every source and layer the app added; the markers are
-    // DOM elements and survive it.
-    const restore = () => drawLine(map, stopsRef.current);
-    map.once("styledata", restore);
-    return () => {
-      map.off("styledata", restore);
-    };
+    // DOM elements and survive it. `drawLine` waits for the new style itself.
+    drawLine(map, stopsRef.current);
   }, [theme]);
+
+  // ── The controls MapLibre labels itself, in the reader's language ──────────
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    for (const [selector, label] of [
+      [".maplibregl-ctrl-zoom-in", t.plan.map.zoomIn],
+      [".maplibregl-ctrl-zoom-out", t.plan.map.zoomOut],
+    ] as const) {
+      const button = container.querySelector(selector);
+      if (!button) continue;
+      button.setAttribute("aria-label", label);
+      button.setAttribute("title", label);
+    }
+    // Keyed on the copy, not on the mount: the language switch lives in the
+    // header and swaps `t` without remounting the planner.
+  }, [t]);
 
   // ── The stops: markers, line, and a viewport that holds them ──────────────
   useEffect(() => {
@@ -269,6 +280,10 @@ export function TripMapCanvas({
           : interpolate(labelsRef.current.marker, { index: stop.index, title: stop.title });
       const existing = markers.get(stop.id);
       if (existing) {
+        // A card's id survives the removal of an earlier card of the same day,
+        // but its number does not: the glyph is rewritten with the label, or
+        // the pin would keep a number the panel no longer shows.
+        existing.button.textContent = glyphOf(stop);
         existing.button.setAttribute("aria-label", label);
         existing.marker.setLngLat([stop.lon, stop.lat]);
         continue;
