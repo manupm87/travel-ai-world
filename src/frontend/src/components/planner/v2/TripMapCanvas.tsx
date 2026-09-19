@@ -61,11 +61,17 @@ function accentColour(): string {
 }
 
 /**
- * The marker's DOM. MapLibre only positions the element, so a pin is ordinary
- * markup: a button carrying the theme tokens, its stop id (for the panel and
- * the tests) and the number the itinerary shows beside the same card.
+ * The marker's DOM: a wrapper for MapLibre and a button for us.
+ *
+ * The wrapper is what MapLibre gets, because it writes `style.transform` on the
+ * element it is handed to place it — an inline style that would beat any
+ * `scale` class and make a CSS transition fire on every pan. The button inside
+ * is therefore free to grow when it is selected. It carries the theme tokens,
+ * the stop id (for the panel and the tests) and the number the itinerary shows
+ * beside the same card.
  */
-function markerElement(stop: MapStop, label: string): HTMLButtonElement {
+function markerElement(stop: MapStop, label: string): [HTMLElement, HTMLButtonElement] {
+  const root = document.createElement("div");
   const button = document.createElement("button");
   button.type = "button";
   button.dataset.mapStop = stop.id;
@@ -80,7 +86,8 @@ function markerElement(stop: MapStop, label: string): HTMLButtonElement {
     "data-[selected=true]:scale-125",
     stop.kind === "stay" ? "bg-gold" : "bg-accent",
   ].join(" ");
-  return button;
+  root.append(button);
+  return [root, button];
 }
 
 /** Adds, updates or drops the straight line through the day's stops. */
@@ -141,7 +148,8 @@ export function TripMapCanvas({
   const { theme } = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
-  const markersRef = useRef(new Map<string, Marker>());
+  /** Per stop: the marker MapLibre positions and the button inside it. */
+  const markersRef = useRef(new Map<string, { marker: Marker; button: HTMLButtonElement }>());
   /** MapLibre needs WebGL 2 and throws without it; the page must not go down. */
   const [unsupported, setUnsupported] = useState(false);
 
@@ -216,7 +224,7 @@ export function TripMapCanvas({
 
     const markers = markersRef.current;
     return () => {
-      for (const marker of markers.values()) marker.remove();
+      for (const { marker } of markers.values()) marker.remove();
       markers.clear();
       map.remove();
       mapRef.current = null;
@@ -248,9 +256,9 @@ export function TripMapCanvas({
 
     const markers = markersRef.current;
     const wanted = new Set(stops.map((stop) => stop.id));
-    for (const [id, marker] of markers) {
+    for (const [id, entry] of markers) {
       if (wanted.has(id)) continue;
-      marker.remove();
+      entry.marker.remove();
       markers.delete(id);
     }
 
@@ -261,19 +269,19 @@ export function TripMapCanvas({
           : interpolate(labelsRef.current.marker, { index: stop.index, title: stop.title });
       const existing = markers.get(stop.id);
       if (existing) {
-        existing.getElement().setAttribute("aria-label", label);
-        existing.setLngLat([stop.lon, stop.lat]);
+        existing.button.setAttribute("aria-label", label);
+        existing.marker.setLngLat([stop.lon, stop.lat]);
         continue;
       }
-      const element = markerElement(stop, label);
-      element.addEventListener("click", (event) => {
+      const [element, button] = markerElement(stop, label);
+      button.addEventListener("click", (event) => {
         event.stopPropagation();
         onSelectRef.current(stop.id);
       });
-      markers.set(
-        stop.id,
-        new Marker({ element }).setLngLat([stop.lon, stop.lat]).addTo(map)
-      );
+      markers.set(stop.id, {
+        marker: new Marker({ element }).setLngLat([stop.lon, stop.lat]).addTo(map),
+        button,
+      });
     }
 
     drawLine(map, stops);
@@ -296,12 +304,14 @@ export function TripMapCanvas({
 
   // ── The selection: the marker grows, nothing else moves ───────────────────
   useEffect(() => {
-    for (const [id, marker] of markersRef.current) {
-      const element = marker.getElement();
-      const selected = id === selectedStopId;
-      element.dataset.selected = selected ? "true" : "false";
-      if (selected) element.setAttribute("aria-current", "true");
-      else element.removeAttribute("aria-current");
+    // The pins are read back from the DOM rather than from `markersRef`: the
+    // markers are the map's, and this effect only restyles what is on screen.
+    const pins = containerRef.current?.querySelectorAll<HTMLElement>("[data-map-stop]") ?? [];
+    for (const pin of pins) {
+      const selected = pin.dataset.mapStop === selectedStopId;
+      pin.dataset.selected = selected ? "true" : "false";
+      if (selected) pin.setAttribute("aria-current", "true");
+      else pin.removeAttribute("aria-current");
     }
   }, [selectedStopId, stops]);
 
