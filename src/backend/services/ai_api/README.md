@@ -135,4 +135,20 @@ sent as `{"error": "Chat stream failed", "error_code": "INTERNAL"}`.
 uv run pytest      # FakeProvider + httpx.MockTransport: no network, no key
 ```
 
+### Smoke session (real model, no AWS)
+
+```bash
+just planner-smoke city=budapest lang=es          # or lang=en; flags="--quiet --no-photos --days 3"
+uv run python tests/manual/planner_smoke.py --city budapest --lang en
+```
+
+`tests/manual/planner_smoke.py` drives `PlanTrip` the way the page does — opening message, dates,
+a neighbourhood, a hotel, the alternatives of one slot, a restaurant request, a question — with the
+NVIDIA model (`--model`, default `nvidia/nemotron-3-super-120b-a12b`), `testing.KeywordRetriever`
+over the city's committed `tools/city_corpus/data/<city>/documents.jsonl`, the real Commons photo
+lookup and the real Open-Meteo forecast. It prints each turn's events and a summary (activities per
+day, photo source per card, duplicate ids or titles, prices that slipped into a card, seconds per
+turn) and exits 1 on an unpictured activity or a price, 2 when the provider fails. Needs
+`NVIDIA_API_KEY` in `.env`; about a minute. pytest never collects `tests/manual`.
+
 For agents: [`AGENTS.md`](AGENTS.md).

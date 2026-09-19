@@ -22,5 +22,6 @@ packages = ["ai_api"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-addopts = "--import-mode=importlib"
+# tests/manual holds scripts run by hand against real services, never collected.
+addopts = "--import-mode=importlib --ignore=tests/manual"
 testpaths = ["tests"]

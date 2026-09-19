@@ -64,6 +64,11 @@ corpus city="budapest":
 index city="budapest" *flags="":
     cd {{ai}} && uv run python -m ai_api.indexing ../../tools/city_corpus/data/{{city}}/documents.jsonl {{flags}}
 
+# Planner session against the real NVIDIA model over a city's committed corpus (no AWS):
+# event log + photo tally; exit 1 on an unpictured activity or a price. Needs NVIDIA_API_KEY.
+planner-smoke city="budapest" lang="es" *flags="":
+    cd {{ai}} && uv run python tests/manual/planner_smoke.py --city {{city}} --lang {{lang}} {{flags}}
+
 # ── Quality ──────────────────────────────────────────────────────────────────
 
 # Lint backend (ruff, incl. scripts/) and frontend (eslint)

@@ -24,7 +24,7 @@ openapi.py      puts the planner's stream models into the OpenAPI document (no r
 main.py         lifespan builds the provider and the retriever once (providers.build_*) and closes them
 indexing.py     CLI that fills the vector index from a corpus JSONL (just index); never runs in a request
 prompts.py      every prompt string (system prompt, RAG context template, format_context)
-testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever + settings_for_tests()
+testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, KeywordRetriever (tf-idf over a corpus file) + settings_for_tests()
 ```
 
 - Routes live under `/api/v1/ai/*` so a proxy can route by prefix. Keep it that way.
@@ -90,6 +90,13 @@ testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever + s
 uv run uvicorn ai_api.main:app --reload --port 8001
 uv run pytest        # no network, no key: fakes for providers, embedder, retriever and boto3 clients
 just index city=budapest [flags=--dry-run]   # fills the S3 Vectors index; needs just aws-login
+just planner-smoke city=budapest lang=es     # real model + KeywordRetriever over the corpus, photo tally; NVIDIA_API_KEY, no AWS
+```
+
+Run the smoke session (README "Smoke session") after any change to the planner's prompts, cards or
+photos, and paste its summary in the PR: the unit tests script the model, only this exercises it.
+
+```bash
 ```
 
 Env: `.env.example` (`LLM_PROVIDER`, `NVIDIA_API_KEY` or `BEDROCK_*`, `CORE_API_URL`,

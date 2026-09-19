@@ -3,7 +3,9 @@ tests (and this service's own) can run without a network or an API key."""
 
 import hashlib
 import math
+import re
 import uuid
+from collections import Counter
 from collections.abc import AsyncIterator, Sequence
 from pathlib import Path
 
@@ -175,6 +177,63 @@ class FakeRetriever:
         self.fetches.append(list(ids))
         if self.fail_with is not None:
             raise self.fail_with
+        wanted = set(ids)
+        return [d for d in self.documents if d.id in wanted]
+
+
+WORDS = re.compile(r"[^\W\d_]+")
+"""Runs of letters in any script; digits and underscores are not words."""
+
+MIN_QUERY_WORD = 3
+"""Shorter query words (articles, prepositions) carry no signal."""
+
+
+class KeywordRetriever:
+    """A retriever over a corpus file with no embeddings: term-frequency
+    scoring (tf-idf) on each document's content, filters honoured like the
+    store does. Enough to drive the planner's prompts against a whole city
+    without AWS, which is what the smoke session (`tests/manual/`) needs; the
+    order of equally scored documents is the corpus's own, so ordering
+    pictured candidates first stays the caller's job.
+    """
+
+    def __init__(self, documents: Sequence[Document]) -> None:
+        self.documents = list(documents)
+        self._terms = [
+            Counter(WORDS.findall(d.content.lower())) for d in self.documents
+        ]
+        frequency: Counter[str] = Counter()
+        for terms in self._terms:
+            frequency.update(terms.keys())
+        total = len(self.documents)
+        self._idf = {w: math.log(1 + total / (1 + n)) for w, n in frequency.items()}
+        self.searches: list[tuple[str, int, RetrievalFilters | None]] = []
+
+    async def search(
+        self,
+        query: str,
+        *,
+        limit: int = 5,
+        filters: RetrievalFilters | None = None,
+    ) -> list[Document]:
+        self.searches.append((query, limit, filters))
+        words = [w for w in WORDS.findall(query.lower()) if len(w) >= MIN_QUERY_WORD]
+        scored: list[tuple[float, int]] = []
+        for index, (document, terms) in enumerate(
+            zip(self.documents, self._terms, strict=True)
+        ):
+            if filters is not None and not matches(document, filters):
+                continue
+            score = sum(
+                self._idf.get(w, 0.0) * (1 + math.log(terms[w]))
+                for w in words
+                if w in terms
+            )
+            scored.append((score, index))
+        scored.sort(key=lambda item: (-item[0], item[1]))
+        return [self.documents[index] for _, index in scored[:limit]]
+
+    async def fetch(self, ids: Sequence[str]) -> list[Document]:
         wanted = set(ids)
         return [d for d in self.documents if d.id in wanted]
 
