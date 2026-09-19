@@ -48,7 +48,7 @@ tests/                   fixtures only; never hit the network
 - **A city is data**: `cities/<slug>.toml`, never a Python literal; start it with `just corpus-discover`
   and resolve every `# review` line. Nothing city-specific belongs in the source modules.
 - **Regenerate and commit `data/`** when parsing changes, and paste the manifest counts in the PR.
-- **The readiness gate is the definition of done for a corpus**: `just corpus-report city=<slug>`
+- **The readiness gate is the definition of done for a corpus**: `just corpus-report <slug>`
   must pass before `just index`; commit `report.md` and `report.json` with the corpus. Change a
   threshold only in `config/readiness.py`, with the reason in the PR.
 - Full ruff rule set and pyright apply here (unlike `tools/scraper`); `logging`, never `print`.

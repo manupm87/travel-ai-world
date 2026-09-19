@@ -553,7 +553,7 @@ def render(found: Discovery) -> str:
     lines = [
         f"# Draft for {found.name} (Wikidata {found.qid}), written by",
         "# `python -m city_corpus discover`. Resolve every `# review` line, then rename",
-        f"# this file to cities/{found.slug}.toml and run `just corpus city={found.slug}`.",
+        f"# this file to cities/{found.slug}.toml and run `just corpus {found.slug}`.",
     ]
     for message in found.notes:
         lines.append(f"# review: {message}")

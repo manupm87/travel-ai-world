@@ -1,5 +1,5 @@
 # Budapest: the reference city. Every field is read by city_corpus/config/cities.py;
-# unknown keys stop the build. Start a new city with `just corpus-discover name="..."`.
+# unknown keys stop the build. Start a new city with `just corpus-discover "..."`.
 slug = "budapest"
 name = "Budapest"
 aliases = ["budapest"]

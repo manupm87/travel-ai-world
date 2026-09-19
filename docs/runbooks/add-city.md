@@ -17,7 +17,7 @@ from an up-to-date `main`. The slug is the lowercase ASCII name (`bologna`, `sao
 ## 2. Draft the configuration
 
 ```bash
-just corpus-discover name="Bologna"
+just corpus-discover "Bologna"
 ```
 
 Writes `src/backend/tools/city_corpus/cities/bologna.draft.toml` in about twenty seconds and prints
@@ -43,8 +43,8 @@ guide name missing from `districts`, a slug that differs from the file name.
 ## 3. Build and pass the readiness gate
 
 ```bash
-just corpus city=<slug>            # build, then the readiness report, then the cities manifest
-just corpus-report city=<slug>     # the report alone; flags="--no-gate" prints without failing
+just corpus <slug>            # build, then the readiness report, then the cities manifest
+just corpus-report <slug>     # the report alone; add --no-gate to print without failing
 ```
 
 The build fetches serially, politely (User-Agent, `maxlag`, a five-second pause between Overpass
@@ -88,8 +88,8 @@ after adding it; the tours become documents and the automatic rule moves tour-li
 ## 5. Smoke the planner
 
 ```bash
-just planner-smoke city=<slug> lang=es
-just planner-smoke city=<slug> lang=en
+just planner-smoke <slug> es
+just planner-smoke <slug> en
 ```
 
 Needs `NVIDIA_API_KEY` in `src/backend/services/ai_api/.env`; no AWS; about a minute each. The
@@ -118,8 +118,8 @@ if any, both manifest copies, the report's Readiness table, both smoke summaries
 
 ```bash
 just aws-login
-just index city=<slug> flags=--dry-run   # parse and measure only, no AWS call
-just index city=<slug>                   # embed, upsert by key, prune that city's stale vectors
+just index <slug> --dry-run   # parse and measure only, no AWS call
+just index <slug>                   # embed, upsert by key, prune that city's stale vectors
 ```
 
 One S3 Vectors index holds every city. A run reads one city's file (a mixed file is refused),
@@ -143,7 +143,7 @@ own. Then `/plan/` plans "4 días en <city> desde Madrid" with the new city's ca
 Delete `cities/<slug>.toml` and `data/<slug>/`, run `just corpus-manifest` and commit (the city
 leaves the manifest and, after a deploy, the planner). To empty its vectors, index the city once
 more with a file holding only the documents to keep; an empty file is refused, so for a full removal
-run `just index city=<slug> flags=--dry-run` to see the count, then delete the city's keys by hand
+run `just index <slug> --dry-run` to see the count, then delete the city's keys by hand
 with the AWS CLI (`aws s3vectors list-vectors --return-metadata`, keep the keys whose `city` is the
 slug, `delete-vectors`). `flags=--no-prune`
 keeps stale vectors for a rehearsal.

@@ -43,8 +43,8 @@ index and embeds the question with Titan on Bedrock, so it needs an AWS session.
 
 ```bash
 just aws-login                        # AWS_PROFILE in the environment, as for Bedrock
-just index city=budapest flags=--dry-run   # optional: parse and measure the corpus, no AWS
-just index city=budapest              # only when the corpus changed: reloads the shared index
+just index budapest --dry-run   # optional: parse and measure the corpus, no AWS
+just index budapest              # only when the corpus changed: reloads the shared index
 ```
 
 `just index` writes to the **one index the deployment also reads**: run it when the committed corpus

@@ -74,7 +74,7 @@ corpus-report city="budapest" *flags="":
 
 # Draft the configuration of a new city ({{corpus}}/cities/<slug>.draft.toml) from Wikidata,
 # Wikivoyage, Wikipedia, OpenStreetMap and Open-Meteo; resolve its `# review` lines, rename it
-# to <slug>.toml and run `just corpus city=<slug>`.
+# to <slug>.toml and run `just corpus <slug>`.
 corpus-discover name:
     cd {{corpus}} && uv run python -m city_corpus discover "{{name}}"
 

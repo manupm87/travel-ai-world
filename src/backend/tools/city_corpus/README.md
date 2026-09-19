@@ -63,8 +63,8 @@ manifest reports documents per category and what each one skipped.
 
 ```bash
 just corpus                      # from the repo root (city="budapest"): build, then the readiness report
-just corpus-report city=budapest # only the report (flags="--no-gate" to print without failing)
-just corpus-discover name="..."  # draft cities/<slug>.draft.toml for a new city
+just corpus-report budapest # only the report (`--no-gate` prints without failing)
+just corpus-discover "..."  # draft cities/<slug>.draft.toml for a new city
 # or, from this directory:
 uv run python -m city_corpus build budapest \
   [--sources wikivoyage,wikipedia,openstreetmap,wikidata,climate,tours] [--offline] [-v]
@@ -197,7 +197,7 @@ writes it from scratch. The whole sequence (issue, draft, gate, tours, smoke, PR
 [add-city runbook](../../../../docs/runbooks/add-city.md) (Claude Code: `/add-city <name>`); what the
 steps here do:
 
-1. `just corpus-discover name="Bologna"` (or `uv run python -m city_corpus discover Bologna` here)
+1. `just corpus-discover "Bologna"` (or `uv run python -m city_corpus discover Bologna` here)
    writes `cities/bologna.draft.toml` from open sources and prints what it could not decide:
    * **Wikidata**: the city item (the first search hit that is located and in a country; a `# review`
      when its class is not a known city class), centre (P625), districts (P150, English labels), OSM
@@ -225,7 +225,7 @@ steps here do:
    name that is not in `districts`, or a slug/file-name mismatch stop the build with the file and key.
 3. For a new Wikivoyage language, add its section names to `SECTION_CATEGORIES` and its listing
    template names to `LISTING_TYPES` in `sources/wikivoyage.py`.
-4. `just corpus city="<slug>"`: it builds, runs the readiness report and rewrites the cities
+4. `just corpus <slug>`: it builds, runs the readiness report and rewrites the cities
    manifest (with its `ai_api` copy). Iterate on the configuration until the gate passes, then
    commit `cities/<slug>.toml`, `data/<slug>/` (documents, manifest, report), `data/cities.json` and
    `src/backend/services/ai_api/ai_api/data/cities.json`. Optional curated tours go in

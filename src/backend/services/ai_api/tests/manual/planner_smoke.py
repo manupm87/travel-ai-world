@@ -1,7 +1,7 @@
 """A planner session against a real model, no AWS (TRA-169).
 
     uv run python tests/manual/planner_smoke.py --city budapest --lang es
-    just planner-smoke city=budapest lang=en
+    just planner-smoke budapest en
 
 Run by path, not as a module: an installed distribution ships a top-level
 `tests` package that would shadow this folder under `python -m`.

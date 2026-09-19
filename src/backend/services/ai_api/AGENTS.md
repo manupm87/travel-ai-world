@@ -51,7 +51,7 @@ testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, Ke
   `extra` rather than a new key. Filterable keys can be added freely. Several filter conditions go
   inside `$and` (two keys side by side are an `Invalid filter`).
 - **One index, many cities; a run touches one.** A corpus file is one city (the command refuses a
-  mixed file) and the prune step deletes only that city's stale vectors, so `just index city=bologna`
+  mixed file) and the prune step deletes only that city's stale vectors, so `just index bologna`
   leaves Budapest as it was. Vectors without a `city` are never pruned (they are logged).
 - **The cities come from the manifest, not from a variable.** `data/cities.json` (written by
   `city_corpus`, copied by `just corpus-manifest`, packaged next to `airports.json`) is read once in
@@ -107,8 +107,8 @@ testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, Ke
 ```bash
 uv run uvicorn ai_api.main:app --reload --port 8001
 uv run pytest        # no network, no key: fakes for providers, embedder, retriever and boto3 clients
-just index city=budapest [flags=--dry-run]   # fills the S3 Vectors index; needs just aws-login
-just planner-smoke city=budapest lang=es     # real model + KeywordRetriever over the corpus, photo tally; NVIDIA_API_KEY, no AWS
+just index budapest [--dry-run]   # fills the S3 Vectors index; needs just aws-login
+just planner-smoke budapest es     # real model + KeywordRetriever over the corpus, photo tally; NVIDIA_API_KEY, no AWS
 ```
 
 Run the smoke session (README "Smoke session") after any change to the planner's prompts, cards or

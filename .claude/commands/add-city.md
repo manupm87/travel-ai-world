@@ -19,7 +19,7 @@ Steps:
 2. **Draft the configuration.**
 
    ```bash
-   just corpus-discover name="<City name>"
+   just corpus-discover "<City name>"
    ```
 
    It writes `src/backend/tools/city_corpus/cities/<slug>.draft.toml` from Wikidata (item, centre,
@@ -43,7 +43,7 @@ Steps:
 3. **Build and pass the gate.**
 
    ```bash
-   just corpus city=<slug>
+   just corpus <slug>
    ```
 
    Builds `data/<slug>/` (5–10 min cold: serial, polite requests to Wikimedia and Overpass, all
@@ -73,8 +73,8 @@ Steps:
 5. **Smoke the planner.** Needs `NVIDIA_API_KEY` in `src/backend/services/ai_api/.env`; no AWS.
 
    ```bash
-   just planner-smoke city=<slug> lang=es
-   just planner-smoke city=<slug> lang=en
+   just planner-smoke <slug> es
+   just planner-smoke <slug> en
    ```
 
    Each run (about a minute) drives a whole session over the new corpus with the real model and the
@@ -92,7 +92,7 @@ Steps:
    when CI is green (squash).
 
 7. **After the merge, hand over.** Tell Manuel the two things only he can do, in this order:
-   1. `just aws-login && just index city=<slug>` — embeds the corpus and upserts it into the shared
+   1. `just aws-login && just index <slug>` — embeds the corpus and upserts it into the shared
       S3 Vectors index; it prunes only that city's stale vectors, other cities are untouched.
       `flags=--dry-run` first parses and measures without touching AWS.
    2. A backend deploy: the cities manifest ships inside the `ai_api` image, so the planner offers

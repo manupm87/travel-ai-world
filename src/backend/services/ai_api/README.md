@@ -98,15 +98,15 @@ question is embedded, not the history. The same passages are what the recorded a
 
 ```bash
 just aws-login
-just index city=budapest                   # embeds, upserts by key, deletes what the file dropped
-just index city=budapest flags=--dry-run   # parse and measure only, no AWS
+just index budapest                   # embeds, upserts by key, deletes what the file dropped
+just index budapest --dry-run   # parse and measure only, no AWS
 ```
 
 `python -m ai_api.indexing` reads the JSONL with its own model of the corpus contract (it never
 imports `city_corpus`), stores each document under `uuid5(doc_id)` — ASCII and stable, so a second
 run overwrites instead of duplicating — and, after a complete run, deletes the keys of that city
 the file no longer has. One index holds every city: a file is one city (a mixed file is refused)
-and a run never touches another city's vectors, so `just index city=bologna` leaves Budapest as it
+and a run never touches another city's vectors, so `just index bologna` leaves Budapest as it
 was; vectors with no `city` metadata are logged, never pruned. The metadata is split as the index requires: filterable `city`, `category`,
 `district`, `kind`, `lang`, `source`, `price_tier`, `lat`, `lon`, `tour_type`, `price_model`;
 non-filterable `text`, `doc_id`, `name`, `url`, `source_url`, `heading_path` and `extra`, a JSON
@@ -141,7 +141,7 @@ uv run pytest      # FakeProvider + httpx.MockTransport: no network, no key
 ### Smoke session (real model, no AWS)
 
 ```bash
-just planner-smoke city=budapest lang=es          # or lang=en; flags="--quiet --no-photos --days 3"
+just planner-smoke budapest es          # or `en`; then flags such as --quiet --no-photos --days 3
 uv run python tests/manual/planner_smoke.py --city budapest --lang en
 ```
 
