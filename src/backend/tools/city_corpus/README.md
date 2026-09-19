@@ -61,10 +61,12 @@ manifest reports documents per category and what each one skipped.
 ## Run
 
 ```bash
-just corpus                      # from the repo root (city="budapest")
+just corpus                      # from the repo root (city="budapest"): build, then the readiness report
+just corpus-report city=budapest # only the report (flags="--no-gate" to print without failing)
 # or, from this directory:
 uv run python -m city_corpus build budapest \
   [--sources wikivoyage,wikipedia,openstreetmap,wikidata,climate,tours] [--offline] [-v]
+uv run python -m city_corpus report budapest [--no-gate] [--data-dir DIR]
 ```
 
 Every API response is cached in `.cache/` (ignored by git). A rebuild with a warm cache makes no
@@ -114,6 +116,33 @@ The build validates before writing and fails on: duplicate or empty `doc_id`, `t
 characters, wrong `city`, unknown `category`, half coordinates or coordinates outside the bbox, or a
 `license` that does not match the `source`.
 
+### Readiness report
+
+`report <slug>` reads `documents.jsonl` and writes `data/<slug>/report.md` (committed, for people)
+and `report.json` (the same numbers for tooling): documents per category and source, listings vs
+prose, places per category (a *place* is a document with a name; *located* when it has coordinates,
+which is what becomes a planner card; *pictured* when a located place has an `image_url`), districts
+with their located places and the ones under 10, `eat` and `sleep` by price tier, the twelve monthly
+climate normals, and a few fixed smoke queries per category ("thermal baths", "ruin bar", "boutique
+hotel", "free walking tour", ...) answered by a keyword scorer with the top three names, so a reader
+sees at a glance whether the corpus answers.
+
+The report ends with the **readiness gate**, the thresholds in `city_corpus/config/readiness.py`
+(one place; change them there with the reason in the PR):
+
+| Check | Threshold |
+|---|---|
+| Located `see` + `history` + `do` places | ≥ 150 |
+| Located `eat` places | ≥ 100 |
+| `sleep` documents / located `sleep` places | ≥ 20 / ≥ 10 |
+| Districts | ≥ 5 |
+| Pictured share of located `see` + `history` places | ≥ 50 % |
+| Climate normals | = 12 |
+
+Below any threshold the command exits 1 and prints the failing lines; `--no-gate` writes the
+report and exits 0. A corpus that fails the gate is short of sources, not ready to index: add
+Wikipedia categories, widen the bbox or lower the district admin level, rebuild, report again.
+
 ## Tours file
 
 `curated/<city>/tours.toml` is the only hand-written input. One `[[tour]]` per public, scheduled tour:
@@ -157,7 +186,8 @@ duplicate ids). Only public tours with a published schedule belong here, not pri
    `ref` to guides.
 2. For a new Wikivoyage language, add its section names to `SECTION_CATEGORIES` and its listing
    template names to `LISTING_TYPES` in `sources/wikivoyage.py`.
-3. `just corpus city="<slug>"`, check `manifest.json`, commit `data/<slug>/`.
+3. `just corpus city="<slug>"`: it builds and then runs the readiness report. Iterate on the
+   configuration until the gate passes, then commit `data/<slug>/` (documents, manifest, report).
 
 ## Tests
 

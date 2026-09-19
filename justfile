@@ -53,10 +53,16 @@ scrape:
     cd {{scraper}} && uv run python main.py
 
 # Build a city's knowledge-base corpus (Wikivoyage, Wikipedia, OpenStreetMap, Wikidata, Open-Meteo
-# → data/<city>/documents.jsonl).
+# → data/<city>/documents.jsonl), then its readiness report (fails below the thresholds).
 # Downloads are cached in {{corpus}}/.cache; delete it to fetch fresh revisions.
 corpus city="budapest":
     cd {{corpus}} && uv run python -m city_corpus build {{city}}
+    cd {{corpus}} && uv run python -m city_corpus report {{city}}
+
+# Readiness report of a built corpus → data/<city>/report.md + report.json; exit 1 when a
+# threshold (config/readiness.py) is missed. Add flags="--no-gate" to only print.
+corpus-report city="budapest" *flags="":
+    cd {{corpus}} && uv run python -m city_corpus report {{city}} {{flags}}
 
 # Load a city's corpus into the S3 Vectors index (ADR 0014): embeds with Titan, upserts by key,
 # deletes what the file no longer has. Needs an AWS session (just aws-login). Extra flags go

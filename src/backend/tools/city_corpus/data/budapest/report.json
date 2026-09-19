@@ -1,0 +1,437 @@
+{
+  "city": "budapest",
+  "built_at": "2026-09-17T23:14:43Z",
+  "documents": 6330,
+  "listings": 5237,
+  "prose": 1093,
+  "sources": [
+    "curated",
+    "open-meteo",
+    "openstreetmap",
+    "wikipedia",
+    "wikivoyage"
+  ],
+  "categories": [
+    "climate",
+    "do",
+    "drink",
+    "eat",
+    "history",
+    "neighbourhood",
+    "practical",
+    "see",
+    "sleep",
+    "tour",
+    "transport"
+  ],
+  "by_category_source": {
+    "climate": {
+      "open-meteo": 12,
+      "wikivoyage": 2
+    },
+    "do": {
+      "openstreetmap": 60,
+      "wikivoyage": 478
+    },
+    "drink": {
+      "openstreetmap": 487,
+      "wikivoyage": 327
+    },
+    "eat": {
+      "openstreetmap": 2029,
+      "wikivoyage": 450
+    },
+    "history": {
+      "wikipedia": 628,
+      "wikivoyage": 39
+    },
+    "neighbourhood": {
+      "wikivoyage": 27
+    },
+    "practical": {
+      "wikivoyage": 118
+    },
+    "see": {
+      "openstreetmap": 315,
+      "wikipedia": 169,
+      "wikivoyage": 567
+    },
+    "sleep": {
+      "openstreetmap": 238,
+      "wikivoyage": 195
+    },
+    "tour": {
+      "curated": 12,
+      "openstreetmap": 1,
+      "wikivoyage": 11
+    },
+    "transport": {
+      "wikivoyage": 165
+    }
+  },
+  "named_by_category": {
+    "climate": 12,
+    "do": 505,
+    "drink": 807,
+    "eat": 2454,
+    "history": 632,
+    "practical": 90,
+    "see": 1033,
+    "sleep": 425,
+    "tour": 24,
+    "transport": 64
+  },
+  "located_by_category": {
+    "do": 450,
+    "drink": 806,
+    "eat": 2429,
+    "history": 569,
+    "practical": 63,
+    "see": 1000,
+    "sleep": 415,
+    "tour": 23,
+    "transport": 58
+  },
+  "pictured_by_category": {
+    "do": 143,
+    "drink": 26,
+    "eat": 54,
+    "history": 513,
+    "practical": 20,
+    "see": 676,
+    "sleep": 36,
+    "tour": 4,
+    "transport": 38
+  },
+  "districts": [
+    "Angyalföld",
+    "Aquincum",
+    "Belváros",
+    "Budavár",
+    "Csepel",
+    "East Pest",
+    "Erzsébetváros",
+    "Ferencváros",
+    "Hegyvidék",
+    "Józsefváros",
+    "Kőbánya",
+    "North Buda",
+    "North Pest",
+    "South Buda",
+    "South Pest",
+    "Terézváros",
+    "Városliget",
+    "Víziváros",
+    "Zugló",
+    "Óbuda"
+  ],
+  "places_by_district": {
+    "Angyalföld": 309,
+    "Aquincum": 214,
+    "Belváros": 793,
+    "Budavár": 257,
+    "Csepel": 134,
+    "East Pest": 236,
+    "Erzsébetváros": 417,
+    "Ferencváros": 344,
+    "Hegyvidék": 183,
+    "Józsefváros": 358,
+    "Kőbánya": 158,
+    "North Buda": 293,
+    "North Pest": 163,
+    "South Buda": 419,
+    "South Pest": 170,
+    "Terézváros": 396,
+    "Városliget": 197,
+    "Víziváros": 317,
+    "Zugló": 153,
+    "Óbuda": 281
+  },
+  "small_districts": [],
+  "price_tiers": {
+    "eat": {
+      "1": 116,
+      "2": 150,
+      "3": 112,
+      "untiered": 2101
+    },
+    "sleep": {
+      "1": 61,
+      "2": 108,
+      "3": 108,
+      "untiered": 156
+    }
+  },
+  "climate_months": [
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "06",
+    "07",
+    "08",
+    "09",
+    "10",
+    "11",
+    "12"
+  ],
+  "climate_missing": [],
+  "smoke": {
+    "see": {
+      "thermal baths": [
+        {
+          "name": "Spas in Budapest",
+          "district": null,
+          "score": 23.58
+        },
+        {
+          "name": "Király Baths",
+          "district": "North Buda",
+          "score": 23.5
+        },
+        {
+          "name": "Rudas Baths",
+          "district": "Víziváros",
+          "score": 23.3
+        }
+      ],
+      "museum": [
+        {
+          "name": "Museum of Hungarian Agriculture",
+          "district": "Városliget",
+          "score": 12.77
+        },
+        {
+          "name": "National Museum",
+          "district": "Józsefváros",
+          "score": 12.71
+        },
+        {
+          "name": "Zelnik István Southeast Asian Gold Museum",
+          "district": "Terézváros",
+          "score": 12.64
+        }
+      ],
+      "viewpoint": [
+        {
+          "name": "Erdélyi bástya",
+          "district": "Budavár",
+          "score": 10.69
+        },
+        {
+          "name": "Esztergomi bástya",
+          "district": "Budavár",
+          "score": 10.69
+        },
+        {
+          "name": "Kaán Károly-kilátó",
+          "district": "North Buda",
+          "score": 10.69
+        }
+      ]
+    },
+    "do": {
+      "market": [
+        {
+          "name": "Lehel Market Hall",
+          "district": "Angyalföld",
+          "score": 12.08
+        },
+        {
+          "name": "Nagykőrösi Street Flea Market",
+          "district": "South Pest",
+          "score": 11.95
+        },
+        {
+          "name": "Fény Street Market",
+          "district": "North Buda",
+          "score": 11.79
+        }
+      ]
+    },
+    "eat": {
+      "traditional restaurant": [
+        {
+          "name": "Náncsi Néni restaurant",
+          "district": "North Buda",
+          "score": 22.89
+        },
+        {
+          "name": "Fakanál Restaurant",
+          "district": "Ferencváros",
+          "score": 22.64
+        },
+        {
+          "name": "Alabárdos Restaurant",
+          "district": "Budavár",
+          "score": 22.48
+        }
+      ],
+      "street food": [
+        {
+          "name": "Carpathian Street Food",
+          "district": "Zugló",
+          "score": 23.4
+        },
+        {
+          "name": "Shrimpy Street Food Bar",
+          "district": "South Pest",
+          "score": 23.22
+        },
+        {
+          "name": "Tökmag Vegan Street Food",
+          "district": "Angyalföld",
+          "score": 23.22
+        }
+      ]
+    },
+    "drink": {
+      "ruin bar": [
+        {
+          "name": "Szimpla Kert/Mozi",
+          "district": "Erzsébetváros",
+          "score": 21.39
+        },
+        {
+          "name": "Action Bar",
+          "district": "Belváros",
+          "score": 11.95
+        },
+        {
+          "name": "Instant Bar/Club",
+          "district": "Terézváros",
+          "score": 11.95
+        }
+      ],
+      "cocktail bar": [
+        {
+          "name": "Club C Cocktail Bar",
+          "district": "Ferencváros",
+          "score": 23.22
+        },
+        {
+          "name": "Action Bar",
+          "district": "Belváros",
+          "score": 11.95
+        },
+        {
+          "name": "Instant Bar/Club",
+          "district": "Terézváros",
+          "score": 11.95
+        }
+      ]
+    },
+    "sleep": {
+      "boutique hotel": [
+        {
+          "name": "Boutique Hotel Budapest",
+          "district": "Belváros",
+          "score": 23.4
+        },
+        {
+          "name": "Carat Boutique Hotel",
+          "district": "Terézváros",
+          "score": 23.4
+        },
+        {
+          "name": "East West Boutique Hotel",
+          "district": "Józsefváros",
+          "score": 23.4
+        }
+      ],
+      "hostel": [
+        {
+          "name": "2B Hostel & Rooms",
+          "district": "Belváros",
+          "score": 11.79
+        },
+        {
+          "name": "Ace Hostel",
+          "district": "Belváros",
+          "score": 11.79
+        },
+        {
+          "name": "Andante Hostel",
+          "district": "Erzsébetváros",
+          "score": 11.79
+        }
+      ]
+    },
+    "tour": {
+      "free walking tour": [
+        {
+          "name": "Free Budapest Walking Tour By Locals",
+          "district": "Terézváros",
+          "score": 36.09
+        },
+        {
+          "name": "Budapest Downtown Free Walking Tour",
+          "district": "Belváros",
+          "score": 35.84
+        },
+        {
+          "name": "Free Budapest Art Nouveau Walking Tour",
+          "district": "Belváros",
+          "score": 35.82
+        }
+      ]
+    }
+  },
+  "readiness": {
+    "passed": true,
+    "checks": [
+      {
+        "name": "Located see + history + do places",
+        "threshold": "≥ 150",
+        "measured": "2019",
+        "passed": true
+      },
+      {
+        "name": "Located eat places",
+        "threshold": "≥ 100",
+        "measured": "2429",
+        "passed": true
+      },
+      {
+        "name": "Sleep documents",
+        "threshold": "≥ 20",
+        "measured": "433",
+        "passed": true
+      },
+      {
+        "name": "Located sleep places",
+        "threshold": "≥ 10",
+        "measured": "415",
+        "passed": true
+      },
+      {
+        "name": "Districts",
+        "threshold": "≥ 5",
+        "measured": "20",
+        "passed": true
+      },
+      {
+        "name": "Pictured share of located see + history places",
+        "threshold": "≥ 50%",
+        "measured": "76%",
+        "passed": true
+      },
+      {
+        "name": "Climate normals",
+        "threshold": "= 12",
+        "measured": "12",
+        "passed": true
+      }
+    ],
+    "thresholds": {
+      "located_sights": 150,
+      "located_eat": 100,
+      "sleep": 20,
+      "located_sleep": 10,
+      "districts": 5,
+      "pictured_sights_share": 0.5,
+      "climate_normals": 12
+    }
+  }
+}

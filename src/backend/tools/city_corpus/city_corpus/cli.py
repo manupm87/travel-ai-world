@@ -1,4 +1,5 @@
-"""`python -m city_corpus build <city> [--sources ...] [--offline]`."""
+"""`python -m city_corpus build <city> [--sources ...] [--offline]`
+and `python -m city_corpus report <slug> [--no-gate]`."""
 
 import argparse
 import logging
@@ -8,6 +9,7 @@ from pathlib import Path
 from city_corpus.build import ALL_STAGES, CorpusValidationError, Stage, collect, write
 from city_corpus.config.cities import CITIES
 from city_corpus.http import ApiClient, CacheMiss
+from city_corpus.report import ReportError, write_report
 from city_corpus.sources.tours import TourDataError
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
@@ -41,12 +43,50 @@ def main(argv: list[str] | None = None) -> int:
     build.add_argument("--cache-dir", type=Path, default=DEFAULT_CACHE)
     build.add_argument("--out-dir", type=Path, default=None)
     build.add_argument("-v", "--verbose", action="store_true")
+    report = commands.add_parser(
+        "report", help="readiness report over data/<slug>/documents.jsonl"
+    )
+    report.add_argument("city", help="slug of a folder under the data directory")
+    report.add_argument(
+        "--no-gate",
+        action="store_true",
+        help="write the report and exit 0 even below the thresholds",
+    )
+    report.add_argument("--data-dir", type=Path, default=DEFAULT_DATA)
+    report.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args(argv)
 
     logging.basicConfig(
         level=logging.INFO if args.verbose else logging.WARNING,
         format="%(levelname)s %(name)s: %(message)s",
     )
+    if args.command == "report":
+        return _report(args.city, args.data_dir, gate=not args.no_gate)
+    return _build(args)
+
+
+def _report(slug: str, data_dir: Path, *, gate: bool) -> int:
+    try:
+        summary, failures = write_report(data_dir, slug)
+    except ReportError as exc:
+        logger.error("%s", exc)
+        return 1
+    sys.stdout.write(
+        f"{summary.documents} documents, {summary.located_sights} located sights, "
+        f"{summary.located_eat} located eat, {summary.sleep} sleep, "
+        f"{len(summary.districts)} districts, "
+        f"{summary.pictured_sights_share:.0%} pictured sights → "
+        f"{data_dir / slug / 'report.md'}\n"
+    )
+    for line in failures:
+        sys.stdout.write(f"FAIL {line}\n")
+    if failures and gate:
+        sys.stdout.write("The corpus is not ready to index (--no-gate to ignore).\n")
+        return 1
+    return 0
+
+
+def _build(args: argparse.Namespace) -> int:
     city = CITIES[args.city]
     out_dir = args.out_dir or DEFAULT_DATA / city.slug
     try:
