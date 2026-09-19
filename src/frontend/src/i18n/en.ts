@@ -132,8 +132,8 @@ const en: Translations = {
     chosen: "Chosen: {titles}",
     suggestions: [
       "Make it cheaper",
-      "Add a thermal bath day",
-      "Hungarian restaurants nearby",
+      "Add a spa afternoon",
+      "Local restaurants nearby",
     ],
     cityStarter: "Plan a trip to {city}",
     quickReplies: {
