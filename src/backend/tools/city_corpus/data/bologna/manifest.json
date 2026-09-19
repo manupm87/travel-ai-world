@@ -1,10 +1,11 @@
 {
   "city": "bologna",
-  "built_at": "2026-09-19T18:45:39Z",
-  "documents": 1593,
-  "listings": 1120,
-  "listings_with_coordinates": 1066,
+  "built_at": "2026-09-19T19:15:20Z",
+  "documents": 1597,
+  "listings": 1124,
+  "listings_with_coordinates": 1070,
   "by_source": {
+    "curated": 4,
     "open-meteo": 12,
     "openstreetmap": 954,
     "wikipedia": 384,
@@ -12,12 +13,12 @@
   },
   "by_lang": {
     "eml": 1,
-    "en": 1528,
+    "en": 1532,
     "es": 59,
     "it": 5
   },
   "by_kind": {
-    "listing": 1120,
+    "listing": 1124,
     "prose": 473
   },
   "by_category": {
@@ -30,6 +31,7 @@
     "practical": 5,
     "see": 325,
     "sleep": 118,
+    "tour": 4,
     "transport": 26
   },
   "by_district": {
@@ -38,7 +40,7 @@
     "Porto-Saragozza": 368,
     "Quartiere Navile": 128,
     "San Donato-San Vitale": 126,
-    "Santo Stefano": 657,
+    "Santo Stefano": 661,
     "Savena": 51
   },
   "districts_missing": [],
@@ -101,7 +103,7 @@
       }
     },
     "openstreetmap": {
-      "as_of": "2026-09-19T18:38:51Z",
+      "as_of": "2026-09-19T19:13:34Z",
       "district_boundaries": 6,
       "documents_linked_to_wikidata": 30,
       "elements": 2194,
@@ -138,7 +140,7 @@
     },
     "districts_assigned_by_boundary": 480,
     "tours": {
-      "curated": 0,
+      "curated": 4,
       "reclassified_as_tour": 0,
       "reclassify_entries_missing": 0
     }

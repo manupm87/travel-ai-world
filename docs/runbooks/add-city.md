@@ -77,13 +77,29 @@ for one city. If a threshold is wrong for every city, change it in `readiness.py
 the PR. Write down every deviation from this page as you go: it belongs in the PR, and in this
 runbook when the runbook was wrong.
 
-## 4. Curated tours (optional)
+## 4. Curated tours (required)
 
-`curated/<slug>/tours.toml`, following Budapest's file and the README's "Tours file": public,
-scheduled tours read on each operator's own site (never resellers or aggregators), summaries in our
-own words, `checked` set to the day the facts were read, meeting points inside the bbox. Rebuild
-after adding it; the tours become documents and the automatic rule moves tour-like listings to the
-`tour` category.
+Tours are part of the readiness gate (≥ 3 curated tours, ≥ 3 `tour` documents): no open source
+lists them, so every city ships `curated/<slug>/tours.toml`, following Budapest's file and the
+README's "Tours file". Public, scheduled tours only, read on each operator's own site.
+
+How to find them: search "<city> free walking tour", "free tour <city>", "<city> food tour",
+"<city> bike tour" and the city's signature walk; for each candidate open the **operator's own
+website** and read the tour page there. Discard marketplaces and resellers (GuruWalk, Freetour.com,
+Civitatis, GetYourGuide, Viator, Tripadvisor, Airbnb Experiences, Musement, Tiqets; SANDEMANs or
+Walkative! when they resell local guides), operators whose own site publishes no start time, days
+or meeting point ("upon reservation" is not a schedule), and private or on-request tours. For each
+kept tour record the name as the operator writes it, operator and tour URLs, type, price model,
+start times, days, duration, languages, meeting point and address, whether booking is required
+and `checked` = the day the facts were read; the summary is in our own words, never copied.
+Meeting point coordinates come from Nominatim for the landmark the operator names, inside the
+bbox. The file's header comment lists what was left out and why, so the next refresh does not
+re-research it. Aim for every tip-based walking tour operator with its own site plus the notable
+paid ones (food, bike, the signature walk); fewer than three genuine operators is a finding for
+the PR, not a reason to list a reseller.
+
+Rebuild after adding it; the tours become documents, the automatic rule moves tour-like listings
+to the `tour` category, and the report's Tours section shows what landed.
 
 ## 5. Smoke the planner
 

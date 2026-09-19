@@ -73,6 +73,23 @@ Districts with a neighbourhood document: 20 of 20.
 | eat | 116 | 150 | 112 | 2101 |
 | sleep | 61 | 108 | 108 | 156 |
 
+## Tours
+
+24 tour documents: 12 curated (`curated/budapest/tours.toml`), 12 reclassified from other sources. By type: bike 1, boat 5, cave 4, other 2, walking 12.
+
+- Best of Budapest Free Walking Tour
+- Boat trip to Margaret Island
+- Buda & Castle District Free Walking Tour
+- Buda Castle: From Fisherman's Bastion to the Royal Palace
+- Budapest Downtown Free Walking Tour
+- Cruising and eating
+- Free Buda Castle Tour
+- Free Budapest Art Nouveau Walking Tour
+- Free Budapest Tour
+- Free Budapest Walking Tour By Locals
+- Free Communism Tour
+- Free Jewish District Tour
+
 ## Climate normals
 
 12 of 12 months present (missing: none).
@@ -157,5 +174,7 @@ Districts with a neighbourhood document: 20 of 20.
 | Districts with a neighbourhood document | ≥ 5 | 20 | pass |
 | Pictured share of located see + history places | ≥ 50% | 76% | pass |
 | Climate normals | = 12 | 12 | pass |
+| Curated tours | ≥ 3 | 12 | pass |
+| Tour documents | ≥ 3 | 24 | pass |
 
 The corpus passes the readiness gate.

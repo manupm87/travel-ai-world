@@ -65,17 +65,34 @@ Steps:
    - districts that do not read like neighbourhoods a traveller knows → a coarser level, or the
      Wikivoyage district pages as `district_guides`;
    - smoke queries answering with the wrong kind of place (hotels under "museum") → the category is
-     thin: sources, not thresholds.
+     thin: sources, not thresholds;
+   - short of curated tours or tour documents → step 4; the gate does not pass without them.
 
    A rebuild with a warm cache is byte-identical; `--offline` (as
    `uv run python -m city_corpus build <slug> --offline` from the tool folder) proves it. To refresh
    one source, delete `.cache/<host>/` for that host only. Write down every deviation from these
    steps: it goes in the PR and, if it was the runbook's fault, in this file.
 
-4. **Curated tours (optional).** `curated/<slug>/tours.toml`, following `curated/budapest/tours.toml`
-   and the README's "Tours file": facts read on each operator's own site (never GuruWalk,
-   Tripadvisor or other resellers), summaries in our own words, `checked` set to today, meeting
-   points inside the bbox. Rebuild after adding it.
+4. **Curated tours (required: the gate needs ≥ 3 curated tours).** `curated/<slug>/tours.toml`,
+   following `curated/budapest/tours.toml` and the README's "Tours file". How to find them:
+   - Search the web for "<city> free walking tour", "free tour <city>", "<city> food tour",
+     "<city> bike tour" and the city's signature walk (porticoes, castle, river). For every
+     candidate find the **operator's own website** and read the tour page there.
+   - Discard marketplaces and resellers, whatever they call themselves: GuruWalk, Freetour.com,
+     Civitatis, GetYourGuide, Viator, Tripadvisor, Airbnb Experiences, Musement, Tiqets, and
+     franchises that resell local guides (SANDEMANs, Walkative!) unless the franchise's own site
+     runs the tour. Discard operators whose own site publishes no start time, days or meeting
+     point ("upon reservation" is not a schedule), and private or on-request tours.
+   - For each kept tour record the name as the operator writes it, operator, operator URL, tour
+     URL, `tour_type`, `price_model`, `start_times`, `days`, `duration_minutes`, `languages`,
+     meeting point and address, `booking_required`, `checked` = today; write the `summary` in your
+     own words (≥ 40 characters, never copied). Meeting point coordinates come from Nominatim
+     (`https://nominatim.openstreetmap.org/search?q=<landmark>&format=json`, with a User-Agent),
+     inside the bbox. Keep the header comment: what was left out and why.
+   - Aim for every tip-based walking tour operator with its own site plus the notable paid ones
+     (food, bike, the signature walk). Fewer than three genuine operators is a finding for the
+     PR, not a reason to list a reseller.
+   Rebuild after adding it (`just corpus <slug>`); the report's Tours section lists what landed.
 
 5. **Smoke the planner.** Needs `NVIDIA_API_KEY` in `src/backend/services/ai_api/.env`; no AWS.
 

@@ -1,0 +1,132 @@
+# Bologna tours, maintained by hand (TRA-175). See ../../README.md, "Tours file".
+#
+# Every fact below was read on the operator's own website on the `checked` date;
+# summaries are our own words. Only public tours with a published schedule, meeting
+# point, duration and language are listed. Deliberately not here:
+#   * JM Walking Tour (jmwalkingtour.org) - tip-based, but its site publishes no start
+#     times or days; the schedule lives only behind its booking form.
+#   * EAT Bologna street food tour (Free Walking Tour Italia) - "every day upon
+#     reservation", no fixed start time, minimum two people.
+#   * Curious Appetite "La Grassa" and Taste Bologna - private slots or availability
+#     only through an external booking system; no published schedule.
+#   * Arte e Musei "Il portico e il santuario di San Luca" - single dated events, not
+#     a recurring tour; UNESCO Porticoes minibus tour (Bologna Welcome) - Saturdays,
+#     but the page gives no start time.
+#   * GuruWalk, Freetour.com, Civitatis, GetYourGuide, Viator, Tripadvisor listings -
+#     resellers; SANDEMANs Bologna - reseller of local guides.
+# Meeting point coordinates come from OpenStreetMap (Nominatim) for the landmark the
+# operator names, not from the operator.
+
+[[tour]]
+id = "free-walking-tour-bologna"
+name = "Free Walking Tour Bologna"
+operator = "Free Walking Tour Italia"
+operator_url = "https://freewalkingtouritalia.com/"
+url = "https://freewalkingtouritalia.com/free-walking-tour/free-walking-tour-bologna/"
+tour_type = "walking"
+price_model = "tip-based"
+summary = """
+Two-hour introduction to the historic centre on foot: the Neptune fountain and \
+Piazza Maggiore, the medieval towers, the porticoes and the university quarter, with \
+the guide explaining how the city grew and where to eat afterwards. Tips at the end, \
+the amount up to each participant."""
+meeting_point = "Piazza del Nettuno, under the Lampione dei Neonati (the Children's Lamp), next to the Neptune fountain"
+address = "Piazza del Nettuno 1/ab, 40124 Bologna"
+lat = 44.494446
+lon = 11.342640
+start_times = ["11:00"]
+days = "daily"
+duration_minutes = 120
+languages = ["English", "Spanish", "Italian"]
+booking_required = true
+checked = 2026-09-19
+notes = """
+The same tour is also promoted on freewalkingtourbologna.com (same operator, Same Same \
+Travels, Modena); the freewalkingtouritalia.com page carries the schedule and the \
+languages. Runs from 2017."""
+
+[[tour]]
+id = "bologna-welcome-city-centre"
+name = "Discover Bologna - City centre walking tour"
+operator = "Bologna Welcome"
+operator_url = "https://www.bolognawelcome.com/"
+url = "https://www.bolognawelcome.com/en/experiences/298939/Discover-Bologna---City-centre-walking-tour"
+tour_type = "walking"
+price_model = "paid"
+summary = """
+The tourist office's own guided walk through the centre: Piazza Maggiore, the \
+Basilica of San Petronio, the Archiginnasio, the Quadrilatero market streets and the \
+Two Towers, in Italian and English with one licensed guide. Two hours; adult ticket \
+18 EUR, reduced 15 EUR, free under 12."""
+meeting_point = "Bologna Welcome tourist information point on Piazza Maggiore (be there 10 minutes early)"
+address = "Piazza Maggiore 1/e, 40124 Bologna"
+lat = 44.494097
+lon = 11.343038
+start_times = ["10:30", "15:00"]
+days = "Friday to Sunday at 10:30 and 15:00 all year; Monday to Thursday by season (10:30 in spring, 09:30 in summer, 15:00 on Thursday afternoons)"
+duration_minutes = 120
+languages = ["Italian", "English"]
+booking_required = false
+checked = 2026-09-19
+notes = """
+The schedule is published per period (March-June, June-September, September-January, \
+January-February); the two times above are the year-round ones. Saturday tours in \
+French (11:00 or 10:00), German (15:30 or 16:30) and Spanish (15:30 or 16:30) are \
+listed on the same page. Bookable online; walk-ins report to the information point."""
+
+[[tour]]
+id = "bologna-welcome-bike-tour"
+name = "Bologna Bike Tour"
+operator = "Bologna Welcome"
+operator_url = "https://www.bolognawelcome.com/"
+url = "https://www.bolognawelcome.com/en/experiences/334775/Bologna-Bike-Tour"
+tour_type = "bike"
+price_model = "paid"
+summary = """
+Two hours of guided cycling through the centre and along the porticoes, with the \
+bike included for the tour and two more hours afterwards to ride on your own. \
+Departures every half hour from 09:00 to 15:30, confirmed with two full-price \
+participants; 60 EUR, less with your own bike."""
+meeting_point = "eXtraBO, the outdoor information point on Piazza del Nettuno"
+address = "Piazza del Nettuno 1/ab, 40124 Bologna"
+lat = 44.494446
+lon = 11.342640
+start_times = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30"]
+days = "daily"
+duration_minutes = 120
+languages = ["Italian", "English"]
+booking_required = true
+checked = 2026-09-19
+notes = "Cancellation free up to 48 hours before; the page lists reduced prices for card holders."
+
+[[tour]]
+id = "secret-food-tours-bologna"
+name = "Secret Food Tours: Bologna"
+operator = "Secret Food Tours"
+operator_url = "https://www.secretfoodtours.com/"
+url = "https://www.secretfoodtours.com/bologna/food-tours-bologna/"
+tour_type = "food"
+price_model = "paid"
+summary = """
+A three-and-a-half-hour eating walk through the Quadrilatero market district and the \
+university quarter: six or seven stops with fresh pasta, mortadella and other cured \
+meats, Parmigiano, balsamic vinegar and a sweet finish, in English for at most twelve \
+people. About 90 EUR per person."""
+meeting_point = "Via Zamboni 8c, in front of the Pokè Bowl Station (the guide carries an orange umbrella)"
+address = "Via Zamboni 8c, 40126 Bologna"
+lat = 44.495045
+lon = 11.347340
+start_times = ["10:30", "15:00"]
+days = "Monday to Saturday"
+duration_minutes = 210
+languages = ["English"]
+booking_required = true
+checked = 2026-09-19
+notes = """
+The operator also sells a shorter "Express Food Tour" (about 2 hours, four stops, \
+about 70 EUR) from the same area; its page publishes no separate schedule, so it is \
+not listed. Bookings only on the operator's site."""
+
+[reclassify]
+include = []
+exclude = []

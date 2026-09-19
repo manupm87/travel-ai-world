@@ -1,10 +1,11 @@
 {
   "city": "bologna",
-  "built_at": "2026-09-19T18:45:39Z",
-  "documents": 1593,
-  "listings": 1120,
+  "built_at": "2026-09-19T19:15:20Z",
+  "documents": 1597,
+  "listings": 1124,
   "prose": 473,
   "sources": [
+    "curated",
     "open-meteo",
     "openstreetmap",
     "wikipedia",
@@ -20,6 +21,7 @@
     "practical",
     "see",
     "sleep",
+    "tour",
     "transport"
   ],
   "by_category_source": {
@@ -58,6 +60,9 @@
       "openstreetmap": 94,
       "wikivoyage": 24
     },
+    "tour": {
+      "curated": 4
+    },
     "transport": {
       "wikipedia": 9,
       "wikivoyage": 17
@@ -73,6 +78,7 @@
     "practical": 1,
     "see": 308,
     "sleep": 115,
+    "tour": 4,
     "transport": 15
   },
   "located_by_category": {
@@ -83,6 +89,7 @@
     "neighbourhood": 6,
     "see": 284,
     "sleep": 95,
+    "tour": 4,
     "transport": 13
   },
   "pictured_by_category": {
@@ -107,7 +114,7 @@
     "Porto-Saragozza": 368,
     "Quartiere Navile": 128,
     "San Donato-San Vitale": 126,
-    "Santo Stefano": 657,
+    "Santo Stefano": 661,
     "Savena": 51
   },
   "small_districts": [],
@@ -148,6 +155,19 @@
     "12"
   ],
   "climate_missing": [],
+  "curated_tours": 4,
+  "reclassified_tours": 0,
+  "tours_by_type": {
+    "bike": 1,
+    "food": 1,
+    "walking": 2
+  },
+  "tour_names": [
+    "Bologna Bike Tour",
+    "Discover Bologna - City centre walking tour",
+    "Free Walking Tour Bologna",
+    "Secret Food Tours: Bologna"
+  ],
   "smoke": {
     "see": {
       "museum": [
@@ -315,7 +335,23 @@
       ]
     },
     "tour": {
-      "free walking tour": []
+      "free walking tour": [
+        {
+          "name": "Free Walking Tour Bologna",
+          "district": "Santo Stefano",
+          "score": 35.97
+        },
+        {
+          "name": "Discover Bologna - City centre walking tour",
+          "district": "Santo Stefano",
+          "score": 34.28
+        },
+        {
+          "name": "Bologna Bike Tour",
+          "district": "Santo Stefano",
+          "score": 22.64
+        }
+      ]
     }
   },
   "readiness": {
@@ -368,6 +404,18 @@
         "threshold": "= 12",
         "measured": "12",
         "passed": true
+      },
+      {
+        "name": "Curated tours",
+        "threshold": "≥ 3",
+        "measured": "4",
+        "passed": true
+      },
+      {
+        "name": "Tour documents",
+        "threshold": "≥ 3",
+        "measured": "4",
+        "passed": true
       }
     ],
     "thresholds": {
@@ -378,7 +426,9 @@
       "districts": 5,
       "described_districts": 5,
       "pictured_sights_share": 0.5,
-      "climate_normals": 12
+      "climate_normals": 12,
+      "curated_tours": 3,
+      "tour_documents": 3
     }
   }
 }

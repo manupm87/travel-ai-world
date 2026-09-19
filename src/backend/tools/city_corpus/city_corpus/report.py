@@ -24,9 +24,10 @@ from typing import Any
 from pydantic import ValidationError
 
 from city_corpus.config.readiness import DEFAULT_THRESHOLDS, Thresholds
-from city_corpus.models import Category, CorpusDocument, Kind
+from city_corpus.models import Category, CorpusDocument, Kind, Source
 
 SIGHT_CATEGORIES = (Category.SEE, Category.HISTORY, Category.DO)
+TOUR_NAMES_SHOWN = 12
 PICTURED_CATEGORIES = (Category.SEE, Category.HISTORY)
 TIERED_CATEGORIES = (Category.EAT, Category.SLEEP)
 PRICE_TIERS = (1, 2, 3)
@@ -94,6 +95,12 @@ class Summary:
     price_tiers: dict[str, dict[str, int]]
     climate_months: list[str]
     climate_missing: list[str]
+    # `tour` documents: from `curated/<slug>/tours.toml` (source `curated`), moved
+    # there by the reclassification rule (any other source), and by `tour_type`.
+    curated_tours: int
+    reclassified_tours: int
+    tours_by_type: dict[str, int]
+    tour_names: list[str]
     # category → query → hits
     smoke: dict[str, dict[str, list[SmokeHit]]] = field(default_factory=dict)
 
@@ -112,6 +119,10 @@ class Summary:
     @property
     def located_sleep(self) -> int:
         return self.located_by_category.get(Category.SLEEP.value, 0)
+
+    @property
+    def tour_documents(self) -> int:
+        return self.curated_tours + self.reclassified_tours
 
     @property
     def pictured_sights_share(self) -> float:
@@ -213,6 +224,10 @@ def summarise(
         }
     )
 
+    tours = [d for d in documents if d.category == Category.TOUR]
+    curated = sum(1 for d in tours if d.source == Source.CURATED)
+    tours_by_type: Counter[str] = Counter(d.tour_type or "unknown" for d in tours)
+
     return Summary(
         city=city,
         built_at=built_at,
@@ -235,6 +250,10 @@ def summarise(
         price_tiers=price_tiers,
         climate_months=months_present,
         climate_missing=[m for m in MONTHS if m not in months_present],
+        curated_tours=curated,
+        reclassified_tours=len(tours) - curated,
+        tours_by_type=dict(sorted(tours_by_type.items())),
+        tour_names=sorted({d.name for d in tours if d.name})[:TOUR_NAMES_SHOWN],
         smoke=smoke(documents),
     )
 
@@ -355,6 +374,18 @@ def checks(
             str(len(summary.climate_months)),
             len(summary.climate_months) == thresholds.climate_normals,
         ),
+        Check(
+            "Curated tours",
+            f"≥ {thresholds.curated_tours}",
+            str(summary.curated_tours),
+            summary.curated_tours >= thresholds.curated_tours,
+        ),
+        Check(
+            "Tour documents",
+            f"≥ {thresholds.tour_documents}",
+            str(summary.tour_documents),
+            summary.tour_documents >= thresholds.tour_documents,
+        ),
     ]
 
 
@@ -452,6 +483,18 @@ def render_markdown(
             for category, tiers in summary.price_tiers.items()
         ],
     )
+
+    by_type = ", ".join(f"{k} {v}" for k, v in summary.tours_by_type.items()) or "none"
+    out += [
+        "",
+        "## Tours",
+        "",
+        f"{summary.tour_documents} tour documents: {summary.curated_tours} curated "
+        f"(`curated/{summary.city}/tours.toml`), {summary.reclassified_tours} "
+        f"reclassified from other sources. By type: {by_type}.",
+    ]
+    if summary.tour_names:
+        out += ["", *[f"- {name}" for name in summary.tour_names]]
 
     missing = ", ".join(summary.climate_missing) or "none"
     out += [

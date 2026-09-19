@@ -157,10 +157,13 @@ The report ends with the **readiness gate**, the thresholds in `city_corpus/conf
 | Districts with a `neighbourhood` document | ≥ 5 |
 | Pictured share of located `see` + `history` places | ≥ 50 % |
 | Climate normals | = 12 |
+| Curated tours (`curated/<slug>/tours.toml`) / `tour` documents of any source | ≥ 3 / ≥ 3 |
 
 Below any threshold the command exits 1 and prints the failing lines; `--no-gate` writes the
 report and exits 0. A corpus that fails the gate is short of sources, not ready to index: add
 Wikipedia categories, widen the bbox or lower the district admin level, rebuild, report again.
+Tours are part of the gate on purpose: no open source lists them, so every city ships a curated
+file (the free walking tours and the notable paid ones, read on the operators' own sites).
 
 ## Tours file
 

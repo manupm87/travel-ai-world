@@ -28,6 +28,11 @@ class Thresholds:
     pictured_sights_share: float = 0.5
     # Monthly climate normals (`om:climate:<slug>:MM`): one per month.
     climate_normals: int = 12
+    # Curated tours (`curated/<slug>/tours.toml`, source `curated`) and `tour`
+    # documents of any source. Tours are not optional: every city ships the
+    # free walking tours and the notable paid ones, read on the operators' sites.
+    curated_tours: int = 3
+    tour_documents: int = 3
 
 
 DEFAULT_THRESHOLDS = Thresholds()

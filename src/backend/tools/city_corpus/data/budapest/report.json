@@ -199,6 +199,29 @@
     "12"
   ],
   "climate_missing": [],
+  "curated_tours": 12,
+  "reclassified_tours": 12,
+  "tours_by_type": {
+    "bike": 1,
+    "boat": 5,
+    "cave": 4,
+    "other": 2,
+    "walking": 12
+  },
+  "tour_names": [
+    "Best of Budapest Free Walking Tour",
+    "Boat trip to Margaret Island",
+    "Buda & Castle District Free Walking Tour",
+    "Buda Castle: From Fisherman's Bastion to the Royal Palace",
+    "Budapest Downtown Free Walking Tour",
+    "Cruising and eating",
+    "Free Buda Castle Tour",
+    "Free Budapest Art Nouveau Walking Tour",
+    "Free Budapest Tour",
+    "Free Budapest Walking Tour By Locals",
+    "Free Communism Tour",
+    "Free Jewish District Tour"
+  ],
   "smoke": {
     "see": {
       "museum": [
@@ -450,6 +473,18 @@
         "threshold": "= 12",
         "measured": "12",
         "passed": true
+      },
+      {
+        "name": "Curated tours",
+        "threshold": "≥ 3",
+        "measured": "12",
+        "passed": true
+      },
+      {
+        "name": "Tour documents",
+        "threshold": "≥ 3",
+        "measured": "24",
+        "passed": true
       }
     ],
     "thresholds": {
@@ -460,7 +495,9 @@
       "districts": 5,
       "described_districts": 5,
       "pictured_sights_share": 0.5,
-      "climate_normals": 12
+      "climate_normals": 12,
+      "curated_tours": 3,
+      "tour_documents": 3
     }
   }
 }

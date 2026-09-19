@@ -67,6 +67,20 @@ def _corpus() -> list[CorpusDocument]:
         ),
         _doc("wv:en:T#sleep:grand-hotel", category=Category.SLEEP, price_tier=3),
         _doc("wv:en:T#sleep:hostel-one", category=Category.SLEEP, lat=None, lon=None),
+        _doc(
+            "tour:testville:old-town",
+            category=Category.TOUR,
+            name="Free Old Town Walk",
+            source=Source.CURATED,
+            source_url="https://example.org/old-town",
+            tour_type="walking",
+        ),
+        _doc(
+            "wv:en:T#do:river-cruise",
+            category=Category.TOUR,
+            name="River Cruise",
+            tour_type="boat",
+        ),
     ]
     docs += [
         _doc(
@@ -89,11 +103,12 @@ def _corpus() -> list[CorpusDocument]:
 def test_counts_per_category_and_source() -> None:
     summary = report.summarise(_corpus(), "testville")
 
-    assert summary.documents == 22
-    assert (summary.listings, summary.prose) == (9, 13)
+    assert summary.documents == 24
+    assert (summary.listings, summary.prose) == (11, 13)
     assert summary.by_category_source["see"] == {"wikivoyage": 5}
     assert summary.by_category_source["eat"] == {"openstreetmap": 1, "wikivoyage": 1}
     assert summary.by_category_source["history"] == {"wikipedia": 1}
+    assert summary.by_category_source["tour"] == {"curated": 1, "wikivoyage": 1}
 
 
 def test_located_and_pictured_count_named_documents_of_any_kind() -> None:
@@ -114,7 +129,7 @@ def test_districts_price_tiers_and_climate() -> None:
     summary = report.summarise(_corpus(), "testville")
 
     assert summary.districts == ["Centre", "Hill"]
-    assert summary.places_by_district == {"Centre": 7, "Hill": 1}
+    assert summary.places_by_district == {"Centre": 9, "Hill": 1}
     assert summary.small_districts == ["Centre", "Hill"]
     assert summary.price_tiers["eat"] == {"1": 0, "2": 1, "3": 0, "untiered": 1}
     assert summary.price_tiers["sleep"] == {"1": 0, "2": 0, "3": 1, "untiered": 1}
@@ -131,7 +146,8 @@ def test_smoke_query_ranks_the_named_place_first() -> None:
     assert street_food[0].name == "Street Food Corner"
     assert street_food[0].district == "Centre"
     assert summary.smoke["drink"]["craft beer bar"][0].name == "Szimpla"
-    assert summary.smoke["tour"]["free walking tour"] == []
+    walks = summary.smoke["tour"]["free walking tour"]
+    assert [hit.name for hit in walks] == ["Free Old Town Walk"]
 
 
 def test_gate_lists_every_missed_threshold_with_its_value() -> None:
@@ -146,6 +162,8 @@ def test_gate_lists_every_missed_threshold_with_its_value() -> None:
         "Districts: 2 (needs ≥ 5)",
         "Districts with a neighbourhood document: 0 (needs ≥ 5)",
         "Climate normals: 11 (needs = 12)",
+        "Curated tours: 1 (needs ≥ 3)",
+        "Tour documents: 2 (needs ≥ 3)",
     ]
     lenient = Thresholds(
         located_sights=4,
@@ -155,8 +173,24 @@ def test_gate_lists_every_missed_threshold_with_its_value() -> None:
         districts=2,
         described_districts=0,
         climate_normals=11,
+        curated_tours=1,
+        tour_documents=2,
     )
     assert report.gate(summary, lenient) == []
+
+
+def test_tours_count_curated_and_reclassified_by_type() -> None:
+    summary = report.summarise(_corpus(), "testville")
+
+    assert summary.curated_tours == 1
+    assert summary.reclassified_tours == 1
+    assert summary.tour_documents == 2
+    assert summary.tours_by_type == {"boat": 1, "walking": 1}
+    assert summary.tour_names == ["Free Old Town Walk", "River Cruise"]
+    markdown = report.render_markdown(summary)
+    assert "2 tour documents: 1 curated" in markdown
+    assert "- Free Old Town Walk" in markdown
+    assert "| Curated tours | ≥ 3 | 1 | **FAIL** |" in markdown
 
 
 def test_markdown_is_deterministic_and_ends_with_the_gate() -> None:
