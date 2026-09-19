@@ -9,6 +9,7 @@ import { interpolate } from "@/i18n";
 import { partOf, type DayDraft, type ItineraryWarning } from "@/hooks/plannerReducer";
 import { DAY_PARTS, type DayPart, type Slot } from "@/types/planner";
 import { cn } from "@/utils/cn";
+import { DATE_OPTIONS } from "./tripDates";
 import { WarningBadge } from "./WarningBadge";
 
 export interface DayCardProps {
@@ -18,31 +19,32 @@ export interface DayCardProps {
   /** The itinerary's warnings; the card picks the ones aimed at its slots. */
   warnings: ItineraryWarning[];
   defaultOpen?: boolean;
+  /**
+   * The only day on screen (`TripPanel` behind `DayStrip`): no toggle, always
+   * open. The collapsible mode stays for anywhere a stack of days is wanted.
+   */
+  static?: boolean;
   /** Position in the panel: staggers the entrance by 80 ms per day. */
   index?: number;
   onChange: (slot: Slot) => void;
   onRemove: (slot: Slot, cardId: string) => void;
 }
 
-const DATE_OPTIONS: Intl.DateTimeFormatOptions = {
-  weekday: "short",
-  day: "numeric",
-  month: "short",
-  timeZone: "UTC",
-};
-
 /**
- * One day of the draft itinerary: a collapsible header (date, weather, how
- * many experiences) over the four parts of the day and their cards. The body
- * stays mounted so the expand/collapse can animate (a `grid-rows` transition
- * over an `overflow-hidden` wrapper); while collapsed it is `inert` and hidden
- * from assistive technology, exactly as `MobileDrawer` does.
+ * One day of the draft itinerary: a header (date, weather, how many
+ * experiences) over the four parts of the day and their cards. The header
+ * toggles the body by default: it stays mounted so the expand/collapse can
+ * animate (a `grid-rows` transition over an `overflow-hidden` wrapper), and
+ * while collapsed it is `inert` and hidden from assistive technology, exactly
+ * as `MobileDrawer` does. With `static` there is nothing to toggle — the day
+ * is the only one on screen, so the header is plain text and the body is open.
  */
 export function DayCard({
   day,
   date,
   warnings,
   defaultOpen = false,
+  static: isStatic = false,
   index = 0,
   onChange,
   onRemove,
@@ -52,6 +54,7 @@ export function DayCard({
   const [expanded, setExpanded] = useState(defaultOpen);
   const bodyId = useId();
   const p = t.plan.panel;
+  const open = isStatic || expanded;
 
   const count = DAY_PARTS.reduce((total, part) => total + day.slots[part].length, 0);
   const dayLabel = interpolate(p.day, { day: day.day });
@@ -59,63 +62,76 @@ export function DayCard({
   const warningsFor = (part: DayPart) =>
     warnings.filter((w) => w.slot !== null && w.slot.day === day.day && partOf(w.slot) === part);
 
+  const summary = (
+    <>
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-soft text-sm font-medium text-text-primary">
+        {day.day}
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="text-[10px] font-medium uppercase tracking-wider text-text-secondary">
+          {dayLabel}
+        </span>
+        {day.title && (
+          <span className="text-[15px] font-medium leading-tight text-text-primary">
+            {day.title}
+          </span>
+        )}
+        <span className="flex flex-wrap items-center gap-x-1.5 text-xs text-text-secondary">
+          {date && <span>{formatDate(date, DATE_OPTIONS)}</span>}
+          {day.weather && (
+            <>
+              {date && <span aria-hidden="true">·</span>}
+              <span title={interpolate(p.weatherSource, { source: day.weather.source })}>
+                {day.weather.summary}
+              </span>
+              {day.weather.t_max !== null && (
+                <>
+                  <span aria-hidden="true">·</span>
+                  <span>{`${day.weather.t_max} °C`}</span>
+                </>
+              )}
+            </>
+          )}
+          <span aria-hidden="true">·</span>
+          <span>{count === 1 ? p.experienceOne : interpolate(p.experiences, { count })}</span>
+        </span>
+      </span>
+    </>
+  );
+
   return (
     <div className="animate-fade-up" style={{ animationDelay: `${index * 80}ms` }}>
       <Card className="flex flex-col gap-3 p-4">
-        <button
-          type="button"
-          onClick={() => setExpanded((open) => !open)}
-          aria-expanded={expanded}
-          aria-controls={bodyId}
-          title={interpolate(expanded ? p.hideDay : p.showDay, { day: day.day })}
-          className="flex w-full items-start gap-3 rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
-        >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-soft text-sm font-medium text-text-primary">
-            {day.day}
-          </span>
-          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span className="text-[10px] font-medium uppercase tracking-wider text-text-secondary">
-              {dayLabel}
-            </span>
-            {day.title && (
-              <span className="text-[15px] font-medium leading-tight text-text-primary">
-                {day.title}
-              </span>
-            )}
-            <span className="flex flex-wrap items-center gap-x-1.5 text-xs text-text-secondary">
-              {date && <span>{formatDate(date, DATE_OPTIONS)}</span>}
-              {day.weather && (
-                <>
-                  {date && <span aria-hidden="true">·</span>}
-                  <span title={interpolate(p.weatherSource, { source: day.weather.source })}>
-                    {day.weather.summary}
-                  </span>
-                  {day.weather.t_max !== null && (
-                    <>
-                      <span aria-hidden="true">·</span>
-                      <span>{`${day.weather.t_max} °C`}</span>
-                    </>
-                  )}
-                </>
+        {isStatic ? (
+          <div className="flex w-full items-start gap-3 text-left">{summary}</div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setExpanded((current) => !current)}
+            aria-expanded={expanded}
+            aria-controls={bodyId}
+            title={interpolate(expanded ? p.hideDay : p.showDay, { day: day.day })}
+            className="flex w-full items-start gap-3 rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+          >
+            {summary}
+            <ChevronDown
+              size={16}
+              aria-hidden="true"
+              className={cn(
+                "mt-1 shrink-0 text-text-secondary transition-transform",
+                expanded && "rotate-180"
               )}
-              <span aria-hidden="true">·</span>
-              <span>{count === 1 ? p.experienceOne : interpolate(p.experiences, { count })}</span>
-            </span>
-          </span>
-          <ChevronDown
-            size={16}
-            aria-hidden="true"
-            className={cn("mt-1 shrink-0 text-text-secondary transition-transform", expanded && "rotate-180")}
-          />
-        </button>
+            />
+          </button>
+        )}
 
         <div
           id={bodyId}
-          inert={!expanded}
-          aria-hidden={!expanded}
+          inert={isStatic ? undefined : !expanded}
+          aria-hidden={isStatic ? undefined : !expanded}
           className={cn(
             "grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none",
-            expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+            open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
           )}
         >
           <div className="flex flex-col gap-4 overflow-hidden">

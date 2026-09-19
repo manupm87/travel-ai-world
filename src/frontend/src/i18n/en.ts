@@ -231,6 +231,8 @@ const en: Translations = {
       searchFlights: "Search flights",
       mapTitle: "Map",
       mapPlaceholder: "The map arrives with the next release. Your stops are listed below.",
+      daysNav: "Days",
+      stopsOfDay: "Stops of day {day}",
       stay: "Stay · {nights} nights",
       stayNoNights: "Stay",
       change: "Change",

@@ -252,6 +252,10 @@ export interface Translations {
       searchFlights: string;
       mapTitle: string;
       mapPlaceholder: string;
+      /** Accessible name of the horizontal day strip. */
+      daysNav: string;
+      /** The mapped stops of one day: "Stops of day {day}" */
+      stopsOfDay: string;
       /** "Stay · {nights} nights" */
       stay: string;
       stayNoNights: string;

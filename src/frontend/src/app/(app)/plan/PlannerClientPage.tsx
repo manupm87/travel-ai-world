@@ -11,6 +11,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { partOf } from "@/hooks/plannerReducer";
 import { usePlanner } from "@/hooks/usePlanner";
 import { usePlannerCities } from "@/hooks/usePlannerCities";
+import { useSelectedDay } from "@/hooks/useSelectedDay";
 import { interpolate } from "@/i18n";
 import type { Slot } from "@/types/planner";
 
@@ -37,6 +38,9 @@ export default function PlannerClientPage() {
     toggleShortlist,
     reset,
   } = usePlanner();
+  // The itinerary is browsed one day at a time: the panel's strip picks the
+  // day and the map slot maps that same day (TRA-176).
+  const [selectedDay, setSelectedDay] = useSelectedDay(state.itinerary);
   // The covered cities, for the starter chips and the destination hint; the
   // built-in copy stands in until they arrive (or when they never do).
   const { cities } = usePlannerCities();
@@ -94,6 +98,8 @@ export default function PlannerClientPage() {
       panel={
         <TripPanel
           state={state}
+          selectedDay={selectedDay}
+          onSelectDay={setSelectedDay}
           onGenerate={generate}
           onRemove={remove}
           onSelect={select}
@@ -103,7 +109,7 @@ export default function PlannerClientPage() {
           onReset={reset}
         />
       }
-      map={<MapPlaceholder itinerary={state.itinerary} />}
+      map={<MapPlaceholder itinerary={state.itinerary} selectedDay={selectedDay} />}
     />
   );
 }

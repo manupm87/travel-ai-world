@@ -116,12 +116,17 @@ test.describe("Planner page — /plan/", () => {
     const flights = page.getByRole("link", { name: "Search flights" }).first();
     await expect(flights).toHaveAttribute("href", /google\.com\/travel\/flights/);
     await expect(flights).toHaveAttribute("rel", /noopener/);
-    await expect(page.getByRole("button", { name: /\bDay 3\b/ })).toBeVisible();
+    // The days are browsed one at a time from the strip: day 1 is on screen.
+    const days = page.getByRole("tablist", { name: "Days" });
+    await expect(days.getByRole("tab", { name: /\bDay 3\b/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Change: Great Market Hall" })).toBeVisible();
     // A price is never a number.
     await expect(page.getByText(/\d+\s?€/)).toHaveCount(0);
 
-    // 5. "Change" on day 2's afternoon: the sheet asks for the options itself.
-    await page.getByRole("button", { name: /\bDay 2\b/ }).click();
+    // 5. "Change" on day 2's afternoon: the strip swaps the day, then the
+    //    sheet asks for the options itself.
+    await days.getByRole("tab", { name: /\bDay 2\b/ }).click();
+    await expect(page.getByRole("button", { name: "Change: Great Market Hall" })).toHaveCount(0);
     await expect(page.getByText("40 minutes on foot from the previous stop")).toBeVisible();
     await page.getByRole("button", { name: "Change: Gellért Baths" }).click();
     const sheet = page.getByRole("dialog", { name: "Day 2 · Afternoon" });
@@ -138,6 +143,15 @@ test.describe("Planner page — /plan/", () => {
     await expect(page.getByText("Chosen: Rudas Baths")).toBeVisible();
     await expect(page.getByRole("button", { name: "Change: Rudas Baths" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Change: Gellért Baths" })).toHaveCount(0);
+
+    // 7. On a phone the strip scrolls sideways; the page itself never does.
+    await page.setViewportSize({ width: 375, height: 800 });
+    await page.getByRole("tablist", { name: "Plan a trip" }).getByRole("tab", { name: "Trip" }).click();
+    await expect(days.getByRole("tab", { name: /\bDay 2\b/ })).toBeVisible();
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth
+    );
+    expect(overflow).toBeLessThanOrEqual(1);
   });
 
   test("on a phone the Chat / Trip / Map tabs switch panes", async ({ page }) => {

@@ -10,29 +10,43 @@ import { DAY_PARTS } from "@/types/planner";
 interface Stop {
   id: string;
   label: string;
+  /** Its position in the day, or `null` for the stay, which has no slot. */
+  number: number | null;
+}
+
+export interface MapPlaceholderProps {
+  itinerary: ItineraryDraft;
+  /** Only this day is mapped: its stops, in slot order, plus the stay. */
+  selectedDay: number;
 }
 
 /**
- * Stands in for the real map (TRA-147): a decorative panel plus the stops the
- * itinerary already has coordinates for, so the map issue replaces this file
- * and nothing else in the panel.
+ * Stands in for the real map (TRA-147): a decorative panel plus the selected
+ * day's stops that already have coordinates, numbered in slot order — exactly
+ * the list the map issue turns into pins, so it replaces this file and nothing
+ * else in the panel.
  */
-export function MapPlaceholder({ itinerary }: { itinerary: ItineraryDraft }) {
+export function MapPlaceholder({ itinerary, selectedDay }: MapPlaceholderProps) {
   const { t } = useLanguage();
   const p = t.plan.panel;
 
+  const day = itinerary.days.find((d) => d.day === selectedDay) ?? itinerary.days[0] ?? null;
+
   const stops: Stop[] = [];
   if (itinerary.stay && itinerary.stay.lat !== null && itinerary.stay.lon !== null) {
-    stops.push({ id: `stay:${itinerary.stay.id}`, label: `${p.stayNoNights} · ${itinerary.stay.title}` });
+    stops.push({
+      id: `stay:${itinerary.stay.id}`,
+      label: `${p.stayNoNights} · ${itinerary.stay.title}`,
+      number: null,
+    });
   }
-  for (const day of itinerary.days) {
+  if (day) {
+    let number = 0;
     for (const part of DAY_PARTS) {
       for (const card of day.slots[part]) {
         if (card.lat === null || card.lon === null) continue;
-        stops.push({
-          id: `${day.day}:${part}:${card.id}`,
-          label: `${interpolate(p.day, { day: day.day })} · ${card.title}`,
-        });
+        number += 1;
+        stops.push({ id: `${day.day}:${part}:${card.id}`, label: card.title, number });
       }
     }
   }
@@ -46,10 +60,19 @@ export function MapPlaceholder({ itinerary }: { itinerary: ItineraryDraft }) {
       />
       <p className="text-xs leading-snug text-text-secondary">{p.mapPlaceholder}</p>
       {stops.length > 0 && (
-        <ul className="flex flex-col gap-1">
+        <ul
+          aria-label={interpolate(p.stopsOfDay, { day: day ? day.day : selectedDay })}
+          className="flex flex-col gap-1"
+        >
           {stops.map((stop) => (
             <li key={stop.id} className="flex items-center gap-1.5 text-xs text-text-secondary">
-              <MapPin size={11} aria-hidden="true" className="shrink-0 text-accent" />
+              {stop.number === null ? (
+                <MapPin size={11} aria-hidden="true" className="shrink-0 text-accent" />
+              ) : (
+                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent-soft text-[10px] font-medium text-text-primary">
+                  {stop.number}
+                </span>
+              )}
               <span>{stop.label}</span>
             </li>
           ))}

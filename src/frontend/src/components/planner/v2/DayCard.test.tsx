@@ -83,4 +83,15 @@ describe("DayCard", () => {
 
     expect(header()).toHaveAttribute("aria-expanded", "true");
   });
+
+  it("is open with nothing to toggle when it is the only day on screen", () => {
+    renderDay({ static: true });
+
+    // The summary is still there, but it is no longer a button.
+    expect(screen.getByText(interpolate(p.day, { day: 2 }))).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Day 2/ })).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: `${p.change}: ${BATHS.gellert.title}` })
+    ).toBeVisible();
+  });
 });

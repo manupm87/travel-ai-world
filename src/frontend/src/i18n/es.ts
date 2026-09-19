@@ -231,6 +231,8 @@ const es: Translations = {
       searchFlights: "Buscar vuelos",
       mapTitle: "Mapa",
       mapPlaceholder: "El mapa llega en la próxima entrega. Tus paradas están listadas abajo.",
+      daysNav: "Días",
+      stopsOfDay: "Paradas del día {day}",
       stay: "Alojamiento · {nights} noches",
       stayNoNights: "Alojamiento",
       change: "Cambiar",
