@@ -1,0 +1,115 @@
+# Budapest: the reference city. Every field is read by city_corpus/config/cities.py;
+# unknown keys stop the build. Start a new city with `just corpus-discover name="..."`.
+slug = "budapest"
+name = "Budapest"
+aliases = ["budapest"]
+language = "en"
+wikipedia_lang = "en"
+# OpenStreetMap area name (district boundaries and the place queries).
+osm_area = "Budapest"
+# OpenStreetMap administrative level of the city's districts (the 23 kerületek).
+district_admin_level = 9
+# Point for climate normals (city centre).
+centre = [47.4979, 19.0402]
+timezone = "Europe/Budapest"
+# The Wikivoyage district guides (from the Districts section of en.wikivoyage.org/wiki/Budapest).
+districts = [
+    "Angyalföld",
+    "Aquincum",
+    "Belváros",
+    "Budavár",
+    "Csepel",
+    "East Pest",
+    "Erzsébetváros",
+    "Ferencváros",
+    "Hegyvidék",
+    "Józsefváros",
+    "Kőbánya",
+    "North Buda",
+    "North Pest",
+    "South Buda",
+    "South Pest",
+    "Terézváros",
+    "Városliget",
+    "Víziváros",
+    "Zugló",
+    "Óbuda",
+]
+
+[bbox]
+south = 47.34
+west = 18.92
+north = 47.62
+east = 19.34
+
+[[wikivoyage]]
+lang = "en"
+root = "Budapest"
+include_subpages = true
+
+[[wikivoyage]]
+lang = "es"
+root = "Budapest"
+include_subpages = false
+
+[[wikipedia.categories]]
+name = "Tourist attractions in Budapest"
+
+[[wikipedia.categories]]
+name = "Museums in Budapest"
+
+# `Category:Baths in Budapest` is empty; the articles live here.
+[[wikipedia.categories]]
+name = "Thermal baths in Budapest"
+
+[[wikipedia.categories]]
+name = "Bridges in Budapest"
+
+# TRA-157. City-scoped only: `Landmarks in Hungary` and `Castles in Hungary` would add
+# 46 articles, most of them outside the city. Coordinates required, or the category
+# brings in embassies and government offices alongside the sights.
+[[wikipedia.categories]]
+name = "Buildings and structures in Budapest"
+require_coordinates = true
+
+[[wikipedia.categories]]
+name = "Squares in Budapest"
+
+[[wikipedia.categories]]
+name = "Churches in Budapest"
+
+[[wikipedia.categories]]
+name = "Monuments and memorials in Budapest"
+
+[[wikipedia.categories]]
+name = "Synagogues in Budapest"
+
+[[wikipedia.categories]]
+name = "Parks in Budapest"
+
+# OSM district `ref` → the Wikivoyage guide(s) covering it. Districts I, III and XIV are
+# split between two guides; the nearest Wikivoyage listing decides.
+[district_guides]
+"1" = ["Budavár", "Víziváros"]
+"2" = ["North Buda"]
+"3" = ["Óbuda", "Aquincum"]
+"4" = ["North Pest"]
+"5" = ["Belváros"]
+"6" = ["Terézváros"]
+"7" = ["Erzsébetváros"]
+"8" = ["Józsefváros"]
+"9" = ["Ferencváros"]
+"10" = ["Kőbánya"]
+"11" = ["South Buda"]
+"12" = ["Hegyvidék"]
+"13" = ["Angyalföld"]
+"14" = ["Városliget", "Zugló"]
+"15" = ["North Pest"]
+"16" = ["East Pest"]
+"17" = ["East Pest"]
+"18" = ["South Pest"]
+"19" = ["South Pest"]
+"20" = ["South Pest"]
+"21" = ["Csepel"]
+"22" = ["South Buda"]
+"23" = ["South Pest"]

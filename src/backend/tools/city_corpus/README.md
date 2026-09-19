@@ -5,7 +5,7 @@ documents about a city, normalized into one JSONL file that the indexer embeds a
 the vector store. The JSONL in `data/<city>/` is **committed and is the source of truth**; the
 vector store holds a copy of each document in its payload.
 
-Budapest is the configured city.
+Cities are TOML files under `cities/`; Budapest is the reference one (see "Add a city").
 
 ## Sources and licences
 
@@ -44,7 +44,8 @@ manifest reports documents per category and what each one skipped.
    `image_url` is a 640 px Commons thumbnail of the first free-licensed file among the Wikidata image
    (P18), the listing's `image` and OSM's `wikimedia_commons`. Non-free files (NC, ND, fair use) are skipped.
 4. **Districts**: every document with coordinates and no district gets one from the OSM boundary it
-   falls in. The table in `config/cities.py` maps the 23 administrative districts to the 20 Wikivoyage
+   falls in. The `[district_guides]` table in `cities/budapest.toml` maps the 23 administrative
+   districts (by OSM `ref`; by name for a city whose boundaries carry none) to the 20 Wikivoyage
    guides. Districts I, III and XIV are split between two guides; the nearest Wikivoyage listing
    decides. Points in no boundary (Margaret Island) take the guide of the nearest listing within 1 km.
 5. **Tours**: listings from any source that are things you *join* move to `category=tour` with a
@@ -63,10 +64,12 @@ manifest reports documents per category and what each one skipped.
 ```bash
 just corpus                      # from the repo root (city="budapest"): build, then the readiness report
 just corpus-report city=budapest # only the report (flags="--no-gate" to print without failing)
+just corpus-discover name="..."  # draft cities/<slug>.draft.toml for a new city
 # or, from this directory:
 uv run python -m city_corpus build budapest \
   [--sources wikivoyage,wikipedia,openstreetmap,wikidata,climate,tours] [--offline] [-v]
 uv run python -m city_corpus report budapest [--no-gate] [--data-dir DIR]
+uv run python -m city_corpus discover "Bologna" [-v]
 ```
 
 Every API response is cached in `.cache/` (ignored by git). A rebuild with a warm cache makes no
@@ -181,13 +184,40 @@ duplicate ids). Only public tours with a published schedule belong here, not pri
 
 ## Add a city
 
-1. Add a `CityConfig` to `city_corpus/config/cities.py`: bbox, centre and timezone, Wikivoyage root
-   pages, Wikipedia categories, OSM area name, district guide names, and the table from OSM district
-   `ref` to guides.
-2. For a new Wikivoyage language, add its section names to `SECTION_CATEGORIES` and its listing
+A city is one file, `cities/<slug>.toml` (`cities/budapest.toml` is the reference, commented). Nobody
+writes it from scratch:
+
+1. `just corpus-discover name="Bologna"` (or `uv run python -m city_corpus discover Bologna` here)
+   writes `cities/bologna.draft.toml` from open sources and prints what it could not decide:
+   * **Wikidata**: the city item (the first search hit that is located and in a country; a `# review`
+     when its class is not a known city class), centre (P625), districts (P150, English labels), OSM
+     relation (P402), Wikivoyage titles (sitelinks), Spanish label → `aliases`.
+   * **Nominatim**: the relation's bounding box, rounded outwards to 0.01° (a 0.15° square around the
+     centre, marked, when there is none).
+   * **Open-Meteo**: the IANA time zone of the centre (`timezone=auto`; Wikidata's P421 names offsets,
+     not zones).
+   * **Overpass** (one tags-only query): administrative relations at levels 8–10; the level whose names
+     look most like Wikidata's districts becomes `district_admin_level`, its relations the keys of
+     `district_guides` (their `ref`, or their name when they carry none).
+   * **Wikivoyage** en/es: the root article and its `Root/…` district pages → `include_subpages`. With
+     district pages, `districts` are those pages and each OSM boundary maps to the page most like its
+     name (`# review` when the match is weak or missing); without them, every boundary is its own district.
+   * **Wikipedia** en: the standard categories that exist (`Tourist attractions in X`, `Museums in X`,
+     `Bridges`, `Parks`, `Churches`, `Squares`, `Monuments and memorials`, `Buildings and structures`
+     with `require_coordinates`, `Palaces`, `Towers`, `Thermal baths`, `Synagogues`, …), page counts as
+     comments. Add the city's own categories by hand (`Category:` pages on Wikipedia).
+2. Resolve every `# review` line, rename the file to `cities/<slug>.toml` (the `slug` must match the
+   file name; drafts are ignored by the build) and delete what you do not want. Unknown keys, a guide
+   name that is not in `districts`, or a slug/file-name mismatch stop the build with the file and key.
+3. For a new Wikivoyage language, add its section names to `SECTION_CATEGORIES` and its listing
    template names to `LISTING_TYPES` in `sources/wikivoyage.py`.
-3. `just corpus city="<slug>"`: it builds and then runs the readiness report. Iterate on the
-   configuration until the gate passes, then commit `data/<slug>/` (documents, manifest, report).
+4. `just corpus city="<slug>"`: it builds and then runs the readiness report. Iterate on the
+   configuration until the gate passes, then commit `cities/<slug>.toml` and `data/<slug>/`
+   (documents, manifest, report). Optional curated tours go in `curated/<slug>/tours.toml` (or the
+   path in `curated_tours`).
+
+Wikidata folds its query service's lag into `maxlag`; a read-only request that gets such an answer is
+re-sent without the parameter instead of waiting (the lag can sit at minutes for hours).
 
 ## Tests
 

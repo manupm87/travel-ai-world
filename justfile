@@ -64,6 +64,12 @@ corpus city="budapest":
 corpus-report city="budapest" *flags="":
     cd {{corpus}} && uv run python -m city_corpus report {{city}} {{flags}}
 
+# Draft the configuration of a new city ({{corpus}}/cities/<slug>.draft.toml) from Wikidata,
+# Wikivoyage, Wikipedia, OpenStreetMap and Open-Meteo; resolve its `# review` lines, rename it
+# to <slug>.toml and run `just corpus city=<slug>`.
+corpus-discover name:
+    cd {{corpus}} && uv run python -m city_corpus discover "{{name}}"
+
 # Load a city's corpus into the S3 Vectors index (ADR 0014): embeds with Titan, upserts by key,
 # deletes what the file no longer has. Needs an AWS session (just aws-login). Extra flags go
 # through: --dry-run only measures, --limit N loads a sample.

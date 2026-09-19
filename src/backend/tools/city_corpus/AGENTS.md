@@ -7,18 +7,22 @@ contract are in [README.md](README.md).
 
 ```text
 city_corpus/
-├── cli.py               argparse: `build <city> [--sources] [--offline]`, `report <slug> [--no-gate]`
+├── cli.py               argparse: `build <city> [--sources] [--offline]`, `report <slug> [--no-gate]`,
+│                        `discover "<name>"`
 ├── build.py             collect → validate → write documents.jsonl + manifest.json
 ├── report.py            readiness report over documents.jsonl → report.md + report.json, gate
+├── discover.py          draft cities/<slug>.draft.toml from Wikidata, Nominatim, Open-Meteo,
+│                        Overpass (tags only), Wikivoyage and Wikipedia; `# review` marks
 ├── models.py            CorpusDocument (the ADR 0012 payload schema) and its enums
 ├── normalize.py         wikitext → text, chunking, slugs, wiki URLs, id de-duplication
 ├── http.py              ApiClient: User-Agent, maxlag, retries, on-disk cache
-├── config/cities.py     CityConfig per city
+├── config/cities.py     CityConfig dataclasses + the strict TOML loader (CITIES = cities/*.toml)
 ├── config/readiness.py  Thresholds: the one place the readiness gate reads
 └── sources/             one module per source (fetch + parse): wikivoyage.py, wikipedia.py,
                          osm.py (Overpass, merge/new), districts.py (boundaries, shapely),
                          wikidata.py (Wikidata + Commons licences), climate.py (Open-Meteo),
                          tours.py (curated tours + the `tour` reclassification rule)
+cities/<slug>.toml       one file per city (the configuration; drafts `*.draft.toml` are ignored)
 curated/<city>/          hand-maintained inputs (tours.toml); see README "Tours file"
 data/<city>/             committed output (source of truth for the vector store) + report.md/json
 tests/                   fixtures only; never hit the network
@@ -40,6 +44,8 @@ tests/                   fixtures only; never hit the network
   `maxlag`, per-host pauses, backoff, cache). Do not parallelize beyond 2 concurrent requests.
 - **Enrichment never deletes or overwrites**: it fills empty fields only. Documents about the same place
   share `entity_id` instead of being merged.
+- **A city is data**: `cities/<slug>.toml`, never a Python literal; start it with `just corpus-discover`
+  and resolve every `# review` line. Nothing city-specific belongs in the source modules.
 - **Regenerate and commit `data/`** when parsing changes, and paste the manifest counts in the PR.
 - **The readiness gate is the definition of done for a corpus**: `just corpus-report city=<slug>`
   must pass before `just index`; commit `report.md` and `report.json` with the corpus. Change a

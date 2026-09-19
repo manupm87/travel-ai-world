@@ -1,6 +1,17 @@
-"""Per-city configuration. Adding a city = one `CityConfig` in `CITIES`."""
+"""Per-city configuration. Adding a city = one `cities/<slug>.toml` file.
 
+The dataclasses are the in-memory form the builders read; `load_city` turns a
+TOML file into one, strictly (an unknown key or a guide that is not a district
+names the file and stops the build). `python -m city_corpus discover <name>`
+drafts such a file from Wikidata, Wikivoyage and Wikipedia.
+"""
+
+import tomllib
 from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
+
+CITIES_DIR = Path(__file__).resolve().parents[2] / "cities"
 
 
 @dataclass(frozen=True)
@@ -46,6 +57,8 @@ class CityConfig:
     wikipedia_categories: tuple[WikipediaCategory, ...]
     # OpenStreetMap area name (used by the enrichment step, TRA-139).
     osm_area: str
+    # Lower-case spellings a traveller may type (en/es); the planner matches them.
+    aliases: tuple[str, ...] = field(default_factory=tuple)
     districts: tuple[str, ...] = field(default_factory=tuple)
     # OpenStreetMap administrative level of the city's districts.
     district_admin_level: int = 9
@@ -55,86 +68,161 @@ class CityConfig:
     # Point for climate normals (city centre).
     centre: tuple[float, float] = (0.0, 0.0)
     timezone: str = "UTC"
+    # Curated tours file, relative to the tool's folder; `curated/<slug>/tours.toml`
+    # when unset.
+    curated_tours: str | None = None
 
 
-BUDAPEST = CityConfig(
-    slug="budapest",
-    name="Budapest",
-    language="en",
-    bbox=BBox(south=47.34, west=18.92, north=47.62, east=19.34),
-    wikivoyage=(
-        WikivoyageSite(lang="en", root="Budapest", include_subpages=True),
-        WikivoyageSite(lang="es", root="Budapest", include_subpages=False),
-    ),
-    wikipedia_lang="en",
-    wikipedia_categories=(
-        WikipediaCategory("Tourist attractions in Budapest"),
-        WikipediaCategory("Museums in Budapest"),
-        # `Category:Baths in Budapest` is empty; the articles live here.
-        WikipediaCategory("Thermal baths in Budapest"),
-        WikipediaCategory("Bridges in Budapest"),
-        # TRA-157. City-scoped only: `Landmarks in Hungary` and `Castles in
-        # Hungary` would add 46 articles, most of them outside the city.
-        WikipediaCategory(
-            "Buildings and structures in Budapest", require_coordinates=True
-        ),
-        WikipediaCategory("Squares in Budapest"),
-        WikipediaCategory("Churches in Budapest"),
-        WikipediaCategory("Monuments and memorials in Budapest"),
-        WikipediaCategory("Synagogues in Budapest"),
-        WikipediaCategory("Parks in Budapest"),
-    ),
-    osm_area="Budapest",
-    centre=(47.4979, 19.0402),
-    timezone="Europe/Budapest",
-    # From the Districts section of en.wikivoyage.org/wiki/Budapest.
-    district_guides={
-        "1": ("Budavár", "Víziváros"),
-        "2": ("North Buda",),
-        "3": ("Óbuda", "Aquincum"),
-        "4": ("North Pest",),
-        "5": ("Belváros",),
-        "6": ("Terézváros",),
-        "7": ("Erzsébetváros",),
-        "8": ("Józsefváros",),
-        "9": ("Ferencváros",),
-        "10": ("Kőbánya",),
-        "11": ("South Buda",),
-        "12": ("Hegyvidék",),
-        "13": ("Angyalföld",),
-        "14": ("Városliget", "Zugló"),
-        "15": ("North Pest",),
-        "16": ("East Pest",),
-        "17": ("East Pest",),
-        "18": ("South Pest",),
-        "19": ("South Pest",),
-        "20": ("South Pest",),
-        "21": ("Csepel",),
-        "22": ("South Buda",),
-        "23": ("South Pest",),
-    },
-    districts=(
-        "Angyalföld",
-        "Aquincum",
-        "Belváros",
-        "Budavár",
-        "Csepel",
-        "East Pest",
-        "Erzsébetváros",
-        "Ferencváros",
-        "Hegyvidék",
-        "Józsefváros",
-        "Kőbánya",
-        "North Buda",
-        "North Pest",
-        "South Buda",
-        "South Pest",
-        "Terézváros",
-        "Városliget",
-        "Víziváros",
-        "Zugló",
-        "Óbuda",
-    ),
-)
+class CityConfigError(ValueError):
+    """The TOML file cannot be read as a `CityConfig`; the message names the file."""
 
-CITIES: dict[str, CityConfig] = {c.slug: c for c in (BUDAPEST,)}
+
+_TOP_LEVEL_KEYS = {
+    "slug",
+    "name",
+    "aliases",
+    "language",
+    "bbox",
+    "wikivoyage",
+    "wikipedia",
+    "wikipedia_lang",
+    "osm_area",
+    "districts",
+    "district_admin_level",
+    "district_guides",
+    "centre",
+    "timezone",
+    "curated_tours",
+}
+_REQUIRED_KEYS = {
+    "slug",
+    "name",
+    "language",
+    "bbox",
+    "wikivoyage",
+    "wikipedia",
+    "wikipedia_lang",
+    "osm_area",
+}
+
+
+def _check_keys(where: str, table: dict[str, Any], allowed: set[str]) -> None:
+    unknown = sorted(set(table) - allowed)
+    if unknown:
+        raise CityConfigError(f"{where}: unknown key(s) {', '.join(unknown)}")
+
+
+def _strings(where: str, values: Any) -> tuple[str, ...]:
+    if not isinstance(values, list) or not all(isinstance(v, str) for v in values):
+        raise CityConfigError(f"{where}: expected a list of strings")
+    return tuple(values)
+
+
+def parse_city(data: dict[str, Any], where: str = "<city>") -> CityConfig:
+    """Build a `CityConfig` from a parsed TOML document, rejecting what it cannot use."""
+    _check_keys(where, data, _TOP_LEVEL_KEYS)
+    missing = sorted(_REQUIRED_KEYS - set(data))
+    if missing:
+        raise CityConfigError(f"{where}: missing key(s) {', '.join(missing)}")
+
+    bbox_table = data["bbox"]
+    _check_keys(f"{where} [bbox]", bbox_table, {"south", "west", "north", "east"})
+    try:
+        bbox = BBox(
+            **{k: float(bbox_table[k]) for k in ("south", "west", "north", "east")}
+        )
+    except KeyError as exc:
+        raise CityConfigError(f"{where} [bbox]: missing {exc.args[0]}") from exc
+
+    sites: list[WikivoyageSite] = []
+    for index, site in enumerate(data["wikivoyage"]):
+        _check_keys(
+            f"{where} [[wikivoyage]] #{index + 1}",
+            site,
+            {"lang", "root", "include_subpages"},
+        )
+        sites.append(
+            WikivoyageSite(
+                lang=site["lang"],
+                root=site["root"],
+                include_subpages=bool(site.get("include_subpages", True)),
+            )
+        )
+
+    wikipedia = data["wikipedia"]
+    _check_keys(f"{where} [wikipedia]", wikipedia, {"categories"})
+    categories: list[WikipediaCategory] = []
+    for index, category in enumerate(wikipedia.get("categories", [])):
+        _check_keys(
+            f"{where} [[wikipedia.categories]] #{index + 1}",
+            category,
+            {"name", "require_coordinates"},
+        )
+        categories.append(
+            WikipediaCategory(
+                name=category["name"],
+                require_coordinates=bool(category.get("require_coordinates", False)),
+            )
+        )
+
+    districts = _strings(f"{where} districts", data.get("districts", []))
+    guides: dict[str, tuple[str, ...]] = {}
+    for ref, names in data.get("district_guides", {}).items():
+        guides[str(ref)] = _strings(f"{where} [district_guides] {ref}", names)
+        unknown = sorted(set(guides[str(ref)]) - set(districts))
+        if unknown:
+            raise CityConfigError(
+                f"{where} [district_guides] {ref}: {', '.join(unknown)} not in districts"
+            )
+
+    centre_values = data.get("centre", [0.0, 0.0])
+    if not isinstance(centre_values, list) or len(centre_values) != 2:
+        raise CityConfigError(f"{where} centre: expected [lat, lon]")
+    centre = (float(centre_values[0]), float(centre_values[1]))
+
+    return CityConfig(
+        slug=data["slug"],
+        name=data["name"],
+        language=data["language"],
+        bbox=bbox,
+        wikivoyage=tuple(sites),
+        wikipedia_lang=data["wikipedia_lang"],
+        wikipedia_categories=tuple(categories),
+        osm_area=data["osm_area"],
+        aliases=_strings(f"{where} aliases", data.get("aliases", [])),
+        districts=districts,
+        district_admin_level=int(data.get("district_admin_level", 9)),
+        district_guides=guides,
+        centre=centre,
+        timezone=data.get("timezone", "UTC"),
+        curated_tours=data.get("curated_tours"),
+    )
+
+
+def load_city(path: Path) -> CityConfig:
+    try:
+        data = tomllib.loads(path.read_text(encoding="utf-8"))
+    except tomllib.TOMLDecodeError as exc:
+        raise CityConfigError(f"{path}: {exc}") from exc
+    city = parse_city(data, str(path))
+    if city.slug != path.stem:
+        raise CityConfigError(
+            f"{path}: slug {city.slug!r} does not match the file name"
+        )
+    return city
+
+
+def load_cities(folder: Path = CITIES_DIR) -> dict[str, CityConfig]:
+    """Every `<slug>.toml` in the folder; drafts (`<slug>.draft.toml`) are skipped."""
+    cities: dict[str, CityConfig] = {}
+    for path in sorted(folder.glob("*.toml")):
+        if path.name.endswith(".draft.toml"):
+            continue
+        city = load_city(path)
+        cities[city.slug] = city
+    return cities
+
+
+CITIES: dict[str, CityConfig] = load_cities()
+# The reference city; the tests parse its fixtures against this configuration.
+BUDAPEST = CITIES["budapest"]

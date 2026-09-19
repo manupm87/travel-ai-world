@@ -27,9 +27,17 @@ USER_AGENT = (
 MAX_ATTEMPTS = 10
 MAX_BACKOFF_SECONDS = 120.0
 MAXLAG_SECONDS = 5
+# Wikidata folds its query service's lag into `maxlag` so that editing bots pause;
+# a read-only request has nothing to wait for and is re-sent without the parameter.
+QUERY_SERVICE_LAG = "maxlag:wikibase-queryservice"
 POLITE_DELAY_SECONDS = 0.2
 # Hosts with stricter fair-use rules: seconds to wait before each request.
-SLOW_HOSTS = {"overpass-api.de": 5.0, "archive-api.open-meteo.com": 1.0}
+SLOW_HOSTS = {
+    "overpass-api.de": 5.0,
+    "archive-api.open-meteo.com": 1.0,
+    "api.open-meteo.com": 1.0,
+    "nominatim.openstreetmap.org": 1.0,
+}
 
 
 class CacheMiss(RuntimeError):
@@ -139,6 +147,12 @@ class ApiClient:
                     problem = _retryable_problem(response)
                     if problem is None:
                         return response.json()
+                    if problem == QUERY_SERVICE_LAG and "maxlag" in params:
+                        logger.info(
+                            "%s: query service lags; reading without maxlag", url
+                        )
+                        params = {k: v for k, v in params.items() if k != "maxlag"}
+                        continue
                     logger.warning("%s: %s (attempt %d)", url, problem, attempt)
                 if retry_after and retry_after.isdigit():
                     delay = max(delay, float(retry_after))
@@ -169,6 +183,8 @@ def _retryable_problem(response: httpx.Response) -> str | None:
     error = data.get("error")
     if isinstance(error, dict):
         if error.get("code") == "maxlag":
+            if error.get("type") == "wikibase-queryservice":
+                return QUERY_SERVICE_LAG
             return "maxlag"
         raise RuntimeError(f"{response.url}: API error {error}")
     remark = data.get("remark")  # Overpass reports timeouts in a 200 response

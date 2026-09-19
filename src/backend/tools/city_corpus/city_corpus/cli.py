@@ -1,5 +1,6 @@
-"""`python -m city_corpus build <city> [--sources ...] [--offline]`
-and `python -m city_corpus report <slug> [--no-gate]`."""
+"""`python -m city_corpus build <city> [--sources ...] [--offline]`,
+`python -m city_corpus report <slug> [--no-gate]` and
+`python -m city_corpus discover "<City name>"`."""
 
 import argparse
 import logging
@@ -7,7 +8,8 @@ import sys
 from pathlib import Path
 
 from city_corpus.build import ALL_STAGES, CorpusValidationError, Stage, collect, write
-from city_corpus.config.cities import CITIES
+from city_corpus.config.cities import CITIES, CITIES_DIR
+from city_corpus.discover import DiscoveryError, discover, summary, write_draft
 from city_corpus.http import ApiClient, CacheMiss
 from city_corpus.report import ReportError, write_report
 from city_corpus.sources.tours import TourDataError
@@ -54,6 +56,13 @@ def main(argv: list[str] | None = None) -> int:
     )
     report.add_argument("--data-dir", type=Path, default=DEFAULT_DATA)
     report.add_argument("-v", "--verbose", action="store_true")
+    draft = commands.add_parser(
+        "discover", help="draft cities/<slug>.draft.toml for a city from open sources"
+    )
+    draft.add_argument("name", help='the city as Wikidata labels it, e.g. "Bologna"')
+    draft.add_argument("--cache-dir", type=Path, default=DEFAULT_CACHE)
+    draft.add_argument("--out-dir", type=Path, default=CITIES_DIR)
+    draft.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args(argv)
 
     logging.basicConfig(
@@ -62,6 +71,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     if args.command == "report":
         return _report(args.city, args.data_dir, gate=not args.no_gate)
+    if args.command == "discover":
+        return _discover(args)
     return _build(args)
 
 
@@ -103,4 +114,16 @@ def _build(args: argparse.Namespace) -> int:
     )
     if info["districts_missing"]:
         sys.stdout.write(f"districts missing: {', '.join(info['districts_missing'])}\n")
+    return 0
+
+
+def _discover(args: argparse.Namespace) -> int:
+    try:
+        with ApiClient(args.cache_dir) as client:
+            found = discover(client, args.name)
+    except DiscoveryError as exc:
+        logger.error("%s", exc)
+        return 1
+    path = write_draft(found, args.out_dir)
+    sys.stdout.write(f"{summary(found)}\n→ {path}\n")
     return 0

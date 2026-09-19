@@ -23,6 +23,9 @@ coverage.xml
 *.db
 *.sqlite3
 
+# City corpus drafts (`python -m city_corpus discover`); the reviewed <slug>.toml is committed
+src/backend/tools/city_corpus/cities/*.draft.toml
+
 # Node / Next.js (src/frontend)
 node_modules/
 .next/

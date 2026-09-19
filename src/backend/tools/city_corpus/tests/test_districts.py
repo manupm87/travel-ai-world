@@ -57,6 +57,15 @@ def test_boundaries_are_assembled_from_ways() -> None:
     assert all(b.shape.is_valid and b.shape.area > 0 for b in boundaries)
 
 
+def test_boundary_without_ref_is_keyed_by_name() -> None:
+    relation = _square_relation("3", 19.20, 47.40, 0.05)
+    relation["tags"] = {"name": "Savena"}
+    nameless = _square_relation("4", 19.30, 47.40, 0.05)
+    nameless["tags"] = {}
+    [boundary] = parse_boundaries({"elements": [relation, nameless]})
+    assert (boundary.ref, boundary.name) == ("Savena", "Savena")
+
+
 def test_point_in_polygon_and_split_by_nearest_listing() -> None:
     locator = DistrictLocator(parse_boundaries(OVERPASS), GUIDES, ANCHORS)
     assert locator.locate(47.42, 19.12) == "Belváros"

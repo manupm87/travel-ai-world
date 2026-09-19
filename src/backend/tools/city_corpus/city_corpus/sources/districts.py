@@ -53,13 +53,16 @@ def parse_boundaries(overpass: dict[str, Any]) -> list[Boundary]:
             and len(member.get("geometry") or []) >= 2
         ]
         polygons = list(polygonize(lines))
-        if not polygons or "ref" not in tags:
+        # Districts are keyed by their `ref` (Budapest's kerület numbers); a city
+        # whose boundaries carry none is keyed by name.
+        ref = tags.get("ref") or tags.get("name")
+        if not polygons or not ref:
             continue
         shape = unary_union(polygons)
         if not isinstance(shape, Polygon | MultiPolygon):
             continue
         boundaries.append(
-            Boundary(ref=str(tags["ref"]), name=tags.get("name", ""), shape=shape)
+            Boundary(ref=str(ref), name=tags.get("name", ""), shape=shape)
         )
     return sorted(
         boundaries, key=lambda b: (int(b.ref) if b.ref.isdigit() else 0, b.ref)

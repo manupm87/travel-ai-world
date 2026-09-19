@@ -105,3 +105,24 @@ def test_client_caches_and_retries(tmp_path: Path) -> None:
     assert offline.get(url, params).data == {"query": {"ok": True}}
     with pytest.raises(CacheMiss):
         offline.get(url, {"action": "query", "titles": "Pest"})
+
+
+def test_query_service_lag_does_not_hold_a_read(tmp_path: Path) -> None:
+    calls: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(request)
+        if "maxlag" in request.url.params:
+            error = {"code": "maxlag", "type": "wikibase-queryservice", "lag": 154}
+            return httpx.Response(200, json={"error": error})
+        return httpx.Response(200, json={"search": []})
+
+    slept: list[float] = []
+    client = ApiClient(
+        tmp_path, transport=httpx.MockTransport(handler), sleep=slept.append
+    )
+    url = "https://www.wikidata.org/w/api.php"
+    params: dict[str, str | int] = {"action": "wbsearchentities", "search": "x"}
+    assert client.get(url, params).data == {"search": []}
+    assert len(calls) == 2 and "maxlag" not in calls[1].url.params
+    assert all(s < 1 for s in slept)  # the polite pause only, no backoff

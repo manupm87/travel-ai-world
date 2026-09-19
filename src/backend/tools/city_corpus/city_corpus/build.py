@@ -120,7 +120,12 @@ def collect(
         result.fetched_at.append(fetched.fetched_at)
         result.documents += climate.documents(climate.aggregate(fetched.data), city)
     if Stage.TOURS in stages:
-        curated = tours.load(curated_dir / city.slug / "tours.toml", city)
+        tours_file = (
+            curated_dir.parent / city.curated_tours
+            if city.curated_tours
+            else curated_dir / city.slug / "tours.toml"
+        )
+        curated = tours.load(tours_file, city)
         tours.warn_stale(curated.tours, dt.date.today())
         result.enrichment["tours"] = {
             "curated": len(curated.tours),
