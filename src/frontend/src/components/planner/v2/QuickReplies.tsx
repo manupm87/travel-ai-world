@@ -13,6 +13,8 @@ export interface QuickRepliesProps {
   missing: BriefField[];
   /** A turn is streaming, or there is no backend. */
   disabled?: boolean;
+  /** A covered city's name as the destination hint; the i18n default otherwise. */
+  destinationPlaceholder?: string;
   /** The answered fields, plus the message that says them out loud. */
   onAnswer: (patch: Partial<TripBrief>, text: string) => void;
 }
@@ -54,7 +56,13 @@ const stepperButtonClass =
  *
  * Renders nothing when there is nothing left to ask.
  */
-export function QuickReplies({ brief, missing, disabled = false, onAnswer }: QuickRepliesProps) {
+export function QuickReplies({
+  brief,
+  missing,
+  disabled = false,
+  destinationPlaceholder,
+  onAnswer,
+}: QuickRepliesProps) {
   const { t } = useLanguage();
   const q = t.plan.quickReplies;
   const ids = useId();
@@ -190,7 +198,7 @@ export function QuickReplies({ brief, missing, disabled = false, onAnswer }: Qui
             type="text"
             value={destination}
             onChange={(e) => setDestination(e.target.value)}
-            placeholder={q.destinationPlaceholder}
+            placeholder={destinationPlaceholder ?? q.destinationPlaceholder}
             disabled={disabled}
             className={fieldClass}
           />

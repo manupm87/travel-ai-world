@@ -16,6 +16,7 @@ weather a forecast or the corpus's climate normals.
 import asyncio
 import logging
 import re
+import unicodedata
 from collections.abc import AsyncIterator, Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import date, timedelta
@@ -29,7 +30,14 @@ from ai_api.application.language import Language, detect_language
 from ai_api.application.photos import ensure_photos
 from ai_api.application.structured import complete_json
 from ai_api.application.validate import Placed, strip_prices, validate_day
-from ai_api.domain.models import DayWeather, Document, Message, RetrievalFilters
+from ai_api.domain.models import (
+    City,
+    DayWeather,
+    Document,
+    Message,
+    Photo,
+    RetrievalFilters,
+)
 from ai_api.domain.ports import LLMProvider, PhotoFinder, Retriever, WeatherForecast
 from ai_api.infrastructure.static_flight_search import route_for
 from ai_api.prompts import (
@@ -47,7 +55,9 @@ from ai_api.prompts import (
     RAG_CONTEXT_PROMPT,
     RANK_NEIGHBOURHOODS_PROMPT,
     SKELETON_PROMPT,
+    cities_for_prompt,
     format_context,
+    join_names,
     planner_text,
 )
 from ai_api.schemas.planner import PlannerTurn, RemoveAction, SelectAction
@@ -78,6 +88,9 @@ logger = logging.getLogger(__name__)
 SIGHT_CATEGORIES = ("see", "do", "tour", "history")
 EAT_CATEGORIES = ("eat",)
 DRINK_CATEGORIES = ("drink",)
+# Categories whose fallback photo is first a pictured place of the same
+# category; anything else (neighbourhood, transport, ...) borrows a sight.
+PHOTO_CATEGORIES = frozenset({"see", "do", "tour", "history", "eat", "drink", "sleep"})
 STAY_CATEGORIES = ("sleep",)
 
 OPTIONS_COUNT = 3
@@ -207,6 +220,9 @@ class Turn:
     stay_id: str | None
     used_ids: set[str] = field(default_factory=set)
     used_titles: list[frozenset[str]] = field(default_factory=list)
+    # A corpus photo per category (or district), searched once per turn even
+    # when several cards ask at the same time (they await the same task).
+    corpus_photos: dict[str, asyncio.Task[Photo | None]] = field(default_factory=dict)
 
     def use(self, document: Document) -> None:
         self.used_ids.add(document.id)
@@ -252,6 +268,30 @@ def city_key(destination: str | None) -> str | None:
         return None
     head = destination.split(",")[0].strip().lower()
     return re.sub(r"[^a-z0-9]+", "-", head).strip("-") or None
+
+
+def fold(text: str) -> str:
+    """Lower-case ASCII: `Bolonia, Italia` → `bolonia, italia`."""
+    plain = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode()
+    return plain.lower()
+
+
+def resolve_city(destination: str | None, cities: Sequence[City]) -> City | None:
+    """The covered city a traveller means, by any of its spellings.
+
+    Matches a whole alias inside the destination text (`Bolonia`, `bologna,
+    Italy`, `Trip to Budapest`), so a model that answers in Spanish and a
+    user who types the local name both land on the same corpus.
+    """
+    if not destination:
+        return None
+    text = f" {re.sub(r'[^a-z0-9]+', ' ', fold(destination))} "
+    for city in cities:
+        for alias in (city.slug, fold(city.name), *city.aliases):
+            spelled = re.sub(r"[^a-z0-9]+", " ", fold(alias)).strip()
+            if spelled and f" {spelled} " in text:
+                return city
+    return None
 
 
 def has_image(document: Document) -> bool:
@@ -384,7 +424,7 @@ class PlanTrip:
         *,
         weather: WeatherForecast | None = None,
         photos: PhotoFinder | None = None,
-        cities: Sequence[str] = ("budapest",),
+        cities: Sequence[City],
         max_days: int = 7,
         candidates: int = 8,
         today: Callable[[], date] = date.today,
@@ -393,7 +433,9 @@ class PlanTrip:
         self._retriever = retriever
         self._weather = weather
         self._photos = photos
-        self._cities = tuple(c for c in (city_key(city) for city in cities) if c)
+        if not cities:
+            raise ValueError("PlanTrip needs at least one city")
+        self._cities = tuple(cities)
         self._max_days = max_days
         self._candidate_count = candidates
         self._today = today
@@ -466,14 +508,12 @@ class PlanTrip:
             turn.brief = brief
         else:
             brief = await self._extract_brief(turn)
-        city = city_key(brief.destination)
-        if city is not None and city not in self._cities:
-            covered = self._cities[0].capitalize()
+        if brief.destination and resolve_city(brief.destination, self._cities) is None:
             yield text(
                 planner_text(
                     turn.language,
                     "not_covered",
-                    city=covered,
+                    cities=join_names([c.name for c in self._cities], turn.language),
                     destination=brief.destination,
                 )
             )
@@ -500,7 +540,9 @@ class PlanTrip:
             Message(
                 "system",
                 BRIEF_EXTRACTION_PROMPT.format(
-                    today=self._today().isoformat(), brief=_brief_json(turn.brief)
+                    today=self._today().isoformat(),
+                    brief=_brief_json(turn.brief),
+                    cities=cities_for_prompt(self._cities),
                 ),
             ),
             *turn.history(6),
@@ -554,7 +596,7 @@ class PlanTrip:
         known = {d.id: d for d in candidates}
         prompt = RANK_NEIGHBOURHOODS_PROMPT.format(
             brief=_brief_json(turn.brief),
-            city=(turn.brief.destination or self._cities[0]).title(),
+            city=self._city(turn).name,
             candidates="\n".join(
                 f"{d.id} | {title_of(d)} | {' '.join(d.content.split())[:220]}"
                 for d in candidates
@@ -563,43 +605,82 @@ class PlanTrip:
             language=LANGUAGE_NAMES[turn.language],
         )
         picks = await self._pick(turn, prompt, candidates, OPTIONS_COUNT)
-        cards = await ensure_photos(
-            [card_from_document(known[p.id], self._clean(turn, p.why)) for p in picks],
-            self._photos,
-            fallback=False,
-        )
         return await self._with_photos(
-            [await self._district_photo(turn, card) for card in cards]
+            turn,
+            [card_from_document(known[p.id], self._clean(turn, p.why)) for p in picks],
         )
 
-    async def _district_photo(self, turn: Turn, card: OptionCard) -> OptionCard:
-        """A neighbourhood without a page image is pictured by one of its
-        sights: the corpus has photos for most of them."""
-        if card.image_url or not card.district:
-            return card
+    async def _corpus_photo(self, turn: Turn, card: OptionCard) -> Photo | None:
+        """A picture from the corpus for a card that has none of its own: a
+        sight of the neighbourhood for a neighbourhood card, else a pictured
+        place of the same city and category (a restaurant for a restaurant),
+        credited as that place's photo. One search per category per turn."""
+        if card.category == "neighbourhood" and card.district:
+            photo = await self._pictured_place(
+                turn,
+                f"district:{card.district}",
+                f"{card.district} landmark",
+                SIGHT_CATEGORIES,
+                districts=(card.district,),
+            )
+            if photo is not None:
+                return photo
+        if card.category in PHOTO_CATEGORIES:
+            photo = await self._pictured_place(
+                turn, f"category:{card.category}", card.category, (card.category,)
+            )
+            if photo is not None:
+                return photo
+        # No pictured place of that kind: a sight of the city still shows
+        # where the trip is, which the neutral placeholder cannot.
+        return await self._pictured_place(
+            turn, "category:sight", " ".join(SIGHT_CATEGORIES), SIGHT_CATEGORIES
+        )
+
+    async def _pictured_place(
+        self,
+        turn: Turn,
+        key: str,
+        query: str,
+        categories: tuple[str, ...],
+        *,
+        districts: tuple[str, ...] = (),
+    ) -> Photo | None:
+        if key not in turn.corpus_photos:
+            turn.corpus_photos[key] = asyncio.create_task(
+                self._find_pictured(turn, key, query, categories, districts)
+            )
+        return await turn.corpus_photos[key]
+
+    async def _find_pictured(
+        self,
+        turn: Turn,
+        key: str,
+        query: str,
+        categories: tuple[str, ...],
+        districts: tuple[str, ...],
+    ) -> Photo | None:
         try:
             found = await self._search(
                 turn,
-                f"{card.district} landmark",
-                SIGHT_CATEGORIES,
+                query,
+                categories,
                 limit=self._candidate_count,
-                districts=(card.district,),
+                districts=districts,
                 tier=None,
             )
         except DomainError as exc:
-            logger.warning("No sight photo for %s: %s", card.district, exc.message)
-            return card
-        for sight in image_first(found):
-            pictured = card_from_document(sight)
+            logger.warning("No corpus photo for %s: %s", key, exc.message)
+            return None
+        for document in image_first(found):
+            pictured = card_from_document(document)
             if pictured.image_url:
-                return card.model_copy(
-                    update={
-                        "image_url": pictured.image_url,
-                        "image_credit": pictured.image_credit
-                        or f"{pictured.title} · {pictured.source}",
-                    }
+                return Photo(
+                    url=pictured.image_url,
+                    credit=pictured.image_credit
+                    or f"{pictured.title} · {pictured.source}",
                 )
-        return card
+        return None
 
     async def _neighbourhood_options(self, turn: Turn) -> AsyncIterator[PlannerEvent]:
         cards = await self._rank_neighbourhoods(turn)
@@ -659,16 +740,17 @@ class PlanTrip:
         known = {d.id: d for d in candidates}
         prompt = PICK_HOTELS_PROMPT.format(
             brief=_brief_json(turn.brief),
-            district=area or (turn.brief.destination or self._cities[0]).title(),
+            district=area or self._city(turn).name,
             candidates="\n".join(_line(d) for d in candidates),
             count=OPTIONS_COUNT,
             language=LANGUAGE_NAMES[turn.language],
         )
         picks = await self._pick(turn, prompt, candidates, OPTIONS_COUNT)
         cards = await self._with_photos(
-            [card_from_document(known[p.id], self._clean(turn, p.why)) for p in picks]
+            turn,
+            [card_from_document(known[p.id], self._clean(turn, p.why)) for p in picks],
         )
-        label = area or (turn.brief.destination or self._cities[0]).title()
+        label = area or self._city(turn).name
         yield text(planner_text(turn.language, "hotels", district=label))
         yield options(
             f"hotels:{label}",
@@ -689,7 +771,7 @@ class PlanTrip:
         if not candidates:
             yield text(planner_text(turn.language, "no_hotels"))
             return
-        [stay] = await self._with_photos([card_from_document(candidates[0])])
+        [stay] = await self._with_photos(turn, [card_from_document(candidates[0])])
         async for event in self._set_stay_and_draft(turn, stay):
             yield event
 
@@ -742,7 +824,9 @@ class PlanTrip:
                     slots.append(Slot(day=day, part=part))
                     cards.append(card_from_document(document, clean))
                     turn.use(document)
-            for slot, card in zip(slots, await self._with_photos(cards), strict=True):
+            for slot, card in zip(
+                slots, await self._with_photos(turn, cards), strict=True
+            ):
                 ops.append(put_activity(slot, card))
                 placed.append(Placed(slot=slot, card=card))
             ops.extend(
@@ -825,7 +909,7 @@ class PlanTrip:
 
     async def _climate_normal(self, turn: Turn, on: date) -> DayWeather | None:
         """The corpus's monthly normal (`om:climate:<city>:<MM>`), if indexed."""
-        city = city_key(turn.brief.destination) or self._cities[0]
+        city = self._city(turn).slug
         try:
             found = await self._retriever.fetch([f"om:climate:{city}:{on.month:02d}"])
         except DomainError as exc:
@@ -1033,7 +1117,7 @@ class PlanTrip:
             return
 
         if group.startswith("hotels:"):
-            [stay] = await self._with_photos([card_from_document(picked[0])])
+            [stay] = await self._with_photos(turn, [card_from_document(picked[0])])
             async for event in self._set_stay_and_draft(turn, stay):
                 yield event
             return
@@ -1042,7 +1126,7 @@ class PlanTrip:
         if slot is None:
             yield text(planner_text(turn.language, "stale_group"))
             return
-        cards = await self._with_photos(cards_for(picked, {}))
+        cards = await self._with_photos(turn, cards_for(picked, {}))
         yield patch(*(put_activity(slot, card) for card in cards))
         yield text(
             planner_text(
@@ -1062,7 +1146,7 @@ class PlanTrip:
 
     async def _classify(self, turn: Turn) -> Intent:
         prompt = INTENT_PROMPT.format(
-            city=(turn.brief.destination or self._cities[0]).title(),
+            city=self._city(turn).name,
             itinerary=_itinerary_summary(turn),
         )
         try:
@@ -1116,7 +1200,8 @@ class PlanTrip:
         )
         picks = await self._pick(turn, prompt, candidates, OPTIONS_COUNT)
         cards = await self._with_photos(
-            [card_from_document(known[p.id], self._clean(turn, p.why)) for p in picks]
+            turn,
+            [card_from_document(known[p.id], self._clean(turn, p.why)) for p in picks],
         )
         prompt_text = planner_text(turn.language, heading, day=slot.day, part=part_name)
         yield text(prompt_text)
@@ -1160,9 +1245,22 @@ class PlanTrip:
 
     # ── Shared helpers ───────────────────────────────────────────────────
 
-    async def _with_photos(self, cards: list[OptionCard]) -> list[OptionCard]:
-        """Every card pictured: its own, one found near it, or an illustrative one."""
-        return await ensure_photos(cards, self._photos)
+    async def _with_photos(
+        self, turn: Turn, cards: list[OptionCard]
+    ) -> list[OptionCard]:
+        """Every card pictured: its own, one found on Commons, a place of the
+        same city and category from the corpus, or the neutral placeholder."""
+        return await ensure_photos(
+            cards,
+            self._photos,
+            city=self._city(turn).name,
+            fallback=lambda card: self._corpus_photo(turn, card),
+        )
+
+    def _city(self, turn: Turn) -> City:
+        """The city this turn plans: the brief's destination when it is one
+        we cover (by any spelling), else the first configured city."""
+        return resolve_city(turn.brief.destination, self._cities) or self._cities[0]
 
     def _persona(self, turn: Turn) -> str:
         return PLANNER_PERSONA.format(language=LANGUAGE_NAMES[turn.language])
@@ -1197,7 +1295,7 @@ class PlanTrip:
         tier: int | None,
     ) -> list[Document]:
         filters = RetrievalFilters(
-            city=city_key(turn.brief.destination) or self._cities[0],
+            city=self._city(turn).slug,
             districts=districts,
             categories=categories,
             price_tier_max=tier,

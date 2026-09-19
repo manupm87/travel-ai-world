@@ -10,6 +10,7 @@ import { TripPanel } from "@/components/planner/v2/TripPanel";
 import { useLanguage } from "@/context/LanguageContext";
 import { partOf } from "@/hooks/plannerReducer";
 import { usePlanner } from "@/hooks/usePlanner";
+import { usePlannerCities } from "@/hooks/usePlannerCities";
 import { interpolate } from "@/i18n";
 import type { Slot } from "@/types/planner";
 
@@ -36,6 +37,9 @@ export default function PlannerClientPage() {
     toggleShortlist,
     reset,
   } = usePlanner();
+  // The covered cities, for the starter chips and the destination hint; the
+  // built-in copy stands in until they arrive (or when they never do).
+  const { cities } = usePlannerCities();
   // No backend, or no `/planner` route yet: the recorded session answers
   // instead (TRA-158) and the banner says so, so the page is never "unavailable".
   const unavailable = false;
@@ -79,6 +83,7 @@ export default function PlannerClientPage() {
           state={state}
           errorText={errorText}
           unavailable={unavailable}
+          cities={cities}
           onSend={sendMessage}
           onAnswer={answer}
           onSelect={select}

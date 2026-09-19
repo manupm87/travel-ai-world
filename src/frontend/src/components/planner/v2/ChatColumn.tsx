@@ -5,7 +5,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { hasItinerary, type PlannerMessage, type PlannerState } from "@/hooks/plannerReducer";
 import { useAutoResizeTextarea } from "@/hooks/useAutoResizeTextarea";
 import { useStickToBottom } from "@/hooks/useStickToBottom";
-import type { TripBrief } from "@/types/planner";
+import type { PlannerCity, TripBrief } from "@/types/planner";
 import { MessageBubble } from "../MessageBubble";
 import { PromptComposer, TEXTAREA_MAX_PX } from "../PromptComposer";
 import { OptionCarousel } from "./OptionCarousel";
@@ -19,6 +19,9 @@ export interface ChatColumnProps {
   errorText: string | null;
   /** No ai_api configured: explain instead of failing silently (show t.plan.errors.unavailable via PromptComposer's `unavailable`). */
   unavailable: boolean;
+  /** The cities the planner covers: starter chips and the destination hint
+   *  come from them; empty while loading or without a backend (default copy). */
+  cities?: PlannerCity[];
   onSend: (text: string) => void;
   onAnswer: (patch: Partial<TripBrief>, text: string) => void;
   onSelect: (groupId: string, cardIds: string[]) => void;
@@ -40,6 +43,7 @@ export function ChatColumn({
   state,
   errorText,
   unavailable,
+  cities = [],
   onSend,
   onAnswer,
   onSelect,
@@ -125,11 +129,21 @@ export function ChatColumn({
         )}
 
         {showQuickReplies && (
-          <QuickReplies brief={state.brief} missing={state.missing} onAnswer={onAnswer} />
+          <QuickReplies
+            brief={state.brief}
+            missing={state.missing}
+            destinationPlaceholder={cities[0]?.name}
+            onAnswer={onAnswer}
+          />
         )}
       </div>
 
-      <SuggestionChips onPick={onSend} disabled={isStreaming || unavailable} />
+      <SuggestionChips
+        onPick={onSend}
+        disabled={isStreaming || unavailable}
+        cities={cities}
+        showStarters={state.messages.length === 0}
+      />
 
       <PromptComposer
         value={input}

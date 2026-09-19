@@ -9,6 +9,7 @@ import type {
   ItineraryOp,
   OptionCard,
   OptionKind,
+  PlannerCity,
   PlannerEvent,
   PlannerTurn,
   Slot,
@@ -22,7 +23,7 @@ import {
   OPTION_KINDS,
   WARN_CODES,
 } from "@/types/planner";
-import { ApiError, isAiAvailable, requestRaw } from "./http";
+import { ApiError, isAiAvailable, request, requestRaw } from "./http";
 import { streamDemoTurn } from "./plannerDemo";
 
 export interface ParsedPlannerEvents {
@@ -274,6 +275,25 @@ export interface StreamPlannerOptions {
 /** A 404/405 from the planner route means it is not deployed: not a failure. */
 function isRouteMissing(err: unknown): boolean {
   return err instanceof ApiError && (err.status === 404 || err.status === 405);
+}
+
+/**
+ * The cities the planner covers (`GET /ai/planner/cities`), for the
+ * destination hint and the starter chips. Empty when there is no ai_api
+ * URL; the page keeps its built-in copy then. Failures propagate (the hook
+ * turns them into the same empty list).
+ */
+export async function listCities(options?: { signal?: AbortSignal }): Promise<PlannerCity[]> {
+  if (!isAiAvailable()) return [];
+  const cities = await request<unknown>("ai", "/ai/planner/cities", {
+    auth: true,
+    signal: options?.signal,
+  });
+  if (!Array.isArray(cities)) return [];
+  return cities.filter(
+    (city): city is PlannerCity =>
+      isObject(city) && typeof city.slug === "string" && typeof city.name === "string"
+  );
 }
 
 /**

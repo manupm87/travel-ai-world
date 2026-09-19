@@ -76,7 +76,12 @@ TypeScript 5, Tailwind CSS v4.
   (route mocked with it, plus one test where the route answers 404). Motion comes from the
   keyframes in `globals.css` (`animate-fade-up`, `animate-scale-in`, ...; `prefers-reduced-motion`
   is honoured globally). `MapPlaceholder` is what the map issue (TRA-147) replaces; the "Save
-  trip" button waits for the persistence issue (TRA-146).
+  trip" button waits for the persistence issue (TRA-146). The page knows no city by name (TRA-168):
+  `services/planner.ts::listCities` reads `GET /ai/planner/cities`, `hooks/usePlannerCities` loads it
+  once, and `ChatColumn` turns it into one "Plan a trip to {city}" starter chip per city
+  (`SuggestionChips`, only while the transcript is empty) and the destination hint of `QuickReplies`;
+  the i18n copy (`plan.cityStarter`, `quickReplies.destinationPlaceholder`) is the fallback while the
+  list loads, when the call fails, or without a backend.
 - Tests: `renderWithProviders` from `src/test/render.tsx` and the typed builders in
   `src/test/fixtures.ts` (`src/test/fixtures/trip-japan.ts` when a test needs a whole `TripResponse`);
   assert on roles/names/`data-*` state and on `en.ts` copy, not on class names.

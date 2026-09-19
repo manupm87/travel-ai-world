@@ -179,7 +179,9 @@ async def test_a_named_match_is_returned_with_its_credit() -> None:
         licence="CC BY-SA 3.0",
     )
 
-    photo = await _photos(handler).find("Náncsi néni Restaurant", 47.5, 19.05)
+    photo = await _photos(handler).find(
+        "Náncsi néni Restaurant", 47.5, 19.05, city="Budapest"
+    )
 
     assert photo == Photo(
         url=(
@@ -198,7 +200,7 @@ async def test_the_credit_strips_html_from_the_artist_field() -> None:
         licence="CC BY-SA 4.0",
     )
 
-    photo = await _photos(handler).find("Some Place", 47.5, 19.05)
+    photo = await _photos(handler).find("Some Place", 47.5, 19.05, city="Budapest")
 
     assert photo is not None
     assert photo.credit == "J. Doe (CC BY-SA 4.0) · Wikimedia Commons"
@@ -210,7 +212,7 @@ async def test_no_author_or_licence_credits_wikimedia_commons_alone() -> None:
         [{"title": "File:Courtyard view.jpg", "dist": 5.0}], artist=None, licence=None
     )
 
-    photo = await _photos(handler).find("Some Place", 47.5, 19.05)
+    photo = await _photos(handler).find("Some Place", 47.5, 19.05, city="Budapest")
 
     assert photo is not None
     assert photo.credit == "Wikimedia Commons"
@@ -219,7 +221,7 @@ async def test_no_author_or_licence_credits_wikimedia_commons_alone() -> None:
 async def test_no_usable_file_is_none_and_makes_no_second_call() -> None:
     handler, seen = _found([{"title": "File:Far away shot.jpg", "dist": 45.0}])
 
-    photo = await _photos(handler).find("Some Place", 47.5, 19.05)
+    photo = await _photos(handler).find("Some Place", 47.5, 19.05, city="Budapest")
 
     assert photo is None
     assert [r.url.params.get("list") for r in seen] == ["geosearch"]
@@ -231,7 +233,7 @@ async def test_no_usable_file_is_none_and_makes_no_second_call() -> None:
 async def test_geosearch_request_carries_the_expected_params() -> None:
     handler, seen = _found([{"title": "File:Courtyard view.jpg", "dist": 5.0}])
 
-    await _photos(handler).find("Some Place", 47.5071, 19.0458)
+    await _photos(handler).find("Some Place", 47.5071, 19.0458, city="Budapest")
 
     params = seen[0].url.params
     assert str(seen[0].url).startswith(f"{API_URL}?")
@@ -259,7 +261,7 @@ async def test_an_upstream_500_is_none_not_an_exception(caplog) -> None:
         return httpx.Response(500, text="upstream detail")
 
     with caplog.at_level(logging.WARNING):
-        photo = await _photos(handler).find("Some Place", 47.5, 19.05)
+        photo = await _photos(handler).find("Some Place", 47.5, 19.05, city="Budapest")
 
     assert photo is None
     assert "Commons photo lookup failed" in caplog.text
@@ -270,7 +272,7 @@ async def test_a_connection_error_is_none(caplog) -> None:
         raise httpx.ConnectError("no route to host", request=request)
 
     with caplog.at_level(logging.WARNING):
-        photo = await _photos(handler).find("Some Place", 47.5, 19.05)
+        photo = await _photos(handler).find("Some Place", 47.5, 19.05, city="Budapest")
 
     assert photo is None
     assert "Commons photo lookup failed" in caplog.text
@@ -281,7 +283,7 @@ async def test_malformed_json_is_none(caplog) -> None:
         return httpx.Response(200, text="<html>not json</html>")
 
     with caplog.at_level(logging.WARNING):
-        photo = await _photos(handler).find("Some Place", 47.5, 19.05)
+        photo = await _photos(handler).find("Some Place", 47.5, 19.05, city="Budapest")
 
     assert photo is None
     assert "Commons photo lookup failed" in caplog.text
@@ -346,7 +348,7 @@ async def test_a_photo_named_after_the_venue_wins_without_a_geosearch():
     )
     finder = CommonsPhotos(httpx.AsyncClient(transport=transport))
 
-    photo = await finder.find("Fruska bisztró", 47.47, 19.05)
+    photo = await finder.find("Fruska bisztró", 47.47, 19.05, city="Budapest")
 
     assert photo is not None and "Fruska%20bistro" in photo.url
     assert photo.credit == "Someone (CC BY 4.0) · Wikimedia Commons"
@@ -364,7 +366,7 @@ async def test_a_generic_word_in_a_search_result_is_not_a_match():
     )
     finder = CommonsPhotos(httpx.AsyncClient(transport=transport))
 
-    photo = await finder.find("Stefánia Park Cafe", 47.43, 19.11)
+    photo = await finder.find("Stefánia Park Cafe", 47.43, 19.11, city="Budapest")
 
     assert photo is None
     assert seen == ["search", "geosearch"]
@@ -382,7 +384,7 @@ async def test_a_rate_limited_search_still_tries_the_geosearch(caplog):
     )
     finder = CommonsPhotos(httpx.AsyncClient(transport=transport))
 
-    photo = await finder.find("Cortile Hotel", 47.51, 19.06)
+    photo = await finder.find("Cortile Hotel", 47.51, 19.06, city="Budapest")
 
     assert photo is not None and "Cortile%20front" in photo.url
     assert seen == ["search", "geosearch", "imageinfo"]
@@ -472,3 +474,34 @@ async def test_a_failing_wiki_api_is_none_with_a_warning(caplog):
         is None
     )
     assert "Wiki page image lookup failed" in caplog.text
+
+
+# ─── The city is the caller's, never hard-coded (TRA-168) ────────────────────
+
+
+async def test_the_name_search_carries_the_callers_city():
+    seen_queries: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        params = request.url.params
+        if params.get("list") == "search":
+            seen_queries.append(params["srsearch"])
+            return httpx.Response(200, json={"query": {"search": []}})
+        return httpx.Response(200, json={"query": {"geosearch": []}})
+
+    finder = CommonsPhotos(httpx.AsyncClient(transport=httpx.MockTransport(handler)))
+
+    await finder.find("Osteria dell'Orsa", 44.49, 11.34, city="Bologna")
+
+    assert seen_queries == ["Osteria dell'Orsa Bologna"]
+
+
+def test_the_citys_own_name_is_not_a_distinctive_word():
+    from ai_api.infrastructure.commons_photos import choose_named, distinctive_words
+
+    assert distinctive_words("Hotel Bologna", city="Bologna") == set()
+    assert distinctive_words("Bologna Welcome Hotel", city="Bologna") == {"welcome"}
+    assert distinctive_words("Budapest Marriott", city="Budapest") == {"marriott"}
+    # A file merely named after the city does not picture the venue.
+    files = [{"title": "File:Bologna skyline at dusk.jpg"}]
+    assert choose_named("Bologna Welcome Hotel", files, city="Bologna") is None

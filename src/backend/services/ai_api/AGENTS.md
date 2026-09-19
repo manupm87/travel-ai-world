@@ -68,11 +68,20 @@ testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, Ke
   `strip_prices`. It needs the retriever (503 without `RETRIEVAL_ENABLED`); a failed structured call degrades
   (top candidates, plain day titles, chat intent) rather than failing the turn. Prompts and the fixed
   en/es sentences live in `prompts.py`. Weather: Open-Meteo within 16 days, else the corpus's
-  `om:climate:<city>:<MM>` normal fetched by id. **Every card is pictured** (TRA-161): candidates are ordered
-  pictured-first, a card without a corpus image is looked up on Commons at its coordinates (`PhotoFinder`,
-  `PHOTOS_ENABLED`) and, failing that, gets an illustrative photo of its category credited as such
-  (`application/photos.py`). Tests drive it with `FakeProvider(replies=[...])`, `FakeRetriever` (filter-aware),
-  `FakePhotoFinder` and `testing.documents_from_corpus(tests/fixtures/budapest_sample.jsonl)`.
+  `om:climate:<city>:<MM>` normal fetched by id. **Every card is pictured** (TRA-161, TRA-168): candidates
+  are ordered pictured-first; a card without a corpus image is looked up on Commons by name (the search
+  carries the city's name) and at its coordinates (`PhotoFinder`, `PHOTOS_ENABLED`); failing that it takes
+  the photo of a pictured place of the same city and category from the corpus (a neighbourhood: a sight of
+  its district; a restaurant: another restaurant, else a sight), credited as that place's; only a corpus
+  that pictures nothing at all gets the neutral placeholder credited `Illustrative photo`
+  (`application/photos.py`, `PlanTrip._corpus_photo`). Tests drive it with `FakeProvider(replies=[...])`,
+  `FakeRetriever` (filter-aware), `FakePhotoFinder` and
+  `testing.documents_from_corpus(tests/fixtures/budapest_sample.jsonl)`.
+- **The planner knows no city by name.** `PlanTrip` takes `City` objects (`domain/models.py`) from the
+  manifest; `resolve_city` matches a typed destination against every alias (ascii-folded whole words, so
+  "Bolonia" is `bologna`), the brief prompt lists the covered spellings, the not-covered sentence names
+  every covered city, and `GET /planner/cities` tells the page what to offer. A city name in code is a
+  test fixture (`testing.city_for`, `testing.BUDAPEST`), never a default.
 - SSE wire format to the browser is fixed (`data: {"content"}`, `data: {"thread_id"}`,
   `data: {"error", "error_code"}`, `data: [DONE]`); the frontend's `services/chat.ts` depends on it. Upstream bodies and unexpected
   exceptions never reach the client: `sse.py` sends the domain message or a generic one and logs the rest.

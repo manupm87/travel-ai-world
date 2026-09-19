@@ -98,7 +98,12 @@ class PhotoFinder(Protocol):
     one with, but a plan without cards is worse than both.
     """
 
-    async def find(self, name: str, lat: float, lon: float) -> Photo | None: ...
+    async def find(
+        self, name: str, lat: float, lon: float, *, city: str
+    ) -> Photo | None:
+        """A photo of the venue `name` at these coordinates; `city` is the
+        city's name, which a name search adds to tell venues apart."""
+        ...
 
     async def find_for_page(self, page_url: str) -> Photo | None:
         """The lead image of a wiki page (a Wikivoyage district, a Wikipedia

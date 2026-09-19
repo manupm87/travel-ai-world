@@ -74,4 +74,20 @@ describe("QuickReplies", () => {
     fireEvent.click(tiers[1]!);
     expect(confirmButton()).toBeEnabled();
   });
+
+  it("hints the destination with a covered city, or the built-in copy without one", () => {
+    const { unmount } = renderWithProviders(
+      <QuickReplies
+        brief={brief()}
+        missing={["destination"]}
+        destinationPlaceholder="Bologna"
+        onAnswer={vi.fn()}
+      />
+    );
+    expect(screen.getByPlaceholderText("Bologna")).toBeInTheDocument();
+    unmount();
+
+    renderQuickReplies(["destination"]);
+    expect(screen.getByPlaceholderText(q.destinationPlaceholder)).toBeInTheDocument();
+  });
 });

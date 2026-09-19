@@ -15,6 +15,7 @@ from ai_api.application.plan_trip import PlanTrip
 from ai_api.application.record_conversation import RecordConversation
 from ai_api.application.stream_chat import StreamChat
 from ai_api.config import AISettings, get_settings
+from ai_api.domain.models import City
 from ai_api.domain.ports import (
     ConversationGateway,
     LLMProvider,
@@ -23,7 +24,6 @@ from ai_api.domain.ports import (
     TripGateway,
     WeatherForecast,
 )
-from ai_api.infrastructure.cities import City
 from ai_api.infrastructure.core_api_client import CoreApiClient
 from ai_api.infrastructure.providers import ChatProvider, planner_cities
 from ai_api.prompts import CHAT_SYSTEM_PROMPT
@@ -102,7 +102,7 @@ def get_plan_trip(
         retriever,
         weather=weather,
         photos=photos,
-        cities=[city.slug for city in cities],
+        cities=cities,
         max_days=settings.PLANNER_MAX_DAYS,
         candidates=settings.PLANNER_CANDIDATES,
     )

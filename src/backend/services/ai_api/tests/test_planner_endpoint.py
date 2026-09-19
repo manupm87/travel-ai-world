@@ -37,6 +37,27 @@ async def test_requires_authentication(client: AsyncClient):
     assert response.status_code == 401
 
 
+async def test_the_cities_endpoint_lists_the_manifest(
+    client: AsyncClient, auth_headers
+):
+    response = await client.get(f"{PLANNER_URL}/cities", headers=auth_headers)
+
+    assert response.status_code == 200
+    [budapest] = [c for c in response.json() if c["slug"] == "budapest"]
+    assert budapest == {
+        "slug": "budapest",
+        "name": "Budapest",
+        "centre": [47.4979, 19.0402],
+        "timezone": "Europe/Budapest",
+    }
+
+
+async def test_the_cities_endpoint_requires_authentication(client: AsyncClient):
+    response = await client.get(f"{PLANNER_URL}/cities")
+
+    assert response.status_code == 401
+
+
 async def test_without_retrieval_the_planner_is_unavailable(
     client: AsyncClient, auth_headers
 ):

@@ -9,17 +9,11 @@ list for a local run (an unknown slug is a configuration error, named).
 """
 
 import json
-from dataclasses import dataclass
 from importlib.resources import files
 
+from ai_api.domain.models import City
 
-@dataclass(frozen=True, slots=True)
-class City:
-    slug: str
-    name: str
-    aliases: tuple[str, ...]
-    centre: tuple[float, float]
-    timezone: str
+__all__ = ["City", "load_cities", "select_cities"]
 
 
 def load_cities() -> tuple[City, ...]:

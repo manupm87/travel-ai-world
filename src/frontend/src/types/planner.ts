@@ -13,6 +13,9 @@ import type { components } from "@/types/generated/ai-api";
 /** A chat turn as `ai_api` replays it; the same shape `/ai/chat` uses. */
 export type ChatMessage = components["schemas"]["ChatMessage"];
 
+/** A city the planner covers (`GET /ai/planner/cities`): a destination to offer. */
+export type PlannerCity = components["schemas"]["PlannerCity"];
+
 // ─── The brief ──────────────────────────────────────────────────────────────
 
 export type TripBrief = components["schemas"]["TripBrief"];

@@ -33,13 +33,14 @@ from typing import Any
 from ai_api.application.photos import ILLUSTRATIVE
 from ai_api.application.plan_trip import PlanTrip
 from ai_api.config import AISettings
-from ai_api.domain.models import Document
+from ai_api.domain.models import City, Document
+from ai_api.infrastructure.cities import load_cities
 from ai_api.infrastructure.commons_photos import CommonsPhotos
 from ai_api.infrastructure.nvidia_provider import NvidiaProvider
 from ai_api.infrastructure.open_meteo import OpenMeteoForecast
 from ai_api.schemas.planner import PlannerTurn
 from ai_api.schemas.planner_events import DAY_PARTS
-from ai_api.testing import KeywordRetriever, documents_from_corpus
+from ai_api.testing import KeywordRetriever, city_for, documents_from_corpus
 from travel_common.exceptions import DomainError
 
 SERVICE_DIR = Path(__file__).resolve().parents[2]
@@ -224,6 +225,12 @@ class Session:
             self._out.flush()
 
 
+def city_of(slug: str) -> City:
+    """The manifest's entry for the slug (name, aliases), or a bare one for a
+    city whose corpus is built but not yet in the manifest."""
+    return next((c for c in load_cities() if c.slug == slug), None) or city_for(slug)
+
+
 async def run(args: argparse.Namespace, out: Any) -> int:
     texts = TEXTS[args.lang]
     # Arguments beat the environment: the model named here is the one that runs.
@@ -242,7 +249,7 @@ async def run(args: argparse.Namespace, out: Any) -> int:
         KeywordRetriever(documents),
         weather=weather,
         photos=photos,
-        cities=[args.city],
+        cities=[city_of(args.city)],
     )
     session = Session(plan, tally, out=out, quiet=args.quiet)
     out.write(
@@ -252,7 +259,7 @@ async def run(args: argparse.Namespace, out: Any) -> int:
 
     start = date.today() + timedelta(days=30)
     end = start + timedelta(days=args.days - 1)
-    city = args.city.replace("-", " ").title()
+    city = city_of(args.city).name
     try:
         await session.turn(
             texts["opening"].format(days=args.days, city=city, origin=args.origin)

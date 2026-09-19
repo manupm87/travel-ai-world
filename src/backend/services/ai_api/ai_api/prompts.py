@@ -1,8 +1,8 @@
 """Prompts. Kept out of code paths so they can be tuned in isolation."""
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 
-from ai_api.domain.models import Document
+from ai_api.domain.models import City, Document
 
 CHAT_SYSTEM_PROMPT = (
     "You are the Travel AI World planning assistant. Turn the user's trip idea "
@@ -68,7 +68,11 @@ BRIEF_EXTRACTION_PROMPT = (
     "Today is {today}. Read the user's latest message (and the transcript, if "
     "any) and update the trip brief. Return only the fields the message gives "
     "or changes; leave the rest null. Rules: `destination` and `origin` are "
-    "city names in English (Budapest, Madrid); dates are ISO `YYYY-MM-DD` "
+    "city names in English (Madrid, Vienna); the destinations this planner "
+    "covers, with the spellings travellers use, are: {cities}. When the "
+    "message names one of them in any spelling, write its English name "
+    "exactly as listed; any other destination is written as the user said it. "
+    "Dates are ISO `YYYY-MM-DD` "
     "(resolve relative dates from today; a range like '20-24 October' is "
     "start 20, end 24 of the coming October); `nights` = end minus start when "
     "both are known; `budget_tier` 1 = cheap/low, 2 = mid-range/medium, "
@@ -160,8 +164,8 @@ CHAT_INTRO = (
 PLANNER_TEXTS: dict[str, dict[str, str]] = {
     "en": {
         "not_covered": (
-            "For now I can only plan {city}: the corpus does not cover "
-            "{destination} yet. Shall we plan {city}?"
+            "For now I can plan {cities}: the corpus does not cover "
+            "{destination} yet. Shall we plan one of those?"
         ),
         "neighbourhoods": (
             "These neighbourhoods fit your trip. Where would you like to stay?"
@@ -191,8 +195,8 @@ PLANNER_TEXTS: dict[str, dict[str, str]] = {
     },
     "es": {
         "not_covered": (
-            "De momento solo puedo planificar {city}: el corpus aún no cubre "
-            "{destination}. ¿Planificamos {city}?"
+            "De momento puedo planificar {cities}: el corpus aún no cubre "
+            "{destination}. ¿Planificamos una de ellas?"
         ),
         "neighbourhoods": "Estos barrios encajan con tu viaje. ¿Dónde te gustaría alojarte?",
         "no_neighbourhoods": "Todavía no encuentro barrios para esa ciudad.",
@@ -259,3 +263,23 @@ def planner_text(language: str, key: str, **values: object) -> str:
     """A fixed sentence in the user's language (English when unknown)."""
     texts = PLANNER_TEXTS.get(language) or PLANNER_TEXTS["en"]
     return texts[key].format(**values)
+
+
+LIST_CONJUNCTIONS = {"en": "and", "es": "y"}
+
+
+def join_names(names: Sequence[str], language: str) -> str:
+    """`Budapest and Bologna` / `Budapest y Bolonia`, for a sentence."""
+    conjunction = LIST_CONJUNCTIONS.get(language, LIST_CONJUNCTIONS["en"])
+    if len(names) <= 1:
+        return "".join(names)
+    return f"{', '.join(names[:-1])} {conjunction} {names[-1]}"
+
+
+def cities_for_prompt(cities: Sequence[City]) -> str:
+    """`Budapest (budapest); Bologna (bologna, bolonia)`: the covered cities
+    and their spellings, for the brief extraction prompt."""
+    return "; ".join(
+        f"{city.name} ({', '.join(dict.fromkeys((city.slug, *city.aliases)))})"
+        for city in cities
+    )

@@ -156,6 +156,8 @@ export interface Translations {
     chosen: string;
     /** Shortcut requests under the composer. */
     suggestions: string[];
+    /** Starter chip per covered city: "Plan a trip to {city}". */
+    cityStarter: string;
     quickReplies: {
       title: string;
       confirm: string;

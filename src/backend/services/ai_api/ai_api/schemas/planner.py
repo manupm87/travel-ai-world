@@ -12,6 +12,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from ai_api.domain.models import City
 from ai_api.schemas.chat import MAX_HISTORY_TURNS, MAX_MESSAGE_CHARS, ChatMessage
 from ai_api.schemas.planner_events import Slot, TripBrief
 
@@ -76,4 +77,20 @@ class PlannerTurn(BaseModel):
     itinerary: ItinerarySnapshot | None
     trip_id: UUID | None = Field(
         description="Reserved: the Trip this draft will be saved to"
+    )
+
+
+class PlannerCity(BaseModel):
+    """A city the planner covers (`GET /planner/cities`): what the page needs
+    to offer it as a destination. The spellings it answers to stay server-side."""
+
+    slug: str
+    name: str
+    centre: tuple[float, float] = Field(description="[latitude, longitude]")
+    timezone: str
+
+
+def planner_city(city: City) -> PlannerCity:
+    return PlannerCity(
+        slug=city.slug, name=city.name, centre=city.centre, timezone=city.timezone
     )

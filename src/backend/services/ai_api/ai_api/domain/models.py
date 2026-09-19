@@ -101,6 +101,19 @@ class DayWeather:
 
 
 @dataclass(frozen=True, slots=True)
+class City:
+    """A city the planner covers: its corpus slug, the name shown, the
+    spellings a traveller may type (ascii-folded, lower-case), the centre
+    and the time zone. Comes from the cities manifest the corpus writes."""
+
+    slug: str
+    name: str
+    aliases: tuple[str, ...]
+    centre: tuple[float, float]
+    timezone: str
+
+
+@dataclass(frozen=True, slots=True)
 class Photo:
     """A licence-clean picture of a place, with the credit its licence asks for."""
 

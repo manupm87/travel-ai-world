@@ -10,15 +10,26 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from travel_common.principal import Principal
 
-from ai_api.api.deps import get_current_user, get_plan_trip
+from ai_api.api.deps import get_cities, get_current_user, get_plan_trip
 from ai_api.api.v1.endpoints.chat import SSE_HEADERS
 from ai_api.application.plan_trip import PlanTrip
+from ai_api.domain.models import City
 from ai_api.infrastructure.sse import sse_events
-from ai_api.schemas.planner import PlannerTurn
+from ai_api.schemas.planner import PlannerCity, PlannerTurn, planner_city
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+@router.get("/cities", response_model=list[PlannerCity])
+async def cities(
+    principal: Principal = Depends(get_current_user),
+    covered: tuple[City, ...] = Depends(get_cities),
+) -> list[PlannerCity]:
+    """The cities the planner can plan, from the corpus manifest shipped with
+    the service: the page offers them as destinations."""
+    return [planner_city(city) for city in covered]
 
 
 @router.post(

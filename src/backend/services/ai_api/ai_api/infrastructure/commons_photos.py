@@ -101,7 +101,6 @@ _STOP = frozenset(
         "kávéház",
         "hotel",
         "hostel",
-        "budapest",
         "kitchen",
         "house",
         "street",
@@ -142,12 +141,14 @@ class CommonsPhotos:
     async def aclose(self) -> None:
         await self._client.aclose()
 
-    async def find(self, name: str, lat: float, lon: float) -> Photo | None:
-        title = await self._by_name(name)
+    async def find(
+        self, name: str, lat: float, lon: float, *, city: str
+    ) -> Photo | None:
+        title = await self._by_name(name, city)
         try:
             if title is None:
                 files = await self._geosearch(lat, lon)
-                title = choose_file(name, files)
+                title = choose_file(name, files, city=city)
             if title is None:
                 return None
             author, licence = await self._credit(title)
@@ -192,10 +193,11 @@ class CommonsPhotos:
             url=file_url(file_title, self._width), credit=credit_line(author, licence)
         )
 
-    async def _by_name(self, name: str) -> str | None:
+    async def _by_name(self, name: str, city: str) -> str | None:
         """A file named after the venue, or None; a failed search (Commons
-        rate-limits this endpoint) still leaves the geosearch to try."""
-        if not distinctive_words(name):
+        rate-limits this endpoint) still leaves the geosearch to try. The
+        city's name narrows the search to the right town's venue."""
+        if not distinctive_words(name, city=city):
             return None
         try:
             response = await self._client.get(
@@ -203,7 +205,7 @@ class CommonsPhotos:
                 params={
                     "action": "query",
                     "list": "search",
-                    "srsearch": f"{name} Budapest",
+                    "srsearch": f"{name} {city}".strip(),
                     "srnamespace": 6,
                     "srlimit": 5,
                     "format": "json",
@@ -217,7 +219,7 @@ class CommonsPhotos:
         except (httpx.HTTPError, ValueError, KeyError, TypeError) as exc:
             logger.warning("Commons name search failed for %r: %s", name, exc)
             return None
-        return choose_named(name, found)
+        return choose_named(name, found, city=city)
 
     async def _geosearch(self, lat: float, lon: float) -> list[dict[str, Any]]:
         response = await self._client.get(
@@ -276,12 +278,18 @@ def wiki_page(page_url: str) -> tuple[str, str] | None:
     return (parsed.hostname or "", title) if title else None
 
 
-def distinctive_words(name: str) -> set[str]:
+def _city_words(city: str) -> set[str]:
+    """The city's own name is never distinctive of a venue in it."""
+    return {w.lower() for w in _NAME_WORDS.findall(city)}
+
+
+def distinctive_words(name: str, *, city: str = "") -> set[str]:
     """The words of a venue name that could only mean this venue."""
+    skip = _STOP | GENERIC_WORDS | _city_words(city)
     return {
         w.lower()
         for w in _NAME_WORDS.findall(name)
-        if len(w) >= 5 and w.lower() not in _STOP and w.lower() not in GENERIC_WORDS
+        if len(w) >= 5 and w.lower() not in skip
     }
 
 
@@ -296,10 +304,12 @@ def _usable(files: list[dict[str, Any]]) -> list[dict[str, Any]]:
     ]
 
 
-def choose_named(name: str, files: list[dict[str, Any]]) -> str | None:
+def choose_named(
+    name: str, files: list[dict[str, Any]], *, city: str = ""
+) -> str | None:
     """A search result whose title carries a distinctive word of the name, or
     the whole name; search results are not near the venue, so nothing less."""
-    words = distinctive_words(name)
+    words = distinctive_words(name, city=city)
     whole = " ".join(name.lower().split())
     for f in _usable(files):
         lowered = f["title"].lower()
@@ -308,14 +318,17 @@ def choose_named(name: str, files: list[dict[str, Any]]) -> str | None:
     return None
 
 
-def choose_file(name: str, files: list[dict[str, Any]]) -> str | None:
+def choose_file(
+    name: str, files: list[dict[str, Any]], *, city: str = ""
+) -> str | None:
     """The file that names the venue, else the nearest one close enough.
 
     `geosearch` answers nearest first. A title with one of the venue's own
     words (Szimpla, Náncsi) is the venue; otherwise a photo taken within a
     few metres is its street or façade, still worth showing.
     """
-    words = {w.lower() for w in _NAME_WORDS.findall(name) if w.lower() not in _STOP}
+    skip = _STOP | _city_words(city)
+    words = {w.lower() for w in _NAME_WORDS.findall(name) if w.lower() not in skip}
     usable = _usable(files)
     for f in usable:
         lowered = f["title"].lower()

@@ -135,6 +135,7 @@ const es: Translations = {
       "Añade un día termal",
       "Restaurantes húngaros cerca",
     ],
+    cityStarter: "Planifica un viaje a {city}",
     quickReplies: {
       title: "Afinemos un poco más:",
       confirm: "Confirmar",

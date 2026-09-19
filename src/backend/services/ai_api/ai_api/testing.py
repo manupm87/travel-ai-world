@@ -14,6 +14,7 @@ from travel_common.exceptions import DomainError, EntityNotFound
 from ai_api.config import AISettings
 from ai_api.domain.models import (
     ChatTurn,
+    City,
     Document,
     Message,
     Photo,
@@ -24,6 +25,20 @@ from ai_api.domain.models import (
 
 def settings_for_tests() -> AISettings:
     return AISettings(SECRET_KEY="unit-test-secret-key-with-32-bytes-min")  # noqa: S106
+
+
+def city_for(slug: str, *aliases: str, name: str | None = None) -> City:
+    """A `City` for a test or a smoke run: `city_for("bologna", "bolonia")`."""
+    return City(
+        slug=slug,
+        name=name or slug.replace("-", " ").title(),
+        aliases=tuple(dict.fromkeys((slug, *aliases))),
+        centre=(0.0, 0.0),
+        timezone="UTC",
+    )
+
+
+BUDAPEST = city_for("budapest", name="Budapest")
 
 
 class FakeProvider:
@@ -250,9 +265,14 @@ class FakePhotoFinder:
         self.pages = pages or {}
         self.lookups: list[tuple[str, float, float]] = []
         self.page_lookups: list[str] = []
+        # The city name each lookup was asked for, in lookup order.
+        self.cities: list[str] = []
 
-    async def find(self, name: str, lat: float, lon: float) -> Photo | None:
+    async def find(
+        self, name: str, lat: float, lon: float, *, city: str
+    ) -> Photo | None:
         self.lookups.append((name, lat, lon))
+        self.cities.append(city)
         return self.photos.get(name)
 
     async def find_for_page(self, page_url: str) -> Photo | None:

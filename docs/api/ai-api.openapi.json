@@ -572,6 +572,46 @@
         "title": "OptionsEvent",
         "type": "object"
       },
+      "PlannerCity": {
+        "description": "A city the planner covers (`GET /planner/cities`): what the page needs\nto offer it as a destination. The spellings it answers to stay server-side.",
+        "properties": {
+          "centre": {
+            "description": "[latitude, longitude]",
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "title": "Centre",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "timezone": {
+            "title": "Timezone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "slug",
+          "name",
+          "centre",
+          "timezone"
+        ],
+        "title": "PlannerCity",
+        "type": "object"
+      },
       "PlannerEvent": {
         "discriminator": {
           "mapping": {
@@ -1374,6 +1414,37 @@
           }
         ],
         "summary": "Planner",
+        "tags": [
+          "Planner"
+        ]
+      }
+    },
+    "/api/v1/ai/planner/cities": {
+      "get": {
+        "description": "The cities the planner can plan, from the corpus manifest shipped with\nthe service: the page offers them as destinations.",
+        "operationId": "cities_api_v1_ai_planner_cities_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PlannerCity"
+                  },
+                  "title": "Response Cities Api V1 Ai Planner Cities Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Cities",
         "tags": [
           "Planner"
         ]
