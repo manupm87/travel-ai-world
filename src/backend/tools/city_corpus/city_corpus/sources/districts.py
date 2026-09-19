@@ -25,7 +25,20 @@ class Boundary:
     shape: BaseGeometry
 
 
+# Overpass area ids of relations: the relation id plus this offset.
+RELATION_AREA_OFFSET = 3_600_000_000
+
+
 def area_selector(city: CityConfig) -> str:
+    """The Overpass statement that puts the city's area in `.a`.
+
+    By relation id when the configuration names one: the local `name` tag and
+    the administrative level of a city vary by country (Berlin and Vienna sit at
+    level 4, Prague at 6, and OSM calls them Wien and Praha). The name query is
+    kept for a configuration without a relation, and for Budapest's cache keys.
+    """
+    if city.osm_relation is not None:
+        return f"area(id:{RELATION_AREA_OFFSET + city.osm_relation})->.a;"
     return f'area["name"="{city.osm_area}"]["admin_level"="8"]->.a;'
 
 

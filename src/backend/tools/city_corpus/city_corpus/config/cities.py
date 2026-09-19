@@ -55,9 +55,14 @@ class CityConfig:
     wikivoyage: tuple[WikivoyageSite, ...]
     wikipedia_lang: str
     wikipedia_categories: tuple[WikipediaCategory, ...]
-    # OpenStreetMap area name (used by the enrichment step, TRA-139).
+    # OpenStreetMap area name: the local `name` tag of the city's admin_level=8
+    # relation. Only used to select the area when `osm_relation` is unset.
     osm_area: str
-    # Lower-case spellings a traveller may type (en/es); the planner matches them.
+    # OpenStreetMap relation id of the city (Wikidata P402): selects the area for
+    # the boundaries and the place queries whatever the local name and level are.
+    osm_relation: int | None = None
+    # Lower-case spellings a traveller may type (en/es), read by the cities
+    # manifest (TRA-167) and the planner (TRA-168).
     aliases: tuple[str, ...] = field(default_factory=tuple)
     districts: tuple[str, ...] = field(default_factory=tuple)
     # OpenStreetMap administrative level of the city's districts.
@@ -87,6 +92,7 @@ _TOP_LEVEL_KEYS = {
     "wikipedia",
     "wikipedia_lang",
     "osm_area",
+    "osm_relation",
     "districts",
     "district_admin_level",
     "district_guides",
@@ -175,6 +181,20 @@ def parse_city(data: dict[str, Any], where: str = "<city>") -> CityConfig:
                 f"{where} [district_guides] {ref}: {', '.join(unknown)} not in districts"
             )
 
+    relation = data.get("osm_relation")
+    if relation is not None and (
+        isinstance(relation, bool) or not isinstance(relation, int) or relation <= 0
+    ):
+        raise CityConfigError(f"{where} osm_relation: expected a positive integer")
+
+    curated_tours = data.get("curated_tours")
+    if curated_tours is not None:
+        parts = Path(str(curated_tours)).parts
+        if Path(str(curated_tours)).is_absolute() or ".." in parts:
+            raise CityConfigError(
+                f"{where} curated_tours: must be a path inside the tool folder"
+            )
+
     centre_values = data.get("centre", [0.0, 0.0])
     if not isinstance(centre_values, list) or len(centre_values) != 2:
         raise CityConfigError(f"{where} centre: expected [lat, lon]")
@@ -189,13 +209,14 @@ def parse_city(data: dict[str, Any], where: str = "<city>") -> CityConfig:
         wikipedia_lang=data["wikipedia_lang"],
         wikipedia_categories=tuple(categories),
         osm_area=data["osm_area"],
+        osm_relation=relation,
         aliases=_strings(f"{where} aliases", data.get("aliases", [])),
         districts=districts,
         district_admin_level=int(data.get("district_admin_level", 9)),
         district_guides=guides,
         centre=centre,
         timezone=data.get("timezone", "UTC"),
-        curated_tours=data.get("curated_tours"),
+        curated_tours=curated_tours,
     )
 
 

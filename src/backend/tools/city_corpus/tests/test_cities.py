@@ -38,6 +38,13 @@ require_coordinates = true
 """
 
 
+def _top(text: str, line: str) -> str:
+    """`line` added to the top-level keys (before the first table)."""
+    return text.replace(
+        'districts = ["Old Town"]\n', f'districts = ["Old Town"]\n{line}\n'
+    )
+
+
 def _write(tmp_path: Path, text: str, name: str = "testville.toml") -> Path:
     path = tmp_path / name
     path.write_text(text, encoding="utf-8")
@@ -100,3 +107,20 @@ def test_strict_loading(tmp_path: Path, change: tuple[str, str], message: str) -
 def test_missing_required_key_is_named(tmp_path: Path) -> None:
     with pytest.raises(CityConfigError, match="missing key\\(s\\) osm_area"):
         load_city(_write(tmp_path, MINIMAL.replace('osm_area = "Testville"\n', "")))
+
+
+def test_osm_relation_is_a_positive_integer(tmp_path: Path) -> None:
+    city = load_city(_write(tmp_path, _top(MINIMAL, "osm_relation = 43172")))
+    assert city.osm_relation == 43172
+    with pytest.raises(CityConfigError, match="osm_relation: expected a positive"):
+        load_city(_write(tmp_path, _top(MINIMAL, 'osm_relation = "43172"')))
+
+
+def test_curated_tours_stays_inside_the_tool_folder(tmp_path: Path) -> None:
+    city = load_city(
+        _write(tmp_path, _top(MINIMAL, 'curated_tours = "curated/x/t.toml"'))
+    )
+    assert city.curated_tours == "curated/x/t.toml"
+    for value in ("/etc/tours.toml", "../tours.toml", "curated/../../t.toml"):
+        with pytest.raises(CityConfigError, match="inside the tool folder"):
+            load_city(_write(tmp_path, _top(MINIMAL, f'curated_tours = "{value}"')))

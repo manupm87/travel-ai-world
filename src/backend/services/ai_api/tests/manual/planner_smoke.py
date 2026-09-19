@@ -236,10 +236,11 @@ async def run(args: argparse.Namespace, out: Any) -> int:
     documents = documents_from_corpus(corpus)
     tally = Tally(corpus_images=corpus_image_urls(documents))
     photos = None if args.no_photos else CommonsPhotos.from_settings(settings)
+    weather = OpenMeteoForecast.from_settings(settings)
     plan = PlanTrip(
         provider,
         KeywordRetriever(documents),
-        weather=OpenMeteoForecast.from_settings(settings),
+        weather=weather,
         photos=photos,
         cities=[args.city],
     )
@@ -275,6 +276,9 @@ async def run(args: argparse.Namespace, out: Any) -> int:
         return EXIT_PROVIDER
     finally:
         await provider.aclose()
+        await weather.aclose()
+        if photos is not None:
+            await photos.aclose()
     return summarise(tally, out)
 
 

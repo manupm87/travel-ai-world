@@ -77,17 +77,17 @@ Districts with fewer than 10 places: none.
 
 ## Smoke queries
 
-**see — "thermal baths"**
-
-1. Spas in Budapest
-2. Király Baths (North Buda)
-3. Rudas Baths (Víziváros)
-
 **see — "museum"**
 
 1. Museum of Hungarian Agriculture (Városliget)
 2. National Museum (Józsefváros)
 3. Zelnik István Southeast Asian Gold Museum (Terézváros)
+
+**see — "cathedral"**
+
+1. Theotokos had died Assumption Hungarian Orthodox Cathedral (Belváros)
+2. Church of Saint Demetrius, Budapest (Víziváros)
+3. St. Cyril and St. Methodius Bulgarian Orthodox Church (Ferencváros)
 
 **see — "viewpoint"**
 
@@ -113,11 +113,11 @@ Districts with fewer than 10 places: none.
 2. Shrimpy Street Food Bar (South Pest)
 3. Tökmag Vegan Street Food (Angyalföld)
 
-**drink — "ruin bar"**
+**drink — "craft beer bar"**
 
-1. Szimpla Kert/Mozi (Erzsébetváros)
-2. Action Bar (Belváros)
-3. Instant Bar/Club (Terézváros)
+1. First Craft Beer (Erzsébetváros)
+2. Rizmajer Craft Beer House (Csepel)
+3. Hops Beer Bar (Erzsébetváros)
 
 **drink — "cocktail bar"**
 

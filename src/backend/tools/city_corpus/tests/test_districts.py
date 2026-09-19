@@ -1,6 +1,12 @@
+from dataclasses import replace
 from typing import Any
 
-from city_corpus.sources.districts import DistrictLocator, parse_boundaries
+from city_corpus.config.cities import BUDAPEST
+from city_corpus.sources.districts import (
+    DistrictLocator,
+    area_selector,
+    parse_boundaries,
+)
 
 
 def _square_relation(
@@ -79,3 +85,10 @@ def test_gaps_fall_back_to_a_nearby_listing_only() -> None:
     assert locator.locate(47.44, 19.046) == "Víziváros"
     # Far outside everything.
     assert locator.locate(47.60, 19.30) is None
+
+
+def test_area_is_selected_by_relation_id_when_configured() -> None:
+    # Budapest keeps the name query: its Overpass cache keys must not change.
+    assert area_selector(BUDAPEST) == 'area["name"="Budapest"]["admin_level"="8"]->.a;'
+    vienna = replace(BUDAPEST, osm_area="Wien", osm_relation=109166)
+    assert area_selector(vienna) == "area(id:3600109166)->.a;"

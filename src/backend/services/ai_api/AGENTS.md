@@ -105,9 +105,6 @@ just planner-smoke city=budapest lang=es     # real model + KeywordRetriever ove
 Run the smoke session (README "Smoke session") after any change to the planner's prompts, cards or
 photos, and paste its summary in the PR: the unit tests script the model, only this exercises it.
 
-```bash
-```
-
 Env: `.env.example` (`LLM_PROVIDER`, `NVIDIA_API_KEY` or `BEDROCK_*`, `CORE_API_URL`,
 `RETRIEVAL_*` / `VECTOR_*` / `EMBEDDINGS_*`, and the same
 `AUTH_MODE`/`SECRET_KEY`/`COGNITO_*` as core_api). Every setting must be documented there

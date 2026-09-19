@@ -23,7 +23,7 @@ climate normals.
 Read the report before opening the PR:
 
 - **Smoke queries**: the top three names per query should be real places of the kind asked
-  (a "thermal baths" answer that lists hotels means the `see` category is thin).
+  (a "museum" answer that lists hotels means the `see` category is thin).
 - **Districts**: they should read like neighbourhoods a traveller recognises, and none should be
   nearly empty (the report lists districts with fewer than 10 located places). Too many small ones
   → a coarser district admin level in the city configuration.

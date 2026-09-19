@@ -62,9 +62,18 @@ DISTRICT_LABELS = {
 class Answers:
     """Answers each request by URL and parameters; records what was asked."""
 
-    def __init__(self, *, subpages: bool = False, overpass: bool = True) -> None:
+    def __init__(
+        self,
+        *,
+        subpages: bool = False,
+        overpass: bool = True,
+        city: dict[str, Any] = CITY,
+        wiki: bool = True,
+    ) -> None:
         self.subpages = subpages
         self.overpass = overpass
+        self.city = city
+        self.wiki = wiki  # Wikivoyage articles and Wikipedia categories exist
         self.requests: list[httpx.Request] = []
 
     def __call__(self, request: httpx.Request) -> httpx.Response:
@@ -77,10 +86,16 @@ class Answers:
                 json={"search": [{"id": "Q15111371"}, {"id": "Q1891"}]},
             )
         if host == "www.wikidata.org" and params.get("props") == "labels":
-            return httpx.Response(200, json={"entities": DISTRICT_LABELS})
+            asked = params["ids"].split("|")
+            assert len(asked) <= 50, "wbgetentities takes at most 50 ids"
+            labels = {
+                qid: DISTRICT_LABELS.get(qid, {"labels": {"en": {"value": qid}}})
+                for qid in asked
+            }
+            return httpx.Response(200, json={"entities": labels})
         if host == "www.wikidata.org":
             return httpx.Response(
-                200, json={"entities": {"Q15111371": FAMILY_NAME, "Q1891": CITY}}
+                200, json={"entities": {"Q15111371": FAMILY_NAME, "Q1891": self.city}}
             )
         if host == "api.open-meteo.com":
             return httpx.Response(200, json={"timezone": "Europe/Rome"})
@@ -112,6 +127,9 @@ class Answers:
             return httpx.Response(
                 200, json={"elements": elements if self.overpass else []}
             )
+        if host.endswith("wikivoyage.org") and "titles" in params:
+            missing = [{"title": params["titles"], "missing": True}]
+            return httpx.Response(200, json={"query": {"pages": missing}})
         if host.endswith("wikivoyage.org"):
             root = params["apprefix"]
             pages = [root]
@@ -124,7 +142,9 @@ class Answers:
             titles = params["titles"].split("|")
             pages = []
             for title in titles:
-                if "Museums" in title or "Palaces" in title:
+                if not self.wiki:
+                    pages.append({"title": title, "missing": True})
+                elif "Museums" in title or "Palaces" in title:
                     pages.append({"title": title, "categoryinfo": {"pages": 17}})
                 elif "Buildings" in title:
                     pages.append({"title": title, "categoryinfo": {"pages": 21}})
@@ -241,3 +261,81 @@ def test_bbox_falls_back_to_a_square(
 def test_rendered_strings_are_escaped() -> None:
     assert module._quote('Say "hi" \\ there') == '"Say \\"hi\\" \\\\ there"'
     assert json.loads(module._quote('a"b')) == 'a"b'
+
+
+def _overpass_query(answers: Answers) -> str:
+    [request] = [r for r in answers.requests if r.url.host == "overpass-api.de"]
+    return httpx.QueryParams(request.content.decode())["data"]
+
+
+def test_overpass_area_is_the_relation_when_wikidata_names_one(tmp_path: Path) -> None:
+    answers = Answers()
+    with _client(tmp_path, answers) as client:
+        found = discover(client, "Bologna")
+
+    assert _overpass_query(answers).startswith(
+        "[out:json][timeout:60];area(id:3600043172)->.a;"
+    )
+    text = render(found)
+    assert "osm_relation = 43172" in text
+    assert "# review:" not in text
+    assert tomllib.loads(text)["osm_relation"] == 43172
+
+
+def test_without_a_relation_the_area_is_by_name_and_marked(tmp_path: Path) -> None:
+    city = _item("Q1891", P150=CITY["claims"]["P150"])  # no P402
+    answers = Answers(city=city)
+    with _client(tmp_path, answers) as client:
+        found = discover(client, "Bologna")
+
+    assert _overpass_query(answers).startswith(
+        '[out:json][timeout:60];area["name"="Bologna"]["admin_level"="8"]->.a;'
+    )
+    assert any("no OSM relation" in note for note in found.notes)
+    text = render(found)
+    assert "osm_relation =" not in text
+    assert 'osm_area = "Bologna"  # review: must be the local OSM `name`' in text
+
+
+def test_district_labels_are_fetched_in_batches_of_fifty(tmp_path: Path) -> None:
+    qids = [f"Q{n}" for n in range(1, 121)]
+    answers = Answers()
+    with _client(tmp_path, answers) as client:
+        districts = module.fetch_district_labels(client, qids)
+
+    label_requests = [
+        r for r in answers.requests if dict(r.url.params).get("props") == "labels"
+    ]
+    sizes = [len(dict(r.url.params)["ids"].split("|")) for r in label_requests]
+    assert sizes == [50, 50, 20]
+    assert len(districts) == 120
+
+
+def test_a_wikidata_api_error_is_a_discovery_error(tmp_path: Path) -> None:
+    def broken(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200, json={"error": {"code": "toomanyvalues", "info": "Too many values"}}
+        )
+
+    client = ApiClient(tmp_path, transport=httpx.MockTransport(broken))
+    with pytest.raises(DiscoveryError, match=r"Wikidata: .*toomanyvalues"):
+        discover(client, "Bologna")
+
+
+def test_a_draft_without_wiki_sources_still_loads(tmp_path: Path) -> None:
+    city = _item("Q1891", P402=CITY["claims"]["P402"])
+    city["sitelinks"] = {}
+    with _client(tmp_path, Answers(city=city, wiki=False, overpass=False)) as client:
+        found = discover(client, "Bologna")
+
+    assert found.guides == [] and found.categories == []
+    text = render(found)
+    assert "# review: no Wikivoyage article found" in text
+    assert "# review: no standard Wikipedia category exists" in text
+    assert "# Wikidata district label (no OSM boundary found)" in text
+    path = tmp_path / "cities" / "bologna.toml"
+    path.parent.mkdir()
+    path.write_text(text, encoding="utf-8")
+    loaded = load_city(path)
+    assert loaded.wikivoyage == () and loaded.wikipedia_categories == ()
+    assert loaded.osm_relation == 43172

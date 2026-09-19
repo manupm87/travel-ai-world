@@ -179,23 +179,6 @@
   "climate_missing": [],
   "smoke": {
     "see": {
-      "thermal baths": [
-        {
-          "name": "Spas in Budapest",
-          "district": null,
-          "score": 23.58
-        },
-        {
-          "name": "Király Baths",
-          "district": "North Buda",
-          "score": 23.5
-        },
-        {
-          "name": "Rudas Baths",
-          "district": "Víziváros",
-          "score": 23.3
-        }
-      ],
       "museum": [
         {
           "name": "Museum of Hungarian Agriculture",
@@ -211,6 +194,23 @@
           "name": "Zelnik István Southeast Asian Gold Museum",
           "district": "Terézváros",
           "score": 12.64
+        }
+      ],
+      "cathedral": [
+        {
+          "name": "Theotokos had died Assumption Hungarian Orthodox Cathedral",
+          "district": "Belváros",
+          "score": 11.61
+        },
+        {
+          "name": "Church of Saint Demetrius, Budapest",
+          "district": "Víziváros",
+          "score": 10.69
+        },
+        {
+          "name": "St. Cyril and St. Methodius Bulgarian Orthodox Church",
+          "district": "Ferencváros",
+          "score": 10.69
         }
       ],
       "viewpoint": [
@@ -287,21 +287,21 @@
       ]
     },
     "drink": {
-      "ruin bar": [
+      "craft beer bar": [
         {
-          "name": "Szimpla Kert/Mozi",
+          "name": "First Craft Beer",
           "district": "Erzsébetváros",
-          "score": 21.39
+          "score": 33.91
         },
         {
-          "name": "Action Bar",
-          "district": "Belváros",
-          "score": 11.95
+          "name": "Rizmajer Craft Beer House",
+          "district": "Csepel",
+          "score": 33.91
         },
         {
-          "name": "Instant Bar/Club",
-          "district": "Terézváros",
-          "score": 11.95
+          "name": "Hops Beer Bar",
+          "district": "Erzsébetváros",
+          "score": 23.4
         }
       ],
       "cocktail bar": [

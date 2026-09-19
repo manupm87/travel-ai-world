@@ -69,6 +69,10 @@ CITY_CLASSES = {
 }
 # Administrative levels a city's districts usually sit at, in OpenStreetMap.
 DISTRICT_LEVELS = (9, 10, 8)
+# `wbgetentities` accepts at most this many ids per call (anonymous callers).
+WIKIDATA_BATCH = 50
+# Overpass area id of a relation: its id plus this offset.
+RELATION_AREA_OFFSET = 3_600_000_000
 SURE_MATCH = 0.85
 POSSIBLE_MATCH = 0.6
 FALLBACK_HALF_SIDE = 0.15  # degrees around the centre when no relation bounds
@@ -152,10 +156,38 @@ def _ids(claims: dict[str, Any], prop: str) -> list[str]:
     return [v["id"] for v in _best(claims, prop) if isinstance(v, dict) and "id" in v]
 
 
+def _wikidata(client: ApiClient, params: dict[str, str | int]) -> dict[str, Any]:
+    """One Wikidata call; an API error is the city's problem, not a traceback."""
+    try:
+        return client.get(WIKIDATA_API, params).data
+    except RuntimeError as exc:
+        raise DiscoveryError(f"Wikidata: {exc}") from exc
+
+
+def fetch_entities(
+    client: ApiClient, qids: list[str], props: str, **extra: str
+) -> dict[str, Any]:
+    """`wbgetentities` for any number of ids, in batches the API accepts."""
+    entities: dict[str, Any] = {}
+    for start in range(0, len(qids), WIKIDATA_BATCH):
+        batch = qids[start : start + WIKIDATA_BATCH]
+        answer = _wikidata(
+            client,
+            {
+                "action": "wbgetentities",
+                "ids": "|".join(batch),
+                "props": props,
+                **extra,
+            },
+        )
+        entities.update(answer.get("entities", {}))
+    return entities
+
+
 def find_city(client: ApiClient, name: str) -> tuple[str, dict[str, Any], list[str]]:
     """The Wikidata entity for the city, and the notes the choice raised."""
-    hits = client.get(
-        WIKIDATA_API,
+    hits = _wikidata(
+        client,
         {
             "action": "wbsearchentities",
             "search": name,
@@ -163,19 +195,16 @@ def find_city(client: ApiClient, name: str) -> tuple[str, dict[str, Any], list[s
             "type": "item",
             "limit": 10,
         },
-    ).data.get("search", [])
+    ).get("search", [])
     if not hits:
         raise DiscoveryError(f"Wikidata has no item labelled {name!r}")
-    entities = client.get(
-        WIKIDATA_API,
-        {
-            "action": "wbgetentities",
-            "ids": "|".join(hit["id"] for hit in hits),
-            "props": "claims|labels|sitelinks",
-            "languages": "|".join(WIKIVOYAGE_LANGS),
-            "sitefilter": "|".join(f"{lang}wikivoyage" for lang in WIKIVOYAGE_LANGS),
-        },
-    ).data.get("entities", {})
+    entities = fetch_entities(
+        client,
+        [hit["id"] for hit in hits],
+        "claims|labels|sitelinks",
+        languages="|".join(WIKIVOYAGE_LANGS),
+        sitefilter="|".join(f"{lang}wikivoyage" for lang in WIKIVOYAGE_LANGS),
+    )
     located = [
         (hit["id"], entities[hit["id"]])
         for hit in hits
@@ -197,10 +226,7 @@ def fetch_district_labels(client: ApiClient, qids: list[str]) -> list[District]:
     """English labels of the P150 items; another language, marked, when there is none."""
     if not qids:
         return []
-    entities = client.get(
-        WIKIDATA_API,
-        {"action": "wbgetentities", "ids": "|".join(qids), "props": "labels"},
-    ).data.get("entities", {})
+    entities = fetch_entities(client, qids, "labels")
     districts: list[District] = []
     for qid in qids:
         labels = entities.get(qid, {}).get("labels", {})
@@ -263,11 +289,21 @@ def fetch_timezone(client: ApiClient, centre: tuple[float, float]) -> str | None
     return zone if isinstance(zone, str) and "/" in zone else None
 
 
-def fetch_boundaries(client: ApiClient, osm_area: str) -> list[OsmBoundary]:
+def area_selector(osm_area: str, relation: str | None) -> str:
+    """The city's area by its relation id, or by name and level 8 without one
+    (the same choice `sources.districts.area_selector` makes at build time)."""
+    if relation:
+        return f"area(id:{RELATION_AREA_OFFSET + int(relation)})->.a;"
+    return f'area["name"="{osm_area}"]["admin_level"="8"]->.a;'
+
+
+def fetch_boundaries(
+    client: ApiClient, osm_area: str, relation: str | None = None
+) -> list[OsmBoundary]:
     """Administrative relations inside the city, tags only, at the usual levels."""
     levels = "|".join(str(level) for level in DISTRICT_LEVELS)
     query = (
-        f'[out:json][timeout:60];area["name"="{osm_area}"]["admin_level"="8"]->.a;'
+        f"[out:json][timeout:60];{area_selector(osm_area, relation)}"
         f'relation["boundary"="administrative"]["admin_level"~"^({levels})$"](area.a);'
         "out tags;"
     )
@@ -364,7 +400,8 @@ def discover(client: ApiClient, name: str) -> Discovery:
             aliases.add(labels[lang]["value"].lower())
     coordinates = _best(claims, "P625")[0]
     centre = (round(coordinates["latitude"], 4), round(coordinates["longitude"], 4))
-    relation = next((str(v) for v in _best(claims, "P402")), None)
+    # An external id: only a numeric one can select an Overpass area.
+    relation = next((str(v) for v in _best(claims, "P402") if str(v).isdigit()), None)
 
     found = Discovery(
         qid=qid,
@@ -391,13 +428,17 @@ def discover(client: ApiClient, name: str) -> Discovery:
     found.districts = fetch_district_labels(client, _ids(claims, "P150"))
     if not found.districts:
         found.note("Wikidata lists no districts (P150) for the city")
-    boundaries = fetch_boundaries(client, english)
+    boundaries = fetch_boundaries(client, english, relation)
     found.admin_level = _pick_admin_level(boundaries, found.districts)
     found.boundaries = [b for b in boundaries if b.admin_level == found.admin_level]
     if found.admin_level is None:
         found.note("no district boundaries found in OpenStreetMap at levels 8-10")
 
     found.guides = fetch_guides(client, entity, english)
+    if found.osm_relation is None:
+        found.note(
+            "no OSM relation (P402): set `osm_area` to the city's local OSM name"
+        )
     if not any(g.lang == "en" for g in found.guides):
         found.note("no English Wikivoyage article: the corpus would have no listings")
     found.categories = probe_categories(client, "en", english)
@@ -485,12 +526,17 @@ def guide_mapping(found: Discovery) -> list[tuple[str, list[str], str]]:
             continue
         page, ratio = _match(boundary.name, subpages)
         if page is None or ratio < POSSIBLE_MATCH:
-            rows.append((key, [], f"# review: no guide like {boundary.name!r}"))
+            rows.append((key, [], _join(comment, f"no guide like {boundary.name!r}")))
         elif ratio < SURE_MATCH:
-            rows.append((key, [page], f"# review: {boundary.name!r} → {page!r}?"))
+            rows.append((key, [page], _join(comment, f"{boundary.name!r} → {page!r}?")))
         else:
             rows.append((key, [page], comment))
     return rows
+
+
+def _join(comment: str, review: str) -> str:
+    """One `# review` comment carrying both reasons."""
+    return f"{comment}; {review}" if comment else f"# review: {review}"
 
 
 def district_names(found: Discovery) -> list[str]:
@@ -513,6 +559,19 @@ def render(found: Discovery) -> str:
         lines.append(f"# review: {message}")
     review_tz = "  # review" if found.timezone is None else ""
     review_level = "  # review" if found.admin_level is None else ""
+    if found.osm_relation:
+        area = [
+            "# OpenStreetMap relation of the city (Wikidata P402): selects the area"
+            " for the boundaries and the place queries.",
+            f"osm_relation = {int(found.osm_relation)}",
+            "# Only used when `osm_relation` is unset.",
+            f"osm_area = {_quote(found.name)}",
+        ]
+    else:
+        area = [
+            f"osm_area = {_quote(found.name)}  # review: must be the local OSM `name`"
+            " of the city's admin_level=8 relation, or set `osm_relation`",
+        ]
     lines += [
         "",
         f"slug = {_quote(found.slug)}",
@@ -520,7 +579,7 @@ def render(found: Discovery) -> str:
         f"aliases = {_list(found.aliases)}",
         'language = "en"',
         'wikipedia_lang = "en"',
-        f"osm_area = {_quote(found.name)}",
+        *area,
         f"district_admin_level = {found.admin_level or 9}{review_level}",
         f"centre = [{found.centre[0]}, {found.centre[1]}]",
         f"timezone = {_quote(found.timezone or 'UTC')}{review_tz}",
@@ -536,6 +595,12 @@ def render(found: Discovery) -> str:
     lines.append("districts = [")
     lines += [f"    {_quote(name)}," for name in district_names(found)]
     lines.append("]")
+    if not found.guides:
+        # A top-level key: it must come before the first table to stay one.
+        lines += [
+            "# review: no Wikivoyage article found; add [[wikivoyage]] tables by hand",
+            "wikivoyage = []",
+        ]
 
     south, west, north, east = found.bbox or (0.0, 0.0, 0.0, 0.0)
     source = (
@@ -565,6 +630,14 @@ def render(found: Discovery) -> str:
             f"root = {_quote(guide.root)}",
             f"include_subpages = {'true' if guide.subpages else 'false'}{subpages}",
         ]
+    if not found.categories:
+        lines += [
+            "",
+            "# review: no standard Wikipedia category exists; add"
+            " [[wikipedia.categories]] tables by hand",
+            "[wikipedia]",
+            "categories = []",
+        ]
     for category in found.categories:
         lines += [
             "",
@@ -574,14 +647,15 @@ def render(found: Discovery) -> str:
         ]
         if category.require_coordinates:
             lines.append("require_coordinates = true")
-    keyed_by = (
-        "`ref`"
-        if all(b.ref != b.name for b in found.boundaries)
-        else "name (the boundaries carry no `ref` tag)"
-    )
+    if not found.boundaries:
+        keyed_by = "Wikidata district label (no OSM boundary found)"
+    elif all(b.ref != b.name for b in found.boundaries):
+        keyed_by = "OSM district `ref`"
+    else:
+        keyed_by = "OSM district name (the boundaries carry no `ref` tag)"
     lines += [
         "",
-        f"# OSM district {keyed_by} → the Wikivoyage guide(s) covering it.",
+        f"# {keyed_by} → the Wikivoyage guide(s) covering it.",
         "[district_guides]",
     ]
     for key, names, comment in guide_mapping(found):

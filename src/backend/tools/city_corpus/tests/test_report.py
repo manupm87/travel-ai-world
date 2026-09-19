@@ -32,7 +32,11 @@ def _doc(doc_id: str, **overrides: object) -> CorpusDocument:
 
 def _corpus() -> list[CorpusDocument]:
     docs = [
-        _doc("wv:en:T#see:rudas-baths", image_url="https://c/rudas.jpg"),
+        _doc(
+            "wv:en:T#see:rudas-baths",
+            image_url="https://c/rudas.jpg",
+            text="Thermal baths and a small museum of bathing in the old wing.",
+        ),
         _doc("wv:en:T#see:castle", image_url="https://c/castle.jpg", district="Hill"),
         _doc("wv:en:T#see:unplaced-gallery", lat=None, lon=None),
         _doc("wv:en:T#see:plain-square"),  # located, no image
@@ -56,7 +60,11 @@ def _corpus() -> list[CorpusDocument]:
             name="Street Food Corner",
             text="Street food stall with the best street food in town, open late.",
         ),
-        _doc("wv:en:T#drink:szimpla", category=Category.DRINK, text="A ruin bar."),
+        _doc(
+            "wv:en:T#drink:szimpla",
+            category=Category.DRINK,
+            text="A ruin bar pouring craft beer from local breweries.",
+        ),
         _doc("wv:en:T#sleep:grand-hotel", category=Category.SLEEP, price_tier=3),
         _doc("wv:en:T#sleep:hostel-one", category=Category.SLEEP, lat=None, lon=None),
     ]
@@ -117,12 +125,12 @@ def test_districts_price_tiers_and_climate() -> None:
 def test_smoke_query_ranks_the_named_place_first() -> None:
     summary = report.summarise(_corpus(), "testville")
 
-    baths = summary.smoke["see"]["thermal baths"]
-    assert [hit.name for hit in baths] == ["Rudas Baths"]
+    museum = summary.smoke["see"]["museum"]
+    assert [hit.name for hit in museum] == ["Rudas Baths"]
     street_food = summary.smoke["eat"]["street food"]
     assert street_food[0].name == "Street Food Corner"
     assert street_food[0].district == "Centre"
-    assert summary.smoke["drink"]["ruin bar"][0].name == "Szimpla"
+    assert summary.smoke["drink"]["craft beer bar"][0].name == "Szimpla"
     assert summary.smoke["tour"]["free walking tour"] == []
 
 
@@ -174,7 +182,7 @@ def test_json_twin_carries_the_checks() -> None:
     names = [check["name"] for check in data["readiness"]["checks"]]
     assert "Climate normals" in names
     assert data["readiness"]["thresholds"]["located_sights"] == 150
-    assert data["smoke"]["see"]["thermal baths"][0]["name"] == "Rudas Baths"
+    assert data["smoke"]["see"]["museum"][0]["name"] == "Rudas Baths"
 
 
 def test_cli_writes_both_files_and_gates(

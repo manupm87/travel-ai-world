@@ -34,13 +34,14 @@ MONTHS = tuple(f"{month:02d}" for month in range(1, 13))
 SMALL_DISTRICT_PLACES = 10
 SMOKE_TOP = 3
 
-# What a traveller asks for first, per category. A corpus that cannot name three
-# places for each of these will not fill an itinerary either.
+# What a traveller asks for first, per category, in any city: nothing here
+# names one city's specialities. A corpus that cannot name three places for
+# each of these will not fill an itinerary either.
 SMOKE_QUERIES: dict[Category, tuple[str, ...]] = {
-    Category.SEE: ("thermal baths", "museum", "viewpoint"),
+    Category.SEE: ("museum", "cathedral", "viewpoint"),
     Category.DO: ("market",),
     Category.EAT: ("traditional restaurant", "street food"),
-    Category.DRINK: ("ruin bar", "cocktail bar"),
+    Category.DRINK: ("craft beer bar", "cocktail bar"),
     Category.SLEEP: ("boutique hotel", "hostel"),
     Category.TOUR: ("free walking tour",),
 }

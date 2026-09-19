@@ -32,7 +32,7 @@ async def test_search_honours_category_and_district_filters() -> None:
     assert retriever.searches == [("cafe", 10, filters)]
 
 
-async def test_search_ignores_short_words_and_returns_nothing_for_none() -> None:
+async def test_search_without_a_match_still_answers_the_corpus_order() -> None:
     retriever = KeywordRetriever(documents_from_corpus(FIXTURE))
 
     found = await retriever.search("zzzzqqq", limit=2)

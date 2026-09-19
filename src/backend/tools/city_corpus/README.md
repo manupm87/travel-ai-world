@@ -134,8 +134,8 @@ and `report.json` (the same numbers for tooling): documents per category and sou
 prose, places per category (a *place* is a document with a name; *located* when it has coordinates,
 which is what becomes a planner card; *pictured* when a located place has an `image_url`), districts
 with their located places and the ones under 10, `eat` and `sleep` by price tier, the twelve monthly
-climate normals, and a few fixed smoke queries per category ("thermal baths", "ruin bar", "boutique
-hotel", "free walking tour", ...) answered by a keyword scorer with the top three names, so a reader
+climate normals, and a few fixed smoke queries per category ("museum", "craft beer bar", "boutique
+hotel", "free walking tour", ...; the same for every city) answered by a keyword scorer with the top three names, so a reader
 sees at a glance whether the corpus answers.
 
 The report ends with the **readiness gate**, the thresholds in `city_corpus/config/readiness.py`
@@ -204,9 +204,11 @@ writes it from scratch:
      centre, marked, when there is none).
    * **Open-Meteo**: the IANA time zone of the centre (`timezone=auto`; Wikidata's P421 names offsets,
      not zones).
-   * **Overpass** (one tags-only query): administrative relations at levels 8–10; the level whose names
-     look most like Wikidata's districts becomes `district_admin_level`, its relations the keys of
-     `district_guides` (their `ref`, or their name when they carry none).
+   * **Overpass** (one tags-only query, the area selected by the OSM relation → `osm_relation`):
+     administrative relations at levels 8–10; the level whose names look most like Wikidata's districts
+     becomes `district_admin_level`, its relations the keys of `district_guides` (their `ref`, or their
+     name when they carry none). Without a relation, `osm_area` must be the city's local OSM `name`
+     (Wien, Praha) at admin level 8, and the draft marks it.
    * **Wikivoyage** en/es: the root article and its `Root/…` district pages → `include_subpages`. With
      district pages, `districts` are those pages and each OSM boundary maps to the page most like its
      name (`# review` when the match is weak or missing); without them, every boundary is its own district.
@@ -215,7 +217,9 @@ writes it from scratch:
      with `require_coordinates`, `Palaces`, `Towers`, `Thermal baths`, `Synagogues`, …), page counts as
      comments. Add the city's own categories by hand (`Category:` pages on Wikipedia).
 2. Resolve every `# review` line, rename the file to `cities/<slug>.toml` (the `slug` must match the
-   file name; drafts are ignored by the build) and delete what you do not want. Unknown keys, a guide
+   file name; drafts are ignored by the build) and delete what you do not want. A city with no
+   Wikivoyage article or no standard category gets an empty `wikivoyage = []` / `categories = []` that
+   still loads: fill them by hand. Unknown keys, a guide
    name that is not in `districts`, or a slug/file-name mismatch stop the build with the file and key.
 3. For a new Wikivoyage language, add its section names to `SECTION_CATEGORIES` and its listing
    template names to `LISTING_TYPES` in `sources/wikivoyage.py`.
