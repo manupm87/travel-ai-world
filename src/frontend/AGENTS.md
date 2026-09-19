@@ -66,12 +66,13 @@ TypeScript 5, Tailwind CSS v4.
   `OptionCard`, `TripPanel` with `BriefChecklist`, `RouteStrip`, `MapPlaceholder`, `StayCard`,
   `DayStrip`, `DayCard`, `WarningBadge` and the `AlternativesSheet` behind every "Change"). The
   itinerary is browsed **one day at a time** (TRA-176): `DayStrip` is a horizontal tablist of day
-  chips (date, forecast, how many experiences; arrows, Home/End, the selected chip scrolled into
-  view) over a single `DayCard` rendered `static` — no toggle, always open — and `MapPlaceholder`
+  chips (date, forecast, how many experiences; arrows, Home/End, the selected chip kept in sight by
+  scrolling the strip itself — never `scrollIntoView`, which would drag the panel's own scroller) over
+  a single `DayCard` rendered `static` — no toggle, always open — and `MapPlaceholder`
   maps that same day, its stops numbered in slot order. The selected day is state of
   `PlannerClientPage` (`hooks/useSelectedDay.ts`), because the `panel` and the `map` slot of
-  `PlannerLayout` both follow it; it resets to the first day when an itinerary appears and is not
-  persisted. Day dates come from `components/planner/v2/tripDates.ts`. The wire contract
+  `PlannerLayout` both follow it; it falls back to the first day whenever the day it points at is
+  not in the itinerary — which is what makes a new trip open on day 1 — and is not persisted. Day dates come from `components/planner/v2/tripDates.ts`. The wire contract
   (SSE v2, TRA-142) is mirrored by hand in `src/types/planner.ts` until `ai_api` exports it through
   `just contracts`; when it does, replace the declarations by re-exports of the generated types and
   keep the helpers. A price is only ever a tier (`€`/`€€`/`€€€`), never a number. The recorded

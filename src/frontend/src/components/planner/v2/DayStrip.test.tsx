@@ -18,8 +18,12 @@ function renderStrip(overrides: Partial<ComponentProps<typeof DayStrip>> = {}) {
     onSelect: vi.fn(),
     ...overrides,
   };
-  renderWithProviders(<DayStrip {...props} />);
-  return props;
+  const view = renderWithProviders(<DayStrip {...props} />);
+  return {
+    ...props,
+    rerender: (selectedDay: number) =>
+      view.rerender(<DayStrip {...props} selectedDay={selectedDay} />),
+  };
 }
 
 const strip = () => screen.getByRole("tablist", { name: p.daysNav });
@@ -93,6 +97,25 @@ describe("DayStrip", () => {
 
     for (const tab of tabs()) {
       expect(tab).toHaveAttribute("aria-controls", "day-panel");
+    }
+  });
+
+  it("keeps the selected chip in sight without ever scrolling its ancestors", () => {
+    const scrollIntoView = vi.fn();
+    const original = HTMLElement.prototype.scrollIntoView;
+    HTMLElement.prototype.scrollIntoView = scrollIntoView;
+
+    try {
+      const { rerender } = renderStrip();
+      // The strip sits inside the panel's vertical scroller: `scrollIntoView`
+      // would pull the heading, the route and the map off screen — on mount and
+      // on every day a streamed patch adds.
+      expect(scrollIntoView).not.toHaveBeenCalled();
+
+      rerender(3);
+      expect(scrollIntoView).not.toHaveBeenCalled();
+    } finally {
+      HTMLElement.prototype.scrollIntoView = original;
     }
   });
 

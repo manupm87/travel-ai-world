@@ -224,7 +224,7 @@ describe("TripPanel", () => {
     expect(dayTwo.some((label) => label.includes(ACTIVITIES.greatMarket.title))).toBe(false);
   });
 
-  it("goes back to the first day when a new itinerary appears", () => {
+  it("falls back to the first day when the itinerary is emptied and rebuilt", () => {
     const { setState } = renderPanel();
 
     fireEvent.click(dayTab(3));
@@ -237,6 +237,21 @@ describe("TripPanel", () => {
     setState({ itinerary });
     expect(dayTab(1)).toHaveAttribute("aria-selected", "true");
     expect(dayTab(3)).toHaveAttribute("aria-selected", "false");
+  });
+
+  it("falls back to the first day when the trip is regenerated shorter", () => {
+    const { setState } = renderPanel();
+
+    fireEvent.click(dayTab(3));
+    expect(dayTab(3)).toHaveAttribute("aria-selected", "true");
+
+    // A two-day trip replaces the three-day one in one go: day 3 is gone.
+    setState({ itinerary: { ...itinerary, days: itinerary.days.slice(0, 2) } });
+
+    expect(dayTab(1)).toHaveAttribute("aria-selected", "true");
+    expect(
+      within(screen.getByRole("tablist", { name: p.daysNav })).getAllByRole("tab")
+    ).toHaveLength(2);
   });
 
   it("shows the checklist while there is no itinerary", () => {

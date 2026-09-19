@@ -59,7 +59,10 @@ export function DayStrip({
     Array.from(listRef.current?.querySelectorAll<HTMLElement>('[role="tab"]') ?? []);
 
   // Arrows only when there is something to scroll to, so a two-day trip keeps
-  // its chips flush left.
+  // its chips flush left. The list is `flex-1` inside a flex row, so its own box
+  // is sized by the parent and never by the chips: watching it alone would miss
+  // content that grows or shrinks. The first chip is watched too, and `t` re-runs
+  // the effect when the reader switches language ("Day 1" → "Día 1").
   useEffect(() => {
     const list = listRef.current;
     if (!list) return;
@@ -68,18 +71,31 @@ export function DayStrip({
     if (typeof ResizeObserver === "undefined") return;
     const observer = new ResizeObserver(update);
     observer.observe(list);
+    const first = list.firstElementChild;
+    if (first) observer.observe(first);
     return () => observer.disconnect();
-  }, [days.length]);
+  }, [days.length, t]);
 
   // The selected chip is always in sight, however the day was picked (a click,
-  // the keyboard, or the itinerary shrinking under it).
+  // the keyboard, or the itinerary growing while it streams). The strip scrolls
+  // itself horizontally instead of calling `scrollIntoView`: that would also
+  // scroll the panel's vertical scroller ("nearest" block), pulling the heading,
+  // the route and the map off screen the moment the trip appears.
   useEffect(() => {
-    if (selectedIndex < 0) return;
-    tabs()[selectedIndex]?.scrollIntoView?.({
-      inline: "nearest",
-      block: "nearest",
-      behavior: scrollBehavior(),
-    });
+    const list = listRef.current;
+    const chip = selectedIndex < 0 ? null : tabs()[selectedIndex];
+    if (!list || !chip) return;
+    const listBox = list.getBoundingClientRect();
+    const chipBox = chip.getBoundingClientRect();
+    // "nearest": move only as far as it takes to make the whole chip visible.
+    const left =
+      chipBox.left < listBox.left
+        ? chipBox.left - listBox.left
+        : chipBox.right > listBox.right
+          ? chipBox.right - listBox.right
+          : 0;
+    if (left === 0) return;
+    list.scrollBy?.({ left, behavior: scrollBehavior() });
   }, [selectedIndex, days.length]);
 
   const scrollByChip = (direction: 1 | -1) => {
