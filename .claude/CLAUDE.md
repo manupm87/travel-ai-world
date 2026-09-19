@@ -9,7 +9,8 @@ This file adds only what is specific to Claude Code.
 
 - **Slash commands** in `.claude/commands/`: `/start-issue`, `/backend-dev`, `/backend-test`,
   `/backend-lint`, `/backend-db-migrate`, `/check-site`, `/add-i18n-key`, `/add-language`,
-  `/new-section`. Most are thin wrappers over `just` recipes; prefer them when they exist.
+  `/new-section`, `/add-city`. Most are thin wrappers over `just` recipes; prefer them when they
+  exist. `/add-city <name>` is the whole pipeline for a new city (runbook: `docs/runbooks/add-city.md`).
 - **Linear** is the issue tracker: the `linear` MCP server in `.mcp.json` (OAuth through `/mcp`,
   no token in the repo; tools `mcp__linear__get_issue`, `list_issues`, `update_issue`, `create_comment`, ...).
   Start every task with `/start-issue TRA-<n>`: it reads the issue and creates the branch. When the

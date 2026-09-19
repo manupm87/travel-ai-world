@@ -193,7 +193,9 @@ duplicate ids). Only public tours with a published schedule belong here, not pri
 ## Add a city
 
 A city is one file, `cities/<slug>.toml` (`cities/budapest.toml` is the reference, commented). Nobody
-writes it from scratch:
+writes it from scratch. The whole sequence (issue, draft, gate, tours, smoke, PR, index, deploy) is the
+[add-city runbook](../../../../docs/runbooks/add-city.md) (Claude Code: `/add-city <name>`); what the
+steps here do:
 
 1. `just corpus-discover name="Bologna"` (or `uv run python -m city_corpus discover Bologna` here)
    writes `cities/bologna.draft.toml` from open sources and prints what it could not decide:

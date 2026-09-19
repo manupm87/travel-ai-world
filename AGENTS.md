@@ -47,6 +47,7 @@ just stack-up       # the stack as deployed: frontend export + the above on one 
 just build-stack    # only the export for :8080 (what stack-up runs before docker-up)
 just scrape         # run the city scraper (needs GOOGLE_API_KEY in its .env)
 just corpus         # build the RAG corpus (Wikivoyage, Wikipedia, OSM, Wikidata, Open-Meteo → tools/city_corpus/data/<city>/)
+just corpus-discover name="<City>"  # draft a new city's TOML; the whole flow: docs/runbooks/add-city.md (Claude: /add-city)
 just aws-login      # AWS via IAM Identity Center (devcontainer); never access keys
 ```
 
