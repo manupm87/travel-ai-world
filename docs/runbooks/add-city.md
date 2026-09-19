@@ -141,12 +141,13 @@ own. Then `/plan/` plans "4 días en <city> desde Madrid" with the new city's ca
 ## Rollback
 
 Delete `cities/<slug>.toml` and `data/<slug>/`, run `just corpus-manifest` and commit (the city
-leaves the manifest and, after a deploy, the planner). To empty its vectors, index the city once
-more with a file holding only the documents to keep; an empty file is refused, so for a full removal
-run `just index <slug> --dry-run` to see the count, then delete the city's keys by hand
-with the AWS CLI (`aws s3vectors list-vectors --return-metadata`, keep the keys whose `city` is the
-slug, `delete-vectors`). `flags=--no-prune`
-keeps stale vectors for a rehearsal.
+leaves the manifest and, after a deploy, the planner). To shrink its vectors, index the city once
+more with a file holding only the documents to keep (the prune removes the rest of that city). An
+empty file removes nothing: the run exits 0 having done nothing, and the prune never runs. A full
+removal is therefore done by hand with the AWS CLI: `aws s3vectors list-vectors --return-metadata`,
+keep the keys whose `city` is the slug, `delete-vectors` in batches of 500 (or a follow-up recipe).
+`just index <slug> --dry-run` shows the count first; `just index <slug> --no-prune` keeps stale
+vectors for a rehearsal.
 
 ## Known pitfalls
 
@@ -155,12 +156,21 @@ keeps stale vectors for a rehearsal.
 - **Wikidata** folds its query service's lag into `maxlag`, and it can sit at minutes for hours;
   read-only requests are re-sent without the parameter. A stalled `discover` is usually this.
 - **Broad Wikipedia categories** hold embassies, ministries and companies next to the sights;
-  `require_coordinates = true` keeps the unlocated ones out.
+  `require_coordinates = true` keeps the unlocated ones out, and articles named after an airport or a
+  station are filed as `transport`. A category that any city may have goes into `discover`'s
+  standard list, so the next draft probes it.
 - **Wikivoyage groupings** without a page image (`North Buda`, `East Pest`) take the photo of a
   pictured sight of the district for their card; three identical carousel photos mean the district
   has no pictured sight.
 - **No Wikivoyage district pages** (Bologna): districts are the OSM boundaries at the level
-  `discover` picked; the Wikivoyage listings get their district from those boundaries.
+  `discover` picked; the Wikivoyage listings get their district from those boundaries, and each
+  district's `neighbourhood` text comes from its Wikipedia article through the boundary's `wikidata`
+  tag (Italian for Bologna's quartieri: no English article exists). The gate needs ≥ 5 districts
+  with such a document; a boundary without a `wikidata` tag has no text and no card.
+- **Names that fold away in ASCII** (Łódź → `odz`): add the common ASCII spelling (`lodz`) and the
+  Spanish exonym to `aliases` by hand.
+- **`just` has no named arguments**: `just corpus city=<slug>` builds the literal "city=<slug>".
+  Positional only; `just -n <recipe> <args>` shows what would run.
 - **Local OSM names** (`Roma`, `München`, `Wien`) are covered by `osm_relation`; only a city with no
   relation on Wikidata needs `osm_area` typed by hand, in the local spelling.
 - **More than 50 districts** (Prague, Istanbul) are fetched from Wikidata in batches; nothing to do.

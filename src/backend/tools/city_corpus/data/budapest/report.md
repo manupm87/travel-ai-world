@@ -64,6 +64,8 @@ A place is a document with a name; located when it has coordinates (what becomes
 
 Districts with fewer than 10 places: none.
 
+Districts with a neighbourhood document: 20 of 20.
+
 ## Price tiers
 
 | Category | Tier 1 | Tier 2 | Tier 3 | Untiered |
@@ -152,6 +154,7 @@ Districts with fewer than 10 places: none.
 | Sleep documents | ≥ 20 | 433 | pass |
 | Located sleep places | ≥ 10 | 415 | pass |
 | Districts | ≥ 5 | 20 | pass |
+| Districts with a neighbourhood document | ≥ 5 | 20 | pass |
 | Pictured share of located see + history places | ≥ 50% | 76% | pass |
 | Climate normals | = 12 | 12 | pass |
 

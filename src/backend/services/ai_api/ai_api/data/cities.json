@@ -1,5 +1,20 @@
 [
   {
+    "slug": "bologna",
+    "name": "Bologna",
+    "aliases": [
+      "bologna",
+      "bolonia"
+    ],
+    "centre": [
+      44.4939,
+      11.3428
+    ],
+    "timezone": "Europe/Rome",
+    "documents": 1593,
+    "built_at": "2026-09-19T18:45:39Z"
+  },
+  {
     "slug": "budapest",
     "name": "Budapest",
     "aliases": [

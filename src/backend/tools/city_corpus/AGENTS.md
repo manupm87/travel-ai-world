@@ -21,6 +21,7 @@ city_corpus/
 ├── config/readiness.py  Thresholds: the one place the readiness gate reads
 └── sources/             one module per source (fetch + parse): wikivoyage.py, wikipedia.py,
                          osm.py (Overpass, merge/new), districts.py (boundaries, shapely),
+                         neighbourhoods.py (district Wikipedia articles when Wikivoyage has no page),
                          wikidata.py (Wikidata + Commons licences), climate.py (Open-Meteo),
                          tours.py (curated tours + the `tour` reclassification rule)
 cities/<slug>.toml       one file per city (the configuration; drafts `*.draft.toml` are ignored)

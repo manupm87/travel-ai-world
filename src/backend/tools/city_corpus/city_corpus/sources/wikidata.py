@@ -106,6 +106,27 @@ def fetch_entities(client: ApiClient, qids: Iterable[str]) -> dict[str, Entity]:
     return entities
 
 
+def fetch_sitelinks(
+    client: ApiClient, qids: Iterable[str]
+) -> dict[str, dict[str, str]]:
+    """qid → site (`enwiki`, `itwiki`, ...) → article title."""
+    sitelinks: dict[str, dict[str, str]] = {}
+    for batch in _batches(qids):
+        data = client.get(
+            WIKIDATA_API,
+            {"action": "wbgetentities", "ids": "|".join(batch), "props": "sitelinks"},
+        ).data
+        for key, entity in data.get("entities", {}).items():
+            if "missing" in entity:
+                continue
+            sitelinks[key] = {
+                site: link["title"]
+                for site, link in entity.get("sitelinks", {}).items()
+                if isinstance(link, dict) and link.get("title")
+            }
+    return sitelinks
+
+
 def fetch_labels(client: ApiClient, qids: Iterable[str]) -> dict[str, str]:
     labels: dict[str, str] = {}
     for batch in _batches(qids):

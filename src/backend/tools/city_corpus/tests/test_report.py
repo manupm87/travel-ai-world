@@ -144,6 +144,7 @@ def test_gate_lists_every_missed_threshold_with_its_value() -> None:
         "Sleep documents: 2 (needs ≥ 20)",
         "Located sleep places: 1 (needs ≥ 10)",
         "Districts: 2 (needs ≥ 5)",
+        "Districts with a neighbourhood document: 0 (needs ≥ 5)",
         "Climate normals: 11 (needs = 12)",
     ]
     lenient = Thresholds(
@@ -152,6 +153,7 @@ def test_gate_lists_every_missed_threshold_with_its_value() -> None:
         sleep=2,
         located_sleep=1,
         districts=2,
+        described_districts=0,
         climate_normals=11,
     )
     assert report.gate(summary, lenient) == []

@@ -88,6 +88,8 @@ class Summary:
     # district → located places
     places_by_district: dict[str, int]
     small_districts: list[str]
+    # districts with a `neighbourhood` document (what the carousel ranks)
+    described_districts: list[str]
     # category → "1" | "2" | "3" | "untiered" → documents
     price_tiers: dict[str, dict[str, int]]
     climate_months: list[str]
@@ -175,6 +177,13 @@ def summarise(
             places_by_district[doc.district] += 1
 
     districts = sorted({d.district for d in documents if d.district})
+    described = sorted(
+        {
+            d.district
+            for d in documents
+            if d.category == Category.NEIGHBOURHOOD and d.district
+        }
+    )
     small = [
         name
         for name in districts
@@ -222,6 +231,7 @@ def summarise(
         districts=districts,
         places_by_district={d: places_by_district.get(d, 0) for d in districts},
         small_districts=small,
+        described_districts=described,
         price_tiers=price_tiers,
         climate_months=months_present,
         climate_missing=[m for m in MONTHS if m not in months_present],
@@ -328,6 +338,12 @@ def checks(
             len(summary.districts) >= thresholds.districts,
         ),
         Check(
+            "Districts with a neighbourhood document",
+            f"≥ {thresholds.described_districts}",
+            str(len(summary.described_districts)),
+            len(summary.described_districts) >= thresholds.described_districts,
+        ),
+        Check(
             "Pictured share of located see + history places",
             f"≥ {thresholds.pictured_sights_share:.0%}",
             f"{share:.0%}",
@@ -418,6 +434,15 @@ def render_markdown(
     )
     small = ", ".join(summary.small_districts) or "none"
     out += ["", f"Districts with fewer than {SMALL_DISTRICT_PLACES} places: {small}."]
+    undescribed = ", ".join(
+        d for d in summary.districts if d not in summary.described_districts
+    )
+    out += [
+        "",
+        f"Districts with a neighbourhood document: {len(summary.described_districts)}"
+        f" of {len(summary.districts)}"
+        + (f" (without: {undescribed})." if undescribed else "."),
+    ]
 
     out += ["", "## Price tiers", ""]
     out += _table(

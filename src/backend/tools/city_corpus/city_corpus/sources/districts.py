@@ -23,6 +23,9 @@ class Boundary:
     ref: str
     name: str
     shape: BaseGeometry
+    # The relation's `wikidata` tag: the district's own item, which names its
+    # Wikipedia article when the city has no Wikivoyage district pages.
+    wikidata: str | None = None
 
 
 # Overpass area ids of relations: the relation id plus this offset.
@@ -75,7 +78,12 @@ def parse_boundaries(overpass: dict[str, Any]) -> list[Boundary]:
         if not isinstance(shape, Polygon | MultiPolygon):
             continue
         boundaries.append(
-            Boundary(ref=str(ref), name=tags.get("name", ""), shape=shape)
+            Boundary(
+                ref=str(ref),
+                name=tags.get("name", ""),
+                shape=shape,
+                wikidata=tags.get("wikidata") or None,
+            )
         )
     return sorted(
         boundaries, key=lambda b: (int(b.ref) if b.ref.isdigit() else 0, b.ref)

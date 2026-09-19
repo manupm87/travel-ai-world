@@ -32,6 +32,13 @@ SKIPPED_SECTIONS = {
     "publications",
 }
 MIN_SECTION_CHARS = 40
+# Infrastructure that a broad category (`Buildings and structures in X`) files
+# next to the sights: it is how you arrive, not what you visit.
+_TRANSPORT_TITLE_RE = re.compile(
+    r"\b(airport|railway station|train station|bus station|metro station"
+    r"|central station|aeroporto|stazione)\b",
+    re.IGNORECASE,
+)
 _HEADING_RE = re.compile(r"^(={2,6})\s*(.+?)\s*\1\s*$")
 # Citation-template error messages that leak into plain-text extracts.
 _TEMPLATE_ERROR_RE = re.compile(r"\s*\{\{[^{}]*\}\}:[^\n]*?\(help\)")
@@ -72,15 +79,35 @@ def category_members(client: ApiClient, lang: str, category: str) -> list[int]:
         params = {**params, **cont}
 
 
+def strip_template_errors(text: str) -> str:
+    return _TEMPLATE_ERROR_RE.sub("", text)
+
+
 def fetch_article(
     client: ApiClient, lang: str, page_id: int
 ) -> tuple[WikipediaArticle, str]:
+    found = _fetch_article(client, lang, {"pageids": page_id})
+    if found is None:
+        raise RuntimeError(f"{lang}.wikipedia page {page_id} is missing")
+    return found
+
+
+def fetch_article_by_title(
+    client: ApiClient, lang: str, title: str
+) -> tuple[WikipediaArticle, str] | None:
+    """The article a Wikidata sitelink names; None when the page is missing."""
+    return _fetch_article(client, lang, {"titles": title, "redirects": 1})
+
+
+def _fetch_article(
+    client: ApiClient, lang: str, selector: dict[str, str | int]
+) -> tuple[WikipediaArticle, str] | None:
     fetched: Fetched = client.get(
         api_url(lang),
         {
             "action": "query",
             "prop": "extracts|pageprops|revisions|coordinates",
-            "pageids": page_id,
+            **selector,
             "explaintext": 1,
             "exsectionformat": "wiki",
             "ppprop": "wikibase_item",
@@ -89,6 +116,8 @@ def fetch_article(
         },
     )
     page = fetched.data["query"]["pages"][0]
+    if page.get("missing") or "revisions" not in page:
+        return None
     coordinates = page.get("coordinates") or [{}]
     return (
         WikipediaArticle(
@@ -105,9 +134,9 @@ def fetch_article(
     )
 
 
-def _sections(extract: str) -> list[tuple[list[str], str]]:
+def sections(extract: str) -> list[tuple[list[str], str]]:
     """(heading path below the title, body) per section; the lead has path []."""
-    sections: list[tuple[list[str], list[str]]] = [([], [])]
+    parts: list[tuple[list[str], list[str]]] = [([], [])]
     headings: list[tuple[int, str]] = []
     for line in extract.splitlines():
         match = _HEADING_RE.match(line.strip())
@@ -115,10 +144,10 @@ def _sections(extract: str) -> list[tuple[list[str], str]]:
             level = len(match.group(1))
             headings = [h for h in headings if h[0] < level]
             headings.append((level, match.group(2)))
-            sections.append(([h[1] for h in headings], []))
+            parts.append(([h[1] for h in headings], []))
         else:
-            sections[-1][1].append(line)
-    return [(path, "\n".join(lines)) for path, lines in sections]
+            parts[-1][1].append(line)
+    return [(path, "\n".join(lines)) for path, lines in parts]
 
 
 def is_located(article: WikipediaArticle, city: CityConfig) -> bool:
@@ -136,11 +165,12 @@ def parse_article(article: WikipediaArticle, city: CityConfig) -> list[CorpusDoc
     in_city = is_located(article, city)
     lat = round(article.lat, 6) if in_city and article.lat is not None else None
     lon = round(article.lon, 6) if in_city and article.lon is not None else None
+    is_transport = bool(_TRANSPORT_TITLE_RE.search(article.title))
     documents: list[CorpusDocument] = []
-    for index, (path, raw_body) in enumerate(_sections(article.extract)):
+    for index, (path, raw_body) in enumerate(sections(article.extract)):
         if any(h.lower() in SKIPPED_SECTIONS for h in path):
             continue
-        body = clean_whitespace(_TEMPLATE_ERROR_RE.sub("", raw_body))
+        body = clean_whitespace(strip_template_errors(raw_body))
         if len(body) < MIN_SECTION_CHARS:
             continue
         heading_path = HEADING_SEPARATOR.join([article.title, *path])
@@ -155,7 +185,13 @@ def parse_article(article: WikipediaArticle, city: CityConfig) -> list[CorpusDoc
                         f"wp:{article.lang}:{article.page_id}#s{index}-c{chunk_index}"
                     ),
                     city=city.slug,
-                    category=Category.SEE if not path else Category.HISTORY,
+                    category=(
+                        Category.TRANSPORT
+                        if is_transport
+                        else Category.SEE
+                        if not path
+                        else Category.HISTORY
+                    ),
                     kind=Kind.PROSE,
                     name=article.title,
                     text=f"{heading_path}\n\n{chunk}",

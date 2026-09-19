@@ -21,6 +21,9 @@ class Thresholds:
     located_sleep: int = 10
     # Distinct districts: the neighbourhood carousel offers three.
     districts: int = 5
+    # Districts with a `neighbourhood` document: what the carousel ranks. A
+    # Wikivoyage district page, or the district's Wikipedia article.
+    described_districts: int = 5
     # Share of `see` + `history` listings with an `image_url`: cards need photos.
     pictured_sights_share: float = 0.5
     # Monthly climate normals (`om:climate:<slug>:MM`): one per month.

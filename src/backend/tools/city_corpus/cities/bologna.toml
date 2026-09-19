@@ -1,0 +1,120 @@
+# Bologna (Wikidata Q1891), written by
+# `python -m city_corpus discover` on 2026-09-19 and reviewed by hand: no line
+# needed a change. Bologna has no Wikivoyage district pages, so the districts are
+# the six OSM quartieri (admin level 10) and each maps to itself.
+
+slug = "bologna"
+name = "Bologna"
+aliases = ["bologna", "bolonia"]
+language = "en"
+wikipedia_lang = "en"
+# OpenStreetMap relation of the city (Wikidata P402): selects the area for the boundaries and the place queries.
+osm_relation = 43172
+# Only used when `osm_relation` is unset.
+osm_area = "Bologna"
+district_admin_level = 10
+centre = [44.4939, 11.3428]
+timezone = "Europe/Rome"
+# Wikidata districts (P150): Borgo Panigale - Reno (Q55831330), Navile (Q3927184), Porto - Saragozza (Q97172403), San Donato - San Vitale (Q3927190), Santo Stefano (Q3927195), Savena (Q3927199)
+districts = [
+    "Borgo Panigale-Reno",
+    "Porto-Saragozza",
+    "Quartiere Navile",
+    "San Donato-San Vitale",
+    "Santo Stefano",
+    "Savena",
+]
+
+# From OSM relation 43172 (Nominatim), rounded outwards.
+[bbox]
+south = 44.42
+west = 11.22
+north = 44.56
+east = 11.44
+
+[[wikivoyage]]
+lang = "en"
+root = "Bologna"
+include_subpages = false  # no district pages
+
+[[wikivoyage]]
+lang = "es"
+root = "Bolonia"
+include_subpages = false  # no district pages
+
+# 17 pages
+[[wikipedia.categories]]
+name = "Tourist attractions in Bologna"
+
+# 17 pages
+[[wikipedia.categories]]
+name = "Museums in Bologna"
+
+# 3 pages
+[[wikipedia.categories]]
+name = "Monuments and memorials in Bologna"
+
+# 21 pages
+[[wikipedia.categories]]
+name = "Buildings and structures in Bologna"
+require_coordinates = true
+
+# 4 pages
+[[wikipedia.categories]]
+name = "Piazzas in Bologna"
+
+# 52 pages
+[[wikipedia.categories]]
+name = "Palaces in Bologna"
+
+# 2 pages
+[[wikipedia.categories]]
+name = "Towers in Bologna"
+
+# Bologna has no `Churches in Bologna`; its churches are basilicas and its
+# architecture categories hold most of the palaces and sights (probed by hand
+# on 2026-09-19, counts as of that day).
+# 9 pages
+[[wikipedia.categories]]
+name = "Basilica churches in Bologna"
+
+# 9 pages
+[[wikipedia.categories]]
+name = "Gates of Bologna"
+
+# 3 pages
+[[wikipedia.categories]]
+name = "Theatres in Bologna"
+
+# 7 pages (the Archiginnasio and the university libraries; offices kept out)
+[[wikipedia.categories]]
+name = "Libraries in Bologna"
+require_coordinates = true
+
+# 3 pages
+[[wikipedia.categories]]
+name = "Villas in Bologna"
+
+# 36 pages
+[[wikipedia.categories]]
+name = "Renaissance architecture in Bologna"
+require_coordinates = true
+
+# 13 pages
+[[wikipedia.categories]]
+name = "Baroque architecture in Bologna"
+require_coordinates = true
+
+# 9 pages
+[[wikipedia.categories]]
+name = "Gothic architecture in Bologna"
+require_coordinates = true
+
+# OSM district name (the boundaries carry no `ref` tag) → the Wikivoyage guide(s) covering it.
+[district_guides]
+"Borgo Panigale-Reno" = ["Borgo Panigale-Reno"]
+"Porto-Saragozza" = ["Porto-Saragozza"]
+"Quartiere Navile" = ["Quartiere Navile"]
+"San Donato-San Vitale" = ["San Donato-San Vitale"]
+"Santo Stefano" = ["Santo Stefano"]
+"Savena" = ["Savena"]

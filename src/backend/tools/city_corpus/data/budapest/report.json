@@ -148,6 +148,28 @@
     "Óbuda": 281
   },
   "small_districts": [],
+  "described_districts": [
+    "Angyalföld",
+    "Aquincum",
+    "Belváros",
+    "Budavár",
+    "Csepel",
+    "East Pest",
+    "Erzsébetváros",
+    "Ferencváros",
+    "Hegyvidék",
+    "Józsefváros",
+    "Kőbánya",
+    "North Buda",
+    "North Pest",
+    "South Buda",
+    "South Pest",
+    "Terézváros",
+    "Városliget",
+    "Víziváros",
+    "Zugló",
+    "Óbuda"
+  ],
   "price_tiers": {
     "eat": {
       "1": 116,
@@ -412,6 +434,12 @@
         "passed": true
       },
       {
+        "name": "Districts with a neighbourhood document",
+        "threshold": "≥ 5",
+        "measured": "20",
+        "passed": true
+      },
+      {
         "name": "Pictured share of located see + history places",
         "threshold": "≥ 50%",
         "measured": "76%",
@@ -430,6 +458,7 @@
       "sleep": 20,
       "located_sleep": 10,
       "districts": 5,
+      "described_districts": 5,
       "pictured_sights_share": 0.5,
       "climate_normals": 12
     }

@@ -50,6 +50,20 @@ STANDARD_CATEGORIES: tuple[tuple[str, bool], ...] = (
     ("Towers in {city}", False),
     ("Thermal baths in {city}", False),
     ("Synagogues in {city}", False),
+    # Italian and Spanish cities file their sights under these (Bologna: 9
+    # basilicas, 9 gates, 36 Renaissance and 13 Baroque buildings, no
+    # `Churches in`). The architecture ones hold seminaries and offices too.
+    ("Basilica churches in {city}", False),
+    ("Gates of {city}", False),
+    ("City gates of {city}", False),
+    ("Theatres in {city}", False),
+    ("Libraries in {city}", True),
+    ("Villas in {city}", False),
+    ("Cemeteries in {city}", False),
+    ("Fountains in {city}", False),
+    ("Renaissance architecture in {city}", True),
+    ("Baroque architecture in {city}", True),
+    ("Gothic architecture in {city}", True),
 )
 # Instance-of classes that make a search hit a city without a second look.
 CITY_CLASSES = {

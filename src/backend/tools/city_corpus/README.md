@@ -31,7 +31,8 @@ manifest reports documents per category and what each one skipped.
 
 ## Pipeline
 
-1. **Wikivoyage, Wikipedia** → documents (TRA-138).
+1. **Wikivoyage, Wikipedia** → documents (TRA-138). A Wikipedia article whose title names an airport
+   or a station (the broad categories file them next to the palaces) is `transport`, not a sight.
 2. **OpenStreetMap** (TRA-139): district boundaries; then every named element with a `wikidata` tag
    gives its id to a document without one that has the same name within 75 m; then the category
    queries. An element that matches an existing listing or Wikipedia article (same Wikidata id, or
@@ -48,6 +49,12 @@ manifest reports documents per category and what each one skipped.
    districts (by OSM `ref`; by name for a city whose boundaries carry none) to the 20 Wikivoyage
    guides. Districts I, III and XIV are split between two guides; the nearest Wikivoyage listing
    decides. Points in no boundary (Margaret Island) take the guide of the nearest listing within 1 km.
+   **Neighbourhood articles**: a district with no Wikivoyage page of its own (Bologna has none) has
+   no `neighbourhood` document, and the planner's carousel ranks those. The district boundary's
+   `wikidata` tag names the district's item, whose Wikipedia article (the city's language, then
+   English and Spanish, then the first other Wikipedia: Italian for Bologna's quartieri) becomes the
+   district's `neighbourhood` prose, named after the district. Only a district that is exactly one
+   boundary mapped to exactly one guide qualifies; Budapest's groupings keep their Wikivoyage pages.
 5. **Tours**: listings from any source that are things you *join* move to `category=tour` with a
    `tour_type` (`walking`, `bike`, `boat`, `bus`, `cave`, `food`, `other`). The automatic rule looks
    for a tour heading (*Tours*, *Guided tours*, *Cave tours*, *Boating*, *Cruises*, *Sightseeing*) or a
@@ -147,6 +154,7 @@ The report ends with the **readiness gate**, the thresholds in `city_corpus/conf
 | Located `eat` places | ≥ 100 |
 | `sleep` documents / located `sleep` places | ≥ 20 / ≥ 10 |
 | Districts | ≥ 5 |
+| Districts with a `neighbourhood` document | ≥ 5 |
 | Pictured share of located `see` + `history` places | ≥ 50 % |
 | Climate normals | = 12 |
 

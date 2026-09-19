@@ -56,6 +56,18 @@ def test_sections_become_chunks() -> None:
     assert destruction.source_url.endswith("#Destruction")
 
 
+def test_infrastructure_articles_are_transport_not_sights() -> None:
+    """`Buildings and structures in Bologna` files the airport next to the palaces."""
+    from dataclasses import replace
+
+    airport = replace(_article(), title="Bologna Guglielmo Marconi Airport")
+    docs = parse_article(airport, BUDAPEST)
+    assert docs and all(d.category == Category.TRANSPORT for d in docs)
+
+    mall = replace(_article(), title="Arena Mall (Budapest)")
+    assert parse_article(mall, BUDAPEST)[0].category == Category.SEE
+
+
 def test_coordinates_outside_the_city_are_dropped() -> None:
     docs = parse_article(_article(lat=47.62, lon=19.5), BUDAPEST)
     assert all(d.lat is None and d.lon is None for d in docs)

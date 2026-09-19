@@ -23,6 +23,7 @@ from city_corpus.models import (
 from city_corpus.sources import (
     climate,
     districts,
+    neighbourhoods,
     osm,
     tours,
     wikidata,
@@ -95,6 +96,7 @@ class BuildResult:
     listings_skipped: int = 0
     # Enrichment counters, reported under `enrichment` in the manifest.
     enrichment: dict[str, Any] = field(default_factory=dict)
+    boundaries: list[districts.Boundary] = field(default_factory=list)
 
 
 def collect(
@@ -111,6 +113,8 @@ def collect(
     locator = None
     if Stage.OPENSTREETMAP in stages:
         locator = _collect_osm(city, client, result)
+    if Stage.WIKIPEDIA in stages and result.boundaries:
+        _collect_neighbourhoods(city, client, result)
     if Stage.WIKIDATA in stages:
         _enrich_wikidata(city, client, result)
     if locator:
@@ -198,6 +202,7 @@ def _collect_osm(
     boundaries_response = districts.fetch_boundaries(client, city)
     result.fetched_at.append(boundaries_response.fetched_at)
     boundaries = districts.parse_boundaries(boundaries_response.data)
+    result.boundaries = boundaries
     anchors = [
         (d.district, d.lat, d.lon)
         for d in result.documents
@@ -233,6 +238,29 @@ def _collect_osm(
         "skipped_too_short": stats.too_short,
     }
     return locator
+
+
+def _collect_neighbourhoods(
+    city: CityConfig, client: ApiClient, result: BuildResult
+) -> None:
+    """A Wikipedia article per district that no Wikivoyage page describes."""
+    wanted = neighbourhoods.uncovered_districts(
+        city, result.boundaries, result.documents
+    )
+    described: dict[str, str] = {}
+    for choice, article, fetched_at in neighbourhoods.fetch(client, city, wanted):
+        result.fetched_at.append(fetched_at)
+        key = f"wikipedia:{article.lang}:{article.title}"
+        result.revisions[key] = article.revision_id
+        documents = neighbourhoods.documents(choice, article, city)
+        if documents:
+            described[choice.district] = f"{article.lang}:{article.title}"
+            result.documents += documents
+    if wanted:
+        result.enrichment["neighbourhoods"] = {
+            "districts_without_guide": sorted(wanted),
+            "described_by_wikipedia": dict(sorted(described.items())),
+        }
 
 
 def _enrich_wikidata(city: CityConfig, client: ApiClient, result: BuildResult) -> None:
@@ -314,8 +342,8 @@ def manifest(city: CityConfig, result: BuildResult) -> dict[str, Any]:
     def counts(values: list[str]) -> dict[str, int]:
         return dict(sorted(Counter(values).items()))
 
-    wikivoyage_districts = {
-        d.district for d in docs if d.source == Source.WIKIVOYAGE and d.district
+    described_districts = {
+        d.district for d in docs if d.category == Category.NEIGHBOURHOOD and d.district
     }
     return {
         "city": city.slug,
@@ -328,7 +356,7 @@ def manifest(city: CityConfig, result: BuildResult) -> dict[str, Any]:
         "by_kind": counts([d.kind.value for d in docs]),
         "by_category": counts([d.category.value for d in docs]),
         "by_district": counts([d.district or "(city-wide)" for d in docs]),
-        "districts_missing": sorted(set(city.districts) - wikivoyage_districts),
+        "districts_missing": sorted(set(city.districts) - described_districts),
         "images": {
             "with_image": sum(1 for d in docs if d.image_url),
             "see_documents": len(see),

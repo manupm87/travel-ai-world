@@ -35,7 +35,14 @@ Steps:
      `require_coordinates = true` on any broad category (`Buildings and structures in X` holds
      embassies and offices);
    - `osm_area` only matters when `osm_relation` is missing: then it must be the local OSM `name`
-     (`Wien`, `Praha`), not the English one.
+     (`Wien`, `Praha`), not the English one;
+   - `aliases`: the draft folds the labels to ASCII; a name whose letters fold away (Łódź → `odz`)
+     needs the common ASCII spelling added by hand (`lodz`), and the Spanish exonym when there is
+     one (`bolonia`, `múnich`/`munich`).
+
+   Every command below is `just <recipe> <arg> …`: `just` has no `name=value` arguments, so
+   `just corpus city=<slug>` would build the literal "city=<slug>". `just -n <recipe> <args>` prints
+   what a recipe would run.
 
    Rename the file to `cities/<slug>.toml` (drafts are ignored by the build; `slug` must equal the
    file name). Do not commit a `.draft.toml`.
@@ -94,7 +101,7 @@ Steps:
 7. **After the merge, hand over.** Tell Manuel the two things only he can do, in this order:
    1. `just aws-login && just index <slug>` — embeds the corpus and upserts it into the shared
       S3 Vectors index; it prunes only that city's stale vectors, other cities are untouched.
-      `flags=--dry-run` first parses and measures without touching AWS.
+      `just index <slug> --dry-run` first parses and measures without touching AWS.
    2. A backend deploy: the cities manifest ships inside the `ai_api` image, so the planner offers
       the city only after "Backend images" has built the merge commit and "Deploy backend" has
       promoted it (`docs/runbooks/deploy.md`, "Promoting a backend change": `gh workflow run
@@ -110,12 +117,22 @@ Known pitfalls (from Budapest and Bologna):
 - **Wikidata** folds its query service's lag into `maxlag` and it can sit at minutes for hours;
   read-only requests are re-sent without the parameter. If the discover run stalls, that is why.
 - **Wikipedia broad categories** hold embassies, ministries and companies next to the sights:
-  `require_coordinates = true` keeps the unlocated ones out. Check the smoke queries for the rest.
+  `require_coordinates = true` keeps the unlocated ones out. Airports and stations are recognised by
+  their title and filed as `transport`. Check the smoke queries and the smoke session's day picks
+  for the rest: a sight that is not one is a category problem, and the fix is a rule in
+  `sources/wikipedia.py` that every city gets, not an edit to one corpus.
+- **Standard categories are a list**: a category you add by hand that any city may have (Bologna's
+  `Basilica churches in X`, `Gates of X`, `Renaissance architecture in X`) goes into
+  `STANDARD_CATEGORIES` in `discover.py` too, so the next city's draft probes it.
 - **Wikivoyage groupings** (`North Buda`, `East Pest`) have no page image: their neighbourhood card
   takes the photo of a pictured sight in the district. Three identical carousel photos mean the
   district has no pictured sight: more Wikipedia categories.
 - **No Wikivoyage district pages** (Bologna): districts come from the OSM boundaries at the level
-  `discover` picked; the Wikivoyage listings get their district from those boundaries.
+  `discover` picked; the Wikivoyage listings get their district from those boundaries, and each
+  district's `neighbourhood` text comes from its Wikipedia article (the boundary's `wikidata` tag;
+  the local language when there is no English one). The gate needs ≥ 5 districts with one; a
+  boundary without a `wikidata` tag has no text and no card, so tag it in OSM or pick another
+  admin level.
 - **Local OSM names**: `osm_relation` (from Wikidata P402) selects the area, so `Roma`, `München`
   and `Wien` need nothing by hand. Without a relation, `osm_area` must be the local name.
 - **More than 50 districts** (Prague, Istanbul) are fetched in batches; nothing to do.
