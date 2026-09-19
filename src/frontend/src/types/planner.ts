@@ -66,7 +66,15 @@ export type OptionCard = components["schemas"]["OptionCard"];
 /**
  * The same card in full (`GET /ai/planner/card?id=`), as the detail panel
  * shows it: the corpus article behind the card, its address, phone and site.
- * Additive over {@link OptionCard} — assignable wherever a card is expected.
+ *
+ * Additive over {@link OptionCard} in shape, but not a replacement for one:
+ * `why` is what the model wrote for a turn, so the endpoint returns `""`, and
+ * `image_url`/`image_credit` hold the corpus's own photo or one found on
+ * Wikimedia Commons — `null` when neither has one, where the streamed card
+ * carries a fallback picture. So merge the detail onto the card already held
+ * instead of replacing it — keep that card's `why`, and its photo and credit
+ * together when the detail brings none:
+ * `{ ...card, ...detail, why: card.why, ...(detail.image_url ? {} : { image_url: card.image_url, image_credit: card.image_credit }) }`
  */
 export type CardDetail = components["schemas"]["CardDetail"];
 

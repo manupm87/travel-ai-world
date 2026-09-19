@@ -14,6 +14,7 @@ from ai_api.application.cards import (
     _description,
     card_from_document,
     cards_for,
+    detail_from_card,
     detail_from_document,
     title_of,
 )
@@ -325,6 +326,42 @@ class TestDetailFromDocument:
         detail = detail_from_document(documents[TOUR_EN])
         assert detail.source_url == "https://freebudapesttour.com/"
         assert detail.website is None
+
+    def test_the_photo_and_the_why_are_the_corpus_s_own(
+        self, documents: dict[str, Document]
+    ) -> None:
+        """The corpus has no photo of most bars, so the detail has none either.
+
+        The streamed card does (Commons, a same-category corpus photo or the
+        placeholder, from `application/photos`) and carries the model's `why`:
+        the contract is that a client merges the detail onto the card it
+        holds, so pin what the builder alone can answer.
+        """
+        detail = detail_from_document(documents[MAZEL_TOV])
+
+        assert detail.image_url is None
+        assert detail.image_credit is None
+        assert detail.why == ""
+        assert detail.license == "ODbL 1.0"  # a licence is metadata, not a photo
+
+    def test_a_pictured_card_carries_its_photo_into_the_detail(self) -> None:
+        """What `ensure_photos` filled in survives `detail_from_card`."""
+        document = Document(
+            id="osm:node/1", content="A bar.", metadata={"category": "drink"}
+        )
+        pictured = card_from_document(document, why="Late and loud.").model_copy(
+            update={
+                "image_url": "https://example.org/bar.jpg",
+                "image_credit": "Someone",
+            }
+        )
+
+        detail = detail_from_card(pictured, document)
+
+        assert detail.image_url == "https://example.org/bar.jpg"
+        assert detail.image_credit == "Someone"
+        assert detail.why == "Late and loud."
+        assert detail.description == "A bar."
 
     def test_a_document_without_text_has_an_empty_description(self) -> None:
         detail = detail_from_document(

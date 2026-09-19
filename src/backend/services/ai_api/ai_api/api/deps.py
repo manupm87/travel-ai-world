@@ -111,11 +111,17 @@ def get_plan_trip(
 
 def get_card_detail(
     retriever: Retriever | None = Depends(get_retriever),
+    photos: PhotoFinder | None = Depends(get_photos),
+    cities: tuple[City, ...] = Depends(get_cities),
 ) -> CardDetailLookup:
-    """A card is a corpus document: without a store there is nothing to open."""
+    """A card is a corpus document: without a store there is nothing to open.
+
+    Pictured like the planner's cards (same `PhotoFinder`), so the panel of a
+    restaurant the corpus has no photo of is not blank.
+    """
     if retriever is None:
         raise ProviderUnavailable("Card details need retrieval (RETRIEVAL_ENABLED)")
-    return CardDetailLookup(retriever)
+    return CardDetailLookup(retriever, photos=photos, cities=cities)
 
 
 def get_trip_gateway(settings: AISettings = Depends(get_settings)) -> TripGateway:

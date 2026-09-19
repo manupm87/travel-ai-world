@@ -7,6 +7,13 @@ writes one short sentence, never a price or an address.
 `detail_from_document` adds what the carousel has no room for and the detail
 panel shows (TRA-178): the document's own text, the address, the phone and
 the venue's site. Same rule — it all comes from the store, never the client.
+
+A card the planner streamed is not quite the card this module builds: it has
+been through `application/photos.ensure_photos`, which pictures the many
+places the corpus has no photo of, and it carries the `why` the model wrote
+for that turn. `detail_from_card` therefore takes those shared fields from a
+card the caller already has, and a client that holds one merges the detail
+onto it instead of replacing it (see `detail_from_document`).
 """
 
 import json
@@ -75,13 +82,13 @@ def card_from_document(document: Document, why: str = "") -> OptionCard:
     )
 
 
-def detail_from_document(document: Document, why: str = "") -> CardDetail:
-    """The same card with the article behind it: text, address, phone, site.
+def detail_from_card(card: OptionCard, document: Document) -> CardDetail:
+    """`card` — built from `document` — plus the article behind it.
 
-    Built on `card_from_document`, so the detail panel and the carousel can
-    never disagree about a title, a photo or a price tier.
+    The shared fields are the given card's, so whatever the caller did to it
+    survives into the detail: the photo `ensure_photos` found, the `why` the
+    model wrote. Use this whenever such a card is at hand.
     """
-    card = card_from_document(document, why)
     metadata = document.metadata
     extra = _extra(metadata)
 
@@ -93,6 +100,25 @@ def detail_from_document(document: Document, why: str = "") -> CardDetail:
         website=_website(metadata, extra, card.source_url),
         heading_path=_str(metadata.get("heading_path")),
     )
+
+
+def detail_from_document(document: Document, why: str = "") -> CardDetail:
+    """The same card with the article behind it: text, address, phone, site.
+
+    The card's own fields are the corpus's, exactly as `card_from_document`
+    reads them — which is *not* what the browser was streamed: `image_url`
+    and `image_credit` are `None` for every document the corpus has no photo
+    of (most restaurants, bars, hotels and tours), where the streamed card
+    carries a Wikimedia Commons photo, a same-category corpus photo or the
+    placeholder from `application/photos`; and `why` is empty unless the
+    caller passes the sentence the model wrote for that turn.
+
+    So a client that already holds the card must merge the detail onto it
+    (`{...card, ...detail}`, keeping the card's photo when the detail brings
+    none) rather than replace it. `application/card_detail.CardDetailLookup`
+    runs the Commons lookup itself for a caller holding nothing but an id.
+    """
+    return detail_from_card(card_from_document(document, why), document)
 
 
 def cards_for(
