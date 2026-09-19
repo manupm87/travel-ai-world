@@ -563,9 +563,43 @@ class PlanTrip:
             language=LANGUAGE_NAMES[turn.language],
         )
         picks = await self._pick(turn, prompt, candidates, OPTIONS_COUNT)
-        return await self._with_photos(
-            [card_from_document(known[p.id], self._clean(turn, p.why)) for p in picks]
+        cards = await ensure_photos(
+            [card_from_document(known[p.id], self._clean(turn, p.why)) for p in picks],
+            self._photos,
+            fallback=False,
         )
+        return await self._with_photos(
+            [await self._district_photo(turn, card) for card in cards]
+        )
+
+    async def _district_photo(self, turn: Turn, card: OptionCard) -> OptionCard:
+        """A neighbourhood without a page image is pictured by one of its
+        sights: the corpus has photos for most of them."""
+        if card.image_url or not card.district:
+            return card
+        try:
+            found = await self._search(
+                turn,
+                f"{card.district} landmark",
+                SIGHT_CATEGORIES,
+                limit=self._candidate_count,
+                districts=(card.district,),
+                tier=None,
+            )
+        except DomainError as exc:
+            logger.warning("No sight photo for %s: %s", card.district, exc.message)
+            return card
+        for sight in image_first(found):
+            pictured = card_from_document(sight)
+            if pictured.image_url:
+                return card.model_copy(
+                    update={
+                        "image_url": pictured.image_url,
+                        "image_credit": pictured.image_credit
+                        or f"{pictured.title} · {pictured.source}",
+                    }
+                )
+        return card
 
     async def _neighbourhood_options(self, turn: Turn) -> AsyncIterator[PlannerEvent]:
         cards = await self._rank_neighbourhoods(turn)

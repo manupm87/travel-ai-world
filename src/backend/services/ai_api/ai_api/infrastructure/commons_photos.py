@@ -18,7 +18,7 @@ import logging
 import re
 from collections.abc import Mapping
 from typing import Any
-from urllib.parse import quote
+from urllib.parse import quote, unquote, urlparse
 
 import httpx
 
@@ -158,6 +158,40 @@ class CommonsPhotos:
             url=file_url(title, self._width), credit=credit_line(author, licence)
         )
 
+    async def find_for_page(self, page_url: str) -> Photo | None:
+        """The lead image (`pageimages`) of a Wikivoyage or Wikipedia page."""
+        located = wiki_page(page_url)
+        if located is None:
+            return None
+        host, title = located
+        try:
+            response = await self._client.get(
+                f"https://{host}/w/api.php",
+                params={
+                    "action": "query",
+                    "titles": title,
+                    "prop": "pageimages",
+                    "piprop": "name",
+                    "format": "json",
+                },
+            )
+            response.raise_for_status()
+            pages: Mapping[str, Any] = response.json()["query"]["pages"]
+            filename = next(
+                (p.get("pageimage") for p in pages.values() if p.get("pageimage")),
+                None,
+            )
+            if not isinstance(filename, str):
+                return None
+            file_title = f"File:{filename.replace('_', ' ')}"
+            author, licence = await self._credit(file_title)
+        except (httpx.HTTPError, ValueError, KeyError, TypeError) as exc:
+            logger.warning("Wiki page image lookup failed for %r: %s", page_url, exc)
+            return None
+        return Photo(
+            url=file_url(file_title, self._width), credit=credit_line(author, licence)
+        )
+
     async def _by_name(self, name: str) -> str | None:
         """A file named after the venue, or None; a failed search (Commons
         rate-limits this endpoint) still leaves the geosearch to try."""
@@ -222,6 +256,24 @@ class CommonsPhotos:
                 meta.get("LicenseShortName", {}).get("value")
             )
         return None, None
+
+
+WIKI_HOSTS = re.compile(r"^[a-z]{2,3}\.(wikivoyage|wikipedia)\.org$")
+
+
+def wiki_page(page_url: str) -> tuple[str, str] | None:
+    """`(host, title)` of a Wikivoyage/Wikipedia article URL, else None.
+
+    A section anchor is dropped: the page's lead image is what a district or
+    an article is pictured by.
+    """
+    parsed = urlparse(page_url)
+    if not WIKI_HOSTS.match(parsed.hostname or "") or not parsed.path.startswith(
+        "/wiki/"
+    ):
+        return None
+    title = unquote(parsed.path[len("/wiki/") :]).replace("_", " ")
+    return (parsed.hostname or "", title) if title else None
 
 
 def distinctive_words(name: str) -> set[str]:

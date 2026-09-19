@@ -133,6 +133,9 @@ async def test_never_runs_more_than_lookups_in_flight_concurrent_lookups() -> No
             self.max_seen = 0
             self._lock = asyncio.Lock()
 
+        async def find_for_page(self, page_url: str) -> Photo | None:
+            return None
+
         async def find(self, name: str, lat: float, lon: float) -> Photo | None:
             async with self._lock:
                 self.current += 1
@@ -170,3 +173,49 @@ class TestFallbackPhoto:
     def test_every_fallback_credit_names_a_licence(self) -> None:
         for photo in FALLBACK_PHOTOS.values():
             assert "(" in photo.credit and ")" in photo.credit
+
+
+# ─── Pages without coordinates (TRA-163) ─────────────────────────────────────
+
+
+async def test_a_card_without_coordinates_is_pictured_by_its_page():
+    from ai_api.testing import FakePhotoFinder
+
+    page = "https://en.wikivoyage.org/wiki/Budapest/Belv%C3%A1ros"
+    finder = FakePhotoFinder(
+        pages={page: Photo("https://c/belvaros.jpg", "A (CC0) · Wikimedia Commons")}
+    )
+    card = _card(
+        id="nb-1",
+        title="Belváros",
+        lat=None,
+        lon=None,
+        source_url=page,
+        category="neighbourhood",
+    )
+
+    [pictured] = await ensure_photos([card], finder)
+
+    assert pictured.image_url == "https://c/belvaros.jpg"
+    assert finder.page_lookups == [page] and finder.lookups == []
+
+
+async def test_a_page_without_an_image_falls_back_when_asked():
+    from ai_api.testing import FakePhotoFinder
+
+    page = "https://en.wikivoyage.org/wiki/Budapest/North_Buda"
+    card = _card(
+        id="nb-2",
+        title="North Buda",
+        lat=None,
+        lon=None,
+        source_url=page,
+        category="neighbourhood",
+    )
+
+    [kept] = await ensure_photos([card], FakePhotoFinder(), fallback=False)
+    [illustrated] = await ensure_photos([card], FakePhotoFinder())
+
+    assert kept.image_url is None
+    assert illustrated.image_credit is not None
+    assert illustrated.image_credit.startswith("Illustrative photo")

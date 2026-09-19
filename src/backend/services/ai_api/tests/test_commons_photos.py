@@ -396,3 +396,79 @@ def test_names_made_of_generic_words_skip_the_search():
     assert distinctive_words("Chop Chop") == set()
     assert distinctive_words("Cortile Hotel") == {"cortile"}
     assert distinctive_words("Stefánia Park Cafe") == {"stefánia"}
+
+
+# ─── Page images (TRA-163) ───────────────────────────────────────────────────
+
+
+def test_wiki_page_reads_host_and_title_from_an_article_url():
+    from ai_api.infrastructure.commons_photos import wiki_page
+
+    assert wiki_page("https://en.wikivoyage.org/wiki/Budapest/Belv%C3%A1ros") == (
+        "en.wikivoyage.org",
+        "Budapest/Belváros",
+    )
+    assert wiki_page("https://en.wikipedia.org/wiki/Buda_Castle#History") == (
+        "en.wikipedia.org",
+        "Buda Castle",
+    )
+    assert wiki_page("https://www.openstreetmap.org/node/1") is None
+    assert wiki_page("https://en.wikivoyage.org/") is None
+
+
+async def test_a_pages_lead_image_is_returned_with_its_credit():
+    def handle(request: httpx.Request) -> httpx.Response:
+        params = request.url.params
+        if params.get("prop") == "pageimages":
+            assert request.url.host == "en.wikivoyage.org"
+            assert params["titles"] == "Budapest/Belváros"
+            return httpx.Response(
+                200,
+                json={
+                    "query": {
+                        "pages": {"7": {"pageimage": "Hungary_budapest_district_5.jpg"}}
+                    }
+                },
+            )
+        assert params["titles"] == "File:Hungary budapest district 5.jpg"
+        return httpx.Response(200, json=CREDIT)
+
+    finder = CommonsPhotos(httpx.AsyncClient(transport=httpx.MockTransport(handle)))
+
+    photo = await finder.find_for_page(
+        "https://en.wikivoyage.org/wiki/Budapest/Belv%C3%A1ros"
+    )
+
+    assert photo == Photo(
+        url=(
+            "https://commons.wikimedia.org/wiki/Special:FilePath/"
+            "Hungary%20budapest%20district%205.jpg?width=800"
+        ),
+        credit="Someone (CC BY 4.0) · Wikimedia Commons",
+    )
+
+
+async def test_a_page_without_a_lead_image_or_off_wiki_is_none():
+    def handle(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"query": {"pages": {"9": {"title": "x"}}}})
+
+    finder = CommonsPhotos(httpx.AsyncClient(transport=httpx.MockTransport(handle)))
+
+    assert (
+        await finder.find_for_page("https://en.wikivoyage.org/wiki/Budapest/North_Buda")
+        is None
+    )
+    assert await finder.find_for_page("https://example.com/wiki/Whatever") is None
+
+
+async def test_a_failing_wiki_api_is_none_with_a_warning(caplog):
+    def handle(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(503, json={"error": "down"})
+
+    finder = CommonsPhotos(httpx.AsyncClient(transport=httpx.MockTransport(handle)))
+
+    assert (
+        await finder.find_for_page("https://en.wikivoyage.org/wiki/Budapest/Zugl%C3%B3")
+        is None
+    )
+    assert "Wiki page image lookup failed" in caplog.text

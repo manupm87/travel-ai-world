@@ -71,9 +71,13 @@ async def ensure_photos(
         if card.image_url:
             return card
         photo: Photo | None = None
-        if finder is not None and card.lat is not None and card.lon is not None:
+        if finder is not None:
             async with gate:
-                photo = await finder.find(card.title, card.lat, card.lon)
+                if card.lat is not None and card.lon is not None:
+                    photo = await finder.find(card.title, card.lat, card.lon)
+                elif card.source_url:
+                    # A district or an article: pictured by its page's lead image.
+                    photo = await finder.find_for_page(card.source_url)
         if photo is None and fallback:
             photo = fallback_photo(card.category)
         if photo is None:

@@ -959,3 +959,30 @@ async def test_pictured_places_are_offered_first():
     assert all(c.image_url for c in group.cards)
     shown = provider.completions[0][-2].content
     assert "| photo |" in shown
+
+
+async def test_neighbourhoods_are_pictured_by_their_page_or_a_sight_of_theirs():
+    page = "https://en.wikivoyage.org/wiki/Budapest/Belv%C3%A1ros"
+    finder = FakePhotoFinder(
+        pages={page: Photo("https://c/belvaros.jpg", "A (CC0) · Wikimedia Commons")}
+    )
+    use_case, _, _ = planner(
+        [
+            json.dumps({}),
+            picks(BELVAROS, "wv:en:Budapest/Budavár#section:intro:c1"),
+        ],
+        photos=finder,
+    )
+
+    events = await run(use_case(turn("Looks good", brief=brief())))
+
+    [group] = only(events, OptionsEvent)
+    by_title = {c.title: c for c in group.cards}
+    # The district page's own image, credited.
+    assert by_title["Belváros"].image_url == "https://c/belvaros.jpg"
+    # No page image known: a pictured sight of the district, never the generic photo.
+    budavar = by_title["Budavár"]
+    assert budavar.image_url and "Special:FilePath" in budavar.image_url
+    assert budavar.image_credit and not budavar.image_credit.startswith("Illustrative")
+    assert all(c.image_url for c in group.cards)
+    assert page in finder.page_lookups

@@ -182,13 +182,23 @@ class FakeRetriever:
 class FakePhotoFinder:
     """Answers one photo per place it knows (by name), records every lookup."""
 
-    def __init__(self, photos: dict[str, Photo] | None = None) -> None:
+    def __init__(
+        self,
+        photos: dict[str, Photo] | None = None,
+        pages: dict[str, Photo] | None = None,
+    ) -> None:
         self.photos = photos or {}
+        self.pages = pages or {}
         self.lookups: list[tuple[str, float, float]] = []
+        self.page_lookups: list[str] = []
 
     async def find(self, name: str, lat: float, lon: float) -> Photo | None:
         self.lookups.append((name, lat, lon))
         return self.photos.get(name)
+
+    async def find_for_page(self, page_url: str) -> Photo | None:
+        self.page_lookups.append(page_url)
+        return self.pages.get(page_url)
 
 
 def matches(document: Document, filters: RetrievalFilters) -> bool:

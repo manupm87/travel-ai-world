@@ -100,6 +100,11 @@ class PhotoFinder(Protocol):
 
     async def find(self, name: str, lat: float, lon: float) -> Photo | None: ...
 
+    async def find_for_page(self, page_url: str) -> Photo | None:
+        """The lead image of a wiki page (a Wikivoyage district, a Wikipedia
+        article) given its URL, or None."""
+        ...
+
 
 class TripGateway(Protocol):
     """The slice of core_api the AI service needs, acting as the caller."""
