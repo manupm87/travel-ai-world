@@ -11,7 +11,7 @@ import { TripPanel } from "@/components/planner/v2/TripPanel";
 import { useLanguage } from "@/context/LanguageContext";
 import { partOf } from "@/hooks/plannerReducer";
 import { usePlanner } from "@/hooks/usePlanner";
-import { usePlannerCities } from "@/hooks/usePlannerCities";
+import { findCity, usePlannerCities } from "@/hooks/usePlannerCities";
 import { useSelectedDay } from "@/hooks/useSelectedDay";
 import { interpolate } from "@/i18n";
 import type { Slot } from "@/types/planner";
@@ -39,12 +39,13 @@ export default function PlannerClientPage() {
     toggleShortlist,
     reset,
   } = usePlanner();
-  // The itinerary is browsed one day at a time: the panel's strip picks the
-  // day and the map maps that same day (TRA-176).
+  // The itinerary opens on the trip overview (`null`, TRA-177) and is then
+  // browsed one day at a time: the panel's strip picks the day and the map
+  // maps that same day (TRA-176).
   const [selectedDay, setSelectedDay] = useSelectedDay(state.itinerary);
-  // The covered cities, for the starter chips, the destination hint and where
-  // the map opens; the built-in copy stands in until they arrive (or when they
-  // never do).
+  // The covered cities, for the starter chips, the destination hint, where the
+  // map opens and what the overview says about the destination; the built-in
+  // copy stands in until they arrive (or when they never do).
   const { cities } = usePlannerCities();
 
   // One walk of the itinerary for both columns (TRA-147): the map draws these
@@ -54,28 +55,26 @@ export default function PlannerClientPage() {
     [state.itinerary, selectedDay]
   );
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
-  // A pin belongs to the day it was picked on, so the next day starts with
-  // none. Adjusted while rendering, as `useSelectedDay` adjusts the day: React
-  // re-runs this component before touching the DOM, so neither the panel nor
-  // the map ever paints a ring around a card the new day does not have.
-  const [stopDay, setStopDay] = useState(selectedDay);
+  // A pin belongs to the day it was picked on, so the next day — and the
+  // overview, which has no map at all — starts with none. Adjusted while
+  // rendering, as `useSelectedDay` adjusts the day: React re-runs this
+  // component before touching the DOM, so neither the panel nor the map ever
+  // paints a ring around a card the new day does not have.
+  const [stopDay, setStopDay] = useState<number | null>(selectedDay);
   if (stopDay !== selectedDay) {
     setStopDay(selectedDay);
     if (selectedStopId !== null) setSelectedStopId(null);
   }
 
-  // Where the map looks before the day has any coordinates: the destination's
-  // own centre, matched on the slug or the name `ai_api` publishes (TRA-168).
-  const centre = useMemo(() => {
-    const destination = state.brief.destination?.trim().toLowerCase();
-    if (!destination) return null;
-    const city = cities.find(
-      (candidate) =>
-        candidate.slug.toLowerCase() === destination ||
-        candidate.name.toLowerCase() === destination
-    );
-    return city ? city.centre : null;
-  }, [cities, state.brief.destination]);
+  // The destination as `ai_api` publishes it (TRA-168, TRA-182): where the map
+  // looks before the day has any coordinates, and the photo and description
+  // the overview leads with. `null` whenever the list has no such city — demo
+  // mode, a static build, a destination outside the manifest.
+  const city = useMemo(
+    () => findCity(cities, state.brief.destination),
+    [cities, state.brief.destination]
+  );
+  const centre = city?.centre ?? null;
   // No backend, or no `/planner` route yet: the recorded session answers
   // instead (TRA-158) and the banner says so, so the page is never "unavailable".
   const unavailable = false;
@@ -132,6 +131,7 @@ export default function PlannerClientPage() {
           state={state}
           selectedDay={selectedDay}
           onSelectDay={setSelectedDay}
+          city={city}
           mapStops={mapStops}
           selectedStopId={selectedStopId}
           onSelectStop={setSelectedStopId}
@@ -144,14 +144,18 @@ export default function PlannerClientPage() {
           onReset={reset}
         />
       }
+      // The overview spans this column and the trip's: there is no whole-trip
+      // map (TRA-177), so the slot is empty until a day is picked.
       map={
-        <TripMap
-          stops={mapStops}
-          selectedDay={selectedDay}
-          centre={centre}
-          selectedStopId={selectedStopId}
-          onSelectStop={setSelectedStopId}
-        />
+        selectedDay === null ? null : (
+          <TripMap
+            stops={mapStops}
+            selectedDay={selectedDay}
+            centre={centre}
+            selectedStopId={selectedStopId}
+            onSelectStop={setSelectedStopId}
+          />
+        )
       }
     />
   );

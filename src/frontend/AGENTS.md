@@ -67,20 +67,33 @@ TypeScript 5, Tailwind CSS v4.
   `usePlanner` to `components/planner/v2/` (layout A from the TRA-136 mockups: `PlannerLayout`
   with three desktop columns — chat ≈ 30 %, trip panel ≈ 40 %, map ≈ 30 % — and the same three as
   mobile tabs, `ChatColumn` with `QuickReplies`, `OptionCarousel` and `OptionCard`, `TripPanel`
-  with `BriefChecklist`, `RouteStrip`, `StayCard`, `DayStrip`, `DayCard`, `WarningBadge` and the
+  with `BriefChecklist`, `RouteStrip`, `StayCard`, `DayStrip`, `TripOverview`, `DayCard`,
+  `WarningBadge` and the
   `AlternativesSheet` behind every "Change", `ActivityDetail` over the day, `TripMap` in the
-  third column). The
-  itinerary is browsed **one day at a time** (TRA-176): `DayStrip` is a horizontal tablist of day
-  chips (date, forecast, how many experiences; arrows, Home/End, the selected chip kept in sight by
+  third column). The **trip overview** is the default view (TRA-177): whenever an itinerary exists
+  and no day is selected, `TripPanel` renders `TripOverview` in the day `tabpanel` — the city's
+  photo and its `intro` in the reader's language with an `en` fallback (`PlannerCity`, TRA-182,
+  credited to Wikivoyage), a mosaic of up to six of the itinerary's own photos, and the simplified
+  list of days, each row opening its day. There is no whole-trip map: `PlannerLayout`'s `map` slot
+  is `ReactNode | null` and the overview passes `null`, so the trip pane spans both columns
+  (`lg:grid-cols-[minmax(0,3fr)_minmax(0,7fr)]`) and the mobile tablist offers Chat and Trip alone
+  (an active Map tab falls back to Trip while rendering). Below the overview the
+  itinerary is browsed **one day at a time** (TRA-176): `DayStrip` is a horizontal tablist of a
+  leading "Whole trip" chip and one chip per day (date, forecast, how many experiences; arrows,
+  Home/End, the selected chip kept in sight by
   scrolling the strip itself — never `scrollIntoView`, which would drag the panel's own scroller) over
   a single `DayCard` rendered `static` — no toggle, always open — and `TripMap`
   maps that same day. The selected day is state of
   `PlannerClientPage` (`hooks/useSelectedDay.ts`), because the `panel` and the `map` slot of
-  `PlannerLayout` both follow it; it falls back to the first day whenever the day it points at is
-  not in the itinerary — which is what makes a new trip open on day 1 — and is not persisted. Day dates come from `components/planner/v2/tripDates.ts`.
+  `PlannerLayout` both follow it; it is `number | null`, starts at `null` (the overview) and falls
+  back to the overview whenever the day it points at is not in the itinerary — which is what makes
+  a new trip, and a regenerated shorter one, open on the overview — and is not persisted. The
+  destination's `PlannerCity` is resolved once by `findCity` (`hooks/usePlannerCities.ts`), which
+  also gives the map its `centre`. Day dates come from `components/planner/v2/tripDates.ts`.
   The **map** (TRA-147, ADR 0016) is MapLibre GL over OpenFreeMap's keyless tiles: `mapStops.ts`
   is pure (`toMapStops(itinerary, selectedDay)` → the stay as an unnumbered "H" pin then the day's
-  located cards numbered in slot order, plus `boundsOf`/`lineOf`), `TripMap.tsx` is the region and
+  located cards numbered in slot order, `[]` for the overview's `null`, plus `boundsOf`/`lineOf`),
+  `TripMap.tsx` is the region and
   the empty state and pulls `TripMapCanvas.tsx` in through `next/dynamic` with `ssr: false`
   (MapLibre needs `window`, and this keeps it out of every other route's bundle), and the canvas
   owns the instance: HTML markers, a straight `LineString` through the day (no routing — travel

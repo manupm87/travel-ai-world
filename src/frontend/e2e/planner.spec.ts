@@ -142,12 +142,19 @@ test.describe("Planner page — /plan/", () => {
     const flights = page.getByRole("link", { name: "Search flights" }).first();
     await expect(flights).toHaveAttribute("href", /google\.com\/travel\/flights/);
     await expect(flights).toHaveAttribute("rel", /noopener/);
-    // The days are browsed one at a time from the strip: day 1 is on screen.
+    // A finished itinerary opens on the trip overview (TRA-177): the whole
+    // trip across both right columns, so there is no day map yet.
     const days = page.getByRole("tablist", { name: "Days" });
     await expect(days.getByRole("tab", { name: /\bDay 3\b/ })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Change: Great Market Hall" })).toBeVisible();
+    const dayList = page.getByRole("list", { name: "Days of the trip" });
+    await expect(dayList.getByRole("button")).toHaveCount(3);
+    await expect(page.getByRole("region", { name: /^Map of day/ })).toHaveCount(0);
     // A price is never a number.
     await expect(page.getByText(/\d+\s?€/)).toHaveCount(0);
+
+    // A day's row opens that day, and the per-day view takes over.
+    await page.getByRole("button", { name: "Open day 1" }).click();
+    await expect(page.getByRole("button", { name: "Change: Great Market Hall" })).toBeVisible();
 
     // 4b. The map column maps that same day: the hotel plus day 1's four stops,
     //     numbered identically in the panel and on the map.
@@ -204,6 +211,16 @@ test.describe("Planner page — /plan/", () => {
       await page.getByRole("button", { name: "← Day 1" }).click();
     }
 
+    // 4d. The strip's leading chip goes back to the whole trip: the overview
+    //     is on screen again, whatever activity was open closes with the day,
+    //     and the map column is gone with it.
+    await marketRow.click();
+    await expect(page.getByRole("heading", { name: "Great Market Hall" })).toBeVisible();
+    await days.getByRole("tab", { name: "Whole trip" }).click();
+    await expect(dayList.getByRole("button")).toHaveCount(3);
+    await expect(page.getByRole("heading", { name: "Great Market Hall" })).toHaveCount(0);
+    await expect(page.getByRole("region", { name: /^Map of day/ })).toHaveCount(0);
+
     // 5. "Change" on day 2's afternoon: the strip swaps the day, then the
     //    sheet asks for the options itself.
     await days.getByRole("tab", { name: /\bDay 2\b/ }).click();
@@ -247,12 +264,18 @@ test.describe("Planner page — /plan/", () => {
     }
 
     await page.setViewportSize({ width: 375, height: 800 });
-    await page.getByRole("tablist", { name: "Plan a trip" }).getByRole("tab", { name: "Trip" }).click();
+    const paneTabs = page.getByRole("tablist", { name: "Plan a trip" });
+    await paneTabs.getByRole("tab", { name: "Trip" }).click();
     await expect(days.getByRole("tab", { name: /\bDay 2\b/ })).toBeVisible();
+    // A day is open, so the phone has its Map tab…
+    await expect(paneTabs.getByRole("tab", { name: "Map" })).toBeVisible();
+    // …and the overview, which spans both right columns, does not.
+    await days.getByRole("tab", { name: "Whole trip" }).click();
+    await expect(paneTabs.getByRole("tab", { name: "Map" })).toHaveCount(0);
     expect(await overflow()).toBeLessThanOrEqual(1);
   });
 
-  test("on a phone the Chat / Trip / Map tabs switch panes", async ({ page }) => {
+  test("on a phone the Chat / Trip tabs switch panes", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/plan/");
 
@@ -265,10 +288,9 @@ test.describe("Planner page — /plan/", () => {
     await expect(page.getByText("Your trip is taking shape")).toBeVisible();
     await expect(composer(page)).toBeHidden();
 
-    await tabs.getByRole("tab", { name: "Map" }).click();
-    // No itinerary yet, so the map opens on the world and says so.
-    await expect(page.getByRole("region", { name: "Map of day 1" })).toBeVisible();
-    await expect(page.getByText("No stop of this day has a location yet.")).toBeVisible();
+    // No itinerary, so no day and no map: the Map tab arrives with the first
+    // day the traveller opens from the overview (TRA-177).
+    await expect(tabs.getByRole("tab", { name: "Map" })).toHaveCount(0);
   });
 
   test("without the planner route, the recorded session answers with a demo banner", async ({
@@ -299,7 +321,9 @@ test.describe("Planner page — /plan/", () => {
       timeout: 15_000,
     });
 
-    // "Change" on a demo slot lists three photographed alternatives by itself.
+    // "Change" on a demo slot lists three photographed alternatives by itself;
+    // the slot is on day 1, which the overview opens.
+    await page.getByRole("button", { name: "Open day 1" }).click();
     await page.getByRole("button", { name: "Change: Great Market Hall" }).click();
     const sheet = page.getByRole("dialog", { name: "Day 1 · Morning" });
     await expect(sheet.getByRole("article")).toHaveCount(3, { timeout: 15_000 });

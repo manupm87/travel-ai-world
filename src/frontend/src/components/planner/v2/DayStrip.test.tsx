@@ -14,26 +14,29 @@ function renderStrip(overrides: Partial<ComponentProps<typeof DayStrip>> = {}) {
   const props = {
     days: itinerary.days,
     startDate: "2026-10-23",
-    selectedDay: 1,
+    selectedDay: 1 as number | null,
     onSelect: vi.fn(),
     ...overrides,
   };
   const view = renderWithProviders(<DayStrip {...props} />);
   return {
     ...props,
-    rerender: (selectedDay: number) =>
+    rerender: (selectedDay: number | null) =>
       view.rerender(<DayStrip {...props} selectedDay={selectedDay} />),
   };
 }
 
 const strip = () => screen.getByRole("tablist", { name: p.daysNav });
+/** Every chip, the leading "Whole trip" one first. */
 const tabs = () => within(strip()).getAllByRole("tab");
+/** The day chips alone. */
+const dayTabs = () => tabs().slice(1);
 
 describe("DayStrip", () => {
   it("shows one chip per day, with its date, forecast and how many experiences", () => {
     renderStrip();
 
-    const chips = tabs();
+    const chips = dayTabs();
     expect(chips).toHaveLength(3);
     expect(chips[0]).toHaveTextContent(interpolate(p.day, { day: 1 }));
     expect(chips[2]).toHaveTextContent(interpolate(p.day, { day: 3 }));
@@ -45,10 +48,34 @@ describe("DayStrip", () => {
     expect(chips[1]).toHaveTextContent(interpolate(p.experiences, { count: 4 }));
   });
 
+  it("leads with a chip for the whole trip", () => {
+    const { onSelect } = renderStrip();
+
+    const [whole] = tabs();
+    expect(whole).toHaveTextContent(p.wholeTrip);
+    expect(whole).toHaveAttribute("data-day", "all");
+    // A day is selected, so the overview chip is not.
+    expect(whole).toHaveAttribute("aria-selected", "false");
+
+    fireEvent.click(within(strip()).getByRole("tab", { name: p.wholeTrip }));
+
+    expect(onSelect).toHaveBeenCalledWith(null);
+  });
+
+  it("marks the whole-trip chip while no day is selected", () => {
+    renderStrip({ selectedDay: null });
+
+    const [whole, first] = tabs();
+    expect(whole).toHaveAttribute("aria-selected", "true");
+    expect(whole).toHaveAttribute("tabindex", "0");
+    expect(first).toHaveAttribute("aria-selected", "false");
+    expect(first).toHaveAttribute("tabindex", "-1");
+  });
+
   it("marks the selected day and keeps the roving tab stop on it", () => {
     renderStrip({ selectedDay: 2 });
 
-    const [first, second, third] = tabs();
+    const [first, second, third] = dayTabs();
     expect(second).toHaveAttribute("aria-selected", "true");
     expect(second).toHaveAttribute("tabindex", "0");
     expect(first).toHaveAttribute("aria-selected", "false");
@@ -64,7 +91,7 @@ describe("DayStrip", () => {
     expect(onSelect).toHaveBeenCalledWith(3);
   });
 
-  it("moves along the strip with the arrows, Home and End", () => {
+  it("moves along the strip with the arrows, Home and End, the overview included", () => {
     const { onSelect } = renderStrip({ selectedDay: 2 });
 
     fireEvent.keyDown(strip(), { key: "ArrowRight" });
@@ -76,8 +103,9 @@ describe("DayStrip", () => {
     fireEvent.keyDown(strip(), { key: "End" });
     expect(onSelect).toHaveBeenLastCalledWith(3);
 
+    // Home is the first chip of the strip, which is the whole trip.
     fireEvent.keyDown(strip(), { key: "Home" });
-    expect(onSelect).toHaveBeenLastCalledWith(1);
+    expect(onSelect).toHaveBeenLastCalledWith(null);
 
     expect(onSelect).toHaveBeenCalledTimes(4);
   });
@@ -85,11 +113,22 @@ describe("DayStrip", () => {
   it("wraps around at both ends and ignores other keys", () => {
     const { onSelect } = renderStrip({ selectedDay: 1 });
 
+    // Day 1 is the second chip: to its left is the overview.
     fireEvent.keyDown(strip(), { key: "ArrowLeft" });
-    expect(onSelect).toHaveBeenLastCalledWith(3);
+    expect(onSelect).toHaveBeenLastCalledWith(null);
 
     fireEvent.keyDown(strip(), { key: "Enter" });
     expect(onSelect).toHaveBeenCalledTimes(1);
+  });
+
+  it("wraps from the overview back to the last day", () => {
+    const { onSelect } = renderStrip({ selectedDay: null });
+
+    fireEvent.keyDown(strip(), { key: "ArrowLeft" });
+    expect(onSelect).toHaveBeenLastCalledWith(3);
+
+    fireEvent.keyDown(strip(), { key: "ArrowRight" });
+    expect(onSelect).toHaveBeenLastCalledWith(1);
   });
 
   it("drives the day panel it is given", () => {
@@ -123,6 +162,6 @@ describe("DayStrip", () => {
     renderStrip({ startDate: null });
 
     expect(strip()).not.toHaveTextContent("Oct");
-    expect(tabs()[0]).toHaveTextContent(interpolate(p.day, { day: 1 }));
+    expect(dayTabs()[0]).toHaveTextContent(interpolate(p.day, { day: 1 }));
   });
 });

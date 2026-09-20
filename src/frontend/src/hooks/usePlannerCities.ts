@@ -6,6 +6,26 @@ import type { PlannerCity } from "@/types/planner";
 
 export type PlannerCitiesStatus = "loading" | "ready" | "error";
 
+/**
+ * The covered city a destination names, or `null` when the list has none —
+ * which is what demo mode, a static build and any city outside the manifest
+ * all look like. Matched on the slug or the name `ai_api` publishes, ignoring
+ * case and surrounding space, exactly as the map's centre has always been.
+ */
+export function findCity(
+  cities: PlannerCity[],
+  destination: string | null | undefined
+): PlannerCity | null {
+  const wanted = destination?.trim().toLowerCase();
+  if (!wanted) return null;
+  return (
+    cities.find(
+      (candidate) =>
+        candidate.slug.toLowerCase() === wanted || candidate.name.toLowerCase() === wanted
+    ) ?? null
+  );
+}
+
 export interface UsePlannerCitiesResult {
   /** The cities the planner can plan; empty until `status` is `"ready"`, and
    *  when the service is not configured or the call failed (the page then

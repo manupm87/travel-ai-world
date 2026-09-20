@@ -70,6 +70,7 @@ function renderPanel(state: Partial<PlannerState> = {}) {
           setSelectedStopId(null);
           setSelectedDay(day);
         }}
+        city={null}
         mapStops={mapStops}
         selectedStopId={selectedStopId}
         onSelectStop={setSelectedStopId}
@@ -102,9 +103,73 @@ const dayTab = (day: number) =>
     name: new RegExp(`Day ${day}`),
   });
 
+/** The strip's leading chip: back to the whole trip. */
+const wholeTripTab = () =>
+  within(screen.getByRole("tablist", { name: p.daysNav })).getByRole("tab", {
+    name: p.wholeTrip,
+  });
+
+/** The panel opens on the overview (TRA-177); this is how a day gets on screen. */
+const openDay = (day: number) => fireEvent.click(dayTab(day));
+
 describe("TripPanel", () => {
+  it("opens on the trip overview, with the strip above it", () => {
+    renderPanel();
+
+    // The whole trip, not day 1: the day list and the destination's photos.
+    expect(screen.getByRole("list", { name: p.dayList })).toBeInTheDocument();
+    expect(screen.getByRole("tabpanel", { name: p.overview })).toBeInTheDocument();
+    expect(wholeTripTab()).toHaveAttribute("aria-selected", "true");
+    expect(dayTab(1)).toHaveAttribute("aria-selected", "false");
+    // No day is on screen, so no part of a day is either.
+    expect(screen.queryByRole("region", { name: partRegion(1, "morning") })).not.toBeInTheDocument();
+    // The stay is above the overview, as plain text: nothing to select.
+    expect(queryRow(HOTELS.rum.title)).not.toBeInTheDocument();
+    expect(screen.getByText(HOTELS.rum.title)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: `${p.change}: ${HOTELS.rum.title}` })).toBeInTheDocument();
+  });
+
+  it("opens a day from the overview, and the strip brings the whole trip back", () => {
+    renderPanel();
+
+    fireEvent.click(
+      within(screen.getByRole("list", { name: p.dayList })).getByRole("button", {
+        name: interpolate(p.openDay, { day: 2 }),
+      })
+    );
+
+    expect(dayTab(2)).toHaveAttribute("aria-selected", "true");
+    expect(
+      screen.getByRole("tabpanel", { name: interpolate(p.day, { day: 2 }) })
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("list", { name: p.dayList })).not.toBeInTheDocument();
+
+    fireEvent.click(wholeTripTab());
+
+    expect(screen.getByRole("tabpanel", { name: p.overview })).toBeInTheDocument();
+    expect(screen.getByRole("list", { name: p.dayList })).toBeInTheDocument();
+  });
+
+  it("closes an open activity when the whole trip comes back", () => {
+    renderPanel();
+
+    openDay(1);
+    fireEvent.click(openRow(ACTIVITIES.greatMarket.title));
+    expect(
+      screen.getByRole("heading", { level: 3, name: ACTIVITIES.greatMarket.title })
+    ).toBeInTheDocument();
+
+    fireEvent.click(wholeTripTab());
+
+    expect(
+      screen.queryByRole("heading", { level: 3, name: ACTIVITIES.greatMarket.title })
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("tabpanel", { name: p.overview })).toBeInTheDocument();
+  });
+
   it("renders the draft trip: heading, counters, route, stay and days", () => {
     renderPanel();
+    openDay(1);
 
     expect(
       screen.getByRole("heading", {
@@ -196,6 +261,7 @@ describe("TripPanel", () => {
 
   it("shows one day at a time and swaps it from the strip", () => {
     renderPanel();
+    openDay(1);
 
     // Day 1 is the one on screen: its cards are there, day 2's are not.
     expect(dayTab(1)).toHaveAttribute("aria-selected", "true");
@@ -225,6 +291,7 @@ describe("TripPanel", () => {
 
   it("numbers the cards of the selected day with their pin, in slot order", () => {
     renderPanel();
+    openDay(1);
 
     // The stay carries the map's "H" pin; the day's cards are numbered.
     expect(openRow(HOTELS.rum.title)).toHaveAttribute("data-stop-index", "H");
@@ -240,6 +307,7 @@ describe("TripPanel", () => {
 
   it("opens the activity in place of the day, and the back button closes it", () => {
     renderPanel();
+    openDay(1);
 
     const row = openRow(ACTIVITIES.greatMarket.title);
     expect(row).toHaveAttribute("aria-pressed", "false");
@@ -267,6 +335,7 @@ describe("TripPanel", () => {
 
   it("gives the keyboard the way back, and the row again when the activity closes", () => {
     renderPanel();
+    openDay(1);
 
     const row = openRow(ACTIVITIES.greatMarket.title);
     fireEvent.click(row);
@@ -285,6 +354,7 @@ describe("TripPanel", () => {
 
   it("closes only the alternatives sheet when Escape is pressed over it", () => {
     renderPanel();
+    openDay(1);
 
     fireEvent.click(openRow(ACTIVITIES.greatMarket.title));
     fireEvent.click(
@@ -308,6 +378,7 @@ describe("TripPanel", () => {
 
   it("opens the stay with the same row, and removing a card goes back to the day", () => {
     const { onRemove } = renderPanel();
+    openDay(1);
 
     // The day's panel is named after the day it holds…
     expect(screen.getByRole("tabpanel", { name: interpolate(p.day, { day: 1 }) })).toBeInTheDocument();
@@ -333,7 +404,7 @@ describe("TripPanel", () => {
     expect(screen.getByRole("region", { name: partRegion(1, "morning") })).toBeInTheDocument();
   });
 
-  it("falls back to the first day when the itinerary is emptied and rebuilt", () => {
+  it("falls back to the overview when the itinerary is emptied and rebuilt", () => {
     const { setState } = renderPanel();
 
     fireEvent.click(dayTab(3));
@@ -344,11 +415,11 @@ describe("TripPanel", () => {
     expect(screen.getByText(en.plan.checklist.title)).toBeInTheDocument();
 
     setState({ itinerary });
-    expect(dayTab(1)).toHaveAttribute("aria-selected", "true");
+    expect(wholeTripTab()).toHaveAttribute("aria-selected", "true");
     expect(dayTab(3)).toHaveAttribute("aria-selected", "false");
   });
 
-  it("falls back to the first day when the trip is regenerated shorter", () => {
+  it("falls back to the overview when the trip is regenerated shorter", () => {
     const { setState } = renderPanel();
 
     fireEvent.click(dayTab(3));
@@ -357,10 +428,12 @@ describe("TripPanel", () => {
     // A two-day trip replaces the three-day one in one go: day 3 is gone.
     setState({ itinerary: { ...itinerary, days: itinerary.days.slice(0, 2) } });
 
-    expect(dayTab(1)).toHaveAttribute("aria-selected", "true");
+    expect(wholeTripTab()).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tabpanel", { name: p.overview })).toBeInTheDocument();
+    // Two days left, plus the leading chip for the whole trip.
     expect(
       within(screen.getByRole("tablist", { name: p.daysNav })).getAllByRole("tab")
-    ).toHaveLength(2);
+    ).toHaveLength(3);
   });
 
   it("shows the checklist while there is no itinerary", () => {

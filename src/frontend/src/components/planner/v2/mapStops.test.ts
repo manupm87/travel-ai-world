@@ -67,6 +67,12 @@ describe("toMapStops", () => {
     expect(stops[0]).toMatchObject({ index: 1, title: EXTRAS.basilica.title });
   });
 
+  it("maps nothing at all on the trip overview", () => {
+    // `null` is the overview (TRA-177): no day on screen, no map column, so
+    // not even the stay is a pin.
+    expect(toMapStops(itinerary, null)).toEqual([]);
+  });
+
   it("leaves out a stay without coordinates and returns nothing for an unknown day", () => {
     const patched = applyItineraryOps(itinerary, [
       { op: "set_stay", card: unlocated(HOTELS.rum) },

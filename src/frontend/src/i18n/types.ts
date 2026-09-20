@@ -252,6 +252,20 @@ export interface Translations {
       searchFlights: string;
       /** Accessible name of the horizontal day strip. */
       daysNav: string;
+      /** The strip's leading chip, back to the overview: "Whole trip" */
+      wholeTrip: string;
+      /** The overview panel's accessible name: "Trip overview" */
+      overview: string;
+      /** The overview's description heading: "About {destination}" */
+      about: string;
+      /** The credit under that description (the corpus's licence). */
+      introCredit: string;
+      /** The photo mosaic's accessible name: "Photos of {destination}" */
+      photos: string;
+      /** The overview's day list: "Days of the trip" */
+      dayList: string;
+      /** One row of that list: "Open day {day}" */
+      openDay: string;
       /** "Stay · {nights} nights" */
       stay: string;
       stayNoNights: string;
@@ -300,7 +314,6 @@ export interface Translations {
       /** The hotel's pin: "Stay: {title}" */
       stay: string;
       /** The number badge beside a card in the panel: "Show on the map: {title}" */
-      showOnMap: string;
       /** The browser has no WebGL 2, so there is no map to show. */
       unsupported: string;
       /** MapLibre's own zoom buttons, relabelled in the reader's language. */

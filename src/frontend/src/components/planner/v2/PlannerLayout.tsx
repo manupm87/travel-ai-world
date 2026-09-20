@@ -6,15 +6,17 @@ import { cn } from "@/utils/cn";
 
 export type PlannerTab = "chat" | "trip" | "map";
 
-const TABS = ["chat", "trip", "map"] as const satisfies readonly PlannerTab[];
-
 export interface PlannerLayoutProps {
   /** Optional strip above the tabs (the demo-mode banner); `null` shows none. */
   banner?: ReactNode;
   chat: ReactNode;
   panel: ReactNode;
-  /** The third desktop column; on small screens its own tab (TRA-147). */
-  map: ReactNode;
+  /**
+   * The third desktop column; on small screens its own tab (TRA-147). `null`
+   * is the trip overview (TRA-177): there is no day to map, so the column and
+   * its tab are simply not there and the trip pane takes the width.
+   */
+  map: ReactNode | null;
 }
 
 /**
@@ -22,22 +24,36 @@ export interface PlannerLayoutProps {
  * under the fixed header — the panel scrolls on its own, the map fills its
  * column and the page never scrolls; on small screens the same three panes
  * become tabs (Chat / Trip / Map) over one full-height pane.
+ *
+ * Without a map there are two of each: the trip pane spans what the map left
+ * (chat ~30 %, trip ~70 %) and keeps its own scroller, and the tablist offers
+ * Chat and Trip alone.
  */
 export function PlannerLayout({ banner = null, chat, panel, map }: PlannerLayoutProps) {
   const { t } = useLanguage();
   const [tab, setTab] = useState<PlannerTab>("chat");
   const baseId = useId();
 
+  const hasMap = map !== null;
+  const tabs: readonly PlannerTab[] = hasMap ? ["chat", "trip", "map"] : ["chat", "trip"];
+
+  // The map can disappear under the active tab (the traveller goes back to the
+  // overview from the Map pane). Adjusted while rendering, as `useSelectedDay`
+  // adjusts the day: React re-runs this component before touching the DOM, so
+  // no pane without a tab is ever painted.
+  if (!hasMap && tab === "map") setTab("trip");
+  const active: PlannerTab = !hasMap && tab === "map" ? "trip" : tab;
+
   const tabId = (name: PlannerTab) => `${baseId}-tab-${name}`;
   const panelId = (name: PlannerTab) => `${baseId}-panel-${name}`;
 
   const onTabKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    const index = TABS.indexOf(tab);
+    const index = tabs.indexOf(active);
     let next: PlannerTab | null = null;
-    if (event.key === "ArrowRight") next = TABS[(index + 1) % TABS.length] ?? null;
-    if (event.key === "ArrowLeft") next = TABS[(index - 1 + TABS.length) % TABS.length] ?? null;
-    if (event.key === "Home") next = TABS[0];
-    if (event.key === "End") next = TABS[TABS.length - 1] ?? null;
+    if (event.key === "ArrowRight") next = tabs[(index + 1) % tabs.length] ?? null;
+    if (event.key === "ArrowLeft") next = tabs[(index - 1 + tabs.length) % tabs.length] ?? null;
+    if (event.key === "Home") next = tabs[0] ?? null;
+    if (event.key === "End") next = tabs[tabs.length - 1] ?? null;
     if (!next) return;
     event.preventDefault();
     setTab(next);
@@ -59,21 +75,21 @@ export function PlannerLayout({ banner = null, chat, panel, map }: PlannerLayout
         onKeyDown={onTabKeyDown}
         className="flex shrink-0 border-b border-border bg-bg-primary px-4 lg:hidden"
       >
-        {TABS.map((name) => {
-          const active = tab === name;
+        {tabs.map((name) => {
+          const selected = active === name;
           return (
             <button
               key={name}
               id={tabId(name)}
               type="button"
               role="tab"
-              aria-selected={active}
+              aria-selected={selected}
               aria-controls={panelId(name)}
-              tabIndex={active ? 0 : -1}
+              tabIndex={selected ? 0 : -1}
               onClick={() => setTab(name)}
               className={cn(
                 "-mb-px flex-1 border-b-2 px-3 py-3 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40",
-                active
+                selected
                   ? "border-accent text-text-primary"
                   : "border-transparent text-text-secondary hover:text-text-primary"
               )}
@@ -84,7 +100,14 @@ export function PlannerLayout({ banner = null, chat, panel, map }: PlannerLayout
         })}
       </div>
 
-      <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[minmax(0,3fr)_minmax(0,4fr)_minmax(0,3fr)]">
+      <div
+        className={cn(
+          "grid min-h-0 flex-1 grid-cols-1",
+          hasMap
+            ? "lg:grid-cols-[minmax(0,3fr)_minmax(0,4fr)_minmax(0,3fr)]"
+            : "lg:grid-cols-[minmax(0,3fr)_minmax(0,7fr)]"
+        )}
+      >
         {/* Visibility is class-based on purpose: the `hidden` attribute is
             `display: none !important` in Tailwind's preflight and would beat
             the desktop override, where every pane shows. */}
@@ -96,7 +119,7 @@ export function PlannerLayout({ banner = null, chat, panel, map }: PlannerLayout
             "min-h-0 flex-col border-border p-4 lg:flex lg:border-r",
             // The fade runs when the class appears, i.e. when the tab becomes
             // the active one: no remount, so the pane keeps its own state.
-            tab === "chat" ? "flex animate-fade-in" : "hidden"
+            active === "chat" ? "flex animate-fade-in" : "hidden"
           )}
         >
           {chat}
@@ -107,23 +130,25 @@ export function PlannerLayout({ banner = null, chat, panel, map }: PlannerLayout
           aria-labelledby={tabId("trip")}
           className={cn(
             "min-h-0 overflow-y-auto bg-bg-secondary lg:block",
-            tab === "trip" ? "block animate-fade-in" : "hidden"
+            active === "trip" ? "block animate-fade-in" : "hidden"
           )}
         >
           {panel}
         </section>
-        <section
-          id={panelId("map")}
-          role="tabpanel"
-          aria-labelledby={tabId("map")}
-          className={cn(
-            // No padding and no scroller of its own: the map fills the pane.
-            "min-h-0 bg-bg-secondary lg:block lg:min-w-[280px] lg:border-l lg:border-border",
-            tab === "map" ? "block animate-fade-in" : "hidden"
-          )}
-        >
-          {map}
-        </section>
+        {hasMap && (
+          <section
+            id={panelId("map")}
+            role="tabpanel"
+            aria-labelledby={tabId("map")}
+            className={cn(
+              // No padding and no scroller of its own: the map fills the pane.
+              "min-h-0 bg-bg-secondary lg:block lg:min-w-[280px] lg:border-l lg:border-border",
+              active === "map" ? "block animate-fade-in" : "hidden"
+            )}
+          >
+            {map}
+          </section>
+        )}
       </div>
     </div>
   );

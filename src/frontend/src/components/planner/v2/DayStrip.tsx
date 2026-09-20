@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, LayoutGrid } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useFormatters } from "@/hooks/useFormatters";
 import { interpolate } from "@/i18n";
@@ -15,11 +15,14 @@ export interface DayStripProps {
   days: DayDraft[];
   /** The trip's first date (`brief.start_date`), or `null` when unknown. */
   startDate: string | null;
-  /** The day currently shown by the panel and the map slot. */
-  selectedDay: number;
+  /**
+   * The day currently shown by the panel and the map slot, or `null` for the
+   * trip overview — the leading chip (TRA-177).
+   */
+  selectedDay: number | null;
   /** The one region the chips drive (`TripPanel`'s day panel). */
   panelId?: string;
-  onSelect: (day: number) => void;
+  onSelect: (day: number | null) => void;
 }
 
 /** One chip plus the gap: how far the arrows scroll when there is no layout. */
@@ -34,11 +37,12 @@ function scrollBehavior(): ScrollBehavior {
 }
 
 /**
- * The itinerary browsed day by day: a horizontal tablist of chips, one per day,
- * over the single day the panel shows. Each chip carries the day number, its
- * date, the forecast's maximum and how many experiences are planned. Keyboard
- * navigation matches `PlannerLayout`'s tabs (arrows, Home, End); when the strip
- * overflows, the arrows of `OptionCarousel` scroll it.
+ * The itinerary browsed day by day: a horizontal tablist over what the panel
+ * shows below it — a leading "Whole trip" chip for the overview (TRA-177),
+ * then one chip per day carrying the day number, its date, the forecast's
+ * maximum and how many experiences are planned. Keyboard navigation matches
+ * `PlannerLayout`'s tabs (arrows, Home, End) and counts the leading chip like
+ * any other; when the strip overflows, the arrows of `OptionCarousel` scroll it.
  */
 export function DayStrip({
   days,
@@ -53,7 +57,11 @@ export function DayStrip({
   const [overflow, setOverflow] = useState(false);
   const p = t.plan.panel;
 
-  const selectedIndex = days.findIndex((day) => day.day === selectedDay);
+  // The chips in the order they are rendered and navigated: the overview
+  // first, then the days. `null` is the overview at both ends — the value the
+  // chip selects and the value that marks it selected.
+  const chips: (number | null)[] = [null, ...days.map((day) => day.day)];
+  const selectedIndex = chips.indexOf(selectedDay);
 
   const tabs = () =>
     Array.from(listRef.current?.querySelectorAll<HTMLElement>('[role="tab"]') ?? []);
@@ -107,18 +115,15 @@ export function DayStrip({
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (days.length === 0) return;
     const index = selectedIndex < 0 ? 0 : selectedIndex;
     let next: number | null = null;
-    if (event.key === "ArrowRight") next = (index + 1) % days.length;
-    if (event.key === "ArrowLeft") next = (index - 1 + days.length) % days.length;
+    if (event.key === "ArrowRight") next = (index + 1) % chips.length;
+    if (event.key === "ArrowLeft") next = (index - 1 + chips.length) % chips.length;
     if (event.key === "Home") next = 0;
-    if (event.key === "End") next = days.length - 1;
-    if (next === null) return;
-    const day = days[next];
-    if (!day) return;
+    if (event.key === "End") next = chips.length - 1;
+    if (next === null || next < 0 || next >= chips.length) return;
     event.preventDefault();
-    onSelect(day.day);
+    onSelect(chips[next] ?? null);
     tabs()[next]?.focus();
   };
 
@@ -149,6 +154,35 @@ export function DayStrip({
         onKeyDown={onKeyDown}
         className="flex min-w-0 flex-1 snap-x snap-mandatory gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
+        <button
+          type="button"
+          role="tab"
+          aria-selected={selectedDay === null}
+          aria-controls={panelId}
+          tabIndex={selectedDay === null ? 0 : -1}
+          data-day="all"
+          onClick={() => onSelect(null)}
+          className={cn(
+            "flex shrink-0 snap-start items-center gap-2 rounded-xl border px-3 py-2 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40",
+            selectedDay === null
+              ? "border-accent bg-accent-soft"
+              : "border-border bg-bg-surface hover:border-accent/40"
+          )}
+        >
+          <span
+            aria-hidden="true"
+            className={cn(
+              "flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition",
+              selectedDay === null ? "bg-accent text-white" : "bg-accent-soft text-text-primary"
+            )}
+          >
+            <LayoutGrid size={14} />
+          </span>
+          <span className="whitespace-nowrap text-[13px] font-medium leading-tight text-text-primary">
+            {p.wholeTrip}
+          </span>
+        </button>
+
         {days.map((day) => {
           const active = day.day === selectedDay;
           const date = dateForDay(startDate, day.day);
