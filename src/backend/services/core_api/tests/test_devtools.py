@@ -12,7 +12,7 @@ from core_api.main import app
 from core_api.models.user import User
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
-from travel_common.exceptions import BadRequest, EntityNotFound, Forbidden
+from travel_common.exceptions import BadRequest, DomainError, Forbidden
 from travel_common.principal import Role
 from travel_common.security import decode_access_token, principal_from_token
 
@@ -54,9 +54,23 @@ async def test_an_admin_keeps_its_role(admin: User):
     assert principal_from_token(token, settings).role is Role.ADMIN
 
 
-async def test_an_unknown_account_is_not_found(db_session: AsyncSession):
-    with pytest.raises(EntityNotFound):
-        await devtools.mint_token(AsyncSessionTest, "nobody@example.com", settings)
+async def test_an_unknown_account_is_created(
+    client: AsyncClient, db_session: AsyncSession
+):
+    """A developer (and CI) gets a usable account from the minter alone; the
+    real Google sign-in adopts it later, matching on the email."""
+    token = await devtools.mint_token(AsyncSessionTest, "nobody@example.com", settings)
+
+    me = await client.get(
+        "/api/v1/users/me", headers={"Authorization": f"Bearer {token}"}
+    )
+    assert me.status_code == 200, me.text
+    assert me.json()["email"] == "nobody@example.com"
+
+    again = await devtools.mint_token(AsyncSessionTest, "nobody@example.com", settings)
+    assert principal_from_token(again, settings).subject == (
+        principal_from_token(token, settings).subject
+    ), "minting twice reuses the account"
 
 
 async def test_an_inactive_account_is_refused(db_session: AsyncSession):
@@ -89,19 +103,18 @@ def test_cli_prints_the_token_and_exits_zero(
     assert err == ""
 
 
-def test_cli_exits_one_with_a_message_when_the_account_is_missing(
+def test_cli_exits_one_with_a_message_when_minting_is_refused(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ):
     async def fake_mint(email: str, settings: Any) -> str:
-        raise EntityNotFound("Account", email)
+        raise DomainError(f"Account {email} is inactive")
 
     monkeypatch.setattr(devtools, "_mint_with_own_engine", fake_mint)
 
     assert devtools.main(["token", "nobody@example.com"]) == 1
     out, err = capsys.readouterr()
     assert out == ""
-    assert "Account not found" in err
-    assert "just seed nobody@example.com" in err
+    assert "Account nobody@example.com is inactive" in err
 
 
 def test_cli_requires_the_email():

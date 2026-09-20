@@ -224,11 +224,12 @@ jobs:
   # The Compose stack as deployed: the frontend export and both APIs on one
   # origin (:8080), routed by nginx the way CloudFront routes in production.
   # The devcontainer has no Docker, so this job is where the stack is proven:
-  # the curl checks of TRA-127, then the seed and the signed-in Playwright
-  # suite of TRA-131 (a local token minted in the container, no Google).
+  # the curl checks of TRA-127, then the signed-in Playwright suite of TRA-131
+  # (a local token minted in the container, no Google). The suite creates the
+  # trips it needs through the API: there is no demo seed any more (ADR 0019).
   # Both images build in ~40 s (the uv cache layer), so no GHA layer cache.
   e2e-stack:
-    name: Compose stack e2e (one origin, seeded, signed in)
+    name: Compose stack e2e (one origin, signed in)
     needs: changes
     if: needs.changes.outputs.stack == 'true'
     runs-on: ubuntu-latest
@@ -308,21 +309,21 @@ jobs:
       # Seed and token run inside the core_api container: it already holds
       # SECRET_KEY and the database, so the runner needs no Python toolchain.
       # `python -m core_api.devtools token` is exactly what `just dev-token` runs.
-      - name: Seed the demo trips and mint a local token for that account (TRA-131)
+      - name: Mint a local token for the e2e account (TRA-131)
         working-directory: src/backend
         run: |
           set -euo pipefail
           compose="docker compose --env-file services/core_api/.env"
-          $compose exec -T core_api /app/entrypoint.sh seed "$E2E_EMAIL"
+          # The account is created by the minter itself; nothing else is loaded.
           token=$($compose exec -T core_api python -m core_api.devtools token "$E2E_EMAIL")
           echo "::add-mask::$token"
           test "$(printf '%s' "$token" | wc -l)" = 0
           echo "E2E_TOKEN=$token" >> "$GITHUB_ENV"
           # The token must open the API through the proxy before any browser tries it:
-          # pipefail makes a 401 from curl fail the step, and the count catches an empty list.
-          count=$(curl -fsS -H "Authorization: Bearer $token" http://localhost:8080/api/v1/trips/ | grep -o '"title"' | wc -l)
-          echo "GET /api/v1/trips/ with the token -> $count title(s)"
-          test "$count" -ge 1
+          # pipefail makes a 401 from curl fail the step, and a fresh account lists nothing.
+          trips=$(curl -fsS -H "Authorization: Bearer $token" http://localhost:8080/api/v1/trips/)
+          echo "GET /api/v1/trips/ with the token -> $trips"
+          test "$trips" = "[]"
 
       - name: E2E tests against the stack (smoke, prerender and the signed-in trips)
         run: just test-e2e-stack

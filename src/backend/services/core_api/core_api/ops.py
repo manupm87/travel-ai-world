@@ -4,13 +4,17 @@ On Lambda there is no container entrypoint to run migrations at start
 (ADR 0009): the deploy workflow invokes the function with
 `{"command": "migrate"}`, the Lambda Web Adapter delivers that payload as
 `POST /events`, and the command runs inside the process. The same commands
-are reachable from the container entrypoint (`entrypoint.sh migrate`,
-`entrypoint.sh seed <email>`) and from a shell (`python -m core_api.ops ...`,
-what `just migrate`-style recipes call).
+are reachable from the container entrypoint (`entrypoint.sh migrate`) and
+from a shell (`python -m core_api.ops ...`, what `just migrate`-style recipes
+call).
 
-A command takes a dictionary of arguments: `migrate` ignores them, `seed`
-needs `email`. Unknown names and missing arguments are `BadRequest`, so an
-event with a typo answers 400 instead of crashing the function.
+A command takes a dictionary of arguments; `migrate` ignores them. Unknown
+names and missing arguments are `BadRequest`, so an event with a typo answers
+400 instead of crashing the function.
+
+`COMMANDS` is the whole surface `POST /events` exposes to whoever can invoke
+the function, so a command earns its place here: developer helpers live in
+`core_api.devtools`, which nothing in the service imports.
 """
 
 import argparse
@@ -26,8 +30,6 @@ from travel_common.exceptions import BadRequest
 from travel_common.http.logging import configure_logging
 
 from core_api.config import get_settings
-from core_api.db.session import build_engine, build_session_factory
-from core_api.seed import SeedReport, seed_demo_trips
 
 logger = logging.getLogger(__name__)
 
@@ -55,23 +57,7 @@ async def migrate(args: Args) -> None:
     await asyncio.to_thread(upgrade_database)
 
 
-async def seed(args: Args) -> SeedReport:
-    """Load the demo trips for `args["email"]` (`core_api.seed`).
-
-    Opens its own engine: the command runs from a shell as often as from the
-    web process, and one short-lived engine per run keeps both paths equal.
-    """
-    email = args.get("email")
-    if not isinstance(email, str) or not email.strip():
-        raise BadRequest("seed needs args.email: the account to load the trips for")
-    engine = build_engine(get_settings())
-    try:
-        return await seed_demo_trips(build_session_factory(engine), email.strip())
-    finally:
-        await engine.dispose()
-
-
-COMMANDS: dict[str, CommandHandler] = {"migrate": migrate, "seed": seed}
+COMMANDS: dict[str, CommandHandler] = {"migrate": migrate}
 
 
 async def run_command(name: str, args: Args | None = None) -> Any:
@@ -84,7 +70,7 @@ async def run_command(name: str, args: Args | None = None) -> Any:
     return await handler(args or {})
 
 
-# ── CLI: python -m core_api.ops migrate | seed <email> ──────────────────────
+# ── CLI: python -m core_api.ops migrate ─────────────────────────────────────
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -96,10 +82,6 @@ def build_parser() -> argparse.ArgumentParser:
     commands.add_parser(
         "migrate", help="apply Alembic migrations (alembic upgrade head)"
     )
-    seed_parser = commands.add_parser(
-        "seed", help="load the four demo trips for an account, creating it if needed"
-    )
-    seed_parser.add_argument("email", help="owner of the demo trips")
     return parser
 
 
