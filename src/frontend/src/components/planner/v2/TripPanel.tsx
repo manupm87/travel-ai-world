@@ -291,9 +291,7 @@ export function TripPanel({
     >
       <header className="flex animate-fade-up flex-wrap items-start gap-3">
         <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <span className="text-[10px] font-medium uppercase tracking-wider text-text-secondary">
-            {p.draft}
-          </span>
+          <span className="text-xs text-text-secondary">{p.draft}</span>
           <h2 className="text-xl font-medium leading-tight text-text-primary lg:text-2xl">{heading}</h2>
           <p className="text-xs text-text-secondary">{counters.join(" · ")}</p>
         </div>

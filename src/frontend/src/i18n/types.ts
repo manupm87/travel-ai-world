@@ -38,7 +38,6 @@ export interface Translations {
     viewBookings: string;
     exportPdf: string;
     viewItinerary: string;
-    journeyMap: string;
     routeOverview: string;
     tripOverview: string;
     accommodations: string;
@@ -48,7 +47,6 @@ export interface Translations {
     weatherUnavailable: string;
     localTips: string;
     noLocalTips: string;
-    yourItinerary: string;
     journeyTitle: string; // "Your {duration}-Day Journey"
     allDays: string;
     freeDay: string;
@@ -390,11 +388,10 @@ export interface Translations {
     backHome: string;
   };
   notFound: {
-    subtitle: string;
+    title: string;
     description: string;
     cta: string;
     redirecting: string;
-    imageAlt: string;
   };
   theme: {
     toggle: string;

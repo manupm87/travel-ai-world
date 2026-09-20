@@ -33,7 +33,10 @@ export function DayCard({ day, currency }: DayCardProps) {
   }[day.kind];
 
   return (
-    <Card className={`transition-all rounded-[20px] ${expanded ? "ring-1 ring-border-soft" : ""}`}>
+    <Card
+      variant="glass"
+      className={`rounded-[20px] transition-all ${expanded ? "ring-1 ring-glass-border" : ""}`}
+    >
       {/* Header */}
       <button 
         type="button"
@@ -46,14 +49,12 @@ export function DayCard({ day, currency }: DayCardProps) {
         
         <div className="flex-1 flex flex-col gap-1">
           {badgeText && (
-            <span className="text-[10px] font-bold tracking-[0.1em] uppercase text-text-primary">
-              {badgeText}
-            </span>
+            <span className="text-xs font-medium text-text-secondary">{badgeText}</span>
           )}
           
           <h4 className="text-text-primary text-xl font-medium">{day.title}</h4>
           <p className="text-text-secondary text-sm">
-            {formatDate(day.date, { weekday: "long", month: "short", day: "numeric" })} • {day.estimatedCost > 0 ? `${formatCurrency(day.estimatedCost, currency)} ${t.tripViewer.estimated}` : t.tripViewer.selfPlanned}
+            {formatDate(day.date, { weekday: "long", month: "short", day: "numeric" })} · {day.estimatedCost > 0 ? `${formatCurrency(day.estimatedCost, currency)} ${t.tripViewer.estimated}` : t.tripViewer.selfPlanned}
           </p>
         </div>
         
@@ -79,13 +80,13 @@ export function DayCard({ day, currency }: DayCardProps) {
           
           {day.meals.length > 0 && (
             <div className="flex flex-col gap-3 mt-2">
-              <h5 className="text-text-primary text-xs font-bold uppercase tracking-wider">{t.tripViewer.dining}</h5>
+              <h5 className="text-sm font-medium text-text-primary">{t.tripViewer.dining}</h5>
               {day.meals.map(meal => (
-                <div key={meal.id} className="bg-bg-secondary border border-border-soft rounded-lg p-4 flex gap-4">
+                <div key={meal.id} className="flex gap-4 rounded-lg border border-glass-border bg-glass-bg p-4">
                   <div className="text-text-secondary text-sm font-medium w-16">{meal.time}</div>
                   <div className="flex flex-col">
                     <span className="text-text-primary font-medium">{meal.restaurantName}</span>
-                    <span className="text-text-secondary text-sm">{meal.cuisine} • {formatCurrency(meal.estimatedCost, currency)}</span>
+                    <span className="text-text-secondary text-sm">{meal.cuisine} · {formatCurrency(meal.estimatedCost, currency)}</span>
                   </div>
                 </div>
               ))}

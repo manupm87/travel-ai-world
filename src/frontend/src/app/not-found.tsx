@@ -1,16 +1,26 @@
 "use client";
 
-import Link from "next/link";
-import Image from "next/image";
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
-import paradiseImage from "../../public/images/404-paradise.png";
-import { useLanguage } from "@/context/LanguageContext";
-import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { Aurora } from "@/components/layout/Aurora";
+import Footer from "@/components/layout/Footer";
+import Header from "@/components/layout/Header";
+import { Button } from "@/components/ui/Button";
+import { useLanguage } from "@/context/LanguageContext";
+
+/** How long a stray `/dashboard/*` path waits before it goes home. */
+const REDIRECT_MS = 2000;
 
 /**
- * Global 404 Fallback
+ * The page for a URL that is not one of ours.
+ *
+ * It lives outside the route groups, so it brings its own shell: the aurora,
+ * the header and the footer's single line. The page itself is a sentence and
+ * one way out — an unknown link is not an occasion for an illustration
+ * (TRA-193). Unknown trip ids are handled by the viewer itself
+ * (`/trip/?id=`), so only stray `/dashboard/*` paths still get the short
+ * redirect home.
  */
 export default function NotFound() {
   const { t } = useLanguage();
@@ -18,77 +28,39 @@ export default function NotFound() {
   const pathname = usePathname();
   const router = useRouter();
 
-  // Unknown trip ids are handled by the viewer itself (`/trip/?id=`), so
-  // only stray `/dashboard/*` paths still get the short redirect home.
-  const isRedirecting = pathname.includes('/dashboard/');
+  const isRedirecting = pathname.includes("/dashboard/");
 
   useEffect(() => {
     if (!isRedirecting) return;
-    
-    const timer = setTimeout(() => {
-      router.push('/');
-    }, 2000);
+    const timer = setTimeout(() => router.push("/"), REDIRECT_MS);
     return () => clearTimeout(timer);
   }, [isRedirecting, router]);
 
   if (isRedirecting) {
     return (
-      <div className="flex flex-col min-h-screen bg-bg-primary text-text-primary font-sans items-center justify-center">
-        <div className="animate-pulse flex flex-col items-center gap-4">
-          <div className="text-4xl">✈️</div>
-          <p className="text-text-secondary">
-            {nt.redirecting}
-          </p>
-        </div>
+      <div className="flex min-h-dvh flex-col items-center justify-center font-sans">
+        <Aurora />
+        <LoadingSpinner label={nt.redirecting} />
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-bg-primary text-text-primary font-sans">
+    <div className="flex min-h-dvh flex-col font-sans">
+      <Aurora />
       <Header variant="landing" />
-      
-      <main className="flex-1 flex flex-col items-center justify-center pt-24 pb-12 px-6 text-center animate-in fade-in duration-700">
-        <div className="max-w-4xl w-full flex flex-col items-center gap-8 md:gap-12">
-          
-          {/* Visual section */}
-          <div className="relative group">
-            {/* Background glow */}
-            <div className="absolute -inset-4 bg-accent/20 blur-3xl rounded-full opacity-50 group-hover:opacity-70 transition-opacity duration-1000" />
-            
-            <div className="relative overflow-hidden rounded-3xl border border-white/10 shadow-2xl transition-transform duration-500 hover:scale-[1.02]">
-              <div className="absolute inset-0 bg-gradient-to-t from-bg-primary/80 via-transparent to-transparent z-10" />
-              <Image 
-                src={paradiseImage} 
-                alt={nt.imageAlt}
-                className="w-full max-w-[600px] h-auto object-cover aspect-[16/10]"
-                priority
-              />
-            </div>
-          </div>
 
-          {/* Text section */}
-          <div className="flex flex-col items-center gap-4 md:gap-6 max-w-xl">
-            <h1 className="text-4xl md:text-6xl font-heading font-bold tracking-tight bg-gradient-to-r from-text-primary via-text-primary to-text-primary/40 bg-clip-text text-transparent">
-              {nt.subtitle}
-            </h1>
-            
-            <p className="text-text-secondary text-base md:text-lg leading-relaxed">
-              {nt.description}
-            </p>
-
-            <div className="mt-4">
-              <Link
-                href="/dashboard"
-                className="group relative inline-flex items-center justify-center px-8 py-4 font-semibold text-white transition-all duration-300 bg-accent rounded-2xl hover:bg-accent-hover hover:shadow-accent-glow overflow-hidden"
-              >
-                <div className="absolute inset-0 w-3 bg-white/20 transition-all duration-[600ms] -skew-x-[45deg] -translate-x-20 group-hover:translate-x-[200px]" />
-                <span className="relative flex items-center gap-2">
-                  ✈ {nt.cta}
-                </span>
-              </Link>
-            </div>
-          </div>
+      <main className="flex flex-1 items-center justify-center px-4 py-(--header-h) sm:px-6">
+        <div className="w-full max-w-[34rem] animate-fade-up text-center">
+          <h1 className="text-[clamp(1.875rem,6vw,2.75rem)] leading-[1.1] font-light text-text-primary">
+            {nt.title}
+          </h1>
+          <p className="mx-auto mt-4 max-w-[46ch] text-[17px] leading-relaxed text-text-secondary">
+            {nt.description}
+          </p>
+          <Button href="/" size="sm" className="mt-8 rounded-full px-6 py-3">
+            {nt.cta}
+          </Button>
         </div>
       </main>
 

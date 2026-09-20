@@ -2,14 +2,15 @@
 
 import { useEffect } from "react";
 import { useLanguage } from "@/context/LanguageContext";
+import { Button } from "@/components/ui/Button";
 
 /**
  * Global Error Boundary (`error.tsx`).
  *
- * This Client Component acts as the ultimate fallback for any unhandled
- * runtime errors that occur anywhere in the React tree (excluding layout).
- * It prevents the application from completely crashing and shows a user-friendly
- * error message with a recovery button.
+ * The last thing standing between an unhandled render error and a blank page.
+ * It says what happened in the interface's own voice and offers the one thing
+ * that can still help — rendering the segment again. The thrown message is not
+ * shown: a stack's wording is for the console, which is where it goes.
  *
  * @param error - The Error object that was caught.
  * @param reset - A function to try re-rendering the segment that threw the error.
@@ -30,23 +31,25 @@ export default function ErrorBoundary({
   }, [error]);
 
   return (
-    <main className="flex min-h-[50vh] flex-col items-center justify-center p-8 text-center text-text-primary">
-      <div className="bg-bg-card max-w-md rounded-2xl border border-border-soft p-8 shadow-2xl">
-        <div className="mb-6 flex justify-center">
-          <span className="text-4xl text-error">⚠️</span>
-        </div>
-        <h2 className="mb-4 text-2xl font-bold tracking-tight">
+    <main className="flex min-h-[60vh] flex-col items-center justify-center px-4 py-16 sm:px-6">
+      <div
+        role="alert"
+        className="w-full max-w-[30rem] rounded-2xl border border-glass-border bg-glass-bg p-8 text-center shadow-field-glow backdrop-blur-xl"
+      >
+        <h2 className="text-2xl leading-tight font-light text-text-primary">
           {t.errors.title}
         </h2>
-        <p className="text-text-secondary mb-8 text-sm">
-          {error.message || t.errors.description}
+        <p className="mx-auto mt-3 max-w-[42ch] text-[15px] leading-relaxed text-text-secondary">
+          {t.errors.description}
         </p>
-        <button
+        <Button
+          type="button"
+          size="sm"
           onClick={reset}
-          className="bg-accent hover:bg-accent/90 w-full rounded-lg px-6 py-3 font-medium transition-colors"
+          className="mt-7 rounded-full px-6 py-3"
         >
           {t.errors.retry}
-        </button>
+        </Button>
       </div>
     </main>
   );

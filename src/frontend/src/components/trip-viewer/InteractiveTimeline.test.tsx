@@ -18,7 +18,7 @@ describe("InteractiveTimeline", () => {
     expect(screen.getByRole("heading", { name: en.tripViewer.routeOverview })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Paris" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Lyon" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 4, name: "Paris" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 3, name: "Paris" })).toBeInTheDocument();
   });
 
   it("switches the active destination on click", () => {
@@ -26,8 +26,8 @@ describe("InteractiveTimeline", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Lyon" }));
 
-    expect(screen.getByRole("heading", { level: 4, name: "Lyon" })).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { level: 4, name: "Paris" })).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 3, name: "Lyon" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { level: 3, name: "Paris" })).not.toBeInTheDocument();
   });
 
   it("offers to jump to the itinerary", () => {

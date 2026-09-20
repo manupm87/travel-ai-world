@@ -18,9 +18,11 @@ export function BudgetCard({ label, value, currency }: BudgetCardProps) {
   const { formatCurrency } = useFormatters();
 
   return (
-    <div className="bg-bg-secondary border border-border-soft rounded-xl p-3 md:p-4 flex flex-col gap-1">
-      <span className="text-[10px] text-text-primary uppercase tracking-widest font-bold">{label}</span>
-      <span className="text-text-primary font-bold text-lg">{formatCurrency(value, currency)}</span>
+    <div className="flex flex-col gap-1 rounded-xl border border-glass-border bg-glass-bg p-3 backdrop-blur-xl md:p-4">
+      <span className="text-xs text-text-secondary">{label}</span>
+      <span className="text-lg font-medium text-text-primary">
+        {formatCurrency(value, currency)}
+      </span>
     </div>
   );
 }

@@ -36,6 +36,6 @@ describe("TripOverview", () => {
     expect(screen.getByText("Nice → Cannes")).toBeInTheDocument();
     expect(screen.getByText("train")).toBeInTheDocument();
     expect(screen.getByText(/SNCF/)).toBeInTheDocument();
-    expect(screen.getByText("10:00 - 10:30 (30m)")).toBeInTheDocument();
+    expect(screen.getByText("10:00 – 10:30 (30m)")).toBeInTheDocument();
   });
 });

@@ -94,7 +94,7 @@ describe("TripClientPage", () => {
     expect(screen.getByText(tv.tripOverview)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: tv.accommodations })).toBeInTheDocument();
     expect(screen.getByText(tv.aiInsights)).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Your 14-Day Journey" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Your 14-day journey" })).toBeInTheDocument();
     for (const day of trip.itinerary) {
       expect(screen.getByText(day.title)).toBeInTheDocument();
     }

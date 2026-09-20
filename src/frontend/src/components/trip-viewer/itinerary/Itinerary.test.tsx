@@ -21,7 +21,7 @@ const trip = makeTrip({
 describe("Itinerary", () => {
   it("renders the interpolated journey title and all days by default", () => {
     renderWithProviders(<Itinerary trip={trip} />);
-    expect(screen.getByRole("heading", { name: "Your 5-Day Journey" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Your 5-day journey" })).toBeInTheDocument();
     expect(screen.getByText("Paris Day 1")).toBeInTheDocument();
     expect(screen.getByText("Paris Day 2")).toBeInTheDocument();
     expect(screen.getByText("London Day 1")).toBeInTheDocument();

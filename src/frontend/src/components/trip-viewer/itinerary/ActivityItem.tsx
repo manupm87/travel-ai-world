@@ -21,7 +21,7 @@ interface ActivityItemProps {
 export function ActivityItem({ activity, currency }: ActivityItemProps) {
   const { t } = useLanguage();
   const { formatCurrency } = useFormatters();
-  let bgColor = "bg-bg-secondary";
+  let bgColor = "bg-glass-bg";
   let Icon = MapPin;
 
   if (activity.category === "transport") {
@@ -37,12 +37,12 @@ export function ActivityItem({ activity, currency }: ActivityItemProps) {
   };
 
   return (
-    <div className={`${bgColor} border border-border-soft rounded-lg p-3 flex gap-4 items-start transition-colors hover:bg-bg-card hover:border-accent/40 group`}>
+    <div className={`${bgColor} group flex items-start gap-4 rounded-lg border border-glass-border p-3 transition-colors hover:border-accent/40`}>
       <div className="flex flex-col items-center gap-1 w-16 shrink-0 mt-0.5">
         <div className="text-text-secondary text-sm font-medium whitespace-nowrap">
           {activity.time}
         </div>
-        <div className="p-1.5 rounded-md bg-bg-primary text-text-secondary group-hover:text-text-primary transition-colors">
+        <div className="rounded-md bg-bg-primary/60 p-1.5 text-text-secondary transition-colors group-hover:text-text-primary">
           <Icon size={14} />
         </div>
       </div>
@@ -61,13 +61,13 @@ export function ActivityItem({ activity, currency }: ActivityItemProps) {
           {activity.bookingRequired && (
             <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-accent/10 border border-accent/20">
               <span className="w-1 h-1 rounded-full bg-accent animate-pulse"></span>
-              <span className="text-[10px] font-medium text-accent uppercase tracking-wider">
+              <span className="text-[11px] font-medium text-accent">
                 {t.tripViewer.bookingRequired}
               </span>
             </div>
           )}
           {activity.rating && (
-            <span className="text-[11px] font-bold text-text-primary bg-bg-secondary border border-border-soft px-2 py-0.5 rounded flex items-center gap-1">
+            <span className="flex items-center gap-1 rounded border border-glass-border bg-glass-bg px-2 py-0.5 text-[11px] font-medium text-text-primary">
               <Star size={10} className="text-warning" fill="currentColor" /> {activity.rating}
             </span>
           )}
