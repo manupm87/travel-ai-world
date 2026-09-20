@@ -3,7 +3,7 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { useAuth } from "@/context/AuthContext";
 import { ApiError, UnauthorizedError } from "@/services/http";
 import { readToken, writeSession } from "@/services/session";
-import { listTrips } from "@/services/trips";
+import { deleteTrip, listTrips, updateTrip } from "@/services/trips";
 import { makeTripSummary } from "@/test/fixtures";
 import { useTrips } from "./useTrips";
 
@@ -11,11 +11,14 @@ vi.mock("@/context/AuthContext", () => ({
   useAuth: vi.fn(),
 }));
 
-vi.mock("@/services/trips", () => ({
-  listTrips: vi.fn(),
-}));
+vi.mock("@/services/trips", async () => {
+  const actual = await vi.importActual<typeof import("@/services/trips")>("@/services/trips");
+  return { ...actual, listTrips: vi.fn(), deleteTrip: vi.fn(), updateTrip: vi.fn() };
+});
 
 const listTripsMock = vi.mocked(listTrips);
+const deleteTripMock = vi.mocked(deleteTrip);
+const updateTripMock = vi.mocked(updateTrip);
 
 const auth = (isAuthenticated: boolean) =>
   vi.mocked(useAuth).mockReturnValue({
@@ -145,5 +148,72 @@ describe("useTrips", () => {
     const first = result.current.reload;
     rerender();
     expect(result.current.reload).toBe(first);
+  });
+
+  describe("remove", () => {
+    it("takes the card away at once and asks the API after", async () => {
+      listTripsMock.mockResolvedValue([makeTripSummary({ id: "a" }), makeTripSummary({ id: "b" })]);
+      deleteTripMock.mockResolvedValue(undefined);
+      const { result } = renderHook(() => useTrips());
+      await waitFor(() => expect(result.current.status).toBe("ready"));
+
+      await act(() => result.current.remove("a"));
+
+      expect(result.current.trips.map((t) => t.id)).toEqual(["b"]);
+      expect(deleteTripMock).toHaveBeenCalledWith("a");
+    });
+
+    it("puts the card back and rethrows when the API refuses", async () => {
+      listTripsMock.mockResolvedValue([makeTripSummary({ id: "a" }), makeTripSummary({ id: "b" })]);
+      deleteTripMock.mockRejectedValue(new ApiError(403, "Not yours"));
+      const { result } = renderHook(() => useTrips());
+      await waitFor(() => expect(result.current.status).toBe("ready"));
+
+      await expect(act(() => result.current.remove("a"))).rejects.toBeInstanceOf(ApiError);
+
+      expect(result.current.trips.map((t) => t.id)).toEqual(["a", "b"]);
+      expect(result.current.status).toBe("ready");
+    });
+  });
+
+  describe("update", () => {
+    it("replaces the card with what the API stored", async () => {
+      listTripsMock.mockResolvedValue([makeTripSummary({ id: "a", title: "Old" })]);
+      updateTripMock.mockResolvedValue({
+        id: "a",
+        user_id: 1,
+        status: "planned",
+        created_at: "2026-01-01T00:00:00Z",
+        updated_at: "2026-01-02T00:00:00Z",
+        title: "New",
+        travelers_adults: 1,
+        travelers_children: 0,
+        travelers_infants: 0,
+        destinations: [],
+        itinerary_days: [],
+        accommodations: [],
+        transportations: [],
+      });
+      const { result } = renderHook(() => useTrips());
+      await waitFor(() => expect(result.current.status).toBe("ready"));
+
+      await act(() => result.current.update("a", { title: "New" }));
+
+      expect(updateTripMock).toHaveBeenCalledWith("a", { title: "New" });
+      expect(result.current.trips[0]).toMatchObject({ id: "a", title: "New", status: "planned" });
+    });
+
+    it("leaves the card alone and rethrows when the patch fails", async () => {
+      listTripsMock.mockResolvedValue([makeTripSummary({ id: "a", title: "Old" })]);
+      updateTripMock.mockRejectedValue(new ApiError(422, "Bad dates"));
+      const { result } = renderHook(() => useTrips());
+      await waitFor(() => expect(result.current.status).toBe("ready"));
+
+      await expect(act(() => result.current.update("a", { title: "" }))).rejects.toBeInstanceOf(
+        ApiError
+      );
+
+      expect(result.current.trips[0]).toMatchObject({ title: "Old" });
+    });
   });
 });

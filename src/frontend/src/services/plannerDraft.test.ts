@@ -1,6 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { initialPlannerState, toPlannerDraft, type PlannerDraft } from "@/hooks/plannerReducer";
-import { clearPlannerDraft, PLANNER_DRAFT_KEY, readPlannerDraft, writePlannerDraft } from "./plannerDraft";
+import {
+  clearPlannerDraft,
+  PLANNER_DRAFT_KEY,
+  readPlannerDraft,
+  readSavedTripId,
+  writePlannerDraft,
+  writeSavedTripId,
+} from "./plannerDraft";
 
 function draftWithMessages(): PlannerDraft {
   const draft = toPlannerDraft(initialPlannerState());
@@ -49,6 +56,23 @@ describe("plannerDraft", () => {
     clearPlannerDraft();
 
     expect(readPlannerDraft()).toBeNull();
+  });
+
+  it("remembers the trip this tab's draft was saved as", () => {
+    expect(readSavedTripId()).toBeNull();
+
+    writeSavedTripId("t1");
+
+    expect(readSavedTripId()).toBe("t1");
+  });
+
+  it("forgets that trip when the draft is cleared: starting over starts a new trip", () => {
+    writePlannerDraft(draftWithMessages());
+    writeSavedTripId("t1");
+
+    clearPlannerDraft();
+
+    expect(readSavedTripId()).toBeNull();
   });
 
   it("does not throw when sessionStorage.setItem throws", () => {

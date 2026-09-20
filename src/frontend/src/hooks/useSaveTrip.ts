@@ -9,7 +9,7 @@ import { readSavedTripId, writeSavedTripId } from "@/services/plannerDraft";
 import { clearSession } from "@/services/session";
 import { saveDraftAsTrip } from "@/services/trips";
 import { daysBetween } from "@/utils/tripDates";
-import { hasItinerary, type PlannerState } from "./plannerReducer";
+import { hasItinerary, type ItineraryDraft, type PlannerState } from "./plannerReducer";
 
 export type SaveTripStatus = "idle" | "saving" | "saved" | "error";
 
@@ -52,26 +52,21 @@ export function useSaveTrip(
   const { t } = useLanguage();
   const { isAuthenticated } = useAuth();
   const [status, setStatus] = useState<SaveTripStatus>("idle");
-  const [tripId, setTripId] = useState<string | null>(null);
-
-  // The id belongs to the tab, not to this mount: a reload during planning
-  // must still update the trip it already wrote.
-  useEffect(() => {
-    setTripId(readSavedTripId());
-  }, []);
+  // The id belongs to the tab, not to this mount: a reload in the middle of
+  // planning must still update the trip it already wrote.
+  const [tripId, setTripId] = useState<string | null>(() => readSavedTripId());
 
   const controllerRef = useRef<AbortController | null>(null);
   useEffect(() => () => controllerRef.current?.abort(), []);
 
   const { brief, itinerary } = state;
 
-  // A changed itinerary is a trip that no longer matches what was saved.
-  const savedRef = useRef(itinerary);
-  useEffect(() => {
-    if (savedRef.current === itinerary) return;
-    savedRef.current = itinerary;
-    setStatus((current) => (current === "saved" ? "idle" : current));
-  }, [itinerary]);
+  // What was last written, so an itinerary that has moved on since puts the
+  // button back to work. Adjusted while rendering rather than in an effect:
+  // "Saved" must not be on screen for a frame under a trip it no longer
+  // describes.
+  const [savedItinerary, setSavedItinerary] = useState<ItineraryDraft | null>(null);
+  if (status === "saved" && savedItinerary !== itinerary) setStatus("idle");
 
   const canSave = enabled && isAuthenticated && isApiAvailable() && hasItinerary(itinerary);
 
@@ -93,7 +88,7 @@ export function useSaveTrip(
         if (controller.signal.aborted) return;
         writeSavedTripId(trip.id);
         setTripId(trip.id);
-        savedRef.current = itinerary;
+        setSavedItinerary(itinerary);
         setStatus("saved");
       })
       .catch((err: unknown) => {
