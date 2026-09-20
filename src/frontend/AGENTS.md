@@ -18,6 +18,25 @@ TypeScript 5, Tailwind CSS v4.
   resolves `null` on 404 and on 403, so someone else's id looks exactly like a missing one; owns
   `toTrip`, the only place that turns a `TripResponse` into the `Trip` view model — ADR 0006).
   Components never `fetch` or touch the session storage.
+  **The writes live there too** (TRA-191): `createTrip`, `updateTrip`, `deleteTrip`, and
+  `saveDraftAsTrip(itinerary, brief, { title, tripId? })`, which stores a whole planner draft as one
+  trip. core_api takes no trip and its children in one body, so the snapshot is a **sequence** of
+  small writes — never `Promise.all` on one trip: each day's activities need the id that day's
+  answer carries. The mapping, in one place so the planner, the dashboard and the viewer agree:
+  the brief becomes the trip's dates, travellers, `travel_style` (its interests) and
+  `pace_preference`, with `budget_currency: "EUR"` and the stay's photo (or the draft's first) as
+  the cover; the destination is the brief's city, dated from it and placed on the first located
+  card, with the country from the small map in `trips.ts` (`countryOf`) because a `PlannerCity`
+  publishes none — an unknown city keeps its own name as the country and `EU` as the code; each
+  `DayDraft` becomes an itinerary day dated by `utils/tripDates.ts`, each card in it an activity at
+  the hour its part of the day reads as (morning 10:00, afternoon 15:00, evening 19:00, night
+  22:00) — or a **meal** when the corpus category is `eat`, typed by the same part and with the
+  card's subtitle as the cuisine, the corpus having no cuisine of its own; the stay becomes the
+  accommodation and the route its two legs. Prices, opening hours and bookings are left unset
+  rather than invented. With a `tripId` the same trip is rewritten: the trip is patched, every
+  child is deleted (days first — their activities and meals cascade) and the draft is written
+  again. Keeping a saved trip in step with the draft as it changes, and reopening one in the
+  planner, is TRA-146.
   `AuthContext.provider` (`"cognito" | "google"`) says which sign-in the build has; it is decided by
   `NEXT_PUBLIC_COGNITO_DOMAIN` + `NEXT_PUBLIC_COGNITO_CLIENT_ID`.
   The one sanctioned exception is the planner map's tiles: `maplibre-gl` fetches
@@ -31,7 +50,12 @@ TypeScript 5, Tailwind CSS v4.
   `PlannerCard`; `usePlanner.ts` drives the planner page over the pure reducer in
   `plannerReducer.ts` (every transition, including `applyItineraryOps`, is unit-tested without React;
   the hook owns the stream, aborts it on a new turn, and keeps the per-tab draft through
-  `services/plannerDraft.ts`). A page
+  `services/plannerDraft.ts`); `useSaveTrip.ts` owns "Save trip" (`idle | saving | saved | error`,
+  the title in the reader's language, and the id of the trip the draft was saved as — kept beside
+  the draft by `plannerDraft.ts`, so a second press updates that trip instead of leaving a second
+  one behind, and "Start over" forgets it); `useTrips.ts` also owns the dashboard's own writes,
+  `remove(id)` (optimistic, the card comes back if the API refuses) and `update(id, patch)` (not
+  optimistic: the card shows what the API stored). A page
   that needs per-user data is a static shell (`page.tsx`) plus a client component using the hook,
   never a server-side fetch: the export is static.
 - **`src/types/trip.ts` is a view model**, not a response shape: components render it, `services/trips.ts`
@@ -151,7 +175,8 @@ TypeScript 5, Tailwind CSS v4.
   no banner. The same session is the test double in unit tests and in `e2e/planner.spec.ts`
   (route mocked with it, plus one test where the route answers 404). Motion comes from the
   keyframes in `globals.css` (`animate-fade-up`, `animate-scale-in`, ...; `prefers-reduced-motion`
-  is honoured globally).
+  is honoured globally). Day dates are `src/utils/tripDates.ts`: the panel, the day strip and
+  `services/trips.ts` all date a day through it.
   **On a phone the page itself never scrolls** (TRA-187): `PlannerLayout` is
   `100dvh` tall, not `100vh` (which is the viewport with the browser's toolbars hidden and would
   push the composer under the fold), the panes are the only scrollers and each one says so with
@@ -159,8 +184,10 @@ TypeScript 5, Tailwind CSS v4.
   layout asks for `viewportFit: "cover"`. Every form control is 16 px on a coarse pointer (one
   un-layered rule in `globals.css`, because iOS zooms the page in on a smaller one and never zooms
   back out), the chip rows scroll sideways instead of wrapping, and `e2e/mobile.spec.ts` (390 × 844,
-  every config, no backend) holds the whole contract. The "Save
-  trip" button waits for the persistence issue (TRA-146). The page knows no city by name (TRA-168):
+  every config, no backend) holds the whole contract. **"Save trip" writes the draft** (TRA-191):
+  `SaveTripButton` renders `useSaveTrip`'s four states in the panel's header — the press, the
+  spinner, "Saved" with the way into `/trip/?id=`, or what to do about a failure; a recorded demo
+  session, which belongs to nobody, keeps the button out of service and says so in its title. The page knows no city by name (TRA-168):
   `services/planner.ts::listCities` reads `GET /ai/planner/cities`, `hooks/usePlannerCities` loads it
   once, and `ChatColumn` turns it into one "Plan a trip to {city}" starter chip per city
   (`SuggestionChips`, only while the transcript is empty) and the destination hint of `QuickReplies`;
