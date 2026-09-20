@@ -186,6 +186,14 @@ const es: Translations = {
       source: "Fuente: {source}",
       imageCredit: "Foto: {credit}",
       alreadyInDay: "Ya está en tu día",
+      addToTrip: "Añadir al viaje…",
+    },
+    slotPicker: {
+      title: "Añadir a…",
+      day: "Día",
+      part: "Franja del día",
+      confirm: "Añadir",
+      cancel: "Cancelar",
     },
     carousel: {
       label: "Opciones: {prompt}",

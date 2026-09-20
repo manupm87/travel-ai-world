@@ -21,7 +21,7 @@ export interface AlternativesSheetProps {
   /** The options for this slot are on their way (a turn is streaming). */
   loading?: boolean;
   onClose: () => void;
-  onSelect: (groupId: string, cardIds: string[]) => void;
+  onSelect: (groupId: string, cardIds: string[], slot?: Slot) => void;
   onDismiss: (groupId: string, cardId: string) => void;
   onToggleShortlist: (cardId: string) => void;
   /** Asks for this slot again: guided by the box, or the next page ("More"). */
@@ -196,7 +196,9 @@ export function AlternativesSheet({
                   shortlisted={shortlist.includes(card.id)}
                   disabled={disabled}
                   onChoose={() => {
-                    onSelect(group.group_id, [card.id]);
+                    // The sheet always knows the slot; the stay's pseudo-slot
+                    // names no day, so it travels as none (TRA-185).
+                    onSelect(group.group_id, [card.id], isStay ? undefined : slot);
                     onClose();
                   }}
                   onDismiss={() => onDismiss(group.group_id, card.id)}

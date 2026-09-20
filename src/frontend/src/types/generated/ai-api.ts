@@ -522,12 +522,18 @@ export interface components {
         /**
          * SelectAction
          * @description Cards chosen in a carousel the server sent earlier (`group_id`).
+         *
+         *     A group whose id names a slot (`slot:<day>:<part>`) places the pick on
+         *     its own. A `found:` group does not: its cards arrived unplaced, so the
+         *     page names the day and the part the traveller chose in `slot` (TRA-185,
+         *     ADR 0018). `null` for every placed group.
          */
         SelectAction: {
             /** Card Ids */
             card_ids: string[];
             /** Group Id */
             group_id: string;
+            slot: components["schemas"]["Slot"] | null;
             /**
              * @description discriminator enum property added by openapi-typescript
              * @enum {string}

@@ -21,6 +21,7 @@ from collections.abc import AsyncIterator, Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 from typing import Literal, cast
+from uuid import uuid4
 
 from pydantic import BaseModel, Field
 from travel_common.exceptions import DomainError
@@ -93,8 +94,14 @@ DRINK_CATEGORIES = ("drink",)
 PHOTO_CATEGORIES = frozenset({"see", "do", "tour", "history", "eat", "drink", "sleep"})
 STAY_CATEGORIES = ("sleep",)
 
+EAT_DRINK = frozenset({*EAT_CATEGORIES, *DRINK_CATEGORIES})
+"""A carousel of these alone is a `restaurant` one; anything else is experience."""
+
 OPTIONS_COUNT = 3
 """Cards per carousel: enough to choose from, few enough to read."""
+
+MENTIONED_COUNT = 5
+"""Most cards an answer's own places may become (TRA-185)."""
 
 # Activities per part of the day, by pace. The draft is complete on its own
 # (decision 8): every part listed here gets filled when the corpus allows.
@@ -364,6 +371,47 @@ def _dedupe_by_title(
     return unique
 
 
+def _named_at(
+    title: str, *, lowered: str, folded: str, said: frozenset[str]
+) -> int | None:
+    """Where an answer names this place, or `None` when it does not.
+
+    Either the whole title is in the text — folded, so "Gellert Baths" names
+    the "Gellért Baths" — or every word that identifies it is: `title_words`
+    drops the noise and the plural, so "the Rudas baths" names the "Rudas
+    Thermal Bath" while "the baths" names nothing.
+    """
+    at = folded.find(fold(title))
+    if at >= 0:
+        return at
+    key = title_words(title)
+    if not key or not key <= said:
+        return None
+    starts = [m.start() for w in key if (m := re.search(rf"\b{re.escape(w)}", lowered))]
+    return min(starts) if starts else None
+
+
+def _mentioned_places(answer: str, passages: Sequence[Document]) -> list[Document]:
+    """The places an answer named, in the order it named them (TRA-185).
+
+    Only the passages the answer was grounded on can become cards, so nothing
+    the model invented is ever offered; one card per place, whichever source
+    it came from.
+    """
+    lowered = answer.lower()
+    folded = fold(answer)
+    said = title_words(answer)
+    found: list[tuple[int, Document]] = []
+    for document in passages:
+        if not is_place(document):
+            continue
+        at = _named_at(title_of(document), lowered=lowered, folded=folded, said=said)
+        if at is not None:
+            found.append((at, document))
+    found.sort(key=lambda pair: pair[0])
+    return _dedupe_by_title([d for _, d in found])[:MENTIONED_COUNT]
+
+
 def _keep_known(picks: Sequence[Pick], known: Mapping[str, Document]) -> list[Pick]:
     """Ids the model returned that were retrieved, once each, in its order."""
     kept: list[Pick] = []
@@ -484,7 +532,10 @@ class PlanTrip:
         if intent.intent == "find_options":
             kind: OptionKind = intent.kind or "experience"
             part = intent.part or ("evening" if kind == "restaurant" else None)
-            slot = Slot(day=max(1, intent.day or 1), part=part)
+            # No day in the ask: the cards arrive unplaced rather than landing
+            # on day 1 by assumption, and the traveller picks (TRA-185).
+            day = intent.day or 0
+            slot = Slot(day=day, part=part) if day >= 1 else None
             async for event in self._find_options(turn, kind, slot, intent.query):
                 yield event
         elif intent.intent == "change_stay":
@@ -1132,7 +1183,9 @@ class PlanTrip:
                 yield event
             return
 
-        slot = _slot_of_group(group)
+        # A placed group names its slot in its id; an unplaced `found:` one is
+        # placed by the traveller, whose choice travels in the action (TRA-185).
+        slot = _slot_of_group(group) or action.slot
         if slot is None:
             yield text(planner_text(turn.language, "stale_group"))
             return
@@ -1178,12 +1231,18 @@ class PlanTrip:
         self,
         turn: Turn,
         kind: OptionKind,
-        slot: Slot,
+        slot: Slot | None,
         query: str | None,
         *,
         heading: str = "options",
     ) -> AsyncIterator[PlannerEvent]:
-        part = slot.part
+        """Cards for a slot, or unplaced when no day was named (TRA-185).
+
+        Unplaced, the group is a fresh `found:` id with `slot=None`: the page
+        asks the traveller for the day and the part and sends them back in the
+        `select` action (ADR 0018).
+        """
+        part = slot.part if slot is not None else None
         if kind == "restaurant" or part == "evening":
             categories, tier = EAT_CATEGORIES, turn.brief.budget_tier
         elif part == "night":
@@ -1199,7 +1258,9 @@ class PlanTrip:
             return
         known = {d.id: d for d in candidates}
         part_name = PART_NAMES[turn.language][part or "morning"]
-        context = f"day {slot.day}, {part_name}"
+        context = (
+            "any day of the trip" if slot is None else f"day {slot.day}, {part_name}"
+        )
         prompt = PICK_OPTIONS_PROMPT.format(
             brief=_brief_json(turn.brief),
             request=request,
@@ -1213,15 +1274,17 @@ class PlanTrip:
             turn,
             [card_from_document(known[p.id], self._clean(turn, p.why)) for p in picks],
         )
-        prompt_text = planner_text(turn.language, heading, day=slot.day, part=part_name)
+        if slot is None:
+            prompt_text = planner_text(turn.language, heading)
+            group_id, placed = _new_found_group(), None
+        else:
+            prompt_text = planner_text(
+                turn.language, heading, day=slot.day, part=part_name
+            )
+            group_id = f"slot:{slot.day}:{part or 'morning'}"
+            placed = Slot(day=slot.day, part=part or "morning")
         yield text(prompt_text)
-        yield options(
-            f"slot:{slot.day}:{part or 'morning'}",
-            kind,
-            prompt_text,
-            cards,
-            slot=Slot(day=slot.day, part=part or "morning"),
-        )
+        yield options(group_id, kind, prompt_text, cards, slot=placed)
 
     async def _chat(self, turn: Turn) -> AsyncIterator[PlannerEvent]:
         messages = [
@@ -1250,8 +1313,31 @@ class PlanTrip:
             )
         messages.extend(turn.history())
         messages.append(Message("user", turn.message))
+        answer: list[str] = []
         async for delta in self._provider.stream(messages):
+            answer.append(delta)
             yield text(delta)
+        # The places the prose just named are cards the traveller can add
+        # (TRA-185). Not before a stay: there is no day to add them to yet.
+        if turn.stay_id is None:
+            return
+        mentioned = _mentioned_places("".join(answer), passages)
+        if not mentioned:
+            return
+        kind: OptionKind = (
+            "restaurant"
+            if all(d.metadata.get("category") in EAT_DRINK for d in mentioned)
+            else "experience"
+        )
+        # `why` stays empty: the answer above already explains every one of them.
+        cards = await self._with_photos(turn, cards_for(mentioned, {}))
+        yield options(
+            _new_found_group(),
+            kind,
+            planner_text(turn.language, "mentioned"),
+            cards,
+            slot=None,
+        )
 
     # ── Shared helpers ───────────────────────────────────────────────────
 
@@ -1337,6 +1423,12 @@ class PlanTrip:
 def _district_of(document: Document) -> str | None:
     district = document.metadata.get("district")
     return district if isinstance(district, str) and district else None
+
+
+def _new_found_group() -> str:
+    """A carousel of unplaced cards: a fresh id, because the group carries no
+    slot to name it by and two asks in one session must not collide."""
+    return f"found:{uuid4().hex[:8]}"
 
 
 def _slot_of_group(group: str) -> Slot | None:

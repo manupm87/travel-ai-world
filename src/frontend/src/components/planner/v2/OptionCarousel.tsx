@@ -4,16 +4,20 @@ import { useRef, useState, type KeyboardEvent } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { interpolate } from "@/i18n";
-import type { OptionGroupState } from "@/hooks/plannerReducer";
+import { EMPTY_ITINERARY, type ItineraryDraft, type OptionGroupState } from "@/hooks/plannerReducer";
+import type { Slot } from "@/types/planner";
 import { OptionCard } from "./OptionCard";
+import { SlotPicker } from "./SlotPicker";
 
 export interface OptionCarouselProps {
   group: OptionGroupState;
   /** Hearted card ids (local only). */
   shortlist: string[];
+  /** The trip so far: the days an unplaced card can be added to (TRA-185). */
+  itinerary?: ItineraryDraft;
   /** A turn is streaming: the choice buttons wait. */
   disabled?: boolean;
-  onSelect: (groupId: string, cardIds: string[]) => void;
+  onSelect: (groupId: string, cardIds: string[], slot?: Slot) => void;
   onDismiss: (groupId: string, cardId: string) => void;
   onToggleShortlist: (cardId: string) => void;
 }
@@ -37,6 +41,7 @@ function primaryButtonOf(item: Element | null): HTMLElement | null {
 export function OptionCarousel({
   group,
   shortlist,
+  itinerary = EMPTY_ITINERARY,
   disabled = false,
   onSelect,
   onDismiss,
@@ -46,8 +51,16 @@ export function OptionCarousel({
   const p = t.plan;
   const listRef = useRef<HTMLUListElement>(null);
   const [checked, setChecked] = useState<string[]>([]);
+  const [pickingBatch, setPickingBatch] = useState(false);
 
   const isMulti = group.selection === "multi";
+  // Cards an answer or a day-less search brought back (`found:` groups,
+  // TRA-185): they carry no slot, so the traveller names one. Neighbourhoods
+  // and hotels also carry none, but they are not added to a day at all.
+  const unplaced =
+    group.slot === null && (group.kind === "experience" || group.kind === "restaurant");
+  const pickSlot = unplaced ? itinerary : null;
+  const days = itinerary.days.map((day) => day.day);
   const hasSelection = group.selectedIds.length > 0;
   const cards = group.cards.filter((card) => !group.dismissedIds.includes(card.id));
 
@@ -74,9 +87,9 @@ export function OptionCarousel({
     next.focus();
   };
 
-  const choose = (cardId: string) => {
+  const choose = (cardId: string, slot?: Slot) => {
     if (!isMulti) {
-      onSelect(group.group_id, [cardId]);
+      onSelect(group.group_id, [cardId], slot);
       return;
     }
     setChecked((current) =>
@@ -128,13 +141,15 @@ export function OptionCarousel({
               card={card}
               index={index}
               slot={group.slot}
+              // A multi group picks one slot for the whole batch, in the footer.
+              pickSlot={isMulti ? null : pickSlot}
               selection={group.selection}
               selected={isSelected(card.id)}
               shortlisted={shortlist.includes(card.id)}
               disabled={
                 disabled || (hasSelection && (isMulti || !group.selectedIds.includes(card.id)))
               }
-              onChoose={() => choose(card.id)}
+              onChoose={(slot) => choose(card.id, slot)}
               onDismiss={() => onDismiss(group.group_id, card.id)}
               onToggleShortlist={() => onToggleShortlist(card.id)}
             />
@@ -143,14 +158,32 @@ export function OptionCarousel({
       </ul>
 
       {isMulti && (
-        <button
-          type="button"
-          onClick={() => onSelect(group.group_id, checked)}
-          disabled={disabled || hasSelection || checked.length === 0}
-          className="self-start rounded-lg bg-accent px-3.5 py-2 text-[13px] font-medium text-white transition hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          {interpolate(p.card.addCount, { count: checked.length })}
-        </button>
+        <div className="flex flex-col items-start gap-2">
+          <button
+            type="button"
+            aria-expanded={pickSlot && days.length > 0 ? pickingBatch : undefined}
+            onClick={() =>
+              pickSlot && days.length > 0
+                ? setPickingBatch((open) => !open)
+                : onSelect(group.group_id, checked)
+            }
+            disabled={disabled || hasSelection || checked.length === 0}
+            className="self-start rounded-lg bg-accent px-3.5 py-2 text-[13px] font-medium text-white transition hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {interpolate(p.card.addCount, { count: checked.length })}
+          </button>
+          {pickSlot && days.length > 0 && pickingBatch && (
+            <SlotPicker
+              days={days}
+              itinerary={pickSlot}
+              onPick={(slot) => {
+                setPickingBatch(false);
+                onSelect(group.group_id, checked, slot);
+              }}
+              onCancel={() => setPickingBatch(false)}
+            />
+          )}
+        </div>
       )}
     </section>
   );

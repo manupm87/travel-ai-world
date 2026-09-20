@@ -11,6 +11,7 @@
 import {
   ALL_CARDS,
   BATHS,
+  EXTRAS,
   GROUPS,
   GROUP_IDS,
   HOTELS,
@@ -25,6 +26,7 @@ import type {
   OptionsGroup,
   PlannerEvent,
   PlannerTurn,
+  SelectAction,
   Slot,
 } from "@/types/planner";
 import { DAY_PARTS, EMPTY_BRIEF } from "@/types/planner";
@@ -132,7 +134,21 @@ function alternativesFor(
   };
 }
 
-function answerSelect(turn: PlannerTurn, groupId: string, cardIds: string[]): PlannerEvent[] {
+/**
+ * The places the scripted answer about Margaret Island names, as cards: a
+ * `found:` group, so it carries no slot and the traveller picks one (TRA-185).
+ */
+const MENTIONED_GROUP: OptionsGroup = {
+  group_id: "found:demo1a2b",
+  kind: "experience",
+  prompt: "Add any of these to your trip:",
+  slot: null,
+  selection: "single",
+  cards: [EXTRAS.margaretIsland, EXTRAS.basilica, EXTRAS.opera],
+};
+
+function answerSelect(turn: PlannerTurn, action: SelectAction): PlannerEvent[] {
+  const { group_id: groupId, card_ids: cardIds } = action;
   if (groupId === GROUP_IDS.neighbourhoods) return [...TURNS.neighbourhood];
   if (groupId === GROUP_IDS.hotels) return [...TURNS.hotel];
   if (groupId === GROUP_IDS.baths) return [...TURNS.bath];
@@ -150,17 +166,22 @@ function answerSelect(turn: PlannerTurn, groupId: string, cardIds: string[]): Pl
     ];
   }
 
-  // Any slot group (`g-alt-day4-night`, the restaurants): replace what the slot held.
+  // A group that names its own slot (`g-alt-day4-night`, the restaurants)
+  // replaces what that slot held; a `found:` group names none, so the slot is
+  // the one the traveller picked and the card is added to it (TRA-185).
   const alt = /^g-alt-day(\d+)-(morning|afternoon|evening|night)$/.exec(groupId);
-  const slot: Slot | null = alt
+  const named: Slot | null = alt
     ? { day: Number(alt[1]), part: alt[2] as DayPart }
     : groupId === GROUP_IDS.restaurants
       ? GROUPS.restaurants.slot
       : null;
+  const slot = named ?? action.slot;
   if (!slot) return [...TURNS.fallback];
-  const ops: ItineraryOp[] = slotIds(turn.itinerary, slot)
-    .filter((id) => !cardIds.includes(id))
-    .map((card_id) => ({ op: "remove_activity" as const, slot, card_id }));
+  const ops: ItineraryOp[] = named
+    ? slotIds(turn.itinerary, slot)
+        .filter((id) => !cardIds.includes(id))
+        .map((card_id) => ({ op: "remove_activity" as const, slot, card_id }))
+    : [];
   picked.forEach((card) => ops.push({ op: "put_activity", slot, card }));
   return [
     patch(ops),
@@ -242,6 +263,18 @@ function answerMessage(turn: PlannerTurn): PlannerEvent[] {
       DONE,
     ];
   }
+  // A question about a place: the answer names three of them, and they come
+  // back as an unplaced group so the picker works without a backend (TRA-185).
+  if (/island|isla|margaret|margarita/.test(lower)) {
+    return [
+      text(
+        "Margaret Island is the city's park in the middle of the Danube: the " +
+          "Franciscan ruins and the Palatinus baths are both on it."
+      ),
+      options(MENTIONED_GROUP),
+      DONE,
+    ];
+  }
   if (/hotel/.test(lower)) {
     const current = turn.itinerary?.stay_card_id;
     return [
@@ -264,7 +297,7 @@ function answerMessage(turn: PlannerTurn): PlannerEvent[] {
  */
 export function demoEventsFor(turn: PlannerTurn): PlannerEvent[] {
   const action = turn.action;
-  if (action?.type === "select") return answerSelect(turn, action.group_id, action.card_ids);
+  if (action?.type === "select") return answerSelect(turn, action);
   if (action?.type === "remove") {
     const card = ALL_CARDS[action.card_id];
     return [text(`Removed ${card?.title ?? "that"} from day ${action.slot.day}.`), DONE];

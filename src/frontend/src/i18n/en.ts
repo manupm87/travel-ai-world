@@ -186,6 +186,14 @@ const en: Translations = {
       source: "Source: {source}",
       imageCredit: "Photo: {credit}",
       alreadyInDay: "Already in your day",
+      addToTrip: "Add to trip…",
+    },
+    slotPicker: {
+      title: "Add to…",
+      day: "Day",
+      part: "Part of the day",
+      confirm: "Add",
+      cancel: "Cancel",
     },
     carousel: {
       label: "Options: {prompt}",

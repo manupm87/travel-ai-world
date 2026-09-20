@@ -205,6 +205,16 @@ export interface Translations {
       /** "Photo: {credit}" */
       imageCredit: string;
       alreadyInDay: string;
+      /** Unplaced card: opens the day/part picker instead of adding at once. */
+      addToTrip: string;
+    };
+    /** Where an unplaced card goes: the traveller names the day and the part. */
+    slotPicker: {
+      title: string;
+      day: string;
+      part: string;
+      confirm: string;
+      cancel: string;
     };
     carousel: {
       /** aria-label: "Options: {prompt}" */

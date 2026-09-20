@@ -62,11 +62,11 @@ describe("demoEventsFor", () => {
   it("walks neighbourhood → hotel → itinerary from the selections", () => {
     expect(
       demoEventsFor(
-        turn({ action: { type: "select", group_id: GROUP_IDS.neighbourhoods, card_ids: ["x"] } })
+        turn({ action: { type: "select", group_id: GROUP_IDS.neighbourhoods, card_ids: ["x"], slot: null } })
       )
     ).toEqual(TURNS.neighbourhood);
     expect(
-      demoEventsFor(turn({ action: { type: "select", group_id: GROUP_IDS.hotels, card_ids: ["x"] } }))
+      demoEventsFor(turn({ action: { type: "select", group_id: GROUP_IDS.hotels, card_ids: ["x"], slot: null } }))
     ).toEqual(TURNS.hotel);
   });
 
@@ -154,7 +154,7 @@ describe("demoEventsFor", () => {
   it("puts a picked alternative into its slot, replacing what was there", () => {
     const events = demoEventsFor(
       turn({
-        action: { type: "select", group_id: "g-alt-day2-night", card_ids: [EXTRAS.gozsdu.id] },
+        action: { type: "select", group_id: "g-alt-day2-night", card_ids: [EXTRAS.gozsdu.id], slot: null },
         itinerary: ITINERARY,
       })
     );
@@ -165,6 +165,66 @@ describe("demoEventsFor", () => {
         { op: "put_activity", slot: { day: 2, part: "night" }, card: EXTRAS.gozsdu },
       ],
     });
+  });
+
+  it("answers a question about a place with prose and an unplaced carousel", () => {
+    const events = demoEventsFor(
+      turn({
+        message: "Is there something to do at Margaret Island?",
+        brief: BRIEF_COMPLETE,
+        itinerary: ITINERARY,
+      })
+    );
+
+    expect(types(events)).toEqual(["text", "options", "done"]);
+    const carousel = group(events);
+    expect(carousel?.group_id).toMatch(/^found:/);
+    // No slot: the page asks the traveller which day it joins (TRA-185).
+    expect(carousel?.slot).toBeNull();
+    expect(carousel?.cards).toHaveLength(3);
+    expect(ids(events)).toContain(EXTRAS.margaretIsland.id);
+  });
+
+  it("puts a card of an unplaced group in the slot the action names", () => {
+    const events = demoEventsFor(
+      turn({
+        action: {
+          type: "select",
+          group_id: "found:demo1a2b",
+          card_ids: [EXTRAS.margaretIsland.id],
+          slot: { day: 2, part: "afternoon" },
+        },
+        itinerary: ITINERARY,
+      })
+    );
+
+    const patch = events.find((e) => e.type === "itinerary_patch");
+    // Added, not swapped: day 2's afternoon keeps what it held.
+    expect(patch).toMatchObject({
+      ops: [
+        {
+          op: "put_activity",
+          slot: { day: 2, part: "afternoon" },
+          card: EXTRAS.margaretIsland,
+        },
+      ],
+    });
+  });
+
+  it("falls back when an unplaced group comes back with no slot at all", () => {
+    const events = demoEventsFor(
+      turn({
+        action: {
+          type: "select",
+          group_id: "found:demo1a2b",
+          card_ids: [EXTRAS.margaretIsland.id],
+          slot: null,
+        },
+        itinerary: ITINERARY,
+      })
+    );
+
+    expect(events).toEqual(TURNS.fallback);
   });
 
   it("answers the suggestion chips with patches and carousels", () => {

@@ -1102,7 +1102,7 @@
         "type": "object"
       },
       "SelectAction": {
-        "description": "Cards chosen in a carousel the server sent earlier (`group_id`).",
+        "description": "Cards chosen in a carousel the server sent earlier (`group_id`).\n\nA group whose id names a slot (`slot:<day>:<part>`) places the pick on\nits own. A `found:` group does not: its cards arrived unplaced, so the\npage names the day and the part the traveller chose in `slot` (TRA-185,\nADR 0018). `null` for every placed group.",
         "properties": {
           "card_ids": {
             "items": {
@@ -1119,6 +1119,16 @@
             "title": "Group Id",
             "type": "string"
           },
+          "slot": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Slot"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "type": {
             "const": "select",
             "title": "Type",
@@ -1128,7 +1138,8 @@
         "required": [
           "type",
           "group_id",
-          "card_ids"
+          "card_ids",
+          "slot"
         ],
         "title": "SelectAction",
         "type": "object"

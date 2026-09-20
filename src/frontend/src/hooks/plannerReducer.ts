@@ -116,8 +116,12 @@ export type PlannerAction =
   | { type: "turn_failed"; error: PlannerErrorKind }
   /** A quick reply answered part of the brief before the server confirms it. */
   | { type: "brief_patched"; patch: Partial<TripBrief> }
-  /** Cards picked in a carousel: chip + optimistic itinerary update. */
-  | { type: "selected"; groupId: string; cardIds: string[] }
+  /**
+   * Cards picked in a carousel: chip + optimistic itinerary update. `slot` is
+   * where the traveller said to put them when the group itself names none
+   * (an unplaced `found:` group, TRA-185); `null` for every placed group.
+   */
+  | { type: "selected"; groupId: string; cardIds: string[]; slot: Slot | null }
   | { type: "dismissed"; groupId: string; cardId: string }
   | { type: "shortlist_toggled"; cardId: string }
   | { type: "removed"; slot: Slot; cardId: string }
@@ -400,14 +404,17 @@ export function plannerReducer(state: PlannerState, action: PlannerAction): Plan
 
       // Optimistic: the panel updates at once; the server's patch reconciles it.
       let itinerary = state.itinerary;
+      // Where the pick lands: the group's own slot, or the one the traveller
+      // named for an unplaced group (TRA-185).
+      const slot = group.slot ?? action.slot;
       if (group.kind === "hotel") {
         itinerary = applyItineraryOp(itinerary, { op: "set_stay", card: picked[0]! });
-      } else if (group.slot) {
-        const slot = group.slot;
-        // A single pick replaces what the slot held (the "Change" flow); a
-        // multi pick adds to it. Both are what the server's patch will say.
+      } else if (slot) {
+        // A single pick in a group that names its own slot replaces what that
+        // slot held (the "Change" flow); a multi pick, and a slot the traveller
+        // just chose, add to it. Both are what the server's patch will say.
         const cleared =
-          group.selection === "single"
+          group.slot && group.selection === "single"
             ? applyItineraryOps(
                 itinerary,
                 currentCardIds(itinerary, slot).map((card_id) => ({

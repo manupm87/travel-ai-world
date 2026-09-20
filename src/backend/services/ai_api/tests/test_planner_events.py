@@ -185,7 +185,12 @@ def test_planner_turn_accepts_a_selection_without_a_message():
     turn = PlannerTurn.model_validate(
         {
             "message": None,
-            "action": {"type": "select", "group_id": "g-hotels", "card_ids": ["a"]},
+            "action": {
+                "type": "select",
+                "group_id": "g-hotels",
+                "card_ids": ["a"],
+                "slot": None,
+            },
             "history": [{"role": "user", "content": "Budapest in October"}],
             "brief": json.loads(full_brief().model_dump_json()),
             "itinerary": {

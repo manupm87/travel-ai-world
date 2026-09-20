@@ -5,7 +5,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { hasItinerary, type PlannerMessage, type PlannerState } from "@/hooks/plannerReducer";
 import { useAutoResizeTextarea } from "@/hooks/useAutoResizeTextarea";
 import { useStickToBottom } from "@/hooks/useStickToBottom";
-import type { PlannerCity, TripBrief } from "@/types/planner";
+import type { PlannerCity, Slot, TripBrief } from "@/types/planner";
 import { MessageBubble } from "../MessageBubble";
 import { PromptComposer, TEXTAREA_MAX_PX } from "../PromptComposer";
 import { OptionCarousel } from "./OptionCarousel";
@@ -24,7 +24,7 @@ export interface ChatColumnProps {
   cities?: PlannerCity[];
   onSend: (text: string) => void;
   onAnswer: (patch: Partial<TripBrief>, text: string) => void;
-  onSelect: (groupId: string, cardIds: string[]) => void;
+  onSelect: (groupId: string, cardIds: string[], slot?: Slot) => void;
   onDismiss: (groupId: string, cardId: string) => void;
   onToggleShortlist: (cardId: string) => void;
 }
@@ -95,6 +95,8 @@ export function ChatColumn({
           <OptionCarousel
             group={group}
             shortlist={state.shortlist}
+            // Unplaced cards ask which day they join, out of these (TRA-185).
+            itinerary={state.itinerary}
             disabled={isStreaming}
             onSelect={onSelect}
             onDismiss={onDismiss}

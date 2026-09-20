@@ -204,13 +204,26 @@ export function usePlanner() {
     [runTurn]
   );
 
-  /** Cards chosen in a carousel. */
+  /**
+   * Cards chosen in a carousel. `slot` is the day and the part the traveller
+   * named for a group that carries none (TRA-185); a placed group sends `null`
+   * and the server reads the slot out of the group id.
+   */
   const select = useCallback(
-    (groupId: string, cardIds: string[]) => {
+    (groupId: string, cardIds: string[], slot?: Slot) => {
       if (cardIds.length === 0) return;
+      const chosen = slot ?? null;
       void runTurn(
-        { type: "selected", groupId, cardIds },
-        { message: null, action: { type: "select", group_id: groupId, card_ids: cardIds } }
+        { type: "selected", groupId, cardIds, slot: chosen },
+        {
+          message: null,
+          action: {
+            type: "select",
+            group_id: groupId,
+            card_ids: cardIds,
+            slot: chosen,
+          },
+        }
       );
     },
     [runTurn]

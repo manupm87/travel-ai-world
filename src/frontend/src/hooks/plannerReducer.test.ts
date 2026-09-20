@@ -369,7 +369,7 @@ describe("plannerReducer — options event", () => {
 
   it("appends the next page to a group already on screen, without a second bubble", () => {
     let state = hotelGroupState();
-    state = plannerReducer(state, { type: "selected", groupId: GROUP_IDS.hotels, cardIds: [HOTELS.rum.id] });
+    state = plannerReducer(state, { type: "selected", groupId: GROUP_IDS.hotels, cardIds: [HOTELS.rum.id], slot: null });
     state = plannerReducer(state, { type: "dismissed", groupId: GROUP_IDS.hotels, cardId: HOTELS.mercure.id });
     const messagesBefore = state.messages.length;
 
@@ -406,7 +406,7 @@ describe("plannerReducer — options event", () => {
 describe("plannerReducer — group_cleared", () => {
   it("empties the group's cards and what was picked in it, keeping the bubble", () => {
     let state = hotelGroupState();
-    state = plannerReducer(state, { type: "selected", groupId: GROUP_IDS.hotels, cardIds: [HOTELS.rum.id] });
+    state = plannerReducer(state, { type: "selected", groupId: GROUP_IDS.hotels, cardIds: [HOTELS.rum.id], slot: null });
     const messagesBefore = state.messages.length;
 
     state = plannerReducer(state, { type: "group_cleared", groupId: GROUP_IDS.hotels });
@@ -554,6 +554,7 @@ describe("plannerReducer — selected", () => {
       type: "selected",
       groupId: GROUP_IDS.hotels,
       cardIds: [HOTELS.rum.id],
+      slot: null,
     });
     expect(state.itinerary.stay).toEqual(HOTELS.rum);
     expect(state.groups[GROUP_IDS.hotels]?.selectedIds).toEqual([HOTELS.rum.id]);
@@ -582,6 +583,7 @@ describe("plannerReducer — selected", () => {
       type: "selected",
       groupId: GROUP_IDS.baths,
       cardIds: [BATHS.rudas.id],
+      slot: null,
     });
     expect(state.itinerary.days).toEqual([
       { day: 2, title: null, weather: null, slots: { morning: [], afternoon: [BATHS.rudas], evening: [], night: [] } },
@@ -605,6 +607,7 @@ describe("plannerReducer — selected", () => {
       type: "selected",
       groupId: GROUP_IDS.neighbourhoods,
       cardIds: [NEIGHBOURHOODS.belvaros.id],
+      slot: null,
     });
     expect(state.itinerary).toEqual(EMPTY_ITINERARY);
     expect(state.messages.at(-1)).toEqual({
@@ -631,6 +634,7 @@ describe("plannerReducer — selected", () => {
       type: "selected",
       groupId: GROUP_IDS.baths,
       cardIds: [BATHS.rudas.id],
+      slot: null,
     });
     state = plannerReducer(state, {
       type: "event",
@@ -642,9 +646,94 @@ describe("plannerReducer — selected", () => {
     expect(state.itinerary.days.find((d) => d.day === 2)?.slots.afternoon).toEqual([BATHS.rudas]);
   });
 
+  it("puts an unplaced card in the slot the traveller named (TRA-185)", () => {
+    let state = plannerReducer(initialPlannerState(), {
+      type: "event",
+      event: {
+        type: "options",
+        group_id: "found:1a2b3c4d",
+        kind: "experience",
+        prompt: "Add any of these to your trip:",
+        slot: null,
+        selection: "single",
+        cards: [BATHS.rudas, BATHS.szechenyi],
+      },
+    });
+    state = plannerReducer(state, {
+      type: "selected",
+      groupId: "found:1a2b3c4d",
+      cardIds: [BATHS.rudas.id],
+      slot: { day: 2, part: "afternoon" },
+    });
+
+    expect(state.itinerary.days.find((d) => d.day === 2)?.slots.afternoon).toEqual([
+      BATHS.rudas,
+    ]);
+    expect(state.groups["found:1a2b3c4d"]?.selectedIds).toEqual([BATHS.rudas.id]);
+  });
+
+  it("adds to a slot the traveller named instead of replacing what it held", () => {
+    let state = plannerReducer(initialPlannerState(), {
+      type: "event",
+      event: {
+        type: "itinerary_patch",
+        ops: [
+          { op: "put_activity", slot: { day: 1, part: "morning" }, card: BATHS.gellert },
+        ],
+      },
+    });
+    state = plannerReducer(state, {
+      type: "event",
+      event: {
+        type: "options",
+        group_id: "found:99887766",
+        kind: "experience",
+        prompt: "Add any of these to your trip:",
+        slot: null,
+        selection: "single",
+        cards: [BATHS.rudas],
+      },
+    });
+    state = plannerReducer(state, {
+      type: "selected",
+      groupId: "found:99887766",
+      cardIds: [BATHS.rudas.id],
+      slot: { day: 1, part: "morning" },
+    });
+
+    // Unlike the "Change" flow, a single pick into a chosen slot joins it.
+    expect(state.itinerary.days.find((d) => d.day === 1)?.slots.morning).toEqual([
+      BATHS.gellert,
+      BATHS.rudas,
+    ]);
+  });
+
+  it("ignores a named slot when the group names one of its own", () => {
+    let state = plannerReducer(initialPlannerState(), {
+      type: "event",
+      event: {
+        type: "options",
+        group_id: GROUP_IDS.baths,
+        kind: "experience",
+        prompt: "Baths",
+        slot: { day: 2, part: "afternoon" },
+        selection: "single",
+        cards: [BATHS.rudas],
+      },
+    });
+    state = plannerReducer(state, {
+      type: "selected",
+      groupId: GROUP_IDS.baths,
+      cardIds: [BATHS.rudas.id],
+      slot: { day: 3, part: "night" },
+    });
+
+    expect(state.itinerary.days.map((d) => d.day)).toEqual([2]);
+  });
+
   it("is a no-op for an unknown group id", () => {
     const before = initialPlannerState();
-    const state = plannerReducer(before, { type: "selected", groupId: "missing", cardIds: ["x"] });
+    const state = plannerReducer(before, { type: "selected", groupId: "missing", cardIds: ["x"], slot: null });
     expect(state).toBe(before);
   });
 
@@ -654,6 +743,7 @@ describe("plannerReducer — selected", () => {
       type: "selected",
       groupId: GROUP_IDS.hotels,
       cardIds: ["does-not-exist"],
+      slot: null,
     });
     expect(state).toBe(before);
   });

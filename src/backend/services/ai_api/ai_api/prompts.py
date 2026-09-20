@@ -150,8 +150,10 @@ INTENT_PROMPT = (
     "question about a place or the city (is it old? how do I get there? is it "
     "worth it?), an opinion, thanks, small talk. Examples: 'restaurantes "
     "húngaros cerca del día 2' → find_options, restaurant, day 2, query "
-    "'Hungarian restaurant'; 'something cheaper' → change_stay, cheaper; '¿Es "
-    "antiguo el baño Rudas?' → chat; 'what's the weather like in October?' → chat."
+    "'Hungarian restaurant'; 'is there something to do at Margaret Island?' → "
+    "find_options, experience, no day, query 'Margaret Island'; 'something "
+    "cheaper' → change_stay, cheaper; '¿Es antiguo el baño Rudas?' → chat; "
+    "'what's the weather like in October?' → chat."
 )
 
 CHAT_INTRO = (
@@ -181,6 +183,7 @@ PLANNER_TEXTS: dict[str, dict[str, str]] = {
         ),
         "alternatives": "Alternatives for day {day} · {part}:",
         "options": "Here is what I found:",
+        "mentioned": "Add any of these to your trip:",
         "no_options": "I could not find anything matching that in the corpus.",
         "added": "Added {titles} to day {day}.",
         "removed": "Removed it from day {day}.",
@@ -211,6 +214,7 @@ PLANNER_TEXTS: dict[str, dict[str, str]] = {
         ),
         "alternatives": "Alternativas para el día {day} · {part}:",
         "options": "Esto es lo que he encontrado:",
+        "mentioned": "Añade cualquiera de estos a tu viaje:",
         "no_options": "No encuentro nada así en el corpus.",
         "added": "Añadido {titles} al día {day}.",
         "removed": "Quitado del día {day}.",

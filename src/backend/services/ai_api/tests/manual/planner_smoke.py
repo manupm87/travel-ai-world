@@ -293,7 +293,13 @@ async def run(args: argparse.Namespace, out: Any) -> int:
 async def select_first(session: Session, tally: Tally, group: str) -> None:
     cards = tally.groups.get(group)
     if cards:
-        action = {"type": "select", "group_id": group, "card_ids": [cards[0]["id"]]}
+        # `nb` and `hotels:` name their own meaning: no slot to send (TRA-185).
+        action = {
+            "type": "select",
+            "group_id": group,
+            "card_ids": [cards[0]["id"]],
+            "slot": None,
+        }
         await session.turn(action=action)
 
 

@@ -38,6 +38,23 @@ retrieval query in place of the brief's interests. `exclude_card_ids` lists the 
 already shown (at most 60); they are spent exactly like the ones in the itinerary, so "More
 options" brings three others rather than the same three.
 
+**Not every card knows its day** (TRA-185, [ADR 0018](../../../../docs/architecture/adr/0018-chat-answers-carry-cards-client-names-the-slot.md)).
+A group id carries the meaning of the carousel it names — `nb`, `hotels:<district>`,
+`slot:<day>:<part>` — but two kinds of cards arrive placed nowhere, with `slot: null` and a fresh
+`found:<8 hex>` id:
+
+- the places a prose answer just named. Once a stay exists, `_chat` matches the passages it was
+  grounded on (`is_place`, and the title present in the answer — the whole title case- and
+  accent-folded, or every word `title_words` keeps) and sends up to five of them as cards in the
+  order the answer named them, `why` empty because the prose above already explains them;
+- a `find_options` ask that names no day ("is there something to do at Margaret Island?"): the
+  cards come back unplaced instead of landing on day 1 by assumption.
+
+Then **the client names the slot**: `SelectAction.slot` (a `Slot`, or `null`) is the day and the
+part the traveller chose, and `_on_select` reads `_slot_of_group(group) or action.slot`. Neither,
+and the turn answers with the `stale_group` sentence, as it always did. A placed group sends
+`null`; `nb` and `hotels:` are unaffected.
+
 Full contract: [`docs/api/ai-api.openapi.json`](../../../../docs/api/ai-api.openapi.json).
 
 ## Layout (ports and adapters)

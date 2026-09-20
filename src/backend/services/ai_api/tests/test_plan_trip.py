@@ -7,6 +7,7 @@ retrieved, what the model was shown, and which events came out.
 """
 
 import json
+import re
 from collections.abc import AsyncIterator, Sequence
 from datetime import date
 from pathlib import Path
@@ -328,7 +329,12 @@ async def test_selecting_a_neighbourhood_lists_hotels_there_within_budget():
     events = await run(
         use_case(
             turn(
-                action={"type": "select", "group_id": "nb", "card_ids": [BELVAROS]},
+                action={
+                    "type": "select",
+                    "group_id": "nb",
+                    "card_ids": [BELVAROS],
+                    "slot": None,
+                },
                 brief=brief(budget_tier=2),
             )
         )
@@ -355,7 +361,12 @@ async def test_a_stale_group_id_is_answered_with_fresh_advice_not_an_error():
     events = await run(
         use_case(
             turn(
-                action={"type": "select", "group_id": "nb", "card_ids": ["nope"]},
+                action={
+                    "type": "select",
+                    "group_id": "nb",
+                    "card_ids": ["nope"],
+                    "slot": None,
+                },
                 brief=brief(),
             )
         )
@@ -411,6 +422,7 @@ async def test_selecting_a_hotel_sets_the_stay_and_drafts_every_day():
                     "type": "select",
                     "group_id": "hotels:Belváros",
                     "card_ids": [ASTORIA],
+                    "slot": None,
                 },
                 brief=brief(),
             )
@@ -491,6 +503,7 @@ async def test_a_pick_the_retriever_never_returned_is_dropped_and_the_day_stays_
                     "type": "select",
                     "group_id": "hotels:x",
                     "card_ids": [ASTORIA],
+                    "slot": None,
                 },
                 brief=brief(start_date=date(2026, 10, 20), end_date=date(2026, 10, 20)),
             )
@@ -514,6 +527,7 @@ async def test_a_model_that_never_answers_json_still_yields_a_complete_draft():
                     "type": "select",
                     "group_id": "hotels:x",
                     "card_ids": [ASTORIA],
+                    "slot": None,
                 },
                 brief=brief(
                     pace="relaxed",
@@ -566,6 +580,7 @@ async def test_changing_the_hotel_after_the_draft_keeps_the_days():
                     "type": "select",
                     "group_id": "hotels:Belváros",
                     "card_ids": [ASTORIA],
+                    "slot": None,
                 },
                 brief=brief(),
                 stay="wv:en:Budapest/Belváros#sleep:ace-hostel",
@@ -797,6 +812,173 @@ async def test_a_question_is_answered_as_grounded_chat():
     assert any("Background information" in s for s in system_turns)
 
 
+# ─── Cards out of a chat answer, placed by the traveller (TRA-185) ───────────
+
+
+async def test_the_places_a_chat_answer_names_come_back_as_unplaced_cards():
+    use_case, _, _ = planner(
+        [json.dumps({"intent": "chat"})],
+        deltas=("The Rudas baths are medieval, ", "and the Gellért Baths are bigger."),
+        documents=[BY_ID[PARLIAMENT], BY_ID[GELLERT], BY_ID[RUDAS]],
+    )
+
+    events = await run(
+        use_case(turn("Where can I bathe?", brief=brief(), stay=ASTORIA, days=[{}, {}]))
+    )
+
+    assert joined_text(events).startswith("The Rudas baths are medieval")
+    [group] = only(events, OptionsEvent)
+    assert re.fullmatch(r"found:[0-9a-f]{8}", group.group_id)
+    # Unplaced: the page asks the traveller for the day and the part.
+    assert group.slot is None and group.kind == "experience"
+    # In the order the answer named them; Parliament was retrieved, never named.
+    assert [c.title for c in group.cards] == ["Rudas Thermal Bath", "Gellért Baths"]
+    # The prose above already explains them.
+    assert all(c.why == "" for c in group.cards)
+    assert group.prompt == "Add any of these to your trip:"
+
+
+async def test_an_answer_naming_no_place_of_its_own_carries_no_cards():
+    """Words a title shares are not a mention: `title_words` drops the noise."""
+    use_case, _, _ = planner(
+        [json.dumps({"intent": "chat"})],
+        deltas=("The baths are warm ", "and the museums are free."),
+        documents=[BY_ID[RUDAS], BY_ID[GELLERT]],
+    )
+
+    events = await run(
+        use_case(turn("Anything else?", brief=brief(), stay=ASTORIA, days=[{}]))
+    )
+
+    assert not only(events, OptionsEvent)
+
+
+async def test_an_eat_and_drink_answer_offers_restaurant_cards():
+    use_case, _, _ = planner(
+        [json.dumps({"intent": "chat"})],
+        deltas=("Anna Cafe for cake, ", "then Szimpla Kert/Mozi for a drink."),
+        documents=[BY_ID[ANNA_CAFE], BY_ID[SZIMPLA]],
+    )
+
+    events = await run(
+        use_case(turn("Where do I eat?", brief=brief(), stay=ASTORIA, days=[{}]))
+    )
+
+    [group] = only(events, OptionsEvent)
+    assert group.kind == "restaurant"
+    assert [c.title for c in group.cards] == ["Anna Cafe", "Szimpla Kert/Mozi"]
+
+
+async def test_before_a_stay_a_chat_answer_stays_prose():
+    use_case, _, _ = planner(
+        [json.dumps({})],
+        deltas=("The Rudas baths ", "are medieval."),
+        documents=[BY_ID[RUDAS], BY_ID[GELLERT]],
+    )
+
+    events = await run(
+        use_case(
+            turn(
+                "is Rudas old?",
+                brief=brief(),
+                history=[
+                    (
+                        "assistant",
+                        "These neighbourhoods fit your trip. "
+                        "Where would you like to stay?",
+                    )
+                ],
+            )
+        )
+    )
+
+    # No day exists yet, so there is nowhere to add a card to.
+    assert not only(events, OptionsEvent)
+    assert joined_text(events) == "The Rudas baths are medieval."
+
+
+async def test_options_without_a_day_arrive_unplaced_instead_of_on_day_one():
+    use_case, _, _ = planner(
+        [
+            json.dumps(
+                {
+                    "intent": "find_options",
+                    "kind": "experience",
+                    "day": None,
+                    "part": None,
+                    "query": "Margaret Island",
+                }
+            ),
+            picks(RUDAS),
+        ]
+    )
+
+    events = await run(
+        use_case(
+            turn(
+                "is there something to do at Margaret Island?",
+                brief=brief(),
+                stay=ASTORIA,
+                days=[{}, {}],
+            )
+        )
+    )
+
+    [group] = only(events, OptionsEvent)
+    assert re.fullmatch(r"found:[0-9a-f]{8}", group.group_id)
+    assert group.slot is None and group.kind == "experience"
+    # Sights, not the evening's restaurants: no day and no part were named.
+    assert group.cards and all(c.category in SIGHTS for c in group.cards)
+
+
+async def test_the_slot_the_traveller_picked_places_an_unplaced_card():
+    use_case, _, _ = planner()
+
+    events = await run(
+        use_case(
+            turn(
+                action={
+                    "type": "select",
+                    "group_id": "found:1a2b3c4d",
+                    "card_ids": [GELLERT],
+                    "slot": {"day": 2, "part": "afternoon"},
+                },
+                brief=brief(),
+                stay=ASTORIA,
+                days=[{}, {}],
+            )
+        )
+    )
+
+    [activity] = ops_of(events, "put_activity")
+    assert (activity.slot.day, activity.slot.part) == (2, "afternoon")
+    assert activity.card.title == "Gellért Baths"
+    assert "to day 2" in joined_text(events)
+
+
+async def test_an_unplaced_group_without_a_slot_is_answered_as_stale():
+    use_case, _, _ = planner()
+
+    events = await run(
+        use_case(
+            turn(
+                action={
+                    "type": "select",
+                    "group_id": "found:1a2b3c4d",
+                    "card_ids": [GELLERT],
+                    "slot": None,
+                },
+                brief=brief(),
+                stay=ASTORIA,
+                days=[{}],
+            )
+        )
+    )
+
+    assert not ops_of(events, "put_activity")
+    assert "That list is gone" in joined_text(events)
+
+
 async def test_selecting_in_a_slot_group_confirms_the_activity_with_a_hydrated_card():
     use_case, _, _ = planner()
 
@@ -807,6 +989,7 @@ async def test_selecting_in_a_slot_group_confirms_the_activity_with_a_hydrated_c
                     "type": "select",
                     "group_id": "slot:2:afternoon",
                     "card_ids": [GELLERT],
+                    "slot": None,
                 },
                 brief=brief(),
                 stay=ASTORIA,
@@ -917,6 +1100,7 @@ async def test_the_same_place_from_two_sources_is_not_placed_twice():
                     "type": "select",
                     "group_id": "hotels:x",
                     "card_ids": [ASTORIA],
+                    "slot": None,
                 },
                 brief=brief(start_date=date(2026, 10, 20), end_date=date(2026, 10, 20)),
             )
@@ -1012,6 +1196,7 @@ async def test_the_day_title_is_streamed_before_the_days_activities():
                     "type": "select",
                     "group_id": "hotels:x",
                     "card_ids": [ASTORIA],
+                    "slot": None,
                 },
                 brief=brief(start_date=date(2026, 10, 20), end_date=date(2026, 10, 20)),
             )
@@ -1035,6 +1220,7 @@ async def test_spanish_warnings_and_day_titles():
                     "type": "select",
                     "group_id": "hotels:x",
                     "card_ids": [ASTORIA],
+                    "slot": None,
                 },
                 brief=brief(start_date=date(2026, 10, 20), end_date=date(2026, 10, 20)),
                 history=[
@@ -1076,6 +1262,7 @@ async def test_every_activity_and_the_stay_carry_a_photo():
                     "type": "select",
                     "group_id": "hotels:x",
                     "card_ids": [ASTORIA],
+                    "slot": None,
                 },
                 brief=brief(start_date=date(2026, 10, 20), end_date=date(2026, 10, 20)),
             )

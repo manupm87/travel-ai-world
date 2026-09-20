@@ -45,7 +45,7 @@ export interface TripPanelProps {
   onSelectStop: (id: string | null) => void;
   onGenerate: () => void;
   onRemove: (slot: Slot, cardId: string) => void;
-  onSelect: (groupId: string, cardIds: string[]) => void;
+  onSelect: (groupId: string, cardIds: string[], slot?: Slot) => void;
   onDismiss: (groupId: string, cardId: string) => void;
   onToggleShortlist: (cardId: string) => void;
   onAskAlternatives: (slot: Slot, options?: AskAlternativesOptions) => void;

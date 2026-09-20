@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Check, ExternalLink, Heart, Sparkles } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { interpolate } from "@/i18n";
+import type { ItineraryDraft } from "@/hooks/plannerReducer";
 import type { OptionCard as OptionCardData, SelectionMode, Slot } from "@/types/planner";
 import { cn } from "@/utils/cn";
+import { SlotPicker } from "./SlotPicker";
 
 export interface OptionCardProps {
   card: OptionCardData;
@@ -22,7 +24,13 @@ export interface OptionCardProps {
   disabled?: boolean;
   /** Position in its carousel: staggers the entrance by 70 ms per card. */
   index?: number;
-  onChoose: () => void;
+  /**
+   * An unplaced card (`slot === null`): the itinerary whose days the traveller
+   * picks from (TRA-185). With it the primary button opens the picker and
+   * `onChoose` is called with the slot chosen; without it, nothing changes.
+   */
+  pickSlot?: ItineraryDraft | null;
+  onChoose: (slot?: Slot) => void;
   onDismiss?: () => void;
   onToggleShortlist?: () => void;
   className?: string;
@@ -43,6 +51,7 @@ export function OptionCard({
   shortlisted = false,
   disabled = false,
   index = 0,
+  pickSlot = null,
   onChoose,
   onDismiss,
   onToggleShortlist,
@@ -50,7 +59,20 @@ export function OptionCard({
 }: OptionCardProps) {
   const { t } = useLanguage();
   const [image, setImage] = useState<"loading" | "loaded" | "error">("loading");
+  const [picking, setPicking] = useState(false);
+  const primaryRef = useRef<HTMLButtonElement>(null);
   const p = t.plan;
+
+  // Unplaced, and there is an itinerary to place it in: the primary button
+  // opens the picker instead of adding the card straight away.
+  const days = pickSlot?.days.map((day) => day.day) ?? [];
+  const canPick = slot === null && !!pickSlot && days.length > 0;
+
+  /** Closes the picker and hands the focus back to the button that opened it. */
+  const closePicker = () => {
+    setPicking(false);
+    primaryRef.current?.focus();
+  };
 
   const meta = [
     card.district,
@@ -64,7 +86,9 @@ export function OptionCard({
       ? p.card.chosen
       : slot
         ? interpolate(p.card.addToSlot, { day: slot.day, part: p.parts[slot.part ?? "morning"] })
-        : p.card.choose;
+        : canPick
+          ? p.card.addToTrip
+          : p.card.choose;
 
   const primaryDisabled = disabled || current || (selected && selection === "single");
 
@@ -189,7 +213,7 @@ export function OptionCard({
               role="checkbox"
               aria-checked={selected}
               disabled={disabled || current}
-              onClick={onChoose}
+              onClick={() => onChoose()}
               className={cn(
                 "inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-[13px] font-medium transition disabled:cursor-not-allowed disabled:opacity-50",
                 selected
@@ -202,9 +226,11 @@ export function OptionCard({
             </button>
           ) : (
             <button
+              ref={primaryRef}
               type="button"
               disabled={primaryDisabled}
-              onClick={onChoose}
+              aria-expanded={canPick ? picking : undefined}
+              onClick={canPick ? () => setPicking((open) => !open) : () => onChoose()}
               className={cn(
                 "inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-[13px] font-medium transition disabled:cursor-not-allowed",
                 selected || current
@@ -214,6 +240,17 @@ export function OptionCard({
             >
               {primaryLabel}
             </button>
+          )}
+          {canPick && picking && pickSlot && (
+            <SlotPicker
+              days={days}
+              itinerary={pickSlot}
+              onPick={(chosen) => {
+                closePicker();
+                onChoose(chosen);
+              }}
+              onCancel={closePicker}
+            />
           )}
           {onDismiss && !selected && !current && (
             <button

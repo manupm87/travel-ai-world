@@ -163,6 +163,20 @@ TypeScript 5, Tailwind CSS v4.
   allow-list — headings become bold paragraphs, links open in a new tab in `text-accent` — styling
   on the components map, never a global `.prose`, and **raw HTML is never rendered**: no
   `rehype-raw`); user bubbles stay the plain text they typed.
+  **Some cards know no day, and the traveller names it** (TRA-185, ADR 0018): a group with
+  `slot === null` and kind experience or restaurant (`found:` ids — the places an answer just
+  named, or a search that named no day) is *unplaced*. `OptionCarousel` hands such a group's cards
+  the `pickSlot` itinerary, their primary button reads `plan.card.addToTrip` ("Add to trip…") and
+  opens `SlotPicker` — an inline popover, never a modal: the itinerary's days as a row of buttons
+  (arrows move along it, Escape cancels and the button takes the focus back) over the four parts of
+  the day as chips, defaulting to `firstEmptyPart` of the chosen day. A multi-selection group keeps
+  one picker in the carousel's footer for the whole batch. The slot travels through
+  `usePlanner.select(groupId, cardIds, slot?)` into `action.slot`, and the reducer's optimistic
+  `put_activity` uses `group.slot ?? action.slot`: a slot the traveller just chose is **added** to,
+  while a single pick in a group that names its own slot replaces what that slot held (the "Change"
+  flow). Neighbourhood and hotel groups carry no slot either and need none — they are not a day's
+  activities — so they keep "Choose"; `AlternativesSheet` always knows its slot and sends it,
+  except for the stay's pseudo-slot (`day: 0`), which names no day at all.
 - Tests: `renderWithProviders` from `src/test/render.tsx` and the typed builders in
   `src/test/fixtures.ts` (`src/test/fixtures/trip-japan.ts` when a test needs a whole `TripResponse`);
   assert on roles/names/`data-*` state and on `en.ts` copy, not on class names.

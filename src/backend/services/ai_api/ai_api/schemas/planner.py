@@ -34,11 +34,18 @@ CardId = Annotated[str, Field(min_length=1, max_length=MAX_CARD_ID_CHARS)]
 
 
 class SelectAction(BaseModel):
-    """Cards chosen in a carousel the server sent earlier (`group_id`)."""
+    """Cards chosen in a carousel the server sent earlier (`group_id`).
+
+    A group whose id names a slot (`slot:<day>:<part>`) places the pick on
+    its own. A `found:` group does not: its cards arrived unplaced, so the
+    page names the day and the part the traveller chose in `slot` (TRA-185,
+    ADR 0018). `null` for every placed group.
+    """
 
     type: Literal["select"]
     group_id: str = Field(min_length=1, max_length=120)
     card_ids: list[str] = Field(min_length=1, max_length=MAX_CARD_IDS)
+    slot: Slot | None
 
 
 class RemoveAction(BaseModel):

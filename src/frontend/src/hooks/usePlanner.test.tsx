@@ -258,10 +258,51 @@ describe("usePlanner — select", () => {
       type: "select",
       group_id: GROUP_IDS.hotels,
       card_ids: [HOTELS.rum.id],
+      // A hotel group places its own pick: no slot for the traveller to name.
+      slot: null,
     });
 
     act(() => gate.resolve());
     await waitFor(() => expect(result.current.state.status).toBe("idle"));
+  });
+
+  it("sends the slot the traveller named for an unplaced group (TRA-185)", async () => {
+    streamPlannerTurnMock.mockImplementationOnce(async function* () {
+      yield {
+        type: "options",
+        group_id: "found:1a2b3c4d",
+        kind: "experience",
+        prompt: "Add any of these to your trip:",
+        slot: null,
+        selection: "single",
+        cards: [BATHS.rudas],
+      } as PlannerEvent;
+      yield { type: "done" } as PlannerEvent;
+    });
+    const { result } = renderHook(() => usePlanner(), { wrapper });
+    act(() => {
+      result.current.sendMessage("Is there something at Margaret Island?");
+    });
+    await waitFor(() => expect(result.current.state.status).toBe("idle"));
+
+    streamPlannerTurnMock.mockImplementationOnce(async function* () {
+      yield { type: "done" } as PlannerEvent;
+    });
+    act(() => {
+      result.current.select("found:1a2b3c4d", [BATHS.rudas.id], { day: 2, part: "evening" });
+    });
+    await waitFor(() => expect(result.current.state.status).toBe("idle"));
+
+    const [turn] = streamPlannerTurnMock.mock.calls.at(-1) as [PlannerTurn, unknown];
+    expect(turn.action).toEqual({
+      type: "select",
+      group_id: "found:1a2b3c4d",
+      card_ids: [BATHS.rudas.id],
+      slot: { day: 2, part: "evening" },
+    });
+    expect(
+      result.current.state.itinerary.days.find((d) => d.day === 2)?.slots.evening
+    ).toEqual([BATHS.rudas]);
   });
 });
 
