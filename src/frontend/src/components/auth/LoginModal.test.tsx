@@ -53,10 +53,10 @@ function useCognito() {
   });
 }
 
-function renderModal(isOpen = true) {
+function renderModal(isOpen = true, redirect?: string | null) {
   return render(
     <LanguageProvider>
-      <LoginModal isOpen={isOpen} onClose={onClose} />
+      <LoginModal isOpen={isOpen} onClose={onClose} redirect={redirect} />
     </LanguageProvider>
   );
 }
@@ -107,6 +107,40 @@ describe("LoginModal", () => {
 
     await waitFor(() => expect(mockPush).toHaveBeenCalledWith("/dashboard"));
     expect(mockPush).toHaveBeenCalledTimes(1);
+  });
+
+  it("prefers the redirect prop over a conflicting ?redirect=", async () => {
+    searchParams = new URLSearchParams({ redirect: "/trip/japan" });
+    renderModal(true, "/plan/?q=four%20days%20in%20Budapest");
+
+    fireEvent.click(screen.getByText("google-success"));
+
+    await waitFor(() =>
+      expect(mockPush).toHaveBeenCalledWith("/plan/?q=four%20days%20in%20Budapest")
+    );
+    expect(mockPush).toHaveBeenCalledTimes(1);
+  });
+
+  it("falls back to ?redirect= when the redirect prop is not same-origin", async () => {
+    searchParams = new URLSearchParams({ redirect: "/trip/japan" });
+    renderModal(true, "https://evil.example/steal");
+
+    fireEvent.click(screen.getByText("google-success"));
+
+    await waitFor(() => expect(mockPush).toHaveBeenCalledWith("/trip/japan"));
+  });
+
+  it("in Cognito mode hands the redirect prop to the managed login", async () => {
+    useCognito();
+    loginWithRedirect.mockResolvedValue(undefined);
+    searchParams = new URLSearchParams({ redirect: "/trip/japan" });
+    renderModal(true, "/plan/?q=a%20weekend%20in%20Bologna");
+
+    fireEvent.click(screen.getByRole("button", { name: en.auth.continueWithGoogle }));
+
+    await waitFor(() =>
+      expect(loginWithRedirect).toHaveBeenCalledWith("/plan/?q=a%20weekend%20in%20Bologna")
+    );
   });
 
   it("shows the login error and stays open when sign-in fails", async () => {
