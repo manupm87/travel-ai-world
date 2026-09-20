@@ -16,6 +16,12 @@ export function isTripStatus(value: string): value is TripStatus {
 export interface TripSummary {
   id: string;
   title: string;
+  /**
+   * The trip's own words, empty when it has none. The card does not show it;
+   * the dashboard's edit sheet does, so it can be changed without loading the
+   * whole trip (TRA-192).
+   */
+  description: string;
   destinations: string[]; // e.g. ["Paris", "Rome", "Barcelona"]
   startDate: string;
   endDate: string;

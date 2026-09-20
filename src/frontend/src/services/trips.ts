@@ -292,6 +292,7 @@ export function toTripSummary(dto: TripResponse): TripSummary {
   return {
     id: dto.id,
     title: dto.title,
+    description: text(dto.description),
     destinations: (dto.destinations ?? []).map((d) => d.city),
     startDate: text(dto.start_date),
     endDate: text(dto.end_date),

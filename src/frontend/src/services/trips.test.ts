@@ -111,6 +111,7 @@ describe("toTripSummary", () => {
     expect(toTripSummary(japan)).toEqual({
       id: "trip_japan_2026",
       title: "Japan Explorer: Traditions & Neon",
+      description: japan.description,
       destinations: ["Tokyo", "Kyoto", "Osaka"],
       startDate: "2026-10-01",
       endDate: "2026-10-14",
@@ -149,6 +150,7 @@ describe("listTrips", () => {
       {
         id: "t2",
         title: "Second",
+        description: "",
         destinations: [],
         startDate: "",
         endDate: "",

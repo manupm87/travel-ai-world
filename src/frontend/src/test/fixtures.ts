@@ -144,6 +144,7 @@ export function makeTripSummary(overrides: Partial<TripSummary> = {}): TripSumma
   return {
     id: "trip-test",
     title: "Paris Escape",
+    description: "Three days of art, food and long walks.",
     destinations: ["Paris"],
     startDate: "2026-05-15",
     endDate: "2026-05-18",
