@@ -35,6 +35,13 @@ to be filled in the `.env` files, as in the [local-dev runbook](../docs/runbooks
    and 3000 are forwarded; open <http://localhost:3000>.
 4. `just lint`, `just test`, `just test-e2e`, `just contracts` work as documented.
 
+The planner map (MapLibre, TRA-147) needs WebGL 2, which headless Chromium provides through
+SwiftShader. VS Code forwards the host's Wayland socket (WSLg) into the container as
+`WAYLAND_DISPLAY`, and with that variable set ANGLE asks SwiftShader for a Wayland extension it
+lacks, the GPU process exits and every page reports no WebGL. `playwright.config.ts` and the
+Playwright MCP entry in `.mcp.json` therefore launch Chromium with `WAYLAND_DISPLAY` removed
+(TRA-180). If you start Chromium by hand, do the same: `env -u WAYLAND_DISPLAY npx playwright …`.
+
 Closing the VS Code window stops the compose stack (`shutdownAction: stopCompose`); the
 PostgreSQL data and the dependency volumes persist between sessions. To wipe them:
 `docker compose -f .devcontainer/docker-compose.yml down -v` on the host.

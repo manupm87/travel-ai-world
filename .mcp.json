@@ -5,8 +5,11 @@
       "url": "https://mcp.linear.app/mcp"
     },
     "playwright": {
-      "command": "node",
+      "command": "env",
       "args": [
+        "-u",
+        "WAYLAND_DISPLAY",
+        "node",
         "src/frontend/node_modules/@playwright/mcp/cli.js",
         "--headless",
         "--browser",

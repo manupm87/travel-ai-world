@@ -140,7 +140,11 @@ TypeScript 5, Tailwind CSS v4.
   skips itself entirely when `E2E_TOKEN` is unset, so the other two modes need no backend.
   `planner.spec.ts` signs in the same way, mocks `/api/v1/ai/planner` with the recorded session and
   aborts `**/tiles.openfreemap.org/**`, so the run needs no third party: the pins are DOM added when
-  the map object is built, not when tiles arrive.
+  the map object is built, not when tiles arrive. The map needs WebGL 2, so `playwright.config.ts`
+  launches Chromium with `--enable-unsafe-swiftshader` and without `WAYLAND_DISPLAY`: VS Code
+  forwards that WSLg socket into the devcontainer and it breaks SwiftShader (no WebGL at all,
+  see `.devcontainer/README.md`, TRA-180). The spec still checks `hasWebGL` and asserts the
+  "map unavailable" fallback where there is none.
 
 ## Commands
 
