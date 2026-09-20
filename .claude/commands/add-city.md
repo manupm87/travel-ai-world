@@ -34,6 +34,9 @@ Steps:
      from Wikipedia (`Category:` pages: palaces, towers, baths, cemeteries…); set
      `require_coordinates = true` on any broad category (`Buildings and structures in X` holds
      embassies and offices);
+   - `country` and `country_code` (ISO 3166-1 alpha-2, upper case) are required: the planner
+     stores them on every saved trip. The draft fills them from Wikidata (P17, then P297) and
+     marks them `# review` when it could not;
    - `osm_area` only matters when `osm_relation` is missing: then it must be the local OSM `name`
      (`Wien`, `Praha`), not the English one;
    - `aliases`: the draft folds the labels to ASCII; a name whose letters fold away (Łódź → `odz`)

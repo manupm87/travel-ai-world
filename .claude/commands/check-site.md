@@ -13,11 +13,11 @@ PLAYWRIGHT_BASE_URL=https://kyrian-world.com npx playwright test   # against the
 ```
 
 The stack mode (needs Docker) is the production shape and the only one with a backend, so the
-signed-in suite runs there: seed an account, mint its token, run.
+signed-in suite runs there: mint a token (it creates the account when it does not exist, with no
+trips; the specs create what they need through the API), run.
 
 ```bash
 just stack-up
-just seed you@example.com
 E2E_TOKEN=$(just dev-token you@example.com) just test-e2e-stack
 ```
 
@@ -50,13 +50,12 @@ With `just dev-frontend` running, drive the browser through it:
 - "Navigate to <http://localhost:3000> and take a screenshot"
 - "Open the language menu, choose ES and confirm the nav reads 'Cómo Funciona'"
 - "Scroll to #features and confirm the feature cards are visible"
-- "Go to /dashboard and check the planner card accepts a prompt"
+- "Go to /plan/ and check the composer accepts a prompt and the trips list renders"
 
 **Signed-in inspection without Google.** `core_api` in local mode accepts a token minted from the
-shell for any existing account (`just seed` creates one with the four demo trips):
+shell; `just dev-token` creates the account when it does not exist (it starts with no trips):
 
 ```bash
-just seed you@example.com
 just dev-token you@example.com       # prints the JWT; the account's id is its `sub` claim
 ```
 
@@ -64,7 +63,7 @@ Then, with `just dev-core` and `just dev-frontend` (or the stack on :8080) runni
 browser: `browser_navigate` to `http://localhost:3000/`, `browser_evaluate` with
 `localStorage.setItem("travel_ai_token", "<jwt>"); localStorage.setItem("travel_ai_user",
 JSON.stringify({ id: "<sub>", email: "you@example.com", name: "you" }))` (the keys and the profile
-shape come from `src/services/session.ts`), then `browser_navigate` to `/dashboard/` or
+shape come from `src/services/session.ts`), then `browser_navigate` to `/plan/` or
 `/trip/?id=<uuid>`. Signing out is `localStorage.clear()` and a reload.
 
 ## What the smoke tests cover
@@ -80,5 +79,5 @@ shape come from `src/services/session.ts`), then `browser_navigate` to `/dashboa
 | CTA | "Plan My Trip Free" link visible |
 | Planner | the prompt input renders and accepts text |
 | Mobile (every config) | at 390 x 844: `/` does not scroll sideways and its CTA and drawer work; `/plan/` does not scroll at all, the Chat/Trip tabs and the whole composer are inside the viewport |
-| Prerender (static and stack configs) | `/` arrives as full HTML before hydration; `/trip/?id=` is one shell, `/trip/<id>/` a 404 |
-| Trips (stack config, `E2E_TOKEN` set) | `/dashboard/` lists the four seeded trips under their sections; a card and a deep link open `/trip/?id=<uuid>` with the Japan trip's header, timeline and itinerary; an unknown id shows the not-found state; signed out, `/dashboard/` redirects to `/?redirect=` |
+| Prerender (static and stack configs) | `/` arrives as full HTML before hydration; `/plan/?trip=` is one shell with no trip content in it; `/trip/<id>/` a 404 |
+| Trips (stack config, `E2E_TOKEN` set) | the spec creates its trips through `POST /api/v1/trips/`; `/plan/` lists them under the phase they are in (happening now / coming up / past); an upcoming trip reopens with its days and a live composer; a past one shows the locked notice and no "Change"; rename and delete persist across a reload; `/trip/?id=` and `/dashboard/` land in the planner; signed out, `/plan/` redirects to `/?redirect=` |
