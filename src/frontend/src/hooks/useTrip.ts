@@ -53,7 +53,7 @@ function toApiError(err: unknown): ApiError {
 
 /**
  * One trip, loaded in the browser with the session token (the `useTrips`
- * pattern, for the viewer at `/trip/?id=<uuid>`).
+ * pattern), so the planner can hydrate from `/plan/?trip=<uuid>`.
  *
  * - A missing or malformed `id` is `"not-found"` at once, without a request.
  * - Otherwise it fetches on mount once the session is known

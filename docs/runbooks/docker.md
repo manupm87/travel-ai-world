@@ -110,8 +110,9 @@ never crosses origins, so CORS is not involved and the e2e suite can run against
 | `/` | `/usr/share/nginx/html` (bind mount of `src/frontend/out`, read-only) | `try_files $uri $uri/index.html $uri.html =404`, `error_page 404 /404.html` |
 
 The `try_files` line is the CloudFront `directory_index` function in nginx terms:
-`next.config.ts` sets `trailingSlash: true`, so the export has `dashboard/index.html`,
-`trip/<id>/index.html`, and both `/dashboard/` and `/dashboard` resolve to that file. An unknown
+`next.config.ts` sets `trailingSlash: true`, so the export has `plan/index.html` and
+`trip/index.html` (the redirect page: the trip id travels in `?trip=`, never in the path), and
+both `/plan/` and `/plan` resolve to the same file. An unknown
 path answers Next's `404.html` with a real 404 status. Backend errors pass through untouched
 (`proxy_intercept_errors` is off), so `/api/v1/trips/` without a token is the API's 401 JSON,
 not an HTML page. Hashed assets under `/_next/static/` are cached for a year; HTML is not.

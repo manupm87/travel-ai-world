@@ -25,6 +25,7 @@ TODAY = date(2026, 5, 10)
         (date(2026, 5, 11), date(2026, 5, 20), "upcoming"),
         (date(2026, 5, 11), None, "upcoming"),
         (None, date(2026, 5, 20), "upcoming"),
+        (None, date(2026, 5, 10), "upcoming"),
         (date(2026, 5, 10), date(2026, 5, 20), "ongoing"),
         (date(2026, 5, 1), date(2026, 5, 10), "ongoing"),
         (date(2026, 5, 1), date(2026, 5, 20), "ongoing"),
@@ -35,6 +36,7 @@ TODAY = date(2026, 5, 10)
     ],
     ids=[
         "no-dates", "both-ahead", "starts-tomorrow", "ends-later-no-start",
+        "ends-today-no-start",
         "starts-today", "ends-today", "around-today", "started-open-ended",
         "single-day", "over", "ended-no-start",
     ],
