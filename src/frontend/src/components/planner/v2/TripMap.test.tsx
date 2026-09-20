@@ -170,7 +170,10 @@ const maplibre = vi.hoisted(() => {
     }
   }
 
-  return { MapStub, MarkerStub, NavigationControlStub, instances, handlers, failNext };
+  /** Every `setWorkerUrl` call, in order. */
+  const workerUrls: string[] = [];
+
+  return { MapStub, MarkerStub, NavigationControlStub, instances, handlers, failNext, workerUrls };
 });
 
 vi.mock("maplibre-gl", () => ({
@@ -178,10 +181,11 @@ vi.mock("maplibre-gl", () => ({
   Marker: maplibre.MarkerStub,
   NavigationControl: maplibre.NavigationControlStub,
   LngLatBounds: class {},
+  setWorkerUrl: (url: string) => void maplibre.workerUrls.push(url),
 }));
 
 // Imported after the mock, so the component picks the stubs up.
-const { TripMapCanvas, STYLE_URLS } = await import("./TripMapCanvas");
+const { TripMapCanvas, STYLE_URLS, WORKER_URL } = await import("./TripMapCanvas");
 const { TripMap } = await import("./TripMap");
 const { toMapStops } = await import("./mapStops");
 
@@ -236,6 +240,18 @@ describe("TripMapCanvas", () => {
     expect(markers()[0]).toHaveTextContent("H");
     expect(markers()[1]).toHaveTextContent("1");
     expect(markers()).toHaveLength(toMapStops(itinerary, 1).length);
+  });
+
+  it("points MapLibre at the worker served from public/, once, before the first map", () => {
+    const { unmount } = renderCanvas(1);
+    unmount();
+    renderCanvas(2);
+
+    // Whatever the bundler makes of `import.meta.url`, the worker is ours:
+    // a same-origin path under /maplibre/ (TRA-181), set once per page.
+    expect(WORKER_URL).toBe("/maplibre/maplibre-gl-worker.mjs");
+    expect(maplibre.workerUrls).toEqual([WORKER_URL]);
+    expect(maplibre.instances).toHaveLength(2);
   });
 
   it("draws the day's line and fits the viewport to it", () => {

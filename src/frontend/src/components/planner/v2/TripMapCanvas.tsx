@@ -5,6 +5,7 @@ import {
   Map as MapLibreMap,
   Marker,
   NavigationControl,
+  setWorkerUrl,
   type GeoJSONSource,
 } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -21,6 +22,32 @@ export const STYLE_URLS = {
   light: "https://tiles.openfreemap.org/styles/positron",
   dark: "https://tiles.openfreemap.org/styles/dark",
 } as const;
+
+/**
+ * Where the browser loads MapLibre's worker from (TRA-181).
+ *
+ * MapLibre 6 runs its tile pipeline in a separate module worker and locates
+ * that file through `import.meta.url` — which the bundler does not preserve:
+ * under Next/Turbopack it resolves to the page itself, the worker loads HTML
+ * and dies, and the map is pins over a blank canvas, with no error anywhere.
+ * `scripts/copy-maplibre-worker.mjs` (run before `next dev`/`next build`)
+ * copies the worker and its `maplibre-gl-shared.mjs` sibling into
+ * `public/maplibre/` unrenamed, so this same-origin URL and the worker's own
+ * relative import both resolve. The prefix mirrors `basePath` in
+ * `next.config.ts`, which only applies to production builds.
+ */
+export const WORKER_URL = `${
+  process.env.NODE_ENV === "production" ? (process.env.NEXT_PUBLIC_BASE_PATH ?? "") : ""
+}/maplibre/maplibre-gl-worker.mjs`;
+
+/** Told to MapLibre once per page, before the first map is built. */
+let workerConfigured = false;
+
+function configureWorker(): void {
+  if (workerConfigured) return;
+  setWorkerUrl(WORKER_URL);
+  workerConfigured = true;
+}
 
 const LINE_SOURCE = "trip-day";
 const LINE_LAYER = "trip-day-line";
@@ -218,6 +245,7 @@ export function TripMapCanvas({
     // reader the map and nothing else, so it never reaches the error boundary.
     let map: MapLibreMap;
     try {
+      configureWorker();
       map = new MapLibreMap({
         container,
         style: STYLE_URLS[startTheme],

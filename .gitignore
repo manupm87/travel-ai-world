@@ -75,3 +75,6 @@ src/backend/tools/vector_store_bench/bench_lambda/bench.zip
 # lives in S3); the manifest and the query vectors are small and are committed.
 src/backend/tools/vector_store_bench/.artifacts/**/vectors.npy
 src/backend/tools/vector_store_bench/.artifacts/**/ids.json
+
+# MapLibre worker copied from node_modules by src/frontend/scripts/copy-maplibre-worker.mjs (TRA-181)
+src/frontend/public/maplibre/

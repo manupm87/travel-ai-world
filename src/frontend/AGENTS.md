@@ -84,7 +84,13 @@ TypeScript 5, Tailwind CSS v4.
   the empty state and pulls `TripMapCanvas.tsx` in through `next/dynamic` with `ssr: false`
   (MapLibre needs `window`, and this keeps it out of every other route's bundle), and the canvas
   owns the instance: HTML markers, a straight `LineString` through the day (no routing — travel
-  times stay in `RouteStrip`), `fitBounds` per day and `setStyle` per theme. `PlannerClientPage`
+  times stay in `RouteStrip`), `fitBounds` per day and `setStyle` per theme. The canvas also tells
+  MapLibre where its worker is (`setWorkerUrl` → `/maplibre/maplibre-gl-worker.mjs`, TRA-181):
+  `scripts/copy-maplibre-worker.mjs` copies the worker and `maplibre-gl-shared.mjs` from
+  `node_modules` into the gitignored `public/maplibre/` before `next dev`/`next build`
+  (`predev`, `prebuild`, `pretest:e2e*`), because a bundled `import.meta.url` does not point at the
+  file and a map without its worker is pins over a blank canvas. Never commit that folder and never
+  rename those files (the worker imports its sibling relatively). `PlannerClientPage`
   calls `toMapStops` once and gives the list to both columns, so a card's badge in the panel and
   its pin on the map always carry the same number; `selectedStopId` lives there too and is cleared
   when the day changes.

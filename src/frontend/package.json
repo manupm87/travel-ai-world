@@ -6,11 +6,15 @@
     "node": ">=24"
   },
   "scripts": {
+    "predev": "node scripts/copy-maplibre-worker.mjs",
     "dev": "next dev",
+    "prebuild": "node scripts/copy-maplibre-worker.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "pretest:e2e": "node scripts/copy-maplibre-worker.mjs",
     "test:e2e": "playwright test",
+    "pretest:e2e:static": "node scripts/copy-maplibre-worker.mjs",
     "test:e2e:static": "next build && playwright test --config playwright.static.config.ts",
     "test:e2e:stack": "playwright test --config playwright.stack.config.ts",
     "test:unit": "vitest run",

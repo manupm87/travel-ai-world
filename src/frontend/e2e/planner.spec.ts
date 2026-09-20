@@ -166,6 +166,15 @@ test.describe("Planner page — /plan/", () => {
     } else {
       await expect(mapPins(page)).toHaveCount(5);
       await expect(mapPins(page).first()).toHaveText("H");
+      // The tile pipeline runs in MapLibre's worker, served from public/
+      // (TRA-181). It must be ours and alive: a worker that loads the page
+      // instead of its script exits at once, and the map is pins over blank.
+      await expect
+        .poll(() =>
+          page.workers().filter((worker) => worker.url().endsWith("/maplibre/maplibre-gl-worker.mjs"))
+            .length
+        )
+        .toBeGreaterThan(0);
     }
 
     // 4c. Clicking a stop turns the middle column into the activity's page and

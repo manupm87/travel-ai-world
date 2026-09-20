@@ -48,6 +48,16 @@ In the code (`src/frontend/src/components/planner/v2/`):
   its `load` callback, so they exist even when the tiles cannot be fetched.
 - Tile requests are made by the library, not by app code, so they are the one sanctioned network
   call outside `src/services/`.
+- **The worker is served from `public/maplibre/`** (TRA-181). MapLibre 6 is ESM-only and runs its
+  tile pipeline in a separate module worker (`maplibre-gl-worker.mjs`, importing
+  `./maplibre-gl-shared.mjs`) that it locates through `import.meta.url`. A bundler does not keep
+  that URL meaningful — under Next/Turbopack it resolves to the page, the worker loads HTML and
+  exits, and the map is pins and attribution over a blank canvas with no error in the console. So
+  `scripts/copy-maplibre-worker.mjs` copies the two files, names untouched, from `node_modules`
+  into the gitignored `public/maplibre/` before every `next dev` and `next build` (`predev`,
+  `prebuild`, `pretest:e2e*`), and `TripMapCanvas` calls `setWorkerUrl` with that same-origin
+  path once, before the first map. Upgrading `maplibre-gl` needs nothing else: the copy follows
+  the installed version.
 
 `PlannerLayout` becomes three columns at `lg` and above (chat ≈ 30 %, trip panel ≈ 40 %, map ≈ 30 %);
 below `lg` the existing Map tab shows the same map full height. `MapPlaceholder` is deleted.
