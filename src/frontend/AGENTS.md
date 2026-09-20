@@ -125,7 +125,7 @@ TypeScript 5, Tailwind CSS v4.
   back to the overview whenever the day it points at is not in the itinerary — which is what makes
   a new trip, and a regenerated shorter one, open on the overview — and is not persisted. The
   destination's `PlannerCity` is resolved once by `findCity` (`hooks/usePlannerCities.ts`), which
-  also gives the map its `centre`. Day dates come from `components/planner/v2/tripDates.ts`.
+  also gives the map its `centre`. Day dates come from `src/utils/tripDates.ts`.
   The **map** (TRA-147, ADR 0016) is MapLibre GL over OpenFreeMap's keyless tiles: `mapStops.ts`
   is pure (`toMapStops(itinerary, selectedDay)` → the stay as an unnumbered "H" pin then the day's
   located cards numbered in slot order, `[]` for the overview's `null`, plus `boundsOf`/`lineOf`),
