@@ -97,11 +97,24 @@ STAY_CATEGORIES = ("sleep",)
 EAT_DRINK = frozenset({*EAT_CATEGORIES, *DRINK_CATEGORIES})
 """A carousel of these alone is a `restaurant` one; anything else is experience."""
 
+EAT_DRINK_CATEGORIES = (*EAT_CATEGORIES, *DRINK_CATEGORIES)
+"""A place to eat *or* to drink: what a `restaurant` ask means when no part of
+the day narrows it, so a wine bar or a ruin bar is reachable too (TRA-186)."""
+
+DRINK_EAT_CATEGORIES = (*DRINK_CATEGORIES, *EAT_CATEGORIES)
+"""The same, drinks first: a night slot is for a bar, with a late kitchen next."""
+
 OPTIONS_COUNT = 3
 """Cards per carousel: enough to choose from, few enough to read."""
 
 MENTIONED_COUNT = 5
 """Most cards an answer's own places may become (TRA-185)."""
+
+NAMED_LIMIT = 10
+"""Documents the name lookup of an ask reads (TRA-186)."""
+
+NAMED_COUNT = 3
+"""Most places one ask may name and see offered first (TRA-186)."""
 
 # Activities per part of the day, by pace. The draft is complete on its own
 # (decision 8): every part listed here gets filled when the corpus allows.
@@ -391,6 +404,22 @@ def _named_at(
     return min(starts) if starts else None
 
 
+def _places_named_in(text: str, documents: Sequence[Document]) -> list[Document]:
+    """The places a text names, in the order it names them."""
+    lowered = text.lower()
+    folded = fold(text)
+    said = title_words(text)
+    found: list[tuple[int, Document]] = []
+    for document in documents:
+        if not is_place(document):
+            continue
+        at = _named_at(title_of(document), lowered=lowered, folded=folded, said=said)
+        if at is not None:
+            found.append((at, document))
+    found.sort(key=lambda pair: pair[0])
+    return [d for _, d in found]
+
+
 def _mentioned_places(answer: str, passages: Sequence[Document]) -> list[Document]:
     """The places an answer named, in the order it named them (TRA-185).
 
@@ -398,18 +427,7 @@ def _mentioned_places(answer: str, passages: Sequence[Document]) -> list[Documen
     the model invented is ever offered; one card per place, whichever source
     it came from.
     """
-    lowered = answer.lower()
-    folded = fold(answer)
-    said = title_words(answer)
-    found: list[tuple[int, Document]] = []
-    for document in passages:
-        if not is_place(document):
-            continue
-        at = _named_at(title_of(document), lowered=lowered, folded=folded, said=said)
-        if at is not None:
-            found.append((at, document))
-    found.sort(key=lambda pair: pair[0])
-    return _dedupe_by_title([d for _, d in found])[:MENTIONED_COUNT]
+    return _dedupe_by_title(_places_named_in(answer, passages))[:MENTIONED_COUNT]
 
 
 def _keep_known(picks: Sequence[Pick], known: Mapping[str, Document]) -> list[Pick]:
@@ -433,6 +451,43 @@ def _fill(picks: list[Pick], candidates: Sequence[Document], count: int) -> list
             picks.append(Pick(id=document.id))
             chosen.add(document.id)
     return picks[:count]
+
+
+def _pin_candidates(
+    pinned: Sequence[Document], candidates: Sequence[Document]
+) -> list[Document]:
+    """The places the ask named first, then the search's own, once each.
+
+    A named place the semantic search also returned keeps its pinned position,
+    and so does the same place under another source's name.
+    """
+    if not pinned:
+        return list(candidates)
+    ids = {d.id for d in pinned}
+    keys = [title_words(title_of(d)) for d in pinned]
+    rest = [
+        d
+        for d in candidates
+        if d.id not in ids
+        and not any(similar_titles(title_words(title_of(d)), key) for key in keys)
+    ]
+    return [*pinned, *rest]
+
+
+def _pin_picks(
+    pinned: Sequence[Document], picks: Sequence[Pick], count: int
+) -> list[Pick]:
+    """The named places lead the carousel whatever the model chose (TRA-186).
+
+    The model's own `why` is kept when it picked them too; a named place it
+    dropped comes back without one, as `_fill` does for the top candidates.
+    """
+    if not pinned:
+        return list(picks)
+    by_id = {p.id: p for p in picks}
+    lead = [by_id.get(d.id) or Pick(id=d.id) for d in pinned]
+    led = {p.id for p in lead}
+    return [*lead, *(p for p in picks if p.id not in led)][:count]
 
 
 def _brief_json(brief: TripBrief) -> str:
@@ -1243,16 +1298,27 @@ class PlanTrip:
         `select` action (ADR 0018).
         """
         part = slot.part if slot is not None else None
-        if kind == "restaurant" or part == "evening":
-            categories, tier = EAT_CATEGORIES, turn.brief.budget_tier
+        if kind == "restaurant" and part is None:
+            # An ask with no day names no part, so a bar must be reachable
+            # too: "a wine bar near the Basilica" is a restaurant intent
+            # whose answer is a `drink` place (TRA-186).
+            categories, tier = EAT_DRINK_CATEGORIES, turn.brief.budget_tier
         elif part == "night":
-            categories, tier = DRINK_CATEGORIES, None
+            categories = (
+                DRINK_EAT_CATEGORIES if kind == "restaurant" else DRINK_CATEGORIES
+            )
+            tier = None
+        elif kind == "restaurant" or part == "evening":
+            categories, tier = EAT_CATEGORIES, turn.brief.budget_tier
         else:
             categories, tier = SIGHT_CATEGORIES, None
         request = query or turn.message or " ".join(turn.brief.interests)
         await self._seed_used_titles(turn)
+        pinned = await self._named_places(turn, turn.message or request)
         candidates = await self._candidates(turn, request, categories, (), tier)
-        candidates = [d for d in candidates if d.id not in turn.used_ids]
+        candidates = _pin_candidates(
+            pinned, [d for d in candidates if d.id not in turn.used_ids]
+        )
         if not candidates:
             yield text(planner_text(turn.language, "no_options"))
             return
@@ -1270,6 +1336,7 @@ class PlanTrip:
             language=LANGUAGE_NAMES[turn.language],
         )
         picks = await self._pick(turn, prompt, candidates, OPTIONS_COUNT)
+        picks = _pin_picks(pinned, picks, OPTIONS_COUNT)
         cards = await self._with_photos(
             turn,
             [card_from_document(known[p.id], self._clean(turn, p.why)) for p in picks],
@@ -1325,15 +1392,20 @@ class PlanTrip:
         mentioned = _mentioned_places(
             "".join(answer), [d for d in passages if d.id not in turn.used_ids]
         )
-        if not mentioned:
+        # A place the traveller named is offered first even when the answer
+        # never spelled it out — the six passages of an answer rarely hold a
+        # two-line listing (TRA-186).
+        named = await self._named_places(turn, turn.message)
+        offered = _dedupe_by_title([*named, *mentioned])[:MENTIONED_COUNT]
+        if not offered:
             return
         kind: OptionKind = (
             "restaurant"
-            if all(d.metadata.get("category") in EAT_DRINK for d in mentioned)
+            if all(d.metadata.get("category") in EAT_DRINK for d in offered)
             else "experience"
         )
         # `why` stays empty: the answer above already explains every one of them.
-        cards = await self._with_photos(turn, cards_for(mentioned, {}))
+        cards = await self._with_photos(turn, cards_for(offered, {}))
         yield options(
             _new_found_group(),
             kind,
@@ -1402,6 +1474,34 @@ class PlanTrip:
         return await self._retriever.search(
             query.strip() or "places", limit=limit, filters=filters
         )
+
+    async def _named_places(self, turn: Turn, ask: str) -> list[Document]:
+        """The places the ask names by their own name, deterministically.
+
+        One search with the traveller's words and no category filter: a place
+        the corpus holds is offered because it was named, not because a
+        semantic ranking or the model happened to prefer it (TRA-186). Only
+        whole names count (`_named_at`), so "goszdu" names nothing while
+        "divino" names both DiVino listings; what the trip already holds is
+        left out, as everywhere else.
+        """
+        if not ask.strip():
+            return []
+        try:
+            found = await self._search(
+                turn, ask, (), limit=NAMED_LIMIT, districts=(), tier=None
+            )
+        except DomainError as exc:
+            logger.warning("Looking up the named places failed: %s", exc.message)
+            return []
+        # A hotel is chosen as a stay, never offered as an activity.
+        named = [
+            d
+            for d in _places_named_in(ask, found)
+            if d.id not in turn.used_ids
+            and d.metadata.get("category") not in STAY_CATEGORIES
+        ]
+        return _dedupe_by_title(named, list(turn.used_titles))[:NAMED_COUNT]
 
     async def _seed_used_titles(self, turn: Turn) -> None:
         """Names of what the trip already holds, so an alternative is never

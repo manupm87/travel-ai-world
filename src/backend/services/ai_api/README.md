@@ -50,6 +50,13 @@ A group id carries the meaning of the carousel it names — `nb`, `hotels:<distr
 - a `find_options` ask that names no day ("is there something to do at Margaret Island?"): the
   cards come back unplaced instead of landing on day 1 by assumption.
 
+**A place you name is offered first** (TRA-186). Before ranking anything, the turn runs one search
+on the traveller's own words with no category filter and keeps the listings the ask names by name
+(`_named_places`, the same folded, word-based match): they lead the carousel whatever the model
+preferred, on the options route and on the chat one. A `restaurant` ask with no part of the day also
+covers `drink`, so a wine bar, a pub or a ruin bar is reachable — "divino at gozsdu udvar" answers
+with DiVino.
+
 Then **the client names the slot**: `SelectAction.slot` (a `Slot`, or `null`) is the day and the
 part the traveller chose, and `_on_select` reads `_slot_of_group(group) or action.slot`. Neither,
 and the turn answers with the `stale_group` sentence, as it always did. A placed group sends

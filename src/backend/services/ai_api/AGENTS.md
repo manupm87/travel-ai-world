@@ -72,7 +72,10 @@ testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, Ke
   `cards.py` over the document's metadata, ids not retrieved are dropped, `why` and titles go through
   `strip_prices`. It needs the retriever (503 without `RETRIEVAL_ENABLED`); a failed structured call degrades
   (top candidates, plain day titles, chat intent) rather than failing the turn. Prompts and the fixed
-  en/es sentences live in `prompts.py`. Weather: Open-Meteo within 16 days, else the corpus's
+  en/es sentences live in `prompts.py`. **A place the ask names is offered first** (TRA-186):
+  `_named_places` runs one unfiltered search on the traveller's words and pins the listings whose
+  title the ask names (`_named_at`) ahead of the candidates and of the model's picks, on the options
+  route and in `_chat`; a `restaurant` ask with no part searches `eat` *and* `drink`. Weather: Open-Meteo within 16 days, else the corpus's
   `om:climate:<city>:<MM>` normal fetched by id. **Every card is pictured** (TRA-161, TRA-168): candidates
   are ordered pictured-first; a card without a corpus image is looked up on Commons by name (the search
   carries the city's name) and at its coordinates (`PhotoFinder`, `PHOTOS_ENABLED`); failing that it takes

@@ -58,6 +58,34 @@ GELLERT = "wv:en:Budapest/South Buda#do:gellert-baths"
 ANNA_CAFE = "wv:en:Budapest/Belváros#eat:anna-cafe"
 SZIMPLA = "wv:en:Budapest/Erzsébetváros#drink:szimpla-kert-mozi"
 
+
+def osm_bar(doc_id: str, name: str, district: str, lat: float, lon: float) -> Document:
+    """A two-line OpenStreetMap bar, copied from the Budapest corpus: the kind
+    of listing prose about the neighbourhood always outranks (TRA-186)."""
+    return Document(
+        id=doc_id,
+        content=f"{name} — bar in {district}, Budapest.",
+        metadata={
+            "city": "budapest",
+            "category": "drink",
+            "district": district,
+            "kind": "listing",
+            "lang": "en",
+            "source": "openstreetmap",
+            "lat": lat,
+            "lon": lon,
+            "doc_id": doc_id,
+            "name": name,
+        },
+    )
+
+
+# The two DiVino listings of `tools/city_corpus/data/budapest/documents.jsonl`.
+DIVINO_GOZSDU = osm_bar(
+    "osm:node/6882449594", "Divino Gozsdu", "Erzsébetváros", 47.498944, 19.058466
+)
+DIVINO = osm_bar("osm:node/276308538", "DiVino", "Belváros", 47.50023, 19.053106)
+
 TODAY = date(2026, 9, 18)
 
 
@@ -686,8 +714,12 @@ async def test_a_guided_change_request_searches_for_what_was_asked_for():
         )
     )
 
-    # The guidance replaces the interests-based default as the retrieval query.
-    assert {query for query, _, _ in retriever.searches} == {"a thermal bath"}
+    # The guidance replaces the interests-based default as the retrieval query
+    # of every candidate search; the name lookup of the ask (TRA-186) is the
+    # one search with no category filter.
+    assert {q for q, _, f in retriever.searches if f is not None and f.categories} == {
+        "a thermal bath"
+    }
     [group] = only(events, OptionsEvent)
     assert group.group_id == "slot:2:afternoon"
     assert [c.id for c in group.cards][:2] == [GELLERT, RUDAS]
@@ -771,8 +803,11 @@ async def test_free_text_after_the_draft_goes_through_the_intent_classifier():
     [group] = only(events, OptionsEvent)
     assert group.kind == "restaurant" and group.group_id == "slot:2:evening"
     assert all(c.category == "eat" for c in group.cards)
-    assert retriever.searches[0][0] == "Hungarian restaurant"
-    filters = retriever.searches[0][2]
+    # The name lookup runs on the traveller's own words (TRA-186); the model's
+    # query is what the candidate search asks for.
+    assert retriever.searches[0][0] == "restaurantes húngaros cerca del día 2"
+    query, _, filters = next(s for s in retriever.searches if s[2] and s[2].categories)
+    assert query == "Hungarian restaurant"
     assert filters is not None and filters.price_tier_max == 2
 
 
@@ -1153,6 +1188,144 @@ async def test_free_text_options_are_introduced_as_findings_not_alternatives():
     )
 
     assert joined_text(events).startswith("Here is what I found")
+
+
+# ─── A place the ask names (TRA-186) ─────────────────────────────────────────
+
+
+async def test_an_unplaced_restaurant_ask_also_searches_the_bars():
+    """No day means no part, so a `restaurant` ask covers eating and drinking."""
+    use_case, _, retriever = planner(
+        [
+            json.dumps(
+                {
+                    "intent": "find_options",
+                    "kind": "restaurant",
+                    "day": None,
+                    "part": None,
+                    "query": "wine bar near the Basilica",
+                }
+            ),
+            picks(SZIMPLA),
+        ],
+        documents=[BY_ID[PARLIAMENT], BY_ID[ANNA_CAFE], BY_ID[SZIMPLA]],
+    )
+
+    events = await run(
+        use_case(
+            turn(
+                "a wine bar near the Basilica",
+                brief=brief(),
+                stay=ASTORIA,
+                days=[{}, {}],
+            )
+        )
+    )
+
+    [group] = only(events, OptionsEvent)
+    assert group.slot is None and group.kind == "restaurant"
+    assert group.cards[0].id == SZIMPLA and group.cards[0].category == "drink"
+    # The candidate search takes both categories, the bars included.
+    candidates = next(
+        f for _, _, f in retriever.searches if f is not None and f.categories
+    )
+    assert candidates.categories == ("eat", "drink")
+
+
+async def test_the_place_the_ask_names_is_offered_first():
+    """The DiVino case: a two-line OSM bar the model did not pick is still the
+    first card, because the traveller named it."""
+    use_case, _, retriever = planner(
+        [
+            json.dumps(
+                {
+                    "intent": "find_options",
+                    "kind": "restaurant",
+                    "day": None,
+                    "part": None,
+                    "query": "wine bar Gozsdu Udvar",
+                }
+            ),
+            picks(ANNA_CAFE, SZIMPLA),
+        ],
+        documents=[BY_ID[ANNA_CAFE], BY_ID[SZIMPLA], DIVINO_GOZSDU, DIVINO],
+    )
+
+    events = await run(
+        use_case(
+            turn(
+                "divino at gozsdu udvar",
+                brief=brief(),
+                stay=ASTORIA,
+                days=[{}, {}],
+            )
+        )
+    )
+
+    [group] = only(events, OptionsEvent)
+    # Both listings of the name lead; what the model picked follows.
+    assert [c.id for c in group.cards] == [DIVINO_GOZSDU.id, DIVINO.id, ANNA_CAFE]
+    assert group.cards[0].title == "Divino Gozsdu"
+    # One unfiltered search on the traveller's own words finds them.
+    query, limit, filters = retriever.searches[0]
+    assert query == "divino at gozsdu udvar" and limit == 10
+    assert filters is not None and filters.categories == ()
+
+
+async def test_a_named_place_the_answer_never_spelled_is_still_offered():
+    use_case, _, _ = planner(
+        [json.dumps({"intent": "chat"})],
+        deltas=("It is a wine bar ", "in a courtyard off Király utca."),
+        documents=[BY_ID[BELVAROS], DIVINO_GOZSDU],
+    )
+
+    events = await run(
+        use_case(
+            turn(
+                "is divino at gozsdu udvar any good?",
+                brief=brief(),
+                stay=ASTORIA,
+                days=[{}],
+            )
+        )
+    )
+
+    [group] = only(events, OptionsEvent)
+    assert group.slot is None and group.kind == "restaurant"
+    assert [c.title for c in group.cards] == ["Divino Gozsdu"]
+
+
+async def test_an_ask_naming_no_place_is_answered_by_the_model_alone():
+    use_case, _, _ = planner(
+        [
+            json.dumps(
+                {
+                    "intent": "find_options",
+                    "kind": "experience",
+                    "day": None,
+                    "part": None,
+                    "query": "something to do",
+                }
+            ),
+            picks(RUDAS),
+        ],
+        documents=[BY_ID[PARLIAMENT], BY_ID[RUDAS], DIVINO_GOZSDU],
+    )
+
+    events = await run(
+        use_case(
+            turn(
+                "anything nice to do in the afternoon?",
+                brief=brief(),
+                stay=ASTORIA,
+                days=[{}],
+            )
+        )
+    )
+
+    [group] = only(events, OptionsEvent)
+    # Nothing pinned: the model's pick leads, then the top candidate.
+    assert [c.id for c in group.cards] == [RUDAS, PARLIAMENT]
 
 
 # ─── Talking before a stay is chosen ─────────────────────────────────────────
