@@ -319,8 +319,15 @@ export function TripMapCanvas({
 
     drawLine(map, stops);
 
-    fitDay(map, stops, centre);
-  }, [stops, centre, t]);
+    // An open activity owns the viewport: its pin keeps the map where the
+    // selection put it even when the itinerary is rewritten under it — a chat
+    // turn swapping another slot of the same day gives a new `stops` array,
+    // and fitting here would zoom back out to the whole day behind the page
+    // the traveller is reading. Everything else fits: a day with nothing open,
+    // a day change, and the closing of an activity, which runs this effect too
+    // and is therefore the only fit on the way out.
+    if (!stops.some((stop) => stop.id === selectedStopId)) fitDay(map, stops, centre);
+  }, [stops, centre, t, selectedStopId]);
 
   // ── The selection: the marker grows, the rest of the day steps back ───────
   useEffect(() => {
@@ -337,24 +344,21 @@ export function TripMapCanvas({
     }
 
     // Opening an activity puts it in the middle of the map, close enough to
-    // place it among its streets; closing one gives the whole day back. Never
-    // a zoom out on the way in: a reader who came in closer keeps their zoom.
-    // The viewport only moves when the selection itself changed — the effect
-    // also runs when the day does, and that is the other effect's fit to make.
+    // place it among its streets. Never a zoom out on the way in: a reader who
+    // came in closer keeps their zoom. The viewport only moves when the
+    // selection itself changed — the effect also runs when the day does — and
+    // only on the way in: giving the whole day back when an activity is closed
+    // is the markers effect's fit, which runs on the same commit.
     const map = mapRef.current;
     const previous = selectedRef.current;
     selectedRef.current = selectedStopId;
-    if (!map || previous === selectedStopId) return;
-    if (open) {
-      map.easeTo({
-        center: [open.lon, open.lat],
-        zoom: Math.max(map.getZoom(), SELECTED_ZOOM),
-        animate: !reducedMotion(),
-      });
-    } else if (previous !== null) {
-      fitDay(map, stops, centre);
-    }
-  }, [selectedStopId, stops, centre]);
+    if (!map || previous === selectedStopId || !open) return;
+    map.easeTo({
+      center: [open.lon, open.lat],
+      zoom: Math.max(map.getZoom(), SELECTED_ZOOM),
+      animate: !reducedMotion(),
+    });
+  }, [selectedStopId, stops]);
 
   if (unsupported) {
     return (

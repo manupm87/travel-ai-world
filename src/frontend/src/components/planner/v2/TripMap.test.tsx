@@ -303,6 +303,29 @@ describe("TripMapCanvas", () => {
     expect(map.fits.length).toBe(fitsBefore + 1);
   });
 
+  it("keeps the open stop centred when the itinerary is rewritten under it", () => {
+    const onSelectStop = vi.fn();
+    const stops = stopsFor(1);
+    const open = stops.find((stop) => stop.kind !== "stay")!;
+    const canvas = (forStops: typeof stops) => (
+      <TripMapCanvas
+        stops={forStops}
+        centre={BUDAPEST}
+        selectedStopId={open.id}
+        onSelectStop={onSelectStop}
+      />
+    );
+    const view = renderWithProviders(canvas(stops));
+    const map = lastMap();
+    const fitsBefore = map.fits.length;
+
+    // A chat turn touching this day hands the map a new array while the
+    // activity stays open: the viewport belongs to the open pin, not the day.
+    view.rerender(canvas([...stops]));
+
+    expect(map.fits).toHaveLength(fitsBefore);
+  });
+
   it("opens on the destination's centre and eases there when nothing is pinned", () => {
     renderWithProviders(
       <TripMapCanvas stops={[]} centre={BUDAPEST} selectedStopId={null} onSelectStop={vi.fn()} />

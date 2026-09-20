@@ -112,11 +112,33 @@ export function TripPanel({
   // card, which stays on screen, or the activity's page, which replaced the
   // day. `"nearest"` moves the panel's own scroller only as far as it must, so
   // picking something already in sight scrolls nothing.
+  //
+  // Closing does the opposite for the keyboard: the activity's page unmounted
+  // the way back with itself, so focus would fall to the body. It goes to the
+  // row the activity was opened from — the button the traveller pressed —
+  // which is where Tab should carry on from (the detail does the same on the
+  // way in, `ActivityDetail`'s mount effect).
+  const openedRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!selectedStopId) return;
+    const previous = openedRef.current;
+    openedRef.current = selectedStopId;
     const rows = scrollerRef.current?.querySelectorAll<HTMLElement>("[data-stop-row]") ?? [];
-    for (const row of rows) {
-      if (row.dataset.stopRow !== selectedStopId) continue;
+    const rowFor = (id: string) => {
+      for (const row of rows) if (row.dataset.stopRow === id) return row;
+      return null;
+    };
+
+    if (!selectedStopId) {
+      // Nothing was open (first render, another day cleared it, the card was
+      // removed): there is no row to go back to.
+      const row = previous ? rowFor(previous) : null;
+      row?.querySelector<HTMLButtonElement>("button")?.focus({ preventScroll: true });
+      row?.scrollIntoView?.({ block: "nearest" });
+      return;
+    }
+
+    const row = rowFor(selectedStopId);
+    if (row) {
       row.scrollIntoView?.({ block: "nearest" });
       return;
     }
@@ -174,6 +196,15 @@ export function TripPanel({
   const selection = openedStop(itinerary.stay, shownDay, selectedStopId);
 
   const { detail, status } = useCardDetail(selection?.card.id ?? null);
+
+  // The panel the day tabs point at. The stay belongs to no day, so while its
+  // page is the one on screen the panel says so: named after the selected day
+  // it would tell a screen reader it is reading "Day 1" when it is reading a
+  // hotel that is the same on every day of the trip.
+  const panelLabel =
+    selection && isStaySlot(selection.slot)
+      ? p.stayNoNights
+      : interpolate(p.day, { day: currentDay });
 
   const sheet = (
     <AlternativesSheet
@@ -289,7 +320,7 @@ export function TripPanel({
       )}
 
       {(selection || shownDay) && (
-        <div id={dayPanelId} role="tabpanel" aria-label={interpolate(p.day, { day: currentDay })}>
+        <div id={dayPanelId} role="tabpanel" aria-label={panelLabel}>
           {selection ? (
             /* The middle column is the activity's page while one is open; the
                day strip above it stays, so another day is always one click

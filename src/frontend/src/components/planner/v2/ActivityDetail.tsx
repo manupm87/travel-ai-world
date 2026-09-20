@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { ExternalLink, MapPin, Phone, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { useLanguage } from "@/context/LanguageContext";
@@ -83,16 +83,31 @@ export function ActivityDetail({
   const isStay = slot.day === 0;
   const view = mergeCardDetail(card, detail);
 
-  // Escape closes the activity, exactly as it closes the sheet — and the sheet
-  // stops the event when it is open, so "Change" from here still closes the
-  // sheet first and leaves the activity on screen.
+  // Escape closes the activity — unless something modal is open over it, and
+  // then the key belongs to that layer alone. "Change" opens the alternatives
+  // sheet as a sibling of this view, and both listen on `document`, where the
+  // sheet's `stopPropagation` cannot help: it stops other nodes, never the
+  // other listeners of the same node, and this one is registered first because
+  // the activity is mounted first. So the topmost layer is looked for in the
+  // DOM instead, and Escape over the sheet closes the sheet and nothing else.
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onBack();
+      if (event.key !== "Escape") return;
+      if (document.querySelector('[role="dialog"][aria-modal="true"]')) return;
+      onBack();
     };
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [onBack]);
+
+  // A view swap, not a navigation: the row the traveller just activated has
+  // been unmounted with the day, so the keyboard would fall back to the body
+  // and the next Tab would restart at the top of the page. The way back takes
+  // it instead, which is also what tells a screen reader where it landed.
+  const backRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    backRef.current?.focus({ preventScroll: true });
+  }, []);
 
   const chips = [
     view.district,
@@ -132,6 +147,7 @@ export function ActivityDetail({
         <div className="flex flex-col gap-3 px-4 pt-4">
           <button
             type="button"
+            ref={backRef}
             onClick={onBack}
             className="inline-flex w-fit items-center gap-1.5 rounded-lg px-1 py-1 text-xs font-medium text-text-secondary transition hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
           >

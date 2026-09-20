@@ -265,11 +265,61 @@ describe("TripPanel", () => {
     expect(screen.getByRole("region", { name: partRegion(1, "morning") })).toBeInTheDocument();
   });
 
+  it("gives the keyboard the way back, and the row again when the activity closes", () => {
+    renderPanel();
+
+    const row = openRow(ACTIVITIES.greatMarket.title);
+    fireEvent.click(row);
+
+    // The row is gone with the day: focus follows the view, or the next Tab
+    // would restart at the top of the page.
+    const back = screen.getByRole("button", {
+      name: interpolate(en.plan.detail.backToDay, { day: 1 }),
+    });
+    expect(document.activeElement).toBe(back);
+
+    fireEvent.click(back);
+
+    expect(document.activeElement).toBe(openRow(ACTIVITIES.greatMarket.title));
+  });
+
+  it("closes only the alternatives sheet when Escape is pressed over it", () => {
+    renderPanel();
+
+    fireEvent.click(openRow(ACTIVITIES.greatMarket.title));
+    fireEvent.click(
+      screen.getByRole("button", { name: `${p.change}: ${ACTIVITIES.greatMarket.title}` })
+    );
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    // Both views listen on `document`; the topmost one is the one that answers.
+    fireEvent.keyDown(document, { key: "Escape" });
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 3, name: ACTIVITIES.greatMarket.title })
+    ).toBeInTheDocument();
+
+    // With the sheet gone, Escape is the activity's again.
+    fireEvent.keyDown(document, { key: "Escape" });
+
+    expect(screen.getByRole("region", { name: partRegion(1, "morning") })).toBeInTheDocument();
+  });
+
   it("opens the stay with the same row, and removing a card goes back to the day", () => {
     const { onRemove } = renderPanel();
 
+    // The day's panel is named after the day it holds…
+    expect(screen.getByRole("tabpanel", { name: interpolate(p.day, { day: 1 }) })).toBeInTheDocument();
+
     fireEvent.click(openRow(HOTELS.rum.title));
     expect(screen.getByRole("heading", { level: 3, name: HOTELS.rum.title })).toBeInTheDocument();
+    // …and after the stay while the stay's page is what it holds: the hotel is
+    // the same on every day, and calling it "Day 1" would mislead a reader.
+    expect(screen.getByRole("tabpanel", { name: p.stayNoNights })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("tabpanel", { name: interpolate(p.day, { day: 1 }) })
+    ).not.toBeInTheDocument();
     // The stay belongs to no day, so its way back says so.
     const backToStay = screen.getByRole("button", { name: en.plan.detail.backToStay });
 

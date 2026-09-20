@@ -94,7 +94,14 @@ TypeScript 5, Tailwind CSS v4.
   `stayStopId` from `mapStops.ts` for *every* card, with or without coordinates. While one is
   selected, `TripPanel` renders `ActivityDetail` **in place of** the day's `DayCard` (the `DayStrip`
   above it stays, so switching day closes the detail with it), and the map grows that marker,
-  dims the others and `easeTo`s it at zoom ≥ 15 — closing it fits the day again. The detail shows
+  dims the others and `easeTo`s it at zoom ≥ 15 — while it is open the viewport is its own (an
+  itinerary rewritten under it, a chat turn touching the same day, never re-fits the day behind
+  it), and closing it fits the day again. The swap is a view change, not a navigation, so the
+  keyboard follows it: `ActivityDetail` focuses its back button on mount and `TripPanel` gives
+  focus back to the row the activity was opened from; Escape closes the activity **unless**
+  something modal is open over it (`[role="dialog"][aria-modal="true"]` — both listen on
+  `document`, where `stopPropagation` cannot separate them); and the day's `tabpanel` is renamed
+  after the stay while the stay's page is what it holds, because the stay belongs to no day. The detail shows
   the card (hero photo with its credit, chips, the model's `why`) and, over it, the full article
   from `GET /ai/planner/card?id=` (TRA-178): `services/planner.ts::getCardDetail` answers `null`
   — never an error — without an ai_api URL, on a missing route or on 404, and `hooks/useCardDetail.ts`
