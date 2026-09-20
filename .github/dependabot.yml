@@ -16,9 +16,9 @@ updates:
       npm-minor-and-patch:
         update-types: ["minor", "patch"]
     ignore:
-      # typescript 6 breaks `npm run types:generate`: openapi-typescript 7.x
+      # typescript 6+ (Dependabot offered 7.0.2) breaks `npm run types:generate`: openapi-typescript 7.x
       # declares `typescript: "^5.x"` as its peer range (Dependabot PR #58 failed
-      # on it). Revisit when openapi-typescript 8 supports typescript 6.
+      # on it). Revisit when openapi-typescript supports typescript 6+.
       - dependency-name: typescript
         update-types: ["version-update:semver-major"]
       # @types/node must track the Node runtime major we build and deploy on:
