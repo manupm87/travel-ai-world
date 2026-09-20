@@ -1,78 +1,130 @@
 "use client";
 
-import { Sparkles } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { AskField } from "@/components/landing/AskField";
+import { Aurora } from "@/components/layout/Aurora";
+import { ConfirmDelete } from "@/components/dashboard/ConfirmDelete";
 import EmptyDashboard from "@/components/dashboard/EmptyDashboard";
-import PlannerCard from "@/components/planner/PlannerCard";
-import { TripSection } from "@/components/dashboard/TripSection";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
-import { Button } from "@/components/ui/Button";
-import { Section } from "@/components/ui/Section";
+import { TripEditSheet } from "@/components/dashboard/TripEditSheet";
+import { TripGrid } from "@/components/dashboard/TripGrid";
+import { TripGridSkeleton } from "@/components/dashboard/TripGridSkeleton";
+import { Container } from "@/components/ui/Container";
 import { useLanguage } from "@/context/LanguageContext";
 import { useTrips } from "@/hooks/useTrips";
-import { TRIP_STATUSES } from "@/types/trip-summary";
+import type { TripSummary } from "@/types/trip-summary";
 
-/** Section order on the dashboard: upcoming first, then drafts, then history. */
-const SECTION_ORDER = ["planned", "planning", "finished"] as const satisfies readonly (typeof TRIP_STATUSES)[number][];
+/** How long the card takes to collapse before it leaves the list. */
+const COLLAPSE_MS = 300;
 
 /**
- * The dashboard's client side: the planner on top, then the user's trips
- * from core_api in one of four states (loading, error, empty, ready).
- * The data and its state machine live in `useTrips`; this component only
- * picks what to render and translates the copy.
+ * The dashboard: the field that starts a trip, then the trips themselves.
+ *
+ * The same `AskField` as the landing sits on top — a returning visitor's next
+ * trip starts the way their first one did — and under it the account's trips
+ * in one grid, grouped by what is coming, what is being planned and what is
+ * over. A card's ⋯ menu opens the edit sheet or the delete confirmation;
+ * `useTrips` owns the writes (optimistic delete with a rollback, a patch that
+ * replaces the card with what the API stored) and this page only decides which
+ * dialog is open and which card is collapsing.
+ *
+ * The aurora is mounted here rather than in `(app)/layout.tsx` because the
+ * planner shares that layout and has a background of its own (TRA-193 moves
+ * the decision into the layout).
  */
 export default function DashboardClientPage() {
   const { t } = useLanguage();
-  const { trips, status, reload } = useTrips();
+  const { trips, status, reload, remove, update } = useTrips();
+
+  const [editing, setEditing] = useState<TripSummary | null>(null);
+  const [deleting, setDeleting] = useState<TripSummary | null>(null);
+  const [leavingId, setLeavingId] = useState<string | null>(null);
+  const collapse = useRef<number | null>(null);
+
+  useEffect(
+    () => () => {
+      if (collapse.current !== null) window.clearTimeout(collapse.current);
+    },
+    []
+  );
+
+  /**
+   * The card folds away first, then the trip leaves the list. A refusal puts
+   * the card back and rethrows, so the dialog — still open — says what
+   * happened instead of the trip quietly reappearing.
+   */
+  const confirmDelete = async (id: string) => {
+    setLeavingId(id);
+    await new Promise<void>((resolve) => {
+      collapse.current = window.setTimeout(resolve, COLLAPSE_MS);
+    });
+    try {
+      await remove(id);
+    } catch (err) {
+      setLeavingId(null);
+      throw err;
+    }
+    setLeavingId(null);
+    setDeleting(null);
+  };
 
   return (
     <>
-      <Section variant="transparent" padding="small" className="pt-10">
-        <Button href="/plan/" size="sm" className="self-start">
-          <Sparkles size={14} aria-hidden="true" className="mr-2" />
-          {t.plan.openPlanner}
-        </Button>
-      </Section>
+      <Aurora />
 
-      <PlannerCard transparent />
+      <AskField variant="inline" />
 
-      {status === "loading" && (
-        <Section variant="transparent" padding="xlarge">
-          <LoadingSpinner label={t.dashboard.loading} />
-        </Section>
-      )}
+      <Container className="flex flex-col gap-6 px-4 pb-20 sm:px-8">
+        <h2 className="text-2xl font-light text-text-primary">{t.dashboard.title}</h2>
 
-      {status === "error" && (
-        <Section variant="transparent" padding="xlarge">
+        {status === "loading" && <TripGridSkeleton />}
+
+        {status === "error" && (
           <div
             role="alert"
-            className="flex flex-col items-center justify-center py-12 px-8 text-center"
+            className="flex flex-col items-center rounded-2xl border border-glass-border bg-glass-bg px-6 py-14 text-center backdrop-blur-xl"
           >
-            <h2 className="text-2xl font-medium text-text-primary mb-3 tracking-tight">
-              {t.dashboard.errorTitle}
-            </h2>
-            <p className="text-text-secondary text-lg max-w-[480px] mb-8 leading-relaxed">
+            <h3 className="text-xl font-medium text-text-primary">{t.dashboard.errorTitle}</h3>
+            <p className="mt-2 max-w-[42ch] text-[15px] leading-relaxed text-text-secondary">
               {t.dashboard.errorDescription}
             </p>
-            <Button variant="secondary" onClick={reload}>
+            <button
+              type="button"
+              onClick={reload}
+              className="mt-6 rounded-lg border border-glass-border bg-glass-bg px-4 py-2.5 text-sm font-medium text-text-primary transition hover:border-accent-border focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none"
+            >
               {t.dashboard.retry}
-            </Button>
+            </button>
           </div>
-        </Section>
+        )}
+
+        {status === "ready" &&
+          (trips.length === 0 ? (
+            <EmptyDashboard />
+          ) : (
+            <TripGrid
+              trips={trips}
+              leavingId={leavingId}
+              onEdit={setEditing}
+              onDelete={setDeleting}
+            />
+          ))}
+      </Container>
+
+      {editing && (
+        <TripEditSheet
+          trip={editing}
+          onSave={(patch) => update(editing.id, patch)}
+          onClose={() => setEditing(null)}
+        />
       )}
 
-      {status === "ready" &&
-        (trips.length === 0 ? (
-          <EmptyDashboard />
-        ) : (
-          SECTION_ORDER.map((sectionStatus) => (
-            <TripSection
-              key={sectionStatus}
-              title={t.dashboard.sections[sectionStatus]}
-              trips={trips.filter((trip) => trip.status === sectionStatus)}
-              transparent={sectionStatus === "planning"}
-            />
-          ))
-        ))}
+      {deleting && (
+        <ConfirmDelete
+          trip={deleting}
+          onConfirm={() => confirmDelete(deleting.id)}
+          onCancel={() => setDeleting(null)}
+        />
+      )}
     </>
   );
 }

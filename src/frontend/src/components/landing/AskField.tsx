@@ -42,6 +42,14 @@ export function plannerHref(ask: string): string {
   return `/plan/?q=${encodeURIComponent(ask)}`;
 }
 
+export interface AskFieldProps {
+  /**
+   * `page` (the landing) fills the viewport and centres itself; `inline` (the
+   * top of the dashboard) takes only the room it needs, above the trips.
+   */
+  variant?: "page" | "inline";
+}
+
 /**
  * The landing page: one question, one field, one action.
  *
@@ -55,8 +63,12 @@ export function plannerHref(ask: string): string {
  * Cognito round-trip (the pending login carries it) and the Google one (the
  * modal navigates there itself). Arriving with `?redirect=` — the route guard
  * sent someone here from a signed-in page — opens the dialog straight away.
+ *
+ * The dashboard mounts the same component as its own first block (`inline`),
+ * so the sentence that starts a trip is in the same place on both pages and
+ * exists once in the codebase.
  */
-export function AskField() {
+export function AskField({ variant = "page" }: AskFieldProps = {}) {
   const { t } = useLanguage();
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
@@ -99,6 +111,7 @@ export function AskField() {
 
   const trimmed = ask.trim();
   const canSubmit = trimmed.length > 0 && !leaving;
+  const page = variant === "page";
 
   const open = (href: string) => {
     setLeaving(true);
@@ -132,7 +145,12 @@ export function AskField() {
   };
 
   return (
-    <section className="flex flex-1 items-center justify-center px-4 py-(--header-h) sm:px-6">
+    <section
+      className={cn(
+        "flex items-center justify-center px-4 sm:px-6",
+        page ? "flex-1 py-(--header-h)" : "pt-10 pb-12 sm:pt-14"
+      )}
+    >
       <div
         data-leaving={leaving}
         className={cn(
@@ -142,7 +160,12 @@ export function AskField() {
       >
         <h1
           id={HEADING_ID}
-          className="mb-7 text-center text-[clamp(2.5rem,9vw,4rem)] leading-[1.05] font-light text-text-primary"
+          className={cn(
+            "text-center leading-[1.05] font-light text-text-primary",
+            page
+              ? "mb-7 text-[clamp(2.5rem,9vw,4rem)]"
+              : "mb-5 text-[clamp(1.75rem,6vw,2.5rem)]"
+          )}
         >
           {t.landing.headline}
         </h1>

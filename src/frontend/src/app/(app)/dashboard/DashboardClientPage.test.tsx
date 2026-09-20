@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { fireEvent, renderWithProviders, screen, within } from "@/test/render";
+import { fireEvent, renderWithProviders, screen, waitFor, within } from "@/test/render";
 import { makeTripSummary } from "@/test/fixtures";
 import { ApiError } from "@/services/http";
 import { useTrips, type UseTripsResult } from "@/hooks/useTrips";
@@ -10,14 +10,14 @@ vi.mock("@/hooks/useTrips", () => ({
   useTrips: vi.fn(),
 }));
 
-// The planner has its own tests; here it only needs to be present above the trips.
-vi.mock("@/components/planner/PlannerCard", () => ({
-  default: () => <section aria-label="planner">planner</section>,
+// The field has its own tests; here it only needs to be above the trips.
+vi.mock("@/components/landing/AskField", () => ({
+  AskField: () => <section aria-label="ask">ask</section>,
 }));
 
 const reload = vi.fn();
-const remove = vi.fn().mockResolvedValue(undefined);
-const update = vi.fn().mockResolvedValue(undefined);
+const remove = vi.fn<UseTripsResult["remove"]>();
+const update = vi.fn<UseTripsResult["update"]>();
 
 function trips(state: Partial<UseTripsResult>) {
   vi.mocked(useTrips).mockReturnValue({
@@ -32,17 +32,20 @@ function trips(state: Partial<UseTripsResult>) {
 }
 
 const d = en.dashboard;
+const paris = makeTripSummary({ id: "next", title: "Paris Escape", status: "planned" });
 
 describe("DashboardClientPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    remove.mockResolvedValue(undefined);
+    update.mockResolvedValue(undefined);
   });
 
-  it("shows the planner and a spinner while the trips load", () => {
+  it("shows the field and skeletons while the trips load", () => {
     trips({ status: "loading" });
     renderWithProviders(<DashboardClientPage />);
 
-    expect(screen.getByRole("region", { name: "planner" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "ask" })).toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent(d.loading);
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: d.emptyTitle })).not.toBeInTheDocument();
@@ -57,7 +60,7 @@ describe("DashboardClientPage", () => {
     expect(within(alert).getByText(d.errorDescription)).toBeInTheDocument();
     // The server's text never reaches the screen.
     expect(screen.queryByText("Database down")).not.toBeInTheDocument();
-    expect(screen.getByRole("region", { name: "planner" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "ask" })).toBeInTheDocument();
 
     fireEvent.click(within(alert).getByRole("button", { name: d.retry }));
     expect(reload).toHaveBeenCalledTimes(1);
@@ -68,42 +71,86 @@ describe("DashboardClientPage", () => {
     renderWithProviders(<DashboardClientPage />);
 
     expect(screen.getByRole("heading", { name: d.emptyTitle })).toBeInTheDocument();
-    expect(screen.getByRole("region", { name: "planner" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "ask" })).toBeInTheDocument();
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
-  it("groups the trips by status in the section order", () => {
+  it("lists the trips under Your trips, grouped", () => {
     trips({
       status: "ready",
       trips: [
         makeTripSummary({ id: "old", title: "Prague Winter", status: "finished" }),
-        makeTripSummary({ id: "draft", title: "Japan Draft", status: "planning" }),
-        makeTripSummary({ id: "next", title: "Paris Escape", status: "planned" }),
+        paris,
       ],
     });
     renderWithProviders(<DashboardClientPage />);
 
-    const labels = [d.sections.planned, d.sections.planning, d.sections.finished];
-    const rendered = labels.map((label) => screen.getByText(label));
-    // Upcoming first, then drafts, then history: document order follows SECTION_ORDER.
-    expect(rendered[0]!.compareDocumentPosition(rendered[1]!)).toBe(
-      Node.DOCUMENT_POSITION_FOLLOWING
-    );
-    expect(rendered[1]!.compareDocumentPosition(rendered[2]!)).toBe(
-      Node.DOCUMENT_POSITION_FOLLOWING
-    );
-    for (const title of ["Paris Escape", "Japan Draft", "Prague Winter"]) {
-      expect(screen.getByText(title)).toBeInTheDocument();
-    }
+    expect(screen.getByRole("heading", { name: d.title })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: d.sections.planned })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Paris Escape" })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: d.emptyTitle })).not.toBeInTheDocument();
   });
 
-  it("hides the sections that have no trips", () => {
-    trips({ status: "ready", trips: [makeTripSummary({ status: "planned" })] });
+  it("edits a trip from the card's menu and shows what the API stored", async () => {
+    trips({ status: "ready", trips: [paris] });
+    const { rerender } = renderWithProviders(<DashboardClientPage />);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: d.card.menu.replace("{title}", paris.title) })
+    );
+    fireEvent.click(screen.getByRole("menuitem", { name: d.card.edit }));
+
+    const dialog = screen.getByRole("dialog", { name: d.edit.title });
+    fireEvent.change(within(dialog).getByLabelText(d.edit.name), {
+      target: { value: "Paris, again" },
+    });
+    fireEvent.click(within(dialog).getByRole("button", { name: d.edit.save }));
+
+    await waitFor(() =>
+      expect(update).toHaveBeenCalledWith("next", { title: "Paris, again" })
+    );
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+
+    // `useTrips` replaces the card with what came back; the page renders it.
+    trips({ status: "ready", trips: [{ ...paris, title: "Paris, again" }] });
+    rerender(<DashboardClientPage />);
+    expect(screen.getByRole("heading", { name: "Paris, again" })).toBeInTheDocument();
+  });
+
+  it("deletes a trip once the confirmation is answered", async () => {
+    trips({ status: "ready", trips: [paris] });
+    const { rerender } = renderWithProviders(<DashboardClientPage />);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: d.card.menu.replace("{title}", paris.title) })
+    );
+    fireEvent.click(screen.getByRole("menuitem", { name: d.card.delete }));
+
+    const dialog = screen.getByRole("dialog", { name: d.remove.title });
+    fireEvent.click(within(dialog).getByRole("button", { name: d.remove.confirm }));
+
+    await waitFor(() => expect(remove).toHaveBeenCalledWith("next"));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+
+    trips({ status: "ready", trips: [] });
+    rerender(<DashboardClientPage />);
+    expect(screen.queryByRole("heading", { name: "Paris Escape" })).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: d.emptyTitle })).toBeInTheDocument();
+  });
+
+  it("keeps the card and says so when the delete is refused", async () => {
+    remove.mockRejectedValue(new ApiError(500, "boom"));
+    trips({ status: "ready", trips: [paris] });
     renderWithProviders(<DashboardClientPage />);
 
-    expect(screen.getByText(d.sections.planned)).toBeInTheDocument();
-    expect(screen.queryByText(d.sections.planning)).not.toBeInTheDocument();
-    expect(screen.queryByText(d.sections.finished)).not.toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", { name: d.card.menu.replace("{title}", paris.title) })
+    );
+    fireEvent.click(screen.getByRole("menuitem", { name: d.card.delete }));
+    fireEvent.click(screen.getByRole("button", { name: d.remove.confirm }));
+
+    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent(d.remove.failed));
+    expect(screen.getByRole("dialog", { name: d.remove.title })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Paris Escape" })).toBeInTheDocument();
   });
 });
