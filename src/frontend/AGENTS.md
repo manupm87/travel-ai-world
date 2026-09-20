@@ -46,8 +46,7 @@ TypeScript 5, Tailwind CSS v4.
   trips (`status: "loading" | "ready" | "error"`, `reload()`, aborts on unmount, clears the session
   on a 401 so the route guard redirects); `useTrip.ts` loads one trip for the viewer the same way,
   with `"not-found"` as a fourth status (a missing or malformed id is not-found without a request;
-  `getTrip`'s `null` is not-found too); `useChatStream.ts` does the same for the dashboard's
-  `PlannerCard`; `usePlanner.ts` drives the planner page over the pure reducer in
+  `getTrip`'s `null` is not-found too); `usePlanner.ts` drives the planner page over the pure reducer in
   `plannerReducer.ts` (every transition, including `applyItineraryOps`, is unit-tested without React;
   the hook owns the stream, aborts it on a new turn, and keeps the per-tab draft through
   `services/plannerDraft.ts`); `useSaveTrip.ts` owns "Save trip" (`idle | saving | saved | error`,
@@ -100,6 +99,25 @@ TypeScript 5, Tailwind CSS v4.
   Landing with `?redirect=` — the route guard turned someone away — opens that dialog at once. The
   query is read from `window.location` through `useSyncExternalStore`, never `useSearchParams`,
   which would leave the page a shell filled in on hydration instead of prerendered HTML.
+- **The dashboard is the field and one grid** (TRA-192): `app/(app)/dashboard/` mounts the very
+  same `components/landing/AskField.tsx` as the landing — `variant="inline"`, so it takes the room
+  it needs instead of the viewport, and the ask is still the page's only `h1` — over "Your trips"
+  and `components/dashboard/TripGrid.tsx`. That grid is **one** CSS grid: the three groups
+  (`planned`, `planning`, `finished`, in that order) are `col-span-full` headings with a hairline
+  rule across the columns, not three `Section`s with their own background, and the entrance
+  stagger counts across the whole list. `components/ui/TripCard.tsx` is the cover photo with a
+  scrim of `--color-bg-primary` brought back up over it (so the copy clears 4.5:1 on either theme
+  whatever the photo is), a stretched link on the title (`after:absolute after:inset-0`) and one
+  `⋯` button above it: a real `role="menu"` with Edit and Delete, arrow keys, Escape, focus back on
+  the button. Both dialogs are modal (`aria-modal`, Tab trapped, Escape, focus returned):
+  `TripEditSheet.tsx` (title, description, dates, status; title required, end ≥ start; it sends
+  **only the fields that changed** and moves `duration_days` with the dates) and `ConfirmDelete.tsx`
+  (Cancel focused, so Enter never deletes by momentum). Deleting collapses the card for 300 ms
+  before `useTrips.remove` drops it, and a refusal puts it back and says so in the still-open
+  dialog. Loading is `TripGridSkeleton.tsx` (`animate-shimmer`, an `sr-only` live line), empty is
+  two lines and no second call to action — the field above is the one. The aurora is mounted by
+  the dashboard page rather than by `(app)/layout.tsx`, which the planner shares and which
+  therefore paints no background of its own; TRA-193 moves that decision into the layout.
 - The trip viewer is `/trip/?id=<uuid>` (`app/(app)/trip/`), one static shell for every trip:
   `page.tsx` (server; wraps the client page in `Suspense`, which `useSearchParams` needs on a static
   export or the build fails) + `TripClientPage.tsx` (client; reads `?id=`, drives `useTrip`, renders

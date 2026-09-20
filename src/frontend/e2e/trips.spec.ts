@@ -35,9 +35,9 @@ const SEEDED = {
   finished: ["New York Weekend", "Prague, Vienna & Budapest"],
 } as const;
 
-/** `en.ts` `dashboard.sections`, the labels above each group of cards. */
+/** `en.ts` `dashboard.sections`, the heading above each group in the grid. */
 const SECTION_LABEL = {
-  planned: "Your Next Adventure",
+  planned: "Coming up",
   planning: "In the works",
   finished: "Past journeys",
 } as const;
@@ -84,20 +84,18 @@ test.describe("Signed in with a minted local token", () => {
     await signIn(page, TOKEN!);
   });
 
-  test("the dashboard lists the four seeded trips, each under its section", async ({
+  test("the dashboard lists the four seeded trips, each under its group heading", async ({
     page,
   }) => {
     await page.goto("/dashboard/");
 
+    await expect(page.getByRole("heading", { level: 2, name: "Your trips" })).toBeVisible();
     for (const status of ["planned", "planning", "finished"] as const) {
-      const section = page
-        .locator("section")
-        .filter({ has: page.getByText(SECTION_LABEL[status], { exact: true }) });
-      await expect(section).toBeVisible();
+      await expect(
+        page.getByRole("heading", { level: 3, name: SECTION_LABEL[status] })
+      ).toBeVisible();
       for (const title of SEEDED[status]) {
-        await expect(
-          section.getByRole("heading", { level: 3, name: title })
-        ).toBeVisible();
+        await expect(page.getByRole("heading", { level: 4, name: title })).toBeVisible();
       }
     }
   });
@@ -126,6 +124,66 @@ test.describe("Signed in with a minted local token", () => {
     await page.goto(`/trip/?id=${encodeURIComponent(id!)}`);
 
     await expectJapanViewer(page);
+  });
+
+  test("the card's menu renames a trip, keyboard only", async ({ page }) => {
+    await page.goto("/dashboard/");
+
+    // Tab is not needed: every step here is a named control the keyboard can
+    // reach, and the menu, the sheet and the card all answer to Enter.
+    await page.getByRole("button", { name: `Options for ${JAPAN}` }).press("Enter");
+    await page.getByRole("menuitem", { name: "Edit trip" }).press("Enter");
+
+    const sheet = page.getByRole("dialog", { name: "Edit trip" });
+    await expect(sheet).toBeVisible();
+    const renamed = `${JAPAN} (edited)`;
+    await sheet.getByLabel("Title").fill(renamed);
+    await sheet.getByRole("button", { name: "Save changes" }).press("Enter");
+
+    await expect(sheet).toBeHidden();
+    await expect(page.getByRole("heading", { level: 4, name: renamed })).toBeVisible();
+
+    // Put the seed back, so the file can run twice against the same database.
+    await page.getByRole("button", { name: `Options for ${renamed}` }).click();
+    await page.getByRole("menuitem", { name: "Edit trip" }).click();
+    await sheet.getByLabel("Title").fill(JAPAN);
+    await sheet.getByRole("button", { name: "Save changes" }).click();
+    await expect(page.getByRole("heading", { level: 4, name: JAPAN })).toBeVisible();
+  });
+
+  test("a trip can be deleted, once the confirmation is answered", async ({ page }) => {
+    // A trip of our own, so the seeded four stay where the other tests expect.
+    const created = `Disposable trip ${Date.now()}`;
+    await page.goto("/dashboard/");
+    const trip = await page.evaluate(
+      async ({ title, token }) => {
+        const response = await fetch("/api/v1/trips/", {
+          method: "POST",
+          headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+          body: JSON.stringify({ title, status: "planning" }),
+        });
+        return (await response.json()) as { id: string };
+      },
+      { title: created, token: TOKEN! }
+    );
+    expect(trip.id).toMatch(UUID);
+
+    await page.reload();
+    await expect(page.getByRole("heading", { level: 4, name: created })).toBeVisible();
+
+    await page.getByRole("button", { name: `Options for ${created}` }).click();
+    await page.getByRole("menuitem", { name: "Delete trip" }).click();
+
+    const confirm = page.getByRole("dialog", { name: "Delete this trip?" });
+    await expect(confirm).toBeVisible();
+    await confirm.getByRole("button", { name: "Delete trip" }).click();
+
+    await expect(confirm).toBeHidden();
+    await expect(page.getByRole("heading", { level: 4, name: created })).toHaveCount(0);
+
+    // And it is gone from the API too, not just from the page.
+    await page.reload();
+    await expect(page.getByRole("heading", { level: 4, name: created })).toHaveCount(0);
   });
 
   test("an id that belongs to no trip shows the not-found state", async ({ page }) => {
