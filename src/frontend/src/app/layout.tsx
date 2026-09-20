@@ -21,14 +21,14 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Travel AI World — AI-Powered Travel Planning",
+  title: "Kyrian World",
   description:
-    "Tell us where you want to go, your budget, and your travel style. Our AI crafts a personalized, day-by-day itinerary built just for you — in seconds.",
-  keywords: ["travel", "AI", "trip planning", "itinerary", "vacation"],
+    "Say where you want to go, in one sentence. Kyrian World plans the days with you — where to stay, what to see, and when.",
+  keywords: ["travel", "trip planning", "itinerary", "AI travel planner"],
   openGraph: {
-    title: "Travel AI World — AI-Powered Travel Planning",
+    title: "Kyrian World",
     description:
-      "Your dream trip, designed by AI. Personalized itineraries in 30 seconds.",
+      "Say where you want to go, in one sentence. Kyrian World plans the days with you.",
     type: "website",
   },
 };

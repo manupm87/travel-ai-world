@@ -62,7 +62,7 @@ export function MobileDrawer({ open, onClose, variant, onLogin }: MobileDrawerPr
 
         <div className="mt-auto pt-8 border-t border-border">
           <div className="flex items-center justify-between mb-4">
-            <p className="text-xs text-text-secondary uppercase tracking-widest font-medium">
+            <p className="text-xs text-text-secondary font-medium">
               {t.nav.selectLanguage}
             </p>
             <ThemeToggle variant="labeled" />

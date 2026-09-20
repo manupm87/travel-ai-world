@@ -2,8 +2,9 @@
 
 import { useCallback, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogIn, LogOut, User as UserIcon } from "lucide-react";
+import { LogIn, LogOut, Map, User as UserIcon } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { useClickOutside } from "@/hooks/useClickOutside";
@@ -108,6 +109,14 @@ export function UserMenu({ variant = "dropdown", onLogin, onAfterAction }: UserM
             <p className="text-text-secondary text-sm">{user.email}</p>
           </div>
         </div>
+        <Link
+          href="/dashboard"
+          onClick={onAfterAction}
+          className="flex items-center gap-3 text-xl font-medium text-text-primary hover:text-accent transition-colors"
+        >
+          <Map size={24} aria-hidden="true" />
+          {t.nav.dashboard}
+        </Link>
         <button
           type="button"
           onClick={handleLogout}
@@ -137,12 +146,21 @@ export function UserMenu({ variant = "dropdown", onLogin, onAfterAction }: UserM
         <div
           role="menu"
           aria-label={t.nav.userMenu}
-          className="absolute top-full right-0 mt-2 w-48 bg-bg-primary/95 backdrop-blur-md border border-border rounded-xl shadow-2xl py-2 animate-in fade-in slide-in-from-top-2 duration-300"
+          className="absolute top-full right-0 mt-2 w-48 bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl shadow-2xl py-2 animate-scale-in origin-top-right"
         >
           <div className="px-4 py-2 border-b border-border mb-1">
             <p className="text-[12px] font-semibold text-text-primary truncate">{user.name}</p>
             <p className="text-[10px] text-text-secondary truncate">{user.email}</p>
           </div>
+          <Link
+            href="/dashboard"
+            role="menuitem"
+            onClick={close}
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-[12px] font-medium text-text-secondary hover:text-text-primary hover:bg-accent-soft transition-colors"
+          >
+            <Map size={14} aria-hidden="true" />
+            {t.nav.dashboard}
+          </Link>
           <button
             type="button"
             role="menuitem"

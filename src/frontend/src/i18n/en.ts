@@ -5,8 +5,9 @@ const en: Translations = {
     howItWorks: "How It Works",
     features: "Features",
     reviews: "Reviews",
+    openPlanner: "Open the planner",
     planMyTrip: "Plan My Trip",
-    dashboard: "Dashboard",
+    dashboard: "Your trips",
     openMenu: "Open menu",
     closeMenu: "Close menu",
     selectLanguage: "Select language",
@@ -354,7 +355,7 @@ const en: Translations = {
     ],
   },
   features: {
-    label: "Why Choose Travel AI World",
+    label: "Why Choose Kyrian World",
     title: "Smarter planning,\nmore memorable moments.",
     items: [
       {
@@ -421,7 +422,7 @@ const en: Translations = {
       {
         stars: 5,
         quote:
-          "We had a tight budget for our honeymoon. Travel AI World found an incredible Santorini package with everything optimized. We saved €800 vs booking manually.",
+          "We had a tight budget for our honeymoon. Kyrian World found an incredible Santorini package with everything optimized. We saved €800 vs booking manually.",
         author: "Luca & Emma",
         location: "Milan 🇮🇹",
         highlight: true,
@@ -444,15 +445,7 @@ const en: Translations = {
     ctaSecondary: "Watch Demo",
   },
   footer: {
-    tagline:
-      "AI-powered travel planning for the modern explorer. From idea to itinerary in 30 seconds.",
-    links: [
-      { title: "Product", items: ["How It Works", "Features", "Pricing", "Sample Trips"] },
-      { title: "Destinations", items: ["Europe", "Asia", "Americas", "All Destinations"] },
-      { title: "Company", items: ["About", "Blog", "Privacy Policy", "Terms of Service"] },
-    ],
-    social: ["Twitter", "Instagram", "LinkedIn"],
-    copyright: "© 2025 Travel AI World. All rights reserved.",
+    copyright: "© {year} Kyrian World",
   },
   dashboard: {
     heroTitle: "Plan Your Next Adventure",
@@ -469,10 +462,10 @@ const en: Translations = {
     retry: "Try again",
   },
   auth: {
-    login: "Log In",
+    login: "Sign in",
     logout: "Log Out",
     welcomeBack: "Welcome back",
-    subtitle: "Join Travel AI World to save your itineraries and explore the world.",
+    subtitle: "Your trips are saved to your account.",
     terms: "By continuing, you agree to our Terms of Service and Privacy Policy.",
     loginError: "We couldn't sign you in. Please try again.",
     continueWithGoogle: "Continue with Google",

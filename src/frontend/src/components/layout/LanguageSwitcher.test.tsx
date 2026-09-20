@@ -20,6 +20,31 @@ describe("LanguageSwitcher", () => {
     expect(items[0]).toHaveAttribute("aria-checked", "true");
   });
 
+  it("switches the language from the dropdown and closes it", () => {
+    renderWithProviders(<LanguageSwitcher />);
+    const trigger = screen.getByRole("button", { name: en.nav.selectLanguage });
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
+    expect(trigger).toHaveTextContent("🇬🇧");
+
+    fireEvent.click(trigger);
+    expect(trigger).toHaveAttribute("aria-expanded", "true");
+    const menu = screen.getByRole("menu", { name: en.nav.selectLanguage });
+    fireEvent.click(within(menu).getByRole("menuitemradio", { name: /Español/ }));
+
+    expect(document.documentElement.lang).toBe("es");
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Seleccionar idioma" })).toHaveTextContent("🇪🇸");
+  });
+
+  it("closes the dropdown on an outside click", () => {
+    renderWithProviders(<LanguageSwitcher />);
+    fireEvent.click(screen.getByRole("button", { name: en.nav.selectLanguage }));
+    expect(screen.getByRole("menu")).toBeInTheDocument();
+
+    fireEvent.mouseDown(document.body);
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+  });
+
   it("renders the segmented variant as a pressed-button group", () => {
     renderWithProviders(<LanguageSwitcher variant="segmented" />);
     const group = screen.getByRole("group", { name: en.nav.selectLanguage });

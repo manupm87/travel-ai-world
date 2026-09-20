@@ -5,8 +5,9 @@ const es: Translations = {
     howItWorks: "Cómo Funciona",
     features: "Funcionalidades",
     reviews: "Opiniones",
+    openPlanner: "Abrir el planificador",
     planMyTrip: "Planificar Viaje",
-    dashboard: "Dashboard",
+    dashboard: "Tus viajes",
     openMenu: "Abrir menú",
     closeMenu: "Cerrar menú",
     selectLanguage: "Seleccionar idioma",
@@ -354,7 +355,7 @@ const es: Translations = {
     ],
   },
   features: {
-    label: "Por Qué Elegir Travel AI World",
+    label: "Por Qué Elegir Kyrian World",
     title: "Planificación más inteligente,\nmomentos más memorables.",
     items: [
       {
@@ -421,7 +422,7 @@ const es: Translations = {
       {
         stars: 5,
         quote:
-          "Teníamos un presupuesto ajustado para nuestra luna de miel. Travel AI World encontró un paquete increíble en Santorini, optimizando todo. Ahorramos 800€ frente a reservar manualmente.",
+          "Teníamos un presupuesto ajustado para nuestra luna de miel. Kyrian World encontró un paquete increíble en Santorini, optimizando todo. Ahorramos 800€ frente a reservar manualmente.",
         author: "Luca y Emma",
         location: "Milán 🇮🇹",
         highlight: true,
@@ -444,15 +445,7 @@ const es: Translations = {
     ctaSecondary: "Ver Demo",
   },
   footer: {
-    tagline:
-      "Planificación de viajes con IA para el explorador moderno. De la idea al itinerario en 30 segundos.",
-    links: [
-      { title: "Producto", items: ["Cómo Funciona", "Funcionalidades", "Precios", "Viajes de Ejemplo"] },
-      { title: "Destinos", items: ["Europa", "Asia", "Américas", "Todos los Destinos"] },
-      { title: "Empresa", items: ["Quiénes Somos", "Blog", "Política de Privacidad", "Términos de Uso"] },
-    ],
-    social: ["Twitter", "Instagram", "LinkedIn"],
-    copyright: "© 2025 Travel AI World. Todos los derechos reservados.",
+    copyright: "© {year} Kyrian World",
   },
   dashboard: {
     heroTitle: "Planifica Tu Próxima Aventura",
@@ -469,10 +462,10 @@ const es: Translations = {
     retry: "Reintentar",
   },
   auth: {
-    login: "Iniciar Sesión",
+    login: "Iniciar sesión",
     logout: "Cerrar Sesión",
     welcomeBack: "Bienvenido de nuevo",
-    subtitle: "Únete a Travel AI World para guardar tus itinerarios y explorar el mundo.",
+    subtitle: "Tus viajes se guardan en tu cuenta.",
     terms: "Al continuar, aceptas nuestros Términos de Uso y nuestra Política de Privacidad.",
     loginError: "No hemos podido iniciar tu sesión. Inténtalo de nuevo.",
     continueWithGoogle: "Continuar con Google",

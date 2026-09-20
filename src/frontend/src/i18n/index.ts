@@ -19,7 +19,6 @@ export type {
   FeatureId,
   Stat,
   Testimonial,
-  FooterLinkGroup,
 } from "./types";
 export { interpolate } from "./interpolate";
 

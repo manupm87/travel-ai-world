@@ -55,7 +55,7 @@ describe("Header", () => {
 
   it("links the brand home", () => {
     renderWithProviders(<Header />);
-    expect(screen.getByRole("link", { name: /Travel AI World/ })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: /Kyrian World/ })).toHaveAttribute("href", "/");
   });
 
   it("shows the marketing links only on the landing variant", () => {
@@ -69,43 +69,33 @@ describe("Header", () => {
     expect(screen.queryByRole("link", { name: en.nav.howItWorks })).not.toBeInTheDocument();
   });
 
-  it("points the CTA at the planner when signed out and at the dashboard when signed in", () => {
+  it("offers to sign in when signed out and opens the planner when signed in", () => {
     const { unmount } = renderWithProviders(<Header />);
-    for (const cta of screen.getAllByRole("link", { name: en.nav.planMyTrip })) {
-      expect(cta).toHaveAttribute("href", "#planner");
-    }
+    expect(screen.getByRole("button", { name: en.auth.login })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: en.nav.openPlanner })
+    ).not.toBeInTheDocument();
     unmount();
 
     signedIn();
     renderWithProviders(<Header />);
-    for (const cta of screen.getAllByRole("link", { name: en.nav.dashboard })) {
-      expect(cta).toHaveAttribute("href", "/dashboard");
-    }
+    // `next/link` normalises the trailing slash the static export adds back.
+    expect(
+      screen.getByRole("link", { name: en.nav.openPlanner }).getAttribute("href")
+    ).toMatch(/^\/plan\/?$/);
+    expect(screen.queryByRole("button", { name: en.auth.login })).not.toBeInTheDocument();
   });
 
-  it("switches the language from the dropdown and closes it", () => {
+  it("reaches the trips from the account menu", () => {
+    signedIn();
     renderWithProviders(<Header />);
-    const trigger = screen.getByRole("button", { name: en.nav.selectLanguage });
-    expect(trigger).toHaveAttribute("aria-expanded", "false");
-    expect(trigger).toHaveTextContent("🇬🇧");
 
-    fireEvent.click(trigger);
-    expect(trigger).toHaveAttribute("aria-expanded", "true");
-    const menu = screen.getByRole("menu", { name: en.nav.selectLanguage });
-    fireEvent.click(within(menu).getByRole("menuitemradio", { name: /Español/ }));
-
-    expect(document.documentElement.lang).toBe("es");
-    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Seleccionar idioma" })).toHaveTextContent("🇪🇸");
-  });
-
-  it("closes the language dropdown on an outside click", () => {
-    renderWithProviders(<Header />);
-    fireEvent.click(screen.getByRole("button", { name: en.nav.selectLanguage }));
-    expect(screen.getByRole("menu")).toBeInTheDocument();
-
-    fireEvent.mouseDown(document.body);
-    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: en.nav.userMenu }));
+    const menu = screen.getByRole("menu", { name: en.nav.userMenu });
+    expect(within(menu).getByRole("menuitem", { name: en.nav.dashboard })).toHaveAttribute(
+      "href",
+      "/dashboard"
+    );
   });
 
   it("opens the login modal from the login button", () => {
