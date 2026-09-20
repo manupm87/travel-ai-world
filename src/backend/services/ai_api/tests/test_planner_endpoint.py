@@ -55,11 +55,26 @@ async def test_the_cities_endpoint_lists_the_manifest(
 
     assert response.status_code == 200
     [budapest] = [c for c in response.json() if c["slug"] == "budapest"]
-    assert budapest == {
-        "slug": "budapest",
-        "name": "Budapest",
-        "centre": [47.4979, 19.0402],
-        "timezone": "Europe/Budapest",
+    assert budapest["name"] == "Budapest"
+    assert budapest["centre"] == [47.4979, 19.0402]
+    assert budapest["timezone"] == "Europe/Budapest"
+    # What the trip overview shows: a description per language and a photo.
+    assert sorted(budapest["intro"]) == ["en", "es"]
+    assert budapest["intro"]["en"]["text"].startswith("Budapest is the capital")
+    assert (
+        budapest["intro"]["en"]["source_url"]
+        == "https://en.wikivoyage.org/wiki/Budapest"
+    )
+    assert budapest["image_url"].startswith("https://commons.wikimedia.org/")
+    assert budapest["image_credit"].endswith("· Wikimedia Commons")
+    assert set(budapest) == {
+        "slug",
+        "name",
+        "centre",
+        "timezone",
+        "intro",
+        "image_url",
+        "image_credit",
     }
 
 

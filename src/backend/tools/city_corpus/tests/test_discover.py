@@ -18,8 +18,13 @@ from city_corpus.discover import (
 )
 from city_corpus.http import ApiClient
 
+HERO_FILE = "Bologna Panorama.jpg"
+HERO_AUTHOR = "Ввласенко"
 
-def _item(qid: str, *, city: bool = True, **extra: Any) -> dict[str, Any]:
+
+def _item(
+    qid: str, *, city: bool = True, image: bool = True, **extra: Any
+) -> dict[str, Any]:
     def statement(value: Any, rank: str = "normal") -> dict[str, Any]:
         return {"rank": rank, "mainsnak": {"datavalue": {"value": value}}}
 
@@ -28,6 +33,12 @@ def _item(qid: str, *, city: bool = True, **extra: Any) -> dict[str, Any]:
         "P17": [statement({"id": "Q38"})],
         "P31": [statement({"id": "Q747074" if city else "Q5"})],
     }
+    if image:
+        # A normal claim and a preferred one: the preferred file is the hero.
+        claims["P18"] = [
+            statement("Bologna skyline at dusk.jpg"),
+            statement(HERO_FILE, rank="preferred"),
+        ]
     claims.update(extra)
     return {
         "id": qid,
@@ -69,11 +80,13 @@ class Answers:
         overpass: bool = True,
         city: dict[str, Any] = CITY,
         wiki: bool = True,
+        licence: str = "CC BY-SA 3.0",
     ) -> None:
         self.subpages = subpages
         self.overpass = overpass
         self.city = city
         self.wiki = wiki  # Wikivoyage articles and Wikipedia categories exist
+        self.licence = licence  # what Commons says about the city's P18 file
         self.requests: list[httpx.Request] = []
 
     def __call__(self, request: httpx.Request) -> httpx.Response:
@@ -97,6 +110,24 @@ class Answers:
             return httpx.Response(
                 200, json={"entities": {"Q15111371": FAMILY_NAME, "Q1891": self.city}}
             )
+        if host == "commons.wikimedia.org":
+            pages = [
+                {
+                    "title": title,
+                    "imageinfo": [
+                        {
+                            "extmetadata": {
+                                "LicenseShortName": {"value": self.licence},
+                                "Artist": {
+                                    "value": f'<a href="/wiki/User:X">{HERO_AUTHOR}</a>'
+                                },
+                            }
+                        }
+                    ],
+                }
+                for title in params["titles"].split("|")
+            ]
+            return httpx.Response(200, json={"query": {"pages": pages}})
         if host == "api.open-meteo.com":
             return httpx.Response(200, json={"timezone": "Europe/Rome"})
         if host == "nominatim.openstreetmap.org":
@@ -186,6 +217,7 @@ def test_discover_drafts_a_loadable_city(tmp_path: Path) -> None:
         ("Buildings and structures in Bologna", 21),
         ("Palaces in Bologna", 17),
     ]
+    assert found.hero is not None and found.hero.file == HERO_FILE
     assert found.notes == []
 
     path = write_draft(found, tmp_path / "cities")
@@ -214,6 +246,51 @@ def test_discover_drafts_a_loadable_city(tmp_path: Path) -> None:
     city = load_city(renamed)
     assert city.slug == "bologna" and city.district_admin_level == 10
     assert "6 OSM" not in summary(found) and "2 OSM boundaries" in summary(found)
+
+
+def test_the_hero_photo_is_the_free_wikidata_image(tmp_path: Path) -> None:
+    with _client(tmp_path, Answers()) as client:
+        found = discover(client, "Bologna")
+
+    credit = f"{HERO_AUTHOR} (CC BY-SA 3.0) · Wikimedia Commons"
+    assert found.hero is not None
+    assert found.hero.file == HERO_FILE  # the preferred claim, not the first one
+    assert found.hero.credit == credit
+    text = render(found)
+    assert "[hero]" in text and "# review:" not in text
+    assert tomllib.loads(text)["hero"] == {"file": HERO_FILE, "credit": credit}
+
+    path = tmp_path / "bologna.toml"
+    path.write_text(text, encoding="utf-8")
+    hero = load_city(path).hero
+    assert hero is not None and hero.file == HERO_FILE
+    assert f"hero photo: {HERO_FILE}" in summary(found)
+
+
+def test_a_non_free_image_leaves_the_hero_table_for_review(tmp_path: Path) -> None:
+    with _client(tmp_path, Answers(licence="CC BY-NC 2.0")) as client:
+        found = discover(client, "Bologna")
+
+    assert found.hero is None
+    assert any("no freely licensed Wikidata image" in note for note in found.notes)
+    text = render(found)
+    assert 'file = ""  # review' in text and 'credit = ""  # review' in text
+    path = tmp_path / "bologna.toml"
+    path.write_text(text, encoding="utf-8")
+    hero = load_city(path).hero
+    assert hero is not None and hero.file == ""  # a draft still loads
+
+
+def test_a_city_without_a_wikidata_image_asks_no_question_of_commons(
+    tmp_path: Path,
+) -> None:
+    answers = Answers(city=_item("Q1891", image=False))
+    with _client(tmp_path, answers) as client:
+        found = discover(client, "Bologna")
+
+    assert found.hero is None
+    assert not [r for r in answers.requests if r.url.host == "commons.wikimedia.org"]
+    assert "hero photo: none" in summary(found)
 
 
 def test_district_pages_map_boundaries_to_guides(tmp_path: Path) -> None:

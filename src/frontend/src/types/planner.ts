@@ -16,6 +16,9 @@ export type ChatMessage = components["schemas"]["ChatMessage"];
 /** A city the planner covers (`GET /ai/planner/cities`): a destination to offer. */
 export type PlannerCity = components["schemas"]["PlannerCity"];
 
+/** A city's own description in one language, with the page it comes from (TRA-182). */
+export type CityIntro = components["schemas"]["CityIntro"];
+
 // ─── The brief ──────────────────────────────────────────────────────────────
 
 export type TripBrief = components["schemas"]["TripBrief"];

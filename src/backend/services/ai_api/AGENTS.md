@@ -59,7 +59,10 @@ testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, Ke
   `city_corpus`, copied by `just corpus-manifest`, packaged next to `airports.json`) is read once in
   `lifespan` (`infrastructure/cities.py`); `PLANNER_CITIES` only narrows it for a local run. Adding a
   city = a new corpus + a new image, never a Terraform or env change. Never edit the copy by hand:
-  `tests/test_cities_manifest.py` fails when it differs from the tool's file.
+  `tests/test_cities_manifest.py` fails when it differs from the tool's file. The entry also carries
+  what a trip overview shows — `intro` (the city's Wikivoyage lead per language, with its
+  `source_url`) and `image_url`/`image_credit` (ADR 0017) — and `load_cities` tolerates an older
+  manifest that has neither.
 - The corpus contract is mirrored in `indexing.CorpusDocument`, never imported from `city_corpus`.
 - Persisting planner results goes through `TripGateway` with the caller's token.
 - **The planner (`POST /api/v1/ai/planner`, ADR 0015)** is `application/plan_trip.py`: stateless, driven by the

@@ -31,12 +31,18 @@ what it could not decide. The draft comes from:
 | Overpass | the district boundaries at admin levels 8–10; the level whose names look most like Wikidata's districts becomes `district_admin_level` |
 | Wikivoyage en/es | the root article and its `Root/…` district pages |
 | Wikipedia en | which standard categories exist (`Tourist attractions in X`, `Museums in X`, `Churches`, `Palaces`, `Towers`, `Buildings and structures` …), with page counts as comments |
+| Wikidata + Commons | `[hero]`, the city's photo for the trip overview: the P18 image when Commons licenses it freely, with the credit line the page prints |
 
 Open the draft and resolve every `# review` line: the item is the city and not the province, each
 OSM boundary maps to the Wikivoyage district page that covers it (or to itself when the city has no
 district pages), the categories are about places to visit (add the city's own from Wikipedia's
 `Category:` pages; broad ones get `require_coordinates = true`, or they bring embassies and offices),
-and `osm_area` is the local OSM name only when no `osm_relation` was found. Rename to
+and `osm_area` is the local OSM name only when no `osm_relation` was found. **Open the `[hero]`
+photo** (`https://commons.wikimedia.org/wiki/File:<file>`) before keeping it: it is the picture the
+trip overview shows, so it must be a skyline or a well-known landmark under a free licence, not an
+interior, a map or a coat of arms. Replace `file` and `credit` with a better Commons photo when it
+is poor (the credit is `"{author} ({licence}) · Wikimedia Commons"`); drop the table to ship no
+photo — it is optional and the gate ignores it. Rename to
 `cities/<slug>.toml`; drafts are never committed and never built. The loader refuses unknown keys, a
 guide name missing from `districts`, a slug that differs from the file name.
 

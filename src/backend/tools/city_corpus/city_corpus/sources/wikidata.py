@@ -209,11 +209,13 @@ def fetch_image_info(
     return infos
 
 
-def thumbnail_url(filename: str) -> str:
+def thumbnail_url(filename: str, width: int = THUMB_WIDTH) -> str:
+    """A Commons thumbnail of the file, `width` pixels wide: the documents' own
+    images (640 px) and the city's hero photo in the cities manifest (1200 px)."""
     title = quote(commons_title(filename).replace(" ", "_"))
     return (
         "https://commons.wikimedia.org/w/index.php"
-        f"?title=Special:FilePath/{title}&width={THUMB_WIDTH}"
+        f"?title=Special:FilePath/{title}&width={width}"
     )
 
 

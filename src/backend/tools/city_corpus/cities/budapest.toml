@@ -36,6 +36,12 @@ districts = [
     "Óbuda",
 ]
 
+# The city's photo, shown on the trip overview: a Commons file (Wikidata P18,
+# licence checked on Commons 2026-09-20) and the credit the page prints.
+[hero]
+file = "Budapest, Hungary (explored) (14995308504).jpg"
+credit = "Thomas Depenbusch (Depi) (CC BY 2.0) · Wikimedia Commons"
+
 [bbox]
 south = 47.34
 west = 18.92

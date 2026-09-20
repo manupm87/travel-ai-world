@@ -20,12 +20,18 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any
 
-from city_corpus.config.cities import CITIES_DIR, WikivoyageSite
+from city_corpus.config.cities import CITIES_DIR, HeroPhoto, WikivoyageSite
 from city_corpus.http import ApiClient
 from city_corpus.normalize import slugify
 from city_corpus.sources import wikipedia, wikivoyage
 from city_corpus.sources.districts import OVERPASS_URL
-from city_corpus.sources.wikidata import WIKIDATA_API
+from city_corpus.sources.wikidata import (
+    IMAGE,
+    WIKIDATA_API,
+    commons_title,
+    fetch_image_info,
+    is_free,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -139,6 +145,8 @@ class Discovery:
     admin_level: int | None = None
     guides: list[WikivoyageGuide] = field(default_factory=list)
     categories: list[CategoryProbe] = field(default_factory=list)
+    # The city's photo: Wikidata's P18 when Commons licenses it freely (TRA-182).
+    hero: HeroPhoto | None = None
     # What a human must decide, in the order the draft raises it.
     notes: list[str] = field(default_factory=list)
 
@@ -252,6 +260,35 @@ def fetch_district_labels(client: ApiClient, qids: list[str]) -> list[District]:
         else:
             districts.append(District(qid, qid, review=True))
     return sorted(districts, key=lambda d: d.label)
+
+
+def fetch_hero(client: ApiClient, claims: dict[str, Any]) -> HeroPhoto | None:
+    """The city's Wikidata image (P18), when Commons licenses it freely.
+
+    The first claim in Wikidata's order (preferred rank first) is the curated
+    one; its licence and author come from Commons, so the draft carries the
+    credit the page will print. A non-free file, or none at all, leaves the
+    `[hero]` table for a human to fill.
+    """
+    filename = next((v for v in _best(claims, IMAGE) if isinstance(v, str)), None)
+    if not filename:
+        return None
+    try:
+        info = fetch_image_info(client, [filename]).get(commons_title(filename))
+    except RuntimeError as exc:
+        logger.warning("Commons: %s", exc)
+        return None
+    if info is None or not is_free(info.licence):
+        return None
+    return HeroPhoto(
+        file=commons_title(filename), credit=_credit(info.author, info.licence)
+    )
+
+
+def _credit(author: str | None, licence: str | None) -> str:
+    """`"{author} ({licence}) · Wikimedia Commons"`, the format the cards use."""
+    parts = [p for p in (author, f"({licence})" if licence else None) if p]
+    return " ".join([*parts, "· Wikimedia Commons"]) if parts else "Wikimedia Commons"
 
 
 # ── Bounds, time zone, boundaries ─────────────────────────────────────────────
@@ -458,6 +495,13 @@ def discover(client: ApiClient, name: str) -> Discovery:
     found.categories = probe_categories(client, "en", english)
     if len(found.categories) < 3:
         found.note("fewer than three standard Wikipedia categories exist for the city")
+
+    found.hero = fetch_hero(client, claims)
+    if found.hero is None:
+        found.note(
+            "no freely licensed Wikidata image (P18): fill [hero] with a photo "
+            "from Wikimedia Commons"
+        )
     return found
 
 
@@ -630,7 +674,24 @@ def render(found: Discovery) -> str:
         f"west = {west}",
         f"north = {north}",
         f"east = {east}",
+        "",
     ]
+    if found.hero:
+        lines += [
+            "# The city's photo, shown on the trip overview: the Wikidata image (P18),"
+            " free on Commons.",
+            "[hero]",
+            f"file = {_quote(found.hero.file)}",
+            f"credit = {_quote(found.hero.credit)}",
+        ]
+    else:
+        lines += [
+            "# review: no freely licensed Wikidata image (P18); pick a photo of the"
+            " city on Commons, its file name without `File:` and the credit line",
+            "[hero]",
+            'file = ""  # review',
+            'credit = ""  # review',
+        ]
     for guide in found.guides:
         subpages = (
             f"  # {len(guide.subpages)} district pages"
@@ -697,6 +758,7 @@ def summary(found: Discovery) -> str:
         f"wikivoyage: {guides or 'none'}",
         f"wikipedia categories: {len(found.categories)} "
         f"({sum(c.pages for c in found.categories)} pages)",
+        f"hero photo: {found.hero.file if found.hero else 'none (review [hero])'}",
     ]
     if found.notes:
         lines.append("to review:")

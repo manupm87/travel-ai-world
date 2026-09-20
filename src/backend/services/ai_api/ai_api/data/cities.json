@@ -12,7 +12,15 @@
     ],
     "timezone": "Europe/Rome",
     "documents": 1597,
-    "built_at": "2026-09-19T19:15:20Z"
+    "built_at": "2026-09-19T19:15:20Z",
+    "intro": {
+      "en": {
+        "text": "Bologna (Emilian: Bulåggna) is a beautiful and historic city in the Emilia-Romagna region of Northeast Italy. It has the oldest university in the Western world, a lively student population, excellent food, a striking brick terracotta-roofed cityscape, and lots to see and do. The city had a population just under 395,000 in 2020. Until 2015 it was part of a \"Province of Bologna\" but this was absorbed into a metropolitan area, population 1,017,000. This page therefore covers the entire metropolis, with the exception of Imola, described separately.",
+        "source_url": "https://en.wikivoyage.org/wiki/Bologna"
+      }
+    },
+    "image_url": "https://commons.wikimedia.org/w/index.php?title=Special:FilePath/Bologna_Panorama.jpg&width=1200",
+    "image_credit": "Ввласенко (CC BY-SA 3.0) · Wikimedia Commons"
   },
   {
     "slug": "budapest",
@@ -26,6 +34,18 @@
     ],
     "timezone": "Europe/Budapest",
     "documents": 6330,
-    "built_at": "2026-09-17T23:14:43Z"
+    "built_at": "2026-09-17T23:14:43Z",
+    "intro": {
+      "en": {
+        "text": "Budapest is the capital city of Hungary. With a unique, youthful atmosphere, world-class classical music scene, a pulsating nightlife increasingly appreciated among European youth, and last but not least, an exceptional offer of natural thermal baths, Budapest is one of Europe's most delightful and enjoyable cities. Due to the exceedingly scenic setting, and its architecture it is nicknamed \"Paris of the East\".\n\nThe modern-day Budapest results from the amalgamation of two historic cities lying right opposite each other over the Danube river.",
+        "source_url": "https://en.wikivoyage.org/wiki/Budapest"
+      },
+      "es": {
+        "text": "Budapest es la capital de Hungría. Con una atmósfera única, juvenil, una imagen de música clásica de primera categoría así como también una vida de noche vibrante entre la juventud europea y por último, pero no menos importante, una oferta excepcional de baños termales, Budapest es una de las ciudades más encantadoras y disfrutables ciudades. Debido a su marco escénico y por su arquitectura, es apodada la \"París del este\".\n\nLa moderna Budapest resulta de la unión de dos ciudades históricas situándose en frente una respecto a la otra sobre el río Danubio.",
+        "source_url": "https://es.wikivoyage.org/wiki/Budapest"
+      }
+    },
+    "image_url": "https://commons.wikimedia.org/w/index.php?title=Special:FilePath/Budapest%2C_Hungary_%28explored%29_%2814995308504%29.jpg&width=1200",
+    "image_credit": "Thomas Depenbusch (Depi) (CC BY 2.0) · Wikimedia Commons"
   }
 ]

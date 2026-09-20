@@ -26,6 +26,12 @@ districts = [
 ]
 
 # From OSM relation 43172 (Nominatim), rounded outwards.
+# The city's photo, shown on the trip overview: a Commons file (Wikidata P18,
+# licence checked on Commons 2026-09-20) and the credit the page prints.
+[hero]
+file = "Bologna Panorama.jpg"
+credit = "Ввласенко (CC BY-SA 3.0) · Wikimedia Commons"
+
 [bbox]
 south = 44.42
 west = 11.22

@@ -1,5 +1,6 @@
 """Pure domain types. No framework imports."""
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import date
 from typing import Literal
@@ -101,16 +102,30 @@ class DayWeather:
 
 
 @dataclass(frozen=True, slots=True)
+class CityIntro:
+    """How a city introduces itself: the lead of its Wikivoyage article, as the
+    corpus holds it (CC BY-SA 4.0), and the page it was taken from."""
+
+    text: str
+    source_url: str
+
+
+@dataclass(frozen=True, slots=True)
 class City:
     """A city the planner covers: its corpus slug, the name shown, the
     spellings a traveller may type (ascii-folded, lower-case), the centre
-    and the time zone. Comes from the cities manifest the corpus writes."""
+    and the time zone, plus what a trip overview shows — an intro per language
+    and a photo with the credit its licence asks for (TRA-182). Comes from the
+    cities manifest the corpus writes; an older manifest has neither."""
 
     slug: str
     name: str
     aliases: tuple[str, ...]
     centre: tuple[float, float]
     timezone: str
+    intro: Mapping[str, CityIntro] = field(default_factory=dict)
+    image_url: str | None = None
+    image_credit: str | None = None
 
 
 @dataclass(frozen=True, slots=True)

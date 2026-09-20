@@ -109,17 +109,48 @@ class CardDetail(OptionCard):
     )
 
 
+class CityIntro(BaseModel):
+    """A city's own description in one language: the lead of its Wikivoyage
+    article (CC BY-SA 4.0), trimmed at a sentence boundary, and the page it
+    comes from — shown with the text, as the licence asks."""
+
+    text: str
+    source_url: str
+
+
 class PlannerCity(BaseModel):
     """A city the planner covers (`GET /planner/cities`): what the page needs
-    to offer it as a destination. The spellings it answers to stay server-side."""
+    to offer it as a destination and to introduce it on a trip overview. The
+    spellings it answers to stay server-side."""
 
     slug: str
     name: str
     centre: tuple[float, float] = Field(description="[latitude, longitude]")
     timezone: str
+    intro: dict[str, CityIntro] = Field(
+        description=(
+            "The city's description keyed by language code (`en`, `es`); a "
+            "language the corpus has no lead for is absent"
+        )
+    )
+    image_url: str | None = Field(
+        description="The city's photo on Wikimedia Commons, 1200 px wide"
+    )
+    image_credit: str | None = Field(
+        description="The line to print beside the photo (author and licence)"
+    )
 
 
 def planner_city(city: City) -> PlannerCity:
     return PlannerCity(
-        slug=city.slug, name=city.name, centre=city.centre, timezone=city.timezone
+        slug=city.slug,
+        name=city.name,
+        centre=city.centre,
+        timezone=city.timezone,
+        intro={
+            lang: CityIntro(text=intro.text, source_url=intro.source_url)
+            for lang, intro in city.intro.items()
+        },
+        image_url=city.image_url,
+        image_credit=city.image_credit,
     )

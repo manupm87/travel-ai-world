@@ -38,7 +38,13 @@ Steps:
      (`Wien`, `Praha`), not the English one;
    - `aliases`: the draft folds the labels to ASCII; a name whose letters fold away (Łódź → `odz`)
      needs the common ASCII spelling added by hand (`lodz`), and the Spanish exonym when there is
-     one (`bolonia`, `múnich`/`munich`).
+     one (`bolonia`, `múnich`/`munich`);
+   - `[hero]`: the photo the trip overview shows, drafted from the city's Wikidata image (P18) when
+     Commons licenses it freely. Open `https://commons.wikimedia.org/wiki/File:<file>` and look at
+     it: keep it only if it is a skyline or a famous landmark, otherwise pick a better free photo
+     on Commons and write its file name and credit
+     (`"{author} ({licence}) · Wikimedia Commons"`). The table is optional; delete it to ship no
+     photo.
 
    Every command below is `just <recipe> <arg> …`: `just` has no `name=value` arguments, so
    `just corpus city=<slug>` would build the literal "city=<slug>". `just -n <recipe> <args>` prints

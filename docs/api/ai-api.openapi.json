@@ -325,6 +325,25 @@
         "title": "ChatRequest",
         "type": "object"
       },
+      "CityIntro": {
+        "description": "A city's own description in one language: the lead of its Wikivoyage\narticle (CC BY-SA 4.0), trimmed at a sentence boundary, and the page it\ncomes from \u2014 shown with the text, as the licence asks.",
+        "properties": {
+          "source_url": {
+            "title": "Source Url",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text",
+          "source_url"
+        ],
+        "title": "CityIntro",
+        "type": "object"
+      },
       "DaySlots": {
         "description": "Card ids per part of the day. Every part is sent, empty or not, so the\ngenerated type matches the page's `Record<DayPart, string[]>`.",
         "properties": {
@@ -799,7 +818,7 @@
         "type": "object"
       },
       "PlannerCity": {
-        "description": "A city the planner covers (`GET /planner/cities`): what the page needs\nto offer it as a destination. The spellings it answers to stay server-side.",
+        "description": "A city the planner covers (`GET /planner/cities`): what the page needs\nto offer it as a destination and to introduce it on a trip overview. The\nspellings it answers to stay server-side.",
         "properties": {
           "centre": {
             "description": "[latitude, longitude]",
@@ -815,6 +834,38 @@
             ],
             "title": "Centre",
             "type": "array"
+          },
+          "image_credit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The line to print beside the photo (author and licence)",
+            "title": "Image Credit"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The city's photo on Wikimedia Commons, 1200 px wide",
+            "title": "Image Url"
+          },
+          "intro": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/CityIntro"
+            },
+            "description": "The city's description keyed by language code (`en`, `es`); a language the corpus has no lead for is absent",
+            "title": "Intro",
+            "type": "object"
           },
           "name": {
             "title": "Name",
@@ -833,7 +884,10 @@
           "slug",
           "name",
           "centre",
-          "timezone"
+          "timezone",
+          "intro",
+          "image_url",
+          "image_credit"
         ],
         "title": "PlannerCity",
         "type": "object"

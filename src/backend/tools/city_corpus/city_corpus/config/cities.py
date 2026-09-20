@@ -47,6 +47,21 @@ class WikipediaCategory:
 
 
 @dataclass(frozen=True)
+class HeroPhoto:
+    """The city's own photo, curated (TRA-182).
+
+    `file` is a Wikimedia Commons file name without the `File:` prefix and
+    `credit` the line the page prints beside it, in the same format as the
+    cards' photos: `"{author} ({licence}) · Wikimedia Commons"`. `discover`
+    drafts both from the city's Wikidata image (P18) after checking the
+    licence on Commons; a human confirms the picture is worth showing.
+    """
+
+    file: str
+    credit: str
+
+
+@dataclass(frozen=True)
 class CityConfig:
     slug: str
     name: str
@@ -76,6 +91,9 @@ class CityConfig:
     # Curated tours file, relative to the tool's folder; `curated/<slug>/tours.toml`
     # when unset.
     curated_tours: str | None = None
+    # The city's photo, read by the cities manifest (TRA-182). Optional: the
+    # readiness gate does not ask for one.
+    hero: HeroPhoto | None = None
 
 
 class CityConfigError(ValueError):
@@ -99,6 +117,7 @@ _TOP_LEVEL_KEYS = {
     "centre",
     "timezone",
     "curated_tours",
+    "hero",
 }
 _REQUIRED_KEYS = {
     "slug",
@@ -195,6 +214,20 @@ def parse_city(data: dict[str, Any], where: str = "<city>") -> CityConfig:
                 f"{where} curated_tours: must be a path inside the tool folder"
             )
 
+    hero = None
+    hero_table = data.get("hero")
+    if hero_table is not None:
+        _check_keys(f"{where} [hero]", hero_table, {"file", "credit"})
+        missing_hero = sorted({"file", "credit"} - set(hero_table))
+        if missing_hero:
+            raise CityConfigError(
+                f"{where} [hero]: missing key(s) {', '.join(missing_hero)}"
+            )
+        hero = HeroPhoto(
+            file=str(hero_table["file"]).strip(),
+            credit=str(hero_table["credit"]).strip(),
+        )
+
     centre_values = data.get("centre", [0.0, 0.0])
     if not isinstance(centre_values, list) or len(centre_values) != 2:
         raise CityConfigError(f"{where} centre: expected [lat, lon]")
@@ -217,6 +250,7 @@ def parse_city(data: dict[str, Any], where: str = "<city>") -> CityConfig:
         centre=centre,
         timezone=data.get("timezone", "UTC"),
         curated_tours=curated_tours,
+        hero=hero,
     )
 
 

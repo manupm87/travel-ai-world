@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 import pytest
+from ai_api.infrastructure import cities as cities_module
 from ai_api.infrastructure.cities import City, load_cities, select_cities
 
 SERVICE = Path(__file__).resolve().parents[1]
@@ -26,6 +27,56 @@ def test_the_manifest_lists_budapest():
     assert "budapest" in budapest.aliases
     assert budapest.timezone == "Europe/Budapest"
     assert budapest.centre == (47.4979, 19.0402)
+
+
+def test_budapest_carries_its_intro_and_its_photo():
+    budapest = next(c for c in load_cities() if c.slug == "budapest")
+
+    assert sorted(budapest.intro) == ["en", "es"]
+    assert budapest.intro["en"].text.startswith("Budapest is the capital")
+    assert budapest.intro["en"].source_url == "https://en.wikivoyage.org/wiki/Budapest"
+    assert budapest.intro["es"].source_url == "https://es.wikivoyage.org/wiki/Budapest"
+    # The title line is not part of the text, and it is never cut mid-sentence.
+    assert not budapest.intro["es"].text.startswith("Budapest\n")
+    assert budapest.intro["es"].text.endswith(".")
+    assert budapest.image_url is not None
+    assert budapest.image_url.startswith("https://commons.wikimedia.org/")
+    assert budapest.image_credit is not None
+    assert budapest.image_credit.endswith("· Wikimedia Commons")
+
+
+def test_a_manifest_without_the_intro_and_photo_keys_still_loads(monkeypatch):
+    """An older `cities.json` (before TRA-182) leaves them empty, not missing."""
+    entry = {
+        "slug": "budapest",
+        "name": "Budapest",
+        "aliases": ["budapest"],
+        "centre": [47.4979, 19.0402],
+        "timezone": "Europe/Budapest",
+        "documents": 6330,
+        "built_at": "2026-09-17T23:14:43Z",
+    }
+    monkeypatch.setattr(
+        cities_module, "files", lambda _: _Manifest(json.dumps([entry]))
+    )
+
+    [budapest] = load_cities()
+
+    assert budapest.intro == {}
+    assert budapest.image_url is None and budapest.image_credit is None
+
+
+class _Manifest:
+    """Stands in for `importlib.resources.files("ai_api")`: any path is the file."""
+
+    def __init__(self, text: str) -> None:
+        self._text = text
+
+    def __truediv__(self, _: str) -> "_Manifest":
+        return self
+
+    def read_text(self, encoding: str = "utf-8") -> str:
+        return self._text
 
 
 BUDAPEST = City("budapest", "Budapest", ("budapest",), (47.5, 19.0), "Europe/Budapest")

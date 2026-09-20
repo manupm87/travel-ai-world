@@ -268,6 +268,18 @@ export interface components {
             thread_id?: string | null;
         };
         /**
+         * CityIntro
+         * @description A city's own description in one language: the lead of its Wikivoyage
+         *     article (CC BY-SA 4.0), trimmed at a sentence boundary, and the page it
+         *     comes from — shown with the text, as the licence asks.
+         */
+        CityIntro: {
+            /** Source Url */
+            source_url: string;
+            /** Text */
+            text: string;
+        };
+        /**
          * DaySlots
          * @description Card ids per part of the day. Every part is sent, empty or not, so the
          *     generated type matches the page's `Record<DayPart, string[]>`.
@@ -408,7 +420,8 @@ export interface components {
         /**
          * PlannerCity
          * @description A city the planner covers (`GET /planner/cities`): what the page needs
-         *     to offer it as a destination. The spellings it answers to stay server-side.
+         *     to offer it as a destination and to introduce it on a trip overview. The
+         *     spellings it answers to stay server-side.
          */
         PlannerCity: {
             /**
@@ -419,6 +432,23 @@ export interface components {
                 number,
                 number
             ];
+            /**
+             * Image Credit
+             * @description The line to print beside the photo (author and licence)
+             */
+            image_credit: string | null;
+            /**
+             * Image Url
+             * @description The city's photo on Wikimedia Commons, 1200 px wide
+             */
+            image_url: string | null;
+            /**
+             * Intro
+             * @description The city's description keyed by language code (`en`, `es`); a language the corpus has no lead for is absent
+             */
+            intro: {
+                [key: string]: components["schemas"]["CityIntro"];
+            };
             /** Name */
             name: string;
             /** Slug */

@@ -127,9 +127,20 @@ characters, wrong `city`, unknown `category`, half coordinates or coordinates ou
 `license` that does not match the `source`.
 
 `data/cities.json`, the **cities manifest**: one entry per configured city (`cities/<slug>.toml`)
-with a built corpus — `slug`, `name`, `aliases`, `centre`, `timezone`, `documents`, `built_at` —
-sorted by slug and rebuilt whole after every build (`python -m city_corpus manifest` rewrites it
-alone). `ai_api` reads its destinations from a copy packaged next to `airports.json`:
+with a built corpus — `slug`, `name`, `aliases`, `centre`, `timezone`, `documents`, `built_at`,
+`intro`, `image_url`, `image_credit` — sorted by slug and rebuilt whole after every build
+(`python -m city_corpus manifest` rewrites it alone).
+
+The last three are what the planner's trip overview shows (ADR 0017), and neither of them fetches
+anything: writing the manifest stays offline and deterministic.
+
+| Field | Meaning |
+|---|---|
+| `intro` | The city's description per Wikivoyage language: `{"en": {"text": …, "source_url": …}}`, read from the corpus document `wv:<lang>:<root>#section:intro:c1` — its title line dropped, cut at the last sentence that fits in 600 characters, paragraph breaks kept. A language whose corpus holds no lead is absent; `{}` when none does |
+| `image_url` | The `[hero]` file as a 1200 px Commons thumbnail (`Special:FilePath`), `null` without `[hero]` |
+| `image_credit` | The `[hero]` credit line, printed beside the photo; `null` without `[hero]` |
+
+`ai_api` reads its destinations from a copy packaged next to `airports.json`:
 `just corpus-manifest` (run by `just corpus`) writes the file and copies it there, and an `ai_api`
 test fails when the two differ. Adding a city therefore needs no deployment variable, only a corpus
 and a new backend image.
@@ -225,6 +236,13 @@ steps here do:
    * **Wikivoyage** en/es: the root article and its `Root/…` district pages → `include_subpages`. With
      district pages, `districts` are those pages and each OSM boundary maps to the page most like its
      name (`# review` when the match is weak or missing); without them, every boundary is its own district.
+   * **`[hero]`**, the city's own photo, shown on the trip overview: the Wikidata image (P18,
+     preferred rank first) when Commons licenses it freely, as `file` (the Commons file name
+     without `File:`) and `credit` (`"{author} ({licence}) · Wikimedia Commons"`, the format the
+     cards use). Without a free P18 the table is drafted empty and marked `# review`. Look at the
+     picture before you keep it: it must be a skyline or a landmark, not an interior or a map.
+     The table is optional — a city without one shows no photo, and the readiness gate says nothing
+     about it.
    * **Wikipedia** en: the standard categories that exist (`Tourist attractions in X`, `Museums in X`,
      `Bridges`, `Parks`, `Churches`, `Squares`, `Monuments and memorials`, `Buildings and structures`
      with `require_coordinates`, `Palaces`, `Towers`, `Thermal baths`, `Synagogues`, …), page counts as
