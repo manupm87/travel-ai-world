@@ -54,6 +54,9 @@ function signIn(page: Page, token: string) {
 
 const DAY_MS = 86_400_000;
 
+/** The composer's label: the planner's own field, among the checklist's. */
+const COMPOSER = "Tell the AI where you want to go";
+
 /** A date `offset` days from today, as core_api stores one. */
 const isoDay = (offset: number): string =>
   new Date(Date.now() + offset * DAY_MS).toISOString().slice(0, 10);
@@ -79,6 +82,12 @@ interface NewTrip {
  */
 async function createTrip(api: APIRequestContext, { title, startsIn, days }: NewTrip) {
   const start = isoDay(startsIn);
+  const end = isoDay(startsIn + days - 1);
+  // core_api refuses every write on a trip that is not upcoming, its children
+  // included (ADR 0019), so a trip that is already over cannot be built in
+  // place: it is written far ahead, filled, and moved back with the one PATCH
+  // it will still accept — the last write of its life.
+  const alreadyOver = startsIn < 0;
   const created = await api.post("/api/v1/trips/", {
     data: {
       title,
@@ -90,8 +99,8 @@ async function createTrip(api: APIRequestContext, { title, startsIn, days }: New
       lng: 19.0402,
       origin: "Madrid",
       budget_tier: 2,
-      start_date: start,
-      end_date: isoDay(startsIn + days - 1),
+      start_date: alreadyOver ? isoDay(365) : start,
+      end_date: alreadyOver ? isoDay(365 + days - 1) : end,
       duration_days: days,
       travelers_adults: 2,
       travelers_children: 0,
@@ -163,6 +172,13 @@ async function createTrip(api: APIRequestContext, { title, startsIn, days }: New
     });
   }
 
+  if (alreadyOver) {
+    const moved = await api.patch(`/api/v1/trips/${id}`, {
+      data: { start_date: start, end_date: end },
+    });
+    expect(moved.ok(), await moved.text()).toBeTruthy();
+  }
+
   return id;
 }
 
@@ -220,7 +236,7 @@ test.describe("Trips in the planner", () => {
     await expect(page.getByRole("tab", { name: /Day 1/ })).toBeVisible();
     await expect(page.getByText(HOTELS.rum.title).first()).toBeVisible();
     // Still plannable: the composer is there and so is "Save trip".
-    await expect(page.getByRole("textbox")).toBeVisible();
+    await expect(page.getByRole("textbox", { name: COMPOSER })).toBeVisible();
     await expect(page.getByRole("button", { name: "Save trip" })).toBeVisible();
   });
 
@@ -261,7 +277,10 @@ test.describe("Trips in the planner", () => {
 
     await page.reload();
     await expect(page.getByRole("heading", { level: 4, name: renamed })).toBeVisible();
-    await expect(page.getByRole("heading", { level: 4, name: title })).toHaveCount(0);
+    // `exact`, because the new title carries the old one inside it.
+    await expect(
+      page.getByRole("heading", { level: 4, name: title, exact: true })
+    ).toHaveCount(0);
   });
 
   test("a trip can be deleted, once the confirmation is answered", async ({ page }) => {
@@ -292,7 +311,7 @@ test.describe("Trips in the planner", () => {
 
     await expect(page.getByRole("heading", { name: "This trip isn't here" })).toBeVisible();
     // The chat column is untouched: a bad link does not take the planner down.
-    await expect(page.getByRole("textbox")).toBeVisible();
+    await expect(page.getByRole("textbox", { name: COMPOSER })).toBeVisible();
   });
 
   test("the old viewer and dashboard links land in the planner", async ({ page }) => {

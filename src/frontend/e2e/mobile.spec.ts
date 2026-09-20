@@ -8,7 +8,8 @@ import { TOKEN_STORAGE_KEY, USER_STORAGE_KEY } from "../src/services/session";
  * itself does not scroll — the panes do.
  *
  * It runs in all three configs (`test:e2e`, `test:e2e:static`, `test:e2e:stack`)
- * and needs no backend: the planner is signed in with a fake unsigned JWT, as
+ * and needs no backend: the planner is signed in with a fake unsigned JWT (the
+ * real `E2E_TOKEN` where the runner has one, which the stack's core_api takes), as
  * `trips.spec.ts` and `planner.spec.ts` sign in with a real one, and no turn is
  * ever sent — two of the three configs have nothing to answer it.
  */
@@ -29,9 +30,16 @@ function fakeToken(sub: string, email: string): string {
   return `${b64url({ alg: "none", typ: "JWT" })}.${b64url({ sub, email, exp })}.`;
 }
 
+/**
+ * Signs the phone in. Against a real backend (the Compose stack) the planner
+ * asks `core_api` for the account's trips as soon as it opens, and a made-up
+ * token comes back 401, which drops the session and sends the page home — so
+ * whenever the runner has a real one (`E2E_TOKEN`), that is the token used.
+ * Without a backend the fake one stands, as it always did.
+ */
 function signIn(page: Page) {
-  const email = "mobile@example.com";
-  const token = fakeToken("mobile-e2e", email);
+  const email = process.env.E2E_EMAIL ?? "mobile@example.com";
+  const token = process.env.E2E_TOKEN ?? fakeToken("mobile-e2e", email);
   return page.addInitScript(
     ({ keys, session }) => {
       window.localStorage.setItem(keys.user, JSON.stringify(session.user));
