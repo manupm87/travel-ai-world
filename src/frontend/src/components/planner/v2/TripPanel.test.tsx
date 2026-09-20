@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ComponentProps } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, renderWithProviders, screen, within } from "@/test/render";
 import en from "@/i18n/en";
@@ -54,7 +54,8 @@ const bathsGroup: OptionGroupState = {
 
 function renderPanel(
   state: Partial<PlannerState> = {},
-  save: Partial<UseSaveTripResult> = {}
+  save: Partial<UseSaveTripResult> = {},
+  props: Partial<ComponentProps<typeof TripPanel>> = {}
 ) {
   const onSave = vi.fn();
   const handlers = {
@@ -102,6 +103,7 @@ function renderPanel(
         onSelectStop={setSelectedStopId}
         save={saveState}
         {...handlers}
+        {...props}
       />
     );
   }
@@ -533,6 +535,31 @@ describe("TripPanel", () => {
     expect(
       within(screen.getByRole("tablist", { name: p.daysNav })).getAllByRole("tab")
     ).toHaveLength(3);
+  });
+
+  it("offers nothing core_api would refuse on a trip that is over", () => {
+    renderPanel({}, {}, { lockedPhase: "past" });
+
+    expect(screen.getByText(en.plan.trips.phase.past)).toBeInTheDocument();
+    expect(screen.queryByText(p.draft)).toBeNull();
+    expect(screen.queryByRole("button", { name: p.save })).toBeNull();
+    expect(screen.queryByRole("button", { name: p.reset })).toBeNull();
+    expect(screen.queryByRole("button", { name: new RegExp(`^${p.change}`) })).toBeNull();
+
+    // The trip itself is still there to read.
+    expect(
+      screen.getByRole("heading", {
+        name: interpolate(p.heading, { count: 3, destination: "Budapest" }),
+      })
+    ).toBeInTheDocument();
+  });
+
+  it("says what `?trip=` is doing instead of leaving the pane blank", () => {
+    const { onShowTrips } = renderPanel({}, {}, { openTrip: { status: "not-found" } });
+
+    expect(screen.getByRole("alert")).toHaveTextContent(en.plan.trips.notFoundTitle);
+    fireEvent.click(screen.getByRole("button", { name: en.plan.trips.title }));
+    expect(onShowTrips).toHaveBeenCalledTimes(1);
   });
 
   it("lists the account's trips while nothing has been asked yet", () => {

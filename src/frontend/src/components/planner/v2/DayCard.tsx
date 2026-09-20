@@ -37,8 +37,9 @@ export interface DayCardProps {
   selectedStopId?: string | null;
   /** Without it the rows are plain text: nothing to select, no detail to open. */
   onSelectStop?: (id: string | null) => void;
-  onChange: (slot: Slot) => void;
-  onRemove: (slot: Slot, cardId: string) => void;
+  /** Without them the day is read only: no "Change", no "Remove". */
+  onChange?: (slot: Slot) => void;
+  onRemove?: (slot: Slot, cardId: string) => void;
 }
 
 /**
@@ -170,14 +171,16 @@ export function DayCard({
                   {cards.length === 0 ? (
                     <div className="flex items-center justify-between gap-3 rounded-xl border border-dashed border-border-soft px-3 py-2">
                       <span className="text-xs italic text-text-muted">{p.emptySlot}</span>
-                      <button
-                        type="button"
-                        onClick={() => onChange({ day: day.day, part })}
-                        aria-label={`${p.change}: ${partLabel}`}
-                        className="shrink-0 rounded-lg border border-border-soft px-2.5 py-1 text-xs text-text-secondary transition hover:border-accent/40 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
-                      >
-                        {p.change}
-                      </button>
+                      {onChange && (
+                        <button
+                          type="button"
+                          onClick={() => onChange({ day: day.day, part })}
+                          aria-label={`${p.change}: ${partLabel}`}
+                          className="shrink-0 rounded-lg border border-border-soft px-2.5 py-1 text-xs text-text-secondary transition hover:border-accent/40 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                        >
+                          {p.change}
+                        </button>
+                      )}
                     </div>
                   ) : (
                     <ul className="flex flex-col gap-2">
@@ -285,22 +288,26 @@ export function DayCard({
                                 </a>
                               )}
                               <span className="ml-auto flex shrink-0 items-center gap-1.5">
-                                <button
-                                  type="button"
-                                  onClick={() => onChange({ day: day.day, part })}
-                                  aria-label={`${p.change}: ${card.title}`}
-                                  className="rounded-lg border border-border-soft px-2.5 py-1 text-xs text-text-secondary transition hover:border-accent/40 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
-                                >
-                                  {p.change}
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => onRemove({ day: day.day, part }, card.id)}
-                                  aria-label={`${p.remove}: ${card.title}`}
-                                  className="rounded-lg px-2.5 py-1 text-xs text-text-secondary transition hover:text-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
-                                >
-                                  {p.remove}
-                                </button>
+                                {onChange && (
+                                  <button
+                                    type="button"
+                                    onClick={() => onChange({ day: day.day, part })}
+                                    aria-label={`${p.change}: ${card.title}`}
+                                    className="rounded-lg border border-border-soft px-2.5 py-1 text-xs text-text-secondary transition hover:border-accent/40 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                                  >
+                                    {p.change}
+                                  </button>
+                                )}
+                                {onRemove && (
+                                  <button
+                                    type="button"
+                                    onClick={() => onRemove({ day: day.day, part }, card.id)}
+                                    aria-label={`${p.remove}: ${card.title}`}
+                                    className="rounded-lg px-2.5 py-1 text-xs text-text-secondary transition hover:text-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                                  >
+                                    {p.remove}
+                                  </button>
+                                )}
                               </span>
                             </div>
                           </li>

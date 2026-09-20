@@ -19,8 +19,9 @@ export interface ActivityDetailProps {
   status: CardDetailStatus;
   /** Back to the day: the back button, Escape, and after a removal. */
   onBack: () => void;
-  onChange: (slot: Slot) => void;
-  onRemove: (slot: Slot, cardId: string) => void;
+  /** Without them the activity is read only: no "Change", no "Remove". */
+  onChange?: (slot: Slot) => void;
+  onRemove?: (slot: Slot, cardId: string) => void;
 }
 
 /**
@@ -284,15 +285,17 @@ export function ActivityDetail({
             {view.license && <span className="text-[10px] text-text-muted">{view.license}</span>}
 
             <span className="ml-auto flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => onChange(slot)}
-                aria-label={`${p.change}: ${view.title}`}
-                className="rounded-lg border border-border-soft px-2.5 py-1 text-xs text-text-secondary transition hover:border-accent/40 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
-              >
-                {p.change}
-              </button>
-              {!isStay && (
+              {onChange && (
+                <button
+                  type="button"
+                  onClick={() => onChange(slot)}
+                  aria-label={`${p.change}: ${view.title}`}
+                  className="rounded-lg border border-border-soft px-2.5 py-1 text-xs text-text-secondary transition hover:border-accent/40 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                >
+                  {p.change}
+                </button>
+              )}
+              {!isStay && onRemove && (
                 <button
                   type="button"
                   onClick={() => onRemove(slot, card.id)}

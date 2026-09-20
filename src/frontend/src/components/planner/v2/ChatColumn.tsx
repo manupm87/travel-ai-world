@@ -8,6 +8,7 @@ import { useStickToBottom } from "@/hooks/useStickToBottom";
 import type { PlannerCity, Slot, TripBrief } from "@/types/planner";
 import { MessageBubble } from "../MessageBubble";
 import { PromptComposer, TEXTAREA_MAX_PX } from "../PromptComposer";
+import { LockedNotice, type LockedPhase } from "./LockedNotice";
 import { OptionCarousel } from "./OptionCarousel";
 import { QuickReplies } from "./QuickReplies";
 import { SelectionChip } from "./SelectionChip";
@@ -27,6 +28,14 @@ export interface ChatColumnProps {
   onSelect: (groupId: string, cardIds: string[], slot?: Slot) => void;
   onDismiss: (groupId: string, cardId: string) => void;
   onToggleShortlist: (cardId: string) => void;
+  /**
+   * The trip on screen is happening now or is over (TRA-196): there is
+   * nothing to send, so the notice takes the composer's place. `null` is the
+   * planner as it always was.
+   */
+  lockedPhase?: LockedPhase | null;
+  /** From the notice: leave this trip where it is and start another. */
+  onNewTrip?: () => void;
 }
 
 function isEmptyAssistant(message: PlannerMessage | undefined): boolean {
@@ -49,6 +58,8 @@ export function ChatColumn({
   onSelect,
   onDismiss,
   onToggleShortlist,
+  lockedPhase = null,
+  onNewTrip,
 }: ChatColumnProps) {
   const { t } = useLanguage();
   const [input, setInput] = useState("");
@@ -71,7 +82,7 @@ export function ChatColumn({
   const lastIsEmptyAssistant = isEmptyAssistant(state.messages[lastIndex]);
   /** The error never hides: without an empty bubble to fill, add one. */
   const showExtraError = !!errorText && !lastIsEmptyAssistant;
-  const showQuickReplies = !isStreaming && !hasItinerary(state.itinerary);
+  const showQuickReplies = !isStreaming && !hasItinerary(state.itinerary) && !lockedPhase;
 
   const renderEntry = (message: PlannerMessage, index: number) => {
     switch (message.kind) {
@@ -111,7 +122,7 @@ export function ChatColumn({
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-3">
-      {state.messages.length === 0 && (
+      {state.messages.length === 0 && !lockedPhase && (
         <p className="text-sm leading-relaxed text-text-secondary">{t.plan.subtitle}</p>
       )}
 
@@ -140,27 +151,33 @@ export function ChatColumn({
         )}
       </div>
 
-      <SuggestionChips
-        onPick={onSend}
-        disabled={isStreaming || unavailable}
-        cities={cities}
-        showStarters={state.messages.length === 0}
-      />
+      {lockedPhase ? (
+        <LockedNotice phase={lockedPhase} onNewTrip={onNewTrip ?? (() => {})} />
+      ) : (
+        <>
+          <SuggestionChips
+            onPick={onSend}
+            disabled={isStreaming || unavailable}
+            cities={cities}
+            showStarters={state.messages.length === 0}
+          />
 
-      <PromptComposer
-        value={input}
-        onChange={setInput}
-        onSubmit={submit}
-        textareaRef={textareaRef}
-        onResize={resize}
-        isStreaming={isStreaming}
-        canSubmit={canSubmit}
-        unavailable={unavailable}
-        placeholder={t.plan.composerPlaceholder}
-        // The pane is one phone screen tall: a three-row composer would push
-        // the transcript out of it (TRA-187).
-        compact
-      />
+          <PromptComposer
+            value={input}
+            onChange={setInput}
+            onSubmit={submit}
+            textareaRef={textareaRef}
+            onResize={resize}
+            isStreaming={isStreaming}
+            canSubmit={canSubmit}
+            unavailable={unavailable}
+            placeholder={t.plan.composerPlaceholder}
+            // The pane is one phone screen tall: a three-row composer would push
+            // the transcript out of it (TRA-187).
+            compact
+          />
+        </>
+      )}
     </div>
   );
 }

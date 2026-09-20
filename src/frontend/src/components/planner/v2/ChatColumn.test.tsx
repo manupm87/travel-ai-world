@@ -1,3 +1,4 @@
+import type { ComponentProps } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, renderWithProviders, screen } from "@/test/render";
 import en from "@/i18n/en";
@@ -39,19 +40,49 @@ const state = (overrides: Partial<PlannerState> = {}): PlannerState => ({
   ...overrides,
 });
 
-function renderColumn(overrides: Partial<PlannerState> = {}, errorText: string | null = null) {
+function renderColumn(
+  overrides: Partial<PlannerState> = {},
+  errorText: string | null = null,
+  props: Partial<ComponentProps<typeof ChatColumn>> = {}
+) {
   const handlers = {
     onSend: vi.fn(),
     onAnswer: vi.fn(),
     onSelect: vi.fn(),
     onDismiss: vi.fn(),
     onToggleShortlist: vi.fn(),
+    onNewTrip: vi.fn(),
   };
   const result = renderWithProviders(
-    <ChatColumn state={state(overrides)} errorText={errorText} unavailable={false} {...handlers} />
+    <ChatColumn
+      state={state(overrides)}
+      errorText={errorText}
+      unavailable={false}
+      {...handlers}
+      {...props}
+    />
   );
   return { ...result, ...handlers };
 }
+
+describe("ChatColumn — a trip that can no longer change", () => {
+  it("puts the locked notice where the composer was, and offers the way on", () => {
+    const { onNewTrip } = renderColumn({}, null, { lockedPhase: "past" });
+
+    expect(screen.getByText(en.plan.locked.past)).toBeInTheDocument();
+    expect(screen.queryByRole("textbox")).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: en.plan.locked.action }));
+    expect(onNewTrip).toHaveBeenCalledTimes(1);
+  });
+
+  it("still shows the transcript of the trip it is reading", () => {
+    renderColumn({}, null, { lockedPhase: "ongoing" });
+
+    expect(screen.getByRole("log")).toBeInTheDocument();
+    expect(screen.getByText(en.plan.locked.ongoing)).toBeInTheDocument();
+  });
+});
 
 describe("ChatColumn", () => {
   it("renders the transcript: bubbles, the chosen chip and the carousel", () => {

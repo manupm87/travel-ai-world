@@ -101,7 +101,7 @@ describe("Header", () => {
     const menu = screen.getByRole("menu", { name: en.nav.userMenu });
     expect(within(menu).getByRole("menuitem", { name: en.nav.trips })).toHaveAttribute(
       "href",
-      "/plan/"
+      "/plan"
     );
   });
 

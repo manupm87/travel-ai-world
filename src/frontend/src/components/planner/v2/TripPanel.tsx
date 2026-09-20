@@ -22,6 +22,8 @@ import { AlternativesSheet } from "./AlternativesSheet";
 import { BriefChecklist } from "./BriefChecklist";
 import { DayCard } from "./DayCard";
 import { DayStrip } from "./DayStrip";
+import type { LockedPhase } from "./LockedNotice";
+import { OpenTripNotice, type OpenTripState } from "./OpenTripNotice";
 import { stayStopId, stopId, type MapStop } from "./mapStops";
 import { RouteStrip } from "./RouteStrip";
 import { SaveTripButton } from "./SaveTripButton";
@@ -55,6 +57,19 @@ export interface TripPanelProps {
   onReset: () => void;
   /** Opens the trips sheet over the planner (the header's "Your trips"). */
   onShowTrips: () => void;
+  /**
+   * What `/plan/?trip=` is doing, when the URL names one: the pane says so
+   * instead of the page going blank. `null` once the trip is in the planner,
+   * and for a planner that opened no trip at all.
+   */
+  openTrip?: OpenTripState | null;
+  /**
+   * The trip on screen is happening now or is over: it is read, not planned.
+   * Every control core_api would refuse goes away — Save, "Start over",
+   * "Change", "Remove" and the sheet behind them — and the header says which
+   * of the two it is instead of calling it a draft.
+   */
+  lockedPhase?: LockedPhase | null;
   /** The trip this planner was opened from, so its own card says so. */
   openTripId?: string | null;
   /** A trip deleted from the list; the page empties the planner if it was this one. */
@@ -123,6 +138,8 @@ export function TripPanel({
   onAskAlternatives,
   onReset,
   onShowTrips,
+  openTrip = null,
+  lockedPhase = null,
   openTripId = null,
   onTripDeleted,
   save,
@@ -243,7 +260,7 @@ export function TripPanel({
         ? p.overview
         : interpolate(p.day, { day: currentDay });
 
-  const sheet = (
+  const sheet = lockedPhase ? null : (
     <AlternativesSheet
       open={changing !== null}
       slot={changing}
@@ -270,6 +287,14 @@ export function TripPanel({
       {t.plan.trips.title}
     </Button>
   );
+
+  if (openTrip) {
+    return (
+      <div className="flex h-full flex-col gap-4 overflow-y-auto overscroll-y-contain p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <OpenTripNotice state={openTrip} onShowTrips={onShowTrips} />
+      </div>
+    );
+  }
 
   if (!hasItinerary(itinerary)) {
     // Nothing said yet: the pane is where the account's trips live, and the
@@ -327,26 +352,32 @@ export function TripPanel({
     >
       <header className="flex animate-fade-up flex-wrap items-start gap-3">
         <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <span className="text-xs text-text-secondary">{p.draft}</span>
+          <span className="text-xs text-text-secondary">
+            {lockedPhase ? t.plan.trips.phase[lockedPhase] : p.draft}
+          </span>
           <h2 className="text-xl font-medium leading-tight text-text-primary lg:text-2xl">{heading}</h2>
           <p className="text-xs text-text-secondary">{counters.join(" · ")}</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {tripsButton}
-          <SaveTripButton
-            status={save.status}
-            tripId={save.tripId}
-            canSave={save.canSave}
-            onSave={save.save}
-          />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onReset}
-            className="px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
-          >
-            {p.reset}
-          </Button>
+          {!lockedPhase && (
+            <>
+              <SaveTripButton
+                status={save.status}
+                tripId={save.tripId}
+                canSave={save.canSave}
+                onSave={save.save}
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onReset}
+                className="px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+              >
+                {p.reset}
+              </Button>
+            </>
+          )}
         </div>
       </header>
 
@@ -369,7 +400,7 @@ export function TripPanel({
           // Nothing to select on the overview: no day is on screen, so no map
           // and no activity page to open. The card is plain text and "Change".
           onSelectStop={currentDay === null ? undefined : onSelectStop}
-          onChange={() => setChanging(STAY_SLOT)}
+          onChange={lockedPhase ? undefined : () => setChanging(STAY_SLOT)}
         />
       )}
 
@@ -395,11 +426,15 @@ export function TripPanel({
             detail={detail}
             status={status}
             onBack={() => onSelectStop(null)}
-            onChange={(slot) => setChanging(slot)}
-            onRemove={(slot, cardId) => {
-              onSelectStop(null);
-              onRemove(slot, cardId);
-            }}
+            onChange={lockedPhase ? undefined : (slot) => setChanging(slot)}
+            onRemove={
+              lockedPhase
+                ? undefined
+                : (slot, cardId) => {
+                    onSelectStop(null);
+                    onRemove(slot, cardId);
+                  }
+            }
           />
         ) : shownDay ? (
           /* Keyed by day: switching remounts the card and replays its entrance. */
@@ -412,8 +447,8 @@ export function TripPanel({
             selectedStopId={selectedStopId}
             onSelectStop={onSelectStop}
             static
-            onChange={(slot) => setChanging(slot)}
-            onRemove={onRemove}
+            onChange={lockedPhase ? undefined : (slot) => setChanging(slot)}
+            onRemove={lockedPhase ? undefined : onRemove}
           />
         ) : (
           /* No day selected: the whole trip, across this column and the one
