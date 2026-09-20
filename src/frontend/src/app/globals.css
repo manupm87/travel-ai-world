@@ -205,6 +205,25 @@
 /* Film grain over the aurora. The data URI lives here, with the texture it
    makes, instead of in a component's class list. */
 @layer components {
+  /* The ring that turns around a focused field (TRA-190): one conic gradient,
+     masked down to the 1 px of itself that shows, so the translucent surface
+     it sits behind keeps letting the aurora through. `--angle` is registered
+     above and `animate-ring-spin` turns it. */
+  .conic-ring {
+    padding: 1px;
+    background-image: conic-gradient(
+      from var(--angle),
+      var(--color-accent),
+      var(--color-purple),
+      var(--color-gold),
+      var(--color-accent)
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+  }
+
   .aurora-grain {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)' opacity='0.55'/%3E%3C/svg%3E");
   }

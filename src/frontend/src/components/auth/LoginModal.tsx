@@ -7,11 +7,18 @@ import { X } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { Button } from "@/components/ui/Button";
-import { safeRedirectPath } from "@/utils/safeRedirect";
+import { safeRedirectPath, safeRedirectTarget } from "@/utils/safeRedirect";
 
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
+  /**
+   * Where to go once signed in, when the caller already knows (the landing's
+   * field hands over the planner with the ask in its query). It wins over
+   * `?redirect=`, and it is the path itself — not the encoded query value —
+   * so nothing inside its own query string is decoded a second time.
+   */
+  redirect?: string | null;
 }
 
 /**
@@ -21,10 +28,11 @@ interface LoginModalProps {
  * - Google (local): the Google Identity Services button; the credential goes
  *   to core_api and the modal navigates itself.
  *
- * A `?redirect=` query parameter is honoured only for same-origin paths (see
- * `safeRedirectPath`); otherwise the destination is the dashboard.
+ * The destination is the `redirect` prop, or else the `?redirect=` query
+ * parameter; either one is honoured only for same-origin paths (see
+ * `safeRedirect.ts`). With neither, signing in lands on the dashboard.
  */
-export function LoginModal({ isOpen, onClose }: LoginModalProps) {
+export function LoginModal({ isOpen, onClose, redirect: asked }: LoginModalProps) {
   const { provider, login, loginWithRedirect } = useAuth();
   const { t } = useLanguage();
   const router = useRouter();
@@ -34,7 +42,8 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
   if (!isOpen) return null;
 
-  const redirect = safeRedirectPath(searchParams.get("redirect"));
+  const redirect =
+    safeRedirectTarget(asked) ?? safeRedirectPath(searchParams.get("redirect"));
 
   const handleCredential = async (credential: string) => {
     setError(null);
