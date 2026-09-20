@@ -43,7 +43,9 @@ function nightsBetween(from: string, to: string): number | null {
 const fieldClass =
   "w-full rounded-lg border border-border-soft bg-bg-primary px-3 py-2 text-sm text-text-primary placeholder-text-secondary/50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40";
 
-const labelClass = "text-[11px] font-medium uppercase tracking-[0.12em] text-text-secondary";
+// A form label, not an eyebrow: sentence case, like every other label in
+// the app (TRA-193).
+const labelClass = "text-xs font-medium text-text-secondary";
 
 const stepperButtonClass =
   "flex h-7 w-7 items-center justify-center rounded-lg border border-border-soft text-text-primary transition hover:border-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-40";

@@ -92,7 +92,7 @@ export function SlotPicker({
         className
       )}
     >
-      <p className="text-[11px] font-medium uppercase tracking-wider text-text-secondary">
+      <p className="text-xs font-medium text-text-secondary">
         {sp.title}
       </p>
 

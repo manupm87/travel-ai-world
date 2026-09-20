@@ -33,7 +33,10 @@ export interface Translations {
     retry: string;
   };
   tripViewer: {
+    /** "{count} travellers" — the header's count, interpolated. */
     travelers: string;
+    /** The same line when there is only one of them. */
+    travelerOne: string;
     totalBudget: string;
     viewBookings: string;
     exportPdf: string;

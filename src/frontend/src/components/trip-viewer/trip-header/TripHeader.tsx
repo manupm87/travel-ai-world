@@ -5,6 +5,7 @@ import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 import { useFormatters } from "@/hooks/useFormatters";
 import { useLanguage } from "@/context/LanguageContext";
+import { interpolate } from "@/i18n";
 import { BudgetCard } from "./BudgetCard";
 import { Calendar, Users, Wallet, ClipboardList, Download } from "lucide-react";
 
@@ -26,9 +27,13 @@ export default function TripHeader({ trip }: TripHeaderProps) {
   const { t } = useLanguage();
   const { formatDate, formatCurrency } = useFormatters();
 
-  const calculateTravelers = () => {
-    return trip.travelers.adults + trip.travelers.children + trip.travelers.infants;
-  };
+  const travellers =
+    trip.travelers.adults + trip.travelers.children + trip.travelers.infants;
+  // "1 travellers" is the kind of line that tells a reader nobody looked.
+  const travellersLabel =
+    travellers === 1
+      ? t.tripViewer.travelerOne
+      : interpolate(t.tripViewer.travelers, { count: travellers });
 
   // `bg-bg-tertiary` was not a token at all, so a finished trip's pill had no
   // background to sit on (TRA-193).
@@ -62,7 +67,7 @@ export default function TripHeader({ trip }: TripHeaderProps) {
                 </div>
                 <div className="flex items-center gap-2 text-text-secondary">
                   <Users size={14} className="text-accent" />
-                  <span className="text-sm">{calculateTravelers()} {t.tripViewer.travelers}</span>
+                  <span className="text-sm">{travellersLabel}</span>
                 </div>
                 <div className="flex items-center gap-2 text-text-secondary">
                   <Wallet size={14} className="text-accent" />

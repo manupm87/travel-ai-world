@@ -68,12 +68,12 @@ async function expectJapanViewer(page: Page) {
   await expect(page.getByRole("heading", { level: 1, name: JAPAN })).toBeVisible();
   await expect(page.getByText("Planning", { exact: true }).first()).toBeVisible();
   // Timeline: the three destinations as clickable nodes.
-  await expect(page.getByRole("heading", { name: "Route Overview" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Route overview" })).toBeVisible();
   for (const city of ["Tokyo", "Kyoto", "Osaka"]) {
     await expect(page.getByRole("button", { name: city }).first()).toBeVisible();
   }
   // Itinerary: 2026-10-01 to 2026-10-14, and the first day's title.
-  await expect(page.getByRole("heading", { name: "Your 14-Day Journey" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Your 14-day journey" })).toBeVisible();
   await expect(page.getByText("Arrival in Neon City").first()).toBeVisible();
 }
 
@@ -214,6 +214,6 @@ test.describe("Signed out", () => {
     await expect(page).toHaveURL(/\/\?redirect=%2Fdashboard%2F$/);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Where to?");
     // The landing opens the sign-in dialog for a visitor the guard turned away.
-    await expect(page.getByRole("heading", { name: /Welcome back/i })).toBeVisible();
+    await expect(page.getByRole("dialog", { name: "Sign in to plan" })).toBeVisible();
   });
 });

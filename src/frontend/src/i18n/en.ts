@@ -26,7 +26,8 @@ const en: Translations = {
     retry: "Try again",
   },
   tripViewer: {
-    travelers: "travellers",
+    travelers: "{count} travellers",
+    travelerOne: "1 traveller",
     totalBudget: "total budget",
     viewBookings: "View bookings",
     exportPdf: "Export PDF",
