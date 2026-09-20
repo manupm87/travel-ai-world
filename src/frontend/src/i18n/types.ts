@@ -194,6 +194,7 @@ export interface Translations {
       openDay: string;
       /** "Stay · {nights} nights" */
       stay: string;
+      stayOne: string;
       stayNoNights: string;
       change: string;
       remove: string;

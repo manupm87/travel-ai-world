@@ -167,6 +167,7 @@ const es: Translations = {
       dayList: "Días del viaje",
       openDay: "Abrir el día {day}",
       stay: "Alojamiento · {nights} noches",
+      stayOne: "Alojamiento · 1 noche",
       stayNoNights: "Alojamiento",
       change: "Cambiar",
       remove: "Quitar",

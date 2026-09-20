@@ -82,7 +82,11 @@ export function StayCard({
               {stopGlyph(stop)}
             </span>
           )}
-          {nights === null ? p.stayNoNights : interpolate(p.stay, { nights })}
+          {nights === null
+            ? p.stayNoNights
+            : nights === 1
+              ? p.stayOne
+              : interpolate(p.stay, { nights })}
         </span>
         <span className="text-[15px] font-medium leading-tight text-text-primary">
           {stay.title}

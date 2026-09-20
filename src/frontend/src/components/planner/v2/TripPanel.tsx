@@ -350,7 +350,7 @@ export function TripPanel({
       ref={scrollerRef}
       className="flex h-full flex-col gap-4 overflow-y-auto overscroll-y-contain p-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
     >
-      <header className="flex animate-fade-up flex-wrap items-start gap-3">
+      <header className="flex animate-fade-up flex-col gap-3 sm:flex-row sm:items-start">
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <span className="text-xs text-text-secondary">
             {lockedPhase ? t.plan.trips.phase[lockedPhase] : p.draft}
@@ -358,7 +358,7 @@ export function TripPanel({
           <h2 className="text-xl font-medium leading-tight text-text-primary lg:text-2xl">{heading}</h2>
           <p className="text-xs text-text-secondary">{counters.join(" · ")}</p>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 flex-wrap items-center gap-2 sm:ml-auto">
           {tripsButton}
           {!lockedPhase && (
             <>

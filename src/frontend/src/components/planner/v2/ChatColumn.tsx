@@ -149,10 +149,20 @@ export function ChatColumn({
             onAnswer={onAnswer}
           />
         )}
+
+        {lockedPhase && state.messages.length === 0 && (
+          // A reopened trip has no transcript: the notice is the column's one
+          // resident, so it sits in the middle rather than at the foot of a void.
+          <div className="my-auto w-full max-w-sm self-center">
+            <LockedNotice phase={lockedPhase} onNewTrip={onNewTrip ?? (() => {})} />
+          </div>
+        )}
       </div>
 
       {lockedPhase ? (
-        <LockedNotice phase={lockedPhase} onNewTrip={onNewTrip ?? (() => {})} />
+        state.messages.length > 0 && (
+          <LockedNotice phase={lockedPhase} onNewTrip={onNewTrip ?? (() => {})} />
+        )
       ) : (
         <>
           <SuggestionChips
