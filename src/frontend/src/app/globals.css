@@ -9,10 +9,14 @@
    --------------------------------------------------------------------------- */
 
 :root {
+  /* Dark by default, and said out loud: the browser draws its own chrome —
+     the date picker, the select's list, the scrollbars, the caret — from
+     `color-scheme`, so without this line those read light on the dusk sky
+     (TRA-192 left the note, TRA-193 keeps the promise). */
+  color-scheme: dark;
   --color-bg-primary: #07070E;
   --color-bg-secondary: #10102A;
   --color-bg-card: #15152E;
-  --color-bg-footer: #07070E;
   --color-accent: #4F6EF7;
   --color-accent-soft: rgba(79, 110, 247, 0.15);
   --color-accent-border: rgba(79, 110, 247, 0.3);
@@ -35,9 +39,9 @@
   --header-h: 72px;
   --shadow-accent-glow: 0 0 20px rgba(79, 110, 247, 0.4);
   /* The three lights of the aurora layer (components/layout/Aurora.tsx). */
-  --aurora-1: rgba(79, 110, 247, 0.34);
-  --aurora-2: rgba(139, 92, 246, 0.28);
-  --aurora-3: rgba(245, 166, 35, 0.2);
+  --aurora-1: rgba(79, 110, 247, 0.5);
+  --aurora-2: rgba(139, 92, 246, 0.42);
+  --aurora-3: rgba(245, 166, 35, 0.3);
   /* Translucent surfaces, so the aurora keeps showing through the chrome. */
   --glass-bg: rgba(21, 21, 46, 0.55);
   --glass-border: rgba(243, 241, 255, 0.12);
@@ -46,10 +50,10 @@
 }
 
 [data-theme="light"] {
+  color-scheme: light;
   --color-bg-primary: #F7F6FB;
   --color-bg-secondary: #EFEDF8;
   --color-bg-card: #FFFFFF;
-  --color-bg-footer: #F7F6FB;
   --color-accent: #4F6EF7;
   --color-accent-soft: rgba(79, 110, 247, 0.1);
   --color-accent-border: rgba(79, 110, 247, 0.2);
@@ -81,7 +85,6 @@
   --color-bg-primary: var(--color-bg-primary);
   --color-bg-secondary: var(--color-bg-secondary);
   --color-bg-card: var(--color-bg-card);
-  --color-bg-footer: var(--color-bg-footer);
   --color-accent: var(--color-accent);
   --color-accent-soft: var(--color-accent-soft);
   --color-accent-border: var(--color-accent-border);

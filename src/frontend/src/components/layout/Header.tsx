@@ -69,11 +69,20 @@ export default function Header({ variant = "landing" }: HeaderProps) {
             )}
 
             {isAuthenticated ? (
-              <Button href="/plan/" size="sm">
-                {t.nav.openPlanner}
+              /* Next to the burger on a 390 px screen "Open the planner"
+                 wrapped to two lines (TRA-193): below `sm` the pill says the
+                 one word, while the accessible name stays the full action. */
+              <Button
+                href="/plan/"
+                size="sm"
+                aria-label={t.nav.openPlanner}
+                className="whitespace-nowrap"
+              >
+                <span className="sm:hidden">{t.nav.plannerShort}</span>
+                <span className="hidden sm:inline">{t.nav.openPlanner}</span>
               </Button>
             ) : (
-              <Button size="sm" onClick={openLogin}>
+              <Button size="sm" onClick={openLogin} className="whitespace-nowrap">
                 {t.auth.login}
               </Button>
             )}

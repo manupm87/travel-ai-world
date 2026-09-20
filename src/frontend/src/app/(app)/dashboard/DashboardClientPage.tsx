@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AskField } from "@/components/landing/AskField";
-import { Aurora } from "@/components/layout/Aurora";
 import { ConfirmDelete } from "@/components/dashboard/ConfirmDelete";
 import EmptyDashboard from "@/components/dashboard/EmptyDashboard";
 import { TripEditSheet } from "@/components/dashboard/TripEditSheet";
@@ -27,9 +26,9 @@ const COLLAPSE_MS = 300;
  * replaces the card with what the API stored) and this page only decides which
  * dialog is open and which card is collapsing.
  *
- * The aurora is mounted here rather than in `(app)/layout.tsx` because the
- * planner shares that layout and has a background of its own (TRA-193 moves
- * the decision into the layout).
+ * The dusk horizon behind it comes from the shell (`AppAurora`), which the
+ * planner — the one page in this group with a background of its own — leaves
+ * out.
  */
 export default function DashboardClientPage() {
   const { t } = useLanguage();
@@ -69,8 +68,6 @@ export default function DashboardClientPage() {
 
   return (
     <>
-      <Aurora />
-
       <AskField variant="inline" />
 
       <Container className="flex flex-col gap-6 px-4 pb-20 sm:px-8">
