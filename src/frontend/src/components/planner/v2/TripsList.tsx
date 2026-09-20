@@ -83,7 +83,7 @@ export function TripsList({ openTripId = null, onDeleted, onOpen }: TripsListPro
 
   if (status === "loading") {
     return (
-      <div className="flex flex-col gap-3">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(17rem,1fr))] gap-3">
         <p role="status" className="sr-only">
           {l.loading}
         </p>
@@ -135,12 +135,15 @@ export function TripsList({ openTripId = null, onDeleted, onOpen }: TripsListPro
 
   return (
     <>
-      <div className="flex flex-col gap-3">
+      {/* One grid, however wide the surface is: three across the trip pane
+          when it spans the map's column, one down the sheet. A group is a
+          line across it, not a section of its own. */}
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(17rem,1fr))] gap-3">
         {groups.map((group, index) => (
           <Fragment key={group.phase}>
             <h3
               className={cn(
-                "flex items-center gap-4 text-sm font-medium text-text-secondary",
+                "col-span-full flex items-center gap-4 text-sm font-medium text-text-secondary",
                 index > 0 && "pt-3"
               )}
             >
