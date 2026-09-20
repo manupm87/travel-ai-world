@@ -55,7 +55,9 @@ One orchestrated moment per page; everything else answers something the reader d
 - **Entrances** stay under 600 ms and happen once, on load. Per-section fade-ups as you scroll are
   the generated-page default: don't.
 - **Answers to an action** — a sheet sliding in, a card collapsing after a confirm, a button
-  becoming a spinner — are welcome, because they show what changed.
+  becoming a spinner — are welcome, because they show what changed. A focused field wears the
+  conic ring (indigo → violet → amber) turning slowly around its border: `animate-ring-spin` over
+  the registered `--angle`. Idle, it is a quiet 1 px `--glass-border`.
 - Keyframes live in `globals.css` under `@theme` as `--animate-*`, next to the existing ones, and
   are documented in the comment block above them. `prefers-reduced-motion` is honoured once,
   globally: no component adds its own guard.

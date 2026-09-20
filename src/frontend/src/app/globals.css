@@ -115,8 +115,9 @@
    are no-ops: the app's motion comes from these keyframes plus the
    `--animate-*` theme tokens below, which give us `animate-fade-up`,
    `animate-fade-in`, `animate-scale-in`, `animate-slide-in-right`,
-   `animate-slide-in-up`, `animate-shimmer`, `animate-pulse-ring` and the two
-   aurora drifts, `animate-aurora-drift` and `animate-aurora-drift-slow`.
+   `animate-slide-in-up`, `animate-shimmer`, `animate-pulse-ring`, the two
+   aurora drifts (`animate-aurora-drift`, `animate-aurora-drift-slow`) and
+   `animate-ring-spin`, the conic ring that turns around a focused field.
    Entrances stay under 0.6 s; the two looping ones (shimmer, pulse-ring) run
    longer, because a placeholder sweep at 0.6 s reads as a flicker. The aurora
    runs longest of all — it is weather, not an entrance, so at 28–40 s a glance
@@ -169,6 +170,19 @@
   100% { transform: translate3d(-4%, 3%, 0) scale(1.04); }
 }
 
+/* The conic ring that turns around a focused field. A plain custom property
+   cannot be animated, so the angle is registered with a type; browsers without
+   `@property` simply show the ring standing still. */
+@property --angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes ring-spin {
+  to { --angle: 360deg; }
+}
+
 @keyframes aurora-breathe {
   0% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.85; }
   50% { transform: translate3d(-5%, 2%, 0) scale(1.08); opacity: 1; }
@@ -185,6 +199,7 @@
   --animate-pulse-ring: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   --animate-aurora-drift: aurora-drift 28s ease-in-out infinite alternate;
   --animate-aurora-drift-slow: aurora-breathe 40s ease-in-out infinite alternate;
+  --animate-ring-spin: ring-spin 6s linear infinite;
 }
 
 /* Film grain over the aurora. The data URI lives here, with the texture it
