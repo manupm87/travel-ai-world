@@ -70,6 +70,32 @@ describe("ConfirmDelete", () => {
     expect(onCancel).toHaveBeenCalledTimes(2);
   });
 
+  it("stops cancelling once the delete is on its way", async () => {
+    let release: () => void = () => {};
+    onConfirm.mockReturnValue(
+      new Promise<void>((resolve) => {
+        release = resolve;
+      })
+    );
+    open();
+
+    fireEvent.click(screen.getByRole("button", { name: r.confirm }));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: r.deleting })).toBeDisabled()
+    );
+
+    // The trip is already on its way out: nothing here may claim otherwise.
+    const cancel = screen.getByRole("button", { name: r.cancel });
+    expect(cancel).toBeDisabled();
+    fireEvent.click(cancel);
+    fireEvent.keyDown(document, { key: "Escape" });
+    fireEvent.click(document.querySelector("[aria-hidden='true']")!);
+    expect(onCancel).not.toHaveBeenCalled();
+
+    release();
+    await waitFor(() => expect(onConfirm).toHaveBeenCalledTimes(1));
+  });
+
   it("gives the focus back to whatever opened it", () => {
     const opener = document.createElement("button");
     document.body.append(opener);

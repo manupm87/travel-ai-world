@@ -21,6 +21,10 @@ export interface ConfirmDeleteProps {
  * dialog opens, so Enter never deletes anything by momentum. The destructive
  * button keeps the name it had in the menu — "Delete trip" — so the action
  * reads the same from the card to the confirmation.
+ *
+ * Once "Delete trip" is pressed the dialog locks: Cancel, Escape and the
+ * backdrop all stop answering, because the request is already on its way and
+ * closing the dialog would not call it back — it would only hide the fact.
  */
 export function ConfirmDelete({ trip, onConfirm, onCancel }: ConfirmDeleteProps) {
   const { t } = useLanguage();
@@ -55,12 +59,21 @@ export function ConfirmDelete({ trip, onConfirm, onCancel }: ConfirmDeleteProps)
     };
   }, [open]);
 
+  // Both buttons go disabled while the DELETE is in flight, which would drop
+  // focus onto the body and out of the trap; the dialog itself holds it.
+  useEffect(() => {
+    if (!deleting) return;
+    dialogRef.current?.focus();
+  }, [deleting]);
+
   useEffect(() => {
     if (!open) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.stopPropagation();
-        onCancel();
+        // Once the DELETE is in flight there is nothing left to call off, so
+        // the dialog refuses to disappear and pretend the trip survived.
+        if (!deleting) onCancel();
         return;
       }
       if (event.key !== "Tab" || !dialogRef.current) return;
@@ -81,7 +94,7 @@ export function ConfirmDelete({ trip, onConfirm, onCancel }: ConfirmDeleteProps)
     };
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [open, onCancel]);
+  }, [open, onCancel, deleting]);
 
   if (!trip) return null;
 
@@ -100,7 +113,7 @@ export function ConfirmDelete({ trip, onConfirm, onCancel }: ConfirmDeleteProps)
     <>
       <div
         aria-hidden="true"
-        onClick={onCancel}
+        onClick={deleting ? undefined : onCancel}
         className="fixed inset-0 z-40 animate-fade-in bg-bg-primary/60 backdrop-blur-sm"
       />
       <div
@@ -109,6 +122,7 @@ export function ConfirmDelete({ trip, onConfirm, onCancel }: ConfirmDeleteProps)
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
+        tabIndex={-1}
         className="fixed top-1/2 left-1/2 z-50 w-[min(24rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 animate-scale-in rounded-2xl border border-glass-border bg-bg-card p-6 shadow-field-glow"
       >
         <h2 id={titleId} className="text-lg font-medium text-text-primary">
@@ -129,7 +143,8 @@ export function ConfirmDelete({ trip, onConfirm, onCancel }: ConfirmDeleteProps)
             ref={cancelRef}
             type="button"
             onClick={onCancel}
-            className="rounded-lg px-4 py-2.5 text-sm font-medium text-text-secondary transition hover:text-text-primary focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none"
+            disabled={deleting}
+            className="rounded-lg px-4 py-2.5 text-sm font-medium text-text-secondary transition hover:text-text-primary focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60"
           >
             {r.cancel}
           </button>
