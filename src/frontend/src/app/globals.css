@@ -173,6 +173,33 @@ body {
   color: #fff;
 }
 
+/* ---------------------------------------------------------------------------
+   Touch input (TRA-187)
+   Deliberately outside every `@layer`: these rules have to beat Tailwind's
+   utilities (`text-sm`, `text-[15px]`), which live in the `utilities` layer,
+   and unlayered CSS wins over any layer regardless of specificity.
+
+   iOS Safari zooms the page in whenever a form control with a font smaller
+   than 16 px takes the focus, and it never zooms back out — which reads as
+   "the screen moves" the moment you tap the planner's composer. 1 rem on
+   coarse pointers only leaves the mouse-driven type scale alone.
+   --------------------------------------------------------------------------- */
+
+@media (pointer: coarse) {
+  textarea,
+  select,
+  input:where(:not([type="checkbox"], [type="radio"], [type="range"])) {
+    font-size: 1rem;
+  }
+}
+
+/* No 300 ms tap delay, and no double-tap-to-zoom on things meant to be tapped. */
+button,
+a,
+[role="button"] {
+  touch-action: manipulation;
+}
+
 /* One global opt-out: every animation and transition collapses to an instant,
    so components never need their own `prefers-reduced-motion` branch. */
 @media (prefers-reduced-motion: reduce) {

@@ -235,6 +235,11 @@ npm run test:e2e:static    # playwright.static.config.ts: `next build` served on
 npm run test:e2e:stack     # playwright.stack.config.ts: the Compose stack already running on :8080, every spec
 ```
 
+`e2e/mobile.spec.ts` runs in every config: one 390 × 844 pass over the landing (no horizontal
+overflow, the CTA and the drawer) and the planner (the document does not scroll, the tabs and the
+whole composer are inside the viewport). It signs in with a fake unsigned JWT and sends no turn,
+so it needs no backend.
+
 `e2e/trips.spec.ts` is the signed-in suite (dashboard and trip viewer over the seeded trips). It
 signs in by writing `E2E_TOKEN`, a local-mode JWT from `just dev-token <email>`, and the profile
 into `localStorage` before the first navigation, and skips itself when `E2E_TOKEN` is unset. The

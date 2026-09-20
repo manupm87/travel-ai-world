@@ -52,4 +52,16 @@ describe("SuggestionChips", () => {
     const labels = screen.getAllByRole("button").map((b) => b.textContent);
     expect(labels).toEqual(en.plan.suggestions);
   });
+
+  it("is one scrolling row below lg and a wrapping cloud above it (TRA-187)", () => {
+    renderWithProviders(<SuggestionChips onPick={vi.fn()} />);
+
+    const row = screen.getAllByRole("button")[0]?.parentElement;
+    expect(row?.className).toContain("overflow-x-auto");
+    expect(row?.className).toContain("lg:flex-wrap");
+    expect(row?.className).toContain("lg:overflow-visible");
+    // A chip that shrank or wrapped its label would defeat the row.
+    expect(screen.getAllByRole("button")[0]?.className).toContain("shrink-0");
+    expect(screen.getAllByRole("button")[0]?.className).toContain("whitespace-nowrap");
+  });
 });

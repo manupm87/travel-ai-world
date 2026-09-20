@@ -319,6 +319,7 @@ const en: Translations = {
       title: "Demo mode",
       body:
         "The planner's backend is not connected yet, so this is a recorded Budapest session: real places, photos and sources, but the same answers for everyone. Nothing is saved.",
+      short: "Recorded Budapest session · nothing is saved",
       dismiss: "Hide this notice",
     },
   },

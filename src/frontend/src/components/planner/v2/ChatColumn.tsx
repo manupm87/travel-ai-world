@@ -120,7 +120,7 @@ export function ChatColumn({
         onScroll={onScroll}
         role="log"
         aria-live="polite"
-        className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-1"
+        className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-y-contain px-1"
       >
         {state.messages.map((message, index) => (
           <Fragment key={message.id}>{renderEntry(message, index)}</Fragment>
@@ -157,6 +157,9 @@ export function ChatColumn({
         canSubmit={canSubmit}
         unavailable={unavailable}
         placeholder={t.plan.composerPlaceholder}
+        // The pane is one phone screen tall: a three-row composer would push
+        // the transcript out of it (TRA-187).
+        compact
       />
     </div>
   );

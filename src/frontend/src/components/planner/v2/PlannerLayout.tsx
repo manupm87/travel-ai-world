@@ -28,6 +28,16 @@ export interface PlannerLayoutProps {
  * Without a map there are two of each: the trip pane spans what the map left
  * (chat ~30 %, trip ~70 %) and keeps its own scroller, and the tablist offers
  * Chat and Trip alone.
+ *
+ * The height is `100dvh`, not `100vh` (TRA-187): on a phone `100vh` is the
+ * viewport with the browser's toolbars hidden, so a `vh` pane is taller than
+ * what you can see, the composer sits under the fold and the document itself
+ * starts scrolling — which is exactly what this layout promises it never does.
+ * `dvh` follows the visible viewport instead. The panes are therefore the only
+ * scrollers, and they say so with `overscroll-y-contain`, so reaching the end
+ * of one does not rubber-band the page behind it. The pane that touches the
+ * bottom edge pads itself with `env(safe-area-inset-bottom)`, which
+ * `viewportFit: "cover"` (root layout) makes non-zero.
  */
 export function PlannerLayout({ banner = null, chat, panel, map }: PlannerLayoutProps) {
   const { t } = useLanguage();
@@ -61,7 +71,7 @@ export function PlannerLayout({ banner = null, chat, panel, map }: PlannerLayout
   };
 
   return (
-    <div className="flex h-[calc(100vh-var(--header-h))] min-h-0 flex-col">
+    <div className="flex h-[calc(100dvh-var(--header-h))] min-h-0 flex-col">
       <h1 className="sr-only">{t.plan.title}</h1>
 
       {banner && <div className="shrink-0">{banner}</div>}
@@ -116,7 +126,7 @@ export function PlannerLayout({ banner = null, chat, panel, map }: PlannerLayout
           role="tabpanel"
           aria-labelledby={tabId("chat")}
           className={cn(
-            "min-h-0 flex-col border-border p-4 lg:flex lg:border-r",
+            "min-h-0 flex-col border-border p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:flex lg:border-r lg:p-4 lg:pb-4",
             // The fade runs when the class appears, i.e. when the tab becomes
             // the active one: no remount, so the pane keeps its own state.
             active === "chat" ? "flex animate-fade-in" : "hidden"
@@ -129,7 +139,7 @@ export function PlannerLayout({ banner = null, chat, panel, map }: PlannerLayout
           role="tabpanel"
           aria-labelledby={tabId("trip")}
           className={cn(
-            "min-h-0 overflow-y-auto bg-bg-secondary lg:block",
+            "min-h-0 overflow-y-auto overscroll-y-contain bg-bg-secondary lg:block",
             active === "trip" ? "block animate-fade-in" : "hidden"
           )}
         >

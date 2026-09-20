@@ -359,6 +359,8 @@ export interface Translations {
     demo: {
       title: string;
       body: string;
+      /** The same notice in one line, for a phone-width banner. */
+      short: string;
       dismiss: string;
     };
   };

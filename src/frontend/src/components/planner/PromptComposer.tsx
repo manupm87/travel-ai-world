@@ -3,8 +3,8 @@
 import type { KeyboardEvent, RefObject } from "react";
 import { Loader2, Send } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { cn } from "@/utils/cn";
 
-export const TEXTAREA_MIN_PX = 72;
 export const TEXTAREA_MAX_PX = 192;
 
 interface PromptComposerProps {
@@ -20,6 +20,12 @@ interface PromptComposerProps {
   unavailable: boolean;
   /** Overrides the landing card's copy (the planner page asks for a change). */
   placeholder?: string;
+  /**
+   * Tight vertical budget (the planner's chat pane on a phone): one line to
+   * start with instead of three, and less padding around it. Above `lg` it is
+   * the same composer as everywhere else.
+   */
+  compact?: boolean;
 }
 
 /** Textarea + send button. Enter sends, Shift+Enter inserts a newline. */
@@ -33,6 +39,7 @@ export function PromptComposer({
   canSubmit,
   unavailable,
   placeholder,
+  compact = false,
 }: PromptComposerProps) {
   const { t } = useLanguage();
   const p = t.planner;
@@ -46,7 +53,12 @@ export function PromptComposer({
   };
 
   return (
-    <div className="bg-bg-primary border border-border-soft rounded-xl p-4 focus-within:border-accent/60 focus-within:ring-2 focus-within:ring-accent/10 transition-colors flex flex-col gap-3">
+    <div
+      className={cn(
+        "bg-bg-primary border border-border-soft rounded-xl p-4 focus-within:border-accent/60 focus-within:ring-2 focus-within:ring-accent/10 transition-colors flex flex-col gap-3",
+        compact && "p-3 lg:p-4"
+      )}
+    >
       <textarea
         ref={textareaRef}
         value={value}
@@ -55,14 +67,25 @@ export function PromptComposer({
         onInput={onResize}
         placeholder={placeholder ?? p.placeholder}
         disabled={isStreaming}
-        rows={3}
+        // One row, and the minimum height below governs how tall the empty
+        // composer is: `rows` would otherwise fight the compact minimum.
+        rows={1}
         aria-label={p.title}
-        className="w-full bg-transparent text-[15px] text-text-primary placeholder-text-secondary/50 resize-none focus:outline-none disabled:opacity-60"
-        style={{ minHeight: `${TEXTAREA_MIN_PX}px`, maxHeight: `${TEXTAREA_MAX_PX}px` }}
+        className={cn(
+          "w-full bg-transparent text-base lg:text-[15px] text-text-primary placeholder-text-secondary/50 resize-none focus:outline-none disabled:opacity-60",
+          compact ? "min-h-11 lg:min-h-[72px]" : "min-h-[72px]"
+        )}
+        style={{ maxHeight: `${TEXTAREA_MAX_PX}px` }}
       />
       <div className="flex items-center justify-between gap-4 border-t border-border-soft pt-3">
         <span className="text-[10px] text-text-secondary/60">
-          {unavailable ? <span role="status">{p.unavailable}</span> : p.sendHint}
+          {unavailable ? (
+            <span role="status">{p.unavailable}</span>
+          ) : (
+            /* A keyboard hint is noise on a phone, and the row is the widest
+               thing in a narrow pane; the `unavailable` notice always shows. */
+            <span className="hidden sm:inline">{p.sendHint}</span>
+          )}
         </span>
         <button
           type="button"

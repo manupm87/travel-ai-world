@@ -247,7 +247,7 @@ export function TripPanel({
 
   if (!hasItinerary(itinerary)) {
     return (
-      <div className="flex h-full flex-col gap-4 overflow-y-auto p-4">
+      <div className="flex h-full flex-col gap-4 overflow-y-auto overscroll-y-contain p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <BriefChecklist
           brief={brief}
           missing={state.missing}
@@ -280,13 +280,16 @@ export function TripPanel({
   const stayStop = mapStops.find((stop) => stop.kind === "stay") ?? null;
 
   return (
-    <div ref={scrollerRef} className="flex h-full flex-col gap-4 overflow-y-auto p-4">
+    <div
+      ref={scrollerRef}
+      className="flex h-full flex-col gap-4 overflow-y-auto overscroll-y-contain p-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
+    >
       <header className="flex animate-fade-up flex-wrap items-start gap-3">
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <span className="text-[10px] font-medium uppercase tracking-wider text-text-secondary">
             {p.draft}
           </span>
-          <h2 className="text-2xl font-medium leading-tight text-text-primary">{heading}</h2>
+          <h2 className="text-xl font-medium leading-tight text-text-primary lg:text-2xl">{heading}</h2>
           <p className="text-xs text-text-secondary">{counters.join(" · ")}</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">

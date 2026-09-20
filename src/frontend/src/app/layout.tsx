@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "@/context/LanguageContext";
@@ -31,6 +31,19 @@ export const metadata: Metadata = {
       "Your dream trip, designed by AI. Personalized itineraries in 30 seconds.",
     type: "website",
   },
+};
+
+/**
+ * The visual viewport, not an assumed 980 px page, and no zoom on focus.
+ *
+ * `viewportFit: "cover"` lets the layout reach under the rounded corners and
+ * the home indicator; the panes that touch the bottom edge pay for it with
+ * `env(safe-area-inset-bottom)` padding.
+ */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 /**

@@ -319,6 +319,7 @@ const es: Translations = {
       title: "Modo demo",
       body:
         "El backend del planificador aún no está conectado, así que esto es una sesión de Budapest grabada: lugares, fotos y fuentes reales, pero las mismas respuestas para todos. No se guarda nada.",
+      short: "Sesión de Budapest grabada · no se guarda nada",
       dismiss: "Ocultar este aviso",
     },
   },

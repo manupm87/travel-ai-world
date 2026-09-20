@@ -131,7 +131,7 @@ export function AlternativesSheet({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="fixed inset-x-0 bottom-0 z-50 flex max-h-[85vh] animate-slide-in-up flex-col rounded-t-2xl border border-border bg-bg-card shadow-accent-glow lg:inset-y-0 lg:left-auto lg:right-0 lg:max-h-none lg:w-[420px] lg:animate-slide-in-right lg:rounded-none lg:rounded-l-2xl"
+        className="fixed inset-x-0 bottom-0 z-50 flex max-h-[85dvh] animate-slide-in-up flex-col rounded-t-2xl border border-border bg-bg-card shadow-accent-glow lg:inset-y-0 lg:left-auto lg:right-0 lg:max-h-none lg:w-[420px] lg:animate-slide-in-right lg:rounded-none lg:rounded-l-2xl"
       >
         <div className="flex items-start gap-3 border-b border-border px-4 py-3">
           <div className="flex min-w-0 flex-1 flex-col">
@@ -171,7 +171,7 @@ export function AlternativesSheet({
               placeholder={a.guidePlaceholder}
               aria-label={a.guidePlaceholder}
               disabled={disabled}
-              className="min-w-0 flex-1 rounded-lg border border-border bg-bg-primary px-3 py-1.5 text-sm text-text-primary placeholder:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-50"
+              className="min-w-0 flex-1 rounded-lg border border-border bg-bg-primary px-3 py-1.5 text-base sm:text-sm text-text-primary placeholder:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-50"
             />
             <button
               type="submit"
@@ -183,7 +183,7 @@ export function AlternativesSheet({
           </form>
         )}
 
-        <div className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 py-4">
+        <div className="flex flex-1 flex-col gap-3 overflow-y-auto overscroll-y-contain px-4 py-4">
           {group
             ? cards.map((card) => (
                 <OptionCard
@@ -220,7 +220,7 @@ export function AlternativesSheet({
           ) : null}
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:pb-3">
           <span className="text-xs text-text-secondary">
             {interpolate(a.shortlist, { count: shortlist.length })}
           </span>

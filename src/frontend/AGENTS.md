@@ -151,7 +151,15 @@ TypeScript 5, Tailwind CSS v4.
   no banner. The same session is the test double in unit tests and in `e2e/planner.spec.ts`
   (route mocked with it, plus one test where the route answers 404). Motion comes from the
   keyframes in `globals.css` (`animate-fade-up`, `animate-scale-in`, ...; `prefers-reduced-motion`
-  is honoured globally). The "Save
+  is honoured globally).
+  **On a phone the page itself never scrolls** (TRA-187): `PlannerLayout` is
+  `100dvh` tall, not `100vh` (which is the viewport with the browser's toolbars hidden and would
+  push the composer under the fold), the panes are the only scrollers and each one says so with
+  `overscroll-y-contain` and pads its bottom edge with `env(safe-area-inset-bottom)` — the root
+  layout asks for `viewportFit: "cover"`. Every form control is 16 px on a coarse pointer (one
+  un-layered rule in `globals.css`, because iOS zooms the page in on a smaller one and never zooms
+  back out), the chip rows scroll sideways instead of wrapping, and `e2e/mobile.spec.ts` (390 × 844,
+  every config, no backend) holds the whole contract. The "Save
   trip" button waits for the persistence issue (TRA-146). The page knows no city by name (TRA-168):
   `services/planner.ts::listCities` reads `GET /ai/planner/cities`, `hooks/usePlannerCities` loads it
   once, and `ChatColumn` turns it into one "Plan a trip to {city}" starter chip per city
@@ -195,7 +203,10 @@ TypeScript 5, Tailwind CSS v4.
   launches Chromium with `--enable-unsafe-swiftshader` and without `WAYLAND_DISPLAY`: VS Code
   forwards that WSLg socket into the devcontainer and it breaks SwiftShader (no WebGL at all,
   see `.devcontainer/README.md`, TRA-180). The spec still checks `hasWebGL` and asserts the
-  "map unavailable" fallback where there is none.
+  "map unavailable" fallback where there is none. `mobile.spec.ts` is the phone-viewport suite
+  (`test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true })`): it runs in
+  all three configs, signs the planner in with a fake unsigned JWT and sends no turn, so it needs no
+  backend either.
 
 ## Commands
 

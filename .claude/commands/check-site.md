@@ -79,5 +79,6 @@ shape come from `src/services/session.ts`), then `browser_navigate` to `/dashboa
 | Social proof | "50,000+" and "190+" stats visible |
 | CTA | "Plan My Trip Free" link visible |
 | Planner | the prompt input renders and accepts text |
+| Mobile (every config) | at 390 x 844: `/` does not scroll sideways and its CTA and drawer work; `/plan/` does not scroll at all, the Chat/Trip tabs and the whole composer are inside the viewport |
 | Prerender (static and stack configs) | `/` arrives as full HTML before hydration; `/trip/?id=` is one shell, `/trip/<id>/` a 404 |
 | Trips (stack config, `E2E_TOKEN` set) | `/dashboard/` lists the four seeded trips under their sections; a card and a deep link open `/trip/?id=<uuid>` with the Japan trip's header, timeline and itinerary; an unknown id shows the not-found state; signed out, `/dashboard/` redirects to `/?redirect=` |

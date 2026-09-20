@@ -41,12 +41,16 @@ export default function Itinerary({ trip }: ItineraryProps) {
     <Section variant="secondary" padding="large">
       <div className="flex flex-col gap-8">
         {/* Destination Filters (Sticky) */}
-        <div className="sticky top-(--header-h) z-30 py-4 bg-bg-secondary/80 backdrop-blur-md -mx-4 px-4 border-b border-border-soft">
-          <div className="flex flex-wrap gap-3">
+        {/* The bleed has to match `Container`'s own padding, or the blurred strip
+            stops short of the edge on one side (TRA-187). */}
+        <div className="sticky top-(--header-h) z-30 py-4 bg-bg-secondary/80 backdrop-blur-md -mx-8 px-8 lg:-mx-16 lg:px-16 border-b border-border-soft">
+          {/* One scrolling row on a phone: wrapped to two rows the sticky bar is
+              ~130 px tall and eats the day it is meant to filter. */}
+          <div className="flex gap-3 overflow-x-auto md:flex-wrap md:overflow-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <button 
               onClick={() => setFilter("all")}
               aria-pressed={filter === "all"}
-              className={`px-5 py-2.5 rounded-full text-[13px] font-medium transition-colors ${
+              className={`shrink-0 whitespace-nowrap px-5 py-2.5 rounded-full text-[13px] font-medium transition-colors ${
                 filter === "all" ? "bg-accent text-white" : "bg-bg-surface border border-border-soft text-text-secondary hover:bg-bg-card hover:text-text-primary"
               }`}
             >
@@ -57,7 +61,7 @@ export default function Itinerary({ trip }: ItineraryProps) {
                 key={dest.id}
                 onClick={() => setFilter(dest.id)}
                 aria-pressed={filter === dest.id}
-                className={`px-5 py-2.5 rounded-full text-[13px] font-medium transition-colors flex items-center gap-2 ${
+                className={`shrink-0 whitespace-nowrap px-5 py-2.5 rounded-full text-[13px] font-medium transition-colors flex items-center gap-2 ${
                   filter === dest.id ? "bg-accent text-white" : "bg-bg-surface border border-border-soft text-text-secondary hover:bg-bg-card hover:text-text-primary"
                 }`}
               >
@@ -70,7 +74,7 @@ export default function Itinerary({ trip }: ItineraryProps) {
 
         <div className="flex flex-col gap-3">
           <SectionLabel>{t.tripViewer.yourItinerary}</SectionLabel>
-          <h3 className="text-text-primary text-[42px] font-medium tracking-[-1px] leading-[1.1]">
+          <h3 className="text-text-primary text-3xl md:text-[42px] font-medium tracking-[-1px] leading-[1.1]">
             {interpolate(t.tripViewer.journeyTitle, { duration: trip.dates.durationDays })}
           </h3>
         </div>
@@ -84,7 +88,7 @@ export default function Itinerary({ trip }: ItineraryProps) {
               <div 
                 key={day.dayNumber} 
                 id={isFirstDayOfDest ? `dest-${day.destinationId}` : undefined}
-                className="scroll-mt-[180px]" // Account for sticky header + sticky filters
+                className="scroll-mt-[140px] md:scroll-mt-[180px]" // Sticky header + the filter row (one line on a phone)
               >
                 <DayCard day={day} currency={trip.budget.currency} />
               </div>

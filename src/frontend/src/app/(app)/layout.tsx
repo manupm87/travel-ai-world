@@ -7,7 +7,7 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
  */
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-bg-primary flex flex-col font-sans">
+    <div className="min-h-dvh bg-bg-primary flex flex-col font-sans">
       <Header variant="dashboard" />
       <main className="flex flex-col flex-1 pt-(--header-h)">
         <ProtectedRoute>{children}</ProtectedRoute>
