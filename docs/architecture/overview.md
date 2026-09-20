@@ -43,7 +43,10 @@ Calls go in one direction only: `ai_api → core_api`. `core_api` works with `ai
 - `core_api` is **N-tier**: `api → services → repositories → models`. Generic `BaseRepository`
   and `BaseService`; endpoints are thin; services raise domain errors; a single handler maps them
   to HTTP. `Trip` is the aggregate root: its children are nested under `/trips/{trip_id}/...` and
-  authorised once at the boundary ([ADR 0005](adr/0005-trip-aggregate-nested-resources.md)).
+  authorised once at the boundary ([ADR 0005](adr/0005-trip-aggregate-nested-resources.md)). One
+  trip is one city; its `phase` (`upcoming | ongoing | past`) is derived from its dates, and an
+  ongoing or past trip refuses every write with 409 `TRIP_LOCKED`
+  ([ADR 0019](adr/0019-trips-live-in-the-planner.md)).
   Entities own their invariants (`check_invariants()`); one transaction per request
   (`unit_of_work`) commits on success and rolls back on any error.
 - `ai_api` is **ports and adapters**: `domain` (types + Protocols) ← `application` (use cases) ←

@@ -86,7 +86,7 @@ uv run python scripts/export_openapi.py  # → docs/api/*.openapi.json (then `np
   capped at 2 s before `SIGKILL`.
 
   Where that work goes instead: a CLI command run outside the request path (`city_corpus`,
-  `core_api.ops`, the `migrate`/`seed` entrypoints), or its own scheduled function. If a request
+  `core_api.ops`, the `migrate` entrypoint), or its own scheduled function. If a request
   genuinely needs to hand off work, it must leave the process (a queue or another function), not
   live in it.
 - **Logging**: `create_app` calls `travel_common.http.logging.configure_logging(settings.LOG_LEVEL)`

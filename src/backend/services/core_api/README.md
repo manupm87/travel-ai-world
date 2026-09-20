@@ -1,7 +1,7 @@
 # core_api
 
-Users, trip data (trips, destinations, itinerary days, activities, meals, accommodations,
-transportations) and chat conversations (threads and their messages) on PostgreSQL. Owns the account behind every bearer token: in local mode it also
+Users, trip data (trips, itinerary days, activities, meals, accommodations, transportations)
+and chat conversations (threads and their messages) on PostgreSQL. Owns the account behind every bearer token: in local mode it also
 signs people in with Google and issues the JWTs every service trusts; in Cognito mode
 ([ADR 0009](../../../../docs/architecture/adr/0009-lambda-cognito-budget.md)) the user pool issues
 them and this service upserts the account from the claims.
@@ -11,23 +11,17 @@ them and this service upserts the account from the claims.
 ```bash
 cp .env.example .env       # AUTH_MODE=local: SECRET_KEY, GOOGLE_*, DB_* (Cognito mode: COGNITO_*)
 uv run alembic upgrade head
-uv run python -m core_api.ops seed you@example.com       # optional: the four demo trips for that account
 uv run python -m core_api.devtools token you@example.com # optional: a local JWT for that account (see below)
 uv run uvicorn core_api.main:app --reload --port 8000    # http://localhost:8000/docs
 ```
 
-`seed` (`just seed you@example.com` from the repo root) creates the account if it does not exist
-and loads the demo trips through the services, so the same rules apply as to a request; running
-it again replaces those trips and leaves the account's other trips alone. The same command runs
-in the container (`entrypoint.sh seed <email>`) and on Lambda (`{"command": "seed", "args":
-{"email": "..."}}` on `/events`); see [ADR 0011](../../../../docs/architecture/adr/0011-real-trips-seed-and-client-side-loading.md).
-
 `devtools token` (`just dev-token you@example.com`) prints the local-mode JWT `POST /auth/google`
 would issue for that account, so a browser can be signed in without Google: the Playwright suite
 (`just test-e2e-stack`) and the Playwright MCP write it into `localStorage`
-(`docs/runbooks/local-dev.md`). The account must exist and be active (seed first; exit 1 otherwise),
-and `AUTH_MODE` must be `local`. It is deliberately not an `ops` command: `ops` is what `/events`
-exposes, and nothing in the running service imports `devtools`.
+(`docs/runbooks/local-dev.md`). It creates the account when there is none — the real Google
+sign-in adopts it later, matching on the email — refuses an inactive one, and needs
+`AUTH_MODE=local`. Creating accounts is exactly why it is deliberately not an `ops` command:
+`ops` is what `/events` exposes, and nothing in the running service imports `devtools`.
 
 ## Endpoints (`/api/v1`)
 
@@ -40,9 +34,9 @@ exposes, and nothing in the running service imports `devtools`.
 | `PATCH/DELETE` | `/users/{id}` | Bearer (owner) | Only your own account |
 | `PATCH` | `/users/{id}/role` | Admin | |
 | `GET/POST` | `/trips/` | Bearer | Only the caller's trips |
-| `GET/PATCH/DELETE` | `/trips/{id}` | Bearer (owner) | 403 for another user's trip; response embeds every child |
-| CRUD | `/trips/{id}/destinations/`, `/trips/{id}/itinerary-days/`, `/trips/{id}/accommodations/`, `/trips/{id}/transportations/` | Bearer (owner) | Nested under the owner's trip |
-| CRUD | `/trips/{id}/itinerary-days/{day_id}/activities/`, `.../meals/` | Bearer (owner) | Nested under a day of the owner's trip |
+| `GET/PATCH/DELETE` | `/trips/{id}` | Bearer (owner) | 403 for another user's trip; response embeds every child and its derived `phase`; `PATCH` is 409 `TRIP_LOCKED` once the trip is ongoing or past, `DELETE` never is |
+| CRUD | `/trips/{id}/itinerary-days/`, `/trips/{id}/accommodations/`, `/trips/{id}/transportations/` | Bearer (owner) | Nested under the owner's trip; writes 409 `TRIP_LOCKED` unless the trip is `upcoming` |
+| CRUD | `/trips/{id}/itinerary-days/{day_id}/activities/`, `.../meals/` | Bearer (owner) | Nested under a day of the owner's trip; same lock |
 | `GET/POST` | `/chat-threads/` | Bearer | Only the caller's conversations, most recent activity first |
 | `GET/PATCH/DELETE` | `/chat-threads/{id}` | Bearer (owner) | 403 for another user's thread; the response has no messages; delete takes them with it |
 | `GET/POST` | `/chat-threads/{id}/messages/` | Bearer (owner) | Append-only, in the order written; an answer may carry `sources`, `model`, tokens and `latency_ms` ([ADR 0013](../../../../docs/architecture/adr/0013-chat-conversations-in-core-api.md)) |
@@ -52,6 +46,10 @@ exposes, and nothing in the running service imports `devtools`.
 Every trip collection offers `GET /` (paginated with `skip`/`limit`), `POST /`, `GET/PATCH/DELETE /{item_id}`.
 A child that exists under another trip answers 404, never 403, so ids leak nothing
 ([ADR 0005](../../../../docs/architecture/adr/0005-trip-aggregate-nested-resources.md)).
+
+A trip is **one city** and its `phase` (`upcoming | ongoing | past`) is derived from its dates,
+never stored; everything inside an ongoing or past trip is read-only
+([ADR 0019](../../../../docs/architecture/adr/0019-trips-live-in-the-planner.md)).
 
 Full contract: [`docs/api/core-api.openapi.json`](../../../../docs/api/core-api.openapi.json).
 

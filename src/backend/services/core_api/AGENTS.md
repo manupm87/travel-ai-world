@@ -32,6 +32,21 @@ models/*.py             tables (DeclarativeBase, SQLAlchemy 2 style)
   `/trips/{trip_id}/...` and authorised once by `get_owned_trip` (or `get_owned_itinerary_day`
   for activities and meals). Services scope every query with `get_in(id, trip_id=...)` /
   `list(page, trip_id=...)`; a child under another parent is a 404.
+- **A trip is one city, and its phase is derived** (ADR 0019). `Trip` carries `city_slug` (the
+  planner's name for the city, and the key that reopens the trip), `city`, `country`,
+  `country_code`, the centre, `origin` and `budget_tier`; there is no `destinations` table and no
+  stored `status`. `phase_of(start, end, today)` (in `models/trip.py`) answers
+  `upcoming | ongoing | past` and `TripResponse` exposes it as a `computed_field` on the server's
+  UTC date — nothing writes it, so a trip becomes ongoing and then past on its own.
+- **Ongoing and past trips are read-only.** `Trip.ensure_editable()` raises `TripLocked` (409,
+  `TRIP_LOCKED`); `TripService.update` calls it, and **writes** resolve their parent through
+  `get_editable_trip` / `get_editable_itinerary_day` while reads keep `get_owned_*`. The lock is
+  the aggregate's, so it covers every child without an endpoint mentioning it. `DELETE
+  /trips/{id}` is never locked: removing a trip is not changing it.
+- **The planner's cards ride along.** `activities` and `meals` carry `source_ref` (the corpus id,
+  indexed), `part_of_day` and `card`; `accommodations` carry `source_ref` and `card`. `card` is an
+  opaque JSON object: core_api stores it and returns it untouched, and never interprets it — the
+  shape is ai_api's (`OptionCard`) and the two services share no code.
 - **`ChatThread` is a second root** (ADR 0013), owned by a user like a trip:
   `get_owned_chat_thread` authorises once (403 for another user's thread) and its messages live
   under `/chat-threads/{thread_id}/messages/`. Messages are append-only (list and append, no
@@ -51,27 +66,22 @@ models/*.py             tables (DeclarativeBase, SQLAlchemy 2 style)
   cannot lazy-load.
 - **Models** use the SQLAlchemy 2 typed style (`Mapped[...]`, `mapped_column`) and compose the mixins
   in `models/base.py` (`UUIDPrimaryKeyMixin`, `TimestampMixin`, `TripChildMixin`,
-  `ItineraryDayChildMixin`, `CoordinatesMixin`, `LocationSnapshotMixin`). Closed vocabularies live in
+  `ItineraryDayChildMixin`, `CoordinatesMixin`, `LocationSnapshotMixin`, `PlannerCardMixin`,
+  `PartOfDayMixin`). Closed vocabularies live in
   `models/enums.py` and are reused by the schemas (and therefore by the OpenAPI contract).
-- **Entity rules live on the entity**: override `check_invariants()` (see `Trip`, `Destination`,
+- **Entity rules live on the entity**: override `check_invariants()` (see `Trip`,
   `Accommodation`, `Transportation`) and raise `travel_common.exceptions.*`. `BaseService` calls it
   before every create and update, so PATCH cannot break what POST enforces. Single-field formats
   (`TimeOfDay`, `CountryCode`, `Money`, `Rating`, ...) are the `Annotated` types in `schemas/_types.py`.
 - **One transaction per request**: `db/session.py::unit_of_work` commits when the request succeeds
   and rolls back on any exception (domain errors included). Repositories only `flush`; never call
   `commit()` from a repository or a service.
-- **Seed** (`seed/`, ADR 0011): the four demo trips are `TripResponse`-shaped JSON files in
-  `seed/data/`; `seed_demo_trips(session_factory, email)` loads them for one account (created if
-  missing, adopted by the real sign-in because both modes match by email) through `TripService` /
-  `BaseService.create`, so the Create schemas and `check_invariants()` apply and the database
-  generates the UUIDs (the loader remaps the fixture ids). Idempotent by `(owner, title)`, one unit
-  of work per run. One implementation, three entry points, all through `ops.py`: `just seed <email>`,
-  `entrypoint.sh seed <email>` (Compose) and `{"command": "seed", "args": {"email": ...}}` on
-  `POST /events` (Lambda). Never load data with raw SQL.
+- **No demo seed** (ADR 0019): trips are made in the planner and saved through the API. `migrate`
+  is the whole of `ops.COMMANDS`, and therefore the whole surface `POST /events` exposes.
 - **Dev-only helpers live in `devtools.py`, never in `ops.py`**: `python -m core_api.devtools token
-  <email>` (`just dev-token <email>`) prints the local-mode JWT the sign-in would issue for an
-  existing, active account (`sub` = its id, `email`, `role`, `exp`), so the Playwright suite and the
-  Playwright MCP sign in without Google. `ops.COMMANDS` is the surface `POST /events` exposes, so a
+  <email>` (`just dev-token <email>`) prints the local-mode JWT the sign-in would issue for that
+  account (`sub` = its id, `email`, `role`, `exp`), **creating it when it is new**, so the
+  Playwright suite and the Playwright MCP sign in without Google. `ops.COMMANDS` is the surface `POST /events` exposes, so a
   token minter must not be one of them; nothing in the service imports `devtools`
   (`tests/test_devtools.py` checks both). Refuses in Cognito mode: those tokens come from the pool.
 
@@ -79,7 +89,6 @@ models/*.py             tables (DeclarativeBase, SQLAlchemy 2 style)
 
 ```bash
 uv run uvicorn core_api.main:app --reload --port 8000
-uv run python -m core_api.ops seed you@example.com   # demo trips for that account (just seed)
 uv run python -m core_api.devtools token you@example.com   # local JWT for that account (just dev-token)
 uv run pytest                      # PostgreSQL: creates <DB_NAME>_test and empties it between tests
                                    # each request gets its own session; use `db_session` only to arrange data

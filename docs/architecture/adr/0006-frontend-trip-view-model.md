@@ -1,5 +1,9 @@
 # 0006 — The frontend renders a view model mapped from the backend contract
 
+> **Superseded in part by [ADR 0019](0019-trips-live-in-the-planner.md):** the stored
+> `status` is gone. A trip's `phase` (`upcoming | ongoing | past`) is derived from its dates
+> by the backend and the view model reads it; the trip holds one city, not a list.
+
 **Status:** Accepted
 **Date:** 2026-09-07
 

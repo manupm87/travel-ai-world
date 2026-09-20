@@ -37,8 +37,8 @@ The values are baked into the image (one tiny stage per service in the `Dockerfi
 Terraform does not have to repeat them; the function's own environment can still override them.
 
 **Commands.** `core_api/ops.py` holds the commands an image can run instead of serving:
-`migrate` (`alembic upgrade head`) and `seed <email>` (the four demo trips for that account,
-[ADR 0011](../architecture/adr/0011-real-trips-seed-and-client-side-loading.md)). Outside Lambda
+`migrate` (`alembic upgrade head`), and nothing else: it is the whole surface `POST /events`
+exposes, so a command has to earn its place there (ADR 0019 retired the demo seed). Outside Lambda
 the entrypoint applies migrations at start, as before (`MIGRATE_ON_START=false` opts out). On
 Lambda (`AWS_LAMBDA_FUNCTION_NAME` is set) it does not, so a cold start never races a schema
 change; the deploy workflow runs them instead:
@@ -46,21 +46,18 @@ change; the deploy workflow runs them instead:
 ```bash
 # CLI form: any container with the core-api image
 docker run --rm --env-file services/core_api/.env travel-ai-world/core-api:local migrate
-docker run --rm --env-file services/core_api/.env travel-ai-world/core-api:local seed you@example.com
 
 # Compose form: the running core_api container (its DB_SERVER already points at the stack's PostgreSQL)
-docker compose exec core_api /app/entrypoint.sh seed you@example.com
+docker compose exec core_api /app/entrypoint.sh migrate
 
 # Lambda form: the adapter delivers a non-HTTP payload as POST /events (404 outside Lambda; never routed by the gateway)
 aws lambda invoke --function-name <core-api function> --cli-binary-format raw-in-base64-out \
   --payload '{"command": "migrate"}' /dev/stdout
-aws lambda invoke --function-name <core-api function> --cli-binary-format raw-in-base64-out \
-  --payload '{"command": "seed", "args": {"email": "you@example.com"}}' /dev/stdout
 ```
 
-Every form ends in `core_api.ops.run_command`; an unknown command, or `seed` without an email,
-answers 400 (exit code 1 from the CLI). The deployed sequence (promote the image, then seed by
-hand, what to expect in CloudWatch) is in [deploy.md](deploy.md#seed-demo-data).
+Every form ends in `core_api.ops.run_command`; an unknown command answers 400 (exit code 1 from
+the CLI). The deployed sequence, and what the TRA-196 migration deletes on its way through, is in
+[deploy.md](deploy.md#what-the-tra-196-migration-does-to-production-data).
 
 **Trying it locally with the Runtime Interface Emulator** (optional; needs Docker and the
 [`aws-lambda-rie`](https://github.com/aws/aws-lambda-runtime-interface-emulator) binary in `~/.aws-lambda-rie/`):
@@ -148,20 +145,19 @@ Without a Google client, sign in with a minted token instead (next section).
 ### End-to-end tests against the stack
 
 The stack is the only local mode with a backend, so the signed-in Playwright suite
-(`src/frontend/e2e/trips.spec.ts`: the dashboard and the trip viewer over the seeded trips) runs
-against it. Three commands: seed an account, mint its token, run the suite.
+(`src/frontend/e2e/trips.spec.ts`: the trips list and the planner, over trips the suite creates
+through the API) runs against it. Two commands: mint a token, run the suite.
 
 ```bash
 just stack-up
-just seed you@example.com                                          # or, inside the container:
-docker compose exec core_api /app/entrypoint.sh seed you@example.com
-E2E_TOKEN=$(just dev-token you@example.com) just test-e2e-stack     # or, inside the container:
+E2E_TOKEN=$(just dev-token you@example.com) just test-e2e-stack    # or, inside the container:
 E2E_TOKEN=$(docker compose exec -T core_api python -m core_api.devtools token you@example.com) just test-e2e-stack
 ```
 
 `just dev-token` runs `python -m core_api.devtools token <email>` with the host's
 `services/core_api/.env` (the Compose stack publishes PostgreSQL on :5432, so the same `.env`
-reaches it); the container form needs no Python on the host and is what CI uses. Either way the
+reaches it), creating the account when it is new; the container form needs no Python on the host
+and is what CI uses. Either way the
 token is the HS256 JWT `POST /auth/google` would issue, signed with the stack's `SECRET_KEY`. The
 suite writes it into `localStorage` before the first navigation and is skipped without
 `E2E_TOKEN` (`docs/runbooks/local-dev.md#end-to-end-tests`).
@@ -174,8 +170,8 @@ Playwright's Chromium, runs `just stack-up`, waits for `/api/v1/health/` through
 asserts with `curl` that `/` and `/dashboard/` are HTML 200s, both health endpoints answer JSON,
 `/does-not-exist/` is Next's page with a 404 and `/api/v1/trips/` is the API's 401 JSON. It then
 runs `just stack-up` a second time and checks that `/` still answers, which proves the proxy is
-recreated onto the rebuilt `out/`. Then it seeds `e2e@example.com` and mints its token inside the
-`core_api` container (`entrypoint.sh seed`, `python -m core_api.devtools token`; the token is
+recreated onto the rebuilt `out/`. Then it mints a token for `e2e@example.com` inside the
+`core_api` container (`python -m core_api.devtools token`, which creates the account; the token is
 masked in the log), checks the token opens `/api/v1/trips/` through the proxy, and runs
 `just test-e2e-stack`: the smoke and prerender specs plus the signed-in trips suite. The Playwright
 report is uploaded as the `playwright-report-stack` artifact and the containers' logs are printed

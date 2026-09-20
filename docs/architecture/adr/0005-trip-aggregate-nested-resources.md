@@ -1,5 +1,9 @@
 # 0005 — `Trip` is the aggregate root; child resources are nested and declarative
 
+> **Superseded in part by [ADR 0019](0019-trips-live-in-the-planner.md):** a trip is one
+> city, carried on the trip itself. The `destinations` collection described below no longer
+> exists, and writes to a trip that is ongoing or past are refused with `TripLocked`.
+
 **Status:** Accepted
 **Date:** 2026-09-07
 

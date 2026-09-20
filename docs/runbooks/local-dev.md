@@ -29,7 +29,6 @@ Three terminals (also inside the devcontainer):
 
 ```bash
 just migrate       # once, and after pulling new migrations
-just seed you@example.com   # optional: the four demo trips for that account (idempotent)
 just dev-core      # http://localhost:8000/docs
 just dev-ai        # http://localhost:8001/api/v1/ai/docs
 just dev-frontend  # http://localhost:3000
@@ -54,21 +53,24 @@ changes, not to experiment. Each answer then logs `Retrieved N passages: <doc_id
 ## Signing in without Google
 
 `core_api` runs with `AUTH_MODE=local` and trusts HS256 tokens signed with `SECRET_KEY`, so a
-token can be minted from the shell for any existing account instead of going through the Google
-button (which needs a real client id and a browser session):
+token can be minted from the shell for any account instead of going through the Google button
+(which needs a real client id and a browser session):
 
 ```bash
-just seed you@example.com                # creates the account (with the demo trips) if needed
-just dev-token you@example.com           # prints the JWT POST /auth/google would issue (exit 1 if no such account)
+just dev-token you@example.com           # prints the JWT POST /auth/google would issue
 ```
+
+The account is created when it is new — the Google sign-in adopts it later, because both modes
+match on the email — so there is nothing to load first. It starts with no trips: make one in the
+planner.
 
 The browser signs in when the token and the profile are in `localStorage` under the keys of
 `src/frontend/src/services/session.ts`: `travel_ai_token` = the JWT, `travel_ai_user` =
 `{"id": "<the token's sub>", "email": "...", "name": "..."}`. The Playwright suite does this with
 `page.addInitScript` (`src/frontend/e2e/trips.spec.ts`), and a coding agent does it with the
 Playwright MCP's `browser_evaluate` (`.claude/commands/check-site.md`, mode 2). The command is
-`python -m core_api.devtools`, deliberately not an `ops` command: `ops` is what the Lambda's
-`/events` exposes. In Cognito mode it refuses, since the pool issues those tokens.
+`python -m core_api.devtools`, deliberately not an `ops` command — creating accounts is exactly
+why: `ops` is what the Lambda's `/events` exposes. In Cognito mode it refuses, since the pool issues those tokens.
 
 ## Which mode
 
@@ -92,12 +94,11 @@ Three Playwright configs share `src/frontend/e2e/`:
 | `just test-e2e-static` | `next build` on :3100 (started for you) | smoke + `prerender.spec.ts` | CI's `frontend` job |
 | `just test-e2e-stack` | the Compose stack on :8080 (already up) | everything, incl. the signed-in `trips.spec.ts` and `planner.spec.ts` (the planner page over the recorded Budapest session, `/ai/planner` mocked in the browser) | CI's `e2e-stack` job |
 
-The signed-in suite needs the seeded account and its token; without `E2E_TOKEN` it skips itself,
-so the first two modes stay backend-free:
+The signed-in suite needs a token and creates the trips it works on through the API; without
+`E2E_TOKEN` it skips itself, so the first two modes stay backend-free:
 
 ```bash
 just stack-up                                   # needs Docker
-just seed you@example.com
 E2E_TOKEN=$(just dev-token you@example.com) just test-e2e-stack
 cd src/frontend && npx playwright show-report   # after a failure
 ```

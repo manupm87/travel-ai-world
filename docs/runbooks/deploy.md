@@ -64,46 +64,28 @@ Nothing reaches AWS from a merge alone except the frontend. After `main` changes
    ```
 
    The digest must be the one the workflow printed in its "Copy images from GHCR" step.
-4. **Seed demo data** if the environment needs it: next section. It never runs on its own.
-5. **Frontend**: `deploy.yml` deploys itself on the push if it touched `src/frontend/**`
+4. **Frontend**: `deploy.yml` deploys itself on the push if it touched `src/frontend/**`
    (Actions → "Deploy frontend" → Run workflow to redo it by hand). A backend deploy that does
    not change the contract needs no frontend deploy, and the reverse.
 
-## Seed demo data
+## What the TRA-196 migration does to production data
 
-`core_api` ships a `seed` command that loads the four demo trips for one account
-([ADR 0011](../architecture/adr/0011-real-trips-seed-and-client-side-loading.md); every form of
-the command in [docker.md](docker.md#the-same-image-on-aws-lambda)). On Lambda it is reachable
-the way `migrate` is: the Web Adapter delivers a direct invocation as `POST /events`, which only
-the IAM call can reach (the gateway forwards `/api/*` alone). It **never runs automatically**:
-neither the deploy workflow nor the entrypoint calls it, so a production account gets demo
-trips only when someone runs this, after `just aws-login`, from `infra/aws/`:
+The deploy's `migrate` step applies revision `9d3400b9db7a`
+([ADR 0019](../architecture/adr/0019-trips-live-in-the-planner.md)), which **deletes rows**:
 
-```bash
-fn=$(terraform output -raw core_api_function_name)
-aws lambda invoke --function-name "$fn" --cli-binary-format raw-in-base64-out \
-  --payload '{"command": "seed", "args": {"email": "<google-email>"}}' /dev/stdout
-```
+- the four demo trips, by title — the seed that wrote them is gone, and so is the `seed`
+  command (`migrate` is now the only thing `POST /events` accepts);
+- every trip that does not have exactly one destination, because a trip is one city now and
+  there is no city to give those.
 
-The email is the Google account that will sign in on the site. The answer is
-`{"command": "seed", "status": "ok"}` (the adapter may wrap it as
-`{"statusCode": 200, "body": "..."}`); a missing email or an unknown command answers 400 and
-nothing is written. The report is one log line in CloudWatch, in the function's log group
-`/aws/lambda/<function name>` (`infra/aws/lambda.tf`):
+What is left keeps its city, moved from its single destination onto the trip itself. It runs
+once, inside the ordinary `migrate` invocation of the deploy; there is nothing to run by hand
+and nothing to undo (the downgrade restores the structure, not the rows). Take the RDS snapshot
+before the deploy if the account holds anything worth keeping.
 
-```bash
-aws logs tail "/aws/lambda/$fn" --since 10m --format short | grep 'Seed:'
-# Seed: owner id=<n>: 4 demo trips (4 created, 0 replaced)
-```
-
-**Idempotent per account.** A demo trip is identified by owner and title, so a second
-invocation for the same email reports `(0 created, 4 replaced)`, never eight trips; other trips
-of that account and every other account are untouched. Each run is one transaction: the account
-ends with the four trips or unchanged. The account row is created if it does not exist yet, and
-Cognito's sign-in upserts by email, so signing in with that Google account afterwards adopts
-the seeded row (profile refreshed) and the dashboard lists the four trips; open one to
-check the full itinerary in the viewer (`/trip/?id=<uuid>`). To seed a second environment or a
-second account, run the command again with that email.
+Afterwards, sign in with the Google account and open `/plan/`: it lists the account's trips
+(happening now, coming up, past) and opens one at `/plan/?trip=<uuid>`. There is no demo data to
+load any more — a new account starts empty, which is what the planner is for.
 
 ---
 

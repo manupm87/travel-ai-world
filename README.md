@@ -68,7 +68,7 @@ just stack-up       # the same plus the frontend export, on one origin http://lo
 
 | Workflow | Trigger | Does |
 |---|---|---|
-| `pr.yml` | pull request | path-filtered jobs: ruff, per-package tests (PostgreSQL for `core_api`), Docker builds, Compose stack e2e (export + APIs on one origin, seeded, signed in with a minted token), contract drift, eslint + Vitest + Playwright + `next build`, docs hygiene |
+| `pr.yml` | pull request | path-filtered jobs: ruff, per-package tests (PostgreSQL for `core_api`), Docker builds, Compose stack e2e (export + APIs on one origin, signed in with a minted token), contract drift, eslint + Vitest + Playwright + `next build`, docs hygiene |
 | `deploy.yml` | push to `main` touching `src/frontend/` | static export → S3 + CloudFront invalidation (AWS) |
 | `backend-images.yml` | push to `main` touching `src/backend/` | publishes `ghcr.io/manupm87/travel-ai-world/{core-api,ai-api}` |
 | `deploy-backend.yml` | manual | copies the images to GCP or AWS and runs Terraform (plan by default) |
