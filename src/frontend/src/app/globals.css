@@ -1,24 +1,32 @@
 @import "tailwindcss";
 
+/* ---------------------------------------------------------------------------
+   Kyrian World palette (docs/design/kyrian-world.md)
+   Dark is the default: "dusk horizon" — ink at the top, indigo and violet
+   lights drifting across it, a warm amber band where the sky meets the ground.
+   Light is the same sky at dawn: paper, ink text, the same two lights at a
+   third of the opacity.
+   --------------------------------------------------------------------------- */
+
 :root {
-  --color-bg-primary: #0A0A12;
-  --color-bg-secondary: #0E0E1A;
-  --color-bg-card: #13132A;
-  --color-bg-footer: #070710;
+  --color-bg-primary: #07070E;
+  --color-bg-secondary: #10102A;
+  --color-bg-card: #15152E;
+  --color-bg-footer: #07070E;
   --color-accent: #4F6EF7;
   --color-accent-soft: rgba(79, 110, 247, 0.15);
   --color-accent-border: rgba(79, 110, 247, 0.3);
-  --color-text-primary: #FFFFFF;
-  --color-text-secondary: #8888AA;
-  --color-text-muted: rgba(255, 255, 255, 0.5);
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-border-soft: rgba(255, 255, 255, 0.12);
+  --color-text-primary: #F3F1FF;
+  --color-text-secondary: #9A9ABF;
+  --color-text-muted: rgba(243, 241, 255, 0.55);
+  --color-border: rgba(243, 241, 255, 0.08);
+  --color-border-soft: rgba(243, 241, 255, 0.14);
   --color-gold: #F5A623;
   --color-accent-hover: #3B5BDB;
-  --color-bg-surface: #1A1A24;
-  --color-border-card: #2A2A35;
+  --color-bg-surface: #1B1B38;
+  --color-border-card: #26264A;
   --color-status-planning: #F78E4F;
-  --color-status-finished: #8888AA;
+  --color-status-finished: #9A9ABF;
   --color-purple: #8B5CF6;
   --color-error: #F87171;
   --color-success: #22C55E;
@@ -26,32 +34,47 @@
   /* Fixed header height: the offset every page and sticky element uses. */
   --header-h: 72px;
   --shadow-accent-glow: 0 0 20px rgba(79, 110, 247, 0.4);
+  /* The three lights of the aurora layer (components/layout/Aurora.tsx). */
+  --aurora-1: rgba(79, 110, 247, 0.34);
+  --aurora-2: rgba(139, 92, 246, 0.28);
+  --aurora-3: rgba(245, 166, 35, 0.2);
+  /* Translucent surfaces, so the aurora keeps showing through the chrome. */
+  --glass-bg: rgba(21, 21, 46, 0.55);
+  --glass-border: rgba(243, 241, 255, 0.12);
+  /* The lift under the field you type into and under the primary action. */
+  --shadow-field-glow: 0 24px 70px -24px rgba(79, 110, 247, 0.55);
 }
 
 [data-theme="light"] {
-  --color-bg-primary: #F8FAFC;
-  --color-bg-secondary: #F1F5F9;
+  --color-bg-primary: #F7F6FB;
+  --color-bg-secondary: #EFEDF8;
   --color-bg-card: #FFFFFF;
-  --color-bg-footer: #E2E8F0;
+  --color-bg-footer: #F7F6FB;
   --color-accent: #4F6EF7;
   --color-accent-soft: rgba(79, 110, 247, 0.1);
   --color-accent-border: rgba(79, 110, 247, 0.2);
-  --color-text-primary: #0F172A;
-  --color-text-secondary: #475569;
-  --color-text-muted: rgba(15, 23, 42, 0.5);
-  --color-border: rgba(15, 23, 42, 0.08);
-  --color-border-soft: rgba(15, 23, 42, 0.12);
-  --color-gold: #D97706;
+  --color-text-primary: #12122A;
+  --color-text-secondary: #4A4A6A;
+  --color-text-muted: rgba(18, 18, 42, 0.55);
+  --color-border: rgba(18, 18, 42, 0.08);
+  --color-border-soft: rgba(18, 18, 42, 0.12);
+  --color-gold: #B26A00;
   --color-accent-hover: #3B5BDB;
-  --color-bg-surface: #F1F5F9;
-  --color-border-card: #E2E8F0;
-  --color-status-planning: #EA580C;
-  --color-status-finished: #64748B;
+  --color-bg-surface: #EFEDF8;
+  --color-border-card: #E4E1F2;
+  --color-status-planning: #C2410C;
+  --color-status-finished: #4A4A6A;
   --color-purple: #7C3AED;
   --color-error: #DC2626;
   --color-success: #16A34A;
-  --color-warning: #D97706;
+  --color-warning: #B45309;
   --shadow-accent-glow: 0 0 20px rgba(79, 110, 247, 0.3);
+  --aurora-1: rgba(79, 110, 247, 0.18);
+  --aurora-2: rgba(139, 92, 246, 0.14);
+  --aurora-3: rgba(245, 166, 35, 0.16);
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(18, 18, 42, 0.1);
+  --shadow-field-glow: 0 24px 60px -28px rgba(79, 110, 247, 0.4);
 }
 
 @theme inline {
@@ -77,7 +100,11 @@
   --color-error: var(--color-error);
   --color-success: var(--color-success);
   --color-warning: var(--color-warning);
+  /* `bg-glass-bg` / `border-glass-border`: the translucent surface utilities. */
+  --color-glass-bg: var(--glass-bg);
+  --color-glass-border: var(--glass-border);
   --shadow-accent-glow: var(--shadow-accent-glow);
+  --shadow-field-glow: var(--shadow-field-glow);
   --font-sans: var(--font-sans), system-ui, sans-serif;
   --font-heading: var(--font-heading), system-ui, sans-serif;
 }
@@ -85,12 +112,15 @@
 /* ---------------------------------------------------------------------------
    Motion
    Tailwind v4 has no animation plugin here, so `animate-in fade-in …` classes
-   are no-ops: the planner's motion comes from these keyframes plus the
+   are no-ops: the app's motion comes from these keyframes plus the
    `--animate-*` theme tokens below, which give us `animate-fade-up`,
    `animate-fade-in`, `animate-scale-in`, `animate-slide-in-right`,
-   `animate-slide-in-up`, `animate-shimmer` and `animate-pulse-ring`.
-   Entrances stay under 0.6 s; only the two looping ones (shimmer, pulse-ring)
-   run longer, because a placeholder sweep at 0.6 s reads as a flicker.
+   `animate-slide-in-up`, `animate-shimmer`, `animate-pulse-ring` and the two
+   aurora drifts, `animate-aurora-drift` and `animate-aurora-drift-slow`.
+   Entrances stay under 0.6 s; the two looping ones (shimmer, pulse-ring) run
+   longer, because a placeholder sweep at 0.6 s reads as a flicker. The aurora
+   runs longest of all — it is weather, not an entrance, so at 28–40 s a glance
+   never catches it moving.
    `prefers-reduced-motion` is handled globally at the bottom of this file, so
    no component needs a per-element guard.
    --------------------------------------------------------------------------- */
@@ -131,6 +161,20 @@
   50% { opacity: 0.6; transform: scale(1.06); }
 }
 
+/* The aurora's lights wander. Transform and opacity only, so the layer stays on
+   the compositor and never reflows the page in front of it. */
+@keyframes aurora-drift {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(6%, -4%, 0) scale(1.12); }
+  100% { transform: translate3d(-4%, 3%, 0) scale(1.04); }
+}
+
+@keyframes aurora-breathe {
+  0% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.85; }
+  50% { transform: translate3d(-5%, 2%, 0) scale(1.08); opacity: 1; }
+  100% { transform: translate3d(3%, -3%, 0) scale(1); opacity: 0.9; }
+}
+
 @theme {
   --animate-fade-in: fade-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
   --animate-fade-up: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -139,12 +183,22 @@
   --animate-slide-in-up: slide-in-up 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
   --animate-shimmer: shimmer 1.4s linear infinite;
   --animate-pulse-ring: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-aurora-drift: aurora-drift 28s ease-in-out infinite alternate;
+  --animate-aurora-drift-slow: aurora-breathe 40s ease-in-out infinite alternate;
+}
+
+/* Film grain over the aurora. The data URI lives here, with the texture it
+   makes, instead of in a component's class list. */
+@layer components {
+  .aurora-grain {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)' opacity='0.55'/%3E%3C/svg%3E");
+  }
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
-  font-weight: 500;
-  letter-spacing: -0.02em;
+  font-weight: 400;
+  letter-spacing: -0.03em;
 }
 
 * {
@@ -169,8 +223,8 @@ body {
 
 /* Selection */
 ::selection {
-  background-color: rgba(79, 110, 247, 0.3);
-  color: #fff;
+  background-color: var(--color-accent-soft);
+  color: var(--color-text-primary);
 }
 
 /* ---------------------------------------------------------------------------

@@ -5,7 +5,14 @@ interface CardProps {
   children: React.ReactNode;
   className?: string;
   highlight?: boolean;
+  /** `solid` is the opaque surface; `glass` lets the aurora through it. */
+  variant?: "solid" | "glass";
 }
+
+const VARIANTS = {
+  solid: "bg-bg-card border-border",
+  glass: "bg-glass-bg border-glass-border backdrop-blur-xl",
+} as const;
 
 /**
  * Generic Content Card.
@@ -15,15 +22,22 @@ interface CardProps {
  * styling draws emphasis to the card. `className` is merged with `cn`, so a
  * consumer's `p-8` replaces the default `p-6` deterministically.
  *
+ * @param variant - `solid` (default) or the translucent `glass` surface.
  * @param highlight - If true, applies accent borders and a soft background.
  */
-export function Card({ children, className, highlight = false }: CardProps) {
+export function Card({
+  children,
+  className,
+  highlight = false,
+  variant = "solid",
+}: CardProps) {
   return (
     <div
       data-highlight={highlight || undefined}
       className={cn(
-        "bg-bg-card rounded-2xl p-6 border",
-        highlight ? "border-accent-border bg-accent-soft" : "border-border",
+        "rounded-2xl p-6 border",
+        VARIANTS[variant],
+        highlight && "border-accent-border bg-accent-soft",
         className
       )}
     >
