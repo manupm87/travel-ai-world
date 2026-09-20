@@ -6,6 +6,7 @@ import { interpolate } from "@/i18n";
 import { EMPTY_ITINERARY, applyItineraryOps } from "@/hooks/plannerReducer";
 import { BATHS, FIRST_ITINERARY_OPS } from "@/data/planner-demo/session";
 import { DayCard } from "./DayCard";
+import { stopId, toMapStops } from "./mapStops";
 
 const p = en.plan.panel;
 const itinerary = applyItineraryOps(EMPTY_ITINERARY, FIRST_ITINERARY_OPS);
@@ -76,6 +77,51 @@ describe("DayCard", () => {
 
     fireEvent.click(screen.getByRole("button", { name: `${p.remove}: ${BATHS.gellert.title}` }));
     expect(onRemove).toHaveBeenCalledWith({ day: 2, part: "afternoon" }, BATHS.gellert.id);
+  });
+
+  it("selects the stop from the row, and not from Change or Remove", () => {
+    const onSelectStop = vi.fn();
+    const { onChange, onRemove } = renderDay({
+      static: true,
+      mapStops: toMapStops(itinerary, 2),
+      onSelectStop,
+    });
+
+    const row = screen.getByRole("button", {
+      name: interpolate(en.plan.detail.open, { title: BATHS.gellert.title }),
+    });
+    expect(row).toHaveAttribute("aria-pressed", "false");
+    expect(row).toHaveAttribute("data-stop-index", "2");
+
+    fireEvent.click(row);
+    expect(onSelectStop).toHaveBeenCalledWith(stopId(2, "afternoon", BATHS.gellert.id));
+
+    // The two actions are buttons of their own: neither selects anything.
+    onSelectStop.mockClear();
+    fireEvent.click(screen.getByRole("button", { name: `${p.change}: ${BATHS.gellert.title}` }));
+    fireEvent.click(screen.getByRole("button", { name: `${p.remove}: ${BATHS.gellert.title}` }));
+    expect(onSelectStop).not.toHaveBeenCalled();
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onRemove).toHaveBeenCalledTimes(1);
+  });
+
+  it("clears the selection when the selected row is clicked again", () => {
+    const onSelectStop = vi.fn();
+    const id = stopId(2, "afternoon", BATHS.gellert.id);
+    renderDay({
+      static: true,
+      mapStops: toMapStops(itinerary, 2),
+      selectedStopId: id,
+      onSelectStop,
+    });
+
+    const row = screen.getByRole("button", {
+      name: interpolate(en.plan.detail.open, { title: BATHS.gellert.title }),
+    });
+    expect(row).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.click(row);
+    expect(onSelectStop).toHaveBeenCalledWith(null);
   });
 
   it("opens on mount when it is the first day", () => {

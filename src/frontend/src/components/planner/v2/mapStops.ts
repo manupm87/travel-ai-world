@@ -41,6 +41,14 @@ export function stopId(day: number, part: DayPart, cardId: string): string {
 }
 
 /**
+ * What a pin shows, on the map and beside its card in the panel: the stop's
+ * number within the day, or "H" for the stay, which is not numbered.
+ */
+export function stopGlyph(stop: MapStop): string {
+  return stop.kind === "stay" ? "H" : String(stop.index);
+}
+
+/**
  * The pins of one day, in the order the map draws them and the panel numbers
  * them: the stay (when it has coordinates), then the day's cards in slot order.
  * Cards without coordinates are skipped — they are not on the map and their

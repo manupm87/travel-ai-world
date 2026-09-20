@@ -11,7 +11,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { useLanguage } from "@/context/LanguageContext";
 import { useTheme } from "@/context/ThemeContext";
 import { interpolate } from "@/i18n";
-import { boundsOf, lineOf, type MapStop } from "./mapStops";
+import { boundsOf, lineOf, stopGlyph, type MapStop } from "./mapStops";
 
 /**
  * OpenFreeMap's hosted OpenMapTiles styles (ADR 0016): no key, no quota, OSM
@@ -29,6 +29,8 @@ const LINE_LAYER = "trip-day-line";
 const FIT_PADDING = { top: 48, right: 32, bottom: 40, left: 32 };
 /** A day with a single stop must not end up at street level. */
 const MAX_FIT_ZOOM = 15;
+/** Close enough to read the streets around the stop that was opened. */
+const SELECTED_ZOOM = 15;
 /** Used with the city centre, before any stop has coordinates. */
 const CITY_ZOOM = 12;
 
@@ -60,11 +62,6 @@ function accentColour(): string {
   return value || ACCENT_FALLBACK;
 }
 
-/** What the pin shows: the day's number, or "H" for the stay. */
-function glyphOf(stop: MapStop): string {
-  return stop.kind === "stay" ? "H" : String(stop.index);
-}
-
 /**
  * The marker's DOM: a wrapper for MapLibre and a button for us.
  *
@@ -81,14 +78,15 @@ function markerElement(stop: MapStop, label: string): [HTMLElement, HTMLButtonEl
   button.type = "button";
   button.dataset.mapStop = stop.id;
   button.dataset.selected = "false";
+  button.dataset.dimmed = "false";
   button.setAttribute("aria-label", label);
-  button.textContent = glyphOf(stop);
+  button.textContent = stopGlyph(stop);
   button.className = [
     "flex h-7 w-7 cursor-pointer items-center justify-center rounded-full",
     "border-2 border-bg-card text-xs font-semibold text-white shadow-accent-glow",
     "transition-transform duration-150 motion-reduce:transition-none",
     "hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60",
-    "data-[selected=true]:scale-125",
+    "data-[selected=true]:scale-125 data-[dimmed=true]:opacity-40",
     stop.kind === "stay" ? "bg-gold" : "bg-accent",
   ].join(" ");
   root.append(button);
@@ -134,6 +132,24 @@ function drawLine(map: MapLibreMap, stops: MapStop[]): void {
   else map.once("styledata", apply);
 }
 
+/** The viewport that holds the whole day, or the city when it has no stop. */
+function fitDay(map: MapLibreMap, stops: MapStop[], centre: [number, number] | null): void {
+  const bounds = boundsOf(stops);
+  if (bounds) {
+    map.fitBounds(bounds, {
+      padding: FIT_PADDING,
+      maxZoom: MAX_FIT_ZOOM,
+      animate: !reducedMotion(),
+    });
+  } else if (centre) {
+    map.easeTo({
+      center: [centre[1], centre[0]],
+      zoom: CITY_ZOOM,
+      animate: !reducedMotion(),
+    });
+  }
+}
+
 /**
  * The MapLibre instance: OpenFreeMap vector tiles, one numbered HTML marker per
  * stop of the selected day and a straight line joining them in order (the real
@@ -169,6 +185,8 @@ export function TripMapCanvas({
   const stopsRef = useRef(stops);
   /** The theme the current style was built for; `setStyle` follows it. */
   const styleThemeRef = useRef(theme);
+  /** The stop the viewport was last moved for: only a change moves it again. */
+  const selectedRef = useRef<string | null>(null);
   /** Read once, when the map is created: the first render's viewport. */
   const initialRef = useRef<{
     centre: [number, number] | null;
@@ -283,7 +301,7 @@ export function TripMapCanvas({
         // A card's id survives the removal of an earlier card of the same day,
         // but its number does not: the glyph is rewritten with the label, or
         // the pin would keep a number the panel no longer shows.
-        existing.button.textContent = glyphOf(stop);
+        existing.button.textContent = stopGlyph(stop);
         existing.button.setAttribute("aria-label", label);
         existing.marker.setLngLat([stop.lon, stop.lat]);
         continue;
@@ -301,34 +319,42 @@ export function TripMapCanvas({
 
     drawLine(map, stops);
 
-    const bounds = boundsOf(stops);
-    if (bounds) {
-      map.fitBounds(bounds, {
-        padding: FIT_PADDING,
-        maxZoom: MAX_FIT_ZOOM,
-        animate: !reducedMotion(),
-      });
-    } else if (centre) {
-      map.easeTo({
-        center: [centre[1], centre[0]],
-        zoom: CITY_ZOOM,
-        animate: !reducedMotion(),
-      });
-    }
+    fitDay(map, stops, centre);
   }, [stops, centre, t]);
 
-  // ── The selection: the marker grows, nothing else moves ───────────────────
+  // ── The selection: the marker grows, the rest of the day steps back ───────
   useEffect(() => {
     // The pins are read back from the DOM rather than from `markersRef`: the
     // markers are the map's, and this effect only restyles what is on screen.
     const pins = containerRef.current?.querySelectorAll<HTMLElement>("[data-map-stop]") ?? [];
+    const open = stops.find((stop) => stop.id === selectedStopId) ?? null;
     for (const pin of pins) {
       const selected = pin.dataset.mapStop === selectedStopId;
       pin.dataset.selected = selected ? "true" : "false";
+      pin.dataset.dimmed = open && !selected ? "true" : "false";
       if (selected) pin.setAttribute("aria-current", "true");
       else pin.removeAttribute("aria-current");
     }
-  }, [selectedStopId, stops]);
+
+    // Opening an activity puts it in the middle of the map, close enough to
+    // place it among its streets; closing one gives the whole day back. Never
+    // a zoom out on the way in: a reader who came in closer keeps their zoom.
+    // The viewport only moves when the selection itself changed — the effect
+    // also runs when the day does, and that is the other effect's fit to make.
+    const map = mapRef.current;
+    const previous = selectedRef.current;
+    selectedRef.current = selectedStopId;
+    if (!map || previous === selectedStopId) return;
+    if (open) {
+      map.easeTo({
+        center: [open.lon, open.lat],
+        zoom: Math.max(map.getZoom(), SELECTED_ZOOM),
+        animate: !reducedMotion(),
+      });
+    } else if (previous !== null) {
+      fitDay(map, stops, centre);
+    }
+  }, [selectedStopId, stops, centre]);
 
   if (unsupported) {
     return (

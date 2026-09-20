@@ -5,6 +5,7 @@
 
 import type {
   BriefField,
+  CardDetail,
   DayPart,
   ItineraryOp,
   OptionCard,
@@ -294,6 +295,50 @@ export async function listCities(options?: { signal?: AbortSignal }): Promise<Pl
     (city): city is PlannerCity =>
       isObject(city) && typeof city.slug === "string" && typeof city.name === "string"
   );
+}
+
+/** A card detail needs an id and a title; every other field defaults. */
+function toCardDetail(raw: unknown): CardDetail | null {
+  const card = toOptionCard(raw);
+  if (!card || !isObject(raw)) return null;
+  const str = (key: string): string | null =>
+    typeof raw[key] === "string" ? (raw[key] as string) : null;
+  return {
+    ...card,
+    description: str("description") ?? "",
+    heading_path: str("heading_path"),
+    address: str("address"),
+    phone: str("phone"),
+    website: str("website"),
+  };
+}
+
+/**
+ * One card in full (`GET /ai/planner/card?id=`), for the detail panel: the
+ * corpus article behind the card, its address, phone and site.
+ *
+ * `null` — never an error — whenever the detail simply cannot be had: no
+ * ai_api URL (the static export), the route not deployed yet, or an id the
+ * corpus no longer holds (404). The panel then shows what the card itself
+ * carries, which is what demo mode always does. Every other failure throws,
+ * so the hook can tell "nothing to add" from "something went wrong".
+ */
+export async function getCardDetail(
+  id: string,
+  options?: { signal?: AbortSignal }
+): Promise<CardDetail | null> {
+  if (!isAiAvailable()) return null;
+  try {
+    const detail = await request<unknown>(
+      "ai",
+      `/ai/planner/card?id=${encodeURIComponent(id)}`,
+      { auth: true, signal: options?.signal }
+    );
+    return toCardDetail(detail);
+  } catch (err) {
+    if (isRouteMissing(err)) return null;
+    throw err;
+  }
 }
 
 /**

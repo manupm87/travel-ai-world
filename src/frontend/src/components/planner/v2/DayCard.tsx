@@ -9,7 +9,7 @@ import { interpolate } from "@/i18n";
 import { partOf, type DayDraft, type ItineraryWarning } from "@/hooks/plannerReducer";
 import { DAY_PARTS, type DayPart, type Slot } from "@/types/planner";
 import { cn } from "@/utils/cn";
-import { stopId, type MapStop } from "./mapStops";
+import { stopGlyph, stopId, type MapStop } from "./mapStops";
 import { DATE_OPTIONS } from "./tripDates";
 import { WarningBadge } from "./WarningBadge";
 
@@ -29,11 +29,13 @@ export interface DayCardProps {
   index?: number;
   /**
    * This day's pins (`toMapStops`), so a card that is on the map carries the
-   * pin's number and can select it. Empty (the default) hides the badges.
+   * pin's number. Empty (the default) hides the badges; a card without
+   * coordinates has no pin and no number, but is still selectable.
    */
   mapStops?: MapStop[];
-  /** The pin selected on the map, `null` for none. */
+  /** The selected stop, `null` for none; the same id scheme as the map. */
   selectedStopId?: string | null;
+  /** Without it the rows are plain text: nothing to select, no detail to open. */
   onSelectStop?: (id: string | null) => void;
   onChange: (slot: Slot) => void;
   onRemove: (slot: Slot, cardId: string) => void;
@@ -47,6 +49,11 @@ export interface DayCardProps {
  * while collapsed it is `inert` and hidden from assistive technology, exactly
  * as `MobileDrawer` does. With `static` there is nothing to toggle — the day
  * is the only one on screen, so the header is plain text and the body is open.
+ *
+ * Each stop is a button (TRA-179): it selects the stop, which highlights its
+ * pin on the map and turns this column into the activity's own page
+ * (`ActivityDetail`). "Change" and "Remove" are separate buttons beside it, so
+ * neither is ever a click on the row.
  */
 export function DayCard({
   day,
@@ -74,10 +81,8 @@ export function DayCard({
   const warningsFor = (part: DayPart) =>
     warnings.filter((w) => w.slot !== null && w.slot.day === day.day && partOf(w.slot) === part);
 
-  const stopFor = (part: DayPart, cardId: string): MapStop | null => {
-    const id = stopId(day.day, part, cardId);
-    return mapStops.find((stop) => stop.id === id) ?? null;
-  };
+  const stopFor = (id: string): MapStop | null =>
+    mapStops.find((stop) => stop.id === id) ?? null;
 
   const summary = (
     <>
@@ -185,38 +190,31 @@ export function DayCard({
                             : t.plan.priceTiers[String(card.price_tier) as "1" | "2" | "3"],
                         ].filter((entry): entry is string => !!entry);
 
-                        const stop = stopFor(part, card.id);
-                        const selected = stop !== null && stop.id === selectedStopId;
+                        const id = stopId(day.day, part, card.id);
+                        const stop = stopFor(id);
+                        const selected = id === selectedStopId;
 
-                        return (
-                          <li
-                            key={card.id}
-                            data-stop-row={stop?.id}
-                            data-selected={stop ? selected : undefined}
-                            className={cn(
-                              "flex animate-fade-in flex-wrap items-start gap-x-3 gap-y-2 rounded-xl border border-border bg-bg-surface px-3 py-2 transition-shadow motion-reduce:transition-none",
-                              selected && "border-accent ring-2 ring-accent/50"
-                            )}
-                          >
-                            {stop && onSelectStop && (
-                              <button
-                                type="button"
-                                onClick={() => onSelectStop(selected ? null : stop.id)}
-                                aria-pressed={selected}
-                                aria-label={interpolate(t.plan.map.showOnMap, {
-                                  title: card.title,
-                                })}
+                        // Everything down to the meta line belongs to the
+                        // button that opens the activity; the source link and
+                        // the two actions cannot live inside it (a link or a
+                        // button nested in a button is invalid), so they sit
+                        // on their own line under it.
+                        const body = (
+                          <>
+                            {stop && (
+                              <span
+                                aria-hidden="true"
                                 className={cn(
-                                  "flex h-6 w-6 shrink-0 items-center justify-center self-center rounded-full text-[11px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40",
+                                  "flex h-6 w-6 shrink-0 items-center justify-center self-center rounded-full text-[11px] font-medium transition",
                                   selected
                                     ? "bg-accent text-white"
-                                    : "bg-accent-soft text-text-primary hover:bg-accent hover:text-white"
+                                    : "bg-accent-soft text-text-primary"
                                 )}
                               >
-                                {stop.index}
-                              </button>
+                                {stopGlyph(stop)}
+                              </span>
                             )}
-                            <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-bg-card">
+                            <span className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-bg-card">
                               {card.image_url ? (
                                 // Remote Wikimedia images on a static export: no optimizer to route them through.
                                 // eslint-disable-next-line @next/next/no-img-element
@@ -232,49 +230,78 @@ export function DayCard({
                                   className="h-full w-full object-cover"
                                 />
                               ) : (
-                                <div
+                                <span
                                   aria-hidden="true"
-                                  className="h-full w-full bg-gradient-to-br from-accent/30 via-purple/20 to-bg-surface"
+                                  className="block h-full w-full bg-gradient-to-br from-accent/30 via-purple/20 to-bg-surface"
                                 />
                               )}
-                            </div>
-                            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                            </span>
+                            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                               <span className="text-sm font-medium leading-tight text-text-primary">
                                 {card.title}
                               </span>
                               {meta.length > 0 && (
                                 <span className="text-xs text-text-secondary">{meta.join(" · ")}</span>
                               )}
+                            </span>
+                          </>
+                        );
+
+                        return (
+                          <li
+                            key={card.id}
+                            data-stop-row={id}
+                            data-selected={selected}
+                            className={cn(
+                              "flex animate-fade-in flex-col gap-2 rounded-xl border border-border bg-bg-surface px-3 py-2 transition-shadow motion-reduce:transition-none",
+                              selected && "border-accent ring-2 ring-accent/50"
+                            )}
+                          >
+                            {onSelectStop ? (
+                              <button
+                                type="button"
+                                onClick={() => onSelectStop(selected ? null : id)}
+                                aria-pressed={selected}
+                                aria-label={interpolate(t.plan.detail.open, { title: card.title })}
+                                data-stop-index={stop ? stopGlyph(stop) : undefined}
+                                className="flex w-full items-center gap-3 rounded-lg text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                              >
+                                {body}
+                              </button>
+                            ) : (
+                              <div className="flex w-full items-center gap-3 text-left">{body}</div>
+                            )}
+                            <div className="flex flex-wrap items-center gap-2">
                               {card.source && (
                                 <a
                                   href={card.source_url || undefined}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   title={card.license || undefined}
-                                  className="mt-0.5 inline-flex w-fit items-center gap-1 rounded-full border border-border-soft px-2 py-0.5 text-[10px] uppercase tracking-wider text-text-secondary transition hover:border-accent/40 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                                  className="inline-flex w-fit items-center gap-1 rounded-full border border-border-soft px-2 py-0.5 text-[10px] uppercase tracking-wider text-text-secondary transition hover:border-accent/40 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                                 >
                                   {interpolate(t.plan.card.source, { source: card.source })}
                                   <ExternalLink size={10} aria-hidden="true" />
                                 </a>
                               )}
-                            </div>
-                            <div className="flex shrink-0 items-center gap-1.5">
-                              <button
-                                type="button"
-                                onClick={() => onChange({ day: day.day, part })}
-                                aria-label={`${p.change}: ${card.title}`}
-                                className="rounded-lg border border-border-soft px-2.5 py-1 text-xs text-text-secondary transition hover:border-accent/40 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
-                              >
-                                {p.change}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => onRemove({ day: day.day, part }, card.id)}
-                                aria-label={`${p.remove}: ${card.title}`}
-                                className="rounded-lg px-2.5 py-1 text-xs text-text-secondary transition hover:text-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
-                              >
-                                {p.remove}
-                              </button>
+                              <span className="ml-auto flex shrink-0 items-center gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => onChange({ day: day.day, part })}
+                                  aria-label={`${p.change}: ${card.title}`}
+                                  className="rounded-lg border border-border-soft px-2.5 py-1 text-xs text-text-secondary transition hover:border-accent/40 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                                >
+                                  {p.change}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => onRemove({ day: day.day, part }, card.id)}
+                                  aria-label={`${p.remove}: ${card.title}`}
+                                  className="rounded-lg px-2.5 py-1 text-xs text-text-secondary transition hover:text-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                                >
+                                  {p.remove}
+                                </button>
+                              </span>
                             </div>
                           </li>
                         );

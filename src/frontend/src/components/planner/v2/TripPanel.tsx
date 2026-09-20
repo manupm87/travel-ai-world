@@ -7,16 +7,19 @@ import { interpolate } from "@/i18n";
 import {
   hasItinerary,
   partOf,
+  type DayDraft,
   type OptionGroupState,
   type PlannerState,
 } from "@/hooks/plannerReducer";
-import { DAY_PARTS, type Slot } from "@/types/planner";
+import { useCardDetail } from "@/hooks/useCardDetail";
+import { DAY_PARTS, type OptionCard, type Slot } from "@/types/planner";
 import { routeLegs } from "./RouteStrip";
+import { ActivityDetail } from "./ActivityDetail";
 import { AlternativesSheet } from "./AlternativesSheet";
 import { BriefChecklist } from "./BriefChecklist";
 import { DayCard } from "./DayCard";
 import { DayStrip } from "./DayStrip";
-import type { MapStop } from "./mapStops";
+import { stayStopId, stopId, type MapStop } from "./mapStops";
 import { RouteStrip } from "./RouteStrip";
 import { StayCard } from "./StayCard";
 import { dateForDay, daysBetween } from "./tripDates";
@@ -43,6 +46,36 @@ export interface TripPanelProps {
 
 /** The stay has no day of its own; this pseudo-slot opens its sheet. */
 const STAY_SLOT: Slot = { day: 0, part: null };
+
+/** One card of the itinerary and where it sits: what a selected stop resolves to. */
+interface OpenedStop {
+  card: OptionCard;
+  slot: Slot;
+}
+
+/**
+ * The card a selected stop came from — the stay, or one card of the day on
+ * screen — or `null` when the id belongs to neither, which is what makes a pin
+ * of another day stop matching and the detail close by itself. Pure, and it
+ * reads the same ids the map does (`mapStops`).
+ */
+function openedStop(
+  stay: OptionCard | null,
+  day: DayDraft | null,
+  selectedStopId: string | null
+): OpenedStop | null {
+  if (!selectedStopId) return null;
+  if (stay && stayStopId(stay.id) === selectedStopId) return { card: stay, slot: STAY_SLOT };
+  if (!day) return null;
+  for (const part of DAY_PARTS) {
+    for (const card of day.slots[part]) {
+      if (stopId(day.day, part, card.id) === selectedStopId) {
+        return { card, slot: { day: day.day, part } };
+      }
+    }
+  }
+  return null;
+}
 
 /**
  * The planner's middle column: the brief checklist until an itinerary exists,
@@ -75,9 +108,10 @@ export function TripPanel({
   const p = t.plan.panel;
   const { brief, itinerary } = state;
 
-  // Picking a pin on the map brings its card into view. `"nearest"` moves the
-  // panel's own scroller only as far as it must, so picking the card instead —
-  // it is already on screen — scrolls nothing.
+  // Picking a pin on the map brings what it selected into view: the stay's
+  // card, which stays on screen, or the activity's page, which replaced the
+  // day. `"nearest"` moves the panel's own scroller only as far as it must, so
+  // picking something already in sight scrolls nothing.
   useEffect(() => {
     if (!selectedStopId) return;
     const rows = scrollerRef.current?.querySelectorAll<HTMLElement>("[data-stop-row]") ?? [];
@@ -86,6 +120,9 @@ export function TripPanel({
       row.scrollIntoView?.({ block: "nearest" });
       return;
     }
+    scrollerRef.current?.querySelector("[data-activity-detail]")?.scrollIntoView?.({
+      block: "nearest",
+    });
   }, [selectedStopId]);
 
   const isStaySlot = (slot: Slot) => slot.day === STAY_SLOT.day;
@@ -124,6 +161,19 @@ export function TripPanel({
     askedForRef.current = key;
     onAskAlternatives(changing);
   }, [changing, changingGroup, onAskAlternatives]);
+
+  // The day on screen: the selected one, or the first when the itinerary
+  // shrank between renders and the selected day no longer exists.
+  const shownDay =
+    itinerary.days.find((d) => d.day === selectedDay) ?? itinerary.days[0] ?? null;
+  const currentDay = shownDay?.day ?? selectedDay;
+
+  // The stop the traveller opened, resolved back to the card it came from:
+  // the stay, or one card of the day on screen. A pin of another day cannot
+  // match, which is what makes changing the day close the detail by itself.
+  const selection = openedStop(itinerary.stay, shownDay, selectedStopId);
+
+  const { detail, status } = useCardDetail(selection?.card.id ?? null);
 
   const sheet = (
     <AlternativesSheet
@@ -174,10 +224,6 @@ export function TripPanel({
 
   const globalWarnings = itinerary.warnings.filter((warning) => warning.slot === null);
 
-  // The page owns the selected day; one that no longer exists (the itinerary
-  // shrank between renders) falls back to the first day of the trip.
-  const day = itinerary.days.find((d) => d.day === selectedDay) ?? itinerary.days[0] ?? null;
-  const currentDay = day?.day ?? selectedDay;
   const stayStop = mapStops.find((stop) => stop.kind === "stay") ?? null;
 
   return (
@@ -225,8 +271,8 @@ export function TripPanel({
         <StayCard
           stay={itinerary.stay}
           nights={brief.nights}
-          stopId={stayStop?.id ?? null}
-          selected={stayStop !== null && stayStop.id === selectedStopId}
+          stop={stayStop}
+          selectedStopId={selectedStopId}
           onSelectStop={onSelectStop}
           onChange={() => setChanging(STAY_SLOT)}
         />
@@ -242,21 +288,42 @@ export function TripPanel({
         />
       )}
 
-      {day && (
-        <div id={dayPanelId} role="tabpanel" aria-label={interpolate(p.day, { day: day.day })}>
-          {/* Keyed by day: switching remounts the card and replays its entrance. */}
-          <DayCard
-            key={day.day}
-            day={day}
-            date={dateForDay(brief.start_date, day.day)}
-            warnings={itinerary.warnings}
-            mapStops={mapStops}
-            selectedStopId={selectedStopId}
-            onSelectStop={onSelectStop}
-            static
-            onChange={(slot) => setChanging(slot)}
-            onRemove={onRemove}
-          />
+      {(selection || shownDay) && (
+        <div id={dayPanelId} role="tabpanel" aria-label={interpolate(p.day, { day: currentDay })}>
+          {selection ? (
+            /* The middle column is the activity's page while one is open; the
+               day strip above it stays, so another day is always one click
+               away (and clears the selection with it). */
+            <ActivityDetail
+              key={selectedStopId}
+              card={selection.card}
+              slot={selection.slot}
+              detail={detail}
+              status={status}
+              onBack={() => onSelectStop(null)}
+              onChange={(slot) => setChanging(slot)}
+              onRemove={(slot, cardId) => {
+                onSelectStop(null);
+                onRemove(slot, cardId);
+              }}
+            />
+          ) : (
+            shownDay && (
+              /* Keyed by day: switching remounts the card and replays its entrance. */
+              <DayCard
+                key={shownDay.day}
+                day={shownDay}
+                date={dateForDay(brief.start_date, shownDay.day)}
+                warnings={itinerary.warnings}
+                mapStops={mapStops}
+                selectedStopId={selectedStopId}
+                onSelectStop={onSelectStop}
+                static
+                onChange={(slot) => setChanging(slot)}
+                onRemove={onRemove}
+              />
+            )
+          )}
         </div>
       )}
 

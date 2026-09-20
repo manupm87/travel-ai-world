@@ -68,7 +68,8 @@ TypeScript 5, Tailwind CSS v4.
   with three desktop columns — chat ≈ 30 %, trip panel ≈ 40 %, map ≈ 30 % — and the same three as
   mobile tabs, `ChatColumn` with `QuickReplies`, `OptionCarousel` and `OptionCard`, `TripPanel`
   with `BriefChecklist`, `RouteStrip`, `StayCard`, `DayStrip`, `DayCard`, `WarningBadge` and the
-  `AlternativesSheet` behind every "Change", `TripMap` in the third column). The
+  `AlternativesSheet` behind every "Change", `ActivityDetail` over the day, `TripMap` in the
+  third column). The
   itinerary is browsed **one day at a time** (TRA-176): `DayStrip` is a horizontal tablist of day
   chips (date, forecast, how many experiences; arrows, Home/End, the selected chip kept in sight by
   scrolling the strip itself — never `scrollIntoView`, which would drag the panel's own scroller) over
@@ -86,7 +87,21 @@ TypeScript 5, Tailwind CSS v4.
   times stay in `RouteStrip`), `fitBounds` per day and `setStyle` per theme. `PlannerClientPage`
   calls `toMapStops` once and gives the list to both columns, so a card's badge in the panel and
   its pin on the map always carry the same number; `selectedStopId` lives there too and is cleared
-  when the day changes. The wire contract
+  when the day changes.
+  **Opening an activity** (TRA-179) is that same selection: every stop of the day and the stay is a
+  button (`aria-pressed`, `data-stop-index`; "Change"/"Remove" are separate buttons beside it, never
+  a click on the row), and it sets `selectedStopId` — the very id a marker click sets, `stopId`/
+  `stayStopId` from `mapStops.ts` for *every* card, with or without coordinates. While one is
+  selected, `TripPanel` renders `ActivityDetail` **in place of** the day's `DayCard` (the `DayStrip`
+  above it stays, so switching day closes the detail with it), and the map grows that marker,
+  dims the others and `easeTo`s it at zoom ≥ 15 — closing it fits the day again. The detail shows
+  the card (hero photo with its credit, chips, the model's `why`) and, over it, the full article
+  from `GET /ai/planner/card?id=` (TRA-178): `services/planner.ts::getCardDetail` answers `null`
+  — never an error — without an ai_api URL, on a missing route or on 404, and `hooks/useCardDetail.ts`
+  owns the request (`idle | loading | ready | unavailable | error`, aborted on id change, one
+  module-level cache per tab). Merge it with `mergeCardDetail` (the card keeps its `why` and its
+  photo); `unavailable` shows the card alone and says nothing, which is what demo mode always does.
+  The wire contract
   (SSE v2, TRA-142) is mirrored by hand in `src/types/planner.ts` until `ai_api` exports it through
   `just contracts`; when it does, replace the declarations by re-exports of the generated types and
   keep the helpers. A price is only ever a tier (`€`/`€€`/`€€€`), never a number. The recorded

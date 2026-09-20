@@ -307,6 +307,26 @@ export interface Translations {
       zoomIn: string;
       zoomOut: string;
     };
+    /** The activity page the middle column becomes on a click (TRA-179). */
+    detail: {
+      /** The row/card that opens an activity: "Open {title}" */
+      open: string;
+      /** Back to the day the activity belongs to: "← Day {day}" */
+      backToDay: string;
+      /** Back from the stay, which belongs to no day. */
+      backToStay: string;
+      /** While the full card is being fetched. */
+      loading: string;
+      /** Headings of the blocks the endpoint adds to the card. */
+      about: string;
+      address: string;
+      phone: string;
+      website: string;
+      /** Opens Google Maps directions to the activity's coordinates. */
+      directions: string;
+      /** Corpus categories, translated; an unknown one falls back to its own value. */
+      categories: Record<string, string>;
+    };
     /** Shown while the synthetic session answers instead of ai_api (TRA-158). */
     demo: {
       title: string;

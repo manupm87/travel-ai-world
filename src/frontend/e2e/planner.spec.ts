@@ -152,33 +152,47 @@ test.describe("Planner page — /plan/", () => {
     // 4b. The map column maps that same day: the hotel plus day 1's four stops,
     //     numbered identically in the panel and on the map.
     await expect(page.getByRole("region", { name: "Map of day 1" })).toBeVisible();
-    const marketBadge = page.getByRole("button", { name: "Show on the map: Great Market Hall" });
-    await expect(marketBadge).toHaveText("1");
-    await expect(
-      page.getByRole("button", { name: "Show on the map: Hotel Rum Budapest" })
-    ).toHaveText("H");
-
-    // The card's badge selects the stop.
-    await marketBadge.click();
-    await expect(marketBadge).toHaveAttribute("aria-pressed", "true");
+    const marketRow = page.getByRole("button", { name: "Open Great Market Hall" });
+    await expect(marketRow).toHaveAttribute("data-stop-index", "1");
+    await expect(page.getByRole("button", { name: "Open Hotel Rum Budapest" })).toHaveAttribute(
+      "data-stop-index",
+      "H"
+    );
 
     const webgl = await hasWebGL(page);
-    if (webgl) {
-      await expect(mapPins(page)).toHaveCount(5);
-      await expect(mapPins(page).first()).toHaveText("H");
-      await expect(mapPins(page).nth(1)).toHaveAttribute("aria-current", "true");
-
-      // And a pin selects its card. The pin is clicked through `dispatchEvent`
-      // because the markers overlap on the canvas at this zoom.
-      await mapPins(page).nth(2).dispatchEvent("click");
-      await expect(mapPins(page).nth(1)).not.toHaveAttribute("aria-current", "true");
-      await expect(marketBadge).toHaveAttribute("aria-pressed", "false");
-      await expect(
-        page.getByRole("button", { name: "Show on the map: St. Stephen's Basilica" })
-      ).toHaveAttribute("aria-pressed", "true");
-    } else {
+    if (!webgl) {
       await expect(page.getByText(MAP_UNSUPPORTED)).toBeVisible();
       await expect(mapPins(page)).toHaveCount(0);
+    } else {
+      await expect(mapPins(page)).toHaveCount(5);
+      await expect(mapPins(page).first()).toHaveText("H");
+    }
+
+    // 4c. Clicking a stop turns the middle column into the activity's page and
+    //     highlights its pin — one pin, and only that one.
+    await marketRow.click();
+    await expect(page.getByRole("heading", { name: "Great Market Hall" })).toBeVisible();
+    // The rest of the day is not on screen while an activity is open.
+    await expect(page.getByRole("button", { name: "Change: St. Stephen's Basilica" })).toHaveCount(
+      0
+    );
+    if (webgl) {
+      await expect(page.locator('[data-map-stop][data-selected="true"]')).toHaveCount(1);
+      await expect(mapPins(page).nth(1)).toHaveAttribute("aria-current", "true");
+    }
+
+    // Back to the day, and the whole day is there again.
+    await page.getByRole("button", { name: "← Day 1" }).click();
+    await expect(page.getByRole("button", { name: "Change: St. Stephen's Basilica" })).toBeVisible();
+    await expect(marketRow).toHaveAttribute("aria-pressed", "false");
+
+    if (webgl) {
+      // A pin opens the same page. It is clicked through `dispatchEvent`
+      // because the markers overlap on the canvas at this zoom.
+      await mapPins(page).nth(2).dispatchEvent("click");
+      await expect(page.getByRole("heading", { name: "St. Stephen's Basilica" })).toBeVisible();
+      await expect(page.locator('[data-map-stop][data-selected="true"]')).toHaveCount(1);
+      await page.getByRole("button", { name: "← Day 1" }).click();
     }
 
     // 5. "Change" on day 2's afternoon: the strip swaps the day, then the
@@ -186,7 +200,8 @@ test.describe("Planner page — /plan/", () => {
     await days.getByRole("tab", { name: /\bDay 2\b/ }).click();
     // The map follows the strip: day 2's stops, and nothing selected any more.
     await expect(page.getByRole("region", { name: "Map of day 2" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Show on the map: Gellért Baths" })).toHaveText(
+    await expect(page.getByRole("button", { name: "Open Gellért Baths" })).toHaveAttribute(
+      "data-stop-index",
       "2"
     );
     await expect(page.locator("[data-map-stop][aria-current]")).toHaveCount(0);
