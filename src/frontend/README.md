@@ -54,7 +54,7 @@ src/
 │   └── error.tsx, loading.tsx, not-found.tsx
 ├── components/     # UI by feature: ui/, layout/, landing/, planner/, dashboard/, trip-viewer/, auth/, common/
 ├── context/        # Providers: AuthContext, LanguageContext, ThemeContext
-├── hooks/          # useTrips, useTrip, useChatStream, useFormatters, useStickToBottom, useAutoResizeTextarea, useScrolled, useClickOutside
+├── hooks/          # useTrips, useTrip, useChatStream, useTypewriter, useFormatters, useStickToBottom, useAutoResizeTextarea, useScrolled, useClickOutside
 ├── i18n/           # types.ts (contract), en.ts, es.ts, index.ts (locales + LANGUAGES), interpolate.ts
 ├── services/       # The only place that talks to the network -> [README](src/services/README.md)
 ├── types/          # Hand-written domain types + generated/ (from OpenAPI, never edited)
@@ -153,7 +153,7 @@ Defined in `globals.css` as CSS custom properties and consumed directly in Tailw
 
 | Route | Status | Description |
 |---|---|---|
-| `/` | ✅ Live | Full landing page |
+| `/` | ✅ Live | The landing is the field (TRA-190): the question, one text field whose placeholder types example asks, and the action that opens `/plan/?q=…` — signed in straight away, behind the sign-in dialog otherwise. Arriving with `?redirect=` (the route guard) opens that dialog at once |
 | `/dashboard` | ✅ Live | The signed-in user's trips from `core_api` (`useTrips`, client-side; loading / error / empty states) and the AI planner card (`PlannerCard`) |
 | `/trip/?id=<uuid>` | ✅ Live | Interactive itinerary viewer for one trip from `core_api` (`useTrip`, client-side; loading / not-found / error states) |
 | `/plan/` (`/plan/?q=<prompt>`) | ✅ Live | The trip planner (layout A, TRA-144): three columns on a laptop — chat with quick replies and option-card carousels, the brief checklist that becomes the live itinerary, and the map of the selected day (MapLibre GL over OpenFreeMap's keyless tiles, TRA-147/ADR 0016) — and the same three as tabs on a phone. A finished itinerary opens on the **trip overview** (`TripOverview`, TRA-177): the destination's photo and description, a mosaic of the trip's own photos and the list of days, across the two right columns, with no map until a day is picked. Clicking a stop of a day turns the middle column into that activity's page (photo, article, address, phone, site and directions, from `GET /ai/planner/card?id=`) and highlights its pin on the map (TRA-179) (`usePlanner`, client-side; SSE v2 events from `ai_api`'s `/planner`; until TRA-143 lands the page answers from the recorded Budapest session in `src/data/planner-demo/` and shows a demo banner) |
@@ -236,7 +236,7 @@ npm run test:e2e:stack     # playwright.stack.config.ts: the Compose stack alrea
 ```
 
 `e2e/mobile.spec.ts` runs in every config: one 390 × 844 pass over the landing (no horizontal
-overflow, the CTA and the drawer) and the planner (the document does not scroll, the tabs and the
+overflow, the field inside its 16 px gutter, the CTA and the drawer) and the planner (the document does not scroll, the tabs and the
 whole composer are inside the viewport). It signs in with a fake unsigned JWT and sends no turn,
 so it needs no backend.
 

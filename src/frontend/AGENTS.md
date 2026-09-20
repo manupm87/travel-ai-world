@@ -46,7 +46,7 @@ TypeScript 5, Tailwind CSS v4.
   trips (`status: "loading" | "ready" | "error"`, `reload()`, aborts on unmount, clears the session
   on a 401 so the route guard redirects); `useTrip.ts` loads one trip for the viewer the same way,
   with `"not-found"` as a fourth status (a missing or malformed id is not-found without a request;
-  `getTrip`'s `null` is not-found too); `useChatStream.ts` does the same for the landing's
+  `getTrip`'s `null` is not-found too); `useChatStream.ts` does the same for the dashboard's
   `PlannerCard`; `usePlanner.ts` drives the planner page over the pure reducer in
   `plannerReducer.ts` (every transition, including `applyItineraryOps`, is unit-tested without React;
   the hook owns the stream, aborts it on a new turn, and keeps the per-tab draft through
@@ -83,18 +83,30 @@ TypeScript 5, Tailwind CSS v4.
 - **Lint enforces the boundaries** (`eslint.config.mjs`): no `fetch` outside `src/services/`, no
   `@/types/generated/*` outside `src/services/` and `src/types/`, imports first, `console` is a
   warning. `tsconfig` has `noUncheckedIndexedAccess`:
-  key lookups on i18n ids (`step.id`, `feat.id`, `TripStatus`) instead of indexing parallel arrays.
+  key lookups on i18n ids (`TripStatus`, a `DayPart`) instead of indexing parallel arrays.
 - Files: components `PascalCase.tsx`, utilities and hooks `camelCase.ts`, locales `<code>.ts`.
-- Routes live in groups: `app/(marketing)/` (public; layout = Header + Footer, includes
-  `auth/callback/`, where Cognito sends the browser back) and `app/(app)/` (signed-in; layout =
-  shell + `ProtectedRoute`). Do not wrap pages in `ProtectedRoute` again.
+- Routes live in groups: `app/(marketing)/` (public; layout = the aurora, Header and Footer in a
+  `min-h-dvh` column whose `main` takes what the footer leaves, includes `auth/callback/`, where
+  Cognito sends the browser back) and `app/(app)/` (signed-in; layout = shell + `ProtectedRoute`).
+  Do not wrap pages in `ProtectedRoute` again.
+- **The landing is the field** (TRA-190): `/` is `components/landing/AskField.tsx` and nothing else
+  — the question (the page's only `h1`, and the field's `aria-labelledby`), the field, the button.
+  The placeholder types the example asks out one after another (`hooks/useTypewriter.ts`, pure and
+  reduced-motion aware), which is why there is no row of example chips; the focused field wears the
+  `.conic-ring` from `globals.css`. Sending opens `/plan/?q=<ask>` when there is a session, and
+  otherwise the `LoginModal` with that same path as its `redirect` prop — the prop is the decoded
+  path, taking precedence over `?redirect=`, so nothing inside the ask's own query is decoded twice
+  (`utils/safeRedirect.ts`: `safeRedirectTarget` validates, `safeRedirectPath` decodes first).
+  Landing with `?redirect=` — the route guard turned someone away — opens that dialog at once. The
+  query is read from `window.location` through `useSyncExternalStore`, never `useSearchParams`,
+  which would leave the page a shell filled in on hydration instead of prerendered HTML.
 - The trip viewer is `/trip/?id=<uuid>` (`app/(app)/trip/`), one static shell for every trip:
   `page.tsx` (server; wraps the client page in `Suspense`, which `useSearchParams` needs on a static
   export or the build fails) + `TripClientPage.tsx` (client; reads `?id=`, drives `useTrip`, renders
   loading / not-found / error / the viewer sections). Never a `/trip/[id]` route: the export cannot
   serve per-user ids (ADR 0011). Links to a trip are `/trip/?id=${encodeURIComponent(id)}`.
 - The planner is `/plan/` (`app/(app)/plan/`, optionally `?q=<prompt>` from the landing's
-  `PlannerCard`), the same static-shell + client-page pattern: `PlannerClientPage.tsx` wires
+  `AskField`), the same static-shell + client-page pattern: `PlannerClientPage.tsx` wires
   `usePlanner` to `components/planner/v2/` (layout A from the TRA-136 mockups: `PlannerLayout`
   with three desktop columns — chat ≈ 30 %, trip panel ≈ 40 %, map ≈ 30 % — and the same three as
   mobile tabs, `ChatColumn` with `QuickReplies`, `OptionCarousel` and `OptionCard`, `TripPanel`

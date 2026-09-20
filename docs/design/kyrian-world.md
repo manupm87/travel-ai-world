@@ -7,7 +7,10 @@ that explains it.
 
 ## The idea
 
-One sentence gets the trip started, so **the field is the memorable thing**. Everything around it —
+One sentence gets the trip started, so **the field is the memorable thing**: the landing is that
+field and nothing else — a question, the box you answer it in, and the button that opens the
+planner (`components/landing/AskField.tsx`). Its placeholder types the example asks out one after
+another, which is what pays for having no example chips, no feature grid and no testimonials. Everything around it —
 the wordmark, the sign-in, the footer — stays quiet. The background is the only thing that moves on
 its own: a dusk horizon, ink at the top, indigo and violet lights drifting through it, a warm amber
 band where the sky meets the ground.
@@ -61,11 +64,15 @@ One orchestrated moment per page; everything else answers something the reader d
   the generated-page default: don't.
 - **Answers to an action** — a sheet sliding in, a card collapsing after a confirm, a button
   becoming a spinner — are welcome, because they show what changed. A focused field wears the
-  conic ring (indigo → violet → amber) turning slowly around its border: `animate-ring-spin` over
-  the registered `--angle`. Idle, it is a quiet 1 px `--glass-border`.
+  conic ring (indigo → violet → amber) turning slowly around its border: the `.conic-ring` class
+  in `globals.css` — one gradient masked down to the 1 px of itself that shows, so the glass
+  underneath keeps letting the aurora through — with `animate-ring-spin` over the registered
+  `--angle`. Idle, it is a quiet 1 px `--glass-border`.
 - Keyframes live in `globals.css` under `@theme` as `--animate-*`, next to the existing ones, and
   are documented in the comment block above them. `prefers-reduced-motion` is honoured once,
-  globally: no component adds its own guard.
+  globally: no component adds its own guard. The one exception is motion made of state rather than
+  CSS — the landing's typed placeholder (`hooks/useTypewriter.ts`), which reads the media query
+  itself and simply shows the first ask in full.
 - CSS first. `motion/react` is allowed only for exit animations (`AnimatePresence`). No GSAP, no
   three.js, no Lottie.
 
