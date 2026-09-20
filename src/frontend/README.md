@@ -1,6 +1,6 @@
 # Kyrian World — Frontend
 
-Next.js 16 (App Router) + Tailwind CSS v4 web app for Kyrian World: landing page, dashboard, AI planner and itinerary viewer.
+Next.js 16 (App Router) + Tailwind CSS v4 web app for Kyrian World: the landing field and the AI planner, which is also where saved trips are listed, reopened and read.
 
 ## Tech Stack
 
@@ -49,17 +49,18 @@ src/
 │   ├── layout.tsx        # Root: fonts, providers (Google OAuth, Auth, Theme, Language)
 │   ├── (marketing)/      # Public routes: layout = Header + Footer; page.tsx is the landing; auth/callback/ ends a Cognito sign-in
 │   ├── (app)/            # Signed-in routes: layout = app shell + ProtectedRoute, once
-│   │   ├── dashboard/    # page.tsx (server) + DashboardClientPage.tsx (the ask field, one grid of trips, edit + delete)
-│   │   └── trip/         # page.tsx (static shell, Suspense) + TripClientPage.tsx (?id=, useTrip)
+│   │   ├── plan/        # page.tsx (static shell, Suspense) + PlannerClientPage.tsx (?q=, ?trip=)
+│   │   ├── dashboard/    # page.tsx: a client redirect to /plan/ (old links)
+│   │   └── trip/         # page.tsx + TripRedirect.tsx: ?id= → /plan/?trip= (old links)
 │   └── error.tsx, loading.tsx, not-found.tsx
-├── components/     # UI by feature: ui/, layout/, landing/, planner/, dashboard/, trip-viewer/, auth/, common/
+├── components/     # UI by feature: ui/, layout/, landing/, planner/, auth/, common/
 ├── context/        # Providers: AuthContext, LanguageContext, ThemeContext
 ├── hooks/          # useTrips, useTrip, useSaveTrip, useTypewriter, useFormatters, useStickToBottom, useAutoResizeTextarea, useScrolled, useClickOutside
 ├── i18n/           # types.ts (contract), en.ts, es.ts, index.ts (locales + LANGUAGES), interpolate.ts
 ├── services/       # The only place that talks to the network -> [README](src/services/README.md)
 ├── types/          # Hand-written domain types + generated/ (from OpenAPI, never edited)
 ├── utils/          # Pure helpers (cn, formatting, country flags, localStorage store, safe redirect)
-└── test/           # Vitest setup + renderWithProviders (render.tsx) + typed fixtures (fixtures.ts, fixtures/trip-japan.ts)
+└── test/           # Vitest setup + renderWithProviders (render.tsx) + typed fixtures (fixtures.ts, fixtures/trip-budapest.ts, fixtures/planner-city.ts)
 ```
 
 Route groups `(marketing)` and `(app)` do not appear in URLs; they exist so the header/footer and the
@@ -154,9 +155,9 @@ Defined in `globals.css` as CSS custom properties and consumed directly in Tailw
 | Route | Status | Description |
 |---|---|---|
 | `/` | ✅ Live | The landing is the field (TRA-190): the question, one text field whose placeholder types example asks, and the action that opens `/plan/?q=…` — signed in straight away, behind the sign-in dialog otherwise. Arriving with `?redirect=` (the route guard) opens that dialog at once |
-| `/dashboard` | ✅ Live | The same ask field as the landing on top, then the signed-in user's trips from `core_api` in one grid grouped into coming up / in the works / past (TRA-192; `useTrips`, client-side; skeletons / error / empty states). Each card's ⋯ menu opens the edit sheet (title, description, dates, status) or the delete confirmation, both modal and keyboard-operable |
-| `/trip/?id=<uuid>` | ✅ Live | Interactive itinerary viewer for one trip from `core_api` (`useTrip`, client-side; loading / not-found / error states) |
-| `/plan/` (`/plan/?q=<prompt>`) | ✅ Live | The trip planner (layout A, TRA-144): three columns on a laptop — chat with quick replies and option-card carousels, the brief checklist that becomes the live itinerary, and the map of the selected day (MapLibre GL over OpenFreeMap's keyless tiles, TRA-147/ADR 0016) — and the same three as tabs on a phone. A finished itinerary opens on the **trip overview** (`TripOverview`, TRA-177): the destination's photo and description, a mosaic of the trip's own photos and the list of days, across the two right columns, with no map until a day is picked. Clicking a stop of a day turns the middle column into that activity's page (photo, article, address, phone, site and directions, from `GET /ai/planner/card?id=`) and highlights its pin on the map (TRA-179) (`usePlanner`, client-side; SSE v2 events from `ai_api`'s `/planner`; until TRA-143 lands the page answers from the recorded Budapest session in `src/data/planner-demo/` and shows a demo banner) |
+| `/dashboard/` | ↪️ Redirect | Kept for old links: a client component that replaces the URL with `/plan/` (TRA-196) |
+| `/trip/?id=<uuid>` | ↪️ Redirect | Kept for old links: `/plan/?trip=<uuid>` when the id is a trip id, `/plan/` otherwise (TRA-196) |
+| `/plan/` (`?q=<prompt>`, `?trip=<uuid>`) | ✅ Live | The trip planner (layout A, TRA-144), and the only signed-in surface: **the account's trips live here** (TRA-196) — the trip pane lists them while nothing has been asked yet, and the pane's "Your trips" opens the same list as a sheet the rest of the time; `?trip=<uuid>` reopens a saved trip in the planner, and a trip that is happening now or is over is read-only (no composer, no Save, no "Change"), because `core_api` refuses every write on it (ADR 0019). three columns on a laptop — chat with quick replies and option-card carousels, the brief checklist that becomes the live itinerary, and the map of the selected day (MapLibre GL over OpenFreeMap's keyless tiles, TRA-147/ADR 0016) — and the same three as tabs on a phone. A finished itinerary opens on the **trip overview** (`TripOverview`, TRA-177): the destination's photo and description, a mosaic of the trip's own photos and the list of days, across the two right columns, with no map until a day is picked. Clicking a stop of a day turns the middle column into that activity's page (photo, article, address, phone, site and directions, from `GET /ai/planner/card?id=`) and highlights its pin on the map (TRA-179) (`usePlanner`, client-side; SSE v2 events from `ai_api`'s `/planner`; until TRA-143 lands the page answers from the recorded Budapest session in `src/data/planner-demo/` and shows a demo banner) |
 | anything else | ✅ | `not-found.tsx`, exported as `404.html` |
 
 ---
@@ -177,33 +178,36 @@ as `route/index.html`; a CloudFront Function maps `/route/` to that key. See the
 | `basePath` | `/travel-ai-world` (prod only) | Project pages live at `/<repo-name>/` on GH Pages |
 | `images.unoptimized` | `true` | Image optimisation requires a server; disabled for static export |
 
-### The trip viewer: `/trip/?id=<uuid>`
+### Per-user data on a static export: the planner
 
-Trips belong to users and get their ids from the database, so no `/trip/<id>/` page can exist at
-build time: a static export needs `dynamicParams = false` with every id enumerated, and an edge
-rewrite would fix only the served build, not `next dev` or Playwright (ADR 0011). The viewer is
-therefore **one static shell** with the id in the query string:
+Trips belong to the signed-in user and get their ids from the database, so nothing about them
+exists at build time and no `/plan/<id>/` page can: a static export needs `dynamicParams = false`
+with every id enumerated, and an edge rewrite would fix only the served build, not `next dev` or
+Playwright (ADR 0011). The planner is therefore **one static shell** with everything per user in
+the query string and in the browser:
 
-- **`page.tsx`** — server component; renders `TripClientPage` inside a `Suspense` boundary
+- **`plan/page.tsx`** — server component; renders `PlannerClientPage` inside a `Suspense` boundary
   (required: `useSearchParams` on a prerendered route bails out to client rendering up to the
   nearest boundary, and the export build fails without one).
-- **`TripClientPage.tsx`** — client component; `useSearchParams().get("id")` feeds `useTrip(id)`
-  (`src/hooks/useTrip.ts`), which asks `services/trips.ts#getTrip` for `GET /api/v1/trips/{id}` and
-  renders loading, not-found (no id, malformed id, 404 or 403), error (+ retry) or the viewer.
+- **The list** — `components/planner/v2/TripsList.tsx` calls `useTrips()` (`src/hooks/useTrips.ts`),
+  which asks `services/trips.ts#listTrips` for `GET /api/v1/trips/` with the session token once the
+  session is known, and renders loading (shimmering cards + a live line), error (+ retry), empty,
+  or the trips grouped by phase — ongoing, upcoming, past, in that order. `rename(id, title)` and
+  `remove(id)` are its two writes.
+- **One trip** — `?trip=<uuid>` feeds `useTrip(id)`, and `services/tripDraft.ts#tripToDraft` turns
+  what comes back into the planner draft `usePlanner.hydrate` replaces its state with. Loading,
+  not-found (no id, malformed id, 404 or 403) and error live in the trip pane, never a blank page.
+  "Save trip" writes the same trip back and puts its id in the URL, so a reload reopens it.
+- **Read-only** — `TripResponse.phase` is derived by `core_api` from the dates and never stored. On
+  `ongoing` and `past` the planner hides the composer (a quiet notice takes its place), Save,
+  "Start over", every "Change" and "Remove" and the alternatives sheet, because `core_api` answers
+  409 `TRIP_LOCKED` to all of them (ADR 0019). Deleting stays allowed in every phase.
 
-The export contains `out/trip/index.html` only; `/trip/<anything>/` is a plain 404. Dashboard cards
-link to `/trip/?id=<uuid>`, and the route guard keeps the query string in its `redirect` parameter
-so a signed-out deep link comes back to the same trip after sign-in.
-
-### Per-user data on a static export: `/dashboard`
-
-Trips belong to the signed-in user, so nothing about them exists at build time. `dashboard/page.tsx`
-is a static shell; `DashboardClientPage.tsx` (client) calls `useTrips()` (`src/hooks/useTrips.ts`),
-which asks `services/trips.ts#listTrips` for `GET /api/v1/trips/` with the session token once the
-session is known, and renders one of four states: loading (`LoadingSpinner`), error (translated
-message + retry), empty (`EmptyDashboard`) or the trips grouped by status. A 401 clears the session
-and the route guard sends the visitor home. The trip viewer follows the same pattern with `useTrip`
-(above).
+A 401 clears the session and the route guard sends the visitor home. The export contains
+`out/plan/index.html`, `out/trip/index.html` and `out/dashboard/index.html`; the last two are
+redirects kept for old links, and `/trip/<anything>/` is still a plain 404. The route guard keeps
+the query string in its `redirect` parameter, so a signed-out deep link comes back to the same
+trip after sign-in.
 
 ---
 
@@ -240,10 +244,13 @@ overflow, the field inside its 16 px gutter, the CTA and the drawer) and the pla
 whole composer are inside the viewport). It signs in with a fake unsigned JWT and sends no turn,
 so it needs no backend.
 
-`e2e/trips.spec.ts` is the signed-in suite (dashboard and trip viewer over the seeded trips). It
-signs in by writing `E2E_TOKEN`, a local-mode JWT from `just dev-token <email>`, and the profile
-into `localStorage` before the first navigation, and skips itself when `E2E_TOKEN` is unset. The
-full flow is in the [local development runbook](../../docs/runbooks/local-dev.md#end-to-end-tests).
+`e2e/trips.spec.ts` is the signed-in suite: there is no seed any more, so it writes the two trips
+it needs through the REST API in `beforeAll` (one upcoming, one already over, both carrying the
+recorded session's cards) and deletes them in `afterAll`. It signs in by writing `E2E_TOKEN`, a
+local-mode JWT from `just dev-token <email>` — which creates the account if it is new — and the
+profile into `localStorage` before the first navigation, and skips itself when `E2E_TOKEN` is
+unset. The full flow is in the
+[local development runbook](../../docs/runbooks/local-dev.md#end-to-end-tests).
 
 `@playwright/mcp` is also a devDependency: the repo's `.mcp.json` runs it so coding agents can
 drive the same headless Chromium (`npx playwright install --with-deps chromium` installs it).
@@ -255,9 +262,9 @@ drive the same headless Chromium (`npx playwright install --with-deps chromium` 
 1. Set `NEXT_PUBLIC_API_URL=http://localhost:8000` and `NEXT_PUBLIC_AI_API_URL=http://localhost:8001`
    in `.env.local` (one URL is enough behind the Docker Compose proxy on `:8080`).
 2. `services/auth.ts` (`loginWithGoogle`) talks to `core_api`; `services/chat.ts` (`streamChat`)
-   consumes `ai_api`'s SSE stream; `services/trips.ts` (`listTrips`, `getTrip`) reads the dashboard's
-   trips and the viewer's trip from `core_api`, mapped through `toTripSummary` / `toTrip` (ADR 0006).
-   There is no fixture fallback: without `core_api` the signed-in pages show their error state.
+   consumes `ai_api`'s SSE stream; `services/trips.ts` (`listTrips`, `getTrip`) reads the planner's
+   list of trips and the one it reopens from `core_api`, mapped through `toTripSummary` / `toTrip`
+   (ADR 0006). There is no fixture fallback: without `core_api` the list shows its error state.
 3. `app/(app)/plan/` streams real answers when `ai_api` is reachable (`usePlanner`, which also
    aborts the stream on a new turn). Without an AI URL (the static preview build) the recorded
    Budapest session answers instead and the page says so in its demo banner.

@@ -13,54 +13,64 @@ TypeScript 5, Tailwind CSS v4.
   token refresh before authenticated calls), `session.ts` (the only owner of the `localStorage`
   session: token, profile, refresh token), `cognito.ts` (the deployed sign-in: managed login with
   code + PKCE, `/auth/callback/`, refresh, logout — no SDK), `auth.ts` (the local Google flow
-  through core_api), `chat.ts` (ai_api), `trips.ts` (`listTrips` reads the dashboard's trips from
-  `GET /api/v1/trips/`; `getTrip` reads the viewer's trip from `GET /api/v1/trips/{id}` and
+  through core_api), `chat.ts` (ai_api), `trips.ts` (`listTrips` reads the planner's list of trips from
+  `GET /api/v1/trips/`; `getTrip` reads the one it reopens from `GET /api/v1/trips/{id}` and
   resolves `null` on 404 and on 403, so someone else's id looks exactly like a missing one; owns
-  `toTrip`, the only place that turns a `TripResponse` into the `Trip` view model — ADR 0006).
+  `toTrip`, the only place that turns a `TripResponse` into the `Trip` view model — ADR 0006),
+  `tripDraft.ts` (`tripToDraft`, the pure inverse of the save: a saved trip back as the planner
+  draft it was written from).
   Components never `fetch` or touch the session storage.
-  **The writes live there too** (TRA-191): `createTrip`, `updateTrip`, `deleteTrip`, and
-  `saveDraftAsTrip(itinerary, brief, { title, tripId? })`, which stores a whole planner draft as one
-  trip. core_api takes no trip and its children in one body, so the snapshot is a **sequence** of
-  small writes — never `Promise.all` on one trip: each day's activities need the id that day's
-  answer carries. The mapping, in one place so the planner, the dashboard and the viewer agree:
-  the brief becomes the trip's dates, travellers, `travel_style` (its interests) and
-  `pace_preference`, with `budget_currency: "EUR"` and the stay's photo (or the draft's first) as
-  the cover; the destination is the brief's city, dated from it and placed on the first located
-  card, with the country from the small map in `trips.ts` (`countryOf`) because a `PlannerCity`
-  publishes none — an unknown city keeps its own name as the country and `EU` as the code; each
-  `DayDraft` becomes an itinerary day dated by `utils/tripDates.ts`, each card in it an activity at
-  the hour its part of the day reads as (morning 10:00, afternoon 15:00, evening 19:00, night
-  22:00) — or a **meal** when the corpus category is `eat`, typed by the same part and with the
-  card's subtitle as the cuisine, the corpus having no cuisine of its own; the stay becomes the
-  accommodation and the route its two legs. Prices, opening hours and bookings are left unset
+  **The writes live there too**: `createTrip`, `updateTrip`, `deleteTrip`, and
+  `saveDraftAsTrip(itinerary, brief, city, { title, tripId? })`, which stores a whole planner draft
+  as one trip. core_api takes no trip and its children in one body, so the snapshot is a
+  **sequence** of small writes — never `Promise.all` on one trip: each day's activities need the id
+  that day's answer carries. The mapping, in one place so the list and the reopened planner agree:
+  **one trip is one city** (TRA-196), written from the `PlannerCity` the destination resolved to —
+  slug, name, country, ISO code and centre, which is why `saveDraftAsTrip` takes it and the old
+  hand-made `countryOf` table is gone; the brief becomes the trip's dates, travellers,
+  `travel_style` (its interests), `pace_preference`, `origin` and `budget_tier`, with
+  `budget_currency: "EUR"` and the stay's photo (or the draft's first) as the cover; each
+  `DayDraft` becomes an itinerary day dated by `utils/tripDates.ts`, each card in it an activity
+  with its `part_of_day`, the hour that part reads as (morning 10:00, afternoon 15:00, evening
+  19:00, night 22:00), its corpus id in `source_ref` and **the whole card in `card`** — or a
+  **meal** when the corpus category is `eat`, typed by the same part and with the card's subtitle
+  as the cuisine, the corpus having no cuisine of its own; the stay becomes the accommodation
+  (card and all) and the route its two legs. Prices, opening hours and bookings are left unset
   rather than invented. With a `tripId` the same trip is rewritten: the trip is patched, every
   child is deleted (days first — their activities and meals cascade) and the draft is written
-  again. Keeping a saved trip in step with the draft as it changes, and reopening one in the
-  planner, is TRA-146.
+  again. `services/tripDraft.ts::tripToDraft` is the exact inverse and is what `/plan/?trip=`
+  hydrates from; a child with no stored card is rebuilt from its columns. Keeping a saved trip in
+  step with the draft as it changes, without pressing Save, is still TRA-146.
   `AuthContext.provider` (`"cognito" | "google"`) says which sign-in the build has; it is decided by
   `NEXT_PUBLIC_COGNITO_DOMAIN` + `NEXT_PUBLIC_COGNITO_CLIENT_ID`.
   The one sanctioned exception is the planner map's tiles: `maplibre-gl` fetches
   `tiles.openfreemap.org` itself (ADR 0016). That is the library's own traffic, not app code —
   no component gains the right to call `fetch`.
-- **Hooks own async state, components render it**: `src/hooks/useTrips.ts` loads the dashboard's
+- **Hooks own async state, components render it**: `src/hooks/useTrips.ts` loads the account's
   trips (`status: "loading" | "ready" | "error"`, `reload()`, aborts on unmount, clears the session
-  on a 401 so the route guard redirects); `useTrip.ts` loads one trip for the viewer the same way,
+  on a 401 so the route guard redirects); `useTrip.ts` loads one trip for the planner the same way,
   with `"not-found"` as a fourth status (a missing or malformed id is not-found without a request;
   `getTrip`'s `null` is not-found too); `usePlanner.ts` drives the planner page over the pure reducer in
   `plannerReducer.ts` (every transition, including `applyItineraryOps`, is unit-tested without React;
   the hook owns the stream, aborts it on a new turn, and keeps the per-tab draft through
-  `services/plannerDraft.ts`); `useSaveTrip.ts` owns "Save trip" (`idle | saving | saved | error`,
-  the title in the reader's language, and the id of the trip the draft was saved as — kept beside
-  the draft by `plannerDraft.ts`, so a second press updates that trip instead of leaving a second
-  one behind, and "Start over" forgets it); `useTrips.ts` also owns the dashboard's own writes,
-  `remove(id)` (optimistic, the card comes back if the API refuses) and `update(id, patch)` (not
-  optimistic: the card shows what the API stored). A page
+  `services/plannerDraft.ts`; `hydrate(draft, tripId)` opens a saved trip in its place and
+  `startNew()` empties it, both moving the id "Save trip" writes to); `useSaveTrip.ts` owns "Save trip" (`idle | saving | saved | error`,
+  the title in the reader's language, the resolved `PlannerCity` without which there is nothing
+  valid to save, and the id of the trip the draft was saved as — the trip `?trip=` opened, or what
+  this tab last wrote, kept beside the draft by `plannerDraft.ts` — so a second press updates that
+  trip instead of leaving a second one behind, and "New trip" forgets it); `useTrips.ts` also owns
+  the list's own writes, `remove(id)` (optimistic, the card comes back if the API refuses) and
+  `rename(id, title)` (not optimistic: the card shows what the API stored, and core_api refuses the
+  write outright once the trip is no longer upcoming). A page
   that needs per-user data is a static shell (`page.tsx`) plus a client component using the hook,
   never a server-side fetch: the export is static.
 - **`src/types/trip.ts` is a view model**, not a response shape: components render it, `services/trips.ts`
-  builds it from the generated `TripResponse`. There are no fixtures in the app: the only
-  `TripResponse` object in the repo is the test fixture `src/test/fixtures/trip-japan.ts` (checked
-  with `satisfies`); add derived facts (e.g. `ItineraryDay.kind`) in the mapper, not in JSX.
+  builds it from the generated `TripResponse`. Since TRA-196 a `Trip` has **one `city`** (slug,
+  name, country, code, centre), a `phase` core_api derives from its dates (`TRIP_PHASES` is the
+  display order: ongoing, upcoming, past), and on every child the planner card it came from. There
+  are no fixtures in the app: the only `TripResponse` object in the repo is the test fixture
+  `src/test/fixtures/trip-budapest.ts`, built from the recorded session and checked with
+  `satisfies`; add derived facts in the mapper, not in JSX.
 - **Types from the backend are generated**: `src/types/generated/{core-api,ai-api}.ts` via
   `npm run types:generate` (from `docs/api/*.openapi.json`). Do not edit them; do not redeclare
   response shapes by hand — import `components["schemas"]["..."]`.
@@ -104,23 +114,24 @@ TypeScript 5, Tailwind CSS v4.
   Landing with `?redirect=` — the route guard turned someone away — opens that dialog at once. The
   query is read from `window.location` through `useSyncExternalStore`, never `useSearchParams`,
   which would leave the page a shell filled in on hydration instead of prerendered HTML.
-- **The dashboard is the field and one grid** (TRA-192): `app/(app)/dashboard/` mounts the very
-  same `components/landing/AskField.tsx` as the landing — `variant="inline"`, so it takes the room
-  it needs instead of the viewport, and the ask is still the page's only `h1` — over "Your trips"
-  and `components/dashboard/TripGrid.tsx`. That grid is **one** CSS grid: the three groups
-  (`planned`, `planning`, `finished`, in that order) are `col-span-full` headings with a hairline
-  rule across the columns, not three `Section`s with their own background, and the entrance
-  stagger counts across the whole list. `components/ui/TripCard.tsx` is the cover photo with a
-  scrim of `--color-bg-primary` brought back up over it (so the copy clears 4.5:1 on either theme
-  whatever the photo is), a stretched link on the title (`after:absolute after:inset-0`) and one
-  `⋯` button above it: a real `role="menu"` with Edit and Delete, arrow keys, Escape, focus back on
-  the button. Both dialogs are modal (`aria-modal`, Tab trapped, Escape, focus returned):
-  `TripEditSheet.tsx` (title, description, dates, status; title required, end ≥ start; it sends
-  **only the fields that changed** and moves `duration_days` with the dates) and `ConfirmDelete.tsx`
-  (Cancel focused, so Enter never deletes by momentum). Deleting collapses the card for 300 ms
-  before `useTrips.remove` drops it, and a refusal puts it back and says so in the still-open
-  dialog. Loading is `TripGridSkeleton.tsx` (`animate-shimmer`, an `sr-only` live line), empty is
-  two lines and no second call to action — the field above is the one.
+- **Trips live in the planner** (TRA-196, ADR 0019): there is no dashboard and no viewer any more.
+  `components/planner/v2/TripsList.tsx` is the account's trips, grouped by phase in the order they
+  matter in — ongoing, upcoming, past, with a quiet heading and a hairline rule running off it
+  rather than a section of its own — and it owns `useTrips` and both dialogs. It appears in two
+  places: the trip pane while nothing has been asked yet (the checklist takes its place as soon as
+  the conversation starts), and `TripsSheet.tsx`, a glass sheet from the pane's "Your trips".
+  `components/ui/TripCard.tsx` is the cover photo with a scrim of `--color-bg-primary` brought back
+  up over it (so the copy clears 4.5:1 on either theme whatever the photo is), a stretched link on
+  the title to `/plan/?trip=<id>` (`after:absolute after:inset-0`) and one `⋯` button above it: a
+  real `role="menu"` with Rename and Delete, arrow keys, Escape, focus back on the button. Rename
+  is offered only on an upcoming trip, because core_api refuses the write on the other two; Delete
+  is offered on all three, because it is allowed in all three. Both dialogs are modal
+  (`aria-modal`, Tab trapped, Escape, focus returned): `RenameTripDialog.tsx` (one field, the only
+  thing about a saved trip that is typed rather than planned) and `ConfirmDelete.tsx` (Cancel
+  focused, so Enter never deletes by momentum). Deleting collapses the card for 300 ms before
+  `useTrips.remove` drops it, and a refusal puts it back and says so in the still-open dialog.
+  A trip wears a pill only when it is happening now or is over; "coming up" is what most of them
+  are and needs no label.
 - **One dialog contract** (TRA-193): `hooks/useDialog.ts` is what `aria-modal` promises — the focus
   moves in when the dialog opens (to `initialFocus`, or to the dialog element, which then needs
   `tabIndex={-1}`), Tab and Shift+Tab cycle inside it, Escape asks to close and the focus goes back
@@ -131,13 +142,13 @@ TypeScript 5, Tailwind CSS v4.
   `bg-glass-bg backdrop-blur-xl border-glass-border` over the aurora, never an opaque card. The
   sign-in dialog adds its own `h2` ("Sign in to plan") as the label, the orbit `Mark` from
   `Logo.tsx` and the landing's `.conic-ring` around its one action.
-- The trip viewer is `/trip/?id=<uuid>` (`app/(app)/trip/`), one static shell for every trip:
-  `page.tsx` (server; wraps the client page in `Suspense`, which `useSearchParams` needs on a static
-  export or the build fails) + `TripClientPage.tsx` (client; reads `?id=`, drives `useTrip`, renders
-  loading / not-found / error / the viewer sections). Never a `/trip/[id]` route: the export cannot
-  serve per-user ids (ADR 0011). Links to a trip are `/trip/?id=${encodeURIComponent(id)}`.
+- `/dashboard/` and `/trip/?id=` are **redirects** kept for old links (TRA-196):
+  `app/(app)/dashboard/page.tsx` replaces the URL with `/plan/`, and `app/(app)/trip/TripRedirect.tsx`
+  with `/plan/?trip=<uuid>` when the id is a trip id. Sign-in lands on `/plan/` too, and the account
+  menu's "Your trips" links there. Never a `/plan/[id]` route: the export cannot serve per-user ids
+  (ADR 0011). Links to a trip are `/plan/?trip=${encodeURIComponent(id)}`.
 - The planner is `/plan/` (`app/(app)/plan/`, optionally `?q=<prompt>` from the landing's
-  `AskField`), the same static-shell + client-page pattern: `PlannerClientPage.tsx` wires
+  `AskField` or `?trip=<uuid>` for a saved trip), the same static-shell + client-page pattern: `PlannerClientPage.tsx` wires
   `usePlanner` to `components/planner/v2/` (layout A from the TRA-136 mockups: `PlannerLayout`
   with three desktop columns — chat ≈ 30 %, trip panel ≈ 40 %, map ≈ 30 % — and the same three as
   mobile tabs, `ChatColumn` with `QuickReplies`, `OptionCarousel` and `OptionCard`, `TripPanel`
@@ -243,6 +254,17 @@ TypeScript 5, Tailwind CSS v4.
   (`SuggestionChips`, only while the transcript is empty) and the destination hint of `QuickReplies`;
   the i18n copy (`plan.cityStarter`, `quickReplies.destinationPlaceholder`) is the fallback while the
   list loads, when the call fails, or without a backend.
+  **A saved trip reopens here** (TRA-196): `?trip=<uuid>` drives `useTrip`, `tripToDraft` rebuilds
+  the draft and `usePlanner.hydrate` replaces the state with it; the query stays in the URL and
+  "Save trip" puts a newly created trip's id there, so a reload comes back to the same trip. A tab
+  whose draft already belongs to that trip keeps it, unsaved edits included. While the trip is on
+  its way, missing or refused, the **trip pane** says so (`OpenTripNotice`) — never a blank page,
+  and a foreign id reads exactly like a deleted one. A trip whose `phase` is not `upcoming` is
+  **read-only**: `PlannerClientPage` derives `lockedPhase` from it (it is not planner state) and
+  passes it down, the composer gives way to `LockedNotice`, and Save, "Start over", every "Change"
+  and "Remove" and the alternatives sheet are not rendered — `onChange`/`onRemove` are optional on
+  `DayCard`, `StayCard` and `ActivityDetail` for exactly that. core_api answers 409 `TRIP_LOCKED`
+  to every one of those writes (ADR 0019), so the rule is enforced on both sides.
   **Assistant text is Markdown** (TRA-183): every assistant bubble goes through
   `components/planner/MarkdownContent.tsx` (`react-markdown` + `remark-gfm`, a short tag
   allow-list — headings become bold paragraphs, links open in a new tab in `text-accent` — styling
@@ -270,17 +292,20 @@ TypeScript 5, Tailwind CSS v4.
   `Card`s so the aurora runs under the whole page; `Section`'s `primary`/`secondary` backgrounds
   are unused and a new surface should not reach for them.
 - Tests: `renderWithProviders` from `src/test/render.tsx` and the typed builders in
-  `src/test/fixtures.ts` (`src/test/fixtures/trip-japan.ts` when a test needs a whole `TripResponse`);
+  `src/test/fixtures.ts` (`src/test/fixtures/trip-budapest.ts` when a test needs a whole
+  `TripResponse`, `src/test/fixtures/planner-city.ts` when it needs a `PlannerCity`);
   assert on roles/names/`data-*` state and on `en.ts` copy, not on class names.
   Do not mock `Card`/`Section`/`Container`/`next/link` or `lucide-react` icon by icon.
 - Playwright, three configs over one `e2e/` folder: `playwright.config.ts` (`just test-e2e`: starts
   `next dev` on :3000, the landing-page smoke suite, for the daily loop), `playwright.static.config.ts`
   (`just test-e2e-static`: `next build` served on :3100, adds `prerender.spec.ts`; CI's `frontend`
   job) and `playwright.stack.config.ts` (`just test-e2e-stack`: the running Compose stack on :8080,
-  nothing started, every spec; CI's `e2e-stack` job). `trips.spec.ts` is the signed-in suite over the
-  seeded trips: it writes `E2E_TOKEN` (`just dev-token <email>`) and the profile into `localStorage`
-  with `page.addInitScript` before navigating, using the keys exported by `services/session.ts`, and
-  skips itself entirely when `E2E_TOKEN` is unset, so the other two modes need no backend.
+  nothing started, every spec; CI's `e2e-stack` job). `trips.spec.ts` is the signed-in suite: there is no
+  seed any more, so it creates the trips it needs through the REST API in `beforeAll` and deletes
+  them in `afterAll`. It writes `E2E_TOKEN` (`just dev-token <email>`, which creates the account if
+  it is new) and the profile into `localStorage` with `page.addInitScript` before navigating, using
+  the keys exported by `services/session.ts`, and skips itself entirely when `E2E_TOKEN` is unset,
+  so the other two modes need no backend.
   `planner.spec.ts` signs in the same way, mocks `/api/v1/ai/planner` with the recorded session and
   aborts `**/tiles.openfreemap.org/**`, so the run needs no third party: the pins are DOM added when
   the map object is built, not when tiles arrive. The map needs WebGL 2, so `playwright.config.ts`

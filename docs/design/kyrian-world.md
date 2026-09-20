@@ -76,6 +76,32 @@ One orchestrated moment per page; everything else answers something the reader d
 - CSS first. `motion/react` is allowed only for exit animations (`AnimatePresence`). No GSAP, no
   three.js, no Lottie.
 
+## Trips in the planner
+
+A saved trip is a planner draft that was written down, so it is read and changed where it was
+planned: `/plan/`. There is no dashboard and no viewer.
+
+**The list.** The trip pane holds the account's trips while nothing has been asked yet; after that
+it is one press away, as a glass sheet over the workspace. It is grouped by what is happening now,
+what is coming and what has already happened — that order, because that is the order they matter in
+— and a group is a line across the list rather than a section of its own: a quiet heading with a
+hairline rule running off it. The cards are photographs you can open, the trip's own cover under a
+scrim of the page's background so the title clears 4.5:1 whatever the photo is. The list settles in
+once, 40 ms apart.
+
+**The pill.** Only a trip that is happening now, or one that is over, wears one — "On now" in
+amber, "Over" in glass. Coming up is what most trips are and needs no label; the heading above them
+already says it, and a pill repeating its own heading is decoration.
+
+**The locked notice.** A trip that has started belongs to the traveller, not to the planner:
+`core_api` refuses every change to it, and the page refuses to offer any. The composer is replaced
+by two lines and one way on — "This trip is happening now — enjoy it. It can't be changed." /
+"This trip is over. It stays here as it was." — on the same glass as every other surface, with a
+small lock and no red anywhere. It is not an error and must not look like one. Everything else
+stays exactly as it was: the days, the cards, the photos, the map. What is gone is Save, "Start
+over", every "Change" and every "Remove" — never disabled, simply not there, because a control
+that can never be pressed is an explanation nobody asked for.
+
 ## Copy
 
 Sentence case, plain verbs, the reader's perspective. A button says what happens ("Plan it",
