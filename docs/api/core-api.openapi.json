@@ -28,6 +28,18 @@
             ],
             "title": "Amenities"
           },
+          "card": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Card"
+          },
           "check_in": {
             "anyOf": [
               {
@@ -159,6 +171,19 @@
             ],
             "title": "Rating"
           },
+          "source_ref": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Ref"
+          },
           "total_cost": {
             "anyOf": [
               {
@@ -219,6 +244,18 @@
               }
             ],
             "title": "Amenities"
+          },
+          "card": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Card"
           },
           "check_in": {
             "anyOf": [
@@ -353,6 +390,19 @@
             ],
             "title": "Rating"
           },
+          "source_ref": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Ref"
+          },
           "total_cost": {
             "anyOf": [
               {
@@ -417,6 +467,18 @@
               }
             ],
             "title": "Amenities"
+          },
+          "card": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Card"
           },
           "check_in": {
             "anyOf": [
@@ -554,6 +616,19 @@
             ],
             "title": "Rating"
           },
+          "source_ref": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Ref"
+          },
           "total_cost": {
             "anyOf": [
               {
@@ -602,6 +677,18 @@
               }
             ],
             "title": "Booking Url"
+          },
+          "card": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Card"
           },
           "category": {
             "anyOf": [
@@ -713,6 +800,23 @@
             ],
             "title": "Location Name"
           },
+          "part_of_day": {
+            "anyOf": [
+              {
+                "enum": [
+                  "morning",
+                  "afternoon",
+                  "evening",
+                  "night"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Part Of Day"
+          },
           "rating": {
             "anyOf": [
               {
@@ -725,6 +829,19 @@
               }
             ],
             "title": "Rating"
+          },
+          "source_ref": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Ref"
           },
           "time": {
             "anyOf": [
@@ -768,6 +885,18 @@
               }
             ],
             "title": "Booking Url"
+          },
+          "card": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Card"
           },
           "category": {
             "anyOf": [
@@ -885,6 +1014,23 @@
             ],
             "title": "Location Name"
           },
+          "part_of_day": {
+            "anyOf": [
+              {
+                "enum": [
+                  "morning",
+                  "afternoon",
+                  "evening",
+                  "night"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Part Of Day"
+          },
           "rating": {
             "anyOf": [
               {
@@ -897,6 +1043,19 @@
               }
             ],
             "title": "Rating"
+          },
+          "source_ref": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Ref"
           },
           "time": {
             "anyOf": [
@@ -949,6 +1108,18 @@
               }
             ],
             "title": "Booking Url"
+          },
+          "card": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Card"
           },
           "category": {
             "anyOf": [
@@ -1060,6 +1231,23 @@
             ],
             "title": "Location Name"
           },
+          "part_of_day": {
+            "anyOf": [
+              {
+                "enum": [
+                  "morning",
+                  "afternoon",
+                  "evening",
+                  "night"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Part Of Day"
+          },
           "rating": {
             "anyOf": [
               {
@@ -1072,6 +1260,19 @@
               }
             ],
             "title": "Rating"
+          },
+          "source_ref": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Ref"
           },
           "time": {
             "anyOf": [
@@ -1501,299 +1702,6 @@
         "title": "ChatThreadUpdate",
         "type": "object"
       },
-      "DestinationCreate": {
-        "properties": {
-          "arrival_date": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Arrival Date"
-          },
-          "city": {
-            "maxLength": 255,
-            "minLength": 1,
-            "title": "City",
-            "type": "string"
-          },
-          "country": {
-            "maxLength": 255,
-            "minLength": 1,
-            "title": "Country",
-            "type": "string"
-          },
-          "country_code": {
-            "title": "Country Code",
-            "type": "string"
-          },
-          "departure_date": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Departure Date"
-          },
-          "lat": {
-            "anyOf": [
-              {
-                "maximum": 90.0,
-                "minimum": -90.0,
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Lat"
-          },
-          "lng": {
-            "anyOf": [
-              {
-                "maximum": 180.0,
-                "minimum": -180.0,
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Lng"
-          },
-          "nights_staying": {
-            "anyOf": [
-              {
-                "minimum": 0.0,
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Nights Staying"
-          }
-        },
-        "required": [
-          "city",
-          "country",
-          "country_code"
-        ],
-        "title": "DestinationCreate",
-        "type": "object"
-      },
-      "DestinationResponse": {
-        "properties": {
-          "arrival_date": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Arrival Date"
-          },
-          "city": {
-            "maxLength": 255,
-            "minLength": 1,
-            "title": "City",
-            "type": "string"
-          },
-          "country": {
-            "maxLength": 255,
-            "minLength": 1,
-            "title": "Country",
-            "type": "string"
-          },
-          "country_code": {
-            "pattern": "^[A-Z]{2,3}$",
-            "title": "Country Code",
-            "type": "string"
-          },
-          "departure_date": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Departure Date"
-          },
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "lat": {
-            "anyOf": [
-              {
-                "maximum": 90.0,
-                "minimum": -90.0,
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Lat"
-          },
-          "lng": {
-            "anyOf": [
-              {
-                "maximum": 180.0,
-                "minimum": -180.0,
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Lng"
-          },
-          "nights_staying": {
-            "anyOf": [
-              {
-                "minimum": 0.0,
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Nights Staying"
-          },
-          "trip_id": {
-            "format": "uuid",
-            "title": "Trip Id",
-            "type": "string"
-          }
-        },
-        "required": [
-          "city",
-          "country",
-          "country_code",
-          "id",
-          "trip_id"
-        ],
-        "title": "DestinationResponse",
-        "type": "object"
-      },
-      "DestinationUpdate": {
-        "description": "Partial update of DestinationBase.",
-        "properties": {
-          "arrival_date": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Arrival Date"
-          },
-          "city": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "City"
-          },
-          "country": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Country"
-          },
-          "country_code": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Country Code"
-          },
-          "departure_date": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Departure Date"
-          },
-          "lat": {
-            "anyOf": [
-              {
-                "maximum": 90.0,
-                "minimum": -90.0,
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Lat"
-          },
-          "lng": {
-            "anyOf": [
-              {
-                "maximum": 180.0,
-                "minimum": -180.0,
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Lng"
-          },
-          "nights_staying": {
-            "anyOf": [
-              {
-                "minimum": 0.0,
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Nights Staying"
-          }
-        },
-        "title": "DestinationUpdate",
-        "type": "object"
-      },
       "GoogleAuthRequest": {
         "description": "Incoming Google ID token from the frontend GoogleLogin widget.",
         "properties": {
@@ -1874,18 +1782,6 @@
             ],
             "title": "Description"
           },
-          "destination_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Destination Id"
-          },
           "estimated_cost": {
             "anyOf": [
               {
@@ -1957,18 +1853,6 @@
               }
             ],
             "title": "Description"
-          },
-          "destination_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Destination Id"
           },
           "estimated_cost": {
             "anyOf": [
@@ -2057,18 +1941,6 @@
             ],
             "title": "Description"
           },
-          "destination_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Destination Id"
-          },
           "estimated_cost": {
             "anyOf": [
               {
@@ -2102,6 +1974,18 @@
       },
       "MealCreate": {
         "properties": {
+          "card": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Card"
+          },
           "cuisine": {
             "anyOf": [
               {
@@ -2188,6 +2072,23 @@
             ],
             "title": "Location Name"
           },
+          "part_of_day": {
+            "anyOf": [
+              {
+                "enum": [
+                  "morning",
+                  "afternoon",
+                  "evening",
+                  "night"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Part Of Day"
+          },
           "rating": {
             "anyOf": [
               {
@@ -2206,6 +2107,19 @@
             "minLength": 1,
             "title": "Restaurant Name",
             "type": "string"
+          },
+          "source_ref": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Ref"
           },
           "time": {
             "anyOf": [
@@ -2238,6 +2152,18 @@
       },
       "MealResponse": {
         "properties": {
+          "card": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Card"
+          },
           "cuisine": {
             "anyOf": [
               {
@@ -2330,6 +2256,23 @@
             ],
             "title": "Location Name"
           },
+          "part_of_day": {
+            "anyOf": [
+              {
+                "enum": [
+                  "morning",
+                  "afternoon",
+                  "evening",
+                  "night"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Part Of Day"
+          },
           "rating": {
             "anyOf": [
               {
@@ -2348,6 +2291,19 @@
             "minLength": 1,
             "title": "Restaurant Name",
             "type": "string"
+          },
+          "source_ref": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Ref"
           },
           "time": {
             "anyOf": [
@@ -2394,6 +2350,18 @@
       "MealUpdate": {
         "description": "Partial update of MealBase.",
         "properties": {
+          "card": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Card"
+          },
           "cuisine": {
             "anyOf": [
               {
@@ -2480,6 +2448,23 @@
             ],
             "title": "Location Name"
           },
+          "part_of_day": {
+            "anyOf": [
+              {
+                "enum": [
+                  "morning",
+                  "afternoon",
+                  "evening",
+                  "night"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Part Of Day"
+          },
           "rating": {
             "anyOf": [
               {
@@ -2503,6 +2488,19 @@
               }
             ],
             "title": "Restaurant Name"
+          },
+          "source_ref": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Ref"
           },
           "time": {
             "anyOf": [
@@ -3154,6 +3152,19 @@
             ],
             "title": "Budget Other"
           },
+          "budget_tier": {
+            "anyOf": [
+              {
+                "maximum": 3.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Tier"
+          },
           "budget_total": {
             "anyOf": [
               {
@@ -3185,6 +3196,27 @@
               }
             ],
             "title": "Budget Transportation"
+          },
+          "city": {
+            "maxLength": 150,
+            "minLength": 1,
+            "title": "City",
+            "type": "string"
+          },
+          "city_slug": {
+            "maxLength": 100,
+            "title": "City Slug",
+            "type": "string"
+          },
+          "country": {
+            "maxLength": 150,
+            "minLength": 1,
+            "title": "Country",
+            "type": "string"
+          },
+          "country_code": {
+            "title": "Country Code",
+            "type": "string"
           },
           "description": {
             "anyOf": [
@@ -3232,6 +3264,45 @@
             ],
             "title": "Image Url"
           },
+          "lat": {
+            "anyOf": [
+              {
+                "maximum": 90.0,
+                "minimum": -90.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lat"
+          },
+          "lng": {
+            "anyOf": [
+              {
+                "maximum": 180.0,
+                "minimum": -180.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lng"
+          },
+          "origin": {
+            "anyOf": [
+              {
+                "maxLength": 150,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Origin"
+          },
           "pace_preference": {
             "anyOf": [
               {
@@ -3254,10 +3325,6 @@
               }
             ],
             "title": "Start Date"
-          },
-          "status": {
-            "$ref": "#/components/schemas/TripStatus",
-            "default": "planning"
           },
           "title": {
             "maxLength": 255,
@@ -3299,7 +3366,11 @@
           }
         },
         "required": [
-          "title"
+          "title",
+          "city_slug",
+          "city",
+          "country",
+          "country_code"
         ],
         "title": "TripCreate",
         "type": "object"
@@ -3410,6 +3481,19 @@
             ],
             "title": "Budget Other"
           },
+          "budget_tier": {
+            "anyOf": [
+              {
+                "maximum": 3.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Tier"
+          },
           "budget_total": {
             "anyOf": [
               {
@@ -3434,6 +3518,28 @@
             ],
             "title": "Budget Transportation"
           },
+          "city": {
+            "maxLength": 150,
+            "minLength": 1,
+            "title": "City",
+            "type": "string"
+          },
+          "city_slug": {
+            "pattern": "^[a-z]+(-[a-z]+)*$",
+            "title": "City Slug",
+            "type": "string"
+          },
+          "country": {
+            "maxLength": 150,
+            "minLength": 1,
+            "title": "Country",
+            "type": "string"
+          },
+          "country_code": {
+            "pattern": "^[A-Z]{2,3}$",
+            "title": "Country Code",
+            "type": "string"
+          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -3449,14 +3555,6 @@
               }
             ],
             "title": "Description"
-          },
-          "destinations": {
-            "default": [],
-            "items": {
-              "$ref": "#/components/schemas/DestinationResponse"
-            },
-            "title": "Destinations",
-            "type": "array"
           },
           "duration_days": {
             "anyOf": [
@@ -3506,6 +3604,45 @@
             "title": "Itinerary Days",
             "type": "array"
           },
+          "lat": {
+            "anyOf": [
+              {
+                "maximum": 90.0,
+                "minimum": -90.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lat"
+          },
+          "lng": {
+            "anyOf": [
+              {
+                "maximum": 180.0,
+                "minimum": -180.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lng"
+          },
+          "origin": {
+            "anyOf": [
+              {
+                "maxLength": 150,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Origin"
+          },
           "pace_preference": {
             "anyOf": [
               {
@@ -3516,6 +3653,17 @@
               }
             ],
             "title": "Pace Preference"
+          },
+          "phase": {
+            "description": "Where the trip stands today, from its dates alone: nothing is\nstored, so a trip becomes ongoing and then past on its own.",
+            "enum": [
+              "upcoming",
+              "ongoing",
+              "past"
+            ],
+            "readOnly": true,
+            "title": "Phase",
+            "type": "string"
           },
           "start_date": {
             "anyOf": [
@@ -3528,10 +3676,6 @@
               }
             ],
             "title": "Start Date"
-          },
-          "status": {
-            "$ref": "#/components/schemas/TripStatus",
-            "default": "planning"
           },
           "title": {
             "maxLength": 255,
@@ -3591,22 +3735,18 @@
         },
         "required": [
           "title",
+          "city_slug",
+          "city",
+          "country",
+          "country_code",
           "id",
           "user_id",
           "created_at",
-          "updated_at"
+          "updated_at",
+          "phase"
         ],
         "title": "TripResponse",
         "type": "object"
-      },
-      "TripStatus": {
-        "enum": [
-          "planning",
-          "planned",
-          "finished"
-        ],
-        "title": "TripStatus",
-        "type": "string"
       },
       "TripUpdate": {
         "description": "Partial update of TripBase.",
@@ -3722,6 +3862,19 @@
             ],
             "title": "Budget Other"
           },
+          "budget_tier": {
+            "anyOf": [
+              {
+                "maximum": 3.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Tier"
+          },
           "budget_total": {
             "anyOf": [
               {
@@ -3753,6 +3906,50 @@
               }
             ],
             "title": "Budget Transportation"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "city_slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City Slug"
+          },
+          "country": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country"
+          },
+          "country_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country Code"
           },
           "description": {
             "anyOf": [
@@ -3800,6 +3997,45 @@
             ],
             "title": "Image Url"
           },
+          "lat": {
+            "anyOf": [
+              {
+                "maximum": 90.0,
+                "minimum": -90.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lat"
+          },
+          "lng": {
+            "anyOf": [
+              {
+                "maximum": 180.0,
+                "minimum": -180.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lng"
+          },
+          "origin": {
+            "anyOf": [
+              {
+                "maxLength": 150,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Origin"
+          },
           "pace_preference": {
             "anyOf": [
               {
@@ -3822,16 +4058,6 @@
               }
             ],
             "title": "Start Date"
-          },
-          "status": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/TripStatus"
-              },
-              {
-                "type": "null"
-              }
-            ]
           },
           "title": {
             "anyOf": [
@@ -5098,310 +5324,6 @@
         "summary": "Update Accommodation",
         "tags": [
           "Accommodations"
-        ]
-      }
-    },
-    "/api/v1/trips/{trip_id}/destinations/": {
-      "get": {
-        "operationId": "list_destinations_api_v1_trips__trip_id__destinations__get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "trip_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Trip Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "skip",
-            "required": false,
-            "schema": {
-              "default": 0,
-              "minimum": 0,
-              "title": "Skip",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 100,
-              "maximum": 500,
-              "minimum": 1,
-              "title": "Limit",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/DestinationResponse"
-                  },
-                  "title": "Response List Destinations Api V1 Trips  Trip Id  Destinations  Get",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "List Destinations",
-        "tags": [
-          "Destinations"
-        ]
-      },
-      "post": {
-        "operationId": "create_destination_api_v1_trips__trip_id__destinations__post",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "trip_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Trip Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DestinationCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DestinationResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Create Destination",
-        "tags": [
-          "Destinations"
-        ]
-      }
-    },
-    "/api/v1/trips/{trip_id}/destinations/{destination_id}": {
-      "delete": {
-        "operationId": "delete_destination_api_v1_trips__trip_id__destinations__destination_id__delete",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "destination_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Destination Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "trip_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Trip Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Delete Destination",
-        "tags": [
-          "Destinations"
-        ]
-      },
-      "get": {
-        "operationId": "read_destination_api_v1_trips__trip_id__destinations__destination_id__get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "destination_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Destination Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "trip_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Trip Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DestinationResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Read Destination",
-        "tags": [
-          "Destinations"
-        ]
-      },
-      "patch": {
-        "operationId": "update_destination_api_v1_trips__trip_id__destinations__destination_id__patch",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "destination_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Destination Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "trip_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Trip Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DestinationUpdate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DestinationResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Update Destination",
-        "tags": [
-          "Destinations"
         ]
       }
     },

@@ -835,6 +835,15 @@
             "title": "Centre",
             "type": "array"
           },
+          "country": {
+            "title": "Country",
+            "type": "string"
+          },
+          "country_code": {
+            "description": "ISO 3166-1 alpha-2, upper-case",
+            "title": "Country Code",
+            "type": "string"
+          },
           "image_credit": {
             "anyOf": [
               {
@@ -883,6 +892,8 @@
         "required": [
           "slug",
           "name",
+          "country",
+          "country_code",
           "centre",
           "timezone",
           "intro",

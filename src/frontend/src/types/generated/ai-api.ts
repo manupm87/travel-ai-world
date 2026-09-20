@@ -432,6 +432,13 @@ export interface components {
                 number,
                 number
             ];
+            /** Country */
+            country: string;
+            /**
+             * Country Code
+             * @description ISO 3166-1 alpha-2, upper-case
+             */
+            country_code: string;
             /**
              * Image Credit
              * @description The line to print beside the photo (author and licence)

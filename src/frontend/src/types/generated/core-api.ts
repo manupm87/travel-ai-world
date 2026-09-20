@@ -232,43 +232,6 @@ export interface paths {
         patch: operations["update_accommodation_api_v1_trips__trip_id__accommodations__accommodation_id__patch"];
         trace?: never;
     };
-    "/api/v1/trips/{trip_id}/destinations/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Destinations */
-        get: operations["list_destinations_api_v1_trips__trip_id__destinations__get"];
-        put?: never;
-        /** Create Destination */
-        post: operations["create_destination_api_v1_trips__trip_id__destinations__post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/trips/{trip_id}/destinations/{destination_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Read Destination */
-        get: operations["read_destination_api_v1_trips__trip_id__destinations__destination_id__get"];
-        put?: never;
-        post?: never;
-        /** Delete Destination */
-        delete: operations["delete_destination_api_v1_trips__trip_id__destinations__destination_id__delete"];
-        options?: never;
-        head?: never;
-        /** Update Destination */
-        patch: operations["update_destination_api_v1_trips__trip_id__destinations__destination_id__patch"];
-        trace?: never;
-    };
     "/api/v1/trips/{trip_id}/itinerary-days/": {
         parameters: {
             query?: never;
@@ -515,6 +478,10 @@ export interface components {
             address?: string | null;
             /** Amenities */
             amenities?: string[] | null;
+            /** Card */
+            card?: {
+                [key: string]: unknown;
+            } | null;
             /** Check In */
             check_in?: string | null;
             /** Check In Time */
@@ -537,6 +504,8 @@ export interface components {
             price_per_night?: number | string | null;
             /** Rating */
             rating?: number | null;
+            /** Source Ref */
+            source_ref?: string | null;
             /** Total Cost */
             total_cost?: number | string | null;
             /** Type */
@@ -548,6 +517,10 @@ export interface components {
             address?: string | null;
             /** Amenities */
             amenities?: string[] | null;
+            /** Card */
+            card?: {
+                [key: string]: unknown;
+            } | null;
             /** Check In */
             check_in?: string | null;
             /** Check In Time */
@@ -575,6 +548,8 @@ export interface components {
             price_per_night?: string | null;
             /** Rating */
             rating?: number | null;
+            /** Source Ref */
+            source_ref?: string | null;
             /** Total Cost */
             total_cost?: string | null;
             /**
@@ -594,6 +569,10 @@ export interface components {
             address?: string | null;
             /** Amenities */
             amenities?: string[] | null;
+            /** Card */
+            card?: {
+                [key: string]: unknown;
+            } | null;
             /** Check In */
             check_in?: string | null;
             /** Check In Time */
@@ -616,6 +595,8 @@ export interface components {
             price_per_night?: number | string | null;
             /** Rating */
             rating?: number | null;
+            /** Source Ref */
+            source_ref?: string | null;
             /** Total Cost */
             total_cost?: number | string | null;
             /** Type */
@@ -630,6 +611,10 @@ export interface components {
             booking_required: boolean;
             /** Booking Url */
             booking_url?: string | null;
+            /** Card */
+            card?: {
+                [key: string]: unknown;
+            } | null;
             /** Category */
             category?: string | null;
             /** Cost */
@@ -648,8 +633,12 @@ export interface components {
             location_lng?: number | null;
             /** Location Name */
             location_name?: string | null;
+            /** Part Of Day */
+            part_of_day?: ("morning" | "afternoon" | "evening" | "night") | null;
             /** Rating */
             rating?: number | null;
+            /** Source Ref */
+            source_ref?: string | null;
             /** Time */
             time?: string | null;
             /** Title */
@@ -664,6 +653,10 @@ export interface components {
             booking_required: boolean;
             /** Booking Url */
             booking_url?: string | null;
+            /** Card */
+            card?: {
+                [key: string]: unknown;
+            } | null;
             /** Category */
             category?: string | null;
             /** Cost */
@@ -692,8 +685,12 @@ export interface components {
             location_lng?: number | null;
             /** Location Name */
             location_name?: string | null;
+            /** Part Of Day */
+            part_of_day?: ("morning" | "afternoon" | "evening" | "night") | null;
             /** Rating */
             rating?: number | null;
+            /** Source Ref */
+            source_ref?: string | null;
             /** Time */
             time?: string | null;
             /** Title */
@@ -708,6 +705,10 @@ export interface components {
             booking_required?: boolean | null;
             /** Booking Url */
             booking_url?: string | null;
+            /** Card */
+            card?: {
+                [key: string]: unknown;
+            } | null;
             /** Category */
             category?: string | null;
             /** Cost */
@@ -726,8 +727,12 @@ export interface components {
             location_lng?: number | null;
             /** Location Name */
             location_name?: string | null;
+            /** Part Of Day */
+            part_of_day?: ("morning" | "afternoon" | "evening" | "night") | null;
             /** Rating */
             rating?: number | null;
+            /** Source Ref */
+            source_ref?: string | null;
             /** Time */
             time?: string | null;
             /** Title */
@@ -854,76 +859,6 @@ export interface components {
             /** Title */
             title?: string | null;
         };
-        /** DestinationCreate */
-        DestinationCreate: {
-            /** Arrival Date */
-            arrival_date?: string | null;
-            /** City */
-            city: string;
-            /** Country */
-            country: string;
-            /** Country Code */
-            country_code: string;
-            /** Departure Date */
-            departure_date?: string | null;
-            /** Lat */
-            lat?: number | null;
-            /** Lng */
-            lng?: number | null;
-            /** Nights Staying */
-            nights_staying?: number | null;
-        };
-        /** DestinationResponse */
-        DestinationResponse: {
-            /** Arrival Date */
-            arrival_date?: string | null;
-            /** City */
-            city: string;
-            /** Country */
-            country: string;
-            /** Country Code */
-            country_code: string;
-            /** Departure Date */
-            departure_date?: string | null;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Lat */
-            lat?: number | null;
-            /** Lng */
-            lng?: number | null;
-            /** Nights Staying */
-            nights_staying?: number | null;
-            /**
-             * Trip Id
-             * Format: uuid
-             */
-            trip_id: string;
-        };
-        /**
-         * DestinationUpdate
-         * @description Partial update of DestinationBase.
-         */
-        DestinationUpdate: {
-            /** Arrival Date */
-            arrival_date?: string | null;
-            /** City */
-            city?: string | null;
-            /** Country */
-            country?: string | null;
-            /** Country Code */
-            country_code?: string | null;
-            /** Departure Date */
-            departure_date?: string | null;
-            /** Lat */
-            lat?: number | null;
-            /** Lng */
-            lng?: number | null;
-            /** Nights Staying */
-            nights_staying?: number | null;
-        };
         /**
          * GoogleAuthRequest
          * @description Incoming Google ID token from the frontend GoogleLogin widget.
@@ -959,8 +894,6 @@ export interface components {
             day_number: number;
             /** Description */
             description?: string | null;
-            /** Destination Id */
-            destination_id?: string | null;
             /** Estimated Cost */
             estimated_cost?: number | string | null;
             /** Title */
@@ -979,8 +912,6 @@ export interface components {
             day_number: number;
             /** Description */
             description?: string | null;
-            /** Destination Id */
-            destination_id?: string | null;
             /** Estimated Cost */
             estimated_cost?: string | null;
             /**
@@ -1012,8 +943,6 @@ export interface components {
             day_number?: number | null;
             /** Description */
             description?: string | null;
-            /** Destination Id */
-            destination_id?: string | null;
             /** Estimated Cost */
             estimated_cost?: number | string | null;
             /** Title */
@@ -1021,6 +950,10 @@ export interface components {
         };
         /** MealCreate */
         MealCreate: {
+            /** Card */
+            card?: {
+                [key: string]: unknown;
+            } | null;
             /** Cuisine */
             cuisine?: string | null;
             /** Estimated Cost */
@@ -1035,16 +968,24 @@ export interface components {
             location_lng?: number | null;
             /** Location Name */
             location_name?: string | null;
+            /** Part Of Day */
+            part_of_day?: ("morning" | "afternoon" | "evening" | "night") | null;
             /** Rating */
             rating?: number | null;
             /** Restaurant Name */
             restaurant_name: string;
+            /** Source Ref */
+            source_ref?: string | null;
             /** Time */
             time?: string | null;
             type?: components["schemas"]["MealType"] | null;
         };
         /** MealResponse */
         MealResponse: {
+            /** Card */
+            card?: {
+                [key: string]: unknown;
+            } | null;
             /** Cuisine */
             cuisine?: string | null;
             /** Estimated Cost */
@@ -1069,10 +1010,14 @@ export interface components {
             location_lng?: number | null;
             /** Location Name */
             location_name?: string | null;
+            /** Part Of Day */
+            part_of_day?: ("morning" | "afternoon" | "evening" | "night") | null;
             /** Rating */
             rating?: number | null;
             /** Restaurant Name */
             restaurant_name: string;
+            /** Source Ref */
+            source_ref?: string | null;
             /** Time */
             time?: string | null;
             type?: components["schemas"]["MealType"] | null;
@@ -1087,6 +1032,10 @@ export interface components {
          * @description Partial update of MealBase.
          */
         MealUpdate: {
+            /** Card */
+            card?: {
+                [key: string]: unknown;
+            } | null;
             /** Cuisine */
             cuisine?: string | null;
             /** Estimated Cost */
@@ -1101,10 +1050,14 @@ export interface components {
             location_lng?: number | null;
             /** Location Name */
             location_name?: string | null;
+            /** Part Of Day */
+            part_of_day?: ("morning" | "afternoon" | "evening" | "night") | null;
             /** Rating */
             rating?: number | null;
             /** Restaurant Name */
             restaurant_name?: string | null;
+            /** Source Ref */
+            source_ref?: string | null;
             /** Time */
             time?: string | null;
             type?: components["schemas"]["MealType"] | null;
@@ -1236,10 +1189,20 @@ export interface components {
             budget_food?: number | string | null;
             /** Budget Other */
             budget_other?: number | string | null;
+            /** Budget Tier */
+            budget_tier?: number | null;
             /** Budget Total */
             budget_total?: number | string | null;
             /** Budget Transportation */
             budget_transportation?: number | string | null;
+            /** City */
+            city: string;
+            /** City Slug */
+            city_slug: string;
+            /** Country */
+            country: string;
+            /** Country Code */
+            country_code: string;
             /** Description */
             description?: string | null;
             /** Duration Days */
@@ -1248,12 +1211,16 @@ export interface components {
             end_date?: string | null;
             /** Image Url */
             image_url?: string | null;
+            /** Lat */
+            lat?: number | null;
+            /** Lng */
+            lng?: number | null;
+            /** Origin */
+            origin?: string | null;
             /** Pace Preference */
             pace_preference?: string | null;
             /** Start Date */
             start_date?: string | null;
-            /** @default planning */
-            status: components["schemas"]["TripStatus"];
             /** Title */
             title: string;
             /** Travel Style */
@@ -1297,10 +1264,20 @@ export interface components {
             budget_food?: string | null;
             /** Budget Other */
             budget_other?: string | null;
+            /** Budget Tier */
+            budget_tier?: number | null;
             /** Budget Total */
             budget_total?: string | null;
             /** Budget Transportation */
             budget_transportation?: string | null;
+            /** City */
+            city: string;
+            /** City Slug */
+            city_slug: string;
+            /** Country */
+            country: string;
+            /** Country Code */
+            country_code: string;
             /**
              * Created At
              * Format: date-time
@@ -1308,11 +1285,6 @@ export interface components {
             created_at: string;
             /** Description */
             description?: string | null;
-            /**
-             * Destinations
-             * @default []
-             */
-            destinations: components["schemas"]["DestinationResponse"][];
             /** Duration Days */
             duration_days?: number | null;
             /** End Date */
@@ -1329,12 +1301,23 @@ export interface components {
              * @default []
              */
             itinerary_days: components["schemas"]["ItineraryDayResponse"][];
+            /** Lat */
+            lat?: number | null;
+            /** Lng */
+            lng?: number | null;
+            /** Origin */
+            origin?: string | null;
             /** Pace Preference */
             pace_preference?: string | null;
+            /**
+             * Phase
+             * @description Where the trip stands today, from its dates alone: nothing is
+             *     stored, so a trip becomes ongoing and then past on its own.
+             * @enum {string}
+             */
+            readonly phase: "upcoming" | "ongoing" | "past";
             /** Start Date */
             start_date?: string | null;
-            /** @default planning */
-            status: components["schemas"]["TripStatus"];
             /** Title */
             title: string;
             /**
@@ -1368,11 +1351,6 @@ export interface components {
             user_id: number;
         };
         /**
-         * TripStatus
-         * @enum {string}
-         */
-        TripStatus: "planning" | "planned" | "finished";
-        /**
          * TripUpdate
          * @description Partial update of TripBase.
          */
@@ -1393,10 +1371,20 @@ export interface components {
             budget_food?: number | string | null;
             /** Budget Other */
             budget_other?: number | string | null;
+            /** Budget Tier */
+            budget_tier?: number | null;
             /** Budget Total */
             budget_total?: number | string | null;
             /** Budget Transportation */
             budget_transportation?: number | string | null;
+            /** City */
+            city?: string | null;
+            /** City Slug */
+            city_slug?: string | null;
+            /** Country */
+            country?: string | null;
+            /** Country Code */
+            country_code?: string | null;
             /** Description */
             description?: string | null;
             /** Duration Days */
@@ -1405,11 +1393,16 @@ export interface components {
             end_date?: string | null;
             /** Image Url */
             image_url?: string | null;
+            /** Lat */
+            lat?: number | null;
+            /** Lng */
+            lng?: number | null;
+            /** Origin */
+            origin?: string | null;
             /** Pace Preference */
             pace_preference?: string | null;
             /** Start Date */
             start_date?: string | null;
-            status?: components["schemas"]["TripStatus"] | null;
             /** Title */
             title?: string | null;
             /** Travel Style */
@@ -2102,173 +2095,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AccommodationResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_destinations_api_v1_trips__trip_id__destinations__get: {
-        parameters: {
-            query?: {
-                skip?: number;
-                limit?: number;
-            };
-            header?: never;
-            path: {
-                trip_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DestinationResponse"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_destination_api_v1_trips__trip_id__destinations__post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                trip_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DestinationCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DestinationResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    read_destination_api_v1_trips__trip_id__destinations__destination_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                destination_id: string;
-                trip_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DestinationResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_destination_api_v1_trips__trip_id__destinations__destination_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                destination_id: string;
-                trip_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_destination_api_v1_trips__trip_id__destinations__destination_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                destination_id: string;
-                trip_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DestinationUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DestinationResponse"];
                 };
             };
             /** @description Validation Error */
