@@ -154,6 +154,8 @@ test.describe("Signed out", () => {
     await page.goto("/dashboard/");
 
     await expect(page).toHaveURL(/\/\?redirect=%2Fdashboard%2F$/);
-    await expect(page.getByRole("heading", { name: /Your Dream Trip/i }).first()).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Where to?");
+    // The landing opens the sign-in dialog for a visitor the guard turned away.
+    await expect(page.getByRole("heading", { name: /Welcome back/i })).toBeVisible();
   });
 });

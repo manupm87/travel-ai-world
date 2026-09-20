@@ -64,6 +64,15 @@ test.describe("Landing page on a phone — /", () => {
     expect(box.scrollWidth).toBeLessThanOrEqual(box.innerWidth);
   });
 
+  test("the field fills the width, inside a 16 px gutter", async ({ page }) => {
+    const box = await page.getByRole("textbox", { name: "Where to?" }).boundingBox();
+    expect(box).not.toBeNull();
+    expect(box?.x).toBeGreaterThanOrEqual(16);
+    expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(VIEWPORT.width - 16);
+    // Not a token field in the middle of the screen: it takes the page.
+    expect(box?.width).toBeGreaterThan(VIEWPORT.width * 0.7);
+  });
+
   test("the header offers the CTA and the menu, and the menu covers the screen", async ({
     page,
   }) => {

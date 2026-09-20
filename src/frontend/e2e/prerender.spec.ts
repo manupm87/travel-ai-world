@@ -11,8 +11,11 @@ test.describe("Static export — HTML as served, before any JS runs", () => {
 
     expect(html).toContain("<header");
     expect(html).toContain("<footer");
-    expect(html).toMatch(/Your Dream Trip/i);
-    expect(html).toMatch(/Hyper-Personalized AI/i);
+    // The question and the field itself, in the HTML as served: the landing
+    // reads its `?redirect=` from `window`, never through `useSearchParams`,
+    // which would leave this page a shell filled in on hydration.
+    expect(html).toMatch(/Where to\?/);
+    expect(html).toContain("<textarea");
   });
 });
 
