@@ -83,18 +83,15 @@ export interface Translations {
     /** The same button while the planner opens. */
     sending: string;
   };
+  /** The composer shared by the planner page (`PromptComposer`). */
   planner: {
-    label: string;
+    /** The textarea's accessible name. */
     title: string;
     placeholder: string;
     send: string;
     sendHint: string;
-    examplesLabel: string;
-    examples: { emoji: string; label: string; prompt: string }[];
     /** Shown when no ai_api URL is configured (static preview builds). */
     unavailable: string;
-    errorFallback: string;
-    errorUnauthorized: string;
   };
 
   /** The planner page (`/plan/`): chat + option cards + live itinerary (TRA-144). */
@@ -102,10 +99,6 @@ export interface Translations {
     title: string;
     subtitle: string;
     tabs: { chat: string; trip: string; map: string };
-    /** Dashboard link into the page. */
-    openPlanner: string;
-    /** Landing/dashboard `PlannerCard`: continue the typed prompt on the page. */
-    openWithPrompt: string;
     composerPlaceholder: string;
     /** "Chosen: {titles}" chip in the transcript. */
     chosen: string;
@@ -333,15 +326,52 @@ export interface Translations {
     copyright: string;
   };
   dashboard: {
-    heroTitle: string;
+    /** The heading above the grid of trips. */
+    title: string;
+    /** The small heading above each group of cards in the one grid. */
     sections: Record<TripStatus, string>;
     emptyTitle: string;
     emptyDescription: string;
-    /** Spinner copy while the trips load from the API. */
+    /** Read out while the skeletons stand in for the trips. */
     loading: string;
     errorTitle: string;
     errorDescription: string;
     retry: string;
+    /** A card's dates, already formatted: "{start} – {end}". */
+    dateRange: string;
+    card: {
+      /** The ⋯ button's accessible name: "Options for {title}". */
+      menu: string;
+      edit: string;
+      delete: string;
+    };
+    /** The edit sheet. */
+    edit: {
+      title: string;
+      name: string;
+      description: string;
+      startDate: string;
+      endDate: string;
+      status: string;
+      save: string;
+      saving: string;
+      cancel: string;
+      close: string;
+      /** Validation and failure, in the voice of the interface. */
+      nameRequired: string;
+      datesOrder: string;
+      failed: string;
+    };
+    /** The delete confirmation. */
+    remove: {
+      title: string;
+      /** "This deletes {title} and everything planned in it. There is no undo." */
+      description: string;
+      confirm: string;
+      deleting: string;
+      cancel: string;
+      failed: string;
+    };
   };
   auth: {
     login: string;

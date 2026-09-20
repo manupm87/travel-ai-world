@@ -17,7 +17,7 @@ components trivial to mock in tests.
 | `trips.ts` | `core_api` (`/api/v1/trips/` and everything under it, with the session token) | Reads: `listTrips({ signal })` (the signed-in user's summaries, `auth: true`, abortable), `getTrip(id, { signal })` (one trip as the viewer renders it; `null` on 404 and on 403 so another user's id is indistinguishable from a missing one; anything else rethrows). Writes (TRA-191): `createTrip`, `updateTrip(id, patch)`, `deleteTrip(id)`, and `saveDraftAsTrip(itinerary, brief, { title, tripId? })` — a planner draft as one trip, written as a sequence of awaited requests (trip, destination, a day per day with its activities and meals, the stay, the route), rewriting the same trip when given its id. Plus the mappers `toTrip` / `toTripSummary` (`TripResponse` → view model, [ADR 0006](../../../../docs/architecture/adr/0006-frontend-trip-view-model.md)) and `countryOf` (the country a `PlannerCity` does not carry) |
 
 `ApiError.code` carries the backend's `error_code`, so UI code can pick its own translated copy
-(`t.planner.errorUnauthorized`, ...) instead of showing the server's message in the server's language.
+(`t.plan.errors.unauthorized`, ...) instead of showing the server's message in the server's language.
 
 Base URLs come from `NEXT_PUBLIC_API_URL` (core) and `NEXT_PUBLIC_AI_API_URL` (ai, defaults to
 core). See [ADR 0003](../../../../docs/architecture/adr/0003-frontend-two-base-urls.md).

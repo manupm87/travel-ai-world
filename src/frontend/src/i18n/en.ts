@@ -83,52 +83,18 @@ const en: Translations = {
     sending: "Opening the planner",
   },
   planner: {
-    label: "Plan Your Trip",
     title: "Tell the AI where you want to go",
     placeholder:
       "A 7-day trip to Lisbon in October for a couple, mid-budget…",
     send: "Send",
     sendHint: "↵ Send · ⇧↵ Newline",
-    examplesLabel: "Try one of these",
-    examples: [
-      {
-        emoji: "🇵🇹",
-        label: "Weekend in Lisbon",
-        prompt:
-          "Plan a 3-day weekend in Lisbon for two, focused on food and architecture.",
-      },
-      {
-        emoji: "🇯🇵",
-        label: "10 days in Japan",
-        prompt:
-          "10 days in Japan in spring: Tokyo, Kyoto, and one off-the-beaten-path stop.",
-      },
-      {
-        emoji: "👨‍👩‍👧",
-        label: "Family Madrid",
-        prompt:
-          "A 4-day family trip to Madrid with two kids (8 and 11), low-walking days preferred.",
-      },
-      {
-        emoji: "🏔",
-        label: "Adventure in Patagonia",
-        prompt:
-          "2-week adventure trip in Patagonia, hiking and outdoors, late November.",
-      },
-    ],
     unavailable:
       "The AI planner needs a connected backend, so it is not available on this static preview.",
-    errorFallback:
-      "Sorry, I couldn't process your request. Please try again.",
-    errorUnauthorized:
-      "Your session has expired. Log in again to keep planning.",
   },
   plan: {
     title: "Plan a trip",
     subtitle: "Talk, pick from the cards, and watch the itinerary take shape on the right.",
     tabs: { chat: "Chat", trip: "Trip", map: "Map" },
-    openPlanner: "Plan a trip",
-    openWithPrompt: "Continue in the full planner →",
     composerPlaceholder: "Ask for a change or search for something…",
     chosen: "Chosen: {titles}",
     suggestions: [
@@ -333,18 +299,47 @@ const en: Translations = {
     copyright: "© {year} Kyrian World",
   },
   dashboard: {
-    heroTitle: "Plan Your Next Adventure",
+    title: "Your trips",
     sections: {
-      planned: "Your Next Adventure",
+      planned: "Coming up",
       planning: "In the works",
       finished: "Past journeys",
     },
-    emptyTitle: "Your atlas is waiting",
-    emptyDescription: "You haven't planned any journeys yet. Start your next adventure with our AI planner.",
+    emptyTitle: "No trips yet",
+    emptyDescription: "Tell me where you want to go.",
     loading: "Loading your trips…",
     errorTitle: "We couldn't load your trips",
     errorDescription: "Something went wrong while talking to the server. Check your connection and try again.",
     retry: "Try again",
+    dateRange: "{start} – {end}",
+    card: {
+      menu: "Options for {title}",
+      edit: "Edit trip",
+      delete: "Delete trip",
+    },
+    edit: {
+      title: "Edit trip",
+      name: "Title",
+      description: "Description",
+      startDate: "Starts",
+      endDate: "Ends",
+      status: "Status",
+      save: "Save changes",
+      saving: "Saving…",
+      cancel: "Cancel",
+      close: "Close",
+      nameRequired: "Give the trip a title.",
+      datesOrder: "The end date comes before the start date.",
+      failed: "We couldn't save the changes. Try again.",
+    },
+    remove: {
+      title: "Delete this trip?",
+      description: "This deletes {title} and everything planned in it. There is no undo.",
+      confirm: "Delete trip",
+      deleting: "Deleting…",
+      cancel: "Cancel",
+      failed: "We couldn't delete the trip. Try again.",
+    },
   },
   auth: {
     login: "Sign in",

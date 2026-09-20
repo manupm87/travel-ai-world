@@ -76,52 +76,18 @@ const es: Translations = {
     sending: "Abriendo el planificador",
   },
   planner: {
-    label: "Planifica tu viaje",
     title: "Dile a la IA adónde quieres ir",
     placeholder:
       "Un viaje de 7 días a Lisboa en octubre para una pareja, presupuesto medio…",
     send: "Enviar",
     sendHint: "↵ Enviar · ⇧↵ Salto de línea",
-    examplesLabel: "Prueba con una de estas",
-    examples: [
-      {
-        emoji: "🇵🇹",
-        label: "Fin de semana en Lisboa",
-        prompt:
-          "Planifica un fin de semana de 3 días en Lisboa para dos, centrado en gastronomía y arquitectura.",
-      },
-      {
-        emoji: "🇯🇵",
-        label: "10 días en Japón",
-        prompt:
-          "10 días en Japón en primavera: Tokio, Kioto y una parada fuera de los circuitos clásicos.",
-      },
-      {
-        emoji: "👨‍👩‍👧",
-        label: "Madrid en familia",
-        prompt:
-          "Un viaje de 4 días a Madrid en familia con dos niños (8 y 11), preferimos días con poca caminata.",
-      },
-      {
-        emoji: "🏔",
-        label: "Aventura en la Patagonia",
-        prompt:
-          "Viaje de aventura de 2 semanas por la Patagonia, senderismo y aire libre, a finales de noviembre.",
-      },
-    ],
     unavailable:
       "El planificador con IA necesita un backend conectado, así que no está disponible en esta vista estática.",
-    errorFallback:
-      "Lo siento, no pude procesar tu solicitud. Inténtalo de nuevo.",
-    errorUnauthorized:
-      "Tu sesión ha caducado. Vuelve a iniciar sesión para seguir planificando.",
   },
   plan: {
     title: "Planificar un viaje",
     subtitle: "Habla, elige entre las tarjetas y mira cómo el itinerario toma forma a la derecha.",
     tabs: { chat: "Chat", trip: "Viaje", map: "Mapa" },
-    openPlanner: "Planificar un viaje",
-    openWithPrompt: "Continuar en el planificador completo →",
     composerPlaceholder: "Pide un cambio o busca algo…",
     chosen: "Elegido: {titles}",
     suggestions: [
@@ -326,18 +292,47 @@ const es: Translations = {
     copyright: "© {year} Kyrian World",
   },
   dashboard: {
-    heroTitle: "Planifica Tu Próxima Aventura",
+    title: "Tus viajes",
     sections: {
-      planned: "Tu Próxima Aventura",
-      planning: "En planificación",
+      planned: "Próximamente",
+      planning: "En marcha",
       finished: "Viajes pasados",
     },
-    emptyTitle: "Tu atlas está esperando",
-    emptyDescription: "Aún no has planificado ningún viaje. Comienza tu próxima aventura con nuestro planificador IA.",
+    emptyTitle: "Aún no hay viajes",
+    emptyDescription: "Cuéntame adónde quieres ir.",
     loading: "Cargando tus viajes…",
     errorTitle: "No hemos podido cargar tus viajes",
     errorDescription: "Algo ha fallado al hablar con el servidor. Comprueba tu conexión e inténtalo de nuevo.",
     retry: "Reintentar",
+    dateRange: "{start} – {end}",
+    card: {
+      menu: "Opciones de {title}",
+      edit: "Editar viaje",
+      delete: "Eliminar viaje",
+    },
+    edit: {
+      title: "Editar viaje",
+      name: "Título",
+      description: "Descripción",
+      startDate: "Empieza",
+      endDate: "Termina",
+      status: "Estado",
+      save: "Guardar cambios",
+      saving: "Guardando…",
+      cancel: "Cancelar",
+      close: "Cerrar",
+      nameRequired: "Ponle un título al viaje.",
+      datesOrder: "La fecha de fin es anterior a la de inicio.",
+      failed: "No hemos podido guardar los cambios. Inténtalo de nuevo.",
+    },
+    remove: {
+      title: "¿Eliminar este viaje?",
+      description: "Esto elimina {title} y todo lo planificado en él. No hay vuelta atrás.",
+      confirm: "Eliminar viaje",
+      deleting: "Eliminando…",
+      cancel: "Cancelar",
+      failed: "No hemos podido eliminar el viaje. Inténtalo de nuevo.",
+    },
   },
   auth: {
     login: "Iniciar sesión",
