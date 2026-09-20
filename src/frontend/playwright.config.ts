@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 /**
- * Playwright config for Travel AI World — frontend E2E smoke tests.
+ * Playwright config for Kyrian World — frontend E2E smoke tests.
  *
  * Runs against the local dev server by default (http://localhost:3000).
  * To test the live GitHub Pages site, override baseURL:
