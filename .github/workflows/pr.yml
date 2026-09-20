@@ -289,7 +289,7 @@ jobs:
           fetch /dashboard           200 text/html         '<html'
           fetch /api/v1/health/      200 application/json  '"status"'
           fetch /api/v1/ai/health/   200 application/json  '"status"'
-          fetch /does-not-exist/     404 text/html         'Lost in Paradise'
+          fetch /does-not-exist/     404 text/html         'on the map'
           fetch /api/v1/trips/       401 application/json  '"detail"'
 
       # `next build` recreates out/; without the proxy recreate in `just stack-up`
