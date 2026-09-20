@@ -10,11 +10,18 @@ vi.mock("@/services/planner", () => ({
 
 const listCitiesMock = vi.mocked(listCities);
 
+const WIKIVOYAGE = "https://en.wikivoyage.org/wiki/Bologna";
+
 const BOLOGNA = {
   slug: "bologna",
   name: "Bologna",
   centre: [44.4939, 11.3428] as [number, number],
   timezone: "Europe/Rome",
+  intro: {
+    en: { text: "Bologna is a historic city in Emilia-Romagna.", source_url: WIKIVOYAGE },
+  },
+  image_url: "https://commons.wikimedia.org/w/index.php?title=Special:FilePath/B.jpg",
+  image_credit: "Someone (CC BY-SA 3.0) · Wikimedia Commons",
 };
 
 describe("usePlannerCities", () => {

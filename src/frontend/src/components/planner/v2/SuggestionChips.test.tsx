@@ -5,9 +5,24 @@ import { interpolate } from "@/i18n";
 import type { PlannerCity } from "@/types/planner";
 import { SuggestionChips } from "./SuggestionChips";
 
+/** The trip overview's fields (TRA-182); the chips use none of them. */
+const NO_OVERVIEW = { intro: {}, image_url: null, image_credit: null };
+
 const CITIES: PlannerCity[] = [
-  { slug: "budapest", name: "Budapest", centre: [47.4979, 19.0402], timezone: "Europe/Budapest" },
-  { slug: "bologna", name: "Bologna", centre: [44.4939, 11.3428], timezone: "Europe/Rome" },
+  {
+    slug: "budapest",
+    name: "Budapest",
+    centre: [47.4979, 19.0402],
+    timezone: "Europe/Budapest",
+    ...NO_OVERVIEW,
+  },
+  {
+    slug: "bologna",
+    name: "Bologna",
+    centre: [44.4939, 11.3428],
+    timezone: "Europe/Rome",
+    ...NO_OVERVIEW,
+  },
 ];
 
 const starter = (city: string) => interpolate(en.plan.cityStarter, { city });
