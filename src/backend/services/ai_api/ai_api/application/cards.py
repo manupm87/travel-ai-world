@@ -30,7 +30,7 @@ _SOURCE_NAMES: dict[str, str] = {
     "wikipedia": "Wikipedia",
     "openstreetmap": "OpenStreetMap",
     "open-meteo": "Open-Meteo",
-    "curated": "Travel AI World",
+    "curated": "Kyrian World",
 }
 
 _LICENSE_DEFAULTS: dict[str, str] = {

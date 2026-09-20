@@ -9,7 +9,7 @@ AuthMode = Literal["local", "cognito"]
 
 
 class CommonSettings(BaseSettings):
-    PROJECT_NAME: str = "Travel AI World"
+    PROJECT_NAME: str = "Kyrian World"
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
 

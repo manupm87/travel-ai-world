@@ -1,6 +1,6 @@
 # Architecture overview
 
-Travel AI World is a static Next.js frontend and two FastAPI services that share nothing at
+Kyrian World is a static Next.js frontend and two FastAPI services that share nothing at
 runtime except the way they verify bearer tokens. See [ADR 0001](adr/0001-backend-split.md) for why.
 
 ## Containers

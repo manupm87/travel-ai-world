@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "core-api"
 version = "0.1.1"
-description = "Travel AI World core API: Google auth, users and trip CRUD on PostgreSQL"
+description = "Kyrian World core API: Google auth, users and trip CRUD on PostgreSQL"
 requires-python = ">=3.12"
 dependencies = [
     "travel-common",

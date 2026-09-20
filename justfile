@@ -1,4 +1,4 @@
-# Travel AI World — task runner (humans, CI and agents use the same commands).
+# Kyrian World — task runner (humans, CI and agents use the same commands).
 # Install: https://just.systems  (winget install Casey.Just / brew install just / cargo install just)
 #
 #   just            list recipes

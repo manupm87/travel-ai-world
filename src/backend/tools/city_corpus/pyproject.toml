@@ -7,7 +7,7 @@
 [project]
 name = "city-corpus"
 version = "0.1.1"
-description = "Travel AI World city corpus: licence-clean Wikivoyage and Wikipedia documents as JSONL"
+description = "Kyrian World city corpus: licence-clean Wikivoyage and Wikipedia documents as JSONL"
 requires-python = ">=3.12"
 dependencies = [
     "httpx>=0.28.1",

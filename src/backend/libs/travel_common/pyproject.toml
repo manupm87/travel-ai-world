@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "travel-common"
 version = "0.1.1"
-description = "Code shared by every Travel AI World service: identity, settings, errors, HTTP scaffolding"
+description = "Code shared by every Kyrian World service: identity, settings, errors, HTTP scaffolding"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.141.1",

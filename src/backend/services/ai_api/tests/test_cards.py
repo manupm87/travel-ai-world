@@ -101,7 +101,7 @@ class TestCuratedTour:
         assert card.category == "tour"
         assert card.hours == "daily at 11:00"
         assert card.price_tier is None
-        assert card.source == "Travel AI World"
+        assert card.source == "Kyrian World"
         assert card.license == "CC BY-SA 4.0"
         assert card.deep_link == "https://freebudapesttour.com/"
 
@@ -189,7 +189,7 @@ class TestSourceDisplayNames:
             ("wikipedia", "Wikipedia"),
             ("openstreetmap", "OpenStreetMap"),
             ("open-meteo", "Open-Meteo"),
-            ("curated", "Travel AI World"),
+            ("curated", "Kyrian World"),
         ],
     )
     def test_known_sources(self, source: str, expected: str) -> None:

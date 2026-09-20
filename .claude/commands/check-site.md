@@ -9,7 +9,7 @@ just test-e2e                      # starts `next dev` on :3000 and runs src/fro
 just test-e2e-static               # `next build` served on :3100: smoke + e2e/prerender.spec.ts (CI's `frontend` job)
 just test-e2e-stack                # the running Compose stack on :8080, every spec incl. the signed-in e2e/trips.spec.ts and e2e/planner.spec.ts (mocked /ai/planner)
 cd src/frontend && npx playwright show-report
-PLAYWRIGHT_BASE_URL=https://manupm87.github.io/travel-ai-world npx playwright test   # against the live site
+PLAYWRIGHT_BASE_URL=https://kyrian-world.com npx playwright test   # against the live site
 ```
 
 The stack mode (needs Docker) is the production shape and the only one with a backend, so the
@@ -71,7 +71,7 @@ shape come from `src/services/session.ts`), then `browser_navigate` to `/dashboa
 
 | Test | What it checks |
 |---|---|
-| Page title | `<title>` contains "Travel AI World" |
+| Page title | `<title>` contains "Kyrian World" |
 | Hero headline | "Your Dream Trip" visible on load |
 | Nav links | Logo and primary links present |
 | Language switcher | 🇬🇧 by default; switching to ES translates the nav and back |

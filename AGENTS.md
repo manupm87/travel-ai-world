@@ -1,4 +1,4 @@
-# AGENTS.md — Travel AI World
+# AGENTS.md — Kyrian World
 
 Instructions for coding agents (Claude Code, Codex, Cursor, Gemini CLI, Copilot, Jules, ...).
 Humans: start at [README.md](README.md). This file is the **single source of truth for agents**;

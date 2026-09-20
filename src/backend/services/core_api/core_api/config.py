@@ -4,7 +4,7 @@ from travel_common.config import CommonSettings
 
 
 class CoreSettings(CommonSettings):
-    PROJECT_NAME: str = "Travel AI World — Core API"
+    PROJECT_NAME: str = "Kyrian World — Core API"
 
     # PostgreSQL (the only supported engine: migrations use Postgres types)
     DB_SERVER: str = "127.0.0.1"

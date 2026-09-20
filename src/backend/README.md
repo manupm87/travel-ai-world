@@ -1,4 +1,4 @@
-# 🚀 Travel AI World — Backend workspace
+# 🚀 Kyrian World — Backend workspace
 
 ![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB.svg?style=for-the-badge&logo=python&logoColor=white)

@@ -1,6 +1,6 @@
 # Runbook — Frontend Manual en AWS (S3 + CloudFront + Route 53)
 
-Este documento detalla el despliegue manual del frontend estático de Travel AI World en AWS, realizado el 15 de septiembre de 2026. Para la versión automatizada con Terraform, ver [`infra/aws/frontend.tf`](../../infra/aws/frontend.tf).
+Este documento detalla el despliegue manual del frontend estático de Kyrian World en AWS, realizado el 15 de septiembre de 2026. Para la versión automatizada con Terraform, ver [`infra/aws/frontend.tf`](../../infra/aws/frontend.tf).
 
 ## Arquitectura resultante
 
@@ -53,7 +53,7 @@ Usuario → Route 53 (kyrian-world.com) → CloudFront (HTTPS) → S3 (privado, 
 2. Seleccionar **Free plan (0$)**.
 3. Configuración inicial:
    - **Distribution name:** `kyrian-world.com-frontend`
-   - **Description:** Travel AI World Frontend
+   - **Description:** Kyrian World Frontend
    - **Distribution type:** Single website configuration
    - **Domain:** Dejar vacío (configurar manualmente después)
 4. **Origin:**
@@ -149,7 +149,7 @@ nslookup kyrian-world.com
 
 - `http://kyrian-world.com` → Redirige a `https://kyrian-world.com` ✅
 - Candado SSL válido ✅
-- Carga la aplicación Travel AI World ✅
+- Carga la aplicación Kyrian World ✅
 
 ---
 

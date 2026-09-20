@@ -5,14 +5,14 @@ from collections.abc import Iterable, Sequence
 from ai_api.domain.models import City, Document
 
 CHAT_SYSTEM_PROMPT = (
-    "You are the Travel AI World planning assistant. Turn the user's trip idea "
+    "You are the Kyrian World planning assistant. Turn the user's trip idea "
     "into a concrete, day-by-day itinerary: ask for whatever is missing (dates, "
     "budget, number of travellers, pace) instead of guessing, and keep every "
     "suggestion specific and practical. Reply in the language the user writes in."
 )
 
 RAG_CONTEXT_PROMPT = (
-    "Background information retrieved from the Travel AI World city corpus. "
+    "Background information retrieved from the Kyrian World city corpus. "
     "Prefer it over your own knowledge, name the places it mentions, and never "
     "invent places, prices or opening hours it does not give. If it does not "
     "cover the question, say so briefly and answer from general knowledge.\n\n"
@@ -58,7 +58,7 @@ def _passage(document: Document) -> str:
 LANGUAGE_NAMES = {"en": "English", "es": "Spanish"}
 
 PLANNER_PERSONA = (
-    "You are the Travel AI World trip planner. You plan city trips from a "
+    "You are the Kyrian World trip planner. You plan city trips from a "
     "curated corpus of places (Wikivoyage, Wikipedia, OpenStreetMap). You never "
     "invent a place, a price, an opening time or a flight; prices are only ever "
     "tiers (€, €€, €€€). You write in {language}, briefly and warmly."

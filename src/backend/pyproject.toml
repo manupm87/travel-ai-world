@@ -5,7 +5,7 @@
 [project]
 name = "travel-backend"
 version = "0.1.1"
-description = "Travel AI World backend workspace"
+description = "Kyrian World backend workspace"
 requires-python = ">=3.12"
 dependencies = ["travel-common", "core-api", "ai-api"]
 

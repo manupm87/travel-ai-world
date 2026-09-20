@@ -1,4 +1,4 @@
-# Claude Code — Travel AI World
+# Claude Code — Kyrian World
 
 @../AGENTS.md
 

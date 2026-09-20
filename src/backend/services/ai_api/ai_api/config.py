@@ -7,7 +7,7 @@ LLMProviderName = Literal["nvidia", "bedrock"]
 
 
 class AISettings(CommonSettings):
-    PROJECT_NAME: str = "Travel AI World — AI API"
+    PROJECT_NAME: str = "Kyrian World — AI API"
 
     # Which adapter answers the chat: NVIDIA (local development, an API key)
     # or Amazon Bedrock (deployed: the function's IAM role, no key). ADR 0009.
