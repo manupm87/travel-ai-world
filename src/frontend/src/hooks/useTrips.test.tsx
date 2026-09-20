@@ -176,20 +176,23 @@ describe("useTrips", () => {
     });
   });
 
-  describe("update", () => {
+  describe("rename", () => {
     it("replaces the card with what the API stored", async () => {
       listTripsMock.mockResolvedValue([makeTripSummary({ id: "a", title: "Old" })]);
       updateTripMock.mockResolvedValue({
         id: "a",
         user_id: 1,
-        status: "planned",
+        phase: "upcoming",
         created_at: "2026-01-01T00:00:00Z",
         updated_at: "2026-01-02T00:00:00Z",
         title: "New",
+        city_slug: "budapest",
+        city: "Budapest",
+        country: "Hungary",
+        country_code: "HU",
         travelers_adults: 1,
         travelers_children: 0,
         travelers_infants: 0,
-        destinations: [],
         itinerary_days: [],
         accommodations: [],
         transportations: [],
@@ -197,21 +200,19 @@ describe("useTrips", () => {
       const { result } = renderHook(() => useTrips());
       await waitFor(() => expect(result.current.status).toBe("ready"));
 
-      await act(() => result.current.update("a", { title: "New" }));
+      await act(() => result.current.rename("a", "New"));
 
       expect(updateTripMock).toHaveBeenCalledWith("a", { title: "New" });
-      expect(result.current.trips[0]).toMatchObject({ id: "a", title: "New", status: "planned" });
+      expect(result.current.trips[0]).toMatchObject({ id: "a", title: "New", city: "Budapest" });
     });
 
-    it("leaves the card alone and rethrows when the patch fails", async () => {
+    it("leaves the card alone and rethrows when core_api refuses the write", async () => {
       listTripsMock.mockResolvedValue([makeTripSummary({ id: "a", title: "Old" })]);
-      updateTripMock.mockRejectedValue(new ApiError(422, "Bad dates"));
+      updateTripMock.mockRejectedValue(new ApiError(409, "Trip is locked", "TRIP_LOCKED"));
       const { result } = renderHook(() => useTrips());
       await waitFor(() => expect(result.current.status).toBe("ready"));
 
-      await expect(act(() => result.current.update("a", { title: "" }))).rejects.toBeInstanceOf(
-        ApiError
-      );
+      await expect(act(() => result.current.rename("a", "New"))).rejects.toBeInstanceOf(ApiError);
 
       expect(result.current.trips[0]).toMatchObject({ title: "Old" });
     });

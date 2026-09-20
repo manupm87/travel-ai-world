@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { ApiError, UnauthorizedError } from "@/services/http";
 import { clearSession } from "@/services/session";
-import { deleteTrip, listTrips, toTripSummary, updateTrip, type TripUpdate } from "@/services/trips";
+import { deleteTrip, listTrips, toTripSummary, updateTrip } from "@/services/trips";
 import type { TripSummary } from "@/types/trip-summary";
 
 export type TripsStatus = "loading" | "ready" | "error";
@@ -22,8 +22,12 @@ export interface UseTripsResult {
    * Rejects with the failure so the dialog that asked can say so.
    */
   remove: (id: string) => Promise<void>;
-  /** Patches a trip and replaces its card with what the API stored. */
-  update: (id: string, patch: TripUpdate) => Promise<void>;
+  /**
+   * Gives a trip another title and replaces its card with what the API
+   * stored. Rejects on a refusal — core_api answers 409 `TRIP_LOCKED` for a
+   * trip that is no longer upcoming — so the dialog that asked can say so.
+   */
+  rename: (id: string, title: string) => Promise<void>;
 }
 
 type TripsState =
@@ -49,7 +53,8 @@ function toApiError(err: unknown): ApiError {
 }
 
 /**
- * The dashboard's trips, loaded in the browser with the session token.
+ * The account's trips, loaded in the browser with the session token and
+ * listed by the planner (TRA-196).
  *
  * - Fetches on mount once the session is known (`isAuthenticated`), and again
  *   on `reload()`; every request is aborted when the component unmounts or a
@@ -59,10 +64,10 @@ function toApiError(err: unknown): ApiError {
  *   `"loading"` meanwhile; nothing to render, the page is going away.
  * - Every other failure ends in `"error"` with the `ApiError` for the UI to
  *   translate (never the server's text).
- * - `remove(id)` and `update(id, patch)` are the dashboard's own writes
- *   (TRA-191): the list is patched in place instead of reloaded, so deleting
- *   one card does not blank the grid. Both reject on failure — the dialog
- *   that asked decides what to say — and `remove` puts the card back first.
+ * - `remove(id)` and `rename(id, title)` are the list's own writes: the list
+ *   is patched in place instead of reloaded, so deleting one card does not
+ *   blank the rest. Both reject on failure — the dialog that asked decides
+ *   what to say — and `remove` puts the card back first.
  */
 export function useTrips(): UseTripsResult {
   const { isAuthenticated } = useAuth();
@@ -120,11 +125,11 @@ export function useTrips(): UseTripsResult {
     [withTrips]
   );
 
-  const update = useCallback(
-    async (id: string, patch: TripUpdate) => {
-      // Not optimistic: the API is the one that normalises what was typed
-      // (dates, an empty description), and the card shows exactly that.
-      const saved = toTripSummary(await updateTrip(id, patch));
+  const rename = useCallback(
+    async (id: string, title: string) => {
+      // Not optimistic: the API is the one that normalises what was typed,
+      // and it is also the one that may refuse the write outright.
+      const saved = toTripSummary(await updateTrip(id, { title }));
       withTrips((trips) => trips.map((trip) => (trip.id === id ? saved : trip)));
     },
     [withTrips]
@@ -136,6 +141,6 @@ export function useTrips(): UseTripsResult {
     error: state.status === "error" ? state.error : null,
     reload,
     remove,
-    update,
+    rename,
   };
 }

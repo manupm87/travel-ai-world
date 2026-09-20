@@ -9,10 +9,12 @@ import {
   clearPlannerDraft,
   readPlannerDraft,
   writePlannerDraft,
+  writeSavedTripId,
 } from "@/services/plannerDraft";
 import type { PlannerTurn, Slot, TripBrief } from "@/types/planner";
 import {
   groupForSlot,
+  hasItinerary,
   initialPlannerState,
   partOf,
   plannerReducer,
@@ -20,6 +22,7 @@ import {
   toItinerarySnapshot,
   toPlannerDraft,
   type PlannerAction,
+  type PlannerDraft,
   type PlannerState,
 } from "./plannerReducer";
 
@@ -53,6 +56,8 @@ type TurnInput = Omit<
  *   page never repeats the first (TRA-184).
  * - The draft is written to `sessionStorage` after every change and restored
  *   on mount, through `services/plannerDraft.ts` only.
+ * - `hydrate` opens a saved trip in its place and `startNew` empties it; both
+ *   move the id of the trip "Save trip" writes to along with the draft.
  */
 export function usePlanner() {
   const { t } = useLanguage();
@@ -68,7 +73,11 @@ export function usePlanner() {
     // and serialising the whole draft that often is wasted work. A pristine
     // state (after `reset`) clears the stored draft instead of saving it.
     if (state.status === "streaming") return;
-    if (state.messages.length === 0 && Object.keys(state.groups).length === 0) {
+    const pristine =
+      state.messages.length === 0 &&
+      Object.keys(state.groups).length === 0 &&
+      !hasItinerary(state.itinerary);
+    if (pristine) {
       clearPlannerDraft();
     } else {
       writePlannerDraft(toPlannerDraft(state));
@@ -279,9 +288,26 @@ export function usePlanner() {
     dispatch({ type: "shortlist_toggled", cardId });
   }, []);
 
-  const reset = useCallback(() => {
+  /**
+   * A saved trip opened in the planner (`/plan/?trip=`, TRA-196): the draft
+   * `services/tripDraft.ts` rebuilt replaces the state, and the trip it came
+   * from becomes the one "Save trip" updates. Any stream in flight is for the
+   * conversation that just went away, so it is cancelled first.
+   */
+  const hydrate = useCallback(
+    (draft: PlannerDraft, tripId: string) => {
+      abort();
+      dispatch({ type: "hydrated", draft });
+      writeSavedTripId(tripId);
+    },
+    [abort]
+  );
+
+  /** "Start over": an empty planner, and no trip to update any more. */
+  const startNew = useCallback(() => {
     abort();
     dispatch({ type: "reset" }); // the persist effect clears the stored draft
+    clearPlannerDraft();
   }, [abort]);
 
   return {
@@ -294,7 +320,8 @@ export function usePlanner() {
     askAlternatives,
     dismiss,
     toggleShortlist,
-    reset,
+    hydrate,
+    startNew,
     abort,
   };
 }

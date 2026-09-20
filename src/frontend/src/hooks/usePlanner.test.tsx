@@ -6,7 +6,12 @@ import en from "@/i18n/en";
 import { interpolate } from "@/i18n";
 import { UnauthorizedError } from "@/services/http";
 import { streamPlannerTurn, type StreamPlannerOptions } from "@/services/planner";
-import { clearPlannerDraft, readPlannerDraft, writePlannerDraft } from "@/services/plannerDraft";
+import {
+  clearPlannerDraft,
+  readPlannerDraft,
+  writePlannerDraft,
+  writeSavedTripId,
+} from "@/services/plannerDraft";
 import {
   BATHS,
   BRIEF_AFTER_FIRST_MESSAGE,
@@ -27,12 +32,14 @@ vi.mock("@/services/plannerDraft", () => ({
   readPlannerDraft: vi.fn(),
   writePlannerDraft: vi.fn(),
   clearPlannerDraft: vi.fn(),
+  writeSavedTripId: vi.fn(),
 }));
 
 const streamPlannerTurnMock = vi.mocked(streamPlannerTurn);
 const readPlannerDraftMock = vi.mocked(readPlannerDraft);
 const writePlannerDraftMock = vi.mocked(writePlannerDraft);
 const clearPlannerDraftMock = vi.mocked(clearPlannerDraft);
+const writeSavedTripIdMock = vi.mocked(writeSavedTripId);
 
 /** Turns a fixed array of events into a mocked stream implementation. */
 function streamOf(events: readonly PlannerEvent[]) {
@@ -451,7 +458,7 @@ describe("usePlanner — draft persistence", () => {
     expect(result.current.state.status).toBe("idle");
   });
 
-  it("reset clears the draft and the state", async () => {
+  it("startNew clears the draft, the saved trip and the state", async () => {
     const { result } = renderHook(() => usePlanner(), { wrapper });
     act(() => {
       result.current.sendMessage("hello");
@@ -461,11 +468,52 @@ describe("usePlanner — draft persistence", () => {
     // A pristine state clears the stored draft instead of saving it (also on mount).
     const clearsBefore = clearPlannerDraftMock.mock.calls.length;
     act(() => {
-      result.current.reset();
+      result.current.startNew();
     });
 
     expect(clearPlannerDraftMock.mock.calls.length).toBeGreaterThan(clearsBefore);
     expect(result.current.state).toMatchObject({ messages: [], status: "idle", turn: 0 });
+  });
+
+  it("hydrate replaces the state with a saved trip and remembers which one", () => {
+    const draft: PlannerDraft = {
+      messages: [],
+      groups: {},
+      brief: { ...EMPTY_BRIEF, destination: "Budapest" },
+      missing: [],
+      itinerary: { ...EMPTY_ITINERARY, stay: HOTELS.rum },
+      shortlist: [],
+    };
+    const { result } = renderHook(() => usePlanner(), { wrapper });
+
+    act(() => {
+      result.current.hydrate(draft, "trip-1");
+    });
+
+    expect(result.current.state.brief.destination).toBe("Budapest");
+    expect(result.current.state.itinerary.stay).toEqual(HOTELS.rum);
+    expect(writeSavedTripIdMock).toHaveBeenCalledWith("trip-1");
+  });
+
+  it("keeps a hydrated trip in the tab draft although it has no messages", async () => {
+    const draft: PlannerDraft = {
+      messages: [],
+      groups: {},
+      brief: { ...EMPTY_BRIEF, destination: "Budapest" },
+      missing: [],
+      itinerary: { ...EMPTY_ITINERARY, stay: HOTELS.rum },
+      shortlist: [],
+    };
+    const { result } = renderHook(() => usePlanner(), { wrapper });
+    writePlannerDraftMock.mockClear();
+    clearPlannerDraftMock.mockClear();
+
+    act(() => {
+      result.current.hydrate(draft, "trip-1");
+    });
+
+    await waitFor(() => expect(writePlannerDraftMock).toHaveBeenCalled());
+    expect(clearPlannerDraftMock).not.toHaveBeenCalled();
   });
 });
 

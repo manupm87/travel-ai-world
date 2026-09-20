@@ -37,7 +37,7 @@ export default function PlannerClientPage() {
     askAlternatives: askForSlot,
     dismiss,
     toggleShortlist,
-    reset,
+    startNew,
   } = usePlanner();
   // The itinerary opens on the trip overview (`null`, TRA-177) and is then
   // browsed one day at a time: the panel's strip picks the day and the map
@@ -47,9 +47,19 @@ export default function PlannerClientPage() {
   // map opens and what the overview says about the destination; the built-in
   // copy stands in until they arrive (or when they never do).
   const { cities } = usePlannerCities();
+  // The destination as `ai_api` publishes it (TRA-168, TRA-182): where the map
+  // looks before the day has any coordinates, and the photo and description
+  // the overview leads with. `null` whenever the list has no such city — demo
+  // mode, a static build, a destination outside the manifest.
+  const city = useMemo(
+    () => findCity(cities, state.brief.destination),
+    [cities, state.brief.destination]
+  );
+  const centre = city?.centre ?? null;
+
   // "Save trip". The recorded session answers for everyone and belongs to
   // nobody, so a demo turn takes the button out of service (TRA-191).
-  const save = useSaveTrip(state, { enabled: !demo });
+  const save = useSaveTrip(state, { enabled: !demo, city });
 
   // One walk of the itinerary for both columns (TRA-147): the map draws these
   // pins and the panel numbers its cards from the very same list.
@@ -69,15 +79,6 @@ export default function PlannerClientPage() {
     if (selectedStopId !== null) setSelectedStopId(null);
   }
 
-  // The destination as `ai_api` publishes it (TRA-168, TRA-182): where the map
-  // looks before the day has any coordinates, and the photo and description
-  // the overview leads with. `null` whenever the list has no such city — demo
-  // mode, a static build, a destination outside the manifest.
-  const city = useMemo(
-    () => findCity(cities, state.brief.destination),
-    [cities, state.brief.destination]
-  );
-  const centre = city?.centre ?? null;
   // No backend, or no `/planner` route yet: the recorded session answers
   // instead (TRA-158) and the banner says so, so the page is never "unavailable".
   const unavailable = false;
@@ -141,7 +142,7 @@ export default function PlannerClientPage() {
           onDismiss={dismiss}
           onToggleShortlist={toggleShortlist}
           onAskAlternatives={askAlternatives}
-          onReset={reset}
+          onReset={startNew}
           save={save}
         />
       }

@@ -15,6 +15,7 @@ import {
   HOTELS,
 } from "@/data/planner-demo/session";
 import { makeTrip } from "@/test/fixtures";
+import { BUDAPEST } from "@/test/fixtures/planner-city";
 import {
   applyItineraryOps,
   EMPTY_ITINERARY,
@@ -57,6 +58,9 @@ function planned(over: Partial<PlannerState> = {}): PlannerState {
   return { ...initialPlannerState(), brief: BRIEF_COMPLETE, missing: [], itinerary, ...over };
 }
 
+/** The hook always needs the destination it is saving; the tests vary the rest. */
+const options = (over: Parameters<typeof useSaveTrip>[1] = {}) => ({ city: BUDAPEST, ...over });
+
 const auth = (isAuthenticated: boolean) =>
   vi.mocked(useAuth).mockReturnValue({
     isAuthenticated,
@@ -81,7 +85,7 @@ describe("useSaveTrip", () => {
     saveDraftAsTripMock.mockResolvedValue(makeTrip({ id: "t1" }));
     const state = planned();
 
-    const { result } = renderHook(() => useSaveTrip(state), { wrapper });
+    const { result } = renderHook(() => useSaveTrip(state, options()), { wrapper });
     expect(result.current).toMatchObject({ status: "idle", canSave: true, tripId: null });
 
     act(() => result.current.save());
@@ -91,10 +95,11 @@ describe("useSaveTrip", () => {
     expect(result.current.tripId).toBe("t1");
     expect(writeSavedTripId).toHaveBeenCalledWith("t1");
 
-    const [draft, brief, options] = saveDraftAsTripMock.mock.calls[0]!;
+    const [draft, brief, city, saveOptions] = saveDraftAsTripMock.mock.calls[0]!;
     expect(draft).toBe(state.itinerary);
     expect(brief).toBe(state.brief);
-    expect(options).toMatchObject({
+    expect(city).toBe(BUDAPEST);
+    expect(saveOptions).toMatchObject({
       title: interpolate(p.heading, { count: 3, destination: "Budapest" }),
       tripId: null,
     });
@@ -104,20 +109,20 @@ describe("useSaveTrip", () => {
     vi.mocked(readSavedTripId).mockReturnValue("t1");
     saveDraftAsTripMock.mockResolvedValue(makeTrip({ id: "t1" }));
 
-    const { result } = renderHook(() => useSaveTrip(planned()), { wrapper });
+    const { result } = renderHook(() => useSaveTrip(planned(), options()), { wrapper });
     await waitFor(() => expect(result.current.tripId).toBe("t1"));
 
     act(() => result.current.save());
     await waitFor(() => expect(result.current.status).toBe("saved"));
 
-    expect(saveDraftAsTripMock.mock.calls[0]![2]).toMatchObject({ tripId: "t1" });
+    expect(saveDraftAsTripMock.mock.calls[0]![3]).toMatchObject({ tripId: "t1" });
   });
 
   it("ends in error and lets the visitor try again", async () => {
     saveDraftAsTripMock.mockRejectedValueOnce(new Error("network"));
     saveDraftAsTripMock.mockResolvedValueOnce(makeTrip({ id: "t1" }));
 
-    const { result } = renderHook(() => useSaveTrip(planned()), { wrapper });
+    const { result } = renderHook(() => useSaveTrip(planned(), options()), { wrapper });
 
     act(() => result.current.save());
     await waitFor(() => expect(result.current.status).toBe("error"));
@@ -129,7 +134,7 @@ describe("useSaveTrip", () => {
   it("clears the session on a rejected token and says nothing else", async () => {
     saveDraftAsTripMock.mockRejectedValue(new UnauthorizedError("expired"));
 
-    const { result } = renderHook(() => useSaveTrip(planned()), { wrapper });
+    const { result } = renderHook(() => useSaveTrip(planned(), options()), { wrapper });
 
     act(() => result.current.save());
     await waitFor(() => expect(clearSession).toHaveBeenCalled());
@@ -137,28 +142,57 @@ describe("useSaveTrip", () => {
   });
 
   it("cannot save a recorded session, a signed-out visitor or a static build", () => {
-    const demo = renderHook(() => useSaveTrip(planned(), { enabled: false }), { wrapper });
+    const demo = renderHook(() => useSaveTrip(planned(), options({ enabled: false })), { wrapper });
     expect(demo.result.current.canSave).toBe(false);
     act(() => demo.result.current.save());
     expect(saveDraftAsTripMock).not.toHaveBeenCalled();
 
     auth(false);
-    expect(renderHook(() => useSaveTrip(planned()), { wrapper }).result.current.canSave).toBe(false);
+    expect(renderHook(() => useSaveTrip(planned(), options()), { wrapper }).result.current.canSave).toBe(false);
 
     auth(true);
     apiAvailable = false;
-    expect(renderHook(() => useSaveTrip(planned()), { wrapper }).result.current.canSave).toBe(false);
+    expect(renderHook(() => useSaveTrip(planned(), options()), { wrapper }).result.current.canSave).toBe(false);
+  });
+
+  it("has nothing to save until the destination is a city the planner covers", () => {
+    const { result } = renderHook(() => useSaveTrip(planned(), { city: null }), { wrapper });
+
+    expect(result.current.canSave).toBe(false);
+    act(() => result.current.save());
+    expect(saveDraftAsTripMock).not.toHaveBeenCalled();
+  });
+
+  it("saves into the trip the planner has open, and keeps Saved when Save opened it", async () => {
+    saveDraftAsTripMock.mockResolvedValue(makeTrip({ id: "t9" }));
+    const { result, rerender } = renderHook(
+      (openTripId: string | null) => useSaveTrip(planned(), options({ openTripId })),
+      { wrapper, initialProps: null as string | null }
+    );
+
+    act(() => result.current.save());
+    await waitFor(() => expect(result.current.status).toBe("saved"));
+
+    // The page puts the new id in the URL; the hook must not take that for a
+    // different trip and forget it just saved.
+    rerender("t9");
+    expect(result.current.status).toBe("saved");
+    expect(result.current.tripId).toBe("t9");
+
+    // Another trip opened: a new target, and nothing saved to it yet.
+    rerender("t8");
+    expect(result.current).toMatchObject({ status: "idle", tripId: "t8" });
   });
 
   it("has nothing to save until there is an itinerary", () => {
-    const { result } = renderHook(() => useSaveTrip(initialPlannerState()), { wrapper });
+    const { result } = renderHook(() => useSaveTrip(initialPlannerState(), options()), { wrapper });
 
     expect(result.current.canSave).toBe(false);
   });
 
   it("goes back to idle once the itinerary moves on from what was saved", async () => {
     saveDraftAsTripMock.mockResolvedValue(makeTrip({ id: "t1" }));
-    const { result, rerender } = renderHook((state: PlannerState) => useSaveTrip(state), {
+    const { result, rerender } = renderHook((state: PlannerState) => useSaveTrip(state, options()), {
       wrapper,
       initialProps: planned(),
     });

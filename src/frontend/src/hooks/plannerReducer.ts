@@ -127,6 +127,11 @@ export type PlannerAction =
   | { type: "removed"; slot: Slot; cardId: string }
   /** A guided ask starts the group's list over (TRA-184). */
   | { type: "group_cleared"; groupId: string }
+  /**
+   * A saved trip opened in the planner (TRA-196): the draft replaces
+   * everything, transcript included, because it *is* the whole state now.
+   */
+  | { type: "hydrated"; draft: PlannerDraft }
   | { type: "reset" };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -483,6 +488,10 @@ export function plannerReducer(state: PlannerState, action: PlannerAction): Plan
         },
       };
     }
+    case "hydrated":
+      // The turn counter carries on, so the transcript re-pins to the bottom
+      // the way it does after any other change of what is on screen.
+      return { ...initialPlannerState(action.draft), turn: state.turn + 1 };
     case "reset":
       return initialPlannerState();
     default:
