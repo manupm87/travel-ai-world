@@ -53,7 +53,7 @@ Usuario → Route 53 (kyrian-world.com) → CloudFront (HTTPS) → S3 (privado, 
 2. Seleccionar **Free plan (0$)**.
 3. Configuración inicial:
    - **Distribution name:** `kyrian-world.com-frontend`
-   - **Description:** Kyrian World Frontend
+   - **Description:** Travel AI World Frontend
    - **Distribution type:** Single website configuration
    - **Domain:** Dejar vacío (configurar manualmente después)
 4. **Origin:**
