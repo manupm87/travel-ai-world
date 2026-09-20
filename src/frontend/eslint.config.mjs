@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vendored MapLibre worker copied into public/ at build time (TRA-181).
+    "public/maplibre/**",
   ]),
 
   // Project rules (see src/frontend/AGENTS.md): the network is reached only
