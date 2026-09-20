@@ -268,9 +268,12 @@ describe("TripPanel", () => {
     expect(onAskAlternatives).toHaveBeenCalledWith({ day: 2, part: "afternoon" });
     expect(screen.getByRole("dialog")).toBeInTheDocument();
 
-    // "Ask for more" is still there for a second batch, and keeps the sheet open.
-    fireEvent.click(screen.getByRole("button", { name: en.plan.alternatives.askMore }));
-    expect(onAskAlternatives).toHaveBeenCalledTimes(2);
+    // "More options" asks for the next page, and keeps the sheet open.
+    fireEvent.click(screen.getByRole("button", { name: en.plan.alternatives.more }));
+    expect(onAskAlternatives).toHaveBeenLastCalledWith(
+      { day: 2, part: "afternoon" },
+      { more: true }
+    );
     expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 

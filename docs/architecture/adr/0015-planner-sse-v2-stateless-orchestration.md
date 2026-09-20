@@ -61,3 +61,7 @@ climate normals otherwise.
   server answers with a fresh carousel instead of failing).
 - Revisit: persisting the draft as a `planning` Trip (TRA-146) will give the server a real id to
   key on; the snapshot stays as the fallback for unsaved drafts.
+- 2026-09-20 (TRA-184): `PlannerTurn` gained `exclude_card_ids` — the cards an ask already offered,
+  which the turn spends like the ones in the itinerary. Statelessness is why it exists: the server
+  cannot remember what it showed a minute ago, so the page tells it. The guidance for a "Change"
+  needed no new field either: it travels inside the page's own ask message, after a colon.

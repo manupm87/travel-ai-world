@@ -963,6 +963,17 @@
               }
             ]
           },
+          "exclude_card_ids": {
+            "description": "ids the traveller already saw for this ask; never offered again",
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 60,
+            "title": "Exclude Card Ids",
+            "type": "array"
+          },
           "history": {
             "description": "Text turns before this one, oldest first",
             "items": {
@@ -1014,6 +1025,7 @@
           "history",
           "brief",
           "itinerary",
+          "exclude_card_ids",
           "trip_id"
         ],
         "title": "PlannerTurn",

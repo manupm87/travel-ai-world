@@ -289,9 +289,15 @@ export interface Translations {
       none: string;
       /** While the options for the slot are streaming in. */
       loading: string;
-      askMore: string;
+      /** The footer button: the next page of options for the same slot. */
+      more: string;
+      /** The box above the list: what the traveller wants instead. */
+      guidePlaceholder: string;
+      guideSubmit: string;
       /** The message sent to ask for options: "Alternatives for day {day} · {part}" */
       askMessage: string;
+      /** The guided ask: "Alternatives for day {day} · {part}: {guidance}" */
+      askMessageGuided: string;
       /** The message sent from the stay card's "Change". */
       askStayMessage: string;
       /** "Shortlist · {count}" */

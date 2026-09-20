@@ -24,12 +24,23 @@ function turn(overrides: Partial<PlannerTurn> = {}): PlannerTurn {
     history: [],
     brief: null,
     itinerary: null,
+    exclude_card_ids: [],
     trip_id: null,
     ...overrides,
   };
 }
 
 const types = (events: PlannerEvent[]) => events.map((e) => e.type);
+
+/** The carousel one answer carries, and the ids it offered. */
+function group(events: PlannerEvent[]) {
+  const found = events.find((e) => e.type === "options");
+  return found && found.type === "options" ? found : null;
+}
+
+function ids(events: PlannerEvent[]): string[] {
+  return group(events)?.cards.map((c) => c.id) ?? [];
+}
 
 describe("demoEventsFor", () => {
   it("reads the brief from the opening message", () => {
@@ -81,6 +92,63 @@ describe("demoEventsFor", () => {
     // Nothing already in the trip is offered again.
     expect(ids).not.toContain(EXTRAS.basilica.id);
     expect(ids).not.toContain(BATHS.gellert.id);
+  });
+
+  it("reads a guided ask as the same slot, guidance and all", () => {
+    expect(slotFromMessage("Alternatives for day 2 · afternoon: a thermal bath")).toEqual({
+      day: 2,
+      part: "afternoon",
+    });
+    // The part is the one before the colon, never a word inside the guidance.
+    expect(slotFromMessage("Alternatives for day 4 · evening: morning pastries")).toEqual({
+      day: 4,
+      part: "evening",
+    });
+
+    const events = demoEventsFor(
+      turn({
+        message: "Alternativas para el día 3 · noche: algo tranquilo",
+        brief: BRIEF_COMPLETE,
+        itinerary: ITINERARY,
+      })
+    );
+    expect(events.find((e) => e.type === "options")).toMatchObject({
+      slot: { day: 3, part: "night" },
+    });
+  });
+
+  it("pages through the pool: what the ask already showed is never offered again", () => {
+    const first = demoEventsFor(
+      turn({ message: USER_MESSAGES.alternatives, brief: BRIEF_COMPLETE, itinerary: ITINERARY })
+    );
+    expect(first).toEqual(TURNS.alternatives);
+    const shown = ids(first);
+
+    const second = demoEventsFor(
+      turn({
+        message: USER_MESSAGES.alternatives,
+        brief: BRIEF_COMPLETE,
+        itinerary: ITINERARY,
+        exclude_card_ids: shown,
+      })
+    );
+    const next = ids(second);
+    const third = demoEventsFor(
+      turn({
+        message: USER_MESSAGES.alternatives,
+        brief: BRIEF_COMPLETE,
+        itinerary: ITINERARY,
+        exclude_card_ids: [...shown, ...next],
+      })
+    );
+
+    const all = [...shown, ...next, ...ids(third)];
+    expect(next).toHaveLength(3);
+    // Never the same card twice, and never one the trip already holds.
+    expect(new Set(all).size).toBe(all.length);
+    expect(all.length).toBeGreaterThanOrEqual(7);
+    // Every page joins the carousel on screen, so the sheet appends to it.
+    expect(group(second)?.group_id).toBe(GROUP_IDS.baths);
   });
 
   it("puts a picked alternative into its slot, replacing what was there", () => {

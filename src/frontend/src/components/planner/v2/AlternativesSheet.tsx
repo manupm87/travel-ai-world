@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { interpolate } from "@/i18n";
 import { partOf, type OptionGroupState } from "@/hooks/plannerReducer";
+import type { AskAlternativesOptions } from "@/hooks/usePlanner";
 import type { Slot } from "@/types/planner";
 import { OptionCard } from "./OptionCard";
 
@@ -23,13 +24,20 @@ export interface AlternativesSheetProps {
   onSelect: (groupId: string, cardIds: string[]) => void;
   onDismiss: (groupId: string, cardId: string) => void;
   onToggleShortlist: (cardId: string) => void;
-  onAskMore: (slot: Slot) => void;
+  /** Asks for this slot again: guided by the box, or the next page ("More"). */
+  onAskAlternatives: (slot: Slot, options?: AskAlternativesOptions) => void;
 }
 
 /**
  * "Change": the alternatives for one slot of the itinerary, as a right side
  * sheet on desktop and a bottom sheet below `lg`. The picking itself is the
  * carousel's `OptionCard`, so a choice means the same thing in both places.
+ *
+ * Two ways to ask again (TRA-184): the box at the top searches for what the
+ * traveller types instead ("a thermal bath"), which starts the list over, and
+ * "More options" appends the next three below the ones already there — the
+ * spinner then sits at the end of the list rather than replacing it. The box is
+ * for a slot of a day; the stay's sheet keeps only its footer.
  */
 export function AlternativesSheet({
   open,
@@ -43,10 +51,11 @@ export function AlternativesSheet({
   onSelect,
   onDismiss,
   onToggleShortlist,
-  onAskMore,
+  onAskAlternatives,
 }: AlternativesSheetProps) {
   const { t } = useLanguage();
   const titleId = useId();
+  const [guidance, setGuidance] = useState("");
   const closeRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const restoreRef = useRef<HTMLElement | null>(null);
@@ -144,28 +153,59 @@ export function AlternativesSheet({
           </button>
         </div>
 
+        {isStay ? null : (
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              const asked = guidance.trim();
+              if (!asked) return;
+              onAskAlternatives(slot, { guidance: asked });
+              setGuidance("");
+            }}
+            className="flex items-center gap-2 border-b border-border px-4 py-3"
+          >
+            <input
+              type="text"
+              value={guidance}
+              onChange={(event) => setGuidance(event.target.value)}
+              placeholder={a.guidePlaceholder}
+              aria-label={a.guidePlaceholder}
+              disabled={disabled}
+              className="min-w-0 flex-1 rounded-lg border border-border bg-bg-primary px-3 py-1.5 text-sm text-text-primary placeholder:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-50"
+            />
+            <button
+              type="submit"
+              disabled={disabled || guidance.trim().length === 0}
+              className="shrink-0 rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-white transition hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {a.guideSubmit}
+            </button>
+          </form>
+        )}
+
         <div className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 py-4">
-          {group && cards.length > 0 ? (
-            cards.map((card) => (
-              <OptionCard
-                key={card.id}
-                card={card}
-                slot={isStay ? null : slot}
-                selection="single"
-                current={currentIds.includes(card.id)}
-                selected={group.selectedIds.includes(card.id)}
-                shortlisted={shortlist.includes(card.id)}
-                disabled={disabled}
-                onChoose={() => {
-                  onSelect(group.group_id, [card.id]);
-                  onClose();
-                }}
-                onDismiss={() => onDismiss(group.group_id, card.id)}
-                onToggleShortlist={() => onToggleShortlist(card.id)}
-                className="w-full"
-              />
-            ))
-          ) : loading ? (
+          {group
+            ? cards.map((card) => (
+                <OptionCard
+                  key={card.id}
+                  card={card}
+                  slot={isStay ? null : slot}
+                  selection="single"
+                  current={currentIds.includes(card.id)}
+                  selected={group.selectedIds.includes(card.id)}
+                  shortlisted={shortlist.includes(card.id)}
+                  disabled={disabled}
+                  onChoose={() => {
+                    onSelect(group.group_id, [card.id]);
+                    onClose();
+                  }}
+                  onDismiss={() => onDismiss(group.group_id, card.id)}
+                  onToggleShortlist={() => onToggleShortlist(card.id)}
+                  className="w-full"
+                />
+              ))
+            : null}
+          {loading ? (
             <p role="status" className="flex items-center gap-2 text-sm text-text-secondary">
               <span
                 aria-hidden="true"
@@ -173,9 +213,9 @@ export function AlternativesSheet({
               />
               {a.loading}
             </p>
-          ) : (
+          ) : cards.length === 0 ? (
             <p className="text-sm text-text-secondary">{a.none}</p>
-          )}
+          ) : null}
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-3">
@@ -184,11 +224,11 @@ export function AlternativesSheet({
           </span>
           <button
             type="button"
-            onClick={() => onAskMore(slot)}
+            onClick={() => onAskAlternatives(slot, { more: true })}
             disabled={disabled}
             className="rounded-lg px-2 py-1 text-xs font-medium text-accent transition hover:text-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {a.askMore}
+            {a.more}
           </button>
         </div>
       </div>

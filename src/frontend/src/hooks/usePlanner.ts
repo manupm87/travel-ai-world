@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import { useLanguage } from "@/context/LanguageContext";
+import { interpolate } from "@/i18n";
 import { UnauthorizedError } from "@/services/http";
 import { streamPlannerTurn } from "@/services/planner";
 import {
@@ -10,7 +12,9 @@ import {
 } from "@/services/plannerDraft";
 import type { PlannerTurn, Slot, TripBrief } from "@/types/planner";
 import {
+  groupForSlot,
   initialPlannerState,
+  partOf,
   plannerReducer,
   toHistory,
   toItinerarySnapshot,
@@ -18,6 +22,20 @@ import {
   type PlannerAction,
   type PlannerState,
 } from "./plannerReducer";
+
+/** What the "Change" sheet asks for on top of the slot itself (TRA-184). */
+export interface AskAlternativesOptions {
+  /** Free text from the sheet's box: the search, in the traveller's words. */
+  guidance?: string;
+  /** "More options": the next page, on top of the cards already offered. */
+  more?: boolean;
+}
+
+/** A turn as the callers describe it: the request's own fields minus the state. */
+type TurnInput = Omit<
+  PlannerTurn,
+  "history" | "brief" | "itinerary" | "exclude_card_ids" | "trip_id"
+> & { exclude_card_ids?: string[] };
 
 /**
  * The planner page's brain: the pure reducer (`plannerReducer`) plus the
@@ -30,10 +48,14 @@ import {
  *   events flush the pending text first, so order is kept.
  * - Selecting cards updates the itinerary at once (optimistic) and is sent
  *   as a structured `select` action; the server's next patch reconciles it.
+ * - `askAlternatives` writes the "Change" sheet's ask: the slot, the free text
+ *   the traveller typed, and the cards that ask already showed, so a second
+ *   page never repeats the first (TRA-184).
  * - The draft is written to `sessionStorage` after every change and restored
  *   on mount, through `services/plannerDraft.ts` only.
  */
 export function usePlanner() {
+  const { t } = useLanguage();
   const [state, dispatch] = useReducer(plannerReducer, null, () =>
     initialPlannerState(readPlannerDraft())
   );
@@ -104,7 +126,7 @@ export function usePlanner() {
    * here rather than read back from React after a render.
    */
   const runTurn = useCallback(
-    async (action: PlannerAction, turn: Omit<PlannerTurn, "history" | "brief" | "itinerary" | "trip_id">) => {
+    async (action: PlannerAction, turn: TurnInput) => {
       abort();
       const before = stateRef.current;
       const started = plannerReducer(before, action);
@@ -127,6 +149,8 @@ export function usePlanner() {
         history: toHistory(before.messages),
         brief: next.brief,
         itinerary: toItinerarySnapshot(next.itinerary),
+        // Nothing to rule out unless this ask already offered something.
+        exclude_card_ids: turn.exclude_card_ids ?? [],
         trip_id: null,
       };
 
@@ -203,6 +227,37 @@ export function usePlanner() {
     [runTurn]
   );
 
+  /**
+   * The "Change" sheet's ask for one slot, in the reader's language.
+   *
+   * `guidance` becomes the search itself ("Alternatives for day 2 · afternoon:
+   * a thermal bath") and starts the list over; `more` keeps the cards on screen
+   * and sends their ids so the server offers three others.
+   */
+  const askAlternatives = useCallback(
+    (slot: Slot, { guidance, more = false }: AskAlternativesOptions = {}) => {
+      const a = t.plan.alternatives;
+      const part = t.plan.parts[partOf(slot)];
+      const asked = guidance?.trim();
+      const message = asked
+        ? interpolate(a.askMessageGuided, { day: slot.day, part, guidance: asked })
+        : interpolate(a.askMessage, { day: slot.day, part });
+      const group = groupForSlot(stateRef.current.groups, slot);
+      void runTurn(
+        // A guided ask empties the carousel; the plain one only starts a turn.
+        asked && group
+          ? { type: "group_cleared", groupId: group.group_id }
+          : { type: "turn_started", message },
+        {
+          message,
+          action: null,
+          exclude_card_ids: more && group ? group.cards.map((card) => card.id) : [],
+        }
+      );
+    },
+    [runTurn, t]
+  );
+
   const dismiss = useCallback((groupId: string, cardId: string) => {
     dispatch({ type: "dismissed", groupId, cardId });
   }, []);
@@ -216,7 +271,19 @@ export function usePlanner() {
     dispatch({ type: "reset" }); // the persist effect clears the stored draft
   }, [abort]);
 
-  return { state, demo, sendMessage, answer, select, remove, dismiss, toggleShortlist, reset, abort };
+  return {
+    state,
+    demo,
+    sendMessage,
+    answer,
+    select,
+    remove,
+    askAlternatives,
+    dismiss,
+    toggleShortlist,
+    reset,
+    abort,
+  };
 }
 
 export type UsePlannerResult = ReturnType<typeof usePlanner>;

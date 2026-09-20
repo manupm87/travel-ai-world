@@ -187,6 +187,7 @@ class Session:
                 "history": self._history,
                 "brief": self._brief,
                 "itinerary": self._tally.snapshot(),
+                "exclude_card_ids": [],
                 "trip_id": None,
             }
         )

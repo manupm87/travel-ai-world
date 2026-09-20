@@ -29,6 +29,7 @@ EMPTY_TURN = {
     "history": [],
     "brief": None,
     "itinerary": None,
+    "exclude_card_ids": [],
     "trip_id": None,
 }
 

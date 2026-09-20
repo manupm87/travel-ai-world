@@ -466,6 +466,11 @@ export interface components {
             action: (components["schemas"]["SelectAction"] | components["schemas"]["RemoveAction"]) | null;
             brief: components["schemas"]["TripBrief"] | null;
             /**
+             * Exclude Card Ids
+             * @description ids the traveller already saw for this ask; never offered again
+             */
+            exclude_card_ids: string[];
+            /**
              * History
              * @description Text turns before this one, oldest first
              */

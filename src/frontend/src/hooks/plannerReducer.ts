@@ -121,6 +121,8 @@ export type PlannerAction =
   | { type: "dismissed"; groupId: string; cardId: string }
   | { type: "shortlist_toggled"; cardId: string }
   | { type: "removed"; slot: Slot; cardId: string }
+  /** A guided ask starts the group's list over (TRA-184). */
+  | { type: "group_cleared"; groupId: string }
   | { type: "reset" };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -221,6 +223,24 @@ export function applyItineraryOp(itinerary: ItineraryDraft, op: ItineraryOp): It
   }
 }
 
+/**
+ * The latest options group offered for a slot, or `null`. Matched on the slot
+ * the group carries, not on the id, so it finds the server's `slot:2:afternoon`
+ * and the recorded session's own ids alike.
+ */
+export function groupForSlot(
+  groups: Record<string, OptionGroupState>,
+  slot: Slot
+): OptionGroupState | null {
+  const matching = Object.values(groups).filter(
+    (group) =>
+      group.slot !== null &&
+      group.slot.day === slot.day &&
+      partOf(group.slot) === partOf(slot)
+  );
+  return matching[matching.length - 1] ?? null;
+}
+
 /** The ids in one slot of the itinerary. */
 function currentCardIds(itinerary: ItineraryDraft, slot: Slot): string[] {
   const day = itinerary.days.find((d) => d.day === slot.day);
@@ -308,11 +328,30 @@ function applyEvent(state: PlannerState, event: PlannerEvent): PlannerState {
       const { type: _type, ...group } = event;
       void _type;
       const messages = dropEmptyTail(state.messages);
+      const pendingGroupIds = [
+        ...state.pendingGroupIds.filter((id) => id !== group.group_id),
+        group.group_id,
+      ];
+      const known = state.groups[group.group_id];
+      if (known) {
+        // "More options" (TRA-184): the next page joins the carousel already on
+        // screen — new cards only, and no second bubble in the transcript.
+        const fresh = group.cards.filter((card) => !known.cards.some((c) => c.id === card.id));
+        return {
+          ...state,
+          groups: {
+            ...state.groups,
+            [group.group_id]: { ...known, ...group, cards: [...known.cards, ...fresh] },
+          },
+          messages,
+          pendingGroupIds,
+        };
+      }
       return {
         ...state,
         groups: { ...state.groups, [group.group_id]: { ...group, selectedIds: [], dismissedIds: [] } },
         messages: [...messages, { id: nextId(messages), kind: "options", groupId: group.group_id }],
-        pendingGroupIds: [...state.pendingGroupIds.filter((id) => id !== group.group_id), group.group_id],
+        pendingGroupIds,
       };
     }
     case "itinerary_patch":
@@ -426,6 +465,17 @@ export function plannerReducer(state: PlannerState, action: PlannerAction): Plan
           card_id: action.cardId,
         }),
       };
+    case "group_cleared": {
+      const group = state.groups[action.groupId];
+      if (!group) return state;
+      return {
+        ...state,
+        groups: {
+          ...state.groups,
+          [action.groupId]: { ...group, cards: [], selectedIds: [], dismissedIds: [] },
+        },
+      };
+    }
     case "reset":
       return initialPlannerState();
     default:

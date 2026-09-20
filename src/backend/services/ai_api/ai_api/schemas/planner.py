@@ -22,8 +22,15 @@ MAX_CARD_IDS = 20
 MAX_CARD_ID_CHARS = 200
 """A corpus id is a short key (`osm:relation/13067`), never a payload."""
 
+MAX_EXCLUDED_CARD_IDS = 60
+"""Most ids one ask may rule out: `OPTIONS_COUNT` a page, a few pages deep."""
+
 MAX_DAYS = 14
 """Longest itinerary a snapshot may describe."""
+
+
+CardId = Annotated[str, Field(min_length=1, max_length=MAX_CARD_ID_CHARS)]
+"""One corpus document id, as a request carries it."""
 
 
 class SelectAction(BaseModel):
@@ -78,6 +85,10 @@ class PlannerTurn(BaseModel):
     )
     brief: TripBrief | None
     itinerary: ItinerarySnapshot | None
+    exclude_card_ids: list[CardId] = Field(
+        max_length=MAX_EXCLUDED_CARD_IDS,
+        description="ids the traveller already saw for this ask; never offered again",
+    )
     trip_id: UUID | None = Field(
         description="Reserved: the Trip this draft will be saved to"
     )

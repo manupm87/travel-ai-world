@@ -12,7 +12,12 @@ from datetime import date
 from pathlib import Path
 
 import pytest
-from ai_api.application.plan_trip import PlanTrip, city_key, resolve_city
+from ai_api.application.plan_trip import (
+    PlanTrip,
+    _alternatives_slot,
+    city_key,
+    resolve_city,
+)
 from ai_api.domain.models import City, DayWeather, Document, Photo
 from ai_api.schemas.planner import PlannerTurn
 from ai_api.schemas.planner_events import (
@@ -41,6 +46,9 @@ BY_ID = {d.id: d for d in CORPUS}
 
 BELVAROS = "wv:en:Budapest/Belváros#section:intro:c1"
 ASTORIA = "wv:en:Budapest/Belváros#sleep:danubius-hotel-astoria"
+ACE_HOSTEL = "wv:en:Budapest/Belváros#sleep:ace-hostel"
+MARCO_POLO = "wv:en:Budapest/Erzsébetváros#sleep:marco-polo-hostel"
+IBIS = "wv:en:Budapest/Erzsébetváros#sleep:ibis-budapest-city"
 PARLIAMENT = "wv:en:Budapest/Belváros#see:parliament"
 BASILICA = "wv:en:Budapest/Belváros#see:st-stephen-istvan-basilica"
 BASTION = "wv:en:Budapest/Budavár#see:fisherman-s-bastion"
@@ -77,6 +85,7 @@ def turn(
     stay: str | None = None,
     days: list[dict[str, list[str]]] | None = None,
     history: Sequence[tuple[str, str]] = (),
+    exclude: Sequence[str] = (),
 ) -> PlannerTurn:
     itinerary = None
     if stay is not None or days is not None:
@@ -103,6 +112,7 @@ def turn(
             "history": [{"role": r, "content": c} for r, c in history],
             "brief": brief.model_dump() if brief else None,
             "itinerary": itinerary,
+            "exclude_card_ids": list(exclude),
             "trip_id": None,
         }
     )
@@ -618,6 +628,102 @@ async def test_spanish_change_request_answers_in_spanish():
     assert group.group_id == "slot:1:night"
     assert all(c.category == "drink" for c in group.cards)
     assert "Alternativas" in joined_text(events)
+
+
+@pytest.mark.parametrize(
+    ("message", "expected"),
+    [
+        ("Alternatives for day 2 · afternoon", ((2, "afternoon"), None)),
+        ("Alternativas para el día 1 · noche", ((1, "night"), None)),
+        (
+            "Alternatives for day 2 · afternoon: a thermal bath",
+            ((2, "afternoon"), "a thermal bath"),
+        ),
+        (
+            "Alternativas para el día 3 · tarde:   un baño termal  ",
+            ((3, "afternoon"), "un baño termal"),
+        ),
+        ("Alternatives for day 4 · night:   ", ((4, "night"), None)),
+        ("Alternatives for day 2 · siesta: something quiet", (None, None)),
+        ("What else could we do on day 2?", (None, None)),
+    ],
+)
+def test_the_ask_carries_the_slot_and_the_guidance_when_there_is_one(
+    message: str, expected: tuple[tuple[int, str] | None, str | None]
+):
+    slot, guidance = _alternatives_slot(message)
+    found = None if slot is None else (slot.day, slot.part)
+
+    assert (found, guidance) == expected
+
+
+async def test_a_guided_change_request_searches_for_what_was_asked_for():
+    use_case, provider, retriever = planner([picks(GELLERT, RUDAS)])
+
+    events = await run(
+        use_case(
+            turn(
+                "Alternatives for day 2 · afternoon: a thermal bath",
+                brief=brief(),
+                stay=ASTORIA,
+                days=[{"morning": [PARLIAMENT]}, {"afternoon": [BASILICA]}],
+            )
+        )
+    )
+
+    # The guidance replaces the interests-based default as the retrieval query.
+    assert {query for query, _, _ in retriever.searches} == {"a thermal bath"}
+    [group] = only(events, OptionsEvent)
+    assert group.group_id == "slot:2:afternoon"
+    assert [c.id for c in group.cards][:2] == [GELLERT, RUDAS]
+    # Still the page's own wording: no intent call.
+    assert len(provider.completions) == 1
+
+
+async def test_more_options_never_offers_a_card_the_ask_already_showed():
+    use_case, _, _ = planner([picks(BASTION, RUDAS, GELLERT)])
+
+    events = await run(
+        use_case(
+            turn(
+                "Alternatives for day 2 · afternoon",
+                brief=brief(),
+                stay=ASTORIA,
+                days=[{"afternoon": [PARLIAMENT]}],
+                exclude=[BASILICA, BASTION],
+            )
+        )
+    )
+
+    [group] = only(events, OptionsEvent)
+    ids = [c.id for c in group.cards]
+    assert BASILICA not in ids and BASTION not in ids  # already offered
+    assert PARLIAMENT not in ids  # already in the trip
+    assert ids and len(ids) == len(set(ids))
+
+
+async def test_other_stays_skip_the_hotels_the_ask_already_showed():
+    use_case, _, _ = planner(
+        [json.dumps({"intent": "change_stay", "cheaper": False}), picks(IBIS)]
+    )
+
+    events = await run(
+        use_case(
+            turn(
+                "Other hotels, please",
+                brief=brief(),
+                stay=ASTORIA,
+                days=[{"morning": [PARLIAMENT]}],
+                exclude=[ACE_HOSTEL, MARCO_POLO],
+            )
+        )
+    )
+
+    [group] = only(events, OptionsEvent)
+    ids = [c.id for c in group.cards]
+    assert group.kind == "hotel" and IBIS in ids
+    assert ACE_HOSTEL not in ids and MARCO_POLO not in ids  # already offered
+    assert ASTORIA not in ids  # the stay itself
 
 
 async def test_free_text_after_the_draft_goes_through_the_intent_classifier():

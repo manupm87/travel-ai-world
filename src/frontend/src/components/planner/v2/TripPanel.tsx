@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { useLanguage } from "@/context/LanguageContext";
 import { interpolate } from "@/i18n";
 import {
+  groupForSlot,
   hasItinerary,
   partOf,
   type DayDraft,
@@ -12,6 +13,7 @@ import {
   type PlannerState,
 } from "@/hooks/plannerReducer";
 import { useCardDetail } from "@/hooks/useCardDetail";
+import type { AskAlternativesOptions } from "@/hooks/usePlanner";
 import { DAY_PARTS, type OptionCard, type PlannerCity, type Slot } from "@/types/planner";
 import { routeLegs } from "./RouteStrip";
 import { ActivityDetail } from "./ActivityDetail";
@@ -46,7 +48,7 @@ export interface TripPanelProps {
   onSelect: (groupId: string, cardIds: string[]) => void;
   onDismiss: (groupId: string, cardId: string) => void;
   onToggleShortlist: (cardId: string) => void;
-  onAskAlternatives: (slot: Slot) => void;
+  onAskAlternatives: (slot: Slot, options?: AskAlternativesOptions) => void;
   onReset: () => void;
 }
 
@@ -170,16 +172,9 @@ export function TripPanel({
   const isStaySlot = (slot: Slot) => slot.day === STAY_SLOT.day;
 
   const groupFor = (slot: Slot): OptionGroupState | null => {
-    const groups = Object.values(state.groups);
-    const matching = isStaySlot(slot)
-      ? groups.filter((group) => group.kind === "hotel")
-      : groups.filter(
-          (group) =>
-            group.slot !== null &&
-            group.slot.day === slot.day &&
-            partOf(group.slot) === partOf(slot)
-        );
-    return matching[matching.length - 1] ?? null;
+    if (!isStaySlot(slot)) return groupForSlot(state.groups, slot);
+    const hotels = Object.values(state.groups).filter((group) => group.kind === "hotel");
+    return hotels[hotels.length - 1] ?? null;
   };
 
   const currentIdsFor = (slot: Slot): string[] => {
@@ -199,7 +194,9 @@ export function TripPanel({
       return;
     }
     const key = `${changing.day}:${partOf(changing)}`;
-    if (changingGroup || askedForRef.current === key) return;
+    if ((changingGroup && changingGroup.cards.length > 0) || askedForRef.current === key) {
+      return;
+    }
     askedForRef.current = key;
     onAskAlternatives(changing);
   }, [changing, changingGroup, onAskAlternatives]);
@@ -244,7 +241,7 @@ export function TripPanel({
       onSelect={onSelect}
       onDismiss={onDismiss}
       onToggleShortlist={onToggleShortlist}
-      onAskMore={onAskAlternatives}
+      onAskAlternatives={onAskAlternatives}
     />
   );
 

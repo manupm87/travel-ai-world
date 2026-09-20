@@ -70,7 +70,19 @@ TypeScript 5, Tailwind CSS v4.
   with `BriefChecklist`, `RouteStrip`, `StayCard`, `DayStrip`, `TripOverview`, `DayCard`,
   `WarningBadge` and the
   `AlternativesSheet` behind every "Change", `ActivityDetail` over the day, `TripMap` in the
-  third column). The **trip overview** is the default view (TRA-177): whenever an itinerary exists
+  third column). The **"Change" sheet asks twice over** (TRA-184): it auto-asks on opening
+  (TRA-160), a box above the list searches for what the traveller types instead ("a thermal bath")
+  and "More options" pages. Both go through `usePlanner.askAlternatives(slot, { guidance, more })`,
+  which writes the ask in the reader's language (`alternatives.askMessage` /
+  `askMessageGuided`, `Alternatives for day {day} · {part}: {guidance}` — the form
+  `ai_api`'s `ALTERNATIVES_ASK` reads) and sends `exclude_card_ids`: the ids of the group on
+  screen when `more`, `[]` otherwise. A guided ask dispatches `group_cleared` so the list starts
+  over ("Finding alternatives…"); a plain "More options" keeps the cards and puts the spinner
+  under them, because an `options` event whose `group_id` the reducer already knows **appends** the
+  cards it does not have and adds no second bubble to the transcript. The group a slot's sheet
+  shows is `groupForSlot` (matched on the slot, not the id, so the recorded session's own ids work
+  too); the stay's pseudo-slot keeps `askStayMessage` and gets no box.
+  The **trip overview** is the default view (TRA-177): whenever an itinerary exists
   and no day is selected, `TripPanel` renders `TripOverview` in the day `tabpanel` — the city's
   photo and its `intro` in the reader's language with an `en` fallback (`PlannerCity`, TRA-182,
   credited to Wikivoyage), a mosaic of up to six of the itinerary's own photos, and the simplified

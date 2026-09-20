@@ -9,18 +9,16 @@ import { PlannerLayout } from "@/components/planner/v2/PlannerLayout";
 import { TripMap } from "@/components/planner/v2/TripMap";
 import { TripPanel } from "@/components/planner/v2/TripPanel";
 import { useLanguage } from "@/context/LanguageContext";
-import { partOf } from "@/hooks/plannerReducer";
-import { usePlanner } from "@/hooks/usePlanner";
+import { usePlanner, type AskAlternativesOptions } from "@/hooks/usePlanner";
 import { findCity, usePlannerCities } from "@/hooks/usePlannerCities";
 import { useSelectedDay } from "@/hooks/useSelectedDay";
-import { interpolate } from "@/i18n";
 import type { Slot } from "@/types/planner";
 
 /**
  * The planner page's client side (`/plan/`): layout A from the mockups. The
  * state machine and the network live in `usePlanner`; this component wires
  * the chat column and the trip panel to it and translates error kinds and
- * the canned messages (generate, alternatives) into copy.
+ * the canned messages (generate, the stay's "Change") into copy.
  *
  * `?q=<prompt>` (from the landing's `PlannerCard`) is sent as the first turn
  * once, and only when there is no conversation to resume in this tab.
@@ -35,6 +33,7 @@ export default function PlannerClientPage() {
     answer,
     select,
     remove,
+    askAlternatives: askForSlot,
     dismiss,
     toggleShortlist,
     reset,
@@ -93,21 +92,18 @@ export default function PlannerClientPage() {
     sendMessage(t.plan.checklist.generateMessage);
   }, [sendMessage, t]);
 
+  // "Change": the hook writes the ask for a slot of a day — guidance and the
+  // ids that ask already showed included (TRA-184). The stay has no day to
+  // name, so its pseudo-slot keeps its own sentence.
   const askAlternatives = useCallback(
-    (slot: Slot) => {
-      // The stay card's "Change" uses the day-0 pseudo-slot (TripPanel).
+    (slot: Slot, options?: AskAlternativesOptions) => {
       if (slot.day === 0) {
         sendMessage(t.plan.alternatives.askStayMessage);
         return;
       }
-      sendMessage(
-        interpolate(t.plan.alternatives.askMessage, {
-          day: slot.day,
-          part: t.plan.parts[partOf(slot)],
-        })
-      );
+      askForSlot(slot, options);
     },
-    [sendMessage, t]
+    [askForSlot, sendMessage, t]
   );
 
   return (

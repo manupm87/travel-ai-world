@@ -1,9 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { act, renderHook, waitFor } from "@testing-library/react";
+import type { ReactNode } from "react";
+import { LanguageProvider } from "@/context/LanguageContext";
+import en from "@/i18n/en";
+import { interpolate } from "@/i18n";
 import { UnauthorizedError } from "@/services/http";
 import { streamPlannerTurn, type StreamPlannerOptions } from "@/services/planner";
 import { clearPlannerDraft, readPlannerDraft, writePlannerDraft } from "@/services/plannerDraft";
 import {
+  BATHS,
   BRIEF_AFTER_FIRST_MESSAGE,
   GROUP_IDS,
   HOTELS,
@@ -36,6 +41,11 @@ function streamOf(events: readonly PlannerEvent[]) {
   };
 }
 
+/** The hook reads its copy from the language context, as any client hook does. */
+function wrapper({ children }: { children: ReactNode }) {
+  return <LanguageProvider>{children}</LanguageProvider>;
+}
+
 /** A promise the test settles by hand, to gate a mocked stream mid-flight. */
 function deferred<T = void>() {
   let resolve!: (value: T) => void;
@@ -62,7 +72,7 @@ afterEach(() => {
 
 describe("usePlanner — sendMessage", () => {
   it("sends the message, action null, the current brief, the itinerary snapshot, trip_id null and an abort signal", async () => {
-    const { result } = renderHook(() => usePlanner());
+    const { result } = renderHook(() => usePlanner(), { wrapper });
 
     act(() => {
       result.current.sendMessage(USER_MESSAGES.opening);
@@ -84,7 +94,7 @@ describe("usePlanner — sendMessage", () => {
   });
 
   it("does not duplicate the message just sent into history", async () => {
-    const { result } = renderHook(() => usePlanner());
+    const { result } = renderHook(() => usePlanner(), { wrapper });
 
     act(() => {
       result.current.sendMessage(USER_MESSAGES.opening);
@@ -99,7 +109,7 @@ describe("usePlanner — sendMessage", () => {
 
   it("applies the opening turn's events: concatenated assistant text, brief and missing, then idle", async () => {
     streamPlannerTurnMock.mockImplementationOnce(streamOf(TURNS.opening));
-    const { result } = renderHook(() => usePlanner());
+    const { result } = renderHook(() => usePlanner(), { wrapper });
 
     act(() => {
       result.current.sendMessage(USER_MESSAGES.opening);
@@ -124,7 +134,7 @@ describe("usePlanner — sendMessage", () => {
 
 describe("usePlanner — answer", () => {
   it("patches the brief before the request is built and drops the field from missing", async () => {
-    const { result } = renderHook(() => usePlanner());
+    const { result } = renderHook(() => usePlanner(), { wrapper });
 
     act(() => {
       result.current.answer({ destination: "Budapest" }, "Budapest, please");
@@ -141,10 +151,79 @@ describe("usePlanner — answer", () => {
   });
 });
 
+describe("usePlanner — askAlternatives (TRA-184)", () => {
+  const SLOT = { day: 2, part: "afternoon" } as const;
+  const a = en.plan.alternatives;
+  const part = en.plan.parts.afternoon;
+
+  /** A carousel for the slot, the way the server's turn leaves it. */
+  const offered: PlannerEvent[] = [
+    {
+      type: "options",
+      group_id: "slot:2:afternoon",
+      kind: "experience",
+      prompt: "Alternatives",
+      slot: { day: 2, part: "afternoon" },
+      selection: "single",
+      cards: [BATHS.rudas, BATHS.szechenyi],
+    },
+    { type: "done" },
+  ];
+
+  async function withGroup() {
+    streamPlannerTurnMock.mockImplementationOnce(streamOf(offered));
+    const { result } = renderHook(() => usePlanner(), { wrapper });
+    act(() => {
+      result.current.askAlternatives(SLOT);
+    });
+    await waitFor(() => expect(result.current.state.status).toBe("idle"));
+    return result;
+  }
+
+  it("asks for the slot in the reader's language, ruling nothing out", async () => {
+    const result = await withGroup();
+
+    const [turn] = streamPlannerTurnMock.mock.calls[0] as [PlannerTurn, unknown];
+    expect(turn.message).toBe(interpolate(a.askMessage, { day: 2, part }));
+    expect(turn.exclude_card_ids).toEqual([]);
+    expect(result.current.state.groups["slot:2:afternoon"]?.cards).toHaveLength(2);
+  });
+
+  it("More options sends the ids already offered and keeps them on screen", async () => {
+    const result = await withGroup();
+
+    act(() => {
+      result.current.askAlternatives(SLOT, { more: true });
+    });
+
+    await waitFor(() => expect(streamPlannerTurnMock).toHaveBeenCalledTimes(2));
+    const [turn] = streamPlannerTurnMock.mock.calls[1] as [PlannerTurn, unknown];
+    expect(turn.message).toBe(interpolate(a.askMessage, { day: 2, part }));
+    expect(turn.exclude_card_ids).toEqual([BATHS.rudas.id, BATHS.szechenyi.id]);
+    expect(result.current.state.groups["slot:2:afternoon"]?.cards).toHaveLength(2);
+  });
+
+  it("a guided ask carries the words, empties the list and rules nothing out", async () => {
+    const result = await withGroup();
+
+    act(() => {
+      result.current.askAlternatives(SLOT, { guidance: "  a thermal bath  " });
+    });
+
+    await waitFor(() => expect(streamPlannerTurnMock).toHaveBeenCalledTimes(2));
+    const [turn] = streamPlannerTurnMock.mock.calls[1] as [PlannerTurn, unknown];
+    expect(turn.message).toBe(
+      interpolate(a.askMessageGuided, { day: 2, part, guidance: "a thermal bath" })
+    );
+    expect(turn.exclude_card_ids).toEqual([]);
+    expect(result.current.state.groups["slot:2:afternoon"]?.cards).toEqual([]);
+  });
+});
+
 describe("usePlanner — select", () => {
   it("sends a select action with no message, adds the chip and sets the stay optimistically before the stream yields", async () => {
     streamPlannerTurnMock.mockImplementationOnce(streamOf(TURNS.neighbourhood));
-    const { result } = renderHook(() => usePlanner());
+    const { result } = renderHook(() => usePlanner(), { wrapper });
     act(() => {
       result.current.sendMessage("Somewhere to stay?");
     });
@@ -204,7 +283,7 @@ describe("usePlanner — concurrent turns", () => {
       streamOf([{ type: "text", delta: "B" }, { type: "done" }])
     );
 
-    const { result } = renderHook(() => usePlanner());
+    const { result } = renderHook(() => usePlanner(), { wrapper });
 
     act(() => {
       result.current.sendMessage("first");
@@ -247,7 +326,7 @@ describe("usePlanner — concurrent turns", () => {
     });
     streamPlannerTurnMock.mockImplementationOnce(streamOf([{ type: "done" }]));
 
-    const { result } = renderHook(() => usePlanner());
+    const { result } = renderHook(() => usePlanner(), { wrapper });
 
     act(() => {
       result.current.sendMessage("first");
@@ -273,7 +352,7 @@ describe("usePlanner — failures", () => {
     streamPlannerTurnMock.mockImplementation(async function* () {
       throw new UnauthorizedError();
     });
-    const { result } = renderHook(() => usePlanner());
+    const { result } = renderHook(() => usePlanner(), { wrapper });
 
     act(() => {
       result.current.sendMessage("hello");
@@ -287,7 +366,7 @@ describe("usePlanner — failures", () => {
     streamPlannerTurnMock.mockImplementation(async function* () {
       throw new Error("boom");
     });
-    const { result } = renderHook(() => usePlanner());
+    const { result } = renderHook(() => usePlanner(), { wrapper });
 
     act(() => {
       result.current.sendMessage("hello");
@@ -300,7 +379,7 @@ describe("usePlanner — failures", () => {
 
 describe("usePlanner — draft persistence", () => {
   it("writes the draft after state changes, with only the draft's own keys", async () => {
-    const { result } = renderHook(() => usePlanner());
+    const { result } = renderHook(() => usePlanner(), { wrapper });
 
     act(() => {
       result.current.sendMessage("hello");
@@ -325,14 +404,14 @@ describe("usePlanner — draft persistence", () => {
     };
     readPlannerDraftMock.mockReturnValue(draft);
 
-    const { result } = renderHook(() => usePlanner());
+    const { result } = renderHook(() => usePlanner(), { wrapper });
 
     expect(result.current.state.messages).toEqual(draft.messages);
     expect(result.current.state.status).toBe("idle");
   });
 
   it("reset clears the draft and the state", async () => {
-    const { result } = renderHook(() => usePlanner());
+    const { result } = renderHook(() => usePlanner(), { wrapper });
     act(() => {
       result.current.sendMessage("hello");
     });
@@ -363,7 +442,7 @@ describe("usePlanner — unmount", () => {
       yield { type: "done" };
     });
 
-    const { result, unmount } = renderHook(() => usePlanner());
+    const { result, unmount } = renderHook(() => usePlanner(), { wrapper });
     act(() => {
       result.current.sendMessage("hello");
     });

@@ -17,7 +17,7 @@ uv run uvicorn ai_api.main:app --reload --port 8001    # http://localhost:8001/a
 | Method | Path | Auth | Notes |
 |---|---|---|---|
 | `POST` | `/chat` | Bearer | SSE stream: `data: {"content"}` ×n, `data: {"thread_id"}` when the exchange was recorded, `data: {"error", "error_code"}` on failure, `data: [DONE]` |
-| `POST` | `/planner` | Bearer | The trip planner (ADR 0015): body `PlannerTurn` (message or `select`/`remove` action + brief + itinerary snapshot + transcript); SSE v2 stream of typed events (`text`, `brief`, `options`, `itinerary_patch`, `error`) then `[DONE]`; 503 without `RETRIEVAL_ENABLED` |
+| `POST` | `/planner` | Bearer | The trip planner (ADR 0015): body `PlannerTurn` (message or `select`/`remove` action + brief + itinerary snapshot + transcript + `exclude_card_ids`); SSE v2 stream of typed events (`text`, `brief`, `options`, `itinerary_patch`, `error`) then `[DONE]`; 503 without `RETRIEVAL_ENABLED` |
 | `GET` | `/planner/cities` | Bearer | The cities the planner covers, from the manifest shipped with the service: `[{slug, name, centre: [lat, lon], timezone, intro, image_url, image_credit}]`. The page offers them as destinations and introduces the chosen one: `intro` is the city's description per language (`{en: {text, source_url}}`, from its Wikivoyage lead, CC BY-SA 4.0), `image_url` its photo on Commons and `image_credit` the line to print beside it (both `null` for a city whose TOML has no `[hero]`) |
 | `GET` | `/planner/card?id=` | Bearer | One card in full (`CardDetail`): the `OptionCard` fields plus `description` (the corpus document's text, trimmed at a sentence boundary), `address`, `phone`, `website`, `heading_path`. The id is a corpus document id (slashes and colons, hence a query parameter); 404 when the index does not hold it, 503 without `RETRIEVAL_ENABLED`. Additive over `OptionCard` but not a replacement for one: `why` comes back empty (the model writes it per turn) and `image_url`/`image_credit` are the corpus's own or a Commons lookup's, `null` when neither has a photo — where the streamed card carries a fallback picture. A client holding the card merges the detail onto it (keeping that card's `why`, and its photo with its credit when the detail brings none) |
 | `GET` | `/health/` | — | |
@@ -27,6 +27,16 @@ Request body: `{"message": "...", "history": [{"role": "user"|"assistant", "cont
 "thread_id": "..."}` (limits in `schemas/chat.py`; the system prompt is server-side and clients
 cannot send one). `thread_id` is optional: without it the answer starts a new conversation and the
 stream ends with the id to send back next time.
+
+The planner's body (`schemas/planner.py`) has no optional field: every turn carries `message`,
+`action`, `history`, `brief`, `itinerary`, `exclude_card_ids` and `trip_id`, `null` or empty when
+there is nothing to say. Two of them drive the "Change" sheet (TRA-184). The page's own ask names
+the slot and, after a colon, what the traveller wants instead:
+`Alternatives for day 2 · afternoon: a thermal bath`
+(`Alternativas para el día 2 · tarde: un baño termal` in Spanish), and that free text becomes the
+retrieval query in place of the brief's interests. `exclude_card_ids` lists the cards that ask has
+already shown (at most 60); they are spent exactly like the ones in the itinerary, so "More
+options" brings three others rather than the same three.
 
 Full contract: [`docs/api/ai-api.openapi.json`](../../../../docs/api/ai-api.openapi.json).
 

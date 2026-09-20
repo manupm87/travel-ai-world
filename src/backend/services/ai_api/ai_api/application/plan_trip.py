@@ -109,7 +109,10 @@ GENERATE_WORDS = re.compile(
     re.IGNORECASE,
 )
 ALTERNATIVES_ASK = re.compile(
-    r"^\s*(?:alternatives for day|alternativas para el d[ií]a)\s+(\d+)\s*·\s*(\w+)",
+    r"^\s*(?:alternatives for day|alternativas para el d[ií]a)\s+(\d+)\s*·\s*(\w+)"
+    # What the traveller wants instead, after a colon (TRA-184); absent when
+    # the page asks with nothing but the slot.
+    r"(?:\s*:\s*(.+))?",
     re.IGNORECASE,
 )
 PART_WORDS: dict[str, DayPart] = {
@@ -253,6 +256,10 @@ def _read_turn(request: PlannerTurn) -> Turn:
         for day in request.itinerary.days:
             for part in DAY_PARTS:
                 used.update(getattr(day.slots, part))
+    # Cards the traveller has already seen for this ask (TRA-184): they are
+    # spent exactly like the ones in the trip, so `_candidates` skips them and
+    # `_seed_used_titles` also rules out the same place under another source.
+    used.update(request.exclude_card_ids)
     return Turn(
         request=request,
         brief=brief,
@@ -460,10 +467,11 @@ class PlanTrip:
                 yield event
             return
 
-        slot = _alternatives_slot(turn.message)
+        slot, guidance = _alternatives_slot(turn.message)
         if slot is not None:
             kind: OptionKind = "restaurant" if slot.part == "evening" else "experience"
-            query = " ".join(
+            # Guided ask: the traveller's own words are the search (TRA-184).
+            query = guidance or " ".join(
                 [*turn.brief.interests, slot.part or "morning", "things to do"]
             )
             async for event in self._find_options(
@@ -720,7 +728,9 @@ class PlanTrip:
                 tier=tier_max,
             )
             found = image_first(
-                d for d in found if is_place(d) and d.id != turn.stay_id
+                d
+                for d in found
+                if is_place(d) and d.id != turn.stay_id and d.id not in turn.used_ids
             )
             if len(found) >= OPTIONS_COUNT:
                 return found, district if districts else None
@@ -1337,15 +1347,19 @@ def _slot_of_group(group: str) -> Slot | None:
     return Slot(day=int(match.group(1)), part=part)
 
 
-def _alternatives_slot(message: str) -> Slot | None:
-    """The slot named by the page's own 'Alternatives for day N · part'."""
+def _alternatives_slot(message: str) -> tuple[Slot | None, str | None]:
+    """The slot the page's own 'Alternatives for day N · part' names, and what
+    the traveller asked for instead when the ask carried it ('... · afternoon:
+    a thermal bath'). `(None, None)` for anything else."""
     match = ALTERNATIVES_ASK.match(message)
     if match is None:
-        return None
+        return None, None
     part = PART_WORDS.get(match.group(2).lower())
     if part is None:
-        return None  # a wording this build does not know: let the model classify
-    return Slot(day=int(match.group(1)), part=part)
+        # A wording this build does not know: let the model classify.
+        return None, None
+    guidance = (match.group(3) or "").strip()
+    return Slot(day=int(match.group(1)), part=part), guidance or None
 
 
 def _neighbourhoods_offered(turn: Turn) -> bool:

@@ -349,6 +349,7 @@ const TURN: PlannerTurn = {
   history: [],
   brief: null,
   itinerary: null,
+  exclude_card_ids: [],
   trip_id: null,
 };
 
@@ -452,6 +453,7 @@ describe("streamPlannerTurn — demo fallback (TRA-158)", () => {
     history: [],
     brief: null,
     itinerary: null,
+    exclude_card_ids: [],
     trip_id: null,
   };
 

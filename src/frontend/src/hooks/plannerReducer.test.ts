@@ -13,6 +13,7 @@ import {
   applyItineraryOps,
   computeMissing,
   EMPTY_ITINERARY,
+  groupForSlot,
   hasItinerary,
   initialPlannerState,
   partOf,
@@ -364,6 +365,97 @@ describe("plannerReducer — options event", () => {
       { id: expect.any(String), kind: "options", groupId: GROUP_IDS.hotels },
     ]);
     expect(state.pendingGroupIds).toEqual([GROUP_IDS.hotels]);
+  });
+
+  it("appends the next page to a group already on screen, without a second bubble", () => {
+    let state = hotelGroupState();
+    state = plannerReducer(state, { type: "selected", groupId: GROUP_IDS.hotels, cardIds: [HOTELS.rum.id] });
+    state = plannerReducer(state, { type: "dismissed", groupId: GROUP_IDS.hotels, cardId: HOTELS.mercure.id });
+    const messagesBefore = state.messages.length;
+
+    state = plannerReducer(state, {
+      type: "event",
+      event: {
+        type: "options",
+        group_id: GROUP_IDS.hotels,
+        kind: "hotel",
+        prompt: "Three more",
+        slot: null,
+        selection: "single",
+        // The middle one is already there: a page never shows it twice.
+        cards: [HOTELS.cheaper, HOTELS.mercure],
+      },
+    });
+
+    const group = state.groups[GROUP_IDS.hotels]!;
+    expect(group.cards.map((c) => c.id)).toEqual([
+      HOTELS.rum.id,
+      HOTELS.mercure.id,
+      HOTELS.basilica.id,
+      HOTELS.cheaper.id,
+    ]);
+    expect(group.prompt).toBe("Three more");
+    // What the traveller did with the first page survives the second.
+    expect(group.selectedIds).toEqual([HOTELS.rum.id]);
+    expect(group.dismissedIds).toEqual([HOTELS.mercure.id]);
+    expect(state.messages).toHaveLength(messagesBefore);
+    expect(state.pendingGroupIds).toEqual([GROUP_IDS.hotels]);
+  });
+});
+
+describe("plannerReducer — group_cleared", () => {
+  it("empties the group's cards and what was picked in it, keeping the bubble", () => {
+    let state = hotelGroupState();
+    state = plannerReducer(state, { type: "selected", groupId: GROUP_IDS.hotels, cardIds: [HOTELS.rum.id] });
+    const messagesBefore = state.messages.length;
+
+    state = plannerReducer(state, { type: "group_cleared", groupId: GROUP_IDS.hotels });
+
+    expect(state.groups[GROUP_IDS.hotels]).toMatchObject({
+      cards: [],
+      selectedIds: [],
+      dismissedIds: [],
+    });
+    expect(state.messages).toHaveLength(messagesBefore);
+  });
+
+  it("ignores a group it does not know", () => {
+    const state = hotelGroupState();
+    expect(plannerReducer(state, { type: "group_cleared", groupId: "g-nope" })).toBe(state);
+  });
+});
+
+describe("groupForSlot", () => {
+  it("finds the latest group offered for a slot, whatever its id", () => {
+    let state = plannerReducer(initialPlannerState(), {
+      type: "event",
+      event: {
+        type: "options",
+        group_id: "g-baths-day2-afternoon",
+        kind: "experience",
+        prompt: "Baths",
+        slot: { day: 2, part: "afternoon" },
+        selection: "single",
+        cards: [BATHS.rudas],
+      },
+    });
+    state = plannerReducer(state, {
+      type: "event",
+      event: {
+        type: "options",
+        group_id: "slot:2:afternoon",
+        kind: "experience",
+        prompt: "More",
+        slot: { day: 2, part: "afternoon" },
+        selection: "single",
+        cards: [BATHS.szechenyi],
+      },
+    });
+
+    expect(groupForSlot(state.groups, { day: 2, part: "afternoon" })?.group_id).toBe("slot:2:afternoon");
+    // An unpinned group belongs to the morning, as `partOf` says.
+    expect(groupForSlot(state.groups, { day: 2, part: null })).toBeNull();
+    expect(groupForSlot(state.groups, { day: 3, part: "afternoon" })).toBeNull();
   });
 });
 

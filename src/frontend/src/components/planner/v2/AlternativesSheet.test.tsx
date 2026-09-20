@@ -31,7 +31,7 @@ function renderSheet(overrides: Partial<ComponentProps<typeof AlternativesSheet>
     onSelect: vi.fn(),
     onDismiss: vi.fn(),
     onToggleShortlist: vi.fn(),
-    onAskMore: vi.fn(),
+    onAskAlternatives: vi.fn(),
     ...overrides,
   };
   renderWithProviders(<AlternativesSheet {...props} />);
@@ -51,7 +51,7 @@ describe("AlternativesSheet", () => {
         onSelect={vi.fn()}
         onDismiss={vi.fn()}
         onToggleShortlist={vi.fn()}
-        onAskMore={vi.fn()}
+        onAskAlternatives={vi.fn()}
       />
     );
 
@@ -85,15 +85,15 @@ describe("AlternativesSheet", () => {
     expect(onClose).toHaveBeenCalledTimes(2);
   });
 
-  it("offers to ask the chat when the slot has no options yet, staying open", () => {
-    const { onAskMore, onClose } = renderSheet({ group: null });
+  it("asks for the next page when the slot has no options yet, staying open", () => {
+    const { onAskAlternatives, onClose } = renderSheet({ group: null });
 
     expect(screen.getByText(a.none)).toBeInTheDocument();
     expect(screen.getByText(interpolate(a.shortlist, { count: 1 }))).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: a.askMore }));
+    fireEvent.click(screen.getByRole("button", { name: a.more }));
 
-    expect(onAskMore).toHaveBeenCalledWith({ day: 2, part: "afternoon" });
+    expect(onAskAlternatives).toHaveBeenCalledWith({ day: 2, part: "afternoon" }, { more: true });
     expect(onClose).not.toHaveBeenCalled();
   });
 
@@ -102,6 +102,60 @@ describe("AlternativesSheet", () => {
 
     expect(screen.getByRole("status")).toHaveTextContent(a.loading);
     expect(screen.queryByText(a.none)).not.toBeInTheDocument();
+  });
+
+  it("keeps the cards on screen while the next page streams below them", () => {
+    renderSheet({ loading: true });
+
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByRole("article", { name: BATHS.rudas.title })).toBeInTheDocument();
+    expect(within(dialog).getByRole("status")).toHaveTextContent(a.loading);
+    expect(screen.queryByText(a.none)).not.toBeInTheDocument();
+  });
+
+  it("searches for what the traveller types instead, and empties the box", () => {
+    const { onAskAlternatives } = renderSheet();
+
+    const box = screen.getByRole("textbox", { name: a.guidePlaceholder });
+    fireEvent.change(box, { target: { value: "  thermal bath  " } });
+    fireEvent.click(screen.getByRole("button", { name: a.guideSubmit }));
+
+    expect(onAskAlternatives).toHaveBeenCalledWith(
+      { day: 2, part: "afternoon" },
+      { guidance: "thermal bath" }
+    );
+    expect(box).toHaveValue("");
+  });
+
+  it("ignores an empty search and keeps its button out of reach", () => {
+    const { onAskAlternatives } = renderSheet();
+
+    const submit = screen.getByRole("button", { name: a.guideSubmit });
+    expect(submit).toBeDisabled();
+
+    fireEvent.change(screen.getByRole("textbox", { name: a.guidePlaceholder }), {
+      target: { value: "   " },
+    });
+    fireEvent.submit(submit.closest("form")!);
+
+    expect(onAskAlternatives).not.toHaveBeenCalled();
+  });
+
+  it("puts the box right after the close button in the focus order", () => {
+    renderSheet();
+
+    const focusable = Array.from(
+      screen.getByRole("dialog").querySelectorAll<HTMLElement>("input, button")
+    );
+    expect(focusable[0]).toHaveAccessibleName(a.close);
+    expect(focusable[1]).toBe(screen.getByRole("textbox", { name: a.guidePlaceholder }));
+  });
+
+  it("leaves the stay's sheet as it was: no box, only the footer", () => {
+    renderSheet({ slot: { day: 0, part: null }, group: null });
+
+    expect(screen.queryByRole("textbox", { name: a.guidePlaceholder })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: a.more })).toBeInTheDocument();
   });
 
   it("selects a card into the slot and closes", () => {

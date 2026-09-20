@@ -80,21 +80,50 @@ function partLabel(part: DayPart): string {
   return part;
 }
 
-/** The slot named in "Alternatives for day 2 · afternoon" (en or es), or null. */
+/**
+ * The slot named in "Alternatives for day 2 · afternoon" (en or es), or null.
+ * Guidance travels after a colon (TRA-184) and is read past: the slot is always
+ * in the head, and "… · evening: morning pastries" names the evening.
+ */
 export function slotFromMessage(message: string): Slot | null {
-  const day = /(?:day|d[ií]a)\s+(\d+)/i.exec(message);
+  const head = message.split(":")[0] ?? message;
+  const day = /(?:day|d[ií]a)\s+(\d+)/i.exec(head);
   if (!day) return null;
-  const part = DAY_PARTS.find((p) => PART_WORDS[p].test(message)) ?? null;
+  const part = DAY_PARTS.find((p) => PART_WORDS[p].test(head)) ?? null;
   return { day: Number(day[1]), part };
 }
 
-/** Three alternatives for any slot: that part of the day's pool, minus what the trip already has. */
-function alternativesFor(slot: Slot, itinerary: ItinerarySnapshot | null): OptionsGroup {
+/**
+ * The group a paged ask continues: the recorded one that offered the ids it
+ * rules out, so "More options" appends to the carousel on screen instead of
+ * starting a second one. Otherwise the slot's own synthetic group.
+ */
+function groupIdFor(slot: Slot, part: DayPart, excluded: Set<string>): string {
+  const offered = Object.values(GROUPS).find(
+    (group) =>
+      group.slot !== null &&
+      group.slot.day === slot.day &&
+      group.slot.part === part &&
+      group.cards.some((card) => excluded.has(card.id))
+  );
+  return offered?.group_id ?? `g-alt-day${slot.day}-${part}`;
+}
+
+/**
+ * Three alternatives for any slot: that part of the day's pool, minus what the
+ * trip already has and what this ask already showed (`exclude_card_ids`), which
+ * is how "More options" pages through the pool without repeating itself.
+ */
+function alternativesFor(
+  slot: Slot,
+  itinerary: ItinerarySnapshot | null,
+  excluded: Set<string> = new Set()
+): OptionsGroup {
   const taken = allItineraryIds(itinerary);
   const part = slot.part ?? "morning";
-  const pool = POOLS[part].filter((c) => !taken.has(c.id));
+  const pool = POOLS[part].filter((c) => !taken.has(c.id) && !excluded.has(c.id));
   return {
-    group_id: `g-alt-day${slot.day}-${part}`,
+    group_id: groupIdFor(slot, part, excluded),
     kind: "experience",
     prompt: `Alternatives for day ${slot.day} · ${partLabel(part)}`,
     slot: { day: slot.day, part },
@@ -169,8 +198,13 @@ function answerMessage(turn: PlannerTurn): PlannerEvent[] {
   // 4. An itinerary exists: changes.
   const slot = /alternativ/i.test(lower) ? slotFromMessage(message) : null;
   if (slot) {
-    if (slot.day === 2 && (slot.part ?? "morning") === "afternoon") return [...TURNS.alternatives];
-    const group = alternativesFor(slot, turn.itinerary);
+    // What this ask already showed; the guidance itself is read past (TRA-184).
+    const excluded = new Set(turn.exclude_card_ids);
+    const first = excluded.size === 0;
+    if (first && slot.day === 2 && (slot.part ?? "morning") === "afternoon") {
+      return [...TURNS.alternatives];
+    }
+    const group = alternativesFor(slot, turn.itinerary, excluded);
     return [
       text(`Here are alternatives for day ${slot.day} · ${partLabel(group.slot!.part ?? "morning")}:`),
       options(group),
