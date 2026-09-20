@@ -148,7 +148,7 @@ export function TripEditSheet({ trip, onSave, onClose }: TripEditSheetProps) {
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="fixed inset-x-0 bottom-0 z-50 flex max-h-[90dvh] animate-slide-in-up flex-col overflow-y-auto rounded-t-2xl border border-glass-border bg-bg-card sm:inset-y-0 sm:left-auto sm:max-h-none sm:w-[26rem] sm:animate-slide-in-right sm:rounded-none sm:rounded-l-2xl"
+        className="fixed inset-x-0 bottom-0 z-50 flex max-h-[90dvh] animate-slide-in-up flex-col overflow-y-auto rounded-t-2xl border border-glass-border bg-glass-bg backdrop-blur-xl sm:inset-y-0 sm:left-auto sm:max-h-none sm:w-[26rem] sm:animate-slide-in-right sm:rounded-none sm:rounded-l-2xl"
       >
         <div className="flex items-start gap-3 border-b border-border px-5 py-4">
           <h2 id={titleId} className="flex-1 text-lg font-medium text-text-primary">

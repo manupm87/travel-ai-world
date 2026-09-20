@@ -90,7 +90,8 @@ Every modal keeps one contract, and it lives in `src/frontend/src/hooks/useDialo
 `role="dialog" aria-modal="true"`, labelled by its own heading, the focus moving in on open, Tab
 trapped inside, Escape closing it and the focus going back to whatever opened it. Sign-in, the
 trip edit sheet and the delete confirmation share it; a fourth dialog uses it rather than writing
-its own trap. The surface is glass over the aurora, never an opaque card, and a destructive dialog
+its own trap. They share a surface too — `bg-glass-bg backdrop-blur-xl` inside a `--glass-border`
+hairline, glass over the aurora and never an opaque card — and a destructive dialog
 opens with Cancel focused so Enter never deletes by momentum. A dialog that has already started
 its request stops answering Escape: closing it would hide the fact, not call it back.
 

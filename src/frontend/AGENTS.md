@@ -127,8 +127,9 @@ TypeScript 5, Tailwind CSS v4.
   to whatever opened it; `lockScroll` freezes the page behind a dialog tall enough to scroll.
   `onEscape: null` refuses Escape, which is what an action already in flight needs (`ConfirmDelete`
   while the DELETE is on its way). `LoginModal`, `TripEditSheet` and `ConfirmDelete` all use it —
-  a new modal uses it too rather than writing a fourth trap. The sign-in dialog itself is glass
-  over the aurora, labelled by its own `h2` ("Sign in to plan"), with the orbit `Mark` from
+  a new modal uses it too rather than writing a fourth trap. All three sit on the same surface,
+  `bg-glass-bg backdrop-blur-xl border-glass-border` over the aurora, never an opaque card. The
+  sign-in dialog adds its own `h2` ("Sign in to plan") as the label, the orbit `Mark` from
   `Logo.tsx` and the landing's `.conic-ring` around its one action.
 - The trip viewer is `/trip/?id=<uuid>` (`app/(app)/trip/`), one static shell for every trip:
   `page.tsx` (server; wraps the client page in `Suspense`, which `useSearchParams` needs on a static

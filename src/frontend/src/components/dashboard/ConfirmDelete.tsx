@@ -91,7 +91,7 @@ export function ConfirmDelete({ trip, onConfirm, onCancel }: ConfirmDeleteProps)
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
         tabIndex={-1}
-        className="fixed top-1/2 left-1/2 z-50 w-[min(24rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 animate-scale-in rounded-2xl border border-glass-border bg-bg-card p-6 shadow-field-glow"
+        className="fixed top-1/2 left-1/2 z-50 w-[min(24rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 animate-scale-in rounded-2xl border border-glass-border bg-glass-bg p-6 shadow-field-glow backdrop-blur-xl"
       >
         <h2 id={titleId} className="text-lg font-medium text-text-primary">
           {r.title}
