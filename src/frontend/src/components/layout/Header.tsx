@@ -11,7 +11,6 @@ import { Container } from "@/components/ui/Container";
 import { cn } from "@/utils/cn";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Logo } from "./Logo";
-import { MarketingNav } from "./MarketingNav";
 import { MobileDrawer, MOBILE_DRAWER_ID } from "./MobileDrawer";
 import { ThemeToggle } from "./ThemeToggle";
 import { UserMenu } from "./UserMenu";
@@ -24,7 +23,8 @@ interface HeaderProps {
  * Global navigation.
  *
  * Quiet by design: the wordmark, one action, and — once signed in — the
- * account menu. On the marketing pages language and theme live in the footer,
+ * account menu. There are no links: the landing is one field and there is
+ * nowhere else to go. On the marketing pages language and theme live in the footer,
  * so the top of the page holds nothing that competes with what you came to
  * type. The signed-in shell (`app/(app)/layout.tsx`) has no footer, so there
  * the two controls stay in the bar on desktop and in the drawer on small
@@ -32,8 +32,8 @@ interface HeaderProps {
  * Scrolling turns the bar to glass instead of hiding the aurora behind an
  * opaque block.
  *
- * @param variant - `landing` shows the marketing links; `dashboard` hides them
- *   and carries language and theme instead.
+ * @param variant - `dashboard` carries language and theme in the bar, because
+ *   the signed-in shell has no footer to put them in; `landing` does not.
  */
 export default function Header({ variant = "landing" }: HeaderProps) {
   const { t } = useLanguage();
@@ -58,9 +58,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
         <Container className="px-6 md:px-8 h-(--header-h) flex items-center justify-between gap-4">
           <Logo />
 
-          {variant === "landing" && <MarketingNav />}
-
-          <div className="flex-1 hidden lg:block" />
+          <div className="flex-1" />
 
           <div className="flex items-center gap-3 md:gap-4">
             {variant === "dashboard" && (
@@ -104,7 +102,6 @@ export default function Header({ variant = "landing" }: HeaderProps) {
       <MobileDrawer
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        variant={variant}
         onLogin={openLogin}
       />
 

@@ -2,9 +2,6 @@ import type { Translations } from "./types";
 
 const en: Translations = {
   nav: {
-    howItWorks: "How It Works",
-    features: "Features",
-    reviews: "Reviews",
     openPlanner: "Open the planner",
     dashboard: "Your trips",
     openMenu: "Open menu",
@@ -67,19 +64,23 @@ const en: Translations = {
     errorDescription: "Something went wrong while talking to the server. Check your connection and try again.",
     retry: "Try again",
   },
-  hero: {
-    badge: "AI-Powered Travel Planning",
-    title: "Your Dream Trip,\nDesigned by AI.",
-    subtitle:
-      "Tell us where you want to go, your budget, and your travel style. Our AI crafts a personalized, day-by-day itinerary built just for you — in seconds.",
-    ctaPrimary: "Plan My Trip Free",
-    ctaSecondary: "See How It Works ↓",
-    trust: [
-      "✓ No credit card required",
-      "✓ 50,000+ trips planned",
-      "✓ 190+ destinations",
+  landing: {
+    /**
+     * The whole page: one question, one field, one action. The question also
+     * labels the field (`aria-labelledby`), so it is never a decoration.
+     */
+    headline: "Where to?",
+    /** The asks the placeholder types out, one after another. */
+    examples: [
+      "Four days in Budapest in October, thermal baths and wine",
+      "A long weekend in Bologna, all about food",
+      "Lisbon with two kids, slow mornings",
+      "Somewhere warm in February, under 800 €",
     ],
-    imageAlt: "Dramatic mountain landscape at sunset for travel",
+    /** The action: it opens the planner with what you typed. */
+    send: "Plan it",
+    /** The same button while the planner opens, and the spinner's name. */
+    sending: "Opening the planner",
   },
   planner: {
     label: "Plan Your Trip",
@@ -327,126 +328,6 @@ const en: Translations = {
       short: "Recorded Budapest session · nothing is saved",
       dismiss: "Hide this notice",
     },
-  },
-  howItWorks: {
-    label: "How It Works",
-    title: "Three steps to your\nperfect getaway.",
-    steps: [
-      {
-        id: "tell",
-        imageAlt: "Person planning a trip on laptop",
-        number: "1",
-        title: "Tell Us Your Dreams",
-        description:
-          "Enter your destination, travel dates, budget, group size, and travel vibe. Takes less than 60 seconds.",
-      },
-      {
-        id: "build",
-        imageAlt: "AI generating a travel plan",
-        number: "2",
-        title: "AI Builds Your Itinerary",
-        description:
-          "Our AI analyzes thousands of options, reviews, and local insights to craft a day-by-day personalized itinerary.",
-      },
-      {
-        id: "live",
-        imageAlt: "Happy couple traveling",
-        number: "3",
-        title: "Live the Experience",
-        description:
-          "Download your itinerary, book directly, or let us handle reservations. Your adventure begins with one click.",
-      },
-    ],
-  },
-  features: {
-    label: "Why Choose Kyrian World",
-    title: "Smarter planning,\nmore memorable moments.",
-    items: [
-      {
-        id: "personalized",
-        emoji: "🧠",
-        title: "Hyper-Personalized AI",
-        description:
-          "Learns your preferences to suggest experiences that genuinely match your style — not just tourist traps.",
-      },
-      {
-        id: "itineraries",
-        emoji: "📅",
-        title: "Day-by-Day Itineraries",
-        description:
-          "Detailed schedules, timings, and logistics for every day of your trip — optimized for minimum travel, maximum fun.",
-      },
-      {
-        id: "budget",
-        emoji: "💰",
-        title: "Smart Budget Control",
-        description:
-          "Set your budget and watch the AI optimize every recommendation — from hotels to restaurants — to your spending limit.",
-      },
-      {
-        id: "maps",
-        emoji: "🗺️",
-        title: "Interactive Maps",
-        description:
-          "Visual maps showing your entire route, hotel locations, and must-see attractions at a glance.",
-      },
-      {
-        id: "food",
-        emoji: "🍽️",
-        title: "Local Foodie Guide",
-        description:
-          "Hand-picked restaurant recommendations for every meal, filtered by cuisine, budget, and location.",
-      },
-      {
-        id: "customizable",
-        emoji: "✏️",
-        title: "Fully Customizable",
-        description:
-          "Not happy with a suggestion? Edit, swap, or regenerate any part of your itinerary with a single click.",
-      },
-    ],
-  },
-  socialProof: {
-    label: "Loved by Travelers",
-    stats: [
-      { value: "50,000+", label: "Trips Generated" },
-      { value: "190+",    label: "Destinations Covered" },
-      { value: "4.9★",   label: "Average Rating" },
-      { value: "30s",    label: "Average Plan Time" },
-    ],
-    testimonials: [
-      {
-        stars: 5,
-        quote:
-          "I planned a 2-week Japan trip in under 5 minutes. The AI even found a cherry blossom festival I didn't know about. Absolutely magical.",
-        author: "Sofia M.",
-        location: "Madrid 🇪🇸",
-        highlight: false,
-      },
-      {
-        stars: 5,
-        quote:
-          "We had a tight budget for our honeymoon. Kyrian World found an incredible Santorini package with everything optimized. We saved €800 vs booking manually.",
-        author: "Luca & Emma",
-        location: "Milan 🇮🇹",
-        highlight: true,
-      },
-      {
-        stars: 5,
-        quote:
-          "The day-by-day itinerary for our Costa Rica adventure was perfect. Every activity was close by, timing made sense. No wasted time, pure bliss.",
-        author: "James K.",
-        location: "London 🇬🇧",
-        highlight: false,
-      },
-    ],
-  },
-  finalCta: {
-    title: "Ready to explore the world?",
-    subtitle:
-      "Join thousands of travelers who plan smarter. Your next adventure is just 30 seconds away.",
-    ctaPrimary: "Start Planning Free",
-    ctaSecondary: "Watch Demo",
   },
   footer: {
     copyright: "© {year} Kyrian World",

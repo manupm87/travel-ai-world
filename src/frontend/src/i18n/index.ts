@@ -10,16 +10,7 @@ import en from "./en";
 import es from "./es";
 import type { Language, Translations } from "./types";
 
-export type {
-  Language,
-  Translations,
-  Step,
-  StepId,
-  FeatureItem,
-  FeatureId,
-  Stat,
-  Testimonial,
-} from "./types";
+export type { Language, Translations } from "./types";
 export { interpolate } from "./interpolate";
 
 export const locales: Record<Language, Translations> = { en, es };

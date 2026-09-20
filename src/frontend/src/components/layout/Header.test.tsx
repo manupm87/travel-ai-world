@@ -58,15 +58,10 @@ describe("Header", () => {
     expect(screen.getByRole("link", { name: /Kyrian World/ })).toHaveAttribute("href", "/");
   });
 
-  it("shows the marketing links only on the landing variant", () => {
-    const { unmount } = renderWithProviders(<Header variant="landing" />);
-    expect(screen.getByRole("link", { name: en.nav.howItWorks })).toHaveAttribute("href", "#how-it-works");
-    expect(screen.getByRole("link", { name: en.nav.features })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: en.nav.reviews })).toBeInTheDocument();
-    unmount();
-
-    renderWithProviders(<Header variant="dashboard" />);
-    expect(screen.queryByRole("link", { name: en.nav.howItWorks })).not.toBeInTheDocument();
+  it("carries no links but the wordmark: the landing is one field", () => {
+    renderWithProviders(<Header variant="landing" />);
+    expect(screen.getAllByRole("link")).toHaveLength(1);
+    expect(screen.queryByRole("navigation")).not.toBeInTheDocument();
   });
 
   it("carries theme and language on the signed-in shell, which has no footer", () => {

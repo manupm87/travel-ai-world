@@ -5,7 +5,6 @@ import { useLanguage } from "@/context/LanguageContext";
 import { cn } from "@/utils/cn";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Logo } from "./Logo";
-import { MarketingNav } from "./MarketingNav";
 import { ThemeToggle } from "./ThemeToggle";
 import { UserMenu } from "./UserMenu";
 
@@ -14,16 +13,16 @@ export const MOBILE_DRAWER_ID = "mobile-drawer";
 interface MobileDrawerProps {
   open: boolean;
   onClose: () => void;
-  variant: "landing" | "dashboard";
   onLogin: () => void;
 }
 
 /**
- * Full-screen navigation for small viewports. It stays mounted so the slide
- * transition can run, but while closed it is `inert` and hidden from
- * assistive technology, so nothing inside is focusable or announced.
+ * What the header cannot fit on a phone: the account, the language and the
+ * theme. It stays mounted so the slide transition can run, but while closed it
+ * is `inert` and hidden from assistive technology, so nothing inside is
+ * focusable or announced.
  */
-export function MobileDrawer({ open, onClose, variant, onLogin }: MobileDrawerProps) {
+export function MobileDrawer({ open, onClose, onLogin }: MobileDrawerProps) {
   const { t } = useLanguage();
 
   return (
@@ -52,13 +51,7 @@ export function MobileDrawer({ open, onClose, variant, onLogin }: MobileDrawerPr
           </button>
         </div>
 
-        <div className="mb-auto">
-          {variant === "landing" && <MarketingNav variant="drawer" onNavigate={onClose} />}
-        </div>
-
-        <div className="mt-8 pt-8 border-t border-border">
-          <UserMenu variant="inline" onLogin={onLogin} onAfterAction={onClose} />
-        </div>
+        <UserMenu variant="inline" onLogin={onLogin} onAfterAction={onClose} />
 
         <div className="mt-auto pt-8 border-t border-border">
           <div className="flex items-center justify-between mb-4">

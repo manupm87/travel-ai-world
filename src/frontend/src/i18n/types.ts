@@ -6,53 +6,10 @@ import type { BriefField, DayPart, WarnCode } from "@/types/planner";
 
 export type Language = "en" | "es";
 
-/** Stable ids for the "How it works" steps; components key images on them. */
-export type StepId = "tell" | "build" | "live";
-
-export interface Step {
-  id: StepId;
-  number: string;
-  title: string;
-  description: string;
-  imageAlt: string;
-}
-
-/** Stable ids for the feature grid; components key icons on them. */
-export type FeatureId =
-  | "personalized"
-  | "itineraries"
-  | "budget"
-  | "maps"
-  | "food"
-  | "customizable";
-
-export interface FeatureItem {
-  id: FeatureId;
-  emoji: string;
-  title: string;
-  description: string;
-}
-
-export interface Stat {
-  value: string;
-  label: string;
-}
-
-export interface Testimonial {
-  stars: number;
-  quote: string;
-  author: string;
-  location: string;
-  highlight: boolean;
-}
-
 // The shape every locale file MUST satisfy.
 // TypeScript will error on import if any key is missing.
 export interface Translations {
   nav: {
-    howItWorks: string;
-    features: string;
-    reviews: string;
     /** The header action once you are signed in. */
     openPlanner: string;
     dashboard: string;
@@ -115,14 +72,16 @@ export interface Translations {
     errorDescription: string;
     retry: string;
   };
-  hero: {
-    badge: string;
-    title: string;
-    subtitle: string;
-    ctaPrimary: string;
-    ctaSecondary: string;
-    trust: string[];
-    imageAlt: string;
+  /** The landing (`/`): the question, the field and the one action (TRA-190). */
+  landing: {
+    /** The page's only heading; it also names the field below it. */
+    headline: string;
+    /** The asks the placeholder types out, one after another. */
+    examples: string[];
+    /** The action: it opens the planner with what was typed. */
+    send: string;
+    /** The same button while the planner opens. */
+    sending: string;
   };
   planner: {
     label: string;
@@ -368,27 +327,6 @@ export interface Translations {
       short: string;
       dismiss: string;
     };
-  };
-  howItWorks: {
-    label: string;
-    title: string;
-    steps: Step[];
-  };
-  features: {
-    label: string;
-    title: string;
-    items: FeatureItem[];
-  };
-  socialProof: {
-    label: string;
-    stats: Stat[];
-    testimonials: Testimonial[];
-  };
-  finalCta: {
-    title: string;
-    subtitle: string;
-    ctaPrimary: string;
-    ctaSecondary: string;
   };
   footer: {
     /** "© {year} Kyrian World" — the year is interpolated at render time. */
