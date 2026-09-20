@@ -6,7 +6,6 @@ const en: Translations = {
     features: "Features",
     reviews: "Reviews",
     openPlanner: "Open the planner",
-    planMyTrip: "Plan My Trip",
     dashboard: "Your trips",
     openMenu: "Open menu",
     closeMenu: "Close menu",

@@ -9,9 +9,11 @@ import { LoginModal } from "@/components/auth/LoginModal";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { cn } from "@/utils/cn";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Logo } from "./Logo";
 import { MarketingNav } from "./MarketingNav";
 import { MobileDrawer, MOBILE_DRAWER_ID } from "./MobileDrawer";
+import { ThemeToggle } from "./ThemeToggle";
 import { UserMenu } from "./UserMenu";
 
 interface HeaderProps {
@@ -22,11 +24,16 @@ interface HeaderProps {
  * Global navigation.
  *
  * Quiet by design: the wordmark, one action, and — once signed in — the
- * account menu. Language and theme live in the footer, so the top of the page
- * holds nothing that competes with what you came to type. Scrolling turns the
- * bar to glass instead of hiding the aurora behind an opaque block.
+ * account menu. On the marketing pages language and theme live in the footer,
+ * so the top of the page holds nothing that competes with what you came to
+ * type. The signed-in shell (`app/(app)/layout.tsx`) has no footer, so there
+ * the two controls stay in the bar on desktop and in the drawer on small
+ * viewports — they are the reader's own and must be reachable everywhere.
+ * Scrolling turns the bar to glass instead of hiding the aurora behind an
+ * opaque block.
  *
- * @param variant - `landing` shows the marketing links; `dashboard` hides them.
+ * @param variant - `landing` shows the marketing links; `dashboard` hides them
+ *   and carries language and theme instead.
  */
 export default function Header({ variant = "landing" }: HeaderProps) {
   const { t } = useLanguage();
@@ -56,6 +63,13 @@ export default function Header({ variant = "landing" }: HeaderProps) {
           <div className="flex-1 hidden lg:block" />
 
           <div className="flex items-center gap-3 md:gap-4">
+            {variant === "dashboard" && (
+              <span className="hidden md:flex items-center gap-3">
+                <LanguageSwitcher />
+                <ThemeToggle />
+              </span>
+            )}
+
             {isAuthenticated ? (
               <Button href="/plan/" size="sm">
                 {t.nav.openPlanner}

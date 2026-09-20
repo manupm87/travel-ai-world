@@ -69,6 +69,18 @@ describe("Header", () => {
     expect(screen.queryByRole("link", { name: en.nav.howItWorks })).not.toBeInTheDocument();
   });
 
+  it("carries theme and language on the signed-in shell, which has no footer", () => {
+    // The marketing pages put both controls in the footer; `(app)` routes have
+    // none, so the bar is the only place a desktop reader can reach them.
+    const { unmount } = renderWithProviders(<Header variant="landing" />);
+    expect(screen.queryByRole("button", { name: en.theme.toggle })).not.toBeInTheDocument();
+    unmount();
+
+    renderWithProviders(<Header variant="dashboard" />);
+    expect(screen.getByRole("button", { name: en.theme.toggle })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: en.nav.selectLanguage })).toBeInTheDocument();
+  });
+
   it("offers to sign in when signed out and opens the planner when signed in", () => {
     const { unmount } = renderWithProviders(<Header />);
     expect(screen.getByRole("button", { name: en.auth.login })).toBeInTheDocument();

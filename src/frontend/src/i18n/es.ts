@@ -6,7 +6,6 @@ const es: Translations = {
     features: "Funcionalidades",
     reviews: "Opiniones",
     openPlanner: "Abrir el planificador",
-    planMyTrip: "Planificar Viaje",
     dashboard: "Tus viajes",
     openMenu: "Abrir menú",
     closeMenu: "Cerrar menú",

@@ -25,13 +25,18 @@ Dark is the default. Light is the same sky at dawn.
 | `--color-text-secondary` | `#9A9ABF` | `#4A4A6A` | Supporting text (≥ 4.5:1 on the page) |
 | `--color-accent` | `#4F6EF7` | `#4F6EF7` | Indigo: the action, kept from the planner |
 | `--color-purple` | `#8B5CF6` | `#7C3AED` | Violet: the second light |
-| `--color-gold` | `#F5A623` | `#B26A00` | Amber: the horizon, and warm accents |
+| `--color-gold` | `#F5A623` | `#8A5400` | Amber: the horizon, and warm accents |
 | `--aurora-1/2/3` | — | a third of the opacity | The three lights of the background layer |
 | `--glass-bg` / `--glass-border` | translucent dusk | translucent paper | Surfaces the aurora shows through |
 | `--shadow-field-glow` | indigo, soft, low | the same, weaker | The lift under the field and the primary action |
 
 Use the tokens (`bg-bg-card`, `text-text-secondary`, `border-glass-border`, `shadow-field-glow`),
 never a palette literal like `text-red-400` or a raw `rgba(79,110,247,…)`.
+
+Amber is two different values on purpose: on ink it can stay bright (`#F5A623`), on paper it has to
+go down to `#8A5400` to clear 4.5:1 as text (5.8:1 on `#F7F6FB`; `#D97706` is 2.4:1 and `#B26A00`
+3.9:1, both too light). Where amber is only a glow, a band of the aurora or a background, use the
+`--aurora-3` / opacity forms rather than the text token.
 
 ## Type
 

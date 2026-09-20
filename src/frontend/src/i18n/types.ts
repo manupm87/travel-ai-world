@@ -55,7 +55,6 @@ export interface Translations {
     reviews: string;
     /** The header action once you are signed in. */
     openPlanner: string;
-    planMyTrip: string;
     dashboard: string;
     openMenu: string;
     closeMenu: string;
