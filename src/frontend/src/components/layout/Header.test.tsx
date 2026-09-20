@@ -108,7 +108,7 @@ describe("Header", () => {
   it("opens the login modal from the login button", () => {
     renderWithProviders(<Header />);
     fireEvent.click(screen.getByRole("button", { name: en.auth.login }));
-    expect(screen.getByRole("heading", { name: en.auth.welcomeBack })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: en.auth.title })).toBeInTheDocument();
   });
 
   it("marks itself as scrolled once the window scrolls", () => {

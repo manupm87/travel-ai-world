@@ -76,7 +76,7 @@ describe("AskField", () => {
     fireEvent.keyDown(field(), { key: "Enter" });
 
     expect(push).not.toHaveBeenCalled();
-    expect(screen.queryByRole("heading", { name: en.auth.welcomeBack })).toBeNull();
+    expect(screen.queryByRole("heading", { name: en.auth.title })).toBeNull();
   });
 
   it("opens the planner with the ask once signed in", async () => {
@@ -113,7 +113,7 @@ describe("AskField", () => {
     fireEvent.click(planIt());
 
     expect(
-      screen.getByRole("heading", { name: en.auth.welcomeBack })
+      screen.getByRole("heading", { name: en.auth.title })
     ).toBeInTheDocument();
     expect(push).not.toHaveBeenCalled();
 
@@ -128,7 +128,7 @@ describe("AskField", () => {
     renderWithProviders(<AskField />);
 
     expect(
-      screen.getByRole("heading", { name: en.auth.welcomeBack })
+      screen.getByRole("heading", { name: en.auth.title })
     ).toBeInTheDocument();
   });
 
@@ -137,6 +137,6 @@ describe("AskField", () => {
     session({ isAuthenticated: true });
     renderWithProviders(<AskField />);
 
-    expect(screen.queryByRole("heading", { name: en.auth.welcomeBack })).toBeNull();
+    expect(screen.queryByRole("heading", { name: en.auth.title })).toBeNull();
   });
 });

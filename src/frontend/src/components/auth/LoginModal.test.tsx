@@ -80,7 +80,7 @@ describe("LoginModal", () => {
 
   it("renders nothing when closed", () => {
     renderModal(false);
-    expect(screen.queryByText(en.auth.welcomeBack)).not.toBeInTheDocument();
+    expect(screen.queryByText(en.auth.title)).not.toBeInTheDocument();
   });
 
   it("signs in, closes and goes to the dashboard by default", async () => {
@@ -192,5 +192,45 @@ describe("LoginModal", () => {
     renderModal();
     fireEvent.click(screen.getByLabelText("Close"));
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("is a labelled modal dialog that takes the focus when it opens", () => {
+    renderModal();
+
+    const dialog = screen.getByRole("dialog", { name: en.auth.title });
+    expect(dialog).toHaveAttribute("aria-modal", "true");
+    expect(dialog).toHaveTextContent(en.auth.subtitle);
+    expect(document.activeElement).toBe(dialog);
+  });
+
+  it("closes on Escape and gives the focus back to whatever opened it", () => {
+    const opener = document.createElement("button");
+    document.body.appendChild(opener);
+    opener.focus();
+
+    const { unmount } = renderModal();
+    expect(document.activeElement).not.toBe(opener);
+
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(onClose).toHaveBeenCalledTimes(1);
+
+    unmount();
+    expect(document.activeElement).toBe(opener);
+    opener.remove();
+  });
+
+  it("keeps Tab inside the dialog", () => {
+    renderModal();
+    const dialog = screen.getByRole("dialog", { name: en.auth.title });
+    const close = screen.getByLabelText("Close");
+    const last = screen.getByText("google-error");
+
+    last.focus();
+    fireEvent.keyDown(document, { key: "Tab" });
+    expect(document.activeElement).toBe(close);
+
+    fireEvent.keyDown(document, { key: "Tab", shiftKey: true });
+    expect(document.activeElement).toBe(last);
+    expect(dialog).toContainElement(document.activeElement as HTMLElement);
   });
 });

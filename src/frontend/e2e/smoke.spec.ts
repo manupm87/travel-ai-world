@@ -51,7 +51,7 @@ test.describe("Landing page — /", () => {
     await planIt.click();
 
     // Signed out, the planner is behind the sign-in dialog, not a navigation.
-    await expect(page.getByRole("heading", { name: /Welcome back/i })).toBeVisible();
+    await expect(page.getByRole("dialog", { name: "Sign in to plan" })).toBeVisible();
     await expect(page).toHaveURL(/\/$/);
   });
 

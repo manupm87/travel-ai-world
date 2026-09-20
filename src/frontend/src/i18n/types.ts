@@ -12,6 +12,8 @@ export interface Translations {
   nav: {
     /** The header action once you are signed in. */
     openPlanner: string;
+    /** The same action where the bar is a phone wide: one word, one line. */
+    plannerShort: string;
     dashboard: string;
     openMenu: string;
     closeMenu: string;
@@ -376,7 +378,8 @@ export interface Translations {
   auth: {
     login: string;
     logout: string;
-    welcomeBack: string;
+    /** The sign-in dialog's heading, which is also what it is for. */
+    title: string;
     subtitle: string;
     terms: string;
     loginError: string;

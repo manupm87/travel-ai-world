@@ -3,6 +3,7 @@ import type { Translations } from "./types";
 const es: Translations = {
   nav: {
     openPlanner: "Abrir el planificador",
+    plannerShort: "Planificador",
     dashboard: "Tus viajes",
     openMenu: "Abrir menú",
     closeMenu: "Cerrar menú",
@@ -337,7 +338,7 @@ const es: Translations = {
   auth: {
     login: "Iniciar sesión",
     logout: "Cerrar Sesión",
-    welcomeBack: "Bienvenido de nuevo",
+    title: "Inicia sesión para planear",
     subtitle: "Tus viajes se guardan en tu cuenta.",
     terms: "Al continuar, aceptas nuestros Términos de Uso y nuestra Política de Privacidad.",
     loginError: "No hemos podido iniciar tu sesión. Inténtalo de nuevo.",

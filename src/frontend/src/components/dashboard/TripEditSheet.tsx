@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { Loader2, X } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { useDialog } from "@/hooks/useDialog";
 import type { TripUpdate } from "@/services/trips";
 import { TRIP_STATUSES, type TripStatus, type TripSummary } from "@/types/trip-summary";
 import { daysBetween } from "@/utils/tripDates";
@@ -32,6 +33,9 @@ const draftOf = (trip: TripSummary): Draft => ({
   status: trip.status,
 });
 
+// `color-scheme` is declared once on the root (globals.css), which is what
+// makes the date picker and the select draw themselves in the theme the page
+// is wearing instead of the browser's default light chrome (TRA-192 caveat).
 const FIELD =
   "w-full rounded-xl border border-glass-border bg-glass-bg px-3 py-2.5 text-[15px] text-text-primary placeholder:text-text-secondary transition-colors focus-visible:border-accent-border focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none";
 const LABEL = "text-sm text-text-secondary";
@@ -59,11 +63,19 @@ export function TripEditSheet({ trip, onSave, onClose }: TripEditSheetProps) {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const dialogRef = useRef<HTMLDivElement>(null);
   const firstRef = useRef<HTMLInputElement>(null);
-  const restoreRef = useRef<HTMLElement | null>(null);
   const known = useRef(trip);
   const open = trip !== null;
+
+  // The dialog contract — focus in, Tab trapped, Escape, focus returned — is
+  // the shared one (`hooks/useDialog.ts`), so the sheet, the delete
+  // confirmation and the sign-in dialog all answer the keyboard alike.
+  const dialogRef = useDialog<HTMLDivElement>({
+    open,
+    onEscape: onClose,
+    initialFocus: firstRef,
+    lockScroll: true,
+  });
 
   // Another trip resets the form, so reopening never shows what was typed
   // into another card.
@@ -74,52 +86,6 @@ export function TripEditSheet({ trip, onSave, onClose }: TripEditSheetProps) {
     setError(null);
     setSaving(false);
   }, [trip]);
-
-  useEffect(() => {
-    if (!open) return;
-    const previous = document.activeElement;
-    restoreRef.current = previous instanceof HTMLElement ? previous : null;
-    firstRef.current?.focus();
-    return () => {
-      restoreRef.current?.focus();
-    };
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.stopPropagation();
-        onClose();
-        return;
-      }
-      // `aria-modal` promises a focus trap: Tab cycles inside the sheet.
-      if (event.key !== "Tab" || !dialogRef.current) return;
-      const focusable = Array.from(
-        dialogRef.current.querySelectorAll<HTMLElement>(
-          'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])'
-        )
-      );
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (!first || !last) return;
-      const active = document.activeElement;
-      if (event.shiftKey && (active === first || !dialogRef.current.contains(active))) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && (active === last || !dialogRef.current.contains(active))) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-    document.addEventListener("keydown", onKeyDown);
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [open, onClose]);
 
   if (!trip || !draft) return null;
 

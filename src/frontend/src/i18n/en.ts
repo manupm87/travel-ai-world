@@ -3,6 +3,7 @@ import type { Translations } from "./types";
 const en: Translations = {
   nav: {
     openPlanner: "Open the planner",
+    plannerShort: "Planner",
     dashboard: "Your trips",
     openMenu: "Open menu",
     closeMenu: "Close menu",
@@ -344,7 +345,7 @@ const en: Translations = {
   auth: {
     login: "Sign in",
     logout: "Log Out",
-    welcomeBack: "Welcome back",
+    title: "Sign in to plan",
     subtitle: "Your trips are saved to your account.",
     terms: "By continuing, you agree to our Terms of Service and Privacy Policy.",
     loginError: "We couldn't sign you in. Please try again.",

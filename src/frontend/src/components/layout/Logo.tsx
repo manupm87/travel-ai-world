@@ -9,9 +9,11 @@ interface LogoProps {
 /**
  * The mark: a world seen from far enough away to be a dot, with an orbit
  * tilted around it. The planet takes the text colour, the orbit the accent,
- * so the pair works on either theme without a second asset.
+ * so the pair works on either theme without a second asset. Exported on its
+ * own for the surfaces that show the brand without linking home — the
+ * sign-in dialog (TRA-193).
  */
-function Mark({ size = 28 }: { size?: number }) {
+export function Mark({ size = 28 }: { size?: number }) {
   return (
     <svg
       viewBox="0 0 32 32"
