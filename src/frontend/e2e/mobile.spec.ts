@@ -68,7 +68,7 @@ test.describe("Landing page on a phone — /", () => {
     page,
   }) => {
     const header = page.locator("header").filter({ visible: true });
-    await expect(header.getByRole("link", { name: /Plan My Trip/i })).toBeVisible();
+    await expect(header.getByRole("button", { name: /Sign in/i })).toBeVisible();
 
     const menuButton = header.getByRole("button", { name: "Open menu" });
     await expect(menuButton).toBeVisible();

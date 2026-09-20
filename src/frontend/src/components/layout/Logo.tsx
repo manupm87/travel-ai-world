@@ -21,15 +21,25 @@ function Mark({ size = 28 }: { size?: number }) {
       aria-hidden="true"
       className="flex-shrink-0"
     >
-      <circle cx="16" cy="16" r="5.5" fill="currentColor" />
+      {/* The orbit passes behind the world, then in front of it: the front arc
+          is drawn last, over the disc, which is what makes it read as an orbit
+          rather than a ring around a dot. */}
       <ellipse
         cx="16"
         cy="16"
-        rx="14.5"
-        ry="6"
+        rx="13"
+        ry="4"
         stroke="var(--color-accent)"
-        strokeWidth="1.25"
-        transform="rotate(-24 16 16)"
+        strokeWidth="1.4"
+        transform="rotate(-22 16 16)"
+      />
+      <circle cx="16" cy="16" r="6" fill="currentColor" />
+      <path
+        d="M3 16 A13 4 0 0 1 29 16"
+        stroke="var(--color-accent)"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        transform="rotate(-22 16 16)"
       />
     </svg>
   );
