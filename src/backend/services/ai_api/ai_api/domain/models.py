@@ -112,17 +112,20 @@ class CityIntro:
 
 @dataclass(frozen=True, slots=True)
 class City:
-    """A city the planner covers: its corpus slug, the name shown, the
-    spellings a traveller may type (ascii-folded, lower-case), the centre
-    and the time zone, plus what a trip overview shows — an intro per language
-    and a photo with the credit its licence asks for (TRA-182). Comes from the
-    cities manifest the corpus writes; an older manifest has neither."""
+    """A city the planner covers: its corpus slug, the name shown, the country
+    it is in and that country's ISO 3166-1 alpha-2 code, the spellings a
+    traveller may type (ascii-folded, lower-case), the centre and the time
+    zone, plus what a trip overview shows — an intro per language and a photo
+    with the credit its licence asks for (TRA-182). Comes from the cities
+    manifest the corpus writes; an older manifest has no intro and no photo."""
 
     slug: str
     name: str
     aliases: tuple[str, ...]
     centre: tuple[float, float]
     timezone: str
+    country: str = ""
+    country_code: str = ""
     intro: Mapping[str, CityIntro] = field(default_factory=dict)
     image_url: str | None = None
     image_credit: str | None = None

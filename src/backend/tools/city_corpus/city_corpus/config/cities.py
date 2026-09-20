@@ -6,6 +6,7 @@ names the file and stops the build). `python -m city_corpus discover <name>`
 drafts such a file from Wikidata, Wikivoyage and Wikipedia.
 """
 
+import re
 import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -73,6 +74,10 @@ class CityConfig:
     # OpenStreetMap area name: the local `name` tag of the city's admin_level=8
     # relation. Only used to select the area when `osm_relation` is unset.
     osm_area: str
+    # The country the city is in, as the planner shows it, and its ISO 3166-1
+    # alpha-2 code. Both reach the page through the cities manifest (TRA-196).
+    country: str
+    country_code: str
     # OpenStreetMap relation id of the city (Wikidata P402): selects the area for
     # the boundaries and the place queries whatever the local name and level are.
     osm_relation: int | None = None
@@ -110,6 +115,8 @@ _TOP_LEVEL_KEYS = {
     "wikipedia",
     "wikipedia_lang",
     "osm_area",
+    "country",
+    "country_code",
     "osm_relation",
     "districts",
     "district_admin_level",
@@ -128,6 +135,8 @@ _REQUIRED_KEYS = {
     "wikipedia",
     "wikipedia_lang",
     "osm_area",
+    "country",
+    "country_code",
 }
 
 
@@ -206,6 +215,15 @@ def parse_city(data: dict[str, Any], where: str = "<city>") -> CityConfig:
     ):
         raise CityConfigError(f"{where} osm_relation: expected a positive integer")
 
+    country = str(data["country"]).strip()
+    if not country:
+        raise CityConfigError(f"{where} country: expected the country's name")
+    country_code = str(data["country_code"]).strip()
+    if not re.fullmatch(r"[A-Z]{2}", country_code):
+        raise CityConfigError(
+            f"{where} country_code: expected an upper-case ISO 3166-1 alpha-2 code"
+        )
+
     curated_tours = data.get("curated_tours")
     if curated_tours is not None:
         parts = Path(str(curated_tours)).parts
@@ -249,6 +267,8 @@ def parse_city(data: dict[str, Any], where: str = "<city>") -> CityConfig:
         wikipedia_lang=data["wikipedia_lang"],
         wikipedia_categories=tuple(categories),
         osm_area=data["osm_area"],
+        country=country,
+        country_code=country_code,
         osm_relation=relation,
         aliases=_strings(f"{where} aliases", data.get("aliases", [])),
         districts=districts,

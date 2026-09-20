@@ -12,6 +12,9 @@ wikipedia_lang = "en"
 osm_relation = 43172
 # Only used when `osm_relation` is unset.
 osm_area = "Bologna"
+# The country the planner names on a trip, and its ISO 3166-1 alpha-2 code.
+country = "Italy"
+country_code = "IT"
 district_admin_level = 10
 centre = [44.4939, 11.3428]
 timezone = "Europe/Rome"

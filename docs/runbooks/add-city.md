@@ -25,7 +25,7 @@ what it could not decide. The draft comes from:
 
 | Source | What it decides |
 |---|---|
-| Wikidata | the city item (QID in the header), centre (P625), administrative districts (P150), the OSM relation (P402), the Spanish label → `aliases` |
+| Wikidata | the city item (QID in the header), centre (P625), administrative districts (P150), the OSM relation (P402), the Spanish label → `aliases`, the country (P17) and its ISO 3166-1 alpha-2 code (P297) → `country` / `country_code` |
 | Nominatim | the relation's bounding box, rounded outwards |
 | Open-Meteo | the IANA time zone of the centre |
 | Overpass | the district boundaries at admin levels 8–10; the level whose names look most like Wikidata's districts becomes `district_admin_level` |
@@ -37,7 +37,9 @@ Open the draft and resolve every `# review` line: the item is the city and not t
 OSM boundary maps to the Wikivoyage district page that covers it (or to itself when the city has no
 district pages), the categories are about places to visit (add the city's own from Wikipedia's
 `Category:` pages; broad ones get `require_coordinates = true`, or they bring embassies and offices),
-and `osm_area` is the local OSM name only when no `osm_relation` was found. **Open the `[hero]`
+and `osm_area` is the local OSM name only when no `osm_relation` was found. `country` and
+`country_code` are mandatory and the loader checks the code is two upper-case letters: a country
+Wikidata gives no P297 for arrives empty and marked `# review`. **Open the `[hero]`
 photo** (`https://commons.wikimedia.org/wiki/File:<file>`) before keeping it: it is the picture the
 trip overview shows, so it must be a skyline or a well-known landmark under a free licence, not an
 interior, a map or a coat of arms. Replace `file` and `credit` with a better Commons photo when it

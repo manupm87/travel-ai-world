@@ -14,6 +14,8 @@ BOLOGNA = replace(
     aliases=("bolonia", "bologna"),
     centre=(44.4939, 11.3428),
     timezone="Europe/Rome",
+    country="Italy",
+    country_code="IT",
     wikivoyage=(WikivoyageSite("en", "Bologna"),),
     hero=None,
 )
@@ -72,6 +74,8 @@ def test_lists_built_cities_sorted_with_their_facts(tmp_path: Path) -> None:
     assert entries[0] == {
         "slug": "bologna",
         "name": "Bologna",
+        "country": "Italy",
+        "country_code": "IT",
         "aliases": ["bologna", "bolonia"],
         "centre": [44.4939, 11.3428],
         "timezone": "Europe/Rome",

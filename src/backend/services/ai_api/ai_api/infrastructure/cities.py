@@ -2,9 +2,9 @@
 
 `data/cities.json` is written by the `city_corpus` tool when a city is built
 (`just corpus-manifest` copies it here) and lists every city whose corpus is
-committed: slug, name, the spellings a traveller may type, centre, time zone,
-the city's intro per language and its photo (TRA-182; a manifest written
-before it has neither). The service reads it once at start-up, so a new city
+committed: slug, name, country and country code, the spellings a traveller may
+type, centre, time zone, the city's intro per language and its photo (TRA-182;
+a manifest written before it has neither). The service reads it once at start-up, so a new city
 is a new corpus and a new image, never a deployment variable. `PLANNER_CITIES`
 narrows the list for a local run (an unknown slug is a configuration error, named).
 """
@@ -36,6 +36,8 @@ def load_cities() -> tuple[City, ...]:
         City(
             slug=entry["slug"],
             name=entry["name"],
+            country=str(entry.get("country", "")),
+            country_code=str(entry.get("country_code", "")),
             aliases=tuple(entry.get("aliases", ())),
             centre=(float(entry["centre"][0]), float(entry["centre"][1])),
             timezone=entry["timezone"],

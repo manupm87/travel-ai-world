@@ -2,6 +2,8 @@
   {
     "slug": "bologna",
     "name": "Bologna",
+    "country": "Italy",
+    "country_code": "IT",
     "aliases": [
       "bologna",
       "bolonia"
@@ -25,6 +27,8 @@
   {
     "slug": "budapest",
     "name": "Budapest",
+    "country": "Hungary",
+    "country_code": "HU",
     "aliases": [
       "budapest"
     ],

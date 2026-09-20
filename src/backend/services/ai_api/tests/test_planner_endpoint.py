@@ -57,6 +57,8 @@ async def test_the_cities_endpoint_lists_the_manifest(
     assert response.status_code == 200
     [budapest] = [c for c in response.json() if c["slug"] == "budapest"]
     assert budapest["name"] == "Budapest"
+    # The country travels with the city: a saved trip names it (TRA-196).
+    assert (budapest["country"], budapest["country_code"]) == ("Hungary", "HU")
     assert budapest["centre"] == [47.4979, 19.0402]
     assert budapest["timezone"] == "Europe/Budapest"
     # What the trip overview shows: a description per language and a photo.
@@ -71,6 +73,8 @@ async def test_the_cities_endpoint_lists_the_manifest(
     assert set(budapest) == {
         "slug",
         "name",
+        "country",
+        "country_code",
         "centre",
         "timezone",
         "intro",

@@ -143,6 +143,8 @@ class PlannerCity(BaseModel):
 
     slug: str
     name: str
+    country: str
+    country_code: str = Field(description="ISO 3166-1 alpha-2, upper-case")
     centre: tuple[float, float] = Field(description="[latitude, longitude]")
     timezone: str
     intro: dict[str, CityIntro] = Field(
@@ -163,6 +165,8 @@ def planner_city(city: City) -> PlannerCity:
     return PlannerCity(
         slug=city.slug,
         name=city.name,
+        country=city.country,
+        country_code=city.country_code,
         centre=city.centre,
         timezone=city.timezone,
         intro={

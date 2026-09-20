@@ -24,6 +24,7 @@ def test_the_manifest_lists_budapest():
     assert [e["slug"] for e in entries] == [c.slug for c in cities]
     budapest = next(c for c in cities if c.slug == "budapest")
     assert budapest.name == "Budapest"
+    assert (budapest.country, budapest.country_code) == ("Hungary", "HU")
     assert "budapest" in budapest.aliases
     assert budapest.timezone == "Europe/Budapest"
     assert budapest.centre == (47.4979, 19.0402)
@@ -64,6 +65,7 @@ def test_a_manifest_without_the_intro_and_photo_keys_still_loads(monkeypatch):
 
     assert budapest.intro == {}
     assert budapest.image_url is None and budapest.image_credit is None
+    assert budapest.country == "" and budapest.country_code == ""
 
 
 class _Manifest:

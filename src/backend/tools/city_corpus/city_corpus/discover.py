@@ -136,7 +136,10 @@ class Discovery:
     name: str
     aliases: tuple[str, ...]
     centre: tuple[float, float]
+    # The country the city is in, as Wikidata labels it (P17), and its
+    # ISO 3166-1 alpha-2 code (P297 on the country item).
     country: str | None
+    country_code: str | None
     timezone: str | None
     osm_relation: str | None
     bbox: tuple[float, float, float, float] | None  # south, west, north, east
@@ -242,6 +245,30 @@ def find_city(client: ApiClient, name: str) -> tuple[str, dict[str, Any], list[s
     qid, entity = located[0]
     classes = ", ".join(_ids(entity["claims"], "P31")) or "none"
     return qid, entity, [f"{qid} is not a known city class (instance of {classes})"]
+
+
+def fetch_country(
+    client: ApiClient, claims: dict[str, Any]
+) -> tuple[str | None, str | None]:
+    """The city's country (P17): its English label and its alpha-2 code (P297).
+
+    Either half can be missing — an item with no English label, a country
+    Wikidata has no code for — and each is then left for the human to fill in.
+    """
+    qid = next(iter(_ids(claims, "P17")), None)
+    if qid is None:
+        return None, None
+    entity = fetch_entities(client, [qid], "labels|claims", languages="en").get(qid, {})
+    label = entity.get("labels", {}).get("en", {}).get("value")
+    code = next(
+        (
+            str(v).upper()
+            for v in _best(entity.get("claims", {}), "P297")
+            if isinstance(v, str)
+        ),
+        None,
+    )
+    return label, (code if code and len(code) == 2 else None)
 
 
 def fetch_district_labels(client: ApiClient, qids: list[str]) -> list[District]:
@@ -453,13 +480,15 @@ def discover(client: ApiClient, name: str) -> Discovery:
     centre = (round(coordinates["latitude"], 4), round(coordinates["longitude"], 4))
     # An external id: only a numeric one can select an Overpass area.
     relation = next((str(v) for v in _best(claims, "P402") if str(v).isdigit()), None)
+    country, country_code = fetch_country(client, claims)
 
     found = Discovery(
         qid=qid,
         name=english,
         aliases=tuple(sorted(aliases)),
         centre=centre,
-        country=next(iter(_ids(claims, "P17")), None),
+        country=country,
+        country_code=country_code,
         timezone=fetch_timezone(client, centre),
         osm_relation=relation,
         bbox=fetch_bbox(client, relation) if relation else None,
@@ -468,6 +497,13 @@ def discover(client: ApiClient, name: str) -> Discovery:
         found.note(message)
     if found.timezone is None:
         found.note("time zone not resolved; set `timezone` to the IANA name")
+    if found.country is None:
+        found.note("country not resolved (Wikidata P17); set `country` by hand")
+    if found.country_code is None:
+        found.note(
+            "country code not resolved (Wikidata P297); set `country_code` to the "
+            "ISO 3166-1 alpha-2 code, upper-case"
+        )
     if found.bbox is None:
         south, west = centre[0] - FALLBACK_HALF_SIDE, centre[1] - FALLBACK_HALF_SIDE
         north, east = centre[0] + FALLBACK_HALF_SIDE, centre[1] + FALLBACK_HALF_SIDE
@@ -617,6 +653,8 @@ def render(found: Discovery) -> str:
         lines.append(f"# review: {message}")
     review_tz = "  # review" if found.timezone is None else ""
     review_level = "  # review" if found.admin_level is None else ""
+    review_country = "  # review" if found.country is None else ""
+    review_code = "  # review" if found.country_code is None else ""
     if found.osm_relation:
         area = [
             "# OpenStreetMap relation of the city (Wikidata P402): selects the area"
@@ -638,6 +676,9 @@ def render(found: Discovery) -> str:
         'language = "en"',
         'wikipedia_lang = "en"',
         *area,
+        "# The country the planner names on a trip, and its ISO 3166-1 alpha-2 code.",
+        f"country = {_quote(found.country or '')}{review_country}",
+        f"country_code = {_quote(found.country_code or '')}{review_code}",
         f"district_admin_level = {found.admin_level or 9}{review_level}",
         f"centre = [{found.centre[0]}, {found.centre[1]}]",
         f"timezone = {_quote(found.timezone or 'UTC')}{review_tz}",

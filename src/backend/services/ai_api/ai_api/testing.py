@@ -27,7 +27,13 @@ def settings_for_tests() -> AISettings:
     return AISettings(SECRET_KEY="unit-test-secret-key-with-32-bytes-min")  # noqa: S106
 
 
-def city_for(slug: str, *aliases: str, name: str | None = None) -> City:
+def city_for(
+    slug: str,
+    *aliases: str,
+    name: str | None = None,
+    country: str = "Nowhere",
+    country_code: str = "NO",
+) -> City:
     """A `City` for a test or a smoke run: `city_for("bologna", "bolonia")`."""
     return City(
         slug=slug,
@@ -35,6 +41,8 @@ def city_for(slug: str, *aliases: str, name: str | None = None) -> City:
         aliases=tuple(dict.fromkeys((slug, *aliases))),
         centre=(0.0, 0.0),
         timezone="UTC",
+        country=country,
+        country_code=country_code,
     )
 
 

@@ -9,6 +9,10 @@ wikipedia_lang = "en"
 osm_area = "Budapest"
 # OpenStreetMap administrative level of the city's districts (the 23 kerületek).
 district_admin_level = 9
+# The country the planner names on a trip, and its ISO 3166-1 alpha-2 code.
+country = "Hungary"
+country_code = "HU"
+
 # Point for climate normals (city centre).
 centre = [47.4979, 19.0402]
 timezone = "Europe/Budapest"

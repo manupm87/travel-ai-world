@@ -17,6 +17,8 @@ name = "Testville"
 language = "en"
 wikipedia_lang = "en"
 osm_area = "Testville"
+country = "Testland"
+country_code = "TL"
 districts = ["Old Town"]
 
 [bbox]
@@ -64,6 +66,7 @@ def test_budapest_loads_from_its_toml() -> None:
     located = [c.name for c in BUDAPEST.wikipedia_categories if c.require_coordinates]
     assert located == ["Buildings and structures in Budapest"]
     assert BUDAPEST.timezone == "Europe/Budapest"
+    assert (BUDAPEST.country, BUDAPEST.country_code) == ("Hungary", "HU")
     assert BUDAPEST.curated_tours is None
     assert BUDAPEST.hero is not None
     assert BUDAPEST.hero.file.endswith(".jpg")
@@ -77,6 +80,7 @@ def test_minimal_file_fills_defaults(tmp_path: Path) -> None:
     assert city.district_admin_level == 9
     assert city.centre == (0.0, 0.0)
     assert city.timezone == "UTC"
+    assert (city.country, city.country_code) == ("Testland", "TL")
     assert city.wikivoyage[0].include_subpages is True
     assert city.wikipedia_categories[0].require_coordinates is True
     assert city.district_guides == {"1": ("Old Town",)}
@@ -160,3 +164,21 @@ def test_curated_tours_stays_inside_the_tool_folder(tmp_path: Path) -> None:
     for value in ("/etc/tours.toml", "../tours.toml", "curated/../../t.toml"):
         with pytest.raises(CityConfigError, match="inside the tool folder"):
             load_city(_write(tmp_path, _top(MINIMAL, f'curated_tours = "{value}"')))
+
+
+@pytest.mark.parametrize(
+    ("line", "message"),
+    [
+        ('country_code = "tl"', "upper-case ISO 3166-1 alpha-2"),
+        ('country_code = "TLD"', "upper-case ISO 3166-1 alpha-2"),
+        ('country_code = ""', "upper-case ISO 3166-1 alpha-2"),
+        ('country = "  "', "expected the country's name"),
+    ],
+    ids=["lower-case", "alpha-3", "empty", "blank-country"],
+)
+def test_the_country_is_validated(tmp_path: Path, line: str, message: str) -> None:
+    key = line.split(" =")[0]
+    text = re.sub(rf"^{key} = .*$", line, MINIMAL, flags=re.MULTILINE)
+
+    with pytest.raises(CityConfigError, match=re.escape(message)):
+        load_city(_write(tmp_path, text))

@@ -127,8 +127,9 @@ characters, wrong `city`, unknown `category`, half coordinates or coordinates ou
 `license` that does not match the `source`.
 
 `data/cities.json`, the **cities manifest**: one entry per configured city (`cities/<slug>.toml`)
-with a built corpus — `slug`, `name`, `aliases`, `centre`, `timezone`, `documents`, `built_at`,
-`intro`, `image_url`, `image_credit` — sorted by slug and rebuilt whole after every build
+with a built corpus — `slug`, `name`, `country`, `country_code`, `aliases`, `centre`, `timezone`,
+`documents`, `built_at`, `intro`, `image_url`, `image_credit` — sorted by slug and rebuilt whole
+after every build
 (`python -m city_corpus manifest` rewrites it alone).
 
 The last three are what the planner's trip overview shows (ADR 0017), and neither of them fetches
@@ -223,7 +224,8 @@ steps here do:
    writes `cities/bologna.draft.toml` from open sources and prints what it could not decide:
    * **Wikidata**: the city item (the first search hit that is located and in a country; a `# review`
      when its class is not a known city class), centre (P625), districts (P150, English labels), OSM
-     relation (P402), Wikivoyage titles (sitelinks), Spanish label → `aliases`.
+     relation (P402), Wikivoyage titles (sitelinks), Spanish label → `aliases`, and the country
+     (P17) with its ISO 3166-1 alpha-2 code (P297) → `country` / `country_code`.
    * **Nominatim**: the relation's bounding box, rounded outwards to 0.01° (a 0.15° square around the
      centre, marked, when there is none).
    * **Open-Meteo**: the IANA time zone of the centre (`timezone=auto`; Wikidata's P421 names offsets,

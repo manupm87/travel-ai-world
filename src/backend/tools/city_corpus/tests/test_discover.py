@@ -64,6 +64,17 @@ CITY = _item(
     P402=[_statement("43172")],
 )
 FAMILY_NAME = {"id": "Q15111371", "labels": {}, "claims": {}}
+
+
+def _country(code: str | None) -> dict[str, Any]:
+    """Italy (P17 of the city), with or without its alpha-2 code (P297)."""
+    return {
+        "id": "Q38",
+        "labels": {"en": {"value": "Italy"}},
+        "claims": {"P297": [_statement(code)]} if code else {},
+    }
+
+
 DISTRICT_LABELS = {
     "Q3927195": {"labels": {"en": {"value": "Santo Stefano"}}},
     "Q3927199": {"labels": {"it": {"value": "Savena"}}},
@@ -81,12 +92,14 @@ class Answers:
         city: dict[str, Any] = CITY,
         wiki: bool = True,
         licence: str = "CC BY-SA 3.0",
+        country_code: str | None = "IT",
     ) -> None:
         self.subpages = subpages
         self.overpass = overpass
         self.city = city
         self.wiki = wiki  # Wikivoyage articles and Wikipedia categories exist
         self.licence = licence  # what Commons says about the city's P18 file
+        self.country_code = country_code  # Italy's P297, or nothing
         self.requests: list[httpx.Request] = []
 
     def __call__(self, request: httpx.Request) -> httpx.Response:
@@ -108,7 +121,14 @@ class Answers:
             return httpx.Response(200, json={"entities": labels})
         if host == "www.wikidata.org":
             return httpx.Response(
-                200, json={"entities": {"Q15111371": FAMILY_NAME, "Q1891": self.city}}
+                200,
+                json={
+                    "entities": {
+                        "Q15111371": FAMILY_NAME,
+                        "Q1891": self.city,
+                        "Q38": _country(self.country_code),
+                    }
+                },
             )
         if host == "commons.wikimedia.org":
             pages = [
@@ -416,3 +436,28 @@ def test_a_draft_without_wiki_sources_still_loads(tmp_path: Path) -> None:
     loaded = load_city(path)
     assert loaded.wikivoyage == () and loaded.wikipedia_categories == ()
     assert loaded.osm_relation == 43172
+
+
+def test_the_country_and_its_code_come_from_wikidata(tmp_path: Path) -> None:
+    with _client(tmp_path, Answers()) as client:
+        found = discover(client, "Bologna")
+
+    assert (found.country, found.country_code) == ("Italy", "IT")
+    data = tomllib.loads(render(found))
+    assert (data["country"], data["country_code"]) == ("Italy", "IT")
+
+    path = tmp_path / "bologna.toml"
+    path.write_text(render(found), encoding="utf-8")
+    city = load_city(path)
+    assert (city.country, city.country_code) == ("Italy", "IT")
+
+
+def test_a_country_without_a_code_is_left_for_review(tmp_path: Path) -> None:
+    with _client(tmp_path, Answers(country_code=None)) as client:
+        found = discover(client, "Bologna")
+
+    assert found.country == "Italy" and found.country_code is None
+    assert any("country code not resolved" in note for note in found.notes)
+    text = render(found)
+    assert 'country = "Italy"' in text
+    assert 'country_code = ""  # review' in text

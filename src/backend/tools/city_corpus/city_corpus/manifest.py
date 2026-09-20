@@ -1,9 +1,10 @@
 """The cities manifest: `data/cities.json`, what the planner knows about each city.
 
 One entry per city that has both a configuration (`cities/<slug>.toml`) and a
-built corpus (`data/<slug>/manifest.json`): the slug, the name, the spellings a
-traveller may type, the centre, the time zone, how many documents the corpus
-holds and when it was built, plus what the trip overview shows — the city's
+built corpus (`data/<slug>/manifest.json`): the slug, the name, the country and
+its code, the spellings a traveller may type, the centre, the time zone, how
+many documents the corpus holds and when it was built, plus what the trip
+overview shows — the city's
 intro per language and its hero photo (TRA-182). `ai_api` ships a copy of this
 file in its image (`just corpus-manifest` copies it) and takes its list of
 destinations from it, so adding a city needs no deployment variable.
@@ -117,6 +118,8 @@ def city_entry(
     return {
         "slug": city.slug,
         "name": city.name,
+        "country": city.country,
+        "country_code": city.country_code,
         "aliases": sorted(set(city.aliases) | {city.slug}),
         "centre": [city.centre[0], city.centre[1]],
         "timezone": city.timezone,
