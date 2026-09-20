@@ -1321,7 +1321,10 @@ class PlanTrip:
         # (TRA-185). Not before a stay: there is no day to add them to yet.
         if turn.stay_id is None:
             return
-        mentioned = _mentioned_places("".join(answer), passages)
+        # What the trip already holds is not offered again, as everywhere else.
+        mentioned = _mentioned_places(
+            "".join(answer), [d for d in passages if d.id not in turn.used_ids]
+        )
         if not mentioned:
             return
         kind: OptionKind = (

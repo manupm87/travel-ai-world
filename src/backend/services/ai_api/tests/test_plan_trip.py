@@ -838,6 +838,28 @@ async def test_the_places_a_chat_answer_names_come_back_as_unplaced_cards():
     assert group.prompt == "Add any of these to your trip:"
 
 
+async def test_a_place_already_in_the_trip_is_named_but_not_offered_again():
+    use_case, _, _ = planner(
+        [json.dumps({"intent": "chat"})],
+        deltas=("The Rudas baths are medieval, ", "the Gellért Baths are bigger."),
+        documents=[BY_ID[GELLERT], BY_ID[RUDAS]],
+    )
+
+    events = await run(
+        use_case(
+            turn(
+                "Which bath?",
+                brief=brief(),
+                stay=ASTORIA,
+                days=[{"morning": [RUDAS]}, {}],
+            )
+        )
+    )
+
+    [group] = only(events, OptionsEvent)
+    assert [c.title for c in group.cards] == ["Gellért Baths"]
+
+
 async def test_an_answer_naming_no_place_of_its_own_carries_no_cards():
     """Words a title shares are not a mention: `title_words` drops the noise."""
     use_case, _, _ = planner(
