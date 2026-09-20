@@ -45,10 +45,17 @@ TypeScript 5, Tailwind CSS v4.
   core, for single-origin deployments). Static builds set neither; features degrade gracefully via
   `isApiAvailable()` / `isAiAvailable()`.
 - Styling: CSS custom properties from `src/app/globals.css` (`--color-bg-primary`, `--color-accent`,
-  `--color-error/success/warning`, `--header-h`, `--shadow-accent-glow`, ...); no `tailwind.config.js`.
+  `--color-error/success/warning`, `--header-h`, `--shadow-accent-glow`, `--shadow-field-glow`,
+  `--glass-bg`/`--glass-border` — also `bg-glass-bg`/`border-glass-border` — and the three
+  `--aurora-*` lights); no `tailwind.config.js`.
   Use the tokens (`text-error`, `pt-(--header-h)`, `shadow-accent-glow`), not palette literals like
   `text-red-400` or `rgba(79,110,247,…)`. Compose classes with `cn()` (`src/utils/cn.ts`) so a
-  consumer's `p-8` reliably overrides a primitive's `p-6`.
+  consumer's `p-8` reliably overrides a primitive's `p-6`. **What the tokens are for — palette,
+  type, motion, copy and the quality floor — is
+  [`docs/design/kyrian-world.md`](../../docs/design/kyrian-world.md)** (TRA-189); read it before
+  designing a new surface. The living background is `components/layout/Aurora.tsx`: fixed,
+  `aria-hidden`, click-through, mounted by the `(marketing)` layout, never by the planner, which
+  owns its own full-height layout.
 - **Lint enforces the boundaries** (`eslint.config.mjs`): no `fetch` outside `src/services/`, no
   `@/types/generated/*` outside `src/services/` and `src/types/`, imports first, `console` is a
   warning. `tsconfig` has `noUncheckedIndexedAccess`:

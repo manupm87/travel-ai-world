@@ -1,6 +1,6 @@
-# Travel AI World — Frontend
+# Kyrian World — Frontend
 
-Next.js 16 (App Router) + Tailwind CSS v4 web app for Travel AI World: landing page, dashboard, AI planner and itinerary viewer.
+Next.js 16 (App Router) + Tailwind CSS v4 web app for Kyrian World: landing page, dashboard, AI planner and itinerary viewer.
 
 ## Tech Stack
 

@@ -1,4 +1,4 @@
-# Travel AI World ✈️
+# Kyrian World
 
 > AI-powered travel planning. Tell us where you want to go and the AI drafts a personalised,
 > day-by-day itinerary, streamed in real time.
