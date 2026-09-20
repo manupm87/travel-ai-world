@@ -77,8 +77,13 @@ TypeScript 5, Tailwind CSS v4.
   type, motion, copy and the quality floor — is
   [`docs/design/kyrian-world.md`](../../docs/design/kyrian-world.md)** (TRA-189); read it before
   designing a new surface. The living background is `components/layout/Aurora.tsx`: fixed,
-  `aria-hidden`, click-through, mounted by the `(marketing)` layout, never by the planner, which
-  owns its own full-height layout.
+  `aria-hidden`, click-through, mounted by the `(marketing)` layout and, for the signed-in shell,
+  by `components/layout/AppAurora.tsx` (TRA-193) — a two-line client component that reads
+  `usePathname` and stands aside on `/plan/`, the one route in `(app)` that paints its own panes.
+  No page mounts the layer itself. `color-scheme` is declared per theme on the root, so the
+  browser's own chrome — date pickers, select lists, scrollbars, the caret — follows the theme
+  instead of drawing light on the dusk sky. The footer paints nothing: a band with a background
+  and a top border cuts the aurora's amber horizon off in a straight line.
 - **Lint enforces the boundaries** (`eslint.config.mjs`): no `fetch` outside `src/services/`, no
   `@/types/generated/*` outside `src/services/` and `src/types/`, imports first, `console` is a
   warning. `tsconfig` has `noUncheckedIndexedAccess`:
@@ -115,9 +120,16 @@ TypeScript 5, Tailwind CSS v4.
   (Cancel focused, so Enter never deletes by momentum). Deleting collapses the card for 300 ms
   before `useTrips.remove` drops it, and a refusal puts it back and says so in the still-open
   dialog. Loading is `TripGridSkeleton.tsx` (`animate-shimmer`, an `sr-only` live line), empty is
-  two lines and no second call to action — the field above is the one. The aurora is mounted by
-  the dashboard page rather than by `(app)/layout.tsx`, which the planner shares and which
-  therefore paints no background of its own; TRA-193 moves that decision into the layout.
+  two lines and no second call to action — the field above is the one.
+- **One dialog contract** (TRA-193): `hooks/useDialog.ts` is what `aria-modal` promises — the focus
+  moves in when the dialog opens (to `initialFocus`, or to the dialog element, which then needs
+  `tabIndex={-1}`), Tab and Shift+Tab cycle inside it, Escape asks to close and the focus goes back
+  to whatever opened it; `lockScroll` freezes the page behind a dialog tall enough to scroll.
+  `onEscape: null` refuses Escape, which is what an action already in flight needs (`ConfirmDelete`
+  while the DELETE is on its way). `LoginModal`, `TripEditSheet` and `ConfirmDelete` all use it —
+  a new modal uses it too rather than writing a fourth trap. The sign-in dialog itself is glass
+  over the aurora, labelled by its own `h2` ("Sign in to plan"), with the orbit `Mark` from
+  `Logo.tsx` and the landing's `.conic-ring` around its one action.
 - The trip viewer is `/trip/?id=<uuid>` (`app/(app)/trip/`), one static shell for every trip:
   `page.tsx` (server; wraps the client page in `Suspense`, which `useSearchParams` needs on a static
   export or the build fails) + `TripClientPage.tsx` (client; reads `?id=`, drives `useTrip`, renders
@@ -249,6 +261,13 @@ TypeScript 5, Tailwind CSS v4.
   flow). Neighbourhood and hotel groups carry no slot either and need none — they are not a day's
   activities — so they keep "Choose"; `AlternativesSheet` always knows its slot and sends it,
   except for the stay's pseudo-slot (`day: 0`), which names no day at all.
+- **No eyebrows** (TRA-193): there is no `SectionLabel` any more, and no `uppercase tracking-*`
+  label above a heading anywhere in `src/`. A section says what it holds in its own heading; small
+  type is sentence case. What is left of ALL-CAPS in the planner's cards (`DayCard`, `StayCard`,
+  `OptionCard`, `ActivityDetail`, `AlternativesSheet`) is card micro-metadata, not eyebrows, and is
+  deliberately untouched. The trip viewer's sections sit on `transparent` `Section`s and glass
+  `Card`s so the aurora runs under the whole page; `Section`'s `primary`/`secondary` backgrounds
+  are unused and a new surface should not reach for them.
 - Tests: `renderWithProviders` from `src/test/render.tsx` and the typed builders in
   `src/test/fixtures.ts` (`src/test/fixtures/trip-japan.ts` when a test needs a whole `TripResponse`);
   assert on roles/names/`data-*` state and on `en.ts` copy, not on class names.

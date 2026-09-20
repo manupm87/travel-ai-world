@@ -84,6 +84,40 @@ an action; an error says what happened and what to do, and does not apologise. N
 "Discover", "Seamless", "Powered by AI", a "→" glued to a button, or meta strings joined with
 middle dots. Every visible string, `alt` and `aria-label` goes through i18n (en + es).
 
+## Dialogs
+
+Every modal keeps one contract, and it lives in `src/frontend/src/hooks/useDialog.ts`:
+`role="dialog" aria-modal="true"`, labelled by its own heading, the focus moving in on open, Tab
+trapped inside, Escape closing it and the focus going back to whatever opened it. Sign-in, the
+trip edit sheet and the delete confirmation share it; a fourth dialog uses it rather than writing
+its own trap. The surface is glass over the aurora, never an opaque card, and a destructive dialog
+opens with Cancel focused so Enter never deletes by momentum. A dialog that has already started
+its request stops answering Escape: closing it would hide the fact, not call it back.
+
+## What the browser paints
+
+Two things the CSS has to say out loud, or the theme stops at the edge of our own markup:
+
+- `color-scheme` (`dark` on `:root`, `light` on `[data-theme="light"]`) — without it the native
+  date picker, the select's list, the scrollbars and the caret all draw themselves light on the
+  dusk sky.
+- Nothing that spans the page paints its own background. The footer is transparent, the trip
+  viewer's sections are `variant="transparent"` with glass cards, and the sticky filter row is
+  `bg-glass-bg backdrop-blur-xl`. An opaque band cuts the amber horizon off in a straight line,
+  which is exactly what it looks like.
+
+The aurora belongs to a layout, never to a page: `(marketing)/layout.tsx` mounts it directly and
+`(app)/layout.tsx` through `components/layout/AppAurora.tsx`, which stands aside on `/plan/` —
+the planner is a workspace that paints its own panes, and weather behind a map is weather in the
+wrong room.
+
+## Labels
+
+A control gets a label in sentence case. A section gets a heading. Nothing gets both an eyebrow
+and a heading that say the same thing — `SectionLabel` is gone and is not coming back. Where the
+bar is a phone wide, an action may shorten its visible text ("Planner") as long as its accessible
+name stays the whole action ("Open the planner"); it never wraps to two lines.
+
 ## The floor, on every surface
 
 Works down to 390 px with a 16 px gutter and no horizontal scroll · visible `focus-visible` ring on
