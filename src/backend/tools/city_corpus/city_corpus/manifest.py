@@ -38,8 +38,14 @@ INTRO_MAX_CHARS = 600
 HERO_WIDTH = 1200
 """Hero photos are shown full width; the cards' thumbnails are 640 px."""
 
-_SENTENCE_END = re.compile(r"[.!?…](?=\s|$)")
-"""A full stop that ends a sentence rather than an abbreviation mid-word."""
+_SENTENCE_END = re.compile(
+    r"[.!?…][\"”»’)]?(?=\s+[\"“«¡¿(A-ZÁÉÍÓÚÜÑ]|\s*$)"  # noqa: RUF001 — real quotes
+)
+"""A stop that ends a sentence: what follows starts a new one, or nothing does.
+A closing quote or bracket belongs to the sentence it closes."""
+
+_ABBREVIATION = re.compile(r"(?:\b(?:St|Str|Dr|Mr|Mrs|Ms|No|Sq|Ave)|\b[A-ZÁÉÍÓÚÜÑ])\.$")
+"""What only looks like one: `home to St. Stephen`, `J. Smith`, `No. 7`."""
 
 
 def intro_text(text: str) -> str:
@@ -48,15 +54,20 @@ def intro_text(text: str) -> str:
     The document starts with the article title on its own line ("Budapest\\n\\n
     Budapest is the capital…"); it is dropped. What is left is cut at the last
     sentence that fits in `INTRO_MAX_CHARS`, paragraph breaks kept (`\\n\\n`),
-    so the page never shows half a sentence. A lead with no sentence end inside
-    the window is cut at a word and marked with an ellipsis.
+    so the page never shows half a sentence — and never at an abbreviation's
+    stop either (`home to St.`). A lead with no sentence end inside the window
+    is cut at a word and marked with an ellipsis.
     """
     _, _, body = text.partition("\n")
     body = body.strip()
     if len(body) <= INTRO_MAX_CHARS:
         return body
     window = body[:INTRO_MAX_CHARS]
-    ends = [match.end() for match in _SENTENCE_END.finditer(window)]
+    ends = [
+        match.end()
+        for match in _SENTENCE_END.finditer(window)
+        if not _ABBREVIATION.search(window[: match.end()])
+    ]
     if ends:
         return window[: ends[-1]].rstrip()
     cut = window.rstrip()
@@ -100,7 +111,9 @@ def city_intro(city: CityConfig, city_dir: Path) -> dict[str, dict[str, str]]:
 def city_entry(
     city: CityConfig, corpus_manifest: dict[str, Any], city_dir: Path
 ) -> dict[str, Any]:
-    hero = city.hero if city.hero and city.hero.file else None
+    # A photo without its credit is a licence breach, so half a `[hero]` (an
+    # un-reviewed draft) counts as none. The loader rejects it too.
+    hero = city.hero if city.hero and city.hero.file and city.hero.credit else None
     return {
         "slug": city.slug,
         "name": city.name,

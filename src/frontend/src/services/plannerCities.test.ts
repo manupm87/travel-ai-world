@@ -16,6 +16,22 @@ const BUDAPEST = {
   name: "Budapest",
   centre: [47.4979, 19.0402],
   timezone: "Europe/Budapest",
+  intro: {
+    en: {
+      text: "Budapest is the capital city of Hungary.",
+      source_url: "https://en.wikivoyage.org/wiki/Budapest",
+    },
+  },
+  image_url: "https://commons.wikimedia.org/w/index.php?title=Special:FilePath/B.jpg",
+  image_credit: "Someone (CC BY 2.0) · Wikimedia Commons",
+};
+
+/** What a backend deployed before TRA-182 answers: no overview fields. */
+const OLD_SHAPE = {
+  slug: "bologna",
+  name: "Bologna",
+  centre: [44.4939, 11.3428],
+  timezone: "Europe/Rome",
 };
 
 describe("listCities", () => {
@@ -52,6 +68,22 @@ describe("listCities", () => {
     );
 
     expect(await listCities()).toEqual([BUDAPEST]);
+  });
+
+  it("fills the overview fields a backend without them does not send", async () => {
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify([OLD_SHAPE, { ...BUDAPEST, intro: "nope" }]), {
+        status: 200,
+      })
+    );
+
+    const cities = await listCities();
+
+    expect(cities).toHaveLength(2);
+    expect(cities[0]).toEqual({ ...OLD_SHAPE, intro: {}, image_url: null, image_credit: null });
+    // A field of the wrong type is as good as missing; the rest is kept.
+    expect(cities[1]?.intro).toEqual({});
+    expect(cities[1]?.image_url).toBe(BUDAPEST.image_url);
   });
 
   it("answers an empty list without a request when ai_api is not configured", async () => {

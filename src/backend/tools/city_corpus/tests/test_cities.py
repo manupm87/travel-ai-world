@@ -100,6 +100,21 @@ def test_the_hero_table_is_read_strictly(tmp_path: Path) -> None:
         load_city(_write(tmp_path, MINIMAL + '\n[hero]\nfile = "Old Town.jpg"\n'))
 
 
+def test_a_hero_photo_needs_its_credit(tmp_path: Path) -> None:
+    """A half-reviewed draft: a Commons file always travels with its credit."""
+    halves = (
+        '\n[hero]\nfile = "Old Town.jpg"\ncredit = ""\n',
+        '\n[hero]\nfile = ""\ncredit = "A. Photographer (CC BY-SA 4.0)"\n',
+    )
+    for text in halves:
+        with pytest.raises(CityConfigError, match="file and credit go together"):
+            load_city(_write(tmp_path, MINIMAL + text))
+
+    # Both empty is what `discover` writes when it found no free image.
+    city = load_city(_write(tmp_path, MINIMAL + '\n[hero]\nfile = ""\ncredit = ""\n'))
+    assert city.hero is not None and city.hero.file == ""
+
+
 def test_drafts_are_skipped_and_slugs_keyed(tmp_path: Path) -> None:
     _write(tmp_path, MINIMAL)
     _write(tmp_path, MINIMAL, "testville.draft.toml")

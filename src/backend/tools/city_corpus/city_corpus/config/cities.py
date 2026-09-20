@@ -223,10 +223,17 @@ def parse_city(data: dict[str, Any], where: str = "<city>") -> CityConfig:
             raise CityConfigError(
                 f"{where} [hero]: missing key(s) {', '.join(missing_hero)}"
             )
-        hero = HeroPhoto(
-            file=str(hero_table["file"]).strip(),
-            credit=str(hero_table["credit"]).strip(),
-        )
+        file_name = str(hero_table["file"]).strip()
+        credit = str(hero_table["credit"]).strip()
+        # Both empty is a draft `discover` wrote and nobody has reviewed yet;
+        # one of the two is a photo without its credit, which the licence of a
+        # Commons file does not allow.
+        if bool(file_name) != bool(credit):
+            raise CityConfigError(
+                f"{where} [hero]: file and credit go together; fill both "
+                "(or leave both empty in a draft)"
+            )
+        hero = HeroPhoto(file=file_name, credit=credit)
 
     centre_values = data.get("centre", [0.0, 0.0])
     if not isinstance(centre_values, list) or len(centre_values) != 2:

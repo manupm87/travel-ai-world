@@ -291,10 +291,26 @@ export async function listCities(options?: { signal?: AbortSignal }): Promise<Pl
     signal: options?.signal,
   });
   if (!Array.isArray(cities)) return [];
-  return cities.filter(
-    (city): city is PlannerCity =>
-      isObject(city) && typeof city.slug === "string" && typeof city.name === "string"
-  );
+  return cities
+    .filter(
+      (city): city is Json =>
+        isObject(city) && typeof city.slug === "string" && typeof city.name === "string"
+    )
+    .map(toPlannerCity);
+}
+
+/**
+ * The trip overview's fields (TRA-182) are required on the type, but a backend
+ * deployed before them answers without: the frontend ships on merge, the
+ * service by hand later. Fill them rather than hand the page `undefined`.
+ */
+function toPlannerCity(city: Json): PlannerCity {
+  return {
+    ...(city as unknown as PlannerCity),
+    intro: isObject(city.intro) ? (city.intro as PlannerCity["intro"]) : {},
+    image_url: typeof city.image_url === "string" ? city.image_url : null,
+    image_credit: typeof city.image_credit === "string" ? city.image_credit : null,
+  };
 }
 
 /** A card detail needs an id and a title; every other field defaults. */

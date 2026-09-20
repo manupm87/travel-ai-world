@@ -239,7 +239,9 @@ steps here do:
    * **`[hero]`**, the city's own photo, shown on the trip overview: the Wikidata image (P18,
      preferred rank first) when Commons licenses it freely, as `file` (the Commons file name
      without `File:`) and `credit` (`"{author} ({licence}) · Wikimedia Commons"`, the format the
-     cards use). Without a free P18 the table is drafted empty and marked `# review`. Look at the
+     cards use). Without a free P18 the table is drafted with both keys empty and marked
+     `# review`; filling only one of them is an error (a photo always travels with its credit),
+     and a half-filled table would be dropped from the manifest anyway. Look at the
      picture before you keep it: it must be a skyline or a landmark, not an interior or a map.
      The table is optional — a city without one shows no photo, and the readiness gate says nothing
      about it.

@@ -112,6 +112,34 @@ def test_the_intro_comes_from_the_corpus_lead_per_language(tmp_path: Path) -> No
     assert "cut away" not in text
 
 
+ABBREVIATIONS = (
+    "Budapest\n\n"
+    "The city grew around the hill and the river that splits it in two. "
+    "Its two halves are a walk apart, and that walk across any of the bridges is "
+    "the one thing every guide recommends to a first-time visitor who has a single "
+    "afternoon, no idea at all where to start looking, no wish to spend half of it "
+    "underground in a queue for a ticket machine and no patience left for a museum "
+    "that closes before the light goes. "
+    # The only stops left inside the 600-character window are abbreviations.
+    "The skyline belongs to St. Stephen, to the bath that is No. 4 on every list "
+    "ever written about the city and to the spring that Dr. Somebody first "
+    "described in 1178, which is already more than a single afternoon can hold."
+)
+
+
+def test_the_trim_never_ends_on_an_abbreviation(tmp_path: Path) -> None:
+    """`St.`, `No.`, `Dr.` do not end a sentence: the cut falls back further."""
+    folder = _built(tmp_path, "budapest", 1, "2026-09-17T23:14:43Z")
+    _documents(folder, _intro_doc("en", "Budapest", ABBREVIATIONS))
+
+    [entry] = cities_manifest(tmp_path, {"budapest": BUDAPEST})
+
+    text = entry["intro"]["en"]["text"]
+    assert len(text) <= 600
+    assert not text.endswith(("St.", "No.", "Dr."))
+    assert text.endswith("before the light goes.")
+
+
 def test_a_language_without_a_lead_is_absent(tmp_path: Path) -> None:
     folder = _built(tmp_path, "budapest", 2, "2026-09-17T23:14:43Z")
     _documents(folder, _intro_doc("en", "Budapest", LEAD_EN))
@@ -131,6 +159,18 @@ def test_the_hero_photo_becomes_a_commons_url_and_its_credit(tmp_path: Path) -> 
         "?title=Special:FilePath/Budapest_at_night.jpg&width=1200"
     )
     assert entry["image_credit"] == CREDIT
+
+
+def test_a_hero_photo_without_its_credit_is_no_hero(tmp_path: Path) -> None:
+    """Half a `[hero]` (an un-reviewed draft) never becomes an uncredited photo."""
+    _built(tmp_path, "budapest", 1, "2026-09-17T23:14:43Z")
+    half = replace(
+        BUDAPEST_WITH_HERO, hero=HeroPhoto(file="Budapest at night.jpg", credit="")
+    )
+
+    [entry] = cities_manifest(tmp_path, {"budapest": half})
+
+    assert entry["image_url"] is None and entry["image_credit"] is None
 
 
 def test_a_city_without_a_hero_photo_has_none(tmp_path: Path) -> None:
