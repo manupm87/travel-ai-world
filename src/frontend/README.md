@@ -260,7 +260,7 @@ drive the same headless Chromium (`npx playwright install --with-deps chromium` 
 5. The planner's map needs no backend and no key: `maplibre-gl` fetches OpenFreeMap's hosted styles
    (`tiles.openfreemap.org`) straight from the browser, only on `/plan/` and only through
    `next/dynamic` with `ssr: false`. Offline, the basemap is blank and everything else still works.
-   MapLibre's tile worker is served from `public/maplibre/` — a gitignored copy that
+   MapLibre's tile worker is served from `public/maplibre/` — a gitignored `.js` copy that
    `scripts/copy-maplibre-worker.mjs` refreshes from `node_modules` before `next dev` and
    `next build` (`predev`/`prebuild`), because the library cannot find its worker through a
    bundled `import.meta.url` (TRA-181, ADR 0016).

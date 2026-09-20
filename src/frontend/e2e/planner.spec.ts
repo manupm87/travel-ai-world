@@ -171,7 +171,7 @@ test.describe("Planner page — /plan/", () => {
       // instead of its script exits at once, and the map is pins over blank.
       await expect
         .poll(() =>
-          page.workers().filter((worker) => worker.url().endsWith("/maplibre/maplibre-gl-worker.mjs"))
+          page.workers().filter((worker) => worker.url().endsWith("/maplibre/maplibre-gl-worker.js"))
             .length
         )
         .toBeGreaterThan(0);

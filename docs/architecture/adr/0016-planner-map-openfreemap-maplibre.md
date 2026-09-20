@@ -53,11 +53,14 @@ In the code (`src/frontend/src/components/planner/v2/`):
   `./maplibre-gl-shared.mjs`) that it locates through `import.meta.url`. A bundler does not keep
   that URL meaningful — under Next/Turbopack it resolves to the page, the worker loads HTML and
   exits, and the map is pins and attribution over a blank canvas with no error in the console. So
-  `scripts/copy-maplibre-worker.mjs` copies the two files, names untouched, from `node_modules`
-  into the gitignored `public/maplibre/` before every `next dev` and `next build` (`predev`,
-  `prebuild`, `pretest:e2e*`), and `TripMapCanvas` calls `setWorkerUrl` with that same-origin
-  path once, before the first map. Upgrading `maplibre-gl` needs nothing else: the copy follows
-  the installed version.
+  `scripts/copy-maplibre-worker.mjs` copies the two files from `node_modules` into the gitignored
+  `public/maplibre/` before every `next dev` and `next build` (`predev`, `prebuild`,
+  `pretest:e2e*`) — as `.js`, with the worker's relative import rewritten, because a module
+  worker is refused unless the server answers with a JavaScript MIME type and nginx's stock
+  `mime.types` knows `js` but not `mjs` — and `TripMapCanvas` calls `setWorkerUrl` with that
+  same-origin path once, before the first map. Upgrading `maplibre-gl` needs nothing else: the
+  copy follows the installed version, and stops loudly if the worker ever gains a relative import
+  the script does not copy.
 
 `PlannerLayout` becomes three columns at `lg` and above (chat ≈ 30 %, trip panel ≈ 40 %, map ≈ 30 %);
 below `lg` the existing Map tab shows the same map full height. `MapPlaceholder` is deleted.

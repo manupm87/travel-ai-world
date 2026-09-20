@@ -7,13 +7,20 @@
  * not preserve: under Next/Turbopack it resolves to the page itself, the worker
  * loads HTML, dies at once, and the map shows pins and attribution over a blank
  * canvas (TRA-181). The canvas therefore points `setWorkerUrl` at
- * `/maplibre/maplibre-gl-worker.mjs`, and this script keeps that path in step
+ * `/maplibre/maplibre-gl-worker.js`, and this script keeps that path in step
  * with the installed version: it runs before `next dev` and `next build`
  * (`predev`, `prebuild`, `pretest:e2e*` in package.json). The folder is
- * gitignored; the names are kept verbatim so the worker's relative import works.
+ * gitignored.
+ *
+ * The copies are `.js`, not `.mjs`: a module worker is refused unless the
+ * server answers with a JavaScript MIME type, and `.mjs` is not one everywhere
+ * (nginx's stock `mime.types` maps only `js`, so the Compose stack served it as
+ * `application/octet-stream`). The worker's one relative import and both
+ * `sourceMappingURL` comments are rewritten to the new names; anything else
+ * relative in a future MapLibre release stops the copy loudly.
  */
 
-import { copyFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -21,23 +28,42 @@ const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const source = join(root, "node_modules", "maplibre-gl", "dist");
 const target = join(root, "public", "maplibre");
 
-const files = [
-  "maplibre-gl-worker.mjs",
-  "maplibre-gl-worker.mjs.map",
-  "maplibre-gl-shared.mjs",
-  "maplibre-gl-shared.mjs.map",
-];
+/** `dist` name → `public/maplibre` name. */
+const files = {
+  "maplibre-gl-worker.mjs": "maplibre-gl-worker.js",
+  "maplibre-gl-shared.mjs": "maplibre-gl-shared.js",
+};
 
-if (!existsSync(join(source, files[0]))) {
-  console.error(`copy-maplibre-worker: ${join(source, files[0])} is missing — run npm install first`);
+function fail(message) {
+  console.error(`copy-maplibre-worker: ${message}`);
   process.exit(1);
 }
 
+if (!existsSync(join(source, "maplibre-gl-worker.mjs"))) {
+  fail(`${join(source, "maplibre-gl-worker.mjs")} is missing — run npm install first`);
+}
+
+/** Every `./x.mjs` the module refers to must be one of the files copied here. */
+function rewrite(code, name) {
+  const specifiers = new Set(code.match(/\.\/[\w.-]+\.mjs/g) ?? []);
+  for (const specifier of specifiers) {
+    const from = specifier.slice(2);
+    const to = files[from];
+    if (!to) fail(`${name} refers to ${specifier}, which this script does not copy`);
+    code = code.replaceAll(specifier, `./${to}`);
+  }
+  for (const [from, to] of Object.entries(files)) {
+    code = code.replaceAll(`sourceMappingURL=${from}.map`, `sourceMappingURL=${to}.map`);
+  }
+  return code;
+}
+
 mkdirSync(target, { recursive: true });
-for (const name of files) {
-  const from = join(source, name);
-  if (!existsSync(from)) continue; // source maps are optional
-  copyFileSync(from, join(target, name));
+for (const [from, to] of Object.entries(files)) {
+  const code = readFileSync(join(source, from), "utf8");
+  writeFileSync(join(target, to), rewrite(code, from));
+  const map = join(source, `${from}.map`);
+  if (existsSync(map)) writeFileSync(join(target, `${to}.map`), readFileSync(map));
 }
 
 const { version } = JSON.parse(

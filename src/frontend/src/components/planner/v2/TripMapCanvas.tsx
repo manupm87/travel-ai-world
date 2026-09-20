@@ -31,14 +31,16 @@ export const STYLE_URLS = {
  * under Next/Turbopack it resolves to the page itself, the worker loads HTML
  * and dies, and the map is pins over a blank canvas, with no error anywhere.
  * `scripts/copy-maplibre-worker.mjs` (run before `next dev`/`next build`)
- * copies the worker and its `maplibre-gl-shared.mjs` sibling into
- * `public/maplibre/` unrenamed, so this same-origin URL and the worker's own
- * relative import both resolve. The prefix mirrors `basePath` in
- * `next.config.ts`, which only applies to production builds.
+ * copies the worker and its `maplibre-gl-shared` sibling into
+ * `public/maplibre/` as `.js` files — the extension every server maps to a
+ * JavaScript MIME type, which a module worker insists on — with the worker's
+ * relative import rewritten to match, so this same-origin URL resolves. The
+ * prefix mirrors `basePath` in `next.config.ts`, which only applies to
+ * production builds.
  */
 export const WORKER_URL = `${
   process.env.NODE_ENV === "production" ? (process.env.NEXT_PUBLIC_BASE_PATH ?? "") : ""
-}/maplibre/maplibre-gl-worker.mjs`;
+}/maplibre/maplibre-gl-worker.js`;
 
 /** Told to MapLibre once per page, before the first map is built. */
 let workerConfigured = false;

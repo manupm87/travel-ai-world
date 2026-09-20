@@ -249,7 +249,7 @@ describe("TripMapCanvas", () => {
 
     // Whatever the bundler makes of `import.meta.url`, the worker is ours:
     // a same-origin path under /maplibre/ (TRA-181), set once per page.
-    expect(WORKER_URL).toBe("/maplibre/maplibre-gl-worker.mjs");
+    expect(WORKER_URL).toBe("/maplibre/maplibre-gl-worker.js");
     expect(maplibre.workerUrls).toEqual([WORKER_URL]);
     expect(maplibre.instances).toHaveLength(2);
   });
