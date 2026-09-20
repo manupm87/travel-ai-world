@@ -146,6 +146,11 @@ TypeScript 5, Tailwind CSS v4.
   (`SuggestionChips`, only while the transcript is empty) and the destination hint of `QuickReplies`;
   the i18n copy (`plan.cityStarter`, `quickReplies.destinationPlaceholder`) is the fallback while the
   list loads, when the call fails, or without a backend.
+  **Assistant text is Markdown** (TRA-183): every assistant bubble goes through
+  `components/planner/MarkdownContent.tsx` (`react-markdown` + `remark-gfm`, a short tag
+  allow-list — headings become bold paragraphs, links open in a new tab in `text-accent` — styling
+  on the components map, never a global `.prose`, and **raw HTML is never rendered**: no
+  `rehype-raw`); user bubbles stay the plain text they typed.
 - Tests: `renderWithProviders` from `src/test/render.tsx` and the typed builders in
   `src/test/fixtures.ts` (`src/test/fixtures/trip-japan.ts` when a test needs a whole `TripResponse`);
   assert on roles/names/`data-*` state and on `en.ts` copy, not on class names.

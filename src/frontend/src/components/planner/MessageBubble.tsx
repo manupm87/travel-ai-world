@@ -1,6 +1,7 @@
 import { Bot, User } from "lucide-react";
 import type { ChatMessage } from "@/services/chat";
 import { cn } from "@/utils/cn";
+import { MarkdownContent } from "./MarkdownContent";
 import { TypingDots } from "./TypingDots";
 
 interface MessageBubbleProps {
@@ -13,6 +14,19 @@ interface MessageBubbleProps {
 
 export function MessageBubble({ message, isPending = false, errorText }: MessageBubbleProps) {
   const isUser = message.role === "user";
+  /**
+   * The assistant writes Markdown (`**bold**`, `- item`), so its bubble is
+   * rendered; what the traveller typed is shown exactly as typed.
+   */
+  const body = message.content ? (
+    isUser ? (
+      <span className="whitespace-pre-wrap">{message.content}</span>
+    ) : (
+      <MarkdownContent content={message.content} />
+    )
+  ) : (
+    errorText || (isPending && <TypingDots />)
+  );
 
   return (
     <div className={cn("flex animate-fade-up gap-2.5", isUser ? "flex-row-reverse" : "flex-row")}>
@@ -39,7 +53,7 @@ export function MessageBubble({ message, isPending = false, errorText }: Message
         )}
         role={errorText ? "alert" : undefined}
       >
-        {message.content || errorText || (isPending && <TypingDots />)}
+        {body}
       </div>
     </div>
   );
