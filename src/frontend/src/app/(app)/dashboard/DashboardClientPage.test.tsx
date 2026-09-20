@@ -16,6 +16,8 @@ vi.mock("@/components/planner/PlannerCard", () => ({
 }));
 
 const reload = vi.fn();
+const remove = vi.fn().mockResolvedValue(undefined);
+const update = vi.fn().mockResolvedValue(undefined);
 
 function trips(state: Partial<UseTripsResult>) {
   vi.mocked(useTrips).mockReturnValue({
@@ -23,6 +25,8 @@ function trips(state: Partial<UseTripsResult>) {
     status: "ready",
     error: null,
     reload,
+    remove,
+    update,
     ...state,
   });
 }

@@ -14,6 +14,7 @@ import {
 } from "@/hooks/plannerReducer";
 import { useCardDetail } from "@/hooks/useCardDetail";
 import type { AskAlternativesOptions } from "@/hooks/usePlanner";
+import type { UseSaveTripResult } from "@/hooks/useSaveTrip";
 import { DAY_PARTS, type OptionCard, type PlannerCity, type Slot } from "@/types/planner";
 import { routeLegs } from "./RouteStrip";
 import { ActivityDetail } from "./ActivityDetail";
@@ -23,9 +24,10 @@ import { DayCard } from "./DayCard";
 import { DayStrip } from "./DayStrip";
 import { stayStopId, stopId, type MapStop } from "./mapStops";
 import { RouteStrip } from "./RouteStrip";
+import { SaveTripButton } from "./SaveTripButton";
 import { StayCard } from "./StayCard";
 import { TripOverview } from "./TripOverview";
-import { dateForDay, daysBetween } from "./tripDates";
+import { dateForDay, daysBetween } from "@/utils/tripDates";
 import { WarningBadge } from "./WarningBadge";
 
 export interface TripPanelProps {
@@ -50,6 +52,8 @@ export interface TripPanelProps {
   onToggleShortlist: (cardId: string) => void;
   onAskAlternatives: (slot: Slot, options?: AskAlternativesOptions) => void;
   onReset: () => void;
+  /** "Save trip": what `hooks/useSaveTrip.ts` knows and the one action it offers. */
+  save: UseSaveTripResult;
 }
 
 /** The stay has no day of its own; this pseudo-slot opens its sheet. */
@@ -111,6 +115,7 @@ export function TripPanel({
   onToggleShortlist,
   onAskAlternatives,
   onReset,
+  save,
 }: TripPanelProps) {
   const { t } = useLanguage();
   const [changing, setChanging] = useState<Slot | null>(null);
@@ -293,15 +298,12 @@ export function TripPanel({
           <p className="text-xs text-text-secondary">{counters.join(" · ")}</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <Button
-            size="sm"
-            disabled
-            aria-disabled="true"
-            title={p.saveHint}
-            className="px-4 py-2 text-xs opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
-          >
-            {p.save}
-          </Button>
+          <SaveTripButton
+            status={save.status}
+            tripId={save.tripId}
+            canSave={save.canSave}
+            onSave={save.save}
+          />
           <Button
             variant="ghost"
             size="sm"

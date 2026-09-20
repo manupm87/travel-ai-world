@@ -1,7 +1,8 @@
 /**
  * The itinerary's dates: the brief gives a start and an end, every day of the
- * draft is an offset from the start. Shared by `TripPanel` (the day it shows)
- * and `DayStrip` (the date on every chip) so both label a day the same way.
+ * draft is an offset from the start. Shared by `TripPanel` (the day it shows),
+ * `DayStrip` (the date on every chip) and `services/trips.ts` (the date every
+ * saved itinerary day carries), so all three date a day the same way.
  */
 
 const MS_PER_DAY = 86_400_000;

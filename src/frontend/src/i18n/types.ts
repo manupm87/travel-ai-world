@@ -255,7 +255,16 @@ export interface Translations {
       legs: string;
       legOne: string;
       save: string;
+      /** Why the button is disabled: a demo session saves nothing. */
       saveHint: string;
+      /** While the trip is being written. */
+      saving: string;
+      saved: string;
+      /** The link beside "Saved", to the trip viewer. */
+      openTrip: string;
+      /** The status beside the button when the write failed. */
+      saveError: string;
+      saveRetry: string;
       reset: string;
       /** "Route {from} → {to}" */
       route: string;

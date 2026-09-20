@@ -6,7 +6,7 @@ import { useFormatters } from "@/hooks/useFormatters";
 import { interpolate } from "@/i18n";
 import type { DayDraft, ItineraryDraft } from "@/hooks/plannerReducer";
 import { DAY_PARTS, type OptionCard, type PlannerCity, type TripBrief } from "@/types/planner";
-import { DATE_OPTIONS, dateForDay } from "./tripDates";
+import { DATE_OPTIONS, dateForDay } from "@/utils/tripDates";
 import { WarningBadge } from "./WarningBadge";
 
 export interface TripOverviewProps {

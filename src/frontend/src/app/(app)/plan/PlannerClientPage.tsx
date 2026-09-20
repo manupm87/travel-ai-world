@@ -10,6 +10,7 @@ import { TripMap } from "@/components/planner/v2/TripMap";
 import { TripPanel } from "@/components/planner/v2/TripPanel";
 import { useLanguage } from "@/context/LanguageContext";
 import { usePlanner, type AskAlternativesOptions } from "@/hooks/usePlanner";
+import { useSaveTrip } from "@/hooks/useSaveTrip";
 import { findCity, usePlannerCities } from "@/hooks/usePlannerCities";
 import { useSelectedDay } from "@/hooks/useSelectedDay";
 import type { Slot } from "@/types/planner";
@@ -46,6 +47,9 @@ export default function PlannerClientPage() {
   // map opens and what the overview says about the destination; the built-in
   // copy stands in until they arrive (or when they never do).
   const { cities } = usePlannerCities();
+  // "Save trip". The recorded session answers for everyone and belongs to
+  // nobody, so a demo turn takes the button out of service (TRA-191).
+  const save = useSaveTrip(state, { enabled: !demo });
 
   // One walk of the itinerary for both columns (TRA-147): the map draws these
   // pins and the panel numbers its cards from the very same list.
@@ -138,6 +142,7 @@ export default function PlannerClientPage() {
           onToggleShortlist={toggleShortlist}
           onAskAlternatives={askAlternatives}
           onReset={reset}
+          save={save}
         />
       }
       // The overview spans this column and the trip's: there is no whole-trip

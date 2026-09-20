@@ -10,7 +10,7 @@ import { partOf, type DayDraft, type ItineraryWarning } from "@/hooks/plannerRed
 import { DAY_PARTS, type DayPart, type Slot } from "@/types/planner";
 import { cn } from "@/utils/cn";
 import { stopGlyph, stopId, type MapStop } from "./mapStops";
-import { DATE_OPTIONS } from "./tripDates";
+import { DATE_OPTIONS } from "@/utils/tripDates";
 import { WarningBadge } from "./WarningBadge";
 
 export interface DayCardProps {

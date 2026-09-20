@@ -11,6 +11,7 @@ import {
   type PlannerState,
 } from "@/hooks/plannerReducer";
 import { useSelectedDay } from "@/hooks/useSelectedDay";
+import type { UseSaveTripResult } from "@/hooks/useSaveTrip";
 import {
   ACTIVITIES,
   BATHS,
@@ -38,7 +39,11 @@ const bathsGroup: OptionGroupState = {
   dismissedIds: [],
 };
 
-function renderPanel(state: Partial<PlannerState> = {}) {
+function renderPanel(
+  state: Partial<PlannerState> = {},
+  save: Partial<UseSaveTripResult> = {}
+) {
+  const onSave = vi.fn();
   const handlers = {
     onGenerate: vi.fn(),
     onRemove: vi.fn(),
@@ -47,6 +52,13 @@ function renderPanel(state: Partial<PlannerState> = {}) {
     onToggleShortlist: vi.fn(),
     onAskAlternatives: vi.fn(),
     onReset: vi.fn(),
+  };
+  const saveState: UseSaveTripResult = {
+    status: "idle",
+    tripId: null,
+    canSave: true,
+    save: onSave,
+    ...save,
   };
   const full: PlannerState = {
     ...initialPlannerState(),
@@ -74,6 +86,7 @@ function renderPanel(state: Partial<PlannerState> = {}) {
         mapStops={mapStops}
         selectedStopId={selectedStopId}
         onSelectStop={setSelectedStopId}
+        save={saveState}
         {...handlers}
       />
     );
@@ -82,6 +95,7 @@ function renderPanel(state: Partial<PlannerState> = {}) {
   const view = renderWithProviders(<Harness state={full} />);
   return {
     ...handlers,
+    onSave,
     setState: (next: Partial<PlannerState>) =>
       view.rerender(<Harness state={{ ...full, ...next }} />),
   };
@@ -209,10 +223,50 @@ describe("TripPanel", () => {
     expect(flights[0]).toHaveAttribute("href", DEEP_LINK);
     expect(flights[0]).toHaveAttribute("rel", expect.stringContaining("noopener"));
 
-    // Saving is not wired yet; the button says why.
+  });
+
+  it("saves the draft from the header", () => {
+    const { onSave } = renderPanel();
+
+    fireEvent.click(screen.getByRole("button", { name: p.save }));
+
+    expect(onSave).toHaveBeenCalledTimes(1);
+  });
+
+  it("says why saving is unavailable while a recorded session answers", () => {
+    renderPanel({}, { canSave: false });
+
     const save = screen.getByRole("button", { name: p.save });
     expect(save).toBeDisabled();
     expect(save).toHaveAttribute("title", p.saveHint);
+  });
+
+  it("shows the write in progress", () => {
+    renderPanel({}, { status: "saving" });
+
+    const saving = screen.getByRole("button", { name: p.saving });
+    expect(saving).toBeDisabled();
+    expect(saving).toHaveAttribute("aria-busy", "true");
+  });
+
+  it("offers the way into the trip once it is saved", () => {
+    renderPanel({}, { status: "saved", tripId: "trip-42" });
+
+    expect(screen.getByText(p.saved)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: p.save })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: p.openTrip })).toHaveAttribute(
+      "href",
+      "/trip?id=trip-42"
+    );
+  });
+
+  it("offers the failed save again", () => {
+    const { onSave } = renderPanel({}, { status: "error" });
+
+    expect(screen.getByText(p.saveError)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: p.saveRetry }));
+
+    expect(onSave).toHaveBeenCalledTimes(1);
   });
 
   it("never shows a number next to a price", () => {

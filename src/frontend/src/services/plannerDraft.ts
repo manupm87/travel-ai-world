@@ -1,7 +1,9 @@
 /**
  * The planner's per-tab draft, kept in `sessionStorage` so a reload does not
- * lose the conversation and the itinerary being built. Persisting the draft
- * as a real trip in core_api is a separate issue (TRA-146); this is only the
+ * lose the conversation and the itinerary being built, and the id of the trip
+ * that draft was last saved as (TRA-191), so a second "Save trip" rewrites
+ * that trip instead of leaving a second one behind. Keeping the two in step
+ * while the traveller plans is the follow-up (TRA-146); this is the
  * browser-side safety net, and the one module that touches the storage.
  */
 
@@ -67,6 +69,21 @@ export function writePlannerDraft(draft: PlannerDraft): void {
   }
 }
 
+const SAVED_TRIP_KEY = "travel_ai_planner_trip_id";
+
+/** The trip this tab's draft was saved as, or `null` when it never was. */
+export function readSavedTripId(): string | null {
+  return storage()?.getItem(SAVED_TRIP_KEY) ?? null;
+}
+
+export function writeSavedTripId(id: string): void {
+  try {
+    storage()?.setItem(SAVED_TRIP_KEY, id);
+  } catch {
+    // Storage disabled: the next save creates a second trip, nothing breaks.
+  }
+}
+
 const DEMO_BANNER_KEY = "travel_ai_planner_demo_banner";
 
 /** True once the demo banner was dismissed in this tab. */
@@ -82,9 +99,11 @@ export function dismissDemoBanner(): void {
   }
 }
 
+/** "Start over": the draft goes, and with it the trip it was saved as. */
 export function clearPlannerDraft(): void {
   try {
     storage()?.removeItem(PLANNER_DRAFT_KEY);
+    storage()?.removeItem(SAVED_TRIP_KEY);
   } catch {
     // Nothing to clear when storage is unavailable.
   }

@@ -8,7 +8,7 @@ import { interpolate } from "@/i18n";
 import type { DayDraft } from "@/hooks/plannerReducer";
 import { DAY_PARTS } from "@/types/planner";
 import { cn } from "@/utils/cn";
-import { DATE_OPTIONS, dateForDay } from "./tripDates";
+import { DATE_OPTIONS, dateForDay } from "@/utils/tripDates";
 
 export interface DayStripProps {
   /** The itinerary's days, in day order. */
