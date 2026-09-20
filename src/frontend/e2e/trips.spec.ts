@@ -1,17 +1,25 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type APIRequestContext, type Page } from "@playwright/test";
 import { TOKEN_STORAGE_KEY, USER_STORAGE_KEY } from "../src/services/session";
+import { ACTIVITIES, HOTELS, RESTAURANTS } from "../src/data/planner-demo/session";
 
 /**
- * Signed-in journeys over real data: the dashboard and the trip viewer read
- * the four demo trips (`just seed <email>`) from core_api.
+ * Saved trips, where they now live: the planner (TRA-196).
  *
- * Sign-in needs no identity provider. `E2E_TOKEN` is a local-mode JWT for
- * the seeded account (`just dev-token <email>`); each test writes it, and the
- * profile the UI shows, into `localStorage` before the first navigation,
- * exactly where `src/services/session.ts` keeps a real session. Without
- * `E2E_TOKEN` the whole file is skipped, so `just test-e2e` and
- * `just test-e2e-static` (no backend) run as before. `just test-e2e-stack`
- * is the intended runner (the Compose origin, :8080), and CI's `e2e-stack` job.
+ * There is no seed any more, so this suite writes the trips it needs through
+ * the REST API before it starts and deletes them after — one upcoming trip,
+ * which the planner reopens and can still change, and one that is already
+ * over, which it reopens read-only. Both carry the planner's own cards
+ * (`card` JSON, `source_ref`, `part_of_day`), because that is what
+ * `services/tripDraft.ts` rebuilds the draft from.
+ *
+ * Sign-in needs no identity provider. `E2E_TOKEN` is a local-mode JWT
+ * (`just dev-token <email>`, which creates the account if it is new); each
+ * test writes it, and the profile the UI shows, into `localStorage` before
+ * the first navigation, exactly where `src/services/session.ts` keeps a real
+ * session. Without `E2E_TOKEN` the whole file is skipped, so `just test-e2e`
+ * and `just test-e2e-static` (no backend) run as before. `just
+ * test-e2e-stack` is the intended runner (the Compose origin, :8080), and
+ * CI's `e2e-stack` job.
  */
 
 const TOKEN = process.env.E2E_TOKEN;
@@ -27,24 +35,6 @@ function accountFromToken(token: string): { id: string; email: string } {
   if (!email) throw new Error("E2E_EMAIL is not set and the token carries no email claim");
   return { id: claims.sub, email };
 }
-
-/** Titles from `core_api/seed/data/*.json`, keyed by the dashboard section they land in. */
-const SEEDED = {
-  planned: ["Grand European Tour: Paris, Rome & Barcelona"],
-  planning: ["Japan Explorer: Traditions & Neon"],
-  finished: ["New York Weekend", "Prague, Vienna & Budapest"],
-} as const;
-
-/** `en.ts` `dashboard.sections`, the heading above each group in the grid. */
-const SECTION_LABEL = {
-  planned: "Coming up",
-  planning: "In the works",
-  finished: "Past journeys",
-} as const;
-
-const JAPAN = SEEDED.planning[0];
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-const TRIP_URL = /\/trip\/\?id=[0-9a-f-]{36}$/;
 
 function signIn(page: Page, token: string) {
   const { id, email } = accountFromToken(token);
@@ -62,116 +52,226 @@ function signIn(page: Page, token: string) {
   );
 }
 
-async function expectJapanViewer(page: Page) {
-  await expect(page).toHaveURL(TRIP_URL);
-  // Header: the title and the status badge.
-  await expect(page.getByRole("heading", { level: 1, name: JAPAN })).toBeVisible();
-  await expect(page.getByText("Planning", { exact: true }).first()).toBeVisible();
-  // Timeline: the three destinations as clickable nodes.
-  await expect(page.getByRole("heading", { name: "Route overview" })).toBeVisible();
-  for (const city of ["Tokyo", "Kyoto", "Osaka"]) {
-    await expect(page.getByRole("button", { name: city }).first()).toBeVisible();
-  }
-  // Itinerary: 2026-10-01 to 2026-10-14, and the first day's title.
-  await expect(page.getByRole("heading", { name: "Your 14-day journey" })).toBeVisible();
-  await expect(page.getByText("Arrival in Neon City").first()).toBeVisible();
+const DAY_MS = 86_400_000;
+
+/** A date `offset` days from today, as core_api stores one. */
+const isoDay = (offset: number): string =>
+  new Date(Date.now() + offset * DAY_MS).toISOString().slice(0, 10);
+
+/** `en.ts` `plan.trips.groups`, the heading over each group of the list. */
+const GROUP = {
+  ongoing: "Happening now",
+  upcoming: "Coming up",
+  past: "Past journeys",
+} as const;
+
+interface NewTrip {
+  title: string;
+  /** Days from today the trip starts on; it lasts `days` days. */
+  startsIn: number;
+  days: number;
 }
 
-test.describe("Signed in with a minted local token", () => {
-  test.skip(!TOKEN, "E2E_TOKEN is not set: seed an account and run `just dev-token <email>`");
+/**
+ * One trip as the planner saves it: the city columns, the days, and on every
+ * day a card of the recorded Budapest session — the same shape
+ * `saveDraftAsTrip` writes, so reopening it exercises the real round trip.
+ */
+async function createTrip(api: APIRequestContext, { title, startsIn, days }: NewTrip) {
+  const start = isoDay(startsIn);
+  const created = await api.post("/api/v1/trips/", {
+    data: {
+      title,
+      city_slug: "budapest",
+      city: "Budapest",
+      country: "Hungary",
+      country_code: "HU",
+      lat: 47.4979,
+      lng: 19.0402,
+      origin: "Madrid",
+      budget_tier: 2,
+      start_date: start,
+      end_date: isoDay(startsIn + days - 1),
+      duration_days: days,
+      travelers_adults: 2,
+      travelers_children: 0,
+      travelers_infants: 0,
+      travel_style: ["food", "history"],
+      pace_preference: "balanced",
+      budget_currency: "EUR",
+      image_url: HOTELS.rum.image_url,
+    },
+  });
+  expect(created.ok(), await created.text()).toBeTruthy();
+  const { id } = (await created.json()) as { id: string };
+
+  await api.post(`/api/v1/trips/${id}/accommodations/`, {
+    data: {
+      name: HOTELS.rum.title,
+      type: "hotel",
+      city: "Budapest",
+      country_code: "HU",
+      source_ref: HOTELS.rum.id,
+      card: HOTELS.rum,
+      lat: HOTELS.rum.lat,
+      lng: HOTELS.rum.lon,
+    },
+  });
+
+  for (let day = 1; day <= days; day++) {
+    const saved = await api.post(`/api/v1/trips/${id}/itinerary-days/`, {
+      data: {
+        day_number: day,
+        date: new Date(Date.parse(`${start}T00:00:00Z`) + (day - 1) * DAY_MS)
+          .toISOString()
+          .slice(0, 10),
+        title: `Day ${day} in Budapest`,
+      },
+    });
+    const { id: dayId } = (await saved.json()) as { id: string };
+
+    await api.post(`/api/v1/trips/${id}/itinerary-days/${dayId}/activities/`, {
+      data: {
+        title: ACTIVITIES.greatMarket.title,
+        description: ACTIVITIES.greatMarket.why,
+        category: ACTIVITIES.greatMarket.category,
+        part_of_day: "morning",
+        time: "10:00",
+        source_ref: ACTIVITIES.greatMarket.id,
+        card: ACTIVITIES.greatMarket,
+        booking_required: false,
+        location_name: ACTIVITIES.greatMarket.title,
+        location_city: "Budapest",
+        location_lat: ACTIVITIES.greatMarket.lat,
+        location_lng: ACTIVITIES.greatMarket.lon,
+      },
+    });
+    await api.post(`/api/v1/trips/${id}/itinerary-days/${dayId}/meals/`, {
+      data: {
+        restaurant_name: RESTAURANTS.menza.title,
+        type: "dinner",
+        cuisine: RESTAURANTS.menza.subtitle,
+        part_of_day: "evening",
+        time: "19:00",
+        source_ref: RESTAURANTS.menza.id,
+        card: RESTAURANTS.menza,
+        location_name: RESTAURANTS.menza.title,
+        location_city: "Budapest",
+        location_lat: RESTAURANTS.menza.lat,
+        location_lng: RESTAURANTS.menza.lon,
+      },
+    });
+  }
+
+  return id;
+}
+
+test.describe("Trips in the planner", () => {
+  test.skip(!TOKEN, "E2E_TOKEN is not set: run `just dev-token <email>` first");
+
+  /** A run-specific suffix, so two runs against one database never collide. */
+  const stamp = Date.now();
+  const UPCOMING = `E2E upcoming ${stamp}`;
+  const PAST = `E2E past ${stamp}`;
+
+  let api: APIRequestContext;
+  let upcomingId: string;
+  let pastId: string;
+  const disposable: string[] = [];
+
+  test.beforeAll(async ({ playwright }, testInfo) => {
+    api = await playwright.request.newContext({
+      baseURL: testInfo.project.use.baseURL,
+      extraHTTPHeaders: { authorization: `Bearer ${TOKEN}` },
+    });
+    upcomingId = await createTrip(api, { title: UPCOMING, startsIn: 30, days: 3 });
+    pastId = await createTrip(api, { title: PAST, startsIn: -40, days: 2 });
+  });
+
+  test.afterAll(async () => {
+    for (const id of [upcomingId, pastId, ...disposable]) {
+      if (id) await api.delete(`/api/v1/trips/${id}`);
+    }
+    await api.dispose();
+  });
 
   test.beforeEach(async ({ page }) => {
     await signIn(page, TOKEN!);
   });
 
-  test("the dashboard lists the four seeded trips, each under its group heading", async ({
-    page,
-  }) => {
-    await page.goto("/dashboard/");
+  test("the planner lists the account's trips under the phase they are in", async ({ page }) => {
+    await page.goto("/plan/");
 
     await expect(page.getByRole("heading", { level: 2, name: "Your trips" })).toBeVisible();
-    for (const status of ["planned", "planning", "finished"] as const) {
-      await expect(
-        page.getByRole("heading", { level: 3, name: SECTION_LABEL[status] })
-      ).toBeVisible();
-      for (const title of SEEDED[status]) {
-        await expect(page.getByRole("heading", { level: 4, name: title })).toBeVisible();
-      }
-    }
+    await expect(page.getByRole("heading", { level: 3, name: GROUP.upcoming })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 3, name: GROUP.past })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 4, name: UPCOMING })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 4, name: PAST })).toBeVisible();
   });
 
-  test("a card opens the viewer at /trip/?id=<uuid> with header, timeline and itinerary", async ({
+  test("opening an upcoming trip shows its days and leaves the planner working", async ({
     page,
   }) => {
-    await page.goto("/dashboard/");
+    await page.goto("/plan/");
+    await page.getByRole("link", { name: UPCOMING }).click();
 
-    const card = page.getByRole("link", { name: JAPAN });
-    await expect(card).toHaveAttribute("href", TRIP_URL);
-    await card.click();
-
-    await expectJapanViewer(page);
+    await expect(page).toHaveURL(new RegExp(`/plan/?\\?trip=${upcomingId}$`));
+    await expect(page.getByRole("heading", { name: "3 days in Budapest" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: /Day 1/ })).toBeVisible();
+    await expect(page.getByText(HOTELS.rum.title).first()).toBeVisible();
+    // Still plannable: the composer is there and so is "Save trip".
+    await expect(page.getByRole("textbox")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Save trip" })).toBeVisible();
   });
 
-  test("a deep link to the trip renders the same viewer", async ({ page }) => {
-    // The id is only known at run time: read it off the dashboard, then load
-    // the viewer's URL directly (a full navigation, not a client-side route).
-    await page.goto("/dashboard/");
-    const href = await page.getByRole("link", { name: JAPAN }).getAttribute("href");
-    expect(href).toMatch(TRIP_URL);
-    const id = new URL(href!, page.url()).searchParams.get("id");
-    expect(id).toMatch(UUID);
+  test("a trip that is over is read, not planned", async ({ page }) => {
+    await page.goto(`/plan/?trip=${pastId}`);
 
-    await page.goto(`/trip/?id=${encodeURIComponent(id!)}`);
-
-    await expectJapanViewer(page);
+    await expect(
+      page.getByText("This trip is over. It stays here as it was.")
+    ).toBeVisible();
+    await expect(page.getByRole("textbox")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Save trip" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Start over" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /^Change/ })).toHaveCount(0);
+    // What it holds is all still there to read.
+    await expect(page.getByRole("heading", { name: "2 days in Budapest" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: /Day 2/ })).toBeVisible();
   });
 
-  test("the card's menu renames a trip, keyboard only", async ({ page }) => {
-    await page.goto("/dashboard/");
+  test("the card's menu renames a trip, keyboard only, and it stays renamed", async ({ page }) => {
+    const title = `E2E rename ${Date.now()}`;
+    const id = await createTrip(api, { title, startsIn: 60, days: 2 });
+    disposable.push(id);
 
-    // Tab is not needed: every step here is a named control the keyboard can
-    // reach, and the menu, the sheet and the card all answer to Enter.
-    await page.getByRole("button", { name: `Options for ${JAPAN}` }).press("Enter");
-    await page.getByRole("menuitem", { name: "Edit trip" }).press("Enter");
+    await page.goto("/plan/");
+    // Every step is a named control the keyboard can reach, and the menu and
+    // the dialog both answer to Enter.
+    await page.getByRole("button", { name: `Options for ${title}` }).press("Enter");
+    await page.getByRole("menuitem", { name: "Rename trip" }).press("Enter");
 
-    const sheet = page.getByRole("dialog", { name: "Edit trip" });
-    await expect(sheet).toBeVisible();
-    const renamed = `${JAPAN} (edited)`;
-    await sheet.getByLabel("Title").fill(renamed);
-    await sheet.getByRole("button", { name: "Save changes" }).press("Enter");
+    const dialog = page.getByRole("dialog", { name: "Rename trip" });
+    await expect(dialog).toBeVisible();
+    const renamed = `${title} (renamed)`;
+    await dialog.getByLabel("Title").fill(renamed);
+    await dialog.getByRole("button", { name: "Save title" }).press("Enter");
 
-    await expect(sheet).toBeHidden();
+    await expect(dialog).toBeHidden();
     await expect(page.getByRole("heading", { level: 4, name: renamed })).toBeVisible();
 
-    // Put the seed back, so the file can run twice against the same database.
-    await page.getByRole("button", { name: `Options for ${renamed}` }).click();
-    await page.getByRole("menuitem", { name: "Edit trip" }).click();
-    await sheet.getByLabel("Title").fill(JAPAN);
-    await sheet.getByRole("button", { name: "Save changes" }).click();
-    await expect(page.getByRole("heading", { level: 4, name: JAPAN })).toBeVisible();
+    await page.reload();
+    await expect(page.getByRole("heading", { level: 4, name: renamed })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 4, name: title })).toHaveCount(0);
   });
 
   test("a trip can be deleted, once the confirmation is answered", async ({ page }) => {
-    // A trip of our own, so the seeded four stay where the other tests expect.
-    const created = `Disposable trip ${Date.now()}`;
-    await page.goto("/dashboard/");
-    const trip = await page.evaluate(
-      async ({ title, token }) => {
-        const response = await fetch("/api/v1/trips/", {
-          method: "POST",
-          headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
-          body: JSON.stringify({ title, status: "planning" }),
-        });
-        return (await response.json()) as { id: string };
-      },
-      { title: created, token: TOKEN! }
-    );
-    expect(trip.id).toMatch(UUID);
+    const title = `E2E delete ${Date.now()}`;
+    const id = await createTrip(api, { title, startsIn: 90, days: 1 });
 
-    await page.reload();
-    await expect(page.getByRole("heading", { level: 4, name: created })).toBeVisible();
+    await page.goto("/plan/");
+    await expect(page.getByRole("heading", { level: 4, name: title })).toBeVisible();
 
-    await page.getByRole("button", { name: `Options for ${created}` }).click();
+    await page.getByRole("button", { name: `Options for ${title}` }).click();
     await page.getByRole("menuitem", { name: "Delete trip" }).click();
 
     const confirm = page.getByRole("dialog", { name: "Delete this trip?" });
@@ -179,39 +279,38 @@ test.describe("Signed in with a minted local token", () => {
     await confirm.getByRole("button", { name: "Delete trip" }).click();
 
     await expect(confirm).toBeHidden();
-    await expect(page.getByRole("heading", { level: 4, name: created })).toHaveCount(0);
+    await expect(page.getByRole("heading", { level: 4, name: title })).toHaveCount(0);
 
     // And it is gone from the API too, not just from the page.
     await page.reload();
-    await expect(page.getByRole("heading", { level: 4, name: created })).toHaveCount(0);
+    await expect(page.getByRole("heading", { level: 4, name: title })).toHaveCount(0);
+    expect((await api.get(`/api/v1/trips/${id}`)).status()).toBe(404);
   });
 
-  test("an id that belongs to no trip shows the not-found state", async ({ page }) => {
-    await page.goto("/trip/?id=3f2504e0-4f89-11d3-9a0c-0305e82c3301");
+  test("an id that belongs to no trip says so in the trip pane", async ({ page }) => {
+    await page.goto("/plan/?trip=3f2504e0-4f89-11d3-9a0c-0305e82c3301");
 
-    await expect(
-      page.getByRole("heading", { name: "We couldn't find that trip" })
-    ).toBeVisible();
-    await expect(page.getByRole("link", { name: "Back to my trips" })).toHaveAttribute(
-      "href",
-      /\/dashboard\/?$/
-    );
-    // Not found is not an error: no retry state (Next's route announcer is a
-    // `role="alert"` too, so the check is on the copy, not the role).
-    await expect(page.getByRole("heading", { name: "We couldn't load your trip" })).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "Try again" })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "This trip isn't here" })).toBeVisible();
+    // The chat column is untouched: a bad link does not take the planner down.
+    await expect(page.getByRole("textbox")).toBeVisible();
+  });
+
+  test("the old viewer and dashboard links land in the planner", async ({ page }) => {
+    await page.goto(`/trip/?id=${upcomingId}`);
+    await expect(page).toHaveURL(new RegExp(`/plan/?\\?trip=${upcomingId}$`));
+
+    await page.goto("/dashboard/");
+    await expect(page).toHaveURL(/\/plan\/?$/);
   });
 });
 
 test.describe("Signed out", () => {
   test.skip(!TOKEN, "runs with the signed-in suite only (`just test-e2e-stack`)");
 
-  test("/dashboard/ sends the visitor home, remembering where to come back to", async ({
-    page,
-  }) => {
-    await page.goto("/dashboard/");
+  test("/plan/ sends the visitor home, remembering where to come back to", async ({ page }) => {
+    await page.goto("/plan/");
 
-    await expect(page).toHaveURL(/\/\?redirect=%2Fdashboard%2F$/);
+    await expect(page).toHaveURL(/\/\?redirect=%2Fplan%2F$/);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Where to?");
     // The landing opens the sign-in dialog for a visitor the guard turned away.
     await expect(page.getByRole("dialog", { name: "Sign in to plan" })).toBeVisible();

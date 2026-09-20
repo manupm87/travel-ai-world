@@ -19,17 +19,25 @@ test.describe("Static export — HTML as served, before any JS runs", () => {
   });
 });
 
-test.describe("Trip viewer — one static shell for every trip (/trip/?id=)", () => {
+test.describe("The planner — one static shell for every trip (/plan/?trip=)", () => {
   test("the shell is served for any id; the trip itself is fetched by the browser", async ({
     request,
   }) => {
-    const response = await request.get("/trip/?id=00000000-0000-0000-0000-000000000000");
+    const response = await request.get("/plan/?trip=00000000-0000-0000-0000-000000000000");
     expect(response.status()).toBe(200);
 
     const html = await response.text();
     // The signed-in shell (header) is prerendered; no trip content can be, it is per user.
     expect(html).toContain("<header");
-    expect(html).not.toMatch(/Japan Explorer/);
+    expect(html).not.toMatch(/3 days in Budapest/);
+  });
+
+  test("the old viewer's shell is still served, and still says nothing about a trip", async ({
+    request,
+  }) => {
+    const response = await request.get("/trip/?id=00000000-0000-0000-0000-000000000000");
+    expect(response.status()).toBe(200);
+    expect(await response.text()).not.toMatch(/3 days in Budapest/);
   });
 
   test("the old per-id folders are gone: /trip/<id>/ is a 404", async ({ request }) => {

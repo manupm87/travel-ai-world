@@ -97,6 +97,18 @@ async function send(page: Page, text: string) {
 
 const card = (page: Page, title: string) => page.getByRole("article", { name: title });
 
+/** The recorded session, up to the point where the itinerary exists. */
+async function buildItinerary(page: Page) {
+  await send(page, USER_MESSAGES.opening);
+  const refine = page.getByRole("region", { name: "Let's refine a bit:" });
+  await refine.getByLabel("From", { exact: true }).fill("2026-10-23");
+  await refine.getByLabel("To", { exact: true }).fill("2026-10-25");
+  await refine.getByRole("button", { name: "Confirm" }).click();
+  await card(page, "Belváros").getByRole("button", { name: "Choose" }).click();
+  await card(page, "Hotel Rum Budapest").getByRole("button", { name: "Choose" }).click();
+  await expect(page.getByRole("heading", { name: "3 days in Budapest" })).toBeVisible();
+}
+
 test.describe("Planner page — /plan/", () => {
   test.skip(!TOKEN, "E2E_TOKEN is not set: seed an account and run `just dev-token <email>`");
 
@@ -282,10 +294,12 @@ test.describe("Planner page — /plan/", () => {
     const tabs = page.getByRole("tablist");
     await expect(tabs).toBeVisible();
     await expect(composer(page)).toBeVisible();
-    await expect(page.getByText("Your trip is taking shape")).toBeHidden();
+    await expect(page.getByRole("heading", { level: 2, name: "Your trips" })).toBeHidden();
 
     await tabs.getByRole("tab", { name: "Trip" }).click();
-    await expect(page.getByText("Your trip is taking shape")).toBeVisible();
+    // Nothing asked yet, so the trip pane is the account's trips (TRA-196);
+    // the checklist takes their place as soon as the conversation starts.
+    await expect(page.getByRole("heading", { level: 2, name: "Your trips" })).toBeVisible();
     await expect(composer(page)).toBeHidden();
 
     // No itinerary, so no day and no map: the Map tab arrives with the first
@@ -340,6 +354,41 @@ test.describe("Planner page — /plan/", () => {
     // The banner can be hidden for the tab.
     await page.getByRole("button", { name: "Hide this notice" }).click();
     await expect(page.getByRole("status").filter({ hasText: "Demo mode" })).toHaveCount(0);
+  });
+
+  test("a saved trip reopens where it was left, from the URL alone", async ({ page, request }) => {
+    // Needs a real core_api: only `just test-e2e-stack` (CI's `e2e-stack`) has
+    // one, and that is the run where `E2E_TOKEN` is set at all.
+    await page.goto("/plan/");
+    await buildItinerary(page);
+
+    const titles = await page
+      .getByRole("list", { name: "Days of the trip" })
+      .getByRole("listitem")
+      .allInnerTexts();
+    expect(titles.length).toBe(3);
+
+    await page.getByRole("button", { name: "Save trip" }).click();
+    await expect(page).toHaveURL(/\?trip=[0-9a-f-]{36}/, { timeout: 30_000 });
+    const tripId = new URL(page.url()).searchParams.get("trip")!;
+
+    // A reload has no draft to restore beyond the id in the URL: everything on
+    // screen now came back out of core_api.
+    await page.reload();
+    await expect(page.getByRole("heading", { name: "3 days in Budapest" })).toBeVisible();
+    await expect
+      .poll(async () =>
+        page
+          .getByRole("list", { name: "Days of the trip" })
+          .getByRole("listitem")
+          .allInnerTexts()
+      )
+      .toEqual(titles);
+    await expect(page.getByText("Hotel Rum Budapest").first()).toBeVisible();
+
+    await request.delete(`/api/v1/trips/${tripId}`, {
+      headers: { authorization: `Bearer ${TOKEN}` },
+    });
   });
 
   test("?q= from the landing planner sends the prompt as the first turn", async ({ page }) => {
