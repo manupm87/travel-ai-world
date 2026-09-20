@@ -2,16 +2,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ACTIVITIES, BATHS, BRIEF_COMPLETE, HOTELS, RESTAURANTS } from "@/data/planner-demo/session";
 import { applyItineraryOps, EMPTY_ITINERARY } from "@/hooks/plannerReducer";
-import japan from "@/test/fixtures/trip-japan";
+import budapest from "@/test/fixtures/trip-budapest";
+import { BUDAPEST } from "@/test/fixtures/planner-city";
 
 import { ApiError, UnauthorizedError } from "./http";
 import { clearSession, writeSession } from "./session";
 import {
-  countryOf,
   createTrip,
   deleteTrip,
   getTrip,
-  itineraryDayKind,
   listTrips,
   saveDraftAsTrip,
   toTrip,
@@ -24,99 +23,112 @@ import {
 const minimal: TripResponse = {
   id: "t1",
   user_id: 7,
-  status: "planning",
+  phase: "upcoming",
   created_at: "2026-01-01T00:00:00Z",
   updated_at: "2026-01-02T00:00:00Z",
   title: "Bare trip",
+  city_slug: "budapest",
+  city: "Budapest",
+  country: "Hungary",
+  country_code: "HU",
   travelers_adults: 2,
   travelers_children: 0,
   travelers_infants: 0,
-  destinations: [],
   itinerary_days: [],
   accommodations: [],
   transportations: [],
 };
 
 describe("toTrip", () => {
-  it("maps a full backend trip into the nested camelCase view model", () => {
-    const trip = toTrip(japan);
+  it("maps a saved trip into the nested camelCase view model", () => {
+    const trip = toTrip(budapest);
 
-    expect(trip.id).toBe("trip_japan_2026");
-    expect(trip.status).toBe("planning");
-    expect(trip.dates).toEqual({ startDate: "2026-10-01", endDate: "2026-10-14", durationDays: 14 });
-    expect(trip.travelers.adults + trip.travelers.children + trip.travelers.infants).toBe(2);
-    expect(trip.budget.currency).toBe("USD");
-    expect(trip.budget.breakdown.food).toBeTypeOf("number");
-    expect(trip.destinations[0]?.coordinates).toEqual({ lat: 35.6762, lng: 139.6503 });
-    expect(trip.itinerary[0]?.activities[0]?.location.city).toBe("Tokyo");
-    expect(trip.transportation[0]?.departureTime).toMatch(/^2026-/);
-    expect(trip.aiInsights?.localTips).toBeInstanceOf(Array);
+    expect(trip.id).toBe(budapest.id);
+    expect(trip.phase).toBe("upcoming");
+    expect(trip.city).toEqual({
+      slug: "budapest",
+      name: "Budapest",
+      country: "Hungary",
+      countryCode: "HU",
+      coordinates: { lat: 47.4979, lng: 19.0402 },
+    });
+    expect(trip.origin).toBe("Madrid");
+    expect(trip.budgetTier).toBe(2);
+    expect(trip.dates).toEqual({ startDate: "2026-10-23", endDate: "2026-10-25", durationDays: 3 });
+    expect(trip.travellers).toEqual({ adults: 2, children: 0, infants: 0 });
+    expect(trip.itinerary).toHaveLength(3);
+    expect(trip.stay?.name).toBe(HOTELS.rum.title);
+    expect(trip.legs.map((leg) => leg.category)).toEqual(["outbound", "return"]);
+  });
+
+  it("keeps every card the planner saved, with its corpus id and part of the day", () => {
+    const [first] = toTrip(budapest).itinerary;
+
+    expect(first?.activities[0]).toMatchObject({
+      sourceRef: ACTIVITIES.greatMarket.id,
+      partOfDay: "morning",
+      card: { id: ACTIVITIES.greatMarket.id, title: ACTIVITIES.greatMarket.title },
+    });
+    expect(first?.meals[0]).toMatchObject({
+      sourceRef: RESTAURANTS.menza.id,
+      partOfDay: "evening",
+      restaurantName: RESTAURANTS.menza.title,
+    });
   });
 
   it("fills every optional with a safe default instead of null", () => {
     const trip = toTrip(minimal);
 
-    expect(trip.userId).toBe("7");
     expect(trip.description).toBe("");
+    expect(trip.origin).toBe("");
+    expect(trip.budgetTier).toBeNull();
     expect(trip.dates).toEqual({ startDate: "", endDate: "", durationDays: 0 });
-    expect(trip.budget).toEqual({
-      total: 0,
-      currency: "",
-      breakdown: { accommodation: 0, food: 0, activities: 0, transportation: 0, other: 0 },
-    });
-    expect(trip.preferences.travelStyle).toEqual([]);
+    expect(trip.city.coordinates).toEqual({ lat: null, lng: null });
+    expect(trip.interests).toEqual([]);
     expect(trip.itinerary).toEqual([]);
-    expect(trip.aiInsights).toBeUndefined();
+    expect(trip.stay).toBeNull();
+    expect(trip.legs).toEqual([]);
   });
 
-  it("parses decimal strings as numbers and orders days by number", () => {
+  it("orders days by number and ignores a card that is not an object", () => {
     const trip = toTrip({
       ...minimal,
-      budget_total: "1234.50",
       itinerary_days: [
         { id: "d2", trip_id: "t1", day_number: 2, activities: [], meals: [] },
-        { id: "d1", trip_id: "t1", day_number: 1, estimated_cost: "10.00", activities: [], meals: [] },
+        {
+          id: "d1",
+          trip_id: "t1",
+          day_number: 1,
+          activities: [
+            {
+              id: "a1",
+              itinerary_day_id: "d1",
+              title: "A walk",
+              booking_required: false,
+              card: null,
+            },
+          ],
+          meals: [],
+        },
       ],
     });
 
-    expect(trip.budget.total).toBe(1234.5);
     expect(trip.itinerary.map((d) => d.dayNumber)).toEqual([1, 2]);
-    expect(trip.itinerary[0]?.estimatedCost).toBe(10);
-  });
-
-  it("exposes AI insights only when the backend sent some", () => {
-    expect(toTrip({ ...minimal, ai_local_tips: ["Carry cash"] }).aiInsights).toEqual({
-      weatherForecast: "",
-      localTips: ["Carry cash"],
-    });
-    expect(toTrip({ ...minimal, ai_weather_forecast: "Sunny" }).aiInsights?.weatherForecast).toBe("Sunny");
-  });
-});
-
-describe("itineraryDayKind", () => {
-  it("reads free days from the title in either language", () => {
-    expect(itineraryDayKind("Free Day in Kyoto", [])).toBe("free");
-    expect(itineraryDayKind("Día libre", [{ category: "transport" }])).toBe("free");
-  });
-
-  it("marks travel days by their activities, otherwise regular", () => {
-    expect(itineraryDayKind("Paris → Rome", [{ category: "transport" }])).toBe("travel");
-    expect(itineraryDayKind("Museums", [{ category: "culture" }])).toBe("regular");
-    expect(itineraryDayKind(null, [])).toBe("regular");
+    expect(trip.itinerary[0]?.activities[0]?.card).toBeNull();
   });
 });
 
 describe("toTripSummary", () => {
-  it("keeps only what a dashboard card needs", () => {
-    expect(toTripSummary(japan)).toEqual({
-      id: "trip_japan_2026",
-      title: "Japan Explorer: Traditions & Neon",
-      description: japan.description,
-      destinations: ["Tokyo", "Kyoto", "Osaka"],
-      startDate: "2026-10-01",
-      endDate: "2026-10-14",
-      status: "planning",
-      imageUrl: expect.stringContaining("https://"),
+  it("keeps only what one card of the trips list needs", () => {
+    expect(toTripSummary(budapest)).toEqual({
+      id: budapest.id,
+      title: "3 days in Budapest",
+      city: "Budapest",
+      countryCode: "HU",
+      startDate: "2026-10-23",
+      endDate: "2026-10-25",
+      phase: "upcoming",
+      imageUrl: HOTELS.rum.image_url,
     });
   });
 });
@@ -137,7 +149,7 @@ describe("listTrips", () => {
 
   it("asks core_api with the bearer token and maps the DTOs to summaries", async () => {
     fetchMock.mockResolvedValue(
-      new Response(JSON.stringify([japan, { ...minimal, id: "t2", title: "Second" }]), {
+      new Response(JSON.stringify([budapest, { ...minimal, id: "t2", title: "Second" }]), {
         status: 200,
       })
     );
@@ -146,15 +158,15 @@ describe("listTrips", () => {
     const summaries = await listTrips({ signal: controller.signal });
 
     expect(summaries).toEqual([
-      toTripSummary(japan),
+      toTripSummary(budapest),
       {
         id: "t2",
         title: "Second",
-        description: "",
-        destinations: [],
+        city: "Budapest",
+        countryCode: "HU",
         startDate: "",
         endDate: "",
-        status: "planning",
+        phase: "upcoming",
         imageUrl: "",
       },
     ]);
@@ -210,14 +222,14 @@ describe("getTrip", () => {
   });
 
   it("asks core_api for the id with the bearer token and maps the DTO to the view model", async () => {
-    fetchMock.mockResolvedValue(new Response(JSON.stringify(japan), { status: 200 }));
+    fetchMock.mockResolvedValue(new Response(JSON.stringify(budapest), { status: 200 }));
     const controller = new AbortController();
 
-    const trip = await getTrip("trip_japan_2026", { signal: controller.signal });
+    const trip = await getTrip(budapest.id, { signal: controller.signal });
 
-    expect(trip).toEqual(toTrip(japan));
+    expect(trip).toEqual(toTrip(budapest));
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(url).toMatch(/\/api\/v1\/trips\/trip_japan_2026$/);
+    expect(url).toMatch(new RegExp(`/api/v1/trips/${budapest.id}$`));
     expect((init.headers as Record<string, string>).Authorization).toBe("Bearer tok");
     expect(init.signal).toBe(controller.signal);
   });
@@ -296,7 +308,10 @@ describe("createTrip, updateTrip and deleteTrip", () => {
 
     const created = await createTrip({
       title: "Bare trip",
-      status: "planning",
+      city_slug: "budapest",
+      city: "Budapest",
+      country: "Hungary",
+      country_code: "HU",
       travelers_adults: 2,
       travelers_children: 0,
       travelers_infants: 0,
@@ -306,7 +321,7 @@ describe("createTrip, updateTrip and deleteTrip", () => {
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(url).toMatch(/\/api\/v1\/trips\/$/);
     expect(init.method).toBe("POST");
-    expect(JSON.parse(String(init.body))).toMatchObject({ title: "Bare trip" });
+    expect(JSON.parse(String(init.body))).toMatchObject({ title: "Bare trip", city: "Budapest" });
     expect((init.headers as Record<string, string>).Authorization).toBe("Bearer tok");
   });
 
@@ -322,6 +337,21 @@ describe("createTrip, updateTrip and deleteTrip", () => {
     expect(url).toMatch(/\/api\/v1\/trips\/t%201$/);
     expect(init.method).toBe("PATCH");
     expect(JSON.parse(String(init.body))).toEqual({ title: "Renamed" });
+  });
+
+  it("surfaces the lock core_api puts on a trip that is no longer upcoming", async () => {
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          detail: { message: "Trip is locked: it is ongoing or past", error_code: "TRIP_LOCKED" },
+        }),
+        { status: 409 }
+      )
+    );
+
+    const err = await updateTrip("t1", { title: "Nope" }).catch((e: unknown) => e);
+
+    expect(err).toMatchObject({ status: 409, code: "TRIP_LOCKED" });
   });
 
   it("deletes a trip and tolerates the empty 204 body", async () => {
@@ -345,17 +375,6 @@ describe("createTrip, updateTrip and deleteTrip", () => {
 
     expect(err).toBeInstanceOf(ApiError);
     expect(err).toMatchObject({ status: 403, code: "FORBIDDEN" });
-  });
-});
-
-describe("countryOf", () => {
-  it("knows the cities the planner covers, in either language", () => {
-    expect(countryOf("Budapest")).toEqual({ country: "Hungary", code: "HU" });
-    expect(countryOf(" bolonia ")).toEqual({ country: "Italy", code: "IT" });
-  });
-
-  it("keeps an unknown city's own name rather than inventing a country", () => {
-    expect(countryOf("Ulaanbaatar")).toEqual({ country: "Ulaanbaatar", code: "EU" });
   });
 });
 
@@ -396,9 +415,6 @@ describe("saveDraftAsTrip", () => {
       const day = calls.filter((c) => c.endsWith("/itinerary-days/")).length + 1;
       return new Response(JSON.stringify({ id: `day${day}` }), { status: 201 });
     }
-    if (url.endsWith("/destinations/")) {
-      return new Response(JSON.stringify({ id: "dest1" }), { status: 201 });
-    }
     return new Response(JSON.stringify(saved), { status: 200 });
   }
 
@@ -429,14 +445,14 @@ describe("saveDraftAsTrip", () => {
     clearSession();
   });
 
+  const save = (brief = BRIEF_COMPLETE, options = {}) =>
+    saveDraftAsTrip(itinerary, brief, BUDAPEST, { title: "3 days in Budapest", ...options });
+
   it("writes the trip, then its children, one request at a time", async () => {
-    const trip = await saveDraftAsTrip(itinerary, BRIEF_COMPLETE, {
-      title: "3 days in Budapest",
-    });
+    const trip = await save();
 
     expect(calls).toEqual([
       "POST /trips/",
-      "POST /trips/t1/destinations/",
       "POST /trips/t1/itinerary-days/",
       "POST /trips/t1/itinerary-days/day1/activities/",
       "POST /trips/t1/itinerary-days/day1/meals/",
@@ -453,12 +469,19 @@ describe("saveDraftAsTrip", () => {
     expect(trip.id).toBe("t1");
   });
 
-  it("maps the brief onto the trip and the draft's cover onto its photo", async () => {
-    await saveDraftAsTrip(itinerary, BRIEF_COMPLETE, { title: "3 days in Budapest" });
+  it("writes the city from the planner's own city, and the brief onto the trip", async () => {
+    await save();
 
     expect(bodies[0]).toMatchObject({
       title: "3 days in Budapest",
-      status: "planning",
+      city_slug: "budapest",
+      city: "Budapest",
+      country: "Hungary",
+      country_code: "HU",
+      lat: 47.4979,
+      lng: 19.0402,
+      origin: "Madrid",
+      budget_tier: 2,
       start_date: "2026-10-23",
       end_date: "2026-10-25",
       duration_days: 3,
@@ -469,76 +492,74 @@ describe("saveDraftAsTrip", () => {
       budget_currency: "EUR",
       image_url: HOTELS.rum.image_url,
     });
+    expect(bodies[0]).not.toHaveProperty("status");
   });
 
-  it("names the destination's country and places it on the map", async () => {
-    await saveDraftAsTrip(itinerary, BRIEF_COMPLETE, { title: "3 days in Budapest" });
+  it("dates every day and gives each card its part of the day, its id and the card itself", async () => {
+    await save();
 
-    expect(bodies[1]).toMatchObject({
-      city: "Budapest",
-      country: "Hungary",
-      country_code: "HU",
-      arrival_date: "2026-10-23",
-      departure_date: "2026-10-25",
-      nights_staying: 2,
-      lat: HOTELS.rum.lat,
-      lng: HOTELS.rum.lon,
-    });
-  });
-
-  it("dates every day and gives each card the hour its part of the day reads as", async () => {
-    await saveDraftAsTrip(itinerary, BRIEF_COMPLETE, { title: "3 days in Budapest" });
-
-    expect(bodies[2]).toMatchObject({ day_number: 1, date: "2026-10-23", destination_id: "dest1" });
-    expect(bodies[3]).toMatchObject({
+    expect(bodies[1]).toMatchObject({ day_number: 1, date: "2026-10-23" });
+    expect(bodies[1]).not.toHaveProperty("destination_id");
+    expect(bodies[2]).toMatchObject({
       title: ACTIVITIES.greatMarket.title,
       description: ACTIVITIES.greatMarket.why,
       category: "buy",
+      part_of_day: "morning",
       time: "10:00",
+      source_ref: ACTIVITIES.greatMarket.id,
+      card: { ...ACTIVITIES.greatMarket },
       location_lat: ACTIVITIES.greatMarket.lat,
       location_city: "Budapest",
     });
-    expect(bodies[5]).toMatchObject({ day_number: 2, date: "2026-10-24" });
-    expect(bodies[6]).toMatchObject({ title: BATHS.szechenyi.title, time: "15:00" });
-  });
-
-  it("saves a restaurant as the meal of its part of the day, not an activity", async () => {
-    await saveDraftAsTrip(itinerary, BRIEF_COMPLETE, { title: "3 days in Budapest" });
-
-    expect(calls[4]).toBe("POST /trips/t1/itinerary-days/day1/meals/");
-    expect(bodies[4]).toMatchObject({
-      restaurant_name: RESTAURANTS.menza.title,
-      type: "dinner",
-      cuisine: RESTAURANTS.menza.subtitle,
-      time: "19:00",
+    expect(bodies[4]).toMatchObject({ day_number: 2, date: "2026-10-24" });
+    expect(bodies[5]).toMatchObject({
+      title: BATHS.szechenyi.title,
+      part_of_day: "afternoon",
+      time: "15:00",
     });
   });
 
-  it("saves the stay and the route's two legs", async () => {
-    await saveDraftAsTrip(itinerary, BRIEF_COMPLETE, { title: "3 days in Budapest" });
+  it("saves a restaurant as the meal of its part of the day, not an activity", async () => {
+    await save();
 
-    expect(bodies[7]).toMatchObject({
+    expect(calls[3]).toBe("POST /trips/t1/itinerary-days/day1/meals/");
+    expect(bodies[3]).toMatchObject({
+      restaurant_name: RESTAURANTS.menza.title,
+      type: "dinner",
+      cuisine: RESTAURANTS.menza.subtitle,
+      part_of_day: "evening",
+      time: "19:00",
+      source_ref: RESTAURANTS.menza.id,
+      card: { ...RESTAURANTS.menza },
+    });
+  });
+
+  it("saves the stay with its card, and the route's two legs", async () => {
+    await save();
+
+    expect(bodies[6]).toMatchObject({
       name: HOTELS.rum.title,
       type: "hotel",
       city: "Budapest",
       country_code: "HU",
+      source_ref: HOTELS.rum.id,
+      card: { ...HOTELS.rum },
       check_in: "2026-10-23",
       check_out: "2026-10-25",
     });
-    expect(bodies[8]).toMatchObject({
+    expect(bodies[7]).toMatchObject({
       category: "outbound",
       from_city: "Madrid",
       to_city: "Budapest",
       departure_time: "2026-10-23T00:00:00Z",
     });
-    expect(bodies[9]).toMatchObject({ category: "return", from_city: "Budapest" });
+    expect(bodies[8]).toMatchObject({ category: "return", from_city: "Budapest" });
   });
 
   it("rewrites the same trip when it already has one: patch, delete, recreate", async () => {
     const existing: TripResponse = {
       ...minimal,
       id: "t1",
-      destinations: [{ id: "old-dest", trip_id: "t1", city: "Budapest", country: "Hungary", country_code: "HU" }],
       itinerary_days: [{ id: "old-day", trip_id: "t1", day_number: 1, activities: [], meals: [] }],
       accommodations: [{ id: "old-stay", trip_id: "t1", name: "Old hotel" }],
       transportations: [{ id: "old-leg", trip_id: "t1" }],
@@ -550,29 +571,23 @@ describe("saveDraftAsTrip", () => {
       return new Response(JSON.stringify(existing), { status: 200 });
     });
 
-    await saveDraftAsTrip(itinerary, BRIEF_COMPLETE, {
-      title: "3 days in Budapest",
-      tripId: "t1",
-    });
+    await save(BRIEF_COMPLETE, { tripId: "t1" });
 
-    expect(calls.slice(0, 6)).toEqual([
+    expect(calls.slice(0, 5)).toEqual([
       "PATCH /trips/t1",
       "DELETE /trips/t1/itinerary-days/old-day",
-      "DELETE /trips/t1/destinations/old-dest",
       "DELETE /trips/t1/accommodations/old-stay",
       "DELETE /trips/t1/transportations/old-leg",
-      "POST /trips/t1/destinations/",
+      "POST /trips/t1/itinerary-days/",
     ]);
     expect(calls).not.toContain("POST /trips/");
     expect(concurrent).toBe(1);
   });
 
   it("falls back to the days it has when the brief carries no dates", async () => {
-    await saveDraftAsTrip(itinerary, { ...BRIEF_COMPLETE, start_date: null, end_date: null }, {
-      title: "Your trip",
-    });
+    await save({ ...BRIEF_COMPLETE, start_date: null, end_date: null });
 
     expect(bodies[0]).toMatchObject({ duration_days: 2, start_date: null });
-    expect(bodies[2]).toMatchObject({ day_number: 1, date: null });
+    expect(bodies[1]).toMatchObject({ day_number: 1, date: null });
   });
 });

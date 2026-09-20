@@ -29,7 +29,7 @@ export function AuthCallback() {
     if (started.current) return;
     started.current = true;
     completeLogin(searchParams)
-      .then((redirect) => router.replace(redirect ?? "/dashboard"))
+      .then((redirect) => router.replace(redirect ?? "/plan/"))
       .catch(() => setFailed(true));
   }, [completeLogin, router, searchParams]);
 

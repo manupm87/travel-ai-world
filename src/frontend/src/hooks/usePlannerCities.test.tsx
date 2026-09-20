@@ -15,6 +15,8 @@ const WIKIVOYAGE = "https://en.wikivoyage.org/wiki/Bologna";
 const BOLOGNA = {
   slug: "bologna",
   name: "Bologna",
+  country: "Italy",
+  country_code: "IT",
   centre: [44.4939, 11.3428] as [number, number],
   timezone: "Europe/Rome",
   intro: {

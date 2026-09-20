@@ -9,8 +9,11 @@ import Header from "@/components/layout/Header";
 import { Button } from "@/components/ui/Button";
 import { useLanguage } from "@/context/LanguageContext";
 
-/** How long a stray `/dashboard/*` path waits before it goes home. */
+/** How long a path under a signed-in route waits before it goes home. */
 const REDIRECT_MS = 2000;
+
+/** Those routes: a path under one of them was a link that has moved. */
+const STRAY = ["/dashboard/", "/trip/", "/plan/"];
 
 /**
  * The page for a URL that is not one of ours.
@@ -18,9 +21,9 @@ const REDIRECT_MS = 2000;
  * It lives outside the route groups, so it brings its own shell: the aurora,
  * the header and the footer's single line. The page itself is a sentence and
  * one way out — an unknown link is not an occasion for an illustration
- * (TRA-193). Unknown trip ids are handled by the viewer itself
- * (`/trip/?id=`), so only stray `/dashboard/*` paths still get the short
- * redirect home.
+ * (TRA-193). An unknown trip id is handled by the planner itself
+ * (`/plan/?trip=`), so only a stray path under one of the signed-in routes
+ * still gets the short redirect home.
  */
 export default function NotFound() {
   const { t } = useLanguage();
@@ -28,7 +31,7 @@ export default function NotFound() {
   const pathname = usePathname();
   const router = useRouter();
 
-  const isRedirecting = pathname.includes("/dashboard/");
+  const isRedirecting = STRAY.some((prefix) => pathname.startsWith(prefix));
 
   useEffect(() => {
     if (!isRedirecting) return;

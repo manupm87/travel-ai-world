@@ -83,13 +83,13 @@ describe("LoginModal", () => {
     expect(screen.queryByText(en.auth.title)).not.toBeInTheDocument();
   });
 
-  it("signs in, closes and goes to the dashboard by default", async () => {
+  it("signs in, closes and goes to the planner by default", async () => {
     renderModal();
     fireEvent.click(screen.getByText("google-success"));
 
     await waitFor(() => expect(onClose).toHaveBeenCalled());
     expect(login).toHaveBeenCalledWith("google-credential");
-    expect(mockPush).toHaveBeenCalledWith("/dashboard");
+    expect(mockPush).toHaveBeenCalledWith("/plan/");
   });
 
   it("honours a same-origin redirect parameter", async () => {
@@ -105,7 +105,7 @@ describe("LoginModal", () => {
     renderModal();
     fireEvent.click(screen.getByText("google-success"));
 
-    await waitFor(() => expect(mockPush).toHaveBeenCalledWith("/dashboard"));
+    await waitFor(() => expect(mockPush).toHaveBeenCalledWith("/plan/"));
     expect(mockPush).toHaveBeenCalledTimes(1);
   });
 

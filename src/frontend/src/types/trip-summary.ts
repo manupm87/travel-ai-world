@@ -1,30 +1,18 @@
-import type { components } from "@/types/generated/core-api";
+import type { TripPhase } from "@/types/trip";
 
-/** Lifecycle of a trip, as the backend defines it. */
-export type TripStatus = components["schemas"]["TripStatus"];
-
-export const TRIP_STATUSES = [
-  "planning",
-  "planned",
-  "finished",
-] as const satisfies readonly TripStatus[];
-
-export function isTripStatus(value: string): value is TripStatus {
-  return (TRIP_STATUSES as readonly string[]).includes(value);
-}
-
+/**
+ * One trip as the planner's trips list shows it: a photograph, a title, where
+ * and when, and which of the three phases it is in. Everything else waits
+ * until the trip is opened (`/plan/?trip=<id>`).
+ */
 export interface TripSummary {
   id: string;
   title: string;
-  /**
-   * The trip's own words, empty when it has none. The card does not show it;
-   * the dashboard's edit sheet does, so it can be changed without loading the
-   * whole trip (TRA-192).
-   */
-  description: string;
-  destinations: string[]; // e.g. ["Paris", "Rome", "Barcelona"]
+  /** The city the trip happens in — one per trip since TRA-196. */
+  city: string;
+  countryCode: string;
   startDate: string;
   endDate: string;
-  status: TripStatus;
+  phase: TripPhase;
   imageUrl: string;
 }

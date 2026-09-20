@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { LANGUAGES, getLanguageMeta, interpolate, locales } from "@/i18n";
-import { TRIP_STATUSES } from "@/types/trip-summary";
+import { TRIP_PHASES } from "@/types/trip";
 
 /** Every dotted leaf path of an object, arrays included as `[]`. */
 function leafPaths(value: unknown, prefix = ""): string[] {
@@ -41,10 +41,10 @@ describe("i18n", () => {
     }
   });
 
-  it("has a status label and a dashboard section for every trip status", () => {
+  it("names every phase of a trip, as a heading and as a pill", () => {
     for (const dictionary of Object.values(locales)) {
-      expect(Object.keys(dictionary.status).sort()).toEqual([...TRIP_STATUSES].sort());
-      expect(Object.keys(dictionary.dashboard.sections).sort()).toEqual([...TRIP_STATUSES].sort());
+      expect(Object.keys(dictionary.plan.trips.groups).sort()).toEqual([...TRIP_PHASES].sort());
+      expect(Object.keys(dictionary.plan.trips.phase).sort()).toEqual([...TRIP_PHASES].sort());
     }
   });
 

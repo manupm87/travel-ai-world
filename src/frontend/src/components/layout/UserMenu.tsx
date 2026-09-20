@@ -110,12 +110,12 @@ export function UserMenu({ variant = "dropdown", onLogin, onAfterAction }: UserM
           </div>
         </div>
         <Link
-          href="/dashboard"
+          href="/plan/"
           onClick={onAfterAction}
           className="flex items-center gap-3 text-xl font-medium text-text-primary hover:text-accent transition-colors"
         >
           <Map size={24} aria-hidden="true" />
-          {t.nav.dashboard}
+          {t.nav.trips}
         </Link>
         <button
           type="button"
@@ -153,13 +153,13 @@ export function UserMenu({ variant = "dropdown", onLogin, onAfterAction }: UserM
             <p className="text-[10px] text-text-secondary truncate">{user.email}</p>
           </div>
           <Link
-            href="/dashboard"
+            href="/plan/"
             role="menuitem"
             onClick={close}
             className="w-full flex items-center gap-3 px-4 py-2.5 text-[12px] font-medium text-text-secondary hover:text-text-primary hover:bg-accent-soft transition-colors"
           >
             <Map size={14} aria-hidden="true" />
-            {t.nav.dashboard}
+            {t.nav.trips}
           </Link>
           <button
             type="button"

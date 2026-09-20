@@ -43,11 +43,11 @@ describe("AuthCallback", () => {
     expect(completeLogin).toHaveBeenCalledWith(searchParams);
   });
 
-  it("falls back to the dashboard when no redirect was requested", async () => {
+  it("falls back to the planner when no redirect was requested", async () => {
     completeLogin.mockResolvedValue(null);
     renderWithProviders(<AuthCallback />);
 
-    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/dashboard"));
+    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/plan/"));
   });
 
   it("shows an error and a way home when the exchange fails", async () => {

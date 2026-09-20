@@ -3,7 +3,7 @@ import { AppAurora } from "@/components/layout/AppAurora";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 /**
- * Signed-in pages (dashboard, trip viewer, planner): the app shell and the
+ * Signed-in pages (the planner, and the two routes that forward to it): the shell and the
  * auth guard, declared once for every route in this group instead of per page.
  *
  * The shell paints no background of its own — `body` already carries
@@ -15,7 +15,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-dvh flex flex-col font-sans">
       <AppAurora />
-      <Header variant="dashboard" />
+      <Header variant="app" />
       <main className="flex flex-col flex-1 pt-(--header-h)">
         <ProtectedRoute>{children}</ProtectedRoute>
       </main>

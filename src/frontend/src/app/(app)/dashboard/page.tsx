@@ -1,11 +1,22 @@
-import DashboardClientPage from "./DashboardClientPage";
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { useLanguage } from "@/context/LanguageContext";
 
 /**
- * Dashboard (`/dashboard`) route: a static shell.
- *
- * Trips are per user, so nothing about them is known at build time; the
- * client page fetches them from core_api with the session token (ADR 0006).
+ * `/dashboard/` is now the planner (TRA-196): trips are listed, opened,
+ * renamed and deleted there, so this route stays only to keep old links and
+ * bookmarks working, and hands the browser straight on to `/plan/`.
  */
 export default function DashboardPage() {
-  return <DashboardClientPage />;
+  const router = useRouter();
+  const { t } = useLanguage();
+
+  useEffect(() => {
+    router.replace("/plan/");
+  }, [router]);
+
+  return <LoadingSpinner label={t.plan.trips.redirecting} />;
 }

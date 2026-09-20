@@ -25,6 +25,8 @@ const CITY_PHOTO = commonsPhoto("Budapest_hero.jpg");
 const BUDAPEST: PlannerCity = {
   slug: "budapest",
   name: "Budapest",
+  country: "Hungary",
+  country_code: "HU",
   centre: [47.4979, 19.0402],
   timezone: "Europe/Budapest",
   intro: {

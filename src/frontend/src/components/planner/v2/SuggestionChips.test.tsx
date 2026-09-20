@@ -12,6 +12,8 @@ const CITIES: PlannerCity[] = [
   {
     slug: "budapest",
     name: "Budapest",
+    country: "Hungary",
+    country_code: "HU",
     centre: [47.4979, 19.0402],
     timezone: "Europe/Budapest",
     ...NO_OVERVIEW,
@@ -19,6 +21,8 @@ const CITIES: PlannerCity[] = [
   {
     slug: "bologna",
     name: "Bologna",
+    country: "Italy",
+    country_code: "IT",
     centre: [44.4939, 11.3428],
     timezone: "Europe/Rome",
     ...NO_OVERVIEW,

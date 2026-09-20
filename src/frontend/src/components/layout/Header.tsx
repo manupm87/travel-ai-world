@@ -16,7 +16,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { UserMenu } from "./UserMenu";
 
 interface HeaderProps {
-  variant?: "landing" | "dashboard";
+  variant?: "landing" | "app";
 }
 
 /**
@@ -32,7 +32,7 @@ interface HeaderProps {
  * Scrolling turns the bar to glass instead of hiding the aurora behind an
  * opaque block.
  *
- * @param variant - `dashboard` carries language and theme in the bar, because
+ * @param variant - `app` carries language and theme in the bar, because
  *   the signed-in shell has no footer to put them in; `landing` does not.
  */
 export default function Header({ variant = "landing" }: HeaderProps) {
@@ -61,7 +61,7 @@ export default function Header({ variant = "landing" }: HeaderProps) {
           <div className="flex-1" />
 
           <div className="flex items-center gap-3 md:gap-4">
-            {variant === "dashboard" && (
+            {variant === "app" && (
               <span className="hidden md:flex items-center gap-3">
                 <LanguageSwitcher />
                 <ThemeToggle />

@@ -30,13 +30,13 @@ interface LoginModalProps {
  * - Google (local): the Google Identity Services button; the credential goes
  *   to core_api and the modal navigates itself.
  *
- * It keeps the same dialog contract as the dashboard's sheets (`useDialog`):
+ * It keeps the same dialog contract as every other modal (`useDialog`):
  * `aria-modal`, labelled by its own title, the focus moves in on open, Tab
  * cycles inside, Escape closes and the focus goes back to whatever opened it.
  *
  * The destination is the `redirect` prop, or else the `?redirect=` query
  * parameter; either one is honoured only for same-origin paths (see
- * `safeRedirect.ts`). With neither, signing in lands on the dashboard.
+ * `safeRedirect.ts`). With neither, signing in lands on the planner.
  */
 export function LoginModal({ isOpen, onClose, redirect: asked }: LoginModalProps) {
   const { provider, login, loginWithRedirect } = useAuth();
@@ -71,7 +71,7 @@ export function LoginModal({ isOpen, onClose, redirect: asked }: LoginModalProps
       return;
     }
     onClose();
-    router.push(redirect ?? "/dashboard");
+    router.push(redirect ?? "/plan/");
   };
 
   const handleRedirect = async () => {

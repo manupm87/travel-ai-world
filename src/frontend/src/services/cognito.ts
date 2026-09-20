@@ -78,7 +78,7 @@ export async function pkceChallenge(verifier: string): Promise<string> {
 export interface PendingLogin {
   verifier: string;
   state: string;
-  /** Same-origin path to land on afterwards; `null` means the dashboard. */
+  /** Same-origin path to land on afterwards; `null` means the planner. */
   redirect: string | null;
 }
 

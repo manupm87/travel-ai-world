@@ -1,7 +1,7 @@
 // ─── Shared i18n types ────────────────────────────────────────────────────────
 // Add new locales here: "en" | "es" | "fr" ... and describe them in LANGUAGES
 // (src/i18n/index.ts). The compiler flags whichever of the two you forget.
-import type { TripStatus } from "@/types/trip-summary";
+import type { TripPhase } from "@/types/trip";
 import type { BriefField, DayPart, WarnCode } from "@/types/planner";
 
 export type Language = "en" | "es";
@@ -14,7 +14,8 @@ export interface Translations {
     openPlanner: string;
     /** The same action where the bar is a phone wide: one word, one line. */
     plannerShort: string;
-    dashboard: string;
+    /** The way to the account's trips, which live in the planner. */
+    trips: string;
     openMenu: string;
     closeMenu: string;
     selectLanguage: string;
@@ -25,54 +26,9 @@ export interface Translations {
     loading: string;
     close: string;
   };
-  /** Label for each trip status, keyed by the backend's `TripStatus`. */
-  status: Record<TripStatus, string>;
   errors: {
     title: string;
     description: string;
-    retry: string;
-  };
-  tripViewer: {
-    /** "{count} travellers" — the header's count, interpolated. */
-    travelers: string;
-    /** The same line when there is only one of them. */
-    travelerOne: string;
-    totalBudget: string;
-    viewBookings: string;
-    exportPdf: string;
-    viewItinerary: string;
-    routeOverview: string;
-    tripOverview: string;
-    accommodations: string;
-    transportation: string;
-    aiInsights: string;
-    weatherForecast: string;
-    weatherUnavailable: string;
-    localTips: string;
-    noLocalTips: string;
-    journeyTitle: string; // "Your {duration}-Day Journey"
-    allDays: string;
-    freeDay: string;
-    travel: string;
-    dining: string;
-    bookingRequired: string;
-    estimated: string;
-    selfPlanned: string;
-    nights: string;
-    budgetBreakdown: {
-      accommodation: string;
-      food: string;
-      activities: string;
-      transport: string;
-    };
-    /** Spinner copy while the trip loads from the API. */
-    loading: string;
-    /** No such trip for this account (a 404, a 403 or a malformed id). */
-    notFoundTitle: string;
-    notFoundDescription: string;
-    backToDashboard: string;
-    errorTitle: string;
-    errorDescription: string;
     retry: string;
   };
   /** The landing (`/`): the question, the field and the one action (TRA-190). */
@@ -315,6 +271,68 @@ export interface Translations {
       /** Corpus categories, translated; an unknown one falls back to its own value. */
       categories: Record<string, string>;
     };
+    /** The account's trips, listed and opened in the planner (TRA-196). */
+    trips: {
+      /** The heading over the list, and the button that opens the sheet. */
+      title: string;
+      close: string;
+      /** Starts a new trip from the sheet. */
+      newTrip: string;
+      /** The heading over each group of the list, keyed by phase. */
+      groups: Record<TripPhase, string>;
+      /** The pill on a card; only ongoing and past trips wear one. */
+      phase: Record<TripPhase, string>;
+      /** A card's dates, already formatted: "{start} – {end}". */
+      dateRange: string;
+      /** Read out while the cards stand in for the trips. */
+      loading: string;
+      emptyTitle: string;
+      emptyDescription: string;
+      errorTitle: string;
+      errorDescription: string;
+      retry: string;
+      card: {
+        /** The ⋯ button's accessible name: "Options for {title}". */
+        menu: string;
+        /** Renaming is only offered on a trip that can still be changed. */
+        rename: string;
+        delete: string;
+      };
+      rename: {
+        title: string;
+        label: string;
+        save: string;
+        saving: string;
+        cancel: string;
+        required: string;
+        failed: string;
+      };
+      remove: {
+        title: string;
+        /** "This deletes {title} and everything planned in it..." */
+        description: string;
+        confirm: string;
+        deleting: string;
+        cancel: string;
+        failed: string;
+      };
+      /** While `?trip=` is being loaded into the planner. */
+      opening: string;
+      /** An id that is not a trip of this account. */
+      notFoundTitle: string;
+      notFoundDescription: string;
+      loadErrorTitle: string;
+      loadErrorDescription: string;
+      /** The old `/dashboard/` and `/trip/` links, on their way to `/plan/`. */
+      redirecting: string;
+    };
+    /** A trip that is happening now or already happened: read-only (ADR 0019). */
+    locked: {
+      ongoing: string;
+      past: string;
+      /** The one way on from a locked trip. */
+      action: string;
+    };
     /** Shown while the synthetic session answers instead of ai_api (TRA-158). */
     demo: {
       title: string;
@@ -327,54 +345,6 @@ export interface Translations {
   footer: {
     /** "© {year} Kyrian World" — the year is interpolated at render time. */
     copyright: string;
-  };
-  dashboard: {
-    /** The heading above the grid of trips. */
-    title: string;
-    /** The small heading above each group of cards in the one grid. */
-    sections: Record<TripStatus, string>;
-    emptyTitle: string;
-    emptyDescription: string;
-    /** Read out while the skeletons stand in for the trips. */
-    loading: string;
-    errorTitle: string;
-    errorDescription: string;
-    retry: string;
-    /** A card's dates, already formatted: "{start} – {end}". */
-    dateRange: string;
-    card: {
-      /** The ⋯ button's accessible name: "Options for {title}". */
-      menu: string;
-      edit: string;
-      delete: string;
-    };
-    /** The edit sheet. */
-    edit: {
-      title: string;
-      name: string;
-      description: string;
-      startDate: string;
-      endDate: string;
-      status: string;
-      save: string;
-      saving: string;
-      cancel: string;
-      close: string;
-      /** Validation and failure, in the voice of the interface. */
-      nameRequired: string;
-      datesOrder: string;
-      failed: string;
-    };
-    /** The delete confirmation. */
-    remove: {
-      title: string;
-      /** "This deletes {title} and everything planned in it. There is no undo." */
-      description: string;
-      confirm: string;
-      deleting: string;
-      cancel: string;
-      failed: string;
-    };
   };
   auth: {
     login: string;

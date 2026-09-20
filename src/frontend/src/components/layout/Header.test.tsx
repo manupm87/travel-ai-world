@@ -71,7 +71,7 @@ describe("Header", () => {
     expect(screen.queryByRole("button", { name: en.theme.toggle })).not.toBeInTheDocument();
     unmount();
 
-    renderWithProviders(<Header variant="dashboard" />);
+    renderWithProviders(<Header variant="app" />);
     expect(screen.getByRole("button", { name: en.theme.toggle })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: en.nav.selectLanguage })).toBeInTheDocument();
   });
@@ -99,9 +99,9 @@ describe("Header", () => {
 
     fireEvent.click(screen.getByRole("button", { name: en.nav.userMenu }));
     const menu = screen.getByRole("menu", { name: en.nav.userMenu });
-    expect(within(menu).getByRole("menuitem", { name: en.nav.dashboard })).toHaveAttribute(
+    expect(within(menu).getByRole("menuitem", { name: en.nav.trips })).toHaveAttribute(
       "href",
-      "/dashboard"
+      "/plan/"
     );
   });
 
