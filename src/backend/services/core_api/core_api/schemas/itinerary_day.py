@@ -15,7 +15,6 @@ class ItineraryDayBase(BaseModel):
     title: str | None = None
     description: str | None = None
     estimated_cost: Money | None = None
-    destination_id: UUID | None = None
 
 
 class ItineraryDayCreate(ItineraryDayBase):

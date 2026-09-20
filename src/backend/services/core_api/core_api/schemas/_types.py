@@ -1,7 +1,7 @@
 """Constrained scalar types reused across schemas, so a format is defined once."""
 
 from decimal import Decimal
-from typing import Annotated
+from typing import Annotated, Any, Literal
 
 from pydantic import BeforeValidator, Field, StringConstraints
 
@@ -33,6 +33,27 @@ PositiveMinutes = Annotated[int, Field(ge=0, le=60 * 24 * 31)]
 Title = Annotated[
     str, StringConstraints(strip_whitespace=True, min_length=1, max_length=255)
 ]
+Place = Annotated[
+    str, StringConstraints(strip_whitespace=True, min_length=1, max_length=150)
+]
+"""A place as a traveller writes it: a city, a country, a town they leave from."""
+
+BudgetTier = Annotated[int, Field(ge=1, le=3)]
+"""The planner's three price levels: 1 cheap, 2 mid, 3 splurge."""
+
+PartOfDay = Literal["morning", "afternoon", "evening", "night"]
+"""Where in the day a plan sits; the planner's slots, in order."""
+
+SourceRef = Annotated[str, StringConstraints(min_length=1, max_length=255)]
+"""The corpus document id a planner card came from (`osm:relation/13067`)."""
+
+CardJson = dict[str, Any]
+"""A planner card exactly as the client received it.
+
+Opaque on purpose: core_api stores it and hands it back so a saved trip can
+be reopened in the planner, and never reads inside it — the shape is ai_api's
+(`OptionCard`) and the two services share no code (ADR 0001).
+"""
 
 
 def _as_slug(value: object) -> object:

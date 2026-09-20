@@ -5,11 +5,13 @@ from pydantic import BaseModel, ConfigDict
 
 from core_api.schemas._partial import partial
 from core_api.schemas._types import (
+    CardJson,
     CountryCode,
     Latitude,
     Longitude,
     Money,
     Rating,
+    SourceRef,
     TimeOfDay,
     Title,
 )
@@ -31,6 +33,10 @@ class AccommodationBase(BaseModel):
     amenities: list[str] | None = None
     check_in_time: TimeOfDay | None = None
     check_out_time: TimeOfDay | None = None
+    # What the planner offered, kept so a saved trip can be reopened in it
+    # (ADR 0019). `card` is opaque to core_api.
+    source_ref: SourceRef | None = None
+    card: CardJson | None = None
 
 
 class AccommodationCreate(AccommodationBase):

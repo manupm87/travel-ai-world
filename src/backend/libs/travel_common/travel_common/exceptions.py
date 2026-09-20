@@ -48,6 +48,17 @@ class Conflict(DomainError):
     default_message = "Resource already exists"
 
 
+class TripLocked(Conflict):
+    """A trip that is happening now or already over cannot be changed.
+
+    Its phase is derived from its dates, so the lock comes and goes on its
+    own; `extras["phase"]` says which one refused the write.
+    """
+
+    error_code = "TRIP_LOCKED"
+    default_message = "Trip is locked: it is ongoing or past"
+
+
 class UnprocessableEntity(DomainError):
     error_code = "UNPROCESSABLE_ENTITY"
     default_message = "Unprocessable entity"

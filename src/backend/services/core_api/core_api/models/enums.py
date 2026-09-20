@@ -1,14 +1,11 @@
 """Closed vocabularies shared by the ORM, the schemas and, through OpenAPI,
-the frontend. Stored as plain strings except `TripStatus` (a Postgres enum
-that predates this module)."""
+the frontend, all stored as plain strings.
+
+A trip's phase is not one of them: it is derived from its dates, never
+stored, and lives with the entity it describes (`models/trip.py`, ADR 0019).
+"""
 
 import enum
-
-
-class TripStatus(enum.StrEnum):
-    PLANNING = "planning"
-    PLANNED = "planned"
-    FINISHED = "finished"
 
 
 class MealType(enum.StrEnum):

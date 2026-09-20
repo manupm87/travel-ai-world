@@ -19,7 +19,6 @@ from core_api.models.accommodation import Accommodation
 from core_api.models.activity import Activity
 from core_api.models.base import Base
 from core_api.models.chat_thread import ChatThread
-from core_api.models.destination import Destination
 from core_api.models.itinerary_day import ItineraryDay
 from core_api.models.meal import Meal
 from core_api.models.transportation import Transportation
@@ -70,7 +69,6 @@ def provide[S](
 
 get_user_service = provide(UserService, UserRepository.model, UserRepository)
 get_trip_service = provide(TripService, TripRepository.model, TripRepository)
-get_destination_service = provide(BaseService, Destination)
 get_itinerary_day_service = provide(BaseService, ItineraryDay)
 get_activity_service = provide(BaseService, Activity)
 get_meal_service = provide(BaseService, Meal)
@@ -129,7 +127,10 @@ def get_sign_in(
 
 # ── Aggregate boundary ───────────────────────────────────────────────────────
 # A trip is the aggregate root: every child resource is reached through the
-# owner's trip, so authorization happens once, here.
+# owner's trip, so authorization happens once, here. Reads resolve the owned
+# trip; writes resolve the *editable* one, because a trip that is happening
+# now or already over is read-only (ADR 0019) — the entity says so and the
+# endpoints never ask.
 
 
 async def get_owned_trip(
@@ -140,11 +141,26 @@ async def get_owned_trip(
     return await trips.get_owned(trip_id, principal)
 
 
+async def get_editable_trip(trip: Trip = Depends(get_owned_trip)) -> Trip:
+    """The caller's trip, refused with `TripLocked` unless it is still ahead."""
+    trip.ensure_editable()
+    return trip
+
+
 async def get_owned_itinerary_day(
     itinerary_day_id: UUID,
     trip: Trip = Depends(get_owned_trip),
     days: BaseService[ItineraryDay, Any, Any] = Depends(get_itinerary_day_service),
 ) -> ItineraryDay:
+    return await days.get_in(itinerary_day_id, trip_id=trip.id)
+
+
+async def get_editable_itinerary_day(
+    itinerary_day_id: UUID,
+    trip: Trip = Depends(get_editable_trip),
+    days: BaseService[ItineraryDay, Any, Any] = Depends(get_itinerary_day_service),
+) -> ItineraryDay:
+    """A day of an editable trip: the lock is checked before the day is read."""
     return await days.get_in(itinerary_day_id, trip_id=trip.id)
 
 

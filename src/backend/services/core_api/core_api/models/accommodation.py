@@ -9,6 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from core_api.models.base import (
     Base,
     CoordinatesMixin,
+    PlannerCardMixin,
     TimestampMixin,
     TripChildMixin,
     UUIDPrimaryKeyMixin,
@@ -20,7 +21,12 @@ if TYPE_CHECKING:
 
 
 class Accommodation(
-    UUIDPrimaryKeyMixin, TripChildMixin, CoordinatesMixin, TimestampMixin, Base
+    UUIDPrimaryKeyMixin,
+    TripChildMixin,
+    CoordinatesMixin,
+    PlannerCardMixin,
+    TimestampMixin,
+    Base,
 ):
     __tablename__ = "accommodations"
 

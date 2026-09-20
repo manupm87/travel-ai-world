@@ -1,5 +1,6 @@
 import uuid
 
+from pydantic import BaseModel
 from travel_common.exceptions import Forbidden
 
 from core_api.auth.principal import AccountPrincipal
@@ -24,3 +25,12 @@ class TripService(BaseService[Trip, TripCreate, TripUpdate]):
         if trip.user_id != principal.id:
             raise Forbidden()
         return trip
+
+    async def update(self, obj: Trip, data: BaseModel) -> Trip:
+        """Only a trip still ahead can be changed (`TripLocked`, ADR 0019).
+
+        Deleting is not an update: a traveller may remove a past trip, and
+        `delete` stays as `BaseService` defines it.
+        """
+        obj.ensure_editable()
+        return await super().update(obj, data)

@@ -4,18 +4,16 @@ from core_api.models.accommodation import Accommodation
 from core_api.models.activity import Activity
 from core_api.models.chat_message import ChatMessage
 from core_api.models.chat_thread import ChatThread
-from core_api.models.destination import Destination
 from core_api.models.enums import (
     ChatRole,
     MealType,
     TransportCategory,
     TransportType,
-    TripStatus,
 )
 from core_api.models.itinerary_day import ItineraryDay
 from core_api.models.meal import Meal
 from core_api.models.transportation import Transportation
-from core_api.models.trip import Trip
+from core_api.models.trip import Trip, TripPhase, phase_of
 from core_api.models.user import User
 
 __all__ = [
@@ -24,7 +22,6 @@ __all__ = [
     "ChatMessage",
     "ChatRole",
     "ChatThread",
-    "Destination",
     "ItineraryDay",
     "Meal",
     "MealType",
@@ -32,6 +29,7 @@ __all__ = [
     "TransportType",
     "Transportation",
     "Trip",
-    "TripStatus",
+    "TripPhase",
     "User",
+    "phase_of",
 ]

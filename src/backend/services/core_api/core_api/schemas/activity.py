@@ -4,11 +4,14 @@ from pydantic import BaseModel, ConfigDict
 
 from core_api.schemas._partial import partial
 from core_api.schemas._types import (
+    CardJson,
     Latitude,
     Longitude,
     Money,
+    PartOfDay,
     PositiveMinutes,
     Rating,
+    SourceRef,
     TimeOfDay,
     Title,
 )
@@ -16,6 +19,7 @@ from core_api.schemas._types import (
 
 class ActivityBase(BaseModel):
     time: TimeOfDay | None = None
+    part_of_day: PartOfDay | None = None
     duration_minutes: PositiveMinutes | None = None
     title: Title
     description: str | None = None
@@ -30,6 +34,10 @@ class ActivityBase(BaseModel):
     location_city: str | None = None
     location_lat: Latitude | None = None
     location_lng: Longitude | None = None
+    # What the planner offered, kept so a saved trip can be reopened in it
+    # (ADR 0019). `card` is opaque to core_api.
+    source_ref: SourceRef | None = None
+    card: CardJson | None = None
 
 
 class ActivityCreate(ActivityBase):

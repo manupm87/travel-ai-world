@@ -9,7 +9,7 @@ from core_api.models.user import User
 from httpx import AsyncClient
 from sqlalchemy import func, select
 
-from tests.conftest import AsyncSessionTest, headers_for
+from tests.conftest import AsyncSessionTest, day_offset, headers_for, trip_body
 
 TRIPS_URL = "/api/v1/trips/"
 
@@ -49,19 +49,19 @@ async def test_domain_error_rolls_back_the_request(client: AsyncClient, alice: U
     headers = headers_for(alice)
     created = await client.post(
         TRIPS_URL,
-        json={"title": "t", "start_date": "2026-05-01", "end_date": "2026-05-10"},
+        json=trip_body(start_date=day_offset(30), end_date=day_offset(40)),
         headers=headers,
     )
     trip_id = created.json()["id"]
 
     rejected = await client.patch(
-        f"{TRIPS_URL}{trip_id}", json={"end_date": "2026-04-30"}, headers=headers
+        f"{TRIPS_URL}{trip_id}", json={"end_date": day_offset(29)}, headers=headers
     )
     assert rejected.status_code == 422
 
     async with AsyncSessionTest() as other:
         end_date = await other.scalar(select(Trip.end_date).where(Trip.id == trip_id))
-    assert str(end_date) == "2026-05-10"
+    assert str(end_date) == day_offset(40)
 
 
 async def test_created_rows_are_visible_from_another_session(
@@ -69,7 +69,7 @@ async def test_created_rows_are_visible_from_another_session(
 ):
     """The repository only flushes; the request boundary is what commits."""
     created = await client.post(
-        TRIPS_URL, json={"title": "durable"}, headers=headers_for(alice)
+        TRIPS_URL, json=trip_body(title="durable"), headers=headers_for(alice)
     )
     assert created.status_code == 201
 

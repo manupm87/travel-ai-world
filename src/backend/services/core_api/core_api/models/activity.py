@@ -8,6 +8,8 @@ from core_api.models.base import (
     Base,
     ItineraryDayChildMixin,
     LocationSnapshotMixin,
+    PartOfDayMixin,
+    PlannerCardMixin,
     TimestampMixin,
     UUIDPrimaryKeyMixin,
 )
@@ -20,6 +22,8 @@ class Activity(
     UUIDPrimaryKeyMixin,
     ItineraryDayChildMixin,
     LocationSnapshotMixin,
+    PlannerCardMixin,
+    PartOfDayMixin,
     TimestampMixin,
     Base,
 ):

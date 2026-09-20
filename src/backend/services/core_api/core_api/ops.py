@@ -13,8 +13,9 @@ names and missing arguments are `BadRequest`, so an event with a typo answers
 400 instead of crashing the function.
 
 `COMMANDS` is the whole surface `POST /events` exposes to whoever can invoke
-the function, so a command earns its place here: developer helpers live in
-`core_api.devtools`, which nothing in the service imports.
+the function, so a command has to earn its place here. Developer helpers —
+anything that mints credentials or writes rows a request could not — live in
+their own module, which nothing in the running service imports.
 """
 
 import argparse

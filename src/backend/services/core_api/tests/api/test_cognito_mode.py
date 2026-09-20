@@ -20,7 +20,7 @@ from travel_common.principal import Principal, Role
 from travel_common.security import create_access_token
 from travel_common.testing import CognitoTestIssuer
 
-from tests.conftest import AsyncSessionTest, make_user
+from tests.conftest import AsyncSessionTest, make_user, trip_body
 
 pool = CognitoTestIssuer()
 COGNITO_SETTINGS = CoreSettings(**pool.settings_overrides(), SECRET_KEY="")
@@ -123,7 +123,7 @@ async def test_trips_are_scoped_to_the_account_behind_the_token(
     bob = bearer(pool.id_token(sub="sub-bob", email="bob@example.com"))
     created = await cognito_client.post(
         "/api/v1/trips/",
-        json={"title": "Kyoto in autumn", "status": "planning"},
+        json=trip_body(title="Budapest in autumn"),
         headers=ada,
     )
     assert created.status_code == 201, created.text

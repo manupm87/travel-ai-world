@@ -4,7 +4,7 @@ from core_api.models.user import User
 from httpx import AsyncClient
 from travel_common.principal import Role
 
-from tests.conftest import headers_for
+from tests.conftest import headers_for, trip_body
 
 TRIPS_URL = "/api/v1/trips/"
 MISSING = "00000000-0000-0000-0000-000000000000"
@@ -14,7 +14,7 @@ async def test_create_and_list_only_own_trips(
     client: AsyncClient, alice: User, bob: User
 ):
     created = await client.post(
-        TRIPS_URL, json={"title": "Lisboa"}, headers=headers_for(alice)
+        TRIPS_URL, json=trip_body(title="Lisboa"), headers=headers_for(alice)
     )
     assert created.status_code == 201
     assert created.json()["user_id"] == alice.id
@@ -29,7 +29,7 @@ async def test_create_and_list_only_own_trips(
 async def test_list_is_paginated(client: AsyncClient, alice: User):
     headers = headers_for(alice)
     for title in ("a", "b", "c"):
-        await client.post(TRIPS_URL, json={"title": title}, headers=headers)
+        await client.post(TRIPS_URL, json=trip_body(title=title), headers=headers)
 
     page = await client.get(TRIPS_URL, params={"skip": 1, "limit": 1}, headers=headers)
     assert [t["title"] for t in page.json()] == ["b"]
@@ -42,7 +42,7 @@ async def test_other_users_trip_is_forbidden(
     client: AsyncClient, alice: User, bob: User
 ):
     created = await client.post(
-        TRIPS_URL, json={"title": "Oporto"}, headers=headers_for(alice)
+        TRIPS_URL, json=trip_body(title="Oporto"), headers=headers_for(alice)
     )
     trip_id = created.json()["id"]
 
@@ -62,7 +62,7 @@ async def test_missing_trip_is_not_found(client: AsyncClient, alice: User):
 async def test_update_and_delete_own_trip(client: AsyncClient, alice: User):
     headers = headers_for(alice)
     created = await client.post(
-        TRIPS_URL, json={"title": "Roma", "description": "keep me"}, headers=headers
+        TRIPS_URL, json=trip_body(title="Roma", description="keep me"), headers=headers
     )
     trip_id = created.json()["id"]
 
@@ -78,6 +78,34 @@ async def test_update_and_delete_own_trip(client: AsyncClient, alice: User):
     assert (
         await client.get(f"{TRIPS_URL}{trip_id}", headers=headers)
     ).status_code == 404
+
+
+async def test_a_trip_carries_its_city(client: AsyncClient, alice: User):
+    """One trip, one city (ADR 0019): the slug is what reopens it in the planner."""
+    created = await client.post(
+        TRIPS_URL,
+        json=trip_body(title="Budapest", lat=47.4979, lng=19.0402, origin="Madrid"),
+        headers=headers_for(alice),
+    )
+
+    assert created.status_code == 201, created.text
+    trip = created.json()
+    assert trip["city_slug"] == "budapest"
+    assert (trip["city"], trip["country"], trip["country_code"]) == (
+        "Budapest",
+        "Hungary",
+        "HU",
+    )
+    assert (trip["lat"], trip["lng"], trip["origin"]) == (47.4979, 19.0402, "Madrid")
+    assert "destinations" not in trip
+
+
+async def test_a_trip_without_a_city_is_rejected(client: AsyncClient, alice: User):
+    response = await client.post(
+        TRIPS_URL, json={"title": "Nowhere"}, headers=headers_for(alice)
+    )
+
+    assert response.status_code == 422
 
 
 async def test_unknown_user_in_valid_token_is_unauthorized(client: AsyncClient):

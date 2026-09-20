@@ -5,6 +5,7 @@ database `<DB_NAME>_test` is created on demand and emptied after every test.
 """
 
 from collections.abc import AsyncGenerator
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from core_api import models  # noqa: F401 — registers models with Base.metadata
@@ -83,6 +84,31 @@ async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
     ) as ac:
         yield ac
     app.dependency_overrides.clear()
+
+
+# ── Trips ────────────────────────────────────────────────────────────────────
+
+TRIP_CITY: dict[str, str] = {
+    "city_slug": "budapest",
+    "city": "Budapest",
+    "country": "Hungary",
+    "country_code": "HU",
+}
+"""The city every trip needs (ADR 0019): spread it into a create body."""
+
+
+def day_offset(days: int) -> str:
+    """A date `days` from today, as the API writes it.
+
+    A trip's phase is derived from its dates (ADR 0019), so a test that means
+    "still ahead" has to say it relative to today, not with a fixed year.
+    """
+    return (datetime.now(UTC).date() + timedelta(days=days)).isoformat()
+
+
+def trip_body(**fields: object) -> dict[str, object]:
+    """A minimal valid `TripCreate` body, plus whatever the test cares about."""
+    return {"title": "t", **TRIP_CITY, **fields}
 
 
 # ── Users and credentials ────────────────────────────────────────────────────

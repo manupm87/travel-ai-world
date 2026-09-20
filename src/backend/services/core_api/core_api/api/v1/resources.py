@@ -3,9 +3,13 @@
 # reads them, a static checker cannot.
 """Declarative CRUD routers for the entities that live inside a trip.
 
-Every child resource (destinations, accommodations, ..., meals) gets the same
-five endpoints, nested under its owner: the caller's trip, or a day of it.
-Adding an entity is one `ChildResource` entry, not a new endpoint module.
+Every child resource (itinerary days, accommodations, ..., meals) gets the
+same five endpoints, nested under its owner: the caller's trip, or a day of
+it. Adding an entity is one `ChildResource` entry, not a new endpoint module.
+
+Reads go through the owned parent, writes through the editable one: a trip
+that is ongoing or past refuses every write inside it with `TripLocked`
+(ADR 0019), and no endpoint here has to know that.
 """
 
 from collections.abc import Awaitable, Callable
@@ -19,7 +23,8 @@ from pydantic import BaseModel
 from core_api.api.deps import (
     get_accommodation_service,
     get_activity_service,
-    get_destination_service,
+    get_editable_itinerary_day,
+    get_editable_trip,
     get_itinerary_day_service,
     get_meal_service,
     get_owned_itinerary_day,
@@ -35,11 +40,6 @@ from core_api.schemas.accommodation import (
     AccommodationUpdate,
 )
 from core_api.schemas.activity import ActivityCreate, ActivityResponse, ActivityUpdate
-from core_api.schemas.destination import (
-    DestinationCreate,
-    DestinationResponse,
-    DestinationUpdate,
-)
 from core_api.schemas.itinerary_day import (
     ItineraryDayCreate,
     ItineraryDayResponse,
@@ -69,6 +69,8 @@ class ChildResource:
     update_schema: type[BaseModel]
     response_schema: type[BaseModel]
     parent: Callable[..., Awaitable[Base]]
+    # The same parent, resolved for a write: it refuses a locked trip.
+    writable_parent: Callable[..., Awaitable[Base]]
     parent_field: str
     parent_prefix: str = TRIP
 
@@ -79,37 +81,34 @@ class ChildResource:
 
 CHILD_RESOURCES: tuple[ChildResource, ...] = (
     ChildResource(
-        "destinations", "destination", "Destinations", get_destination_service,
-        DestinationCreate, DestinationUpdate, DestinationResponse,
-        get_owned_trip, "trip_id",
-    ),
-    ChildResource(
         "itinerary-days", "itinerary_day", "Itinerary Days",
         get_itinerary_day_service,
         ItineraryDayCreate, ItineraryDayUpdate, ItineraryDayResponse,
-        get_owned_trip, "trip_id",
+        get_owned_trip, get_editable_trip, "trip_id",
     ),
     ChildResource(
         "accommodations", "accommodation", "Accommodations",
         get_accommodation_service,
         AccommodationCreate, AccommodationUpdate, AccommodationResponse,
-        get_owned_trip, "trip_id",
+        get_owned_trip, get_editable_trip, "trip_id",
     ),
     ChildResource(
         "transportations", "transportation", "Transportations",
         get_transportation_service,
         TransportationCreate, TransportationUpdate, TransportationResponse,
-        get_owned_trip, "trip_id",
+        get_owned_trip, get_editable_trip, "trip_id",
     ),
     ChildResource(
         "activities", "activity", "Activities", get_activity_service,
         ActivityCreate, ActivityUpdate, ActivityResponse,
-        get_owned_itinerary_day, "itinerary_day_id", parent_prefix=DAY,
+        get_owned_itinerary_day, get_editable_itinerary_day, "itinerary_day_id",
+        parent_prefix=DAY,
     ),
     ChildResource(
         "meals", "meal", "Meals", get_meal_service,
         MealCreate, MealUpdate, MealResponse,
-        get_owned_itinerary_day, "itinerary_day_id", parent_prefix=DAY,
+        get_owned_itinerary_day, get_editable_itinerary_day, "itinerary_day_id",
+        parent_prefix=DAY,
     ),
 )  # fmt: skip
 
@@ -121,6 +120,7 @@ def child_router(res: ChildResource) -> APIRouter:
     # Lowercase on purpose: these are per-call aliases, not module-level types.
     item_id_t = Annotated[UUID, Path(alias=item_id)]
     parent_t = Annotated[Base, Depends(res.parent)]
+    writable_parent_t = Annotated[Base, Depends(res.writable_parent)]
     service_t = Annotated[BaseService[Any, Any, Any], Depends(res.service)]
 
     @router.get("/", response_model=list[res.response_schema], name=f"list_{res.path}")
@@ -136,7 +136,7 @@ def child_router(res: ChildResource) -> APIRouter:
         name=f"create_{res.singular}",
     )
     async def create_item(
-        body: res.create_schema, parent: parent_t, service: service_t
+        body: res.create_schema, parent: writable_parent_t, service: service_t
     ):
         return await service.create(body, **{res.parent_field: parent.id})
 
@@ -154,7 +154,10 @@ def child_router(res: ChildResource) -> APIRouter:
         name=f"update_{res.singular}",
     )
     async def update_item(
-        obj_id: item_id_t, body: res.update_schema, parent: parent_t, service: service_t
+        obj_id: item_id_t,
+        body: res.update_schema,
+        parent: writable_parent_t,
+        service: service_t,
     ):
         obj = await service.get_in(obj_id, **{res.parent_field: parent.id})
         return await service.update(obj, body)
@@ -165,7 +168,7 @@ def child_router(res: ChildResource) -> APIRouter:
         name=f"delete_{res.singular}",
     )
     async def delete_item(
-        obj_id: item_id_t, parent: parent_t, service: service_t
+        obj_id: item_id_t, parent: writable_parent_t, service: service_t
     ) -> None:
         obj = await service.get_in(obj_id, **{res.parent_field: parent.id})
         await service.delete(obj)

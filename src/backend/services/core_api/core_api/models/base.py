@@ -7,9 +7,10 @@ know the attribute types. Import `Base` in every model file and in Alembic's
 
 import uuid
 from datetime import date, datetime
+from typing import Any
 
 from sqlalchemy import DateTime, Float, ForeignKey, String, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSON, UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column
 from travel_common.exceptions import UnprocessableEntity
 
@@ -93,3 +94,26 @@ class LocationSnapshotMixin:
     location_city: Mapped[str | None] = mapped_column(String(150), nullable=True)
     location_lat: Mapped[float | None] = mapped_column(Float, nullable=True)
     location_lng: Mapped[float | None] = mapped_column(Float, nullable=True)
+
+
+class PlannerCardMixin:
+    """The planner card a row was created from, kept as the client sent it.
+
+    `source_ref` is the corpus document id behind the card (`osm:relation/13067`),
+    indexed so a trip can be matched back to what the planner offered. `card`
+    is the card itself: an opaque JSON object that core_api stores and returns
+    untouched — its shape is ai_api's (`OptionCard`) and this service never
+    looks inside it.
+    """
+
+    source_ref: Mapped[str | None] = mapped_column(
+        String(255), nullable=True, index=True
+    )
+    card: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+
+
+class PartOfDayMixin:
+    """Which part of the day the planner put this row in: `morning`,
+    `afternoon`, `evening` or `night` (the schema holds the vocabulary)."""
+
+    part_of_day: Mapped[str | None] = mapped_column(String(16), nullable=True)

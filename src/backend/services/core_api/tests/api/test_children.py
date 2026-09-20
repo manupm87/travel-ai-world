@@ -11,7 +11,7 @@ import pytest
 from core_api.models.user import User
 from httpx import AsyncClient
 
-from tests.conftest import headers_for
+from tests.conftest import headers_for, trip_body
 
 TRIPS_URL = "/api/v1/trips/"
 MISSING = "00000000-0000-0000-0000-000000000000"
@@ -31,21 +31,26 @@ class Child:
         return f"{base}/{self.path}/"
 
 
+# A card as the planner hands it over: core_api stores the object and gives it
+# back untouched, so the test asserts nothing about its shape.
+CARD = {
+    "id": "osm:relation/13067",
+    "title": "Széchenyi Baths",
+    "category": "do",
+    "image_url": "https://example.test/baths.jpg",
+}
+
 CHILDREN = [
-    pytest.param(
-        Child(
-            "destinations",
-            {"city": "Lisboa", "country": "Portugal", "country_code": "PT"},
-            {"city": "Porto"},
-        ),
-        id="destinations",
-    ),
     pytest.param(
         Child("itinerary-days", {"day_number": 1}, {"title": "Arrival"}),
         id="itinerary-days",
     ),
     pytest.param(
-        Child("accommodations", {"name": "Hotel Avenida"}, {"name": "Hostel"}),
+        Child(
+            "accommodations",
+            {"name": "Hotel Avenida", "source_ref": "osm:node/1", "card": CARD},
+            {"name": "Hostel"},
+        ),
         id="accommodations",
     ),
     pytest.param(
@@ -53,12 +58,25 @@ CHILDREN = [
         id="transportations",
     ),
     pytest.param(
-        Child("activities", {"title": "Belém"}, {"title": "Alfama"}, under_day=True),
+        Child(
+            "activities",
+            {
+                "title": "Belém", "part_of_day": "morning",
+                "source_ref": "osm:relation/13067", "card": CARD,
+            },
+            {"title": "Alfama", "part_of_day": "evening"},
+            under_day=True,
+        ),
         id="activities",
     ),
     pytest.param(
         Child(
-            "meals", {"restaurant_name": "Ramiro"}, {"cuisine": "seafood"},
+            "meals",
+            {
+                "restaurant_name": "Ramiro", "part_of_day": "afternoon",
+                "source_ref": "osm:node/42", "card": CARD,
+            },
+            {"cuisine": "seafood"},
             under_day=True,
         ),
         id="meals",
@@ -67,7 +85,7 @@ CHILDREN = [
 
 
 async def _trip_with_day(client: AsyncClient, headers) -> tuple[str, str]:
-    trip = (await client.post(TRIPS_URL, json={"title": "t"}, headers=headers)).json()
+    trip = (await client.post(TRIPS_URL, json=trip_body(), headers=headers)).json()
     day = (
         await client.post(
             f"{TRIPS_URL}{trip['id']}/itinerary-days/",
@@ -204,7 +222,36 @@ async def test_deleting_trip_cascades(client: AsyncClient, alice: User):
     assert response.status_code == 404
 
 
+async def test_the_planner_card_survives_the_round_trip(
+    client: AsyncClient, alice: User
+):
+    """core_api stores the card as it arrived and hands it back untouched: it
+    is what rebuilds the planner's itinerary when a trip is reopened."""
+    headers = headers_for(alice)
+    trip_id, day_id = await _trip_with_day(client, headers)
+
+    created = await client.post(
+        f"{TRIPS_URL}{trip_id}/itinerary-days/{day_id}/activities/",
+        json={
+            "title": "Széchenyi Baths",
+            "part_of_day": "afternoon",
+            "source_ref": "osm:relation/13067",
+            "card": CARD,
+        },
+        headers=headers,
+    )
+
+    assert created.status_code == 201, created.text
+    assert created.json()["card"] == CARD
+
+    trip = (await client.get(f"{TRIPS_URL}{trip_id}", headers=headers)).json()
+    activity = trip["itinerary_days"][0]["activities"][0]
+    assert activity["card"] == CARD
+    assert activity["source_ref"] == "osm:relation/13067"
+    assert activity["part_of_day"] == "afternoon"
+
+
 async def test_requires_authentication(client: AsyncClient):
-    response = await client.get(f"{TRIPS_URL}{MISSING}/destinations/")
+    response = await client.get(f"{TRIPS_URL}{MISSING}/itinerary-days/")
 
     assert response.status_code == 401
