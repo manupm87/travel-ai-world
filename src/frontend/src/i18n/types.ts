@@ -313,7 +313,6 @@ export interface Translations {
       marker: string;
       /** The hotel's pin: "Stay: {title}" */
       stay: string;
-      /** The number badge beside a card in the panel: "Show on the map: {title}" */
       /** The browser has no WebGL 2, so there is no map to show. */
       unsupported: string;
       /** MapLibre's own zoom buttons, relabelled in the reader's language. */

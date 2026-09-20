@@ -1,7 +1,6 @@
 "use client";
 
 import { ExternalLink } from "lucide-react";
-import { Card } from "@/components/ui/Card";
 import { useLanguage } from "@/context/LanguageContext";
 import { useFormatters } from "@/hooks/useFormatters";
 import { interpolate } from "@/i18n";
@@ -68,7 +67,9 @@ export function TripOverview({ itinerary, brief, city, onSelectDay }: TripOvervi
   const { formatDate } = useFormatters();
   const p = t.plan.panel;
 
-  const destination = brief.destination ?? city?.name ?? "";
+  // The city's own name when it is known, so a brief that says "budapest" or
+  // "Budapest, Hungary" still reads "About Budapest".
+  const destination = city?.name ?? brief.destination ?? "";
 
   // The reader's own language when the corpus has that lead, English
   // otherwise; a city with neither (or no city at all) simply has no "About".
@@ -167,69 +168,72 @@ export function TripOverview({ itinerary, brief, city, onSelectDay }: TripOvervi
 
           return (
             <li key={day.day} className="flex flex-col gap-1">
+              {/* The row is the button itself: a `Card`'s <div> inside a
+                  <button> is not a content model a browser accepts. */}
               <button
                 type="button"
-                aria-label={interpolate(p.openDay, { day: day.day })}
                 onClick={() => onSelectDay(day.day)}
-                className="w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 rounded-2xl"
+                className="flex w-full items-center gap-3 rounded-2xl border border-border bg-bg-card p-3 text-left transition hover:border-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
               >
-                <Card className="flex items-center gap-3 p-3 transition hover:border-accent/40">
-                  <span
-                    aria-hidden="true"
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-soft text-sm font-medium text-text-primary"
-                  >
-                    {day.day}
-                  </span>
+                {/* Read first, then everything the row shows: an `aria-label`
+                    here would hide the title, the date and the count. */}
+                <span className="sr-only">{interpolate(p.openDay, { day: day.day })}</span>
 
-                  <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <span className="text-[10px] font-medium uppercase tracking-wider text-text-secondary">
-                      {interpolate(p.day, { day: day.day })}
-                    </span>
-                    {day.title && (
-                      <span className="truncate text-[15px] font-medium leading-tight text-text-primary">
-                        {day.title}
-                      </span>
-                    )}
-                    <span className="flex flex-wrap items-center gap-x-1.5 text-xs text-text-secondary">
-                      {date && <span>{formatDate(date, DATE_OPTIONS)}</span>}
-                      {day.weather && (
-                        <>
-                          {date && <span aria-hidden="true">·</span>}
-                          <span>{day.weather.summary}</span>
-                          {day.weather.t_max !== null && (
-                            <>
-                              <span aria-hidden="true">·</span>
-                              <span>{`${day.weather.t_max} °C`}</span>
-                            </>
-                          )}
-                        </>
-                      )}
-                      <span aria-hidden="true">·</span>
-                      <span>
-                        {count === 1 ? p.experienceOne : interpolate(p.experiences, { count })}
-                      </span>
-                    </span>
-                  </span>
+                <span
+                  aria-hidden="true"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-soft text-sm font-medium text-text-primary"
+                >
+                  {day.day}
+                </span>
 
-                  {thumbnails.length > 0 && (
-                    <span aria-hidden="true" className="hidden shrink-0 gap-1 sm:flex">
-                      {thumbnails.map((card) => (
-                        <span
-                          key={card.id}
-                          className="h-10 w-10 overflow-hidden rounded-lg bg-bg-surface"
-                        >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={card.image_url ?? ""}
-                            alt=""
-                            loading="lazy"
-                            className="h-full w-full object-cover"
-                          />
-                        </span>
-                      ))}
+                <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-text-secondary">
+                    {interpolate(p.day, { day: day.day })}
+                  </span>
+                  {day.title && (
+                    <span className="truncate text-[15px] font-medium leading-tight text-text-primary">
+                      {day.title}
                     </span>
                   )}
-                </Card>
+                  <span className="flex flex-wrap items-center gap-x-1.5 text-xs text-text-secondary">
+                    {date && <span>{formatDate(date, DATE_OPTIONS)}</span>}
+                    {day.weather && (
+                      <>
+                        {date && <span aria-hidden="true">·</span>}
+                        <span>{day.weather.summary}</span>
+                        {day.weather.t_max !== null && (
+                          <>
+                            <span aria-hidden="true">·</span>
+                            <span>{`${day.weather.t_max} °C`}</span>
+                          </>
+                        )}
+                      </>
+                    )}
+                    <span aria-hidden="true">·</span>
+                    <span>
+                      {count === 1 ? p.experienceOne : interpolate(p.experiences, { count })}
+                    </span>
+                  </span>
+                </span>
+
+                {thumbnails.length > 0 && (
+                  <span aria-hidden="true" className="hidden shrink-0 gap-1 sm:flex">
+                    {thumbnails.map((card) => (
+                      <span
+                        key={card.id}
+                        className="h-10 w-10 overflow-hidden rounded-lg bg-bg-surface"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={card.image_url ?? ""}
+                          alt=""
+                          loading="lazy"
+                          className="h-full w-full object-cover"
+                        />
+                      </span>
+                    ))}
+                  </span>
+                )}
               </button>
 
               {warnings.map((warning) => (

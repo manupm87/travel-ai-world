@@ -156,6 +156,17 @@ export function TripPanel({
     });
   }, [selectedStopId]);
 
+  // Opening a day starts at the top of the panel. The overview is tall and its
+  // day rows sit right at the bottom of it, so without this the day arrives
+  // with the strip — the one way back to the whole trip — scrolled off screen.
+  // An activity opening at the same time has its own scrolling above.
+  const scrolledDayRef = useRef(selectedDay);
+  useEffect(() => {
+    if (scrolledDayRef.current === selectedDay) return;
+    scrolledDayRef.current = selectedDay;
+    if (selectedStopId === null) scrollerRef.current?.scrollTo?.({ top: 0 });
+  }, [selectedDay, selectedStopId]);
+
   const isStaySlot = (slot: Slot) => slot.day === STAY_SLOT.day;
 
   const groupFor = (slot: Slot): OptionGroupState | null => {

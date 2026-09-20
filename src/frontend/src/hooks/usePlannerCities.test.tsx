@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import { ApiError } from "@/services/http";
 import { listCities } from "@/services/planner";
-import { usePlannerCities } from "./usePlannerCities";
+import { findCity, usePlannerCities } from "./usePlannerCities";
 
 vi.mock("@/services/planner", () => ({
   listCities: vi.fn(),
@@ -47,5 +47,57 @@ describe("usePlannerCities", () => {
 
     await waitFor(() => expect(result.current.status).toBe("error"));
     expect(result.current.cities).toEqual([]);
+  });
+});
+
+const BUDAPEST = {
+  ...BOLOGNA,
+  slug: "budapest",
+  name: "Budapest",
+  centre: [47.4979, 19.0402] as [number, number],
+  timezone: "Europe/Budapest",
+};
+
+const CITIES = [BOLOGNA, BUDAPEST];
+
+describe("findCity", () => {
+  it("matches the name or the slug exactly", () => {
+    expect(findCity(CITIES, "Budapest")).toBe(BUDAPEST);
+    expect(findCity(CITIES, "budapest")).toBe(BUDAPEST);
+    // `ai_api` never trims what the traveller typed.
+    expect(findCity(CITIES, "budapest ")).toBe(BUDAPEST);
+    expect(findCity(CITIES, "bologna")).toBe(BOLOGNA);
+  });
+
+  it("matches a city named inside the destination, as the backend does", () => {
+    // `resolve_city` matches an alias inside the text and leaves
+    // `brief.destination` exactly as it came, so both of these reach us.
+    expect(findCity(CITIES, "Budapest, Hungary")).toBe(BUDAPEST);
+    expect(findCity(CITIES, "Trip to Budapest")).toBe(BUDAPEST);
+  });
+
+  it("ignores accents on either side", () => {
+    expect(findCity(CITIES, "BUDAPEST")).toBe(BUDAPEST);
+    expect(findCity([{ ...BOLOGNA, name: "Bologna" }], "bolognà")).not.toBeNull();
+  });
+
+  it("only matches whole words", () => {
+    expect(findCity(CITIES, "Budapesti")).toBeNull();
+    expect(findCity(CITIES, "Bolognese sauce")).toBeNull();
+  });
+
+  it("answers null without a destination or without a match", () => {
+    expect(findCity(CITIES, null)).toBeNull();
+    expect(findCity(CITIES, undefined)).toBeNull();
+    expect(findCity(CITIES, "   ")).toBeNull();
+    expect(findCity(CITIES, "Lisbon")).toBeNull();
+    expect(findCity([], "Budapest")).toBeNull();
+  });
+
+  it("prefers the city the destination names exactly", () => {
+    const york = { ...BOLOGNA, slug: "york", name: "York" };
+    const newYork = { ...BOLOGNA, slug: "new-york", name: "New York" };
+
+    expect(findCity([newYork, york], "York")).toBe(york);
   });
 });

@@ -134,7 +134,7 @@ describe("TripPanel", () => {
 
     fireEvent.click(
       within(screen.getByRole("list", { name: p.dayList })).getByRole("button", {
-        name: interpolate(p.openDay, { day: 2 }),
+        name: new RegExp(interpolate(p.openDay, { day: 2 })),
       })
     );
 
@@ -148,6 +148,30 @@ describe("TripPanel", () => {
 
     expect(screen.getByRole("tabpanel", { name: p.overview })).toBeInTheDocument();
     expect(screen.getByRole("list", { name: p.dayList })).toBeInTheDocument();
+  });
+
+  it("scrolls back to the top when a day is opened from the overview", () => {
+    const scrollTo = vi.fn();
+    const original = HTMLElement.prototype.scrollTo;
+    // jsdom has no element scrolling at all, which is why the component guards
+    // the call; this is the spy the guard lets through.
+    HTMLElement.prototype.scrollTo = scrollTo;
+
+    try {
+      renderPanel();
+      expect(scrollTo).not.toHaveBeenCalled();
+
+      // The day rows sit at the bottom of a tall overview: arriving on the day
+      // without this leaves the strip — the way back — off screen.
+      openDay(2);
+      expect(scrollTo).toHaveBeenCalledWith({ top: 0 });
+
+      scrollTo.mockClear();
+      fireEvent.click(wholeTripTab());
+      expect(scrollTo).toHaveBeenCalledWith({ top: 0 });
+    } finally {
+      HTMLElement.prototype.scrollTo = original;
+    }
   });
 
   it("closes an open activity when the whole trip comes back", () => {

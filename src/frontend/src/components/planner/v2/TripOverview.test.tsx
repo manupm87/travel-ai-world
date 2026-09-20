@@ -178,7 +178,13 @@ describe("TripOverview", () => {
     const rows = dayRows();
     expect(rows).toHaveLength(3);
 
-    expect(rows[0]).toHaveAttribute("aria-label", interpolate(p.openDay, { day: 1 }));
+    // The row is named by everything it shows, with "Open day 1" read first:
+    // an `aria-label` would have hidden the title, the date and the count.
+    expect(rows[0]).toHaveAccessibleName(
+      new RegExp(`^${interpolate(p.openDay, { day: 1 })}`)
+    );
+    expect(rows[0]).toHaveAccessibleName(/Arrival: Belváros and the Danube/);
+    expect(rows[0]).toHaveAccessibleName(/4 experiences/);
     expect(rows[0]).toHaveTextContent("Arrival: Belváros and the Danube");
     expect(rows[0]).toHaveTextContent("Fri, Oct 23");
     expect(rows[0]).toHaveTextContent(interpolate(p.experiences, { count: 4 }));
@@ -186,7 +192,9 @@ describe("TripOverview", () => {
     expect(rows[1]).toHaveTextContent("Sat, Oct 24");
     expect(rows[1]).toHaveTextContent("Sunny");
     expect(rows[1]).toHaveTextContent("13 °C");
-    expect(rows[2]).toHaveAttribute("aria-label", interpolate(p.openDay, { day: 3 }));
+    expect(rows[2]).toHaveAccessibleName(
+      new RegExp(`^${interpolate(p.openDay, { day: 3 })}`)
+    );
   });
 
   it("shows a day's warnings under its row", () => {
@@ -199,7 +207,9 @@ describe("TripOverview", () => {
   it("opens the day that is clicked", () => {
     const { onSelectDay } = renderOverview();
 
-    fireEvent.click(screen.getByRole("button", { name: interpolate(p.openDay, { day: 2 }) }));
+    fireEvent.click(
+      screen.getByRole("button", { name: new RegExp(interpolate(p.openDay, { day: 2 })) })
+    );
 
     expect(onSelectDay).toHaveBeenCalledWith(2);
   });

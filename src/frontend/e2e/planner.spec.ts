@@ -153,7 +153,7 @@ test.describe("Planner page — /plan/", () => {
     await expect(page.getByText(/\d+\s?€/)).toHaveCount(0);
 
     // A day's row opens that day, and the per-day view takes over.
-    await page.getByRole("button", { name: "Open day 1" }).click();
+    await page.getByRole("button", { name: /Open day 1/ }).click();
     await expect(page.getByRole("button", { name: "Change: Great Market Hall" })).toBeVisible();
 
     // 4b. The map column maps that same day: the hotel plus day 1's four stops,
@@ -323,7 +323,7 @@ test.describe("Planner page — /plan/", () => {
 
     // "Change" on a demo slot lists three photographed alternatives by itself;
     // the slot is on day 1, which the overview opens.
-    await page.getByRole("button", { name: "Open day 1" }).click();
+    await page.getByRole("button", { name: /Open day 1/ }).click();
     await page.getByRole("button", { name: "Change: Great Market Hall" }).click();
     const sheet = page.getByRole("dialog", { name: "Day 1 · Morning" });
     await expect(sheet.getByRole("article")).toHaveCount(3, { timeout: 15_000 });

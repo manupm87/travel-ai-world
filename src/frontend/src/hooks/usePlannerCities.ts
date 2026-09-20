@@ -6,23 +6,60 @@ import type { PlannerCity } from "@/types/planner";
 
 export type PlannerCitiesStatus = "loading" | "ready" | "error";
 
+/** Accent-folded and lowercased, the way `ai_api`'s `resolve_city` compares. */
+function fold(text: string): string {
+  return text
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+/** `needle` as a whole word inside `haystack`; both already folded. */
+function containsWord(haystack: string, needle: string): boolean {
+  if (!needle) return false;
+  const isBoundary = (char: string) => char === "" || /[^a-z0-9]/.test(char);
+  for (let from = 0; from <= haystack.length; ) {
+    const at = haystack.indexOf(needle, from);
+    if (at === -1) return false;
+    const before = at === 0 ? "" : (haystack[at - 1] ?? "");
+    const after = haystack[at + needle.length] ?? "";
+    if (isBoundary(before) && isBoundary(after)) return true;
+    from = at + 1;
+  }
+  return false;
+}
+
 /**
  * The covered city a destination names, or `null` when the list has none —
  * which is what demo mode, a static build and any city outside the manifest
- * all look like. Matched on the slug or the name `ai_api` publishes, ignoring
- * case and surrounding space, exactly as the map's centre has always been.
+ * all look like.
+ *
+ * It has to be as forgiving as the backend that produced the text:
+ * `ai_api`'s `resolve_city` matches a whole alias *inside* the destination
+ * after folding accents, and it never rewrites `brief.destination`, so the
+ * brief legitimately holds "Budapest, Hungary", "Trip to Budapest" or
+ * "budapest ". So: fold both sides, then look for the slug or the name as a
+ * whole word in the destination, preferring a city the destination names
+ * exactly when several match.
+ *
+ * The backend's other aliases ("Bolonia" for Bologna, …) are not on
+ * `PlannerCity` yet, so a destination that uses one still resolves to `null`
+ * here; publishing them is a follow-up.
  */
 export function findCity(
   cities: PlannerCity[],
   destination: string | null | undefined
 ): PlannerCity | null {
-  const wanted = destination?.trim().toLowerCase();
+  const wanted = fold(destination ?? "");
   if (!wanted) return null;
+
+  const keysOf = (city: PlannerCity) => [fold(city.slug), fold(city.name)];
+
   return (
-    cities.find(
-      (candidate) =>
-        candidate.slug.toLowerCase() === wanted || candidate.name.toLowerCase() === wanted
-    ) ?? null
+    cities.find((city) => keysOf(city).includes(wanted)) ??
+    cities.find((city) => keysOf(city).some((key) => containsWord(wanted, key))) ??
+    null
   );
 }
 
