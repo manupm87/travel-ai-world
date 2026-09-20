@@ -247,8 +247,8 @@ const es: Translations = {
       },
       phase: {
         ongoing: "En curso",
-        upcoming: "Próximamente",
-        past: "Pasado",
+        upcoming: "Por venir",
+        past: "Terminado",
       },
       dateRange: "{start} – {end}",
       loading: "Cargando tus viajes…",

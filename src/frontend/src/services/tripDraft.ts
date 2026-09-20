@@ -19,7 +19,7 @@ import { EMPTY_ITINERARY, type DayDraft, type PlannerDraft } from "@/hooks/plann
 import type { DayPart, OptionCard, RouteInfo, TripBrief } from "@/types/planner";
 import type { Accommodation, Activity, Meal, PartOfDay, Trip } from "@/types/trip";
 import { daysBetween } from "@/utils/tripDates";
-import { EAT, PART_TIME } from "./trips";
+import { EAT } from "./trips";
 
 /**
  * Whether the stored JSON is a planner card. core_api never looks inside it,
@@ -78,9 +78,9 @@ function cardOf(
 
 /**
  * Which part of the day an hour reads as, for a child saved before
- * `part_of_day` existed. The thresholds agree with `PART_TIME` in
- * `services/trips.ts` — the hours the planner writes — and with the migration
- * that backfilled the column (ADR 0019).
+ * `part_of_day` existed. The thresholds agree with the hours the planner
+ * writes (`PART_TIME` in `services/trips.ts`) and with the migration that
+ * backfilled the column (ADR 0019).
  */
 export function partFromTime(time: string): DayPart {
   const hour = Number(time.slice(0, 2));

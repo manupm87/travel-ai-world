@@ -16,6 +16,8 @@ interface TripCardProps {
   trip: TripSummary;
   /** The trip the planner is showing: its card is where you already are. */
   current?: boolean;
+  /** The card was followed; a sheet holding the list closes behind it. */
+  onOpen?: () => void;
   /** Only an upcoming trip can be renamed; without this there is no menu item. */
   onRename?: () => void;
   onDelete?: () => void;
@@ -53,6 +55,7 @@ const TO: Intl.DateTimeFormatOptions = { ...FROM, year: "numeric" };
 export default function TripCard({
   trip,
   current = false,
+  onOpen,
   onRename,
   onDelete,
   className,
@@ -153,6 +156,7 @@ export default function TripCard({
             <Link
               href={`/plan/?trip=${encodeURIComponent(trip.id)}`}
               aria-current={current ? "page" : undefined}
+              onClick={onOpen}
               className="rounded-sm after:absolute after:inset-0 after:rounded-2xl focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none"
             >
               {trip.title}

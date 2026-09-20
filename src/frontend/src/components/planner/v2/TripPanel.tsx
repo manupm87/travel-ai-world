@@ -27,6 +27,7 @@ import { RouteStrip } from "./RouteStrip";
 import { SaveTripButton } from "./SaveTripButton";
 import { StayCard } from "./StayCard";
 import { TripOverview } from "./TripOverview";
+import { TripsList } from "./TripsList";
 import { dateForDay, daysBetween } from "@/utils/tripDates";
 import { WarningBadge } from "./WarningBadge";
 
@@ -52,6 +53,12 @@ export interface TripPanelProps {
   onToggleShortlist: (cardId: string) => void;
   onAskAlternatives: (slot: Slot, options?: AskAlternativesOptions) => void;
   onReset: () => void;
+  /** Opens the trips sheet over the planner (the header's "Your trips"). */
+  onShowTrips: () => void;
+  /** The trip this planner was opened from, so its own card says so. */
+  openTripId?: string | null;
+  /** A trip deleted from the list; the page empties the planner if it was this one. */
+  onTripDeleted?: (id: string) => void;
   /** "Save trip": what `hooks/useSaveTrip.ts` knows and the one action it offers. */
   save: UseSaveTripResult;
 }
@@ -115,6 +122,9 @@ export function TripPanel({
   onToggleShortlist,
   onAskAlternatives,
   onReset,
+  onShowTrips,
+  openTripId = null,
+  onTripDeleted,
   save,
 }: TripPanelProps) {
   const { t } = useLanguage();
@@ -250,15 +260,41 @@ export function TripPanel({
     />
   );
 
+  const tripsButton = (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={onShowTrips}
+      className="px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+    >
+      {t.plan.trips.title}
+    </Button>
+  );
+
   if (!hasItinerary(itinerary)) {
+    // Nothing said yet: the pane is where the account's trips live, and the
+    // checklist takes its place as soon as the conversation starts.
+    const started = state.messages.length > 0;
     return (
       <div className="flex h-full flex-col gap-4 overflow-y-auto overscroll-y-contain p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-        <BriefChecklist
-          brief={brief}
-          missing={state.missing}
-          disabled={state.status === "streaming"}
-          onGenerate={onGenerate}
-        />
+        {started ? (
+          <>
+            <div className="flex animate-fade-up justify-end">{tripsButton}</div>
+            <BriefChecklist
+              brief={brief}
+              missing={state.missing}
+              disabled={state.status === "streaming"}
+              onGenerate={onGenerate}
+            />
+          </>
+        ) : (
+          <>
+            <h2 className="animate-fade-up text-xl font-medium leading-tight text-text-primary">
+              {t.plan.trips.title}
+            </h2>
+            <TripsList openTripId={openTripId} onDeleted={onTripDeleted} />
+          </>
+        )}
       </div>
     );
   }
@@ -296,6 +332,7 @@ export function TripPanel({
           <p className="text-xs text-text-secondary">{counters.join(" · ")}</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
+          {tripsButton}
           <SaveTripButton
             status={save.status}
             tripId={save.tripId}

@@ -39,7 +39,6 @@ import type {
   Activity,
   ItineraryDay,
   Meal,
-  PartOfDay,
   Place,
   SavedCard,
   Transportation,

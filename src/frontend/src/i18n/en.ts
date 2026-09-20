@@ -253,9 +253,9 @@ const en: Translations = {
         past: "Past journeys",
       },
       phase: {
-        ongoing: "Happening now",
-        upcoming: "Coming up",
-        past: "Past",
+        ongoing: "On now",
+        upcoming: "Ahead",
+        past: "Over",
       },
       dateRange: "{start} – {end}",
       loading: "Loading your trips…",
