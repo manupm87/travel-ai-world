@@ -49,7 +49,11 @@ function Avatar({ user, size }: { user: User; size: number }) {
 }
 
 /**
- * Signed-out: a login trigger. Signed-in: the profile and a logout action.
+ * Signed-out: a login trigger. Signed-in: the profile, the way to the account's
+ * trips and a logout action.
+ *
+ * "Your trips" goes to `/dashboard/`, the signed-in home (TRA-199); the
+ * header's own pill is the one that opens the planner straight away.
  * Logging out clears the session and leaves protected pages by going home;
  * that navigation is deliberately here, not in the auth context.
  */
@@ -110,7 +114,7 @@ export function UserMenu({ variant = "dropdown", onLogin, onAfterAction }: UserM
           </div>
         </div>
         <Link
-          href="/plan/"
+          href="/dashboard/"
           onClick={onAfterAction}
           className="flex items-center gap-3 text-xl font-medium text-text-primary hover:text-accent transition-colors"
         >
@@ -153,7 +157,7 @@ export function UserMenu({ variant = "dropdown", onLogin, onAfterAction }: UserM
             <p className="text-[10px] text-text-secondary truncate">{user.email}</p>
           </div>
           <Link
-            href="/plan/"
+            href="/dashboard/"
             role="menuitem"
             onClick={close}
             className="w-full flex items-center gap-3 px-4 py-2.5 text-[12px] font-medium text-text-secondary hover:text-text-primary hover:bg-accent-soft transition-colors"

@@ -36,7 +36,9 @@ interface LoginModalProps {
  *
  * The destination is the `redirect` prop, or else the `?redirect=` query
  * parameter; either one is honoured only for same-origin paths (see
- * `safeRedirect.ts`). With neither, signing in lands on the planner.
+ * `safeRedirect.ts`). With neither, signing in lands on the signed-in
+ * home, `/dashboard/` (TRA-199): the trips already saved, and the field that
+ * starts the next one.
  */
 export function LoginModal({ isOpen, onClose, redirect: asked }: LoginModalProps) {
   const { provider, login, loginWithRedirect } = useAuth();
@@ -71,7 +73,7 @@ export function LoginModal({ isOpen, onClose, redirect: asked }: LoginModalProps
       return;
     }
     onClose();
-    router.push(redirect ?? "/plan/");
+    router.push(redirect ?? "/dashboard/");
   };
 
   const handleRedirect = async () => {

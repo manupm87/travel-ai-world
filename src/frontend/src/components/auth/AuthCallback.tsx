@@ -10,8 +10,10 @@ import { Container } from "@/components/ui/Container";
 
 /**
  * Finishes a Cognito sign-in: exchanges the code in the query for a session
- * and continues to the page the user wanted. The exchange runs once, even
- * under React's development double-effect: a code is single-use.
+ * and continues to the page the user wanted — or, when the sign-in was not
+ * asked for from anywhere in particular, to the signed-in home `/dashboard/`
+ * (TRA-199). The exchange runs once, even under React's development
+ * double-effect: a code is single-use.
  *
  * Nothing here is a decision the reader makes, so the page stays quiet — the
  * spinner and one line — until the exchange fails, and then it says so and
@@ -29,7 +31,7 @@ export function AuthCallback() {
     if (started.current) return;
     started.current = true;
     completeLogin(searchParams)
-      .then((redirect) => router.replace(redirect ?? "/plan/"))
+      .then((redirect) => router.replace(redirect ?? "/dashboard/"))
       .catch(() => setFailed(true));
   }, [completeLogin, router, searchParams]);
 

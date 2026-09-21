@@ -66,6 +66,25 @@ describe("UserMenu", () => {
     expect(mockPush).toHaveBeenCalledWith("/");
   });
 
+  it("sends \"Your trips\" to the signed-in home, in both variants", () => {
+    setAuth(true);
+    const { unmount } = renderWithProviders(
+      <UserMenu variant="inline" onLogin={onLogin} onAfterAction={onAfterAction} />
+    );
+    expect(screen.getByRole("link", { name: en.nav.trips })).toHaveAttribute(
+      "href",
+      "/dashboard"
+    );
+    unmount();
+
+    renderWithProviders(<UserMenu onLogin={onLogin} />);
+    fireEvent.click(screen.getByRole("button", { name: en.nav.userMenu }));
+    expect(screen.getByRole("menuitem", { name: en.nav.trips })).toHaveAttribute(
+      "href",
+      "/dashboard"
+    );
+  });
+
   it("toggles the dropdown with the right ARIA state and closes on outside click", () => {
     setAuth(true);
     renderWithProviders(<UserMenu onLogin={onLogin} />);
