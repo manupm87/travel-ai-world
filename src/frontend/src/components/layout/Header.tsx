@@ -1,9 +1,11 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
+import type { Translations } from "@/i18n/types";
 import { useScrolled } from "@/hooks/useScrolled";
 import { LoginModal } from "@/components/auth/LoginModal";
 import { Button } from "@/components/ui/Button";
@@ -19,12 +21,30 @@ interface HeaderProps {
   variant?: "landing" | "app";
 }
 
+/** The signed-in home, where the account's trips are listed. */
+const HOME = "/dashboard/";
+
+/**
+ * The pill's one action, which is always "the other place": the home sends
+ * you to the planner, and everywhere else — the planner included, which no
+ * longer lists any trips (TRA-201) — sends you to the trips.
+ */
+function pill(pathname: string | null, t: Translations) {
+  const onHome = (pathname ?? "/").replace(/\/+$/, "") === HOME.replace(/\/+$/, "");
+  return onHome
+    ? { href: "/plan/", label: t.nav.openPlanner, short: t.nav.plannerShort }
+    : { href: HOME, label: t.nav.trips, short: t.nav.tripsShort };
+}
+
 /**
  * Global navigation.
  *
  * Quiet by design: the wordmark, one action, and — once signed in — the
  * account menu. There are no links: the landing is one field and there is
- * nowhere else to go. On the marketing pages language and theme live in the footer,
+ * nowhere else to go. The one action is always the other place (TRA-201):
+ * the trips on the home, the planner everywhere else — which is how a
+ * traveller leaves a planner that no longer lists a single trip.
+ * On the marketing pages language and theme live in the footer,
  * so the top of the page holds nothing that competes with what you came to
  * type. The signed-in shell (`app/(app)/layout.tsx`) has no footer, so there
  * the two controls stay in the bar on desktop and in the drawer on small
@@ -38,11 +58,13 @@ interface HeaderProps {
 export default function Header({ variant = "landing" }: HeaderProps) {
   const { t } = useLanguage();
   const { isAuthenticated } = useAuth();
+  const pathname = usePathname();
   const scrolled = useScrolled();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
 
   const openLogin = () => setLoginOpen(true);
+  const action = pill(pathname, t);
 
   return (
     <>
@@ -73,13 +95,13 @@ export default function Header({ variant = "landing" }: HeaderProps) {
                  wrapped to two lines (TRA-193): below `sm` the pill says the
                  one word, while the accessible name stays the full action. */
               <Button
-                href="/plan/"
+                href={action.href}
                 size="sm"
-                aria-label={t.nav.openPlanner}
+                aria-label={action.label}
                 className="whitespace-nowrap"
               >
-                <span className="sm:hidden">{t.nav.plannerShort}</span>
-                <span className="hidden sm:inline">{t.nav.openPlanner}</span>
+                <span className="sm:hidden">{action.short}</span>
+                <span className="hidden sm:inline">{action.label}</span>
               </Button>
             ) : (
               <Button size="sm" onClick={openLogin} className="whitespace-nowrap">

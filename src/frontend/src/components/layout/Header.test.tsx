@@ -5,8 +5,10 @@ import { useAuth } from "@/context/AuthContext";
 import en from "@/i18n/en";
 
 const mockPush = vi.fn();
+/** The path the header thinks it is on; each test sets it before rendering. */
+let pathname = "/";
 vi.mock("next/navigation", () => ({
-  usePathname: () => "/",
+  usePathname: () => pathname,
   useRouter: () => ({ push: mockPush, replace: vi.fn(), prefetch: vi.fn() }),
   useSearchParams: () => new URLSearchParams(),
 }));
@@ -49,6 +51,7 @@ describe("Header", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     window.scrollY = 0;
+    pathname = "/";
     document.documentElement.lang = "en";
     signedOut();
   });
@@ -76,21 +79,39 @@ describe("Header", () => {
     expect(screen.getByRole("button", { name: en.nav.selectLanguage })).toBeInTheDocument();
   });
 
-  it("offers to sign in when signed out and opens the planner when signed in", () => {
+  it("offers to sign in when signed out and the trips when signed in", () => {
     const { unmount } = renderWithProviders(<Header />);
     expect(screen.getByRole("button", { name: en.auth.login })).toBeInTheDocument();
-    expect(
-      screen.queryByRole("link", { name: en.nav.openPlanner })
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: en.nav.trips })).not.toBeInTheDocument();
     unmount();
 
     signedIn();
     renderWithProviders(<Header />);
     // `next/link` normalises the trailing slash the static export adds back.
     expect(
-      screen.getByRole("link", { name: en.nav.openPlanner }).getAttribute("href")
-    ).toMatch(/^\/plan\/?$/);
+      screen.getByRole("link", { name: en.nav.trips }).getAttribute("href")
+    ).toMatch(/^\/dashboard\/?$/);
     expect(screen.queryByRole("button", { name: en.auth.login })).not.toBeInTheDocument();
+  });
+
+  it("makes the pill the other place: the planner from the home, the trips elsewhere", () => {
+    signedIn();
+
+    pathname = "/dashboard";
+    const { unmount } = renderWithProviders(<Header variant="app" />);
+    const toPlanner = screen.getByRole("link", { name: en.nav.openPlanner });
+    expect(toPlanner.getAttribute("href")).toMatch(/^\/plan\/?$/);
+    expect(toPlanner).toHaveTextContent(en.nav.plannerShort);
+    expect(screen.queryByRole("link", { name: en.nav.trips })).not.toBeInTheDocument();
+    unmount();
+
+    // The planner is where it matters most: it lists no trips of its own.
+    pathname = "/plan";
+    renderWithProviders(<Header variant="app" />);
+    const toTrips = screen.getByRole("link", { name: en.nav.trips });
+    expect(toTrips.getAttribute("href")).toMatch(/^\/dashboard\/?$/);
+    expect(toTrips).toHaveTextContent(en.nav.tripsShort);
+    expect(screen.queryByRole("link", { name: en.nav.openPlanner })).not.toBeInTheDocument();
   });
 
   it("reaches the trips from the account menu", () => {
