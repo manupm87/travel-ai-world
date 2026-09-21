@@ -3,8 +3,8 @@ import { TOKEN_STORAGE_KEY, USER_STORAGE_KEY } from "../src/services/session";
 import { ACTIVITIES, HOTELS, RESTAURANTS } from "../src/data/planner-demo/session";
 
 /**
- * Saved trips: listed on the signed-in home (TRA-199), read and changed in the
- * planner (TRA-196).
+ * Saved trips: listed on the signed-in home and nowhere else (TRA-199,
+ * TRA-201), read and changed in the planner (TRA-196).
  *
  * There is no seed any more, so this suite writes the trips it needs through
  * the REST API before it starts and deletes them after — one upcoming trip,
@@ -183,7 +183,7 @@ async function createTrip(api: APIRequestContext, { title, startsIn, days }: New
   return id;
 }
 
-test.describe("Trips in the planner", () => {
+test.describe("Trips: listed on the home, lived in the planner", () => {
   test.skip(!TOKEN, "E2E_TOKEN is not set: run `just dev-token <email>` first");
 
   /** A run-specific suffix, so two runs against one database never collide. */
@@ -216,20 +216,32 @@ test.describe("Trips in the planner", () => {
     await signIn(page, TOKEN!);
   });
 
-  test("the planner lists the account's trips under the phase they are in", async ({ page }) => {
+  test("the planner lists no trips: it waits for the one it is about to make", async ({
+    page,
+  }) => {
     await page.goto("/plan/");
 
+    await expect(
+      page.getByRole("heading", { level: 2, name: "Your trip takes shape here" })
+    ).toBeVisible();
+    await expect(page.getByRole("heading", { level: 3, name: GROUP.upcoming })).toHaveCount(0);
+    await expect(page.getByRole("heading", { level: 3, name: GROUP.past })).toHaveCount(0);
+    await expect(page.getByRole("heading", { level: 4, name: UPCOMING })).toHaveCount(0);
+  });
+
+  test("the planner's header pill goes back to the home", async ({ page }) => {
+    await page.goto("/plan/");
+
+    await page.getByRole("link", { name: "Your trips" }).click();
+
+    await expect(page).toHaveURL(/\/dashboard\/?$/);
     await expect(page.getByRole("heading", { level: 2, name: "Your trips" })).toBeVisible();
-    await expect(page.getByRole("heading", { level: 3, name: GROUP.upcoming })).toBeVisible();
-    await expect(page.getByRole("heading", { level: 3, name: GROUP.past })).toBeVisible();
-    await expect(page.getByRole("heading", { level: 4, name: UPCOMING })).toBeVisible();
-    await expect(page.getByRole("heading", { level: 4, name: PAST })).toBeVisible();
   });
 
   test("opening an upcoming trip shows its days and leaves the planner working", async ({
     page,
   }) => {
-    await page.goto("/plan/");
+    await page.goto("/dashboard/");
     await page.getByRole("link", { name: UPCOMING }).click();
 
     await expect(page).toHaveURL(new RegExp(`/plan/?\\?trip=${upcomingId}$`));
@@ -261,7 +273,7 @@ test.describe("Trips in the planner", () => {
     const id = await createTrip(api, { title, startsIn: 60, days: 2 });
     disposable.push(id);
 
-    await page.goto("/plan/");
+    await page.goto("/dashboard/");
     // Every step is a named control the keyboard can reach, and the menu and
     // the dialog both answer to Enter.
     await page.getByRole("button", { name: `Options for ${title}` }).press("Enter");
@@ -288,7 +300,7 @@ test.describe("Trips in the planner", () => {
     const title = `E2E delete ${Date.now()}`;
     const id = await createTrip(api, { title, startsIn: 90, days: 1 });
 
-    await page.goto("/plan/");
+    await page.goto("/dashboard/");
     await expect(page.getByRole("heading", { level: 4, name: title })).toBeVisible();
 
     await page.getByRole("button", { name: `Options for ${title}` }).click();

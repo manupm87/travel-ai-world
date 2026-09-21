@@ -294,12 +294,17 @@ test.describe("Planner page — /plan/", () => {
     const tabs = page.getByRole("tablist");
     await expect(tabs).toBeVisible();
     await expect(composer(page)).toBeVisible();
-    await expect(page.getByRole("heading", { level: 2, name: "Your trips" })).toBeHidden();
+    const placeholder = page.getByRole("heading", {
+      level: 2,
+      name: "Your trip takes shape here",
+    });
+    await expect(placeholder).toBeHidden();
 
     await tabs.getByRole("tab", { name: "Trip" }).click();
-    // Nothing asked yet, so the trip pane is the account's trips (TRA-196);
-    // the checklist takes their place as soon as the conversation starts.
-    await expect(page.getByRole("heading", { level: 2, name: "Your trips" })).toBeVisible();
+    // Nothing asked yet, so the trip pane says what it is for and waits: it
+    // lists no trips (TRA-201), and the checklist takes its place as soon as
+    // the conversation starts.
+    await expect(placeholder).toBeVisible();
     await expect(composer(page)).toBeHidden();
 
     // No itinerary, so no day and no map: the Map tab arrives with the first
