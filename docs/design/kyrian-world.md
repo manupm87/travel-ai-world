@@ -79,7 +79,17 @@ One orchestrated moment per page; everything else answers something the reader d
 ## Trips in the planner
 
 A saved trip is a planner draft that was written down, so it is read and changed where it was
-planned: `/plan/`. There is no dashboard and no viewer.
+planned: `/plan/`. There is no viewer.
+
+**The home.** Signing in lands on `/dashboard/`, "Your trips" (TRA-199). It is two things and no
+more, in the order they are wanted: the landing's own field, centred under a quiet question —
+"Where next?" — and under it the same list of trips the planner keeps, with "New trip" beside its
+heading. A returning traveller arrives with one of two intentions, open the trip they have or start
+the next one, and the page answers both without a tab, a toggle or an empty workspace in between.
+The field is the landing's, exactly: the same placeholder typing itself, the same conic ring, the
+same fade on the way out, so nothing has to be learnt twice. Sending it opens the planner with the
+ask; a card opens the planner with the trip. The page decides nothing about what can be changed —
+it links, and the planner applies the rule below.
 
 **The list.** The trip pane holds the account's trips while nothing has been asked yet; after that
 it is one press away, as a glass sheet over the workspace. It is grouped by what is happening now,

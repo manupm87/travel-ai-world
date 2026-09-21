@@ -105,6 +105,12 @@ TypeScript 5, Tailwind CSS v4.
   Do not wrap pages in `ProtectedRoute` again.
 - **The landing is the field** (TRA-190): `/` is `components/landing/AskField.tsx` and nothing else
   — the question (the page's only `h1`, and the field's `aria-labelledby`), the field, the button.
+  The field itself is `components/common/AskComposer.tsx` (TRA-199), shared with the signed-in home:
+  the textarea, the typewriter placeholder, the auto-resize, Enter sends / Shift+Enter breaks the
+  line, the send button's "Sending…" state, the conic focus ring and the fade on the way out. Its
+  `onSubmit(ask)` answers with the href to fade to, or `null` when the press was taken somewhere
+  else — which is how `AskField` opens the sign-in dialog without the field fading behind it.
+  `AskField` keeps everything about signing in and exports `plannerHref(ask)`.
   The placeholder types the example asks out one after another (`hooks/useTypewriter.ts`, pure and
   reduced-motion aware), which is why there is no row of example chips; the focused field wears the
   `.conic-ring` from `globals.css`. Sending opens `/plan/?q=<ask>` when there is a session, and
@@ -114,12 +120,15 @@ TypeScript 5, Tailwind CSS v4.
   Landing with `?redirect=` — the route guard turned someone away — opens that dialog at once. The
   query is read from `window.location` through `useSyncExternalStore`, never `useSearchParams`,
   which would leave the page a shell filled in on hydration instead of prerendered HTML.
-- **Trips live in the planner** (TRA-196, ADR 0019): there is no dashboard and no viewer any more.
+- **Trips are listed on the home and lived in the planner** (TRA-196/TRA-199, ADR 0019/0020):
+  there is no viewer any more.
   `components/planner/v2/TripsList.tsx` is the account's trips, grouped by phase in the order they
   matter in — ongoing, upcoming, past, with a quiet heading and a hairline rule running off it
-  rather than a section of its own — and it owns `useTrips` and both dialogs. It appears in two
-  places: the trip pane while nothing has been asked yet (the checklist takes its place as soon as
-  the conversation starts), and `TripsSheet.tsx`, a glass sheet from the pane's "Your trips".
+  rather than a section of its own — and it owns `useTrips` and both dialogs. It appears in three
+  places: the signed-in home under its own `h2`, the trip pane while nothing has been asked yet (the
+  checklist takes its place as soon as the conversation starts), and `TripsSheet.tsx`, a glass sheet
+  from the pane's "Your trips". Its own headings are `h3` per group and `h4` per card, so it sits
+  under whatever heading the surface gives it.
   `components/ui/TripCard.tsx` is the cover photo with a scrim of `--color-bg-primary` brought back
   up over it (so the copy clears 4.5:1 on either theme whatever the photo is), a stretched link on
   the title to `/plan/?trip=<id>` (`after:absolute after:inset-0`) and one `⋯` button above it: a
@@ -142,11 +151,18 @@ TypeScript 5, Tailwind CSS v4.
   `bg-glass-bg backdrop-blur-xl border-glass-border` over the aurora, never an opaque card. The
   sign-in dialog adds its own `h2` ("Sign in to plan") as the label, the orbit `Mark` from
   `Logo.tsx` and the landing's `.conic-ring` around its one action.
-- `/dashboard/` and `/trip/?id=` are **redirects** kept for old links (TRA-196):
-  `app/(app)/dashboard/page.tsx` replaces the URL with `/plan/`, and `app/(app)/trip/TripRedirect.tsx`
-  with `/plan/?trip=<uuid>` when the id is a trip id. Sign-in lands on `/plan/` too, and the account
-  menu's "Your trips" links there. Never a `/plan/[id]` route: the export cannot serve per-user ids
-  (ADR 0011). Links to a trip are `/plan/?trip=${encodeURIComponent(id)}`.
+- **`/dashboard/` is the signed-in home** (TRA-199, ADR 0020): "Your trips". A static shell
+  (`app/(app)/dashboard/page.tsx`) over `TripsHome.tsx`, which is two things in the order they are
+  wanted — the ask, then the account's trips. The ask is `components/common/AskComposer.tsx`, the
+  landing's own field; the trips are `components/planner/v2/TripsList.tsx`, the planner's own list,
+  with "New trip" (`/plan/`) beside its heading. Sending the ask opens `/plan/?q=<ask>`, a card
+  opens `/plan/?trip=<id>`, and whether that trip can be changed is the planner's rule, not this
+  page's. **Sign-in lands here**: `LoginModal` and `AuthCallback` default to `/dashboard/` when no
+  redirect was asked for, and the account menu's "Your trips" links here — the header's pill still
+  opens `/plan/` directly. `/trip/?id=` stays a **redirect** kept for old links (TRA-196):
+  `app/(app)/trip/TripRedirect.tsx` replaces the URL with `/plan/?trip=<uuid>` when the id is a trip
+  id, and with `/plan/` when it is not. Never a `/plan/[id]` route: the export cannot serve per-user
+  ids (ADR 0011). Links to a trip are `/plan/?trip=${encodeURIComponent(id)}`.
 - The planner is `/plan/` (`app/(app)/plan/`, optionally `?q=<prompt>` from the landing's
   `AskField` or `?trip=<uuid>` for a saved trip), the same static-shell + client-page pattern: `PlannerClientPage.tsx` wires
   `usePlanner` to `components/planner/v2/` (layout A from the TRA-136 mockups: `PlannerLayout`

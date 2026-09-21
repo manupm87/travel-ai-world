@@ -105,6 +105,13 @@ sequenceDiagram
     C-->>B: JWT {sub, email, role, exp} + profile
 ```
 
+**Where signing in lands.** The dialog and the Cognito callback both honour an explicit
+destination — the landing's own `/plan/?q=<ask>`, or the path the route guard remembered in
+`?redirect=` — and default to `/dashboard/`, the signed-in home: the ask that starts the next trip
+over the cards of the ones already saved ([ADR 0020](adr/0020-signed-in-home-is-the-trips-page.md)).
+A card opens `/plan/?trip=<id>`, read-only when its phase is not `upcoming`
+([ADR 0019](adr/0019-trips-live-in-the-planner.md)).
+
 In both modes:
 
 - `core_api` verifies the token **and** checks the account in the database on every request:

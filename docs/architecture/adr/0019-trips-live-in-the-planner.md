@@ -1,6 +1,6 @@
 # 0019 — Trips live in the planner: one city, a derived phase, a read-only past
 
-**Status:** Accepted
+**Status:** Accepted (amended by [0020](0020-signed-in-home-is-the-trips-page.md))
 **Date:** 2026-09-20
 
 Supersedes, in part, [0005](0005-trip-aggregate-nested-resources.md) (§ destinations),
@@ -58,6 +58,8 @@ rebuild an `ItineraryDraft` identical to the one that was saved.
 
 **The planner is the only signed-in surface.** It lists the account's trips, opens one, renames
 and deletes it. `/dashboard/` and `/trip/` become client redirects so old links keep working.
+(Amended by [ADR 0020](0020-signed-in-home-is-the-trips-page.md): `/dashboard/` is the signed-in
+home again — the ask and the trip cards — and the planner is where a trip is made and read.)
 
 **The demo seed is retired.** `core_api/seed/`, the `seed` command (`ops.py`, `entrypoint.sh`,
 `just seed`), the image-build check and the CI seed step are gone; `migrate` is the whole surface
