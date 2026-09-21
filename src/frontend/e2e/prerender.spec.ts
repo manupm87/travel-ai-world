@@ -19,6 +19,19 @@ test.describe("Static export — HTML as served, before any JS runs", () => {
   });
 });
 
+test.describe("The signed-in home — /dashboard/", () => {
+  test("the shell is served; the trips are the browser's to fetch", async ({ request }) => {
+    const response = await request.get("/dashboard/");
+    expect(response.status()).toBe(200);
+
+    const html = await response.text();
+    // The shell prerenders; what is behind the guard does not, because the
+    // session lives in the browser and the trips are per account.
+    expect(html).toContain("<header");
+    expect(html).not.toMatch(/3 days in Budapest/);
+  });
+});
+
 test.describe("The planner — one static shell for every trip (/plan/?trip=)", () => {
   test("the shell is served for any id; the trip itself is fetched by the browser", async ({
     request,

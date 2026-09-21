@@ -2,10 +2,11 @@ import { test, expect, type Page } from "@playwright/test";
 import { TOKEN_STORAGE_KEY, USER_STORAGE_KEY } from "../src/services/session";
 
 /**
- * The phone viewport (TRA-187). One 390 × 844 pass over the two pages that can
+ * The phone viewport (TRA-187). One 390 × 844 pass over the pages that can
  * break there: the landing, which must never scroll sideways and must offer its
- * CTA and its drawer, and the planner, whose whole promise is that the page
- * itself does not scroll — the panes do.
+ * CTA and its drawer; the signed-in home (TRA-199), a reading page that stacks
+ * the field over the trips; and the planner, whose whole promise is that the
+ * page itself does not scroll — the panes do.
  *
  * It runs in all three configs (`test:e2e`, `test:e2e:static`, `test:e2e:stack`)
  * and needs no backend: the planner is signed in with a fake unsigned JWT (the
@@ -99,6 +100,39 @@ test.describe("Landing page on a phone — /", () => {
     // viewport, so the assertion is "covers it", not "is exactly it".
     expect(drawerBox?.width).toBeGreaterThan(VIEWPORT.width - 1);
     expect(drawerBox?.height).toBeGreaterThan(VIEWPORT.height - 1);
+  });
+});
+
+test.describe("The signed-in home on a phone — /dashboard/", () => {
+  test.beforeEach(async ({ page }) => {
+    await signIn(page);
+    await page.goto("/dashboard/");
+  });
+
+  test("the field keeps its 16 px gutter and nothing overflows sideways", async ({ page }) => {
+    const field = page.getByRole("textbox", { name: "Where next?" });
+    await expect(field).toBeVisible();
+
+    const box = await documentBox(page);
+    expect(box.scrollWidth).toBeLessThanOrEqual(box.innerWidth);
+
+    const fieldBox = await field.boundingBox();
+    expect(fieldBox).not.toBeNull();
+    expect(fieldBox?.x).toBeGreaterThanOrEqual(16);
+    expect((fieldBox?.x ?? 0) + (fieldBox?.width ?? 0)).toBeLessThanOrEqual(
+      VIEWPORT.width - 16
+    );
+  });
+
+  test("the trips sit under the ask, not beside it", async ({ page }) => {
+    const ask = page.getByRole("heading", { level: 1, name: "Where next?" });
+    const trips = page.getByRole("heading", { level: 2, name: "Your trips" });
+    await expect(ask).toBeVisible();
+    await expect(trips).toBeVisible();
+
+    const askBox = await ask.boundingBox();
+    const tripsBox = await trips.boundingBox();
+    expect(tripsBox?.y ?? 0).toBeGreaterThan(askBox?.y ?? 0);
   });
 });
 

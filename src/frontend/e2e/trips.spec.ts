@@ -3,7 +3,8 @@ import { TOKEN_STORAGE_KEY, USER_STORAGE_KEY } from "../src/services/session";
 import { ACTIVITIES, HOTELS, RESTAURANTS } from "../src/data/planner-demo/session";
 
 /**
- * Saved trips, where they now live: the planner (TRA-196).
+ * Saved trips: listed on the signed-in home (TRA-199), read and changed in the
+ * planner (TRA-196).
  *
  * There is no seed any more, so this suite writes the trips it needs through
  * the REST API before it starts and deletes them after — one upcoming trip,
@@ -314,12 +315,52 @@ test.describe("Trips in the planner", () => {
     await expect(page.getByRole("textbox", { name: COMPOSER })).toBeVisible();
   });
 
-  test("the old viewer and dashboard links land in the planner", async ({ page }) => {
+  test("the old viewer's links land in the planner", async ({ page }) => {
     await page.goto(`/trip/?id=${upcomingId}`);
     await expect(page).toHaveURL(new RegExp(`/plan/?\\?trip=${upcomingId}$`));
+  });
 
+  test("the home lists the trips and opens one", async ({ page }) => {
     await page.goto("/dashboard/");
+
+    // The field first, then the trips under their own heading.
+    await expect(page.getByRole("heading", { level: 1, name: "Where next?" })).toBeVisible();
+    await expect(page.getByRole("textbox", { name: "Where next?" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 2, name: "Your trips" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 3, name: GROUP.upcoming })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 3, name: GROUP.past })).toBeVisible();
+
+    // The one that is over opens read-only…
+    await page.getByRole("link", { name: PAST }).click();
+    await expect(page).toHaveURL(new RegExp(`/plan/?\\?trip=${pastId}$`));
+    await expect(page.getByText("This trip is over. It stays here as it was.")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Save trip" })).toHaveCount(0);
+
+    // …and the one still ahead opens as it was planned.
+    await page.goto("/dashboard/");
+    await page.getByRole("link", { name: UPCOMING }).click();
+    await expect(page).toHaveURL(new RegExp(`/plan/?\\?trip=${upcomingId}$`));
+    await expect(page.getByRole("textbox", { name: COMPOSER })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Save trip" })).toBeVisible();
+  });
+
+  test("the home's ask opens the planner with it", async ({ page }) => {
+    await page.goto("/dashboard/");
+
+    await page
+      .getByRole("textbox", { name: "Where next?" })
+      .fill("Four days in Budapest, thermal baths");
+    await page.getByRole("button", { name: "Plan it" }).click();
+
+    await expect(page).toHaveURL(/\/plan\/?\?q=Four%20days%20in%20Budapest/);
+  });
+
+  test("a new trip starts from the home, in an empty planner", async ({ page }) => {
+    await page.goto("/dashboard/");
+    await page.getByRole("link", { name: "New trip" }).click();
+
     await expect(page).toHaveURL(/\/plan\/?$/);
+    await expect(page.getByRole("textbox", { name: COMPOSER })).toBeVisible();
   });
 });
 
