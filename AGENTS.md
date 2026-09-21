@@ -85,10 +85,31 @@ Windows: `winget install Casey.Just` and run the recipes from Git Bash or WSL (t
   links it (`Closes TRA-123`). Claude Code enforces the pattern with a hook (`.claude/hooks/`).
 - PRs follow `.github/pull_request_template.md`; CI is `.github/workflows/pr.yml` (path-filtered jobs).
 
+## How work is delivered (default)
+
+Every change bigger than a few lines goes through the same four roles. One session may play
+several of them, but the hand-offs are explicit and the brief is written down before any code.
+
+1. **Audit and brief** — the most capable model available reads the code involved, takes the design
+   decisions and writes an agent-ready brief: outcome, decisions taken (not to be reopened), files to
+   touch, tests, docs, acceptance criteria. The Linear issue carries the outcome and the acceptance
+   list; the brief adds the details.
+2. **Implement** — a cheaper capable model (Opus) works in its own git worktree on the issue branch,
+   runs the checks and opens the PR (`Closes TRA-<n>`).
+3. **Review** — independent reviewers (Sonnet), one lens each: correctness, contracts and tests,
+   UX / copy / accessibility. A finding names file and line and says what to change.
+4. **Fix and ship** — the implementer's model applies the confirmed findings and watches CI; the main
+   session merges when CI is green. Merging, `terraform apply` and production checks stay human
+   decisions whenever the tooling asks for one.
+
+Runbook (brief template, how to run and resume a wave, what the human does):
+[docs/runbooks/agent-delivery.md](docs/runbooks/agent-delivery.md). Claude Code runs the wave with
+`/deliver-issue TRA-<n>` (`.claude/workflows/kyrian-wave.js`).
+
 ## Where things live
 
 - Auth flow, chat flow, service-to-service calls → `docs/architecture/overview.md`
-- Local dev, Docker, deploy, release → `docs/runbooks/`
+- Local dev, Docker, deploy, release, agent delivery → `docs/runbooks/`
 - API contracts (generated) → `docs/api/*.openapi.json` and `src/frontend/src/types/generated/`
 - Cloud deployment → `infra/README.md`, then `infra/<cloud>/README.md`
 - Design file `docs/design/ideas.pen` → only through Pencil MCP tools (Claude); never open with file tools.
