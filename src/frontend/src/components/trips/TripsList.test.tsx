@@ -61,16 +61,6 @@ describe("TripsList", () => {
     );
   });
 
-  it("marks the trip the planner already has open", () => {
-    hook({ trips: [upcoming] });
-    renderWithProviders(<TripsList openTripId="soon" />);
-
-    expect(screen.getByRole("link", { name: upcoming.title })).toHaveAttribute(
-      "aria-current",
-      "page"
-    );
-  });
-
   it("offers renaming only where core_api would accept it", () => {
     hook({ trips: [upcoming, past] });
     renderWithProviders(<TripsList />);
@@ -143,11 +133,10 @@ describe("TripsList", () => {
     expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
-  it("folds the card away, deletes the trip and tells the planner which one went", async () => {
+  it("folds the card away before the trip leaves the list", async () => {
     vi.useFakeTimers();
-    const onDeleted = vi.fn();
     hook({ trips: [past] });
-    renderWithProviders(<TripsList onDeleted={onDeleted} />);
+    renderWithProviders(<TripsList />);
 
     fireEvent.click(
       screen.getByRole("button", { name: interpolate(l.card.menu, { title: past.title }) })
@@ -160,7 +149,6 @@ describe("TripsList", () => {
     });
 
     expect(remove).toHaveBeenCalledWith("then");
-    expect(onDeleted).toHaveBeenCalledWith("then");
     vi.useRealTimers();
   });
 

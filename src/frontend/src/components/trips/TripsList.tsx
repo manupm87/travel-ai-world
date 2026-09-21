@@ -10,40 +10,34 @@ import { cn } from "@/utils/cn";
 import { ConfirmDelete } from "./ConfirmDelete";
 import { RenameTripDialog } from "./RenameTripDialog";
 
-export interface TripsListProps {
-  /** The trip the planner has open: its card says so and cannot be renamed twice over. */
-  openTripId?: string | null;
-  /** After a trip is deleted; the planner empties itself if that was the one it held. */
-  onDeleted?: (id: string) => void;
-  /** A card was followed: the sheet that held the list closes behind it. */
-  onOpen?: () => void;
-}
-
 /** How long the card takes to fold away before it leaves the list. */
 const COLLAPSE_MS = 300;
 
 /** The whole list settles in once, 40 ms apart, top to bottom. */
 const STAGGER_MS = 40;
 
-/** Enough to fill the pane while the trips are on their way. */
+/** Enough to fill the section while the trips are on their way. */
 const PLACEHOLDERS = [0, 1, 2];
 
 /**
- * The account's trips, where they are planned.
+ * The account's trips, on the signed-in home.
  *
  * One list, grouped by what is happening now, what is coming and what has
  * already happened — the order they matter in, not the order they were
  * written. A group is a line across the list rather than a section of its
  * own: a quiet heading with a rule running off it, and that group's cards
- * underneath, so a pane of four trips does not read like a landing page. The
- * stagger counts across the whole list, so it settles in one movement.
+ * underneath, so four trips do not read like a landing page. The stagger
+ * counts across the whole list, so it settles in one movement.
  *
- * The hook owns the data and both writes (`useTrips`); this component owns
- * which dialog is open and which card is folding away. Renaming is offered
- * only where core_api would accept it — an upcoming trip — while deleting is
- * offered on every card, because a trip can be thrown away in any phase.
+ * It renders on one surface only — `/dashboard/` (ADR 0020, TRA-201): the
+ * planner holds the one trip it was opened with and lists none, so the list
+ * takes no props. The hook owns the data and both writes (`useTrips`); this
+ * component owns which dialog is open and which card is folding away.
+ * Renaming is offered only where core_api would accept it — an upcoming trip
+ * — while deleting is offered on every card, because a trip can be thrown
+ * away in any phase.
  */
-export function TripsList({ openTripId = null, onDeleted, onOpen }: TripsListProps) {
+export function TripsList() {
   const { t } = useLanguage();
   const { trips, status, reload, remove, rename } = useTrips();
   const l = t.plan.trips;
@@ -78,7 +72,6 @@ export function TripsList({ openTripId = null, onDeleted, onOpen }: TripsListPro
     }
     setLeavingId(null);
     setDeleting(null);
-    onDeleted?.(id);
   };
 
   if (status === "loading") {
@@ -135,9 +128,9 @@ export function TripsList({ openTripId = null, onDeleted, onOpen }: TripsListPro
 
   return (
     <>
-      {/* One grid, however wide the surface is: three across the trip pane
-          when it spans the map's column, one down the sheet. A group is a
-          line across it, not a section of its own. */}
+      {/* One grid, however wide the surface is: three across the home on a
+          desktop, one down a phone. A group is a line across it, not a
+          section of its own. */}
       <div className="grid grid-cols-[repeat(auto-fill,minmax(17rem,1fr))] gap-3">
         {groups.map((group, index) => (
           <Fragment key={group.phase}>
@@ -164,8 +157,6 @@ export function TripsList({ openTripId = null, onDeleted, onOpen }: TripsListPro
                 >
                   <TripCard
                     trip={trip}
-                    current={trip.id === openTripId}
-                    onOpen={onOpen}
                     onRename={trip.phase === "upcoming" ? () => setRenaming(trip) : undefined}
                     onDelete={() => setDeleting(trip)}
                     className="animate-fade-up"
