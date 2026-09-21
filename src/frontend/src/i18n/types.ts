@@ -53,6 +53,12 @@ export interface Translations {
     unavailable: string;
   };
 
+  /** The signed-in home (`/dashboard/`): the ask, then the account's trips (TRA-199). */
+  dashboard: {
+    /** The page's `h1`, which also names the field under it. */
+    headline: string;
+  };
+
   /** The planner page (`/plan/`): chat + option cards + live itinerary (TRA-144). */
   plan: {
     title: string;
@@ -324,7 +330,7 @@ export interface Translations {
       notFoundDescription: string;
       loadErrorTitle: string;
       loadErrorDescription: string;
-      /** The old `/dashboard/` and `/trip/` links, on their way to `/plan/`. */
+      /** The old `/trip/?id=` links, on their way to `/plan/?trip=`. */
       redirecting: string;
     };
     /** A trip that is happening now or already happened: read-only (ADR 0019). */

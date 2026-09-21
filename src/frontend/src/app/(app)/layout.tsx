@@ -3,7 +3,7 @@ import { AppAurora } from "@/components/layout/AppAurora";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 /**
- * Signed-in pages (the planner, and the two routes that forward to it): the shell and the
+ * Signed-in pages (the home, the planner and the route that forwards to it): the shell and the
  * auth guard, declared once for every route in this group instead of per page.
  *
  * The shell paints no background of its own — `body` already carries

@@ -47,6 +47,10 @@ const en: Translations = {
     unavailable:
       "The AI planner needs a connected backend, so it is not available on this static preview.",
   },
+  dashboard: {
+    /** Quiet and forward-looking: the reader already has an account and, often, trips. */
+    headline: "Where next?",
+  },
   plan: {
     title: "Plan a trip",
     subtitle: "Talk, pick from the cards, and watch the itinerary take shape on the right.",

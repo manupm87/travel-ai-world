@@ -9,9 +9,9 @@ const PLANNER = "/plan";
 /**
  * The aurora for the signed-in shell, minus the planner.
  *
- * The two routes kept for old links are reading surfaces and sit on the same
- * dusk horizon as the landing, so the layer belongs to the layout rather than
- * to each page (TRA-193). The planner is a three-column workspace that fills
+ * The home (`/dashboard/`) and the route kept for old trip links are reading
+ * surfaces and sit on the same dusk horizon as the landing, so the layer
+ * belongs to the layout rather than to each page (TRA-193). The planner is a three-column workspace that fills
  * the viewport and paints its own panes: a drifting sky behind a map and a
  * transcript is weather in the wrong room, and its columns cover it anyway.
  */

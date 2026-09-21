@@ -1,22 +1,14 @@
-"use client";
-
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
-import { useLanguage } from "@/context/LanguageContext";
+import TripsHome from "./TripsHome";
 
 /**
- * `/dashboard/` is now the planner (TRA-196): trips are listed, opened,
- * renamed and deleted there, so this route stays only to keep old links and
- * bookmarks working, and hands the browser straight on to `/plan/`.
+ * `/dashboard/` is the signed-in home (TRA-199, ADR 0020): the ask that starts
+ * the next trip, and the trips already saved.
+ *
+ * A static shell, like every page in this group: the trips are per account and
+ * unknown at build time, so the client component below loads them with the
+ * session token (ADR 0011). Nothing here reads the query string, so no
+ * `Suspense` boundary is needed.
  */
 export default function DashboardPage() {
-  const router = useRouter();
-  const { t } = useLanguage();
-
-  useEffect(() => {
-    router.replace("/plan/");
-  }, [router]);
-
-  return <LoadingSpinner label={t.plan.trips.redirecting} />;
+  return <TripsHome />;
 }

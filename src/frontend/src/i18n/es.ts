@@ -40,6 +40,10 @@ const es: Translations = {
     unavailable:
       "El planificador con IA necesita un backend conectado, así que no está disponible en esta vista estática.",
   },
+  dashboard: {
+    /** Tranquila y hacia delante: quien lee ya tiene cuenta y, a menudo, viajes. */
+    headline: "¿Adónde vamos ahora?",
+  },
   plan: {
     title: "Planificar un viaje",
     subtitle: "Habla, elige entre las tarjetas y mira cómo el itinerario toma forma a la derecha.",
