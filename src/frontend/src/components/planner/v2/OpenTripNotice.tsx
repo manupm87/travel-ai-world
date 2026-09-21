@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 
@@ -11,8 +12,6 @@ export type OpenTripState =
 
 export interface OpenTripNoticeProps {
   state: OpenTripState;
-  /** The way on: the account's trips, over the planner. */
-  onShowTrips: () => void;
 }
 
 /**
@@ -24,8 +23,12 @@ export interface OpenTripNoticeProps {
  * page. A missing trip and a forbidden one read the same on purpose — the
  * service resolves both to nothing, so nothing about other people's ids
  * leaks out of here either.
+ *
+ * The way on from a trip that is not there is the home, where the account's
+ * trips are listed (`/dashboard/`, TRA-201) — a link, because it is a
+ * navigation; the error state keeps its button, because retrying is not.
  */
-export function OpenTripNotice({ state, onShowTrips }: OpenTripNoticeProps) {
+export function OpenTripNotice({ state }: OpenTripNoticeProps) {
   const { t } = useLanguage();
   const l = t.plan.trips;
 
@@ -51,13 +54,22 @@ export function OpenTripNotice({ state, onShowTrips }: OpenTripNoticeProps) {
       <p className="text-sm leading-relaxed text-text-secondary">
         {notFound ? l.notFoundDescription : l.loadErrorDescription}
       </p>
-      <button
-        type="button"
-        onClick={notFound ? onShowTrips : state.onRetry}
-        className="mt-2 rounded-lg border border-glass-border bg-glass-bg px-3.5 py-2 text-sm font-medium text-text-primary transition hover:border-accent-border focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none"
-      >
-        {notFound ? l.title : l.retry}
-      </button>
+      {state.status === "not-found" ? (
+        <Link
+          href="/dashboard/"
+          className="mt-2 rounded-lg border border-glass-border bg-glass-bg px-3.5 py-2 text-sm font-medium text-text-primary transition hover:border-accent-border focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none"
+        >
+          {l.title}
+        </Link>
+      ) : (
+        <button
+          type="button"
+          onClick={state.onRetry}
+          className="mt-2 rounded-lg border border-glass-border bg-glass-bg px-3.5 py-2 text-sm font-medium text-text-primary transition hover:border-accent-border focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none"
+        >
+          {l.retry}
+        </button>
+      )}
     </div>
   );
 }

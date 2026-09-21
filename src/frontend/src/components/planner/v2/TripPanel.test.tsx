@@ -23,19 +23,6 @@ import {
 import { toMapStops } from "./mapStops";
 import { TripPanel } from "./TripPanel";
 
-// The empty pane lists the account's trips (TRA-196); the list owns its own
-// request, and this suite is about the panel, not about that list.
-vi.mock("@/hooks/useTrips", () => ({
-  useTrips: () => ({
-    trips: [],
-    status: "ready" as const,
-    error: null,
-    reload: vi.fn(),
-    remove: vi.fn(),
-    rename: vi.fn(),
-  }),
-}));
-
 const p = en.plan.panel;
 const DEEP_LINK = "https://www.google.com/travel/flights?q=Flights%20from%20MAD%20to%20BUD";
 
@@ -66,7 +53,6 @@ function renderPanel(
     onToggleShortlist: vi.fn(),
     onAskAlternatives: vi.fn(),
     onReset: vi.fn(),
-    onShowTrips: vi.fn(),
   };
   const saveState: UseSaveTripResult = {
     status: "idle",
@@ -513,7 +499,7 @@ describe("TripPanel", () => {
 
     // "Start over" empties the itinerary, then a new one arrives.
     setState({ itinerary: EMPTY_ITINERARY });
-    expect(screen.getByRole("heading", { name: en.plan.trips.title })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: p.emptyTitle })).toBeInTheDocument();
 
     setState({ itinerary });
     expect(wholeTripTab()).toHaveAttribute("aria-selected", "true");
@@ -555,36 +541,35 @@ describe("TripPanel", () => {
   });
 
   it("says what `?trip=` is doing instead of leaving the pane blank", () => {
-    const { onShowTrips } = renderPanel({}, {}, { openTrip: { status: "not-found" } });
+    renderPanel({}, {}, { openTrip: { status: "not-found" } });
 
     expect(screen.getByRole("alert")).toHaveTextContent(en.plan.trips.notFoundTitle);
-    fireEvent.click(screen.getByRole("button", { name: en.plan.trips.title }));
-    expect(onShowTrips).toHaveBeenCalledTimes(1);
+    // The way on is the home, where the trips are listed — not a sheet here.
+    expect(
+      screen.getByRole("link", { name: en.plan.trips.title }).getAttribute("href")
+    ).toMatch(/^\/dashboard\/?$/);
   });
 
-  it("lists the account's trips while nothing has been asked yet", () => {
-    const { onShowTrips } = renderPanel({ itinerary: EMPTY_ITINERARY, missing: [] });
+  it("shows the placeholder, not a trips list, before the conversation starts", () => {
+    renderPanel({ itinerary: EMPTY_ITINERARY, missing: [] });
 
-    expect(
-      screen.getByRole("heading", { name: en.plan.trips.title })
-    ).toBeInTheDocument();
-    expect(screen.getByText(en.plan.trips.emptyTitle)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: p.emptyTitle })).toBeInTheDocument();
+    expect(screen.getByText(p.emptyDescription)).toBeInTheDocument();
+    // The trips live on `/dashboard/` (TRA-201): nothing here lists them.
+    expect(screen.queryByRole("heading", { name: en.plan.trips.title })).toBeNull();
+    expect(screen.queryByText(en.plan.trips.groups.upcoming)).toBeNull();
     expect(screen.queryByText(en.plan.checklist.title)).not.toBeInTheDocument();
-    expect(onShowTrips).not.toHaveBeenCalled();
   });
 
   it("shows the checklist once the conversation has started", () => {
-    const { onGenerate, onShowTrips } = renderPanel({
+    const { onGenerate } = renderPanel({
       itinerary: EMPTY_ITINERARY,
       missing: [],
       messages: [{ id: "m1", kind: "text", role: "user", content: "3 days in Budapest" }],
     });
 
     expect(screen.getByText(en.plan.checklist.title)).toBeInTheDocument();
-
-    // The way back to the trips is still one press away.
-    fireEvent.click(screen.getByRole("button", { name: en.plan.trips.title }));
-    expect(onShowTrips).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText(p.emptyTitle)).toBeNull();
     expect(
       screen.queryByRole("heading", { name: interpolate(p.heading, { count: 3, destination: "Budapest" }) })
     ).not.toBeInTheDocument();
@@ -592,5 +577,12 @@ describe("TripPanel", () => {
     fireEvent.click(screen.getByRole("button", { name: en.plan.checklist.generate }));
 
     expect(onGenerate).toHaveBeenCalledTimes(1);
+  });
+
+  it("carries no way to a trips list on an itinerary either", () => {
+    renderPanel();
+
+    expect(screen.queryByRole("button", { name: en.plan.trips.title })).toBeNull();
+    expect(screen.getByRole("button", { name: p.save })).toBeInTheDocument();
   });
 });

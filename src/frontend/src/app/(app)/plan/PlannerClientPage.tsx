@@ -8,7 +8,6 @@ import { toMapStops } from "@/components/planner/v2/mapStops";
 import { PlannerLayout } from "@/components/planner/v2/PlannerLayout";
 import { TripMap } from "@/components/planner/v2/TripMap";
 import { TripPanel } from "@/components/planner/v2/TripPanel";
-import { TripsSheet } from "@/components/planner/v2/TripsSheet";
 import type { OpenTripState } from "@/components/planner/v2/OpenTripNotice";
 import { useLanguage } from "@/context/LanguageContext";
 import { usePlanner, type AskAlternativesOptions } from "@/hooks/usePlanner";
@@ -114,12 +113,8 @@ export default function PlannerClientPage() {
     hydratedRef.current = saved;
     router.replace(`/plan/?trip=${encodeURIComponent(saved)}`);
   }, [router, save.tripId, tripParam]);
-  // The account's trips over the planner, from the pane's "Your trips".
-  const [showTrips, setShowTrips] = useState(false);
-
-  /** "New trip", from the sheet or after the open trip was deleted. */
+  /** "New trip", from a trip that can no longer be planned: an empty planner. */
   const newTrip = useCallback(() => {
-    setShowTrips(false);
     hydratedRef.current = null;
     startNew();
     router.replace("/plan/");
@@ -186,76 +181,57 @@ export default function PlannerClientPage() {
   );
 
   return (
-    <>
-      <PlannerLayout
-        banner={demo ? <DemoBanner /> : null}
-        chat={
-          <ChatColumn
-            state={state}
-            errorText={errorText}
-            unavailable={unavailable}
-            cities={cities}
-            onSend={sendMessage}
-            onAnswer={answer}
-            onSelect={select}
-            onDismiss={dismiss}
-            onToggleShortlist={toggleShortlist}
-            lockedPhase={lockedPhase}
-            onNewTrip={newTrip}
-          />
-        }
-        panel={
-          <TripPanel
-            state={state}
+    <PlannerLayout
+      banner={demo ? <DemoBanner /> : null}
+      chat={
+        <ChatColumn
+          state={state}
+          errorText={errorText}
+          unavailable={unavailable}
+          cities={cities}
+          onSend={sendMessage}
+          onAnswer={answer}
+          onSelect={select}
+          onDismiss={dismiss}
+          onToggleShortlist={toggleShortlist}
+          lockedPhase={lockedPhase}
+          onNewTrip={newTrip}
+        />
+      }
+      panel={
+        <TripPanel
+          state={state}
+          selectedDay={selectedDay}
+          onSelectDay={setSelectedDay}
+          city={city}
+          mapStops={mapStops}
+          selectedStopId={selectedStopId}
+          onSelectStop={setSelectedStopId}
+          onGenerate={generate}
+          onRemove={remove}
+          onSelect={select}
+          onDismiss={dismiss}
+          onToggleShortlist={toggleShortlist}
+          onAskAlternatives={askAlternatives}
+          onReset={startNew}
+          openTrip={openTrip}
+          lockedPhase={lockedPhase}
+          save={save}
+        />
+      }
+      // The overview spans this column and the trip's: there is no whole-trip
+      // map (TRA-177), so the slot is empty until a day is picked.
+      map={
+        selectedDay === null ? null : (
+          <TripMap
+            stops={mapStops}
             selectedDay={selectedDay}
-            onSelectDay={setSelectedDay}
-            city={city}
-            mapStops={mapStops}
+            centre={centre}
             selectedStopId={selectedStopId}
             onSelectStop={setSelectedStopId}
-            onGenerate={generate}
-            onRemove={remove}
-            onSelect={select}
-            onDismiss={dismiss}
-            onToggleShortlist={toggleShortlist}
-            onAskAlternatives={askAlternatives}
-            onReset={startNew}
-            onShowTrips={() => setShowTrips(true)}
-            openTrip={openTrip}
-            lockedPhase={lockedPhase}
-            openTripId={save.tripId}
-            onTripDeleted={(id) => {
-              if (id === save.tripId) newTrip();
-            }}
-            save={save}
           />
-        }
-        // The overview spans this column and the trip's: there is no whole-trip
-        // map (TRA-177), so the slot is empty until a day is picked.
-        map={
-          selectedDay === null ? null : (
-            <TripMap
-              stops={mapStops}
-              selectedDay={selectedDay}
-              centre={centre}
-              selectedStopId={selectedStopId}
-              onSelectStop={setSelectedStopId}
-            />
-          )
-        }
-      />
-
-      {/* The sheet is `fixed`, so it lives beside the layout rather than in
-          one of its panes: over the whole workspace, not over one column. */}
-      <TripsSheet
-        open={showTrips}
-        onClose={() => setShowTrips(false)}
-        openTripId={save.tripId}
-        onDeleted={(id) => {
-          if (id === save.tripId) newTrip();
-        }}
-        onNewTrip={newTrip}
-      />
-    </>
+        )
+      }
+    />
   );
 }

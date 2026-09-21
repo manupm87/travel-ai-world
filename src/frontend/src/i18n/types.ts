@@ -14,8 +14,10 @@ export interface Translations {
     openPlanner: string;
     /** The same action where the bar is a phone wide: one word, one line. */
     plannerShort: string;
-    /** The way to the account's trips, which live in the planner. */
+    /** The way to the account's trips: the signed-in home. */
     trips: string;
+    /** The same way where the bar is a phone wide: one word, one line. */
+    tripsShort: string;
     openMenu: string;
     closeMenu: string;
     selectLanguage: string;
@@ -155,6 +157,9 @@ export interface Translations {
       generateMessage: string;
     };
     panel: {
+      /** The pane before a word has been said: heading and one sentence. */
+      emptyTitle: string;
+      emptyDescription: string;
       draft: string;
       /** "{count} days in {destination}" */
       heading: string;
@@ -278,12 +283,11 @@ export interface Translations {
       /** Corpus categories, translated; an unknown one falls back to its own value. */
       categories: Record<string, string>;
     };
-    /** The account's trips, listed and opened in the planner (TRA-196). */
+    /** The account's trips: listed on the home, opened in the planner (TRA-201). */
     trips: {
-      /** The heading over the list, and the button that opens the sheet. */
+      /** The heading over the list, and the header's way back to it. */
       title: string;
-      close: string;
-      /** Starts a new trip from the sheet. */
+      /** Starts a new trip from the home. */
       newTrip: string;
       /** The heading over each group of the list, keyed by phase. */
       groups: Record<TripPhase, string>;

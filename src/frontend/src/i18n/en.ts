@@ -5,6 +5,7 @@ const en: Translations = {
     openPlanner: "Open the planner",
     plannerShort: "Planner",
     trips: "Your trips",
+    tripsShort: "Trips",
     openMenu: "Open menu",
     closeMenu: "Close menu",
     selectLanguage: "Select language",
@@ -149,6 +150,9 @@ const en: Translations = {
       generateMessage: "Generate the trip",
     },
     panel: {
+      emptyTitle: "Your trip takes shape here",
+      emptyDescription:
+        "Tell the planner where and when, and the days appear as you answer.",
       draft: "Draft · planning",
       heading: "{count} days in {destination}",
       headingNoDestination: "Your trip",
@@ -250,7 +254,6 @@ const en: Translations = {
     },
     trips: {
       title: "Your trips",
-      close: "Close your trips",
       newTrip: "New trip",
       groups: {
         ongoing: "Happening now",
