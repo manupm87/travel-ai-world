@@ -1,0 +1,106 @@
+# Miami (Wikidata Q8652), reviewed for TRA-204.
+#
+# Wikidata does not publish P150 districts for Miami. The seven districts below
+# are the travel guides discovered under the English Wikivoyage Miami article.
+#
+# OpenStreetMap admin level 8 represents municipalities in this area. The
+# Miami municipal boundary is used to keep the corpus inside the city. Coral
+# Gables and West Miami are separate municipalities and are therefore excluded.
+# Places inside Miami are assigned to the nearest existing Wikivoyage listing
+# among the seven district guides.
+
+slug = "miami"
+name = "Miami"
+aliases = ["miami"]
+language = "en"
+wikipedia_lang = "en"
+
+# OpenStreetMap relation of the City of Miami (Wikidata P402).
+osm_relation = 1216769
+
+# Only used when osm_relation is unset.
+osm_area = "Miami"
+
+# Country stored on every saved trip.
+country = "United States"
+country_code = "US"
+
+# Level 8 is the City of Miami municipal boundary.
+district_admin_level = 8
+
+centre = [25.7742, -80.1936]
+timezone = "America/New_York"
+
+# District travel guides discovered under Wikivoyage's Miami article.
+districts = [
+    "Coconut Grove",
+    "Design District",
+    "Downtown",
+    "Little Havana",
+    "MiMo Boulevard",
+    "Midtown",
+    "Overtown",
+]
+
+# Bounds of OSM relation 1216769, obtained through Nominatim and rounded outwards.
+[bbox]
+south = 25.7
+west = -80.32
+north = 25.86
+east = -80.13
+
+# City photograph shown in the trip overview. The Wikidata P18 file was
+# reported as freely licensed by Wikimedia Commons during discovery.
+[hero]
+file = "Downtown Miami aerial 2008.jpg"
+credit = "Marc Averette (CC BY-SA 3.0) · Wikimedia Commons"
+
+[[wikivoyage]]
+lang = "en"
+root = "Miami"
+include_subpages = true
+
+[[wikivoyage]]
+lang = "es"
+root = "Miami"
+include_subpages = false
+
+# 37 pages at discovery time.
+[[wikipedia.categories]]
+name = "Tourist attractions in Miami"
+
+# 16 pages at discovery time.
+[[wikipedia.categories]]
+name = "Museums in Miami"
+
+# 13 pages at discovery time.
+[[wikipedia.categories]]
+name = "Parks in Miami"
+
+# 12 pages at discovery time.
+[[wikipedia.categories]]
+name = "Churches in Miami"
+
+# 59 pages at discovery time. Coordinates are required because this broad
+# category also contains buildings that are not useful to travellers.
+[[wikipedia.categories]]
+name = "Buildings and structures in Miami"
+require_coordinates = true
+
+# 8 pages at discovery time.
+[[wikipedia.categories]]
+name = "Theatres in Miami"
+
+# OSM level 8 contains municipalities rather than neighbourhoods. Only the
+# Miami boundary is selected. The existing district locator assigns each
+# located place to the closest Wikivoyage guide using its listing anchors.
+[district_guides]
+"Miami" = [
+    "Coconut Grove",
+    "Design District",
+    "Downtown",
+    "Little Havana",
+    "MiMo Boulevard",
+    "Midtown",
+    "Overtown",
+]

@@ -51,5 +51,29 @@
     },
     "image_url": "https://commons.wikimedia.org/w/index.php?title=Special:FilePath/Budapest%2C_Hungary_%28explored%29_%2814995308504%29.jpg&width=1200",
     "image_credit": "Thomas Depenbusch (Depi) (CC BY 2.0) · Wikimedia Commons"
+  },
+  {
+    "slug": "miami",
+    "name": "Miami",
+    "country": "United States",
+    "country_code": "US",
+    "aliases": [
+      "miami"
+    ],
+    "centre": [
+      25.7742,
+      -80.1936
+    ],
+    "timezone": "America/New_York",
+    "documents": 1249,
+    "built_at": "2026-09-21T18:47:27Z",
+    "intro": {
+      "en": {
+        "text": "Miami is a major city in the southeastern United States and the second most populous city in Florida. The Greater Miami metropolitan area is the largest in the state with an estimated population just under 6.1 million (2021), which makes it the 9th most populous metro area in the United States.\n\nAlthough tourists generally consider Miami Beach to be part of Miami, it is its own municipality. Miami Beach sits on a barrier island east of Miami and Biscayne Bay. It is home to lots of beach resorts, and is one of the most popular spring break party destinations in the world.",
+        "source_url": "https://en.wikivoyage.org/wiki/Miami"
+      }
+    },
+    "image_url": "https://commons.wikimedia.org/w/index.php?title=Special:FilePath/Downtown_Miami_aerial_2008.jpg&width=1200",
+    "image_credit": "Marc Averette (CC BY-SA 3.0) · Wikimedia Commons"
   }
 ]
