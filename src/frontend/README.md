@@ -1,6 +1,6 @@
 # Kyrian World — Frontend
 
-Next.js 16 (App Router) + Tailwind CSS v4 web app for Kyrian World: the landing field and the AI planner, which is also where saved trips are listed, reopened and read.
+Next.js 16 (App Router) + Tailwind CSS v4 web app for Kyrian World: the landing field, the signed-in home where saved trips are listed, and the AI planner that builds and reopens them.
 
 ## Tech Stack
 
@@ -50,7 +50,7 @@ src/
 │   ├── (marketing)/      # Public routes: layout = Header + Footer; page.tsx is the landing; auth/callback/ ends a Cognito sign-in
 │   ├── (app)/            # Signed-in routes: layout = app shell + ProtectedRoute, once
 │   │   ├── plan/        # page.tsx (static shell, Suspense) + PlannerClientPage.tsx (?q=, ?trip=)
-│   │   ├── dashboard/    # page.tsx: a client redirect to /plan/ (old links)
+│   │   ├── dashboard/    # page.tsx (static shell) + TripsHome.tsx: the signed-in home, the ask over the trips
 │   │   └── trip/         # page.tsx + TripRedirect.tsx: ?id= → /plan/?trip= (old links)
 │   └── error.tsx, loading.tsx, not-found.tsx
 ├── components/     # UI by feature: ui/, layout/, landing/, planner/, auth/, common/
@@ -155,9 +155,9 @@ Defined in `globals.css` as CSS custom properties and consumed directly in Tailw
 | Route | Status | Description |
 |---|---|---|
 | `/` | ✅ Live | The landing is the field (TRA-190): the question, one text field whose placeholder types example asks, and the action that opens `/plan/?q=…` — signed in straight away, behind the sign-in dialog otherwise. Arriving with `?redirect=` (the route guard) opens that dialog at once |
-| `/dashboard/` | ↪️ Redirect | Kept for old links: a client component that replaces the URL with `/plan/` (TRA-196) |
+| `/dashboard/` | ✅ Live | **The signed-in home** (TRA-199, ADR 0020): the ask that starts the next trip over the account's trips, grouped by phase — the only place trips are listed (TRA-201). Sign-in lands here when no `?redirect=` was asked for |
 | `/trip/?id=<uuid>` | ↪️ Redirect | Kept for old links: `/plan/?trip=<uuid>` when the id is a trip id, `/plan/` otherwise (TRA-196) |
-| `/plan/` (`?q=<prompt>`, `?trip=<uuid>`) | ✅ Live | The trip planner (layout A, TRA-144), and the only signed-in surface: **the account's trips live here** (TRA-196) — the trip pane lists them while nothing has been asked yet, and the pane's "Your trips" opens the same list as a sheet the rest of the time; `?trip=<uuid>` reopens a saved trip in the planner, and a trip that is happening now or is over is read-only (no composer, no Save, no "Change"), because `core_api` refuses every write on it (ADR 0019). three columns on a laptop — chat with quick replies and option-card carousels, the brief checklist that becomes the live itinerary, and the map of the selected day (MapLibre GL over OpenFreeMap's keyless tiles, TRA-147/ADR 0016) — and the same three as tabs on a phone. A finished itinerary opens on the **trip overview** (`TripOverview`, TRA-177): the destination's photo and description, a mosaic of the trip's own photos and the list of days, across the two right columns, with no map until a day is picked. Clicking a stop of a day turns the middle column into that activity's page (photo, article, address, phone, site and directions, from `GET /ai/planner/card?id=`) and highlights its pin on the map (TRA-179) (`usePlanner`, client-side; SSE v2 events from `ai_api`'s `/planner`; until TRA-143 lands the page answers from the recorded Budapest session in `src/data/planner-demo/` and shows a demo banner) |
+| `/plan/` (`?q=<prompt>`, `?trip=<uuid>`) | ✅ Live | The trip planner (layout A, TRA-144). It **lists no trips** (TRA-201): it holds the one trip it was opened with, the empty pane is a quiet placeholder (`plan.panel.emptyTitle` / `emptyDescription`), and the way to the trips is the header pill, "Your trips" → `/dashboard/` from here and "Open the planner" → `/plan/` from there. `?trip=<uuid>` reopens a saved trip in the planner, and a trip that is happening now or is over is read-only (no composer, no Save, no "Change"), because `core_api` refuses every write on it (ADR 0019). Three columns on a laptop — chat with quick replies and option-card carousels, the brief checklist that becomes the live itinerary, and the map of the selected day (MapLibre GL over OpenFreeMap's keyless tiles, TRA-147/ADR 0016) — and the same three as tabs on a phone. A finished itinerary opens on the **trip overview** (`TripOverview`, TRA-177): the destination's photo and description, a mosaic of the trip's own photos and the list of days, across the two right columns, with no map until a day is picked. Clicking a stop of a day turns the middle column into that activity's page (photo, article, address, phone, site and directions, from `GET /ai/planner/card?id=`) and highlights its pin on the map (TRA-179) (`usePlanner`, client-side; SSE v2 events from `ai_api`'s `/planner`; until TRA-143 lands the page answers from the recorded Budapest session in `src/data/planner-demo/` and shows a demo banner) |
 | anything else | ✅ | `not-found.tsx`, exported as `404.html` |
 
 ---
@@ -189,11 +189,14 @@ the query string and in the browser:
 - **`plan/page.tsx`** — server component; renders `PlannerClientPage` inside a `Suspense` boundary
   (required: `useSearchParams` on a prerendered route bails out to client rendering up to the
   nearest boundary, and the export build fails without one).
-- **The list** — `components/planner/v2/TripsList.tsx` calls `useTrips()` (`src/hooks/useTrips.ts`),
-  which asks `services/trips.ts#listTrips` for `GET /api/v1/trips/` with the session token once the
-  session is known, and renders loading (shimmering cards + a live line), error (+ retry), empty,
-  or the trips grouped by phase — ongoing, upcoming, past, in that order. `rename(id, title)` and
-  `remove(id)` are its two writes.
+- **The list is not here** — the trips are listed only on the home (TRA-201):
+  `components/trips/TripsList.tsx`, rendered by `app/(app)/dashboard/TripsHome.tsx`, calls
+  `useTrips()` (`src/hooks/useTrips.ts`), which asks `services/trips.ts#listTrips` for
+  `GET /api/v1/trips/` with the session token once the session is known, and renders loading
+  (shimmering cards + a live line), error (+ retry), empty, or the trips grouped by phase —
+  ongoing, upcoming, past, in that order. `rename(id, title)` and `remove(id)` are its two writes.
+  The same static-export reasoning applies to that page: it is a shell, and the trips arrive in the
+  browser.
 - **One trip** — `?trip=<uuid>` feeds `useTrip(id)`, and `services/tripDraft.ts#tripToDraft` turns
   what comes back into the planner draft `usePlanner.hydrate` replaces its state with. Loading,
   not-found (no id, malformed id, 404 or 403) and error live in the trip pane, never a blank page.
@@ -204,8 +207,8 @@ the query string and in the browser:
   409 `TRIP_LOCKED` to all of them (ADR 0019). Deleting stays allowed in every phase.
 
 A 401 clears the session and the route guard sends the visitor home. The export contains
-`out/plan/index.html`, `out/trip/index.html` and `out/dashboard/index.html`; the last two are
-redirects kept for old links, and `/trip/<anything>/` is still a plain 404. The route guard keeps
+`out/plan/index.html`, `out/dashboard/index.html` and `out/trip/index.html`; the last one is a
+redirect kept for old links, and `/trip/<anything>/` is still a plain 404. The route guard keeps
 the query string in its `redirect` parameter, so a signed-out deep link comes back to the same
 trip after sign-in.
 
