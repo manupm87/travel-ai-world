@@ -120,15 +120,19 @@ TypeScript 5, Tailwind CSS v4.
   Landing with `?redirect=` — the route guard turned someone away — opens that dialog at once. The
   query is read from `window.location` through `useSyncExternalStore`, never `useSearchParams`,
   which would leave the page a shell filled in on hydration instead of prerendered HTML.
-- **Trips are listed on the home and lived in the planner** (TRA-196/TRA-199, ADR 0019/0020):
+- **Trips are listed on the home and lived in the planner** (TRA-196/TRA-199/TRA-201, ADR 0019/0020):
   there is no viewer any more.
-  `components/planner/v2/TripsList.tsx` is the account's trips, grouped by phase in the order they
+  `components/trips/TripsList.tsx` is the account's trips, grouped by phase in the order they
   matter in — ongoing, upcoming, past, with a quiet heading and a hairline rule running off it
-  rather than a section of its own — and it owns `useTrips` and both dialogs. It appears in three
-  places: the signed-in home under its own `h2`, the trip pane while nothing has been asked yet (the
-  checklist takes its place as soon as the conversation starts), and `TripsSheet.tsx`, a glass sheet
-  from the pane's "Your trips". Its own headings are `h3` per group and `h4` per card, so it sits
-  under whatever heading the surface gives it.
+  rather than a section of its own — and it owns `useTrips` and both dialogs
+  (`components/trips/RenameTripDialog.tsx`, `components/trips/ConfirmDelete.tsx`). It appears in
+  **one** place, `/dashboard/`, under that page's `h2`, and takes no props. **The planner lists no
+  trips** (TRA-201): it holds the one trip it was opened with, its empty pane is a placeholder
+  (`plan.panel.emptyTitle` / `emptyDescription`) and there is no trips sheet. The way from the
+  planner to the trips is the header's pill, which is always the other place — "Open the planner"
+  on `/dashboard/`, "Your trips" (`nav.tripsShort` below `sm`) everywhere else. The list's own
+  headings are `h3` per group and `h4` per card, so it sits under whatever heading the surface
+  gives it.
   `components/ui/TripCard.tsx` is the cover photo with a scrim of `--color-bg-primary` brought back
   up over it (so the copy clears 4.5:1 on either theme whatever the photo is), a stretched link on
   the title to `/plan/?trip=<id>` (`after:absolute after:inset-0`) and one `⋯` button above it: a
@@ -154,12 +158,13 @@ TypeScript 5, Tailwind CSS v4.
 - **`/dashboard/` is the signed-in home** (TRA-199, ADR 0020): "Your trips". A static shell
   (`app/(app)/dashboard/page.tsx`) over `TripsHome.tsx`, which is two things in the order they are
   wanted — the ask, then the account's trips. The ask is `components/common/AskComposer.tsx`, the
-  landing's own field; the trips are `components/planner/v2/TripsList.tsx`, the planner's own list,
-  with "New trip" (`/plan/`) beside its heading. Sending the ask opens `/plan/?q=<ask>`, a card
-  opens `/plan/?trip=<id>`, and whether that trip can be changed is the planner's rule, not this
-  page's. **Sign-in lands here**: `LoginModal` and `AuthCallback` default to `/dashboard/` when no
-  redirect was asked for, and the account menu's "Your trips" links here — the header's pill still
-  opens `/plan/` directly. `/trip/?id=` stays a **redirect** kept for old links (TRA-196):
+  landing's own field; the trips are `components/trips/TripsList.tsx`, the only place they are
+  listed (TRA-201), with "New trip" (`/plan/`) beside its heading. Sending the ask opens
+  `/plan/?q=<ask>`, a card opens `/plan/?trip=<id>`, and whether that trip can be changed is the
+  planner's rule, not this page's. **Sign-in lands here**: `LoginModal` and `AuthCallback` default
+  to `/dashboard/` when no redirect was asked for, the account menu's "Your trips" links here, and
+  the header's pill opens `/plan/` from this page and comes back here from every other
+  (`usePathname()` in `Header.tsx`). `/trip/?id=` stays a **redirect** kept for old links (TRA-196):
   `app/(app)/trip/TripRedirect.tsx` replaces the URL with `/plan/?trip=<uuid>` when the id is a trip
   id, and with `/plan/` when it is not. Never a `/plan/[id]` route: the export cannot serve per-user
   ids (ADR 0011). Links to a trip are `/plan/?trip=${encodeURIComponent(id)}`.

@@ -69,3 +69,22 @@ planner would otherwise carry — it should be weighed against the field, which 
 purpose. And the planner's own trip pane list becomes redundant the day the home is the only way
 in; it stays for now because a traveller deep in a plan should not have to leave it to switch
 trips.
+
+## Update (TRA-201)
+
+That day came immediately. The planner no longer lists trips at all: the `TripsList` in its empty
+pane, the "Your trips" button in both of its headers and the `TripsSheet` behind them are gone,
+and so is the sheet's component. The pane before the first word is a placeholder — a heading and
+one sentence — because the middle column is where the trip being planned appears, not a second
+copy of the home. `TripsList` and its two dialogs moved to `components/trips/`, took no props with
+them and render on `/dashboard/` only.
+
+The way between the two surfaces is the header's pill, which is now always *the other place*: it
+reads "Open the planner" → `/plan/` on the home, as before, and "Your trips" → `/dashboard/` on
+every other path (`usePathname()`); the account menu still links to the home from anywhere. A
+`?trip=` that resolves to nothing offers a link to the home instead of a sheet.
+
+This supersedes, on that one point, ADR 0019's "the trips are listed in the planner" and the
+paragraph above: the planner is where a trip is made and read, and the home is where the trips
+are. Nothing else in 0019 or in this ADR changes — the phases, the locked rules, `?trip=`,
+`/trip/?id=` and core_api's refusals all stand.

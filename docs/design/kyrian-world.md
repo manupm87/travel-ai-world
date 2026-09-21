@@ -91,13 +91,17 @@ same fade on the way out, so nothing has to be learnt twice. Sending it opens th
 ask; a card opens the planner with the trip. The page decides nothing about what can be changed —
 it links, and the planner applies the rule below.
 
-**The list.** The trip pane holds the account's trips while nothing has been asked yet; after that
-it is one press away, as a glass sheet over the workspace. It is grouped by what is happening now,
-what is coming and what has already happened — that order, because that is the order they matter in
-— and a group is a line across the list rather than a section of its own: a quiet heading with a
-hairline rule running off it. The cards are photographs you can open, the trip's own cover under a
-scrim of the page's background so the title clears 4.5:1 whatever the photo is. The list settles in
-once, 40 ms apart.
+**The list.** It lives on the home and nowhere else (TRA-201). The planner used to carry a second
+copy of it — in the trip pane until the first word was said, behind a sheet after that — and a
+workspace that lists the trips you are not planning is a workspace arguing with itself: the pane
+now holds the one trip the planner was opened with, and says so quietly while it is still empty
+("Your trip takes shape here"). The way to the others is the header's pill, which is always the
+other place: the planner from the home, the trips from everywhere else. The list itself is grouped
+by what is happening now, what is coming and what has already happened — that order, because that
+is the order they matter in — and a group is a line across the list rather than a section of its
+own: a quiet heading with a hairline rule running off it. The cards are photographs you can open,
+the trip's own cover under a scrim of the page's background so the title clears 4.5:1 whatever the
+photo is. The list settles in once, 40 ms apart.
 
 **The pill.** Only a trip that is happening now, or one that is over, wears one — "On now" in
 amber, "Over" in glass. Coming up is what most trips are and needs no label; the heading above them
