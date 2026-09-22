@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { ApiError, UnauthorizedError } from "@/services/http";
+import { clearPlannerDraft, readSavedTripId } from "@/services/plannerDraft";
 import { clearSession } from "@/services/session";
 import { deleteTrip, listTrips, toTripSummary, updateTrip } from "@/services/trips";
 import type { TripSummary } from "@/types/trip-summary";
@@ -19,7 +20,8 @@ export interface UseTripsResult {
   reload: () => void;
   /**
    * Deletes a trip: the card goes at once and comes back if the API refuses.
-   * Rejects with the failure so the dialog that asked can say so.
+   * Rejects with the failure so the dialog that asked can say so. Deleting
+   * the trip this tab's planner draft was saved as drops that draft too.
    */
   remove: (id: string) => Promise<void>;
   /**
@@ -121,6 +123,9 @@ export function useTrips(): UseTripsResult {
         withTrips(() => removed);
         throw err;
       }
+      // The tab's planner draft was saved as this trip: it belongs to nothing
+      // now, so the next `/plan/` must not restore it (TRA-223).
+      if (readSavedTripId() === id) clearPlannerDraft();
     },
     [withTrips]
   );
