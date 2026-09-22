@@ -34,8 +34,13 @@ PRICE_TIERS = (1, 2, 3)
 MONTHS = tuple(f"{month:02d}" for month in range(1, 13))
 SMALL_DISTRICT_PLACES = 10
 SMOKE_TOP = 3
-# Where a hotel's photo came from, in the order the build tries them (ADR 0022).
-PHOTO_SOURCES = ("site", "facebook", "commons", "page")
+# Where a hotel's photo came from, in the order the build tries them
+# (ADR 0022, TRA-211). The same tuple as `sources.photos.SOURCES`, written out
+# here because the report is read by people and the order is the story it tells.
+PHOTO_SOURCES = ("curated", "site", "facebook", "commons", "wikidata", "page")
+NOTABLE_SHOWN = 40
+"""How many notable hotels without a photo the report names; a city has a few
+dozen at most, and a list nobody finishes is a list nobody reads."""
 
 # What a traveller asks for first, per category, in any city: nothing here
 # names one city's specialities. A corpus that cannot name three places for
@@ -457,10 +462,11 @@ def hotel_photo_lines(summary: Summary) -> list[str]:
     accounts for every one of them.
     """
     intro = (
-        "Every located `sleep` place carries a photo: the corpus's own, the preview "
-        "the hotel's site publishes, its Facebook page, a Wikimedia Commons file "
-        "named after it or the largest picture on its homepage (ADR 0022). A hotel "
-        "that ends the build without one is dropped."
+        "Every located `sleep` place carries a photo: the corpus's own, a curated "
+        "entry (`curated/<city>/hotels.toml`), the preview the hotel's site "
+        "publishes, its Facebook page, a Wikimedia Commons file named after it, "
+        "its Wikidata item found by name, or the largest picture on its homepage "
+        "(ADR 0022). A hotel that ends the build without one is dropped."
     )
     photos = summary.hotel_photos
     if not photos:
@@ -484,9 +490,59 @@ def hotel_photo_lines(summary: Summary) -> list[str]:
     shared = _count(photos.get("shared"))
     lines += [
         "",
-        f"{shared} shared chain pictures rejected: a picture two hotels of the "
-        "city both claim is neither one's, and those hotels are among the dropped.",
+        f"{shared} shared chain pictures rejected: a picture two different hotels "
+        "of the city both claim is neither one's, and those hotels are among the "
+        "dropped. Two documents of the same hotel may share theirs.",
     ]
+    return lines + notable_lines(summary)
+
+
+def notable_lines(summary: Summary) -> list[str]:
+    """The chain hotels the build could not picture, and why (TRA-211).
+
+    Not a failure — the gate says nothing about it — but a worklist: each of
+    these is a hotel a traveller would recognise, and each line says where the
+    picture has to come from instead. `403` is a booking platform that refuses
+    anything but a browser, `no url` a hotel OpenStreetMap has no website for,
+    `dead` a domain that no longer answers, `no picture` a page holding none,
+    `shared picture` a hotel whose only candidate was another hotel's too. All
+    of them are answered the same way: open the page and curate the photo.
+    """
+    notable = [
+        entry
+        for entry in summary.hotel_photos.get("notable_without_photo") or []
+        if isinstance(entry, dict) and entry.get("name")
+    ]
+    if not notable:
+        return [
+            "",
+            "### Notable hotels without a photo",
+            "",
+            "None: every chain hotel of the city is pictured.",
+        ]
+    lines = [
+        "",
+        "### Notable hotels without a photo",
+        "",
+        f"{len(notable)} hotels of a chain left the corpus for want of a picture. "
+        "Curate them in `curated/"
+        f"{summary.city}/hotels.toml` — the runbook `docs/runbooks/add-city.md` "
+        "says how, and never from a reseller.",
+        "",
+    ]
+    lines += _table(
+        ["Hotel", "Reason"],
+        [
+            [str(entry["name"]), str(entry.get("reason") or "unknown")]
+            for entry in notable[:NOTABLE_SHOWN]
+        ],
+    )
+    if len(notable) > NOTABLE_SHOWN:
+        lines += [
+            "",
+            f"… and {len(notable) - NOTABLE_SHOWN} more in `manifest.json` "
+            "(`enrichment.photos.notable_without_photo`).",
+        ]
     return lines
 
 

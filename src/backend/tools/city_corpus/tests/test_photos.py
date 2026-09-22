@@ -6,6 +6,7 @@ exercises them. Every handler records its requests, which is how "the second run
 makes no request" is asserted.
 """
 
+import datetime as dt
 import json
 from collections.abc import Callable
 from pathlib import Path
@@ -16,7 +17,7 @@ import pytest
 from city_corpus.config.cities import BUDAPEST
 from city_corpus.http import ApiClient
 from city_corpus.models import Category, CorpusDocument, Kind, Source
-from city_corpus.sources import photos
+from city_corpus.sources import curated_hotels, photos, wikidata
 
 TEXT = "A hotel of the city, described at length enough to pass validation."
 GELLERT_IMAGE = "https://hotelgellert.hu/img/facade.jpg"
@@ -139,16 +140,19 @@ def _commons(*responses: httpx.Response) -> Callable[[httpx.Request], httpx.Resp
 # ─── 1. The hotel's own site ─────────────────────────────────────────────────
 
 
-def _no_commons() -> dict[str, Callable[[httpx.Request], httpx.Response]]:
-    """Commons knows no file of this hotel — the usual case, and never the
-    reason a hotel keeps its place: the site is asked first."""
-    return {"commons.wikimedia.org": _commons(MISSING, MISSING)}
+def _no_wikimedia() -> dict[str, Callable[[httpx.Request], httpx.Response]]:
+    """Neither Commons nor Wikidata knows this hotel — the usual case, and never
+    the reason a hotel keeps its place: the site is asked first."""
+    return {
+        "commons.wikimedia.org": _commons(MISSING, MISSING),
+        "wikidata.org": lambda _: _json(search=[], entities={}),
+    }
 
 
 def test_the_site_preview_is_credited_with_its_domain(tmp_path: Path) -> None:
     recorder = Recorder(
         {
-            **_no_commons(),
+            **_no_wikimedia(),
             "hotelgellert.hu/img": lambda _: _image(),
             "hotelgellert.hu": lambda _: _html(
                 '<head><meta name="twitter:image" content="/img/facade.jpg">'
@@ -173,7 +177,7 @@ def test_a_parked_domain_that_redirects_off_site_is_refused(tmp_path: Path) -> N
 
     recorder = Recorder(
         {
-            **_no_commons(),
+            **_no_wikimedia(),
             "hotelgellert.hu": moved,
             "parking.example": lambda _: _html(
                 '<head><meta property="og:image" content="https://parking.example/a.jpg">'
@@ -207,7 +211,7 @@ def test_a_preview_that_is_not_a_photo_is_refused(
 ) -> None:
     recorder = Recorder(
         {
-            **_no_commons(),
+            **_no_wikimedia(),
             "hotelgellert.hu/img": lambda _: head,
             "hotelgellert.hu": lambda _: _html(
                 f'<head><meta property="og:image" content="{candidate}"></head>'
@@ -225,7 +229,7 @@ def test_a_preview_that_is_not_a_photo_is_refused(
 def test_a_preview_whose_server_states_no_size_is_trusted(tmp_path: Path) -> None:
     recorder = Recorder(
         {
-            **_no_commons(),
+            **_no_wikimedia(),
             "hotelgellert.hu/img": lambda _: _image(length=None),
             "hotelgellert.hu": lambda _: _html(
                 f'<head><meta property="og:image" content="{GELLERT_IMAGE}"></head>'
@@ -249,7 +253,7 @@ def test_the_facebook_page_pictures_a_hotel_whose_site_has_no_preview(
     profile = "https://scontent.facebook.com/profile.jpg"
     recorder = Recorder(
         {
-            **_no_commons(),
+            **_no_wikimedia(),
             "scontent.facebook.com": lambda _: _image(),
             "facebook.com/HotelGellert": lambda _: _html(
                 f'<head><meta property="og:image" content="{profile}"></head>'
@@ -442,7 +446,7 @@ def test_the_largest_picture_of_the_homepage_is_taken(tmp_path: Path) -> None:
 
     recorder = Recorder(
         {
-            **_no_commons(),
+            **_no_wikimedia(),
             "hotelgellert.hu/img": head,
             "hotelgellert.hu": lambda _: _html(HOMEPAGE),
         }
@@ -463,7 +467,7 @@ def test_the_largest_picture_of_the_homepage_is_taken(tmp_path: Path) -> None:
 def test_a_homepage_picture_that_states_no_size_is_not_trusted(tmp_path: Path) -> None:
     recorder = Recorder(
         {
-            **_no_commons(),
+            **_no_wikimedia(),
             "hotelgellert.hu/img": lambda _: _image(length=None),
             "hotelgellert.hu": lambda _: _html(HOMEPAGE),
         }
@@ -507,7 +511,7 @@ def test_pictured_and_unlocated_and_other_categories_are_left_alone(
 
 
 def test_a_hotel_with_nothing_is_dropped_and_named(tmp_path: Path) -> None:
-    recorder = Recorder(_no_commons())
+    recorder = Recorder(_no_wikimedia())
     with _client(recorder, tmp_path) as client:
         kept, stats = photos.resolve(
             client,
@@ -517,13 +521,16 @@ def test_a_hotel_with_nothing_is_dropped_and_named(tmp_path: Path) -> None:
 
     assert kept == []
     assert stats.as_dict() == {
+        "curated": 0,
         "site": 0,
         "facebook": 0,
         "commons": 0,
+        "wikidata": 0,
         "page": 0,
         "dropped": 2,
         "shared": 0,
         "dropped_examples": ["Hotel Astra", "Hotel Gellért"],
+        "notable_without_photo": [],
     }
 
 
@@ -531,7 +538,7 @@ def test_a_dead_site_costs_the_hotel_its_place_not_the_build(tmp_path: Path) -> 
     def refuse(request: httpx.Request) -> httpx.Response:
         raise httpx.ConnectError("name or service not known")
 
-    recorder = Recorder({**_no_commons(), "hotelgellert.hu": refuse})
+    recorder = Recorder({**_no_wikimedia(), "hotelgellert.hu": refuse})
     with _client(recorder, tmp_path) as client:
         kept, stats = photos.resolve(
             client, BUDAPEST, [_hotel(url="https://hotelgellert.hu/")]
@@ -545,7 +552,7 @@ def test_a_dead_site_costs_the_hotel_its_place_not_the_build(tmp_path: Path) -> 
 
 def test_a_second_run_is_identical_and_makes_no_request(tmp_path: Path) -> None:
     routes = {
-        **_no_commons(),
+        **_no_wikimedia(),
         "hotelgellert.hu/img": lambda _: _image(),
         "hotelgellert.hu": lambda _: _html(
             f'<head><meta property="og:image" content="{GELLERT_IMAGE}"></head>'
@@ -679,7 +686,7 @@ def test_a_picture_two_hotels_share_is_taken_from_both(tmp_path: Path) -> None:
     chain = "https://aohostels.com/img/hero.jpg"
     recorder = Recorder(
         {
-            **_no_commons(),
+            **_no_wikimedia(),
             "aohostels.com/img": lambda _: _image(),
             "aohostels.com": lambda _: _html(
                 f'<head><meta property="og:image" content="{chain}"></head>'
@@ -706,7 +713,7 @@ def test_a_picture_two_hotels_share_is_taken_from_both(tmp_path: Path) -> None:
 def test_two_hotels_with_their_own_pictures_keep_them(tmp_path: Path) -> None:
     recorder = Recorder(
         {
-            **_no_commons(),
+            **_no_wikimedia(),
             "hotelgellert.hu/img": lambda _: _image(),
             "hotelgellert.hu": lambda _: _html(
                 f'<head><meta property="og:image" content="{GELLERT_IMAGE}"></head>'
@@ -727,3 +734,569 @@ def test_two_hotels_with_their_own_pictures_keep_them(tmp_path: Path) -> None:
 
     assert len(kept) == 2
     assert (stats.site, stats.shared, stats.dropped) == (2, 0, 0)
+
+
+# ─── Chain hotels are not left out (TRA-211) ─────────────────────────────────
+
+
+def _curated(**overrides: Any) -> curated_hotels.CuratedHotel:
+    fields: dict[str, Any] = {
+        "match": "Hotel Gellért",
+        "image_url": "https://marriott.com/photos/gellert-facade.jpg",
+        "credit": "marriott.com",
+        "source_url": "https://marriott.com/hotels/budapest",
+        "checked": dt.date(2026, 9, 22),
+    }
+    return curated_hotels.CuratedHotel.model_validate({**fields, **overrides})
+
+
+def _wikidata_api(
+    *, search: tuple[str, ...] = (), entities: dict[str, Any] | None = None
+) -> Callable[[httpx.Request], httpx.Response]:
+    """Wikidata answers `wbsearchentities`, then `wbgetentities`."""
+
+    def answer(request: httpx.Request) -> httpx.Response:
+        if str(request.url.params.get("action")) == "wbsearchentities":
+            return _json(search=[{"id": qid} for qid in search])
+        return _json(entities=entities or {})
+
+    return answer
+
+
+def _commons_api(
+    handlers: dict[str, Callable[[httpx.Request], httpx.Response]],
+) -> Callable[[httpx.Request], httpx.Response]:
+    """Commons answers by what was asked: `search`, `categorymembers`,
+    `imageinfo` (a licence) or `imageinfo|coordinates` (a licence and a place)."""
+
+    def answer(request: httpx.Request) -> httpx.Response:
+        params = request.url.params
+        asked = str(params.get("list") or params.get("prop") or "")
+        handler = handlers.get(asked)
+        return handler(request) if handler else _json(query={})
+
+    return answer
+
+
+def _entity(
+    qid: str,
+    where: tuple[float, float],
+    *,
+    image: str | None = None,
+    category: str | None = None,
+    sitelinks: dict[str, str] | None = None,
+) -> dict[str, Any]:
+    def claim(value: Any) -> list[dict[str, Any]]:
+        return [{"mainsnak": {"datavalue": {"value": value}}}]
+
+    claims: dict[str, Any] = {
+        "P625": claim({"latitude": where[0], "longitude": where[1]})
+    }
+    if image:
+        claims["P18"] = claim(image)
+    if category:
+        claims["P373"] = claim(category)
+    return {
+        "id": qid,
+        "claims": claims,
+        "sitelinks": {
+            site: {"title": title} for site, title in (sitelinks or {}).items()
+        },
+    }
+
+
+def _thumbnail(filename: str) -> str:
+    return wikidata.thumbnail_url(filename)
+
+
+# ── The same hotel twice may share its picture ───────────────────────────────
+
+
+def _two_documents_of(
+    image: str, first: dict[str, Any], second: dict[str, Any]
+) -> tuple[Recorder, list[CorpusDocument]]:
+    recorder = Recorder(
+        {
+            **_no_wikimedia(),
+            "hotelgellert.hu/img": lambda _: _image(),
+            "hotelgellert.hu": lambda _: _html(
+                f'<head><meta property="og:image" content="{image}"></head>'
+            ),
+        }
+    )
+    return recorder, [
+        _hotel(url="https://hotelgellert.hu/", **first),
+        _hotel(url="https://hotelgellert.hu/", **second),
+    ]
+
+
+@pytest.mark.parametrize(
+    ("first", "second"),
+    [
+        # Wikidata says they are one building.
+        (
+            {"doc_id": "osm:way/1", "entity_id": "Q42", "name": "Gellért"},
+            {
+                "doc_id": "wv:en:Budapest#sleep:gellert",
+                "entity_id": "Q42",
+                "name": "Danubius Hotel Gellért",
+            },
+        ),
+        # The names fold to the same string (an accent and a case apart).
+        (
+            {"doc_id": "osm:way/1", "name": "Hotel Gellért"},
+            {"doc_id": "wv:en:Budapest#sleep:gellert", "name": "HOTEL GELLERT"},
+        ),
+        # Same doorstep, and one name is written inside the other.
+        (
+            {"doc_id": "osm:way/1", "name": "Gellért"},
+            {
+                "doc_id": "wv:en:Budapest#sleep:gellert",
+                "name": "Danubius Gellért Budapest",
+                "lat": HOTEL_LAT + 0.0002,
+                "lon": HOTEL_LON,
+            },
+        ),
+    ],
+)
+def test_one_hotel_listed_twice_keeps_its_picture(
+    tmp_path: Path, first: dict[str, Any], second: dict[str, Any]
+) -> None:
+    """OpenStreetMap has the hotel and so does the Wikivoyage guide. The two
+    documents agree on the hotel's own photograph, which is not a chain serving
+    one hero shot to three houses (TRA-211)."""
+    recorder, hotels = _two_documents_of(GELLERT_IMAGE, first, second)
+    with _client(recorder, tmp_path) as client:
+        kept, stats = photos.resolve(client, BUDAPEST, hotels)
+
+    assert len(kept) == 2
+    assert all(d.image_url == GELLERT_IMAGE for d in kept)
+    assert (stats.site, stats.shared, stats.dropped) == (2, 0, 0)
+
+
+def test_two_different_hotels_of_a_chain_still_lose_a_shared_picture(
+    tmp_path: Path,
+) -> None:
+    """Different names, three hundred metres apart: two houses, one banner."""
+    recorder, hotels = _two_documents_of(
+        GELLERT_IMAGE,
+        {"doc_id": "osm:way/1", "name": "ibis Budapest Centrum"},
+        {
+            "doc_id": "osm:way/2",
+            "name": "ibis Budapest Citysouth",
+            "lat": HOTEL_LAT + 0.003,
+            "lon": HOTEL_LON,
+        },
+    )
+    with _client(recorder, tmp_path) as client:
+        kept, stats = photos.resolve(client, BUDAPEST, hotels)
+
+    assert kept == []
+    assert (stats.site, stats.shared, stats.dropped) == (0, 2, 2)
+    # Both are chain hotels, so the report tells the curator where to look.
+    assert stats.as_dict()["notable_without_photo"] == [
+        {"name": "ibis Budapest Centrum", "reason": "shared picture"},
+        {"name": "ibis Budapest Citysouth", "reason": "shared picture"},
+    ]
+
+
+def test_same_hotel_needs_a_name_on_both_sides() -> None:
+    """A document with no name cannot be told from any other hotel."""
+    named = _hotel(name="Hotel Gellért")
+    assert not photos.same_hotel(named, _hotel(doc_id="osm:way/2", name=None))
+    assert photos.one_hotel([named])
+
+
+# ── A brand domain redirects to its group ────────────────────────────────────
+
+
+def _accor(image: str) -> dict[str, Callable[[httpx.Request], httpx.Response]]:
+    return {
+        "all.accor.com/img": lambda _: _image(),
+        "all.accor.com": lambda _: _html(
+            f'<head><meta property="og:image" content="{image}"></head>'
+        ),
+        "ibis.com": lambda _: httpx.Response(
+            302, headers={"location": "https://all.accor.com/hotel/3560/index.shtml"}
+        ),
+    }
+
+
+def test_a_redirect_into_the_hotels_own_group_is_followed(tmp_path: Path) -> None:
+    """`ibis.com` → `all.accor.com` is where Accor keeps the hotel's page, and
+    the photograph on it is the hotel's (TRA-211)."""
+    image = "https://all.accor.com/img/facade.jpg"
+    recorder = Recorder({**_no_wikimedia(), **_accor(image)})
+    with _client(recorder, tmp_path) as client:
+        kept, stats = photos.resolve(
+            client,
+            BUDAPEST,
+            [_hotel(name="ibis Budapest Centrum", url="https://ibis.com/budapest")],
+        )
+
+    assert kept[0].image_url == image
+    assert kept[0].image_credit == "all.accor.com"
+    assert stats.site == 1
+
+
+def test_a_redirect_to_a_domain_outside_the_groups_is_still_refused(
+    tmp_path: Path,
+) -> None:
+    recorder = Recorder(
+        {
+            **_no_wikimedia(),
+            "ibis.com": lambda _: httpx.Response(
+                302, headers={"location": "https://parking.example/ad"}
+            ),
+            "parking.example": lambda _: _html(
+                '<head><meta property="og:image" content="https://parking.example/a.jpg">'
+                "</head>"
+            ),
+        }
+    )
+    with _client(recorder, tmp_path) as client:
+        kept, stats = photos.resolve(
+            client,
+            BUDAPEST,
+            [_hotel(name="ibis Budapest Centrum", url="https://ibis.com/budapest")],
+        )
+
+    assert kept == [] and stats.dropped == 1
+    assert not any("parking.example" in url for url in recorder.urls)
+
+
+def test_a_groups_brand_asset_is_not_the_hotel(tmp_path: Path) -> None:
+    """NH publishes its own banner as the preview of every hotel's page."""
+    recorder = Recorder(
+        {
+            **_no_wikimedia(),
+            "nh-hotels.com/img": lambda _: _image(),
+            "nh-hotels.com": lambda _: _html(
+                '<head><meta property="og:image" '
+                'content="https://nh-hotels.com/img/brand-campaign.jpg"></head>'
+            ),
+        }
+    )
+    with _client(recorder, tmp_path) as client:
+        kept, stats = photos.resolve(
+            client,
+            BUDAPEST,
+            [
+                _hotel(
+                    name="NH Collection Budapest", url="https://nh-hotels.com/hotel/1"
+                )
+            ],
+        )
+
+    assert kept == []
+    assert (stats.site, stats.dropped) == (0, 1)
+    assert stats.as_dict()["notable_without_photo"] == [
+        {"name": "NH Collection Budapest", "reason": "no picture"}
+    ]
+
+
+def test_a_group_that_banners_every_page_falls_to_the_largest_picture(
+    tmp_path: Path,
+) -> None:
+    """IHG offers a Maldives resort as the `og:image` of a Madrid hotel; the
+    house's own photograph is further down the same page."""
+    facade = "https://ihg.com/media/crowne-plaza-facade.jpg"
+    recorder = Recorder(
+        {
+            **_no_wikimedia(),
+            "ihg.com/media": lambda _: _image(),
+            "ihg.com": lambda _: _html(
+                '<head><meta property="og:image" '
+                'content="https://ihg.com/img/maldives-hero.jpg"></head>'
+                f'<body><img src="{facade}"></body>'
+            ),
+        }
+    )
+    with _client(recorder, tmp_path) as client:
+        kept, stats = photos.resolve(
+            client,
+            BUDAPEST,
+            [_hotel(name="Crowne Plaza", url="https://ihg.com/crowneplaza/1")],
+        )
+
+    assert kept[0].image_url == facade
+    assert (stats.site, stats.page) == (0, 1)
+
+
+# ── Its Wikidata item, found by name near its coordinates ────────────────────
+
+
+def _unpictured_hotel(**overrides: Any) -> CorpusDocument:
+    """A hotel the site, Facebook, Commons and homepage tiers cannot picture."""
+    return _hotel(name="Hilton Budapest", url=None, facebook=None, **overrides)
+
+
+def test_an_item_found_by_name_at_the_hotel_pictures_it(tmp_path: Path) -> None:
+    recorder = Recorder(
+        {
+            "wikidata.org": _wikidata_api(
+                search=("Q42",),
+                entities={"Q42": _entity("Q42", AT_THE_HOTEL, image="Hilton.jpg")},
+            ),
+            "commons.wikimedia.org": _commons_api(
+                {
+                    "search": lambda _: MISSING,
+                    "imageinfo": lambda _: _imageinfo(
+                        "File:Hilton.jpg", "CC BY-SA 4.0"
+                    ),
+                }
+            ),
+        }
+    )
+    with _client(recorder, tmp_path) as client:
+        kept, stats = photos.resolve(client, BUDAPEST, [_unpictured_hotel()])
+
+    assert kept[0].image_url == _thumbnail("Hilton.jpg")
+    assert kept[0].image_license == "CC BY-SA 4.0"
+    assert kept[0].image_author == "Jane"
+    assert stats.wikidata == 1
+
+
+def test_an_item_of_the_same_name_elsewhere_is_refused(tmp_path: Path) -> None:
+    """There is a Hilton in every city; only the one here is this one."""
+    far = (HOTEL_LAT + 0.05, HOTEL_LON)  # 5 km north
+    recorder = Recorder(
+        {
+            "wikidata.org": _wikidata_api(
+                search=("Q42",),
+                entities={"Q42": _entity("Q42", far, image="Hilton.jpg")},
+            ),
+            "commons.wikimedia.org": _commons_api({"search": lambda _: MISSING}),
+        }
+    )
+    with _client(recorder, tmp_path) as client:
+        kept, stats = photos.resolve(client, BUDAPEST, [_unpictured_hotel()])
+
+    assert kept == [] and stats.wikidata == 0
+
+
+def test_a_non_free_item_picture_falls_through_to_the_commons_category(
+    tmp_path: Path,
+) -> None:
+    """P18 first, then P373: the order the tier tries, and the licence decides."""
+    recorder = Recorder(
+        {
+            "wikidata.org": _wikidata_api(
+                search=("Q42",),
+                entities={
+                    "Q42": _entity(
+                        "Q42",
+                        AT_THE_HOTEL,
+                        image="Hilton.jpg",
+                        category="Hilton Budapest",
+                    )
+                },
+            ),
+            "commons.wikimedia.org": _commons_api(
+                {
+                    "search": lambda _: MISSING,
+                    "imageinfo": lambda _: _imageinfo(
+                        "File:Hilton.jpg", "CC BY-NC 2.0"
+                    ),
+                    "categorymembers": lambda _: _json(
+                        query={
+                            "categorymembers": [{"title": "File:Hilton at night.jpg"}]
+                        }
+                    ),
+                    "imageinfo|coordinates": lambda _: _imageinfo(
+                        "File:Hilton at night.jpg", "CC BY 4.0"
+                    ),
+                }
+            ),
+        }
+    )
+    with _client(recorder, tmp_path) as client:
+        kept, stats = photos.resolve(client, BUDAPEST, [_unpictured_hotel()])
+
+    assert kept[0].image_url == _thumbnail("Hilton at night.jpg")
+    assert stats.wikidata == 1
+
+
+def test_a_category_file_taken_elsewhere_is_refused(tmp_path: Path) -> None:
+    recorder = Recorder(
+        {
+            "wikidata.org": _wikidata_api(
+                search=("Q42",),
+                entities={
+                    "Q42": _entity("Q42", AT_THE_HOTEL, category="Hilton Budapest")
+                },
+            ),
+            "commons.wikimedia.org": _commons_api(
+                {
+                    "search": lambda _: MISSING,
+                    "categorymembers": lambda _: _json(
+                        query={"categorymembers": [{"title": "File:Hilton logo.jpg"}]}
+                    ),
+                    "imageinfo|coordinates": lambda _: _imageinfo(
+                        "File:Hilton logo.jpg", "CC BY 4.0", where=ANOTHER_TOWN
+                    ),
+                }
+            ),
+        }
+    )
+    with _client(recorder, tmp_path) as client:
+        kept, stats = photos.resolve(client, BUDAPEST, [_unpictured_hotel()])
+
+    assert kept == [] and stats.wikidata == 0
+
+
+def test_the_articles_lead_picture_is_the_last_of_the_three(tmp_path: Path) -> None:
+    """No P18, no P373: the item's Wikipedia article still has a picture."""
+    recorder = Recorder(
+        {
+            "wikidata.org": _wikidata_api(
+                search=("Q42",),
+                entities={
+                    "Q42": _entity(
+                        "Q42", AT_THE_HOTEL, sitelinks={"enwiki": "Hilton Budapest"}
+                    )
+                },
+            ),
+            "en.wikipedia.org": lambda _: _json(
+                query={"pages": [{"pageimage": "Hilton lead.jpg"}]}
+            ),
+            "commons.wikimedia.org": _commons_api(
+                {
+                    "search": lambda _: MISSING,
+                    "imageinfo": lambda _: _imageinfo(
+                        "File:Hilton lead.jpg", "CC BY-SA 4.0"
+                    ),
+                }
+            ),
+        }
+    )
+    with _client(recorder, tmp_path) as client:
+        kept, stats = photos.resolve(client, BUDAPEST, [_unpictured_hotel()])
+
+    assert kept[0].image_url == _thumbnail("Hilton lead.jpg")
+    assert stats.wikidata == 1
+
+
+def test_a_hotel_that_carries_a_wikidata_id_without_a_picture_uses_the_step(
+    tmp_path: Path,
+) -> None:
+    """The enrichment stage found no free P18 on it; the item has a category."""
+    recorder = Recorder(
+        {
+            "wikidata.org": _wikidata_api(
+                entities={
+                    "Q7777": _entity("Q7777", AT_THE_HOTEL, category="Hilton Budapest")
+                },
+            ),
+            "commons.wikimedia.org": _commons_api(
+                {
+                    "search": lambda _: MISSING,
+                    "categorymembers": lambda _: _json(
+                        query={"categorymembers": [{"title": "File:Hilton day.jpg"}]}
+                    ),
+                    "imageinfo|coordinates": lambda _: _imageinfo(
+                        "File:Hilton day.jpg", "CC BY 4.0"
+                    ),
+                }
+            ),
+        }
+    )
+    with _client(recorder, tmp_path) as client:
+        kept, stats = photos.resolve(
+            client, BUDAPEST, [_unpictured_hotel(wikidata="Q7777")]
+        )
+
+    assert kept[0].image_url == _thumbnail("Hilton day.jpg")
+    assert stats.wikidata == 1
+    # The id it already carries is asked about without being searched for.
+    assert not any("wbsearchentities" in url for url in recorder.urls if "Q7777" in url)
+
+
+# ── A curated entry, applied first ───────────────────────────────────────────
+
+
+def _site_and_curated_image() -> dict[str, Callable[[httpx.Request], httpx.Response]]:
+    return {
+        **_no_wikimedia(),
+        "marriott.com/photos": lambda _: _image(),
+        "hotelgellert.hu/img": lambda _: _image(),
+        "hotelgellert.hu": lambda _: _html(
+            f'<head><meta property="og:image" content="{GELLERT_IMAGE}"></head>'
+        ),
+    }
+
+
+def test_a_curated_entry_is_applied_before_every_other_source(tmp_path: Path) -> None:
+    recorder = Recorder(_site_and_curated_image())
+    with _client(recorder, tmp_path) as client:
+        kept, stats = photos.resolve(
+            client,
+            BUDAPEST,
+            [_hotel(url="https://hotelgellert.hu/")],
+            [_curated()],
+        )
+
+    assert kept[0].image_url == "https://marriott.com/photos/gellert-facade.jpg"
+    assert kept[0].image_credit == "marriott.com"
+    assert (stats.curated, stats.site) == (1, 0)
+
+
+def test_a_curated_photo_that_no_longer_answers_falls_through(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    routes = _site_and_curated_image()
+    routes["marriott.com/photos"] = lambda _: httpx.Response(404)
+    recorder = Recorder(routes)
+    with caplog.at_level("WARNING"), _client(recorder, tmp_path) as client:
+        kept, stats = photos.resolve(
+            client,
+            BUDAPEST,
+            [_hotel(url="https://hotelgellert.hu/")],
+            [_curated()],
+        )
+
+    assert kept[0].image_url == GELLERT_IMAGE
+    assert (stats.curated, stats.site) == (0, 1)
+    assert "no longer answers as a picture" in caplog.text
+
+
+def test_a_curated_entry_matches_by_osm_id(tmp_path: Path) -> None:
+    recorder = Recorder(_site_and_curated_image())
+    entry = _curated(match="osm:node/4553094489")
+    with _client(recorder, tmp_path) as client:
+        kept, stats = photos.resolve(
+            client,
+            BUDAPEST,
+            [_hotel(osm_id="node/4553094489", url="https://hotelgellert.hu/")],
+            [entry],
+        )
+
+    assert kept[0].image_credit == "marriott.com"
+    assert stats.curated == 1
+
+
+@pytest.mark.parametrize(
+    ("match", "expected"),
+    [("Hotel Nowhere", "matches 0"), ("Hotel Gellért", "matches 2")],
+)
+def test_a_curated_entry_has_to_name_exactly_one_hotel(
+    match: str, expected: str
+) -> None:
+    documents = [_hotel(doc_id="osm:way/1"), _hotel(doc_id="osm:way/2")]
+    with pytest.raises(curated_hotels.HotelDataError) as error:
+        photos.bind_curated([_curated(match=match)], documents)
+
+    assert expected in str(error.value)
+
+
+def test_a_curated_entry_for_a_pictured_hotel_is_a_warning(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Nothing to do, and the curator has to hear about it."""
+    recorder = Recorder(_site_and_curated_image())
+    pictured = _hotel(image_url="https://commons.example/gellert.jpg")
+    with caplog.at_level("WARNING"), _client(recorder, tmp_path) as client:
+        kept, stats = photos.resolve(client, BUDAPEST, [pictured], [_curated()])
+
+    assert kept == [pictured] and stats.curated == 0
+    assert "already pictured" in caplog.text

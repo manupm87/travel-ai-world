@@ -55,7 +55,8 @@ def _batches(values: Iterable[str]) -> Iterator[list[str]]:
         yield items[start : start + BATCH]
 
 
-def _values(claims: dict[str, Any], prop: str) -> list[Any]:
+def claim_values(claims: dict[str, Any], prop: str) -> list[Any]:
+    """The values of a property, preferred statements first, deprecated ones gone."""
     statements = [s for s in claims.get(prop, []) if s.get("rank") != "deprecated"]
     # Stable sort: preferred statements first, the rest in their original order.
     statements.sort(key=lambda s: s.get("rank") != "preferred")
@@ -68,15 +69,17 @@ def _values(claims: dict[str, Any], prop: str) -> list[Any]:
 
 def parse_entity(qid: str, data: dict[str, Any]) -> Entity:
     claims = data.get("claims", {})
-    coordinates = _values(claims, COORDINATES)
-    websites = [w for w in _values(claims, WEBSITE) if isinstance(w, str)]
+    coordinates = claim_values(claims, COORDINATES)
+    websites = [w for w in claim_values(claims, WEBSITE) if isinstance(w, str)]
     heritage = [
-        v["id"] for v in _values(claims, HERITAGE) if isinstance(v, dict) and "id" in v
+        v["id"]
+        for v in claim_values(claims, HERITAGE)
+        if isinstance(v, dict) and "id" in v
     ]
     label = data.get("labels", {}).get("es", {}).get("value")
     return Entity(
         qid=qid,
-        images=tuple(v for v in _values(claims, IMAGE) if isinstance(v, str)),
+        images=tuple(v for v in claim_values(claims, IMAGE) if isinstance(v, str)),
         website=websites[0] if websites else None,
         lat=coordinates[0]["latitude"] if coordinates else None,
         lon=coordinates[0]["longitude"] if coordinates else None,

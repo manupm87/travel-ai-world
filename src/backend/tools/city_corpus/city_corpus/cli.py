@@ -15,6 +15,7 @@ from city_corpus.discover import DiscoveryError, discover, summary, write_draft
 from city_corpus.http import ApiClient, CacheMiss
 from city_corpus.manifest import write_cities_manifest
 from city_corpus.report import ReportError, write_report
+from city_corpus.sources.curated_hotels import HotelDataError
 from city_corpus.sources.tours import TourDataError
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
@@ -121,7 +122,12 @@ def _build(args: argparse.Namespace) -> int:
         with ApiClient(args.cache_dir, offline=args.offline) as client:
             result = collect(city, client, args.sources)
         info = write(out_dir, city, result)
-    except (CacheMiss, CorpusValidationError, TourDataError) as exc:
+    except (
+        CacheMiss,
+        CorpusValidationError,
+        HotelDataError,
+        TourDataError,
+    ) as exc:
         logger.error("%s", exc)
         return 1
 

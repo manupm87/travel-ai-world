@@ -258,6 +258,43 @@ async def test_a_redirect_off_the_site_is_a_parked_or_moved_domain() -> None:
     assert [str(r.url) for r in seen] == [SITE]
 
 
+async def test_a_redirect_into_the_hotels_own_group_is_followed() -> None:
+    """`ibis.com` sends you to `all.accor.com`: that is where Accor keeps the
+    hotel's page, and the photograph on it is the hotel's (TRA-211)."""
+    accor = "https://all.accor.com/hotel/3560/index.en.shtml"
+    image = "https://all.accor.com/img/facade.jpg"
+    handler, _ = _serving(
+        _html(f'<meta property="og:image" content="{image}">'), final_url=accor
+    )
+
+    photo = await _previews(handler).preview("https://ibis.com/budapest")
+
+    assert photo is not None
+    assert photo.url == image
+    assert photo.credit == "all.accor.com"
+
+
+async def test_a_redirect_to_a_domain_outside_the_groups_is_still_refused() -> None:
+    """The allowlist is a list, not a licence to leave the site."""
+    handler, seen = _serving(
+        _html('<meta property="og:image" content="https://parking.example/a.jpg">'),
+        final_url="https://parking.example/ad",
+    )
+
+    assert await _previews(handler).preview("https://ibis.com/budapest") is None
+    assert [str(r.url) for r in seen] == ["https://ibis.com/budapest"]
+
+
+async def test_a_lookalike_of_a_group_domain_is_not_the_group() -> None:
+    """`is_group_site` compares whole hosts: `notaccor.com` is nobody's hotel."""
+    handler, _ = _serving(
+        _html('<meta property="og:image" content="https://notaccor.com/a.jpg">'),
+        final_url="https://notaccor.com/ad",
+    )
+
+    assert await _previews(handler).preview("https://ibis.com/budapest") is None
+
+
 async def test_a_redirect_to_www_or_https_stays_on_the_site() -> None:
     handler, _ = _serving(
         _html(f'<meta property="og:image" content="{IMAGE}">'),

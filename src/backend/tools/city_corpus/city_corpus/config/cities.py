@@ -96,6 +96,9 @@ class CityConfig:
     # Curated tours file, relative to the tool's folder; `curated/<slug>/tours.toml`
     # when unset.
     curated_tours: str | None = None
+    # Curated hotel photos, relative to the tool's folder (TRA-211);
+    # `curated/<slug>/hotels.toml` when unset, and optional: most cities have none.
+    curated_hotels: str | None = None
     # The city's photo, read by the cities manifest (TRA-182). Optional: the
     # readiness gate does not ask for one.
     hero: HeroPhoto | None = None
@@ -124,6 +127,7 @@ _TOP_LEVEL_KEYS = {
     "centre",
     "timezone",
     "curated_tours",
+    "curated_hotels",
     "hero",
 }
 _REQUIRED_KEYS = {
@@ -144,6 +148,17 @@ def _check_keys(where: str, table: dict[str, Any], allowed: set[str]) -> None:
     unknown = sorted(set(table) - allowed)
     if unknown:
         raise CityConfigError(f"{where}: unknown key(s) {', '.join(unknown)}")
+
+
+def _inside_the_tool(where: str, key: str, data: dict[str, Any]) -> str | None:
+    """A curated file's path as written, refused when it could leave the tool."""
+    value = data.get(key)
+    if value is None:
+        return None
+    path = Path(str(value))
+    if path.is_absolute() or ".." in path.parts:
+        raise CityConfigError(f"{where} {key}: must be a path inside the tool folder")
+    return str(value)
 
 
 def _strings(where: str, values: Any) -> tuple[str, ...]:
@@ -224,13 +239,8 @@ def parse_city(data: dict[str, Any], where: str = "<city>") -> CityConfig:
             f"{where} country_code: expected an upper-case ISO 3166-1 alpha-2 code"
         )
 
-    curated_tours = data.get("curated_tours")
-    if curated_tours is not None:
-        parts = Path(str(curated_tours)).parts
-        if Path(str(curated_tours)).is_absolute() or ".." in parts:
-            raise CityConfigError(
-                f"{where} curated_tours: must be a path inside the tool folder"
-            )
+    curated_tours = _inside_the_tool(where, "curated_tours", data)
+    curated_hotels = _inside_the_tool(where, "curated_hotels", data)
 
     hero = None
     hero_table = data.get("hero")
@@ -277,6 +287,7 @@ def parse_city(data: dict[str, Any], where: str = "<city>") -> CityConfig:
         centre=centre,
         timezone=data.get("timezone", "UTC"),
         curated_tours=curated_tours,
+        curated_hotels=curated_hotels,
         hero=hero,
     )
 

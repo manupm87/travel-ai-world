@@ -135,22 +135,25 @@ def test_the_photo_stage_counters_reach_the_manifest(
     monkeypatch.setattr(
         photos,
         "resolve",
-        lambda client, city, documents: ([hotel], counters),
+        lambda client, city, documents, curated: ([hotel], counters),
     )
     result = BuildResult(documents=[hotel, blind])
 
-    _resolve_photos(BUDAPEST, ApiClient(tmp_path), result)
+    _resolve_photos(BUDAPEST, ApiClient(tmp_path), result, tmp_path / "curated")
     info = write(tmp_path / "out", BUDAPEST, result)
 
     assert result.documents == [hotel]
     assert info["enrichment"]["photos"] == {
+        "curated": 0,
         "site": 1,
         "facebook": 0,
         "commons": 0,
+        "wikidata": 0,
         "page": 0,
         "dropped": 1,
         "shared": 0,
         "dropped_examples": ["Hotel Astra"],
+        "notable_without_photo": [],
     }
 
 

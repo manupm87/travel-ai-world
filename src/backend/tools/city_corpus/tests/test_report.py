@@ -196,13 +196,19 @@ def test_tours_count_curated_and_reclassified_by_type() -> None:
 
 
 PHOTOS = {
+    "curated": 0,
     "site": 1,
     "facebook": 0,
     "commons": 1,
+    "wikidata": 0,
     "page": 0,
     "dropped": 4,
     "shared": 2,
     "dropped_examples": ["Hotel Astra", "Hotel Zero"],
+    "notable_without_photo": [
+        {"name": "Hilton Testville", "reason": "403"},
+        {"name": "NH Testville", "reason": "no url"},
+    ],
 }
 
 
@@ -220,16 +226,54 @@ def test_the_hotels_section_accounts_for_every_photo() -> None:
     # Three pictured stays, two of them found by the stage: one is the corpus's.
     # The rows read in the order the stage tries the sources.
     rows = [line for line in markdown.splitlines() if line.startswith("| ")]
-    assert rows[rows.index("| corpus | 1 |") : rows.index("| corpus | 1 |") + 5] == [
+    assert rows[rows.index("| corpus | 1 |") : rows.index("| corpus | 1 |") + 7] == [
         "| corpus | 1 |",
+        "| curated | 0 |",
         "| site | 1 |",
         "| facebook | 0 |",
         "| commons | 1 |",
+        "| wikidata | 0 |",
         "| page | 0 |",
     ]
     assert "4 hotels dropped for lack of a photo: Hotel Astra, Hotel Zero…" in markdown
     # Two of those four were a chain's, both showing the same hero picture.
     assert "2 shared chain pictures rejected" in markdown
+
+
+def test_the_notable_hotels_without_a_photo_are_named_with_the_reason() -> None:
+    """The gate says nothing about them; the next curator needs the list."""
+    summary = report.summarise(_corpus(), "testville", hotel_photos=PHOTOS)
+
+    markdown = report.render_markdown(summary)
+    assert "### Notable hotels without a photo" in markdown
+    assert "`curated/testville/hotels.toml`" in markdown
+    assert "| Hilton Testville | 403 |" in markdown
+    assert "| NH Testville | no url |" in markdown
+
+
+def test_a_city_whose_chains_are_all_pictured_says_so() -> None:
+    photos = {**PHOTOS, "notable_without_photo": []}
+    summary = report.summarise(_corpus(), "testville", hotel_photos=photos)
+
+    markdown = report.render_markdown(summary)
+    assert "None: every chain hotel of the city is pictured." in markdown
+
+
+def test_a_long_list_of_notable_hotels_is_cut_and_says_where_the_rest_is() -> None:
+    notable = [
+        {"name": f"Hotel Chain {n}", "reason": "403"}
+        for n in range(report.NOTABLE_SHOWN + 3)
+    ]
+    summary = report.summarise(
+        _corpus(),
+        "testville",
+        hotel_photos={**PHOTOS, "notable_without_photo": notable},
+    )
+
+    markdown = report.render_markdown(summary)
+    assert "| Hotel Chain 0 | 403 |" in markdown
+    assert f"| Hotel Chain {report.NOTABLE_SHOWN} | 403 |" not in markdown
+    assert "… and 3 more in `manifest.json`" in markdown
 
 
 def test_without_a_manifest_the_hotels_section_prints_the_total() -> None:

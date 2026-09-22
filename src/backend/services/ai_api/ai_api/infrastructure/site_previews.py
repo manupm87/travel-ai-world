@@ -50,6 +50,46 @@ PRIVATE_SUFFIXES = (".local", ".internal")
 SECOND_LEVEL = frozenset({"co", "com", "org", "net", "gov", "edu", "ac"})
 """Under a two-letter country code these are not the site (`co.uk`, `com.br`)."""
 
+GROUP_DOMAINS = (
+    "accor.com",
+    "adinahotels.com",
+    "aohostels.com",
+    "barcelo.com",
+    "bestwestern.com",
+    "cataloniahotels.com",
+    "eurostarshotels.com",
+    "hilton.com",
+    "hotel-bb.com",
+    "hyatt.com",
+    "iberostar.com",
+    "ihg.com",
+    "kempinski.com",
+    "leonardo-hotels.com",
+    "marriott.com",
+    "melia.com",
+    "motel-one.com",
+    "nh-hotels.com",
+    "petitpalace.com",
+    "premierinn.com",
+    "radissonhotels.com",
+    "ritzcarlton.com",
+    "room-matehotels.com",
+    "scandichotels.com",
+    "steigenberger.com",
+    "vinccihoteles.com",
+)
+"""Hotel groups a brand's own domain is allowed to redirect to (TRA-211).
+
+`ibis.com` sends you to `all.accor.com` and `stregis.com` to `marriott.com`,
+because that is where the chain keeps its hotels' pages — and the page it lands
+on carries the hotel's own photograph. Every other off-site redirect is still a
+parked or sold domain.
+
+Copied word for word, in this order, from the corpus tool's
+`config/hotel_groups.py` (`GROUP_DOMAINS`), which resolves the same photos at
+build time and may not be imported from here: change one, change the other.
+"""
+
 MIN_IMAGE_BYTES = 15_000
 """Below this a "preview" is a favicon, a badge or a tiny logo, not a picture."""
 
@@ -186,8 +226,10 @@ class SitePreviews:
     async def _get_following(self, site_url: str) -> tuple[str, bytes, str] | None:
         """The final HTML page behind at most `MAX_REDIRECTS` hops, each hop
         checked with `fetchable` like the first URL and kept on the same
-        site (a venue whose domain now redirects elsewhere is parked, sold
-        or gone): (final URL, at most `max_bytes` of body, its charset), or
+        site — or on the site of one of the hotel groups in `GROUP_DOMAINS`,
+        which is where a chain's brand domain legitimately leads (TRA-211).
+        A venue whose domain redirects anywhere else is parked, sold or gone.
+        Answers (final URL, at most `max_bytes` of body, its charset), or
         None."""
         url = site_url
         for _ in range(MAX_REDIRECTS + 1):
@@ -195,7 +237,9 @@ class SitePreviews:
                 if response.is_redirect:
                     location = response.headers.get("location", "")
                     url = urljoin(url, location)
-                    if not fetchable(url) or not same_site(site_url, url):
+                    if not fetchable(url) or not (
+                        same_site(site_url, url) or is_group_site(url)
+                    ):
                         logger.info("Site preview refused a redirect to %r", url)
                         return None
                     continue
@@ -347,6 +391,18 @@ def same_site(site_url: str, other_url: str) -> bool:
     first = urlsplit(site_url).hostname or ""
     second = urlsplit(other_url).hostname or ""
     return registrable_domain(first) == registrable_domain(second)
+
+
+def is_group_site(url: str) -> bool:
+    """Whether this URL is on one of the listed hotel groups' sites.
+
+    Subdomains included, since that is where the hotels live
+    (`all.accor.com`, `espanol.marriott.com`).
+    """
+    host = (urlsplit(url).hostname or "").lower()
+    return any(
+        host == domain or host.endswith(f".{domain}") for domain in GROUP_DOMAINS
+    )
 
 
 def credit_for(final_url: str) -> str:
