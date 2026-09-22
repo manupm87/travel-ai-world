@@ -255,4 +255,3 @@ DynamoDB. The move happens once, in this order, from `infra/aws/` after `just aw
 **Rollback** during the following week: redeploy the previous `core_api` image digest. It still
 talks to RDS, which nobody has written to since step 2; anything written to DynamoDB in between
 is lost. After a week without incidents, TRA-219 retires RDS.
-
