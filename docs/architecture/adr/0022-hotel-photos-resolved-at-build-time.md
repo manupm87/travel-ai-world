@@ -135,10 +135,12 @@ Each of those is a different mistake, so each gets its own rule.
    into `ai_api/infrastructure/site_previews.py`, which may not import the tool). A redirect
    whose target's registrable domain is a listed group is the hotel's own site, subdomains
    included. On such a page the preview is refused when its path is a brand asset
-   (`logo|brand|generic|default|placeholder|maldives`), and for a group that publishes one global
-   banner on every page (IHG) the preview is not read at all: the largest-picture rule finds the
-   house's own photograph further down. Nothing else changes for the rest of the web — the
-   allowlist is a list of twenty-six domains, not a relaxation of the same-site rule.
+   (`logo|brand|generic|default|placeholder|maldives`), and for a group that publishes one
+   picture on every page whatever the hotel the preview is not read at all: the largest-picture
+   rule finds the house's own photograph further down. Two groups are measured that way — IHG,
+   which offers a Maldives resort for a Crowne Plaza in Madrid, and a&o, whose preview is the
+   lobby of its Venice hostel on all five of its Berlin houses. Nothing else changes for the rest
+   of the web — the allowlist is twenty-six domains, not a relaxation of the same-site rule.
 3. **The hotel's Wikidata item, found by name near its coordinates**, is a new tier between
    Commons and the homepage. `wbsearchentities` for the name with its lodging words stripped, in
    English, in Spanish and in the city's language; an item is the hotel only when its P625 is
@@ -152,11 +154,21 @@ Each of those is a different mistake, so each gets its own rule.
    `source_url` it was read on and a `checked` date — the twin of `curated/<city>/tours.toml`,
    with the same discipline: the hotel's own site, never a reseller, nothing copied. It is applied
    **before** every other source, verified with the same `HEAD`, and a failing entry is a warning
-   that lets the hotel fall through. A `match` that names no hotel or several stops the build.
+   that lets the hotel fall through. A `match` that names no hotel or several stops the build. A
+   curated `image_url` may point at Wikimedia Commons, which `DENIED_HOSTS` refuses for every
+   automatic source: that list stops a hotel's own `website` tag from being an encyclopaedia
+   article, and it should not stop a person handing the build the only licence-clean photograph of
+   a building whose owner's site answers 403 to everything.
    The report's new **Notable hotels without a photo** list, from a chain-name regex, says which
    hotels want an entry and why the rules could not picture them (`403`, `no url`, `dead`,
    `no picture`, `shared picture`). The readiness gate does not fail on it: a curated file is a
    person's afternoon, and a city should not be un-indexable for want of one.
+
+One thing the Wikidata tier exposed in `ApiClient`: asking `wbsearchentities` once per unpictured
+hotel is enough load for Wikimedia's search to shed some of it (`cirrussearch-too-busy-error`).
+That was being read as a permanent API error, so a handful of hotels silently lost the source and
+the answer was never cached — two builds off the same cache would differ. It is now retried like
+`maxlag`.
 
 What did **not** change: a hotel without a photo still leaves the corpus, Commons is still asked
 by name and place, and the hot-linking bargain is the same for a curated URL as for a preview.
