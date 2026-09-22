@@ -4,15 +4,23 @@
 publishes the matching JWKS and signs ID tokens the way Cognito does, so a
 service can prove it accepts the pool's tokens and rejects tampered ones
 without any network access.
+
+`mock_dynamodb` puts every DynamoDB call of the block on moto's in-process
+fake, with dummy credentials, so no test ever reaches AWS.
 """
 
 import json
+import os
+from collections.abc import Iterator
+from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import jwt
 from cryptography.hazmat.primitives.asymmetric import rsa
 from jwt.algorithms import RSAAlgorithm
+
+from travel_common.dynamodb import dynamodb_client
 
 DEFAULT_ISSUER = "https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_TESTPOOL"
 DEFAULT_CLIENT_ID = "test-app-client-id"
@@ -83,3 +91,36 @@ class CognitoTestIssuer:
             algorithm="RS256",
             headers={"kid": kid or self.kid},
         )
+
+
+_MOCK_AWS_ENV = {
+    "AWS_ACCESS_KEY_ID": "testing",
+    "AWS_SECRET_ACCESS_KEY": "testing",
+    "AWS_DEFAULT_REGION": "eu-west-1",
+}
+
+
+@contextmanager
+def mock_dynamodb() -> Iterator[None]:
+    """Run the block against moto's in-memory AWS, with dummy credentials.
+
+    The cached `dynamodb_client`s are dropped on entry and exit, so a client
+    built against real AWS never serves the mock (nor the other way round).
+    moto is a dev dependency, imported here so this module stays importable in
+    production images, where it is absent.
+    """
+    from moto import mock_aws
+
+    saved = {key: os.environ.get(key) for key in _MOCK_AWS_ENV}
+    os.environ.update(_MOCK_AWS_ENV)
+    dynamodb_client.cache_clear()
+    try:
+        with mock_aws():
+            yield
+    finally:
+        dynamodb_client.cache_clear()
+        for key, value in saved.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
