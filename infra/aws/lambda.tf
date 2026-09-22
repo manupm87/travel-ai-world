@@ -1,9 +1,9 @@
 # The two backend images as Lambda functions (ADR 0009). The images carry the
 # Lambda Web Adapter and their AWS_LWA_* settings (src/backend/Dockerfile), so
 # only the application's own configuration is set here. Environment variables
-# are encrypted at rest with the Lambda service key; the values (database
-# password, NVIDIA key) are already in the Terraform state, which the
-# bootstrap protects (ADR 0007).
+# are encrypted at rest with the Lambda service key; the values (the NVIDIA
+# key) are already in the Terraform state, which the bootstrap protects
+# (ADR 0007).
 
 locals {
   # Both functions in Cognito mode (cognito.tf), CORS for any extra origin.
@@ -23,7 +23,7 @@ data "aws_iam_policy_document" "lambda_assume" {
   }
 }
 
-# ── core_api: inside the VPC until TRA-219; DynamoDB through the gateway endpoint ─
+# ── core_api: outside the VPC; DynamoDB through IAM ─────────────────────────
 
 resource "aws_cloudwatch_log_group" "core_api" {
   name              = "/aws/lambda/${var.name_prefix}-core-api"
@@ -35,10 +35,9 @@ resource "aws_iam_role" "core_api" {
   assume_role_policy = data.aws_iam_policy_document.lambda_assume.json
 }
 
-# Logs plus the ENIs a function in a VPC needs.
-resource "aws_iam_role_policy_attachment" "core_api_vpc" {
+resource "aws_iam_role_policy_attachment" "core_api_basic" {
   role       = aws_iam_role.core_api.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
 resource "aws_lambda_function" "core_api" {
@@ -51,27 +50,16 @@ resource "aws_lambda_function" "core_api" {
   # The gateway waits at most 29 s for a buffered integration.
   timeout = 30
 
-  vpc_config {
-    subnet_ids         = aws_subnet.private[*].id
-    security_group_ids = [aws_security_group.core_api.id]
-  }
-
   environment {
     variables = merge(local.backend_env, {
       CORE_TABLE = aws_dynamodb_table.core.name
-      # Read only by the one-off `copy-from-postgres` command; removed with RDS (TRA-219).
-      DB_SERVER   = aws_db_instance.main.address
-      DB_PORT     = "5432"
-      DB_USER     = var.db_user
-      DB_PASSWORD = var.db_password
-      DB_NAME     = var.db_name
     })
   }
 
-  depends_on = [aws_cloudwatch_log_group.core_api, aws_iam_role_policy_attachment.core_api_vpc]
+  depends_on = [aws_cloudwatch_log_group.core_api, aws_iam_role_policy_attachment.core_api_basic]
 }
 
-# ── ai_api: outside the VPC, reaches the LLM provider and core_api ──────────
+# ── ai_api: reaches the LLM provider and core_api ───────────────────────────
 
 resource "aws_cloudwatch_log_group" "ai_api" {
   name              = "/aws/lambda/${var.name_prefix}-ai-api"

@@ -22,8 +22,9 @@ name: Deploy backend
 #       FRONTEND_DOMAIN (AWS: TF_VAR_domain_name; the bucket has the same name)
 #     Environment secrets (Settings → Environments → aws / gcp → Secrets), only
 #     the real secrets:
-#       both: TF_VAR_db_password, TF_VAR_nvidia_api_key, TF_VAR_google_client_secret;
-#       GCP only: TF_VAR_secret_key
+#       both: TF_VAR_nvidia_api_key, TF_VAR_google_client_secret;
+#       GCP only: TF_VAR_secret_key, TF_VAR_db_password (Cloud SQL; AWS has no
+#       database password since TRA-219, and Terraform ignores the variable there)
 #     They must match what the state was applied with: a missing one arrives
 #     as an empty string and the plan resets that value (TRA-133). Non-secret
 #     inputs are defaults in infra/aws/variables.tf; GCP, which has none, reads

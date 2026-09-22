@@ -74,14 +74,3 @@ resource "aws_iam_role_policy" "core_api_dynamodb" {
   role   = aws_iam_role.core_api.id
   policy = data.aws_iam_policy_document.core_api_dynamodb.json
 }
-
-# core_api still runs in the VPC until RDS is retired (TRA-219): a gateway
-# endpoint (free) routes its DynamoDB calls without a NAT.
-resource "aws_vpc_endpoint" "dynamodb" {
-  vpc_id            = aws_vpc.main.id
-  service_name      = "com.amazonaws.${var.region}.dynamodb"
-  vpc_endpoint_type = "Gateway"
-  route_table_ids   = [aws_vpc.main.main_route_table_id]
-
-  tags = { Name = "${var.name_prefix}-dynamodb" }
-}

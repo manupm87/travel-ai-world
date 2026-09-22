@@ -18,16 +18,12 @@ output "api_gateway_invoke_url" {
 }
 
 output "core_api_function_name" {
-  description = "Invoke with {\"command\": \"copy-from-postgres\"} once, after the DynamoDB cut-over (TRA-218)."
+  description = "Name of the core_api Lambda function."
   value       = aws_lambda_function.core_api.function_name
 }
 
 output "ai_api_function_name" {
   value = aws_lambda_function.ai_api.function_name
-}
-
-output "rds_endpoint" {
-  value = aws_db_instance.main.address
 }
 
 output "core_table_name" {

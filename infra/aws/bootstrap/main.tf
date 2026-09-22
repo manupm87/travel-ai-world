@@ -7,8 +7,8 @@ locals {
 }
 
 # ── Terraform state ─────────────────────────────────────────────────────────
-# Holds the main root's state, which contains db_password, secret_key and the
-# OAuth client secret: private, versioned, encrypted, TLS only.
+# Holds the main root's state, which contains the NVIDIA key and the OAuth
+# client secret: private, versioned, encrypted, TLS only.
 
 resource "aws_s3_bucket" "state" {
   bucket = local.state_bucket
@@ -114,10 +114,10 @@ resource "aws_iam_role" "github_deploy" {
   max_session_duration = 3600
 }
 
-# Terraform manages VPC, RDS, ECS, ALB, ECR, Secrets Manager and CloudWatch:
-# PowerUserAccess covers all of them and excludes IAM. The task/execution roles
-# the ECS module creates are the only IAM resources, so IAM is granted on the
-# name prefix alone.
+# Terraform manages Lambda, API Gateway, DynamoDB, S3, CloudFront, Cognito, ECR
+# and CloudWatch: PowerUserAccess covers all of them and excludes IAM. The
+# functions' roles are the only IAM resources, so IAM is granted on the name
+# prefix alone.
 resource "aws_iam_role_policy_attachment" "github_deploy_power_user" {
   role       = aws_iam_role.github_deploy.name
   policy_arn = "arn:aws:iam::aws:policy/PowerUserAccess"

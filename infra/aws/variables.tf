@@ -21,7 +21,7 @@ variable "ai_api_image" {
 }
 
 variable "core_api_memory_mb" {
-  description = "Memory of the core_api function. CPU scales with it, and the init phase (SQLAlchemy import plus the VPC attachment) has 10 s: 1769 MB is one full vCPU."
+  description = "Memory of the core_api function. CPU scales with it, and the init phase has 10 s: 1769 MB is one full vCPU."
   type        = number
   default     = 1769
 }
@@ -101,24 +101,6 @@ variable "embeddings_dimensions" {
   default     = 1024
 }
 
-variable "db_name" {
-  description = "Application database name."
-  type        = string
-  default     = "travel_ai_world"
-}
-
-variable "db_user" {
-  description = "Application database user."
-  type        = string
-  default     = "travel"
-}
-
-variable "db_password" {
-  description = "Database password. Stored in Terraform state when managed here."
-  type        = string
-  sensitive   = true
-}
-
 variable "nvidia_api_key" {
   description = "NVIDIA API key. Stored in Terraform state when managed here."
   type        = string
@@ -145,20 +127,8 @@ variable "backend_cors_origins" {
   default     = "[\"http://localhost:3000\"]"
 }
 
-variable "vpc_cidr" {
-  description = "CIDR range for the VPC."
-  type        = string
-  default     = "10.20.0.0/16"
-}
-
-variable "db_instance_class" {
-  description = "RDS instance class."
-  type        = string
-  default     = "db.t4g.micro"
-}
-
 variable "deletion_protection" {
-  description = "Protect RDS and the DynamoDB tables from accidental deletion."
+  description = "Protect the DynamoDB tables from accidental deletion."
   type        = bool
   default     = true
 }
