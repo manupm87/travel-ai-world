@@ -22,6 +22,7 @@ from ai_api.domain.ports import (
     LLMProvider,
     PhotoFinder,
     Retriever,
+    SitePreviewFinder,
     TripGateway,
     WeatherForecast,
 )
@@ -76,6 +77,12 @@ def get_photos(request: Request) -> PhotoFinder | None:
     return getattr(request.app.state, "photos", None)
 
 
+def get_previews(request: Request) -> SitePreviewFinder | None:
+    """The venue's-own-site lookup built in `lifespan`, or None when
+    SITE_PREVIEWS_ENABLED is off (ADR 0021)."""
+    return getattr(request.app.state, "previews", None)
+
+
 def get_cities(
     request: Request, settings: AISettings = Depends(get_settings)
 ) -> tuple[City, ...]:
@@ -92,6 +99,7 @@ def get_plan_trip(
     retriever: Retriever | None = Depends(get_retriever),
     weather: WeatherForecast | None = Depends(get_weather),
     photos: PhotoFinder | None = Depends(get_photos),
+    previews: SitePreviewFinder | None = Depends(get_previews),
     cities: tuple[City, ...] = Depends(get_cities),
     settings: AISettings = Depends(get_settings),
 ) -> PlanTrip:
@@ -103,6 +111,7 @@ def get_plan_trip(
         retriever,
         weather=weather,
         photos=photos,
+        previews=previews,
         cities=cities,
         max_days=settings.PLANNER_MAX_DAYS,
         candidates=settings.PLANNER_CANDIDATES,
@@ -112,16 +121,18 @@ def get_plan_trip(
 def get_card_detail(
     retriever: Retriever | None = Depends(get_retriever),
     photos: PhotoFinder | None = Depends(get_photos),
+    previews: SitePreviewFinder | None = Depends(get_previews),
     cities: tuple[City, ...] = Depends(get_cities),
 ) -> CardDetailLookup:
     """A card is a corpus document: without a store there is nothing to open.
 
-    Pictured like the planner's cards (same `PhotoFinder`), so the panel of a
-    restaurant the corpus has no photo of is not blank.
+    Pictured like the planner's cards (same `PhotoFinder`, same site
+    previews), so the panel of a restaurant the corpus has no photo of is
+    not blank.
     """
     if retriever is None:
         raise ProviderUnavailable("Card details need retrieval (RETRIEVAL_ENABLED)")
-    return CardDetailLookup(retriever, photos=photos, cities=cities)
+    return CardDetailLookup(retriever, photos=photos, previews=previews, cities=cities)
 
 
 def get_trip_gateway(settings: AISettings = Depends(get_settings)) -> TripGateway:

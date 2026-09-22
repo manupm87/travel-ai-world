@@ -288,6 +288,18 @@ class FakePhotoFinder:
         return self.pages.get(page_url)
 
 
+class FakeSitePreviews:
+    """Answers one photo per site it knows (by URL), records every lookup."""
+
+    def __init__(self, previews: dict[str, Photo] | None = None) -> None:
+        self.previews = previews or {}
+        self.lookups: list[str] = []
+
+    async def preview(self, site_url: str) -> Photo | None:
+        self.lookups.append(site_url)
+        return self.previews.get(site_url)
+
+
 def matches(document: Document, filters: RetrievalFilters) -> bool:
     """Whether the store would return this document under these filters."""
     m = document.metadata

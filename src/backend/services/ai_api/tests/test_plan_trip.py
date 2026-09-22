@@ -34,6 +34,7 @@ from ai_api.testing import (
     FakePhotoFinder,
     FakeProvider,
     FakeRetriever,
+    FakeSitePreviews,
     city_for,
     documents_from_corpus,
 )
@@ -166,6 +167,7 @@ def planner(
     documents: Sequence[Document] = CORPUS,
     weather: FakeWeather | None = None,
     photos: FakePhotoFinder | None = None,
+    previews: FakeSitePreviews | None = None,
     cities: Sequence[City] = (BUDAPEST,),
 ) -> tuple[PlanTrip, FakeProvider, FakeRetriever]:
     provider = FakeProvider(deltas=deltas, replies=replies)
@@ -175,6 +177,7 @@ def planner(
         retriever,
         weather=weather,
         photos=photos,
+        previews=previews,
         cities=cities,
         max_days=7,
         candidates=8,
@@ -1433,7 +1436,12 @@ async def test_spanish_warnings_and_day_titles():
     assert weather.summary.startswith("Un octubre típico")
 
 
-# ─── Photos on every card (TRA-161) ──────────────────────────────────────────
+# ─── Photos on every card (TRA-161, TRA-206) ─────────────────────────────────
+
+ANNA_CAFE_SITE = "http://annacafe.hu/en/"
+"""What the corpus document carries as the venue's own URL (`deep_link`)."""
+
+ASTORIA_SITE = "http://www.danubiushotels.com"
 
 
 async def test_every_activity_and_the_stay_carry_a_photo():
@@ -1448,6 +1456,13 @@ async def test_every_activity_and_the_stay_carry_a_photo():
     use_case, _, _ = planner(
         [skeleton(1), day_picks(evening=[{"id": ANNA_CAFE, "why": "Close."}])],
         photos=finder,
+        previews=FakeSitePreviews(
+            {
+                ASTORIA_SITE: Photo(
+                    "https://danubiushotels.com/a.jpg", "danubiushotels.com"
+                )
+            }
+        ),
     )
 
     events = await run(
@@ -1480,14 +1495,21 @@ async def test_every_activity_and_the_stay_carry_a_photo():
     assert "Anna Cafe" in looked_up and "Parliament" not in looked_up
     # Every lookup names the city the trip is in.
     assert set(finder.cities) == {"Budapest"}
-    # Nothing found and no corpus image of the hotel: a pictured hotel of the
-    # same city stands in, credited as that hotel's photo — never the placeholder.
-    assert stay.card.image_url.startswith("https://")
-    assert not stay.card.image_credit.startswith("Illustrative")
+    # Nothing on Commons and no corpus image of the hotel: the image the
+    # hotel's own site publishes, credited with its domain (TRA-206).
+    assert stay.card.image_url == "https://danubiushotels.com/a.jpg"
+    assert stay.card.image_credit == "danubiushotels.com"
 
 
-async def test_a_card_with_no_photo_anywhere_takes_a_pictured_place_of_its_category():
-    use_case, _, retriever = planner([picks(ANNA_CAFE)], photos=FakePhotoFinder())
+async def test_a_venue_is_pictured_by_its_own_site_when_commons_has_nothing():
+    """`metadata.url` is the venue's own site: its link preview is the card's
+    photo, credited with the bare domain."""
+    previews = FakeSitePreviews(
+        {ANNA_CAFE_SITE: Photo("https://annacafe.hu/sala.jpg", "annacafe.hu")}
+    )
+    use_case, _, _ = planner(
+        [picks(ANNA_CAFE)], photos=FakePhotoFinder(), previews=previews
+    )
 
     events = await run(
         use_case(
@@ -1502,30 +1524,16 @@ async def test_a_card_with_no_photo_anywhere_takes_a_pictured_place_of_its_categ
 
     [group] = only(events, OptionsEvent)
     card = next(c for c in group.cards if c.id == ANNA_CAFE)
-    # The fixture pictures no restaurant: a restaurant was looked for first,
-    # then a pictured sight of the city stands in, credited as that sight's.
-    assert card.image_url and card.image_url.startswith("https://")
-    assert card.image_credit and not card.image_credit.startswith("Illustrative")
-    fallback = [
-        f.categories
-        for _, _, f in retriever.searches
-        if f is not None and f.categories in (("eat",), SIGHTS)
-    ]
-    assert fallback[-2:] == [("eat",), SIGHTS]
-    assert all(f.city == "budapest" for _, _, f in retriever.searches if f is not None)
+    assert card.image_url == "https://annacafe.hu/sala.jpg"
+    assert card.image_credit == "annacafe.hu"
+    assert ANNA_CAFE_SITE in previews.lookups
 
 
-async def test_the_placeholder_only_when_the_corpus_pictures_nothing():
-    unpictured = [
-        Document(
-            id=d.id,
-            content=d.content,
-            metadata={k: v for k, v in d.metadata.items() if k != "extra"},
-        )
-        for d in CORPUS
-    ]
-    use_case, _, _ = planner(
-        [picks(ANNA_CAFE)], documents=unpictured, photos=FakePhotoFinder()
+async def test_a_venue_nothing_pictures_takes_the_placeholder_not_another_venue():
+    """No card ever shows the photo of a different place (TRA-206)."""
+    previews = FakeSitePreviews()  # the restaurant's site publishes no preview
+    use_case, _, retriever = planner(
+        [picks(ANNA_CAFE)], photos=FakePhotoFinder(), previews=previews
     )
 
     events = await run(
@@ -1540,10 +1548,14 @@ async def test_the_placeholder_only_when_the_corpus_pictures_nothing():
     )
 
     [group] = only(events, OptionsEvent)
-    assert all(c.image_url for c in group.cards)
     card = next(c for c in group.cards if c.id == ANNA_CAFE)
     assert card.image_url and card.image_url.startswith("data:image/svg+xml")
     assert card.image_credit and card.image_credit.startswith("Illustrative photo")
+    assert ANNA_CAFE_SITE in previews.lookups
+    # The corpus is never searched for a sight to borrow a photo from.
+    assert not [
+        f for _, _, f in retriever.searches if f is not None and f.categories == SIGHTS
+    ]
 
 
 async def test_pictured_places_are_offered_first():

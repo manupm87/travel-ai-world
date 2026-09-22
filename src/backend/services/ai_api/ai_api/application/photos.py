@@ -1,12 +1,13 @@
-"""Every card gets a picture (TRA-161, TRA-168).
+"""Every card gets a picture (TRA-161, TRA-168, TRA-206).
 
 The corpus has photos for most sights but for few restaurants, bars or
 hotels. A card without one is looked up on Wikimedia Commons by name and at
-the venue's coordinates; when that finds nothing, the caller's fallback (a
-pictured place of the same city and category, from the corpus) is asked;
-and when the corpus has no such picture either, a neutral placeholder is
-shown and credited as such, so no card is ever blank and no card ever
-shows another city.
+the venue's coordinates; when that finds nothing and the card links to the
+venue's own site, the image that site publishes as its link preview is used
+(ADR 0021); when neither answers, the caller's fallback is asked (only a
+neighbourhood borrows a sight of its district — no card ever shows the photo
+of a different venue); and when that finds nothing either, a neutral
+placeholder is shown and credited as such, so no card is ever blank.
 """
 
 import asyncio
@@ -15,19 +16,20 @@ from collections.abc import Awaitable, Callable, Sequence
 from urllib.parse import quote
 
 from ai_api.domain.models import Photo
-from ai_api.domain.ports import PhotoFinder
+from ai_api.domain.ports import PhotoFinder, SitePreviewFinder
 from ai_api.schemas.planner_events import OptionCard
 
 logger = logging.getLogger(__name__)
 
 LOOKUPS_IN_FLIGHT = 6
-"""Commons lookups at a time for one turn: polite, and well under a second."""
+"""Lookups at a time for one turn: polite, and well under a second."""
 
 ILLUSTRATIVE = "Illustrative photo"
 """Credit prefix of a picture that is not of the place itself."""
 
 PhotoFallback = Callable[[OptionCard], Awaitable[Photo | None]]
-"""What pictures a card when neither it nor Commons has a photo of it."""
+"""What pictures a card when neither it, nor Commons, nor its own site has a
+photo of it."""
 
 _PLACEHOLDER_SVG = (
     "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 500'>"
@@ -51,13 +53,14 @@ async def ensure_photos(
     finder: PhotoFinder | None,
     *,
     city: str,
+    previews: SitePreviewFinder | None = None,
     fallback: PhotoFallback | None = None,
     last_resort: bool = True,
 ) -> list[OptionCard]:
     """The same cards, each with a picture: its own, one found on Commons
     (by name in `city`, or near its coordinates, or its page's lead image),
-    the caller's `fallback`, and finally the neutral placeholder (when
-    `last_resort`)."""
+    the preview its own site publishes (`deep_link`), the caller's
+    `fallback`, and finally the neutral placeholder (when `last_resort`)."""
     if not cards:
         return []
     gate = asyncio.Semaphore(LOOKUPS_IN_FLIGHT)
@@ -73,6 +76,10 @@ async def ensure_photos(
                 elif card.source_url:
                     # A district or an article: pictured by its page's lead image.
                     photo = await finder.find_for_page(card.source_url)
+        if photo is None and previews is not None and card.deep_link:
+            # The venue's own site: what a link to it previews as (ADR 0021).
+            async with gate:
+                photo = await previews.preview(card.deep_link)
         if photo is None and fallback is not None:
             photo = await fallback(card)
         if photo is None and last_resort:

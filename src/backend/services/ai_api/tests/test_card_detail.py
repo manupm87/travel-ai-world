@@ -10,6 +10,7 @@ from ai_api.testing import (
     BUDAPEST,
     FakePhotoFinder,
     FakeRetriever,
+    FakeSitePreviews,
     documents_from_corpus,
 )
 from travel_common.exceptions import EntityNotFound
@@ -30,10 +31,20 @@ def corpus() -> list[Document]:
     return list(documents_from_corpus(FIXTURE))
 
 
+MAZEL_TOV_SITE = "https://mazeltov.hu/en/"
+"""The bar's own site, as the corpus document carries it."""
+
+SITE_PHOTO = Photo(url="https://mazeltov.hu/garden.jpg", credit="mazeltov.hu")
+
+
 def _lookup(
-    corpus: list[Document], finder: FakePhotoFinder | None = None
+    corpus: list[Document],
+    finder: FakePhotoFinder | None = None,
+    previews: FakeSitePreviews | None = None,
 ) -> CardDetailLookup:
-    return CardDetailLookup(FakeRetriever(corpus), photos=finder, cities=(BUDAPEST,))
+    return CardDetailLookup(
+        FakeRetriever(corpus), photos=finder, previews=previews, cities=(BUDAPEST,)
+    )
 
 
 async def test_a_place_the_corpus_has_no_photo_of_is_looked_up(
@@ -94,11 +105,28 @@ async def test_without_a_finder_the_photo_stays_empty(corpus: list[Document]) ->
     assert detail.image_credit is None
 
 
+async def test_the_venues_own_site_is_asked_when_commons_finds_nothing(
+    corpus: list[Document],
+) -> None:
+    """Like the carousel's cards (TRA-206): the bar's own link preview."""
+    previews = FakeSitePreviews({MAZEL_TOV_SITE: SITE_PHOTO})
+
+    detail = await _lookup(corpus, FakePhotoFinder(), previews)(MAZEL_TOV)
+
+    assert previews.lookups == [MAZEL_TOV_SITE]
+    assert detail.image_url == SITE_PHOTO.url
+    assert detail.image_credit == "mazeltov.hu"
+
+
 async def test_a_photo_that_is_not_found_leaves_the_card_empty(
     corpus: list[Document],
 ) -> None:
-    detail = await _lookup(corpus, FakePhotoFinder())(MAZEL_TOV)
+    """Neither Commons nor the venue's own site: no photo, no placeholder."""
+    previews = FakeSitePreviews()
 
+    detail = await _lookup(corpus, FakePhotoFinder(), previews)(MAZEL_TOV)
+
+    assert previews.lookups == [MAZEL_TOV_SITE]
     assert detail.image_url is None
     assert detail.image_credit is None
 

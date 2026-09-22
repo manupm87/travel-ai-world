@@ -4,13 +4,14 @@ the retrieval requirement and the SSE v2 framing end to end."""
 import json
 from pathlib import Path
 
-from ai_api.api.deps import get_photos, get_retriever
+from ai_api.api.deps import get_photos, get_previews, get_retriever
 from ai_api.domain.models import Photo
 from ai_api.main import app
 from ai_api.testing import (
     FakePhotoFinder,
     FakeProvider,
     FakeRetriever,
+    FakeSitePreviews,
     documents_from_corpus,
 )
 from httpx import AsyncClient
@@ -22,6 +23,7 @@ MAZEL_TOV = "osm:node/3990944430"
 """A bar the corpus has no photo of: the lookup asks Commons for one."""
 
 BAR_PHOTO = Photo(url="https://example.org/mazel.jpg", credit="Someone (CC BY-SA 4.0)")
+SITE_PHOTO = Photo(url="https://mazeltov.hu/sala.jpg", credit="mazeltov.hu")
 
 EMPTY_TURN = {
     "message": "A weekend in Budapest from Madrid, 2 adults",
@@ -96,6 +98,7 @@ async def test_the_card_endpoint_answers_the_full_detail(
     retriever = FakeRetriever(documents_from_corpus(FIXTURE))
     app.dependency_overrides[get_retriever] = lambda: retriever
     app.dependency_overrides[get_photos] = lambda: None
+    app.dependency_overrides[get_previews] = lambda: None
 
     response = await client.get(
         CARD_URL, params={"id": MAZEL_TOV}, headers=auth_headers
@@ -133,6 +136,7 @@ async def test_the_card_endpoint_pictures_what_the_corpus_does_not(
     app.dependency_overrides[get_photos] = lambda: FakePhotoFinder(
         {"Mazel Tov": BAR_PHOTO}
     )
+    app.dependency_overrides[get_previews] = lambda: None
 
     response = await client.get(
         CARD_URL, params={"id": MAZEL_TOV}, headers=auth_headers
@@ -144,11 +148,35 @@ async def test_the_card_endpoint_pictures_what_the_corpus_does_not(
     assert card["image_credit"] == BAR_PHOTO.credit
 
 
+async def test_the_card_endpoint_falls_back_to_the_venues_own_site(
+    client: AsyncClient, auth_headers
+):
+    """Commons knows no such bar: the image its own site publishes (TRA-206)."""
+    site = "https://mazeltov.hu/en/"
+    app.dependency_overrides[get_retriever] = lambda: FakeRetriever(
+        documents_from_corpus(FIXTURE)
+    )
+    app.dependency_overrides[get_photos] = lambda: FakePhotoFinder()
+    app.dependency_overrides[get_previews] = lambda: FakeSitePreviews(
+        {site: SITE_PHOTO}
+    )
+
+    response = await client.get(
+        CARD_URL, params={"id": MAZEL_TOV}, headers=auth_headers
+    )
+
+    assert response.status_code == 200
+    card = response.json()
+    assert card["image_url"] == SITE_PHOTO.url
+    assert card["image_credit"] == "mazeltov.hu"
+
+
 async def test_an_unknown_card_id_is_a_404(client: AsyncClient, auth_headers):
     app.dependency_overrides[get_retriever] = lambda: FakeRetriever(
         documents_from_corpus(FIXTURE)
     )
     app.dependency_overrides[get_photos] = lambda: None
+    app.dependency_overrides[get_previews] = lambda: None
 
     response = await client.get(
         CARD_URL, params={"id": "osm:node/made-up"}, headers=auth_headers

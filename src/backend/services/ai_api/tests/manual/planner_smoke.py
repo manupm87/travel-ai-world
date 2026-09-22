@@ -9,8 +9,8 @@ Run by path, not as a module: an installed distribution ships a top-level
 Drives `PlanTrip` the way the page does — the opening message, the dates, a
 neighbourhood, a hotel, the alternatives of one slot, a restaurant request and
 a question — with the NVIDIA model, a keyword retriever over the city's
-committed `documents.jsonl`, the real Commons photo lookup and the real
-Open-Meteo forecast. Prints a trimmed event log per turn and a summary:
+committed `documents.jsonl`, the real Commons photo lookup, the real preview
+of each venue's own site and the real Open-Meteo forecast. Prints a trimmed event log per turn and a summary:
 activities per day, where each photo came from, repeated ids or titles, prices
 that slipped into a card, seconds per turn.
 
@@ -38,6 +38,7 @@ from ai_api.infrastructure.cities import load_cities
 from ai_api.infrastructure.commons_photos import CommonsPhotos
 from ai_api.infrastructure.nvidia_provider import NvidiaProvider
 from ai_api.infrastructure.open_meteo import OpenMeteoForecast
+from ai_api.infrastructure.site_previews import SitePreviews
 from ai_api.schemas.planner import PlannerTurn
 from ai_api.schemas.planner_events import DAY_PARTS
 from ai_api.testing import KeywordRetriever, city_for, documents_from_corpus
@@ -50,7 +51,7 @@ DEFAULT_MODEL = "nvidia/nemotron-3-super-120b-a12b"
 PRICE = re.compile(r"[€$£]|\b(?:Ft|HUF|EUR|USD)\b")
 """A currency sign or code: a card must show tiers, never amounts."""
 
-SOURCES = ("corpus", "commons", "illustrative", "none")
+SOURCES = ("corpus", "commons", "site", "illustrative", "none")
 EXIT_FAILED, EXIT_PROVIDER = 1, 2
 
 TEXTS: dict[str, dict[str, str]] = {
@@ -98,7 +99,10 @@ class Tally:
             return "corpus"
         if credit.startswith(ILLUSTRATIVE):
             return "illustrative"
-        return "commons"
+        if "Wikimedia Commons" in credit:
+            return "commons"
+        # A bare domain for a credit: the venue's own site preview (TRA-206).
+        return "site"
 
     def placed(self) -> list[dict[str, Any]]:
         return [card for cards in self.activities.values() for card in cards]
@@ -244,18 +248,21 @@ async def run(args: argparse.Namespace, out: Any) -> int:
     documents = documents_from_corpus(corpus)
     tally = Tally(corpus_images=corpus_image_urls(documents))
     photos = None if args.no_photos else CommonsPhotos.from_settings(settings)
+    previews = None if args.no_photos else SitePreviews.from_settings(settings)
     weather = OpenMeteoForecast.from_settings(settings)
     plan = PlanTrip(
         provider,
         KeywordRetriever(documents),
         weather=weather,
         photos=photos,
+        previews=previews,
         cities=[city_of(args.city)],
     )
     session = Session(plan, tally, out=out, quiet=args.quiet)
     out.write(
         f"city={args.city} lang={args.lang} model={args.model} "
-        f"documents={len(documents)} photos={'off' if args.no_photos else 'commons'}\n"
+        f"documents={len(documents)} "
+        f"photos={'off' if args.no_photos else 'commons+site'}\n"
     )
 
     start = date.today() + timedelta(days=30)
@@ -287,6 +294,8 @@ async def run(args: argparse.Namespace, out: Any) -> int:
         await weather.aclose()
         if photos is not None:
             await photos.aclose()
+        if previews is not None:
+            await previews.aclose()
     return summarise(tally, out)
 
 
@@ -386,7 +395,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="documents.jsonl (default: the city's)",
     )
     parser.add_argument(
-        "--no-photos", action="store_true", help="skip the Commons lookup"
+        "--no-photos",
+        action="store_true",
+        help="skip the Commons lookup and the site previews",
     )
     parser.add_argument(
         "--quiet", action="store_true", help="only the summary, no event log"

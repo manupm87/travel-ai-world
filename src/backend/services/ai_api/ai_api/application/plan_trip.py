@@ -39,7 +39,13 @@ from ai_api.domain.models import (
     Photo,
     RetrievalFilters,
 )
-from ai_api.domain.ports import LLMProvider, PhotoFinder, Retriever, WeatherForecast
+from ai_api.domain.ports import (
+    LLMProvider,
+    PhotoFinder,
+    Retriever,
+    SitePreviewFinder,
+    WeatherForecast,
+)
 from ai_api.infrastructure.static_flight_search import route_for
 from ai_api.prompts import (
     ASK_MISSING_PROMPT,
@@ -89,9 +95,6 @@ logger = logging.getLogger(__name__)
 SIGHT_CATEGORIES = ("see", "do", "tour", "history")
 EAT_CATEGORIES = ("eat",)
 DRINK_CATEGORIES = ("drink",)
-# Categories whose fallback photo is first a pictured place of the same
-# category; anything else (neighbourhood, transport, ...) borrows a sight.
-PHOTO_CATEGORIES = frozenset({"see", "do", "tour", "history", "eat", "drink", "sleep"})
 STAY_CATEGORIES = ("sleep",)
 
 EAT_DRINK = frozenset({*EAT_CATEGORIES, *DRINK_CATEGORIES})
@@ -534,6 +537,7 @@ class PlanTrip:
         *,
         weather: WeatherForecast | None = None,
         photos: PhotoFinder | None = None,
+        previews: SitePreviewFinder | None = None,
         cities: Sequence[City],
         max_days: int = 7,
         candidates: int = 8,
@@ -543,6 +547,7 @@ class PlanTrip:
         self._retriever = retriever
         self._weather = weather
         self._photos = photos
+        self._previews = previews
         if not cities:
             raise ValueError("PlanTrip needs at least one city")
         self._cities = tuple(cities)
@@ -725,30 +730,22 @@ class PlanTrip:
         )
 
     async def _corpus_photo(self, turn: Turn, card: OptionCard) -> Photo | None:
-        """A picture from the corpus for a card that has none of its own: a
-        sight of the neighbourhood for a neighbourhood card, else a pictured
-        place of the same city and category (a restaurant for a restaurant),
-        credited as that place's photo. One search per category per turn."""
-        if card.category == "neighbourhood" and card.district:
-            photo = await self._pictured_place(
-                turn,
-                f"district:{card.district}",
-                f"{card.district} landmark",
-                SIGHT_CATEGORIES,
-                districts=(card.district,),
-            )
-            if photo is not None:
-                return photo
-        if card.category in PHOTO_CATEGORIES:
-            photo = await self._pictured_place(
-                turn, f"category:{card.category}", card.category, (card.category,)
-            )
-            if photo is not None:
-                return photo
-        # No pictured place of that kind: a sight of the city still shows
-        # where the trip is, which the neutral placeholder cannot.
+        """A picture from the corpus for a neighbourhood card that has none of
+        its own: a pictured sight of that district, credited as that sight's.
+
+        Only a neighbourhood: a district *is* its landmarks, while a
+        restaurant is not another restaurant (TRA-206). A venue the corpus,
+        Commons and its own site have no photo of takes the placeholder.
+        One search per district per turn.
+        """
+        if card.category != "neighbourhood" or not card.district:
+            return None
         return await self._pictured_place(
-            turn, "category:sight", " ".join(SIGHT_CATEGORIES), SIGHT_CATEGORIES
+            turn,
+            f"district:{card.district}",
+            f"{card.district} landmark",
+            SIGHT_CATEGORIES,
+            districts=(card.district,),
         )
 
     async def _pictured_place(
@@ -1419,12 +1416,14 @@ class PlanTrip:
     async def _with_photos(
         self, turn: Turn, cards: list[OptionCard]
     ) -> list[OptionCard]:
-        """Every card pictured: its own, one found on Commons, a place of the
-        same city and category from the corpus, or the neutral placeholder."""
+        """Every card pictured: its own, one found on Commons, the preview of
+        the venue's own site, a sight of the district for a neighbourhood
+        card, or the neutral placeholder — never another venue's photo."""
         return await ensure_photos(
             cards,
             self._photos,
             city=self._city(turn).name,
+            previews=self._previews,
             fallback=lambda card: self._corpus_photo(turn, card),
         )
 

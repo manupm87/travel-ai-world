@@ -1,4 +1,4 @@
-"""`ensure_photos`: every card leaves with a picture (TRA-161, TRA-168)."""
+"""`ensure_photos`: every card leaves with a picture (TRA-161, TRA-168, TRA-206)."""
 
 import asyncio
 
@@ -10,7 +10,7 @@ from ai_api.application.photos import (
 )
 from ai_api.domain.models import Photo
 from ai_api.schemas.planner_events import OptionCard
-from ai_api.testing import FakePhotoFinder
+from ai_api.testing import FakePhotoFinder, FakeSitePreviews
 
 BUDAPEST = (47.4979, 19.0402)
 CITY = "Budapest"
@@ -172,6 +172,113 @@ async def test_never_runs_more_than_lookups_in_flight_concurrent_lookups() -> No
     await ensure_photos(cards, finder, city=CITY, last_resort=False)
 
     assert finder.max_seen == LOOKUPS_IN_FLIGHT
+
+
+# ─── The venue's own site (TRA-206) ──────────────────────────────────────────
+
+SITE = "https://restaurantesamm.com/"
+SITE_PHOTO = Photo(
+    url="https://restaurantesamm.com/sala.jpg", credit="restaurantesamm.com"
+)
+
+
+async def test_the_site_preview_is_asked_after_commons_and_before_the_fallback():
+    card = _card(
+        id="a", category="eat", lat=BUDAPEST[0], lon=BUDAPEST[1], deep_link=SITE
+    )
+    finder = FakePhotoFinder()  # Commons knows nothing about this restaurant
+    previews = FakeSitePreviews({SITE: SITE_PHOTO})
+
+    [result] = await ensure_photos(
+        [card], finder, city=CITY, previews=previews, fallback=_corpus_eat
+    )
+
+    assert finder.lookups == [("Card", BUDAPEST[0], BUDAPEST[1])]
+    assert previews.lookups == [SITE]
+    assert result.image_url == SITE_PHOTO.url
+    assert result.image_credit == "restaurantesamm.com"
+
+
+async def test_a_card_commons_pictures_never_asks_the_site() -> None:
+    card = _card(
+        id="a", title="Náncsi néni", lat=BUDAPEST[0], lon=BUDAPEST[1], deep_link=SITE
+    )
+    finder = FakePhotoFinder({"Náncsi néni": Photo("https://c/n.jpg", "Someone")})
+    previews = FakeSitePreviews({SITE: SITE_PHOTO})
+
+    [result] = await ensure_photos([card], finder, city=CITY, previews=previews)
+
+    assert previews.lookups == []
+    assert result.image_url == "https://c/n.jpg"
+
+
+async def test_a_card_without_a_deep_link_skips_the_site_and_falls_back() -> None:
+    card = _card(
+        id="a", category="eat", lat=BUDAPEST[0], lon=BUDAPEST[1], deep_link=None
+    )
+    previews = FakeSitePreviews({SITE: SITE_PHOTO})
+
+    [result] = await ensure_photos(
+        [card], FakePhotoFinder(), city=CITY, previews=previews, fallback=_corpus_eat
+    )
+
+    assert previews.lookups == []
+    assert result.image_url == "https://c/goulash.jpg"
+
+
+async def test_a_site_without_a_preview_falls_back() -> None:
+    card = _card(
+        id="a", category="eat", lat=BUDAPEST[0], lon=BUDAPEST[1], deep_link=SITE
+    )
+    previews = FakeSitePreviews()  # the site publishes no preview
+
+    [result] = await ensure_photos(
+        [card], FakePhotoFinder(), city=CITY, previews=previews, fallback=_corpus_eat
+    )
+
+    assert previews.lookups == [SITE]
+    assert result.image_url == "https://c/goulash.jpg"
+
+
+async def test_a_venue_nothing_pictures_gets_the_placeholder_not_another_photo():
+    card = _card(
+        id="a", category="eat", lat=BUDAPEST[0], lon=BUDAPEST[1], deep_link=SITE
+    )
+
+    [result] = await ensure_photos(
+        [card], FakePhotoFinder(), city=CITY, previews=FakeSitePreviews()
+    )
+
+    assert result.image_url == LAST_RESORT.url
+
+
+async def test_site_previews_never_run_more_than_lookups_in_flight_at_a_time():
+    class ConcurrencyTrackingPreviews:
+        def __init__(self) -> None:
+            self.current = 0
+            self.max_seen = 0
+            self._lock = asyncio.Lock()
+
+        async def preview(self, site_url: str) -> Photo | None:
+            async with self._lock:
+                self.current += 1
+                self.max_seen = max(self.max_seen, self.current)
+            await asyncio.sleep(0.02)
+            async with self._lock:
+                self.current -= 1
+            return None
+
+    previews = ConcurrencyTrackingPreviews()
+    cards = [
+        _card(
+            id=str(i), lat=BUDAPEST[0], lon=BUDAPEST[1], deep_link=f"https://s{i}.test/"
+        )
+        for i in range(LOOKUPS_IN_FLIGHT * 3)
+    ]
+
+    await ensure_photos(cards, None, city=CITY, previews=previews, last_resort=False)
+
+    assert previews.max_seen == LOOKUPS_IN_FLIGHT
 
 
 def test_the_placeholder_is_neutral_and_credited_as_illustrative() -> None:
