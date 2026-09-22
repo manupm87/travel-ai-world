@@ -841,7 +841,7 @@ class PlanTrip:
                 and has_image(d)
                 and d.id != turn.stay_id
                 and d.id not in turn.used_ids
-            ]
+            ][: self._candidate_count]
             if len(found) >= OPTIONS_COUNT:
                 return found, district if districts else None
         return found, None
