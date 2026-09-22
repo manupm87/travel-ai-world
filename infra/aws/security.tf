@@ -1,5 +1,7 @@
-# core_api (in the VPC) may open PostgreSQL to RDS and nothing else; RDS
-# accepts PostgreSQL from core_api and nothing else.
+# core_api (in the VPC) may open PostgreSQL to RDS and HTTPS to DynamoDB
+# (through the gateway endpoint's prefix list, dynamodb.tf) and nothing else;
+# RDS accepts PostgreSQL from core_api and nothing else. The description keeps
+# its old text: changing it would replace the group under the function.
 
 resource "aws_security_group" "core_api" {
   name        = "${var.name_prefix}-core-api"
@@ -11,6 +13,13 @@ resource "aws_security_group" "core_api" {
     to_port         = 5432
     protocol        = "tcp"
     security_groups = [aws_security_group.rds.id]
+  }
+
+  egress {
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
+    prefix_list_ids = [aws_vpc_endpoint.dynamodb.prefix_list_id]
   }
 }
 
