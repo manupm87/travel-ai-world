@@ -93,6 +93,13 @@ class AISettings(CommonSettings):
     PHOTOS_ENABLED: bool = True
     COMMONS_API_URL: str = "https://commons.wikimedia.org/w/api.php"
     COMMONS_TIMEOUT: float = 4.0
+    # A venue Commons does not picture is shown the image its own site
+    # publishes as its link preview (ADR 0021): fetched live, cached in
+    # memory for a day, never stored in the corpus.
+    SITE_PREVIEWS_ENABLED: bool = True
+    SITE_PREVIEW_TIMEOUT: float = 2.0
+    SITE_PREVIEW_MAX_BYTES: int = 262144
+    SITE_PREVIEW_CACHE_SECONDS: int = 86400
 
 
 @lru_cache

@@ -13,6 +13,7 @@ from ai_api.infrastructure.providers import (
     build_retriever,
     planner_cities,
 )
+from ai_api.infrastructure.site_previews import SitePreviews
 from ai_api.openapi import register_stream_schemas
 
 
@@ -29,10 +30,14 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     retriever = build_retriever(settings)
     weather = OpenMeteoForecast.from_settings(settings)
     photos = CommonsPhotos.from_settings(settings) if settings.PHOTOS_ENABLED else None
+    previews = (
+        SitePreviews.from_settings(settings) if settings.SITE_PREVIEWS_ENABLED else None
+    )
     app.state.llm_provider = provider
     app.state.retriever = retriever
     app.state.weather = weather
     app.state.photos = photos
+    app.state.previews = previews
     app.state.cities = planner_cities(settings)
     try:
         yield
@@ -43,6 +48,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         await weather.aclose()
         if photos is not None:
             await photos.aclose()
+        if previews is not None:
+            await previews.aclose()
 
 
 settings = get_settings()

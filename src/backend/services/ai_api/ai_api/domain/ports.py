@@ -111,6 +111,19 @@ class PhotoFinder(Protocol):
         ...
 
 
+class SitePreviewFinder(Protocol):
+    """The image a venue publishes on its own site, or None (ADR 0021).
+
+    Never raises for a lookup problem, like `PhotoFinder`: it is asked only
+    once Commons has answered nothing, and a miss falls back again.
+    """
+
+    async def preview(self, site_url: str) -> Photo | None:
+        """The link preview (`og:image` and its kin) of the venue's own site,
+        credited with the site's bare domain."""
+        ...
+
+
 class TripGateway(Protocol):
     """The slice of core_api the AI service needs, acting as the caller."""
 
