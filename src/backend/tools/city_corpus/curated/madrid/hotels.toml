@@ -1,0 +1,64 @@
+# Madrid — hotel photos read by hand (TRA-211).
+#
+# Every entry was opened in a browser on the hotel's own site, or — where the group
+# refuses every automated client and the building is a landmark in its own right —
+# on Wikimedia Commons, where the file's title and its geotag say which house it is.
+# Never a reseller.
+#
+# Looked at and left out, with the reason the report gives and what was found:
+#
+#   AC Hotel × 5, Madrid Marriott  — marriott.com, achotels.marriott.com and
+#   × 2, Atocha Tapestry, DoubleTree  espanol.marriott.com, hilton.com and ihg.com all
+#   Prado, Hilton Madrid Airport,     answer 403 to every automated client, this browser
+#   Spark by Hilton, Crowne Plaza     included. Nothing usable on Commons at their
+#   × 2, Hotel Indigo Princesa        coordinates either.
+#   NH × 12, NH Collection × 3     — nh-hotels.com and nh-hoteles.es answer 403; the
+#                                    rest have no website tag in OpenStreetMap.
+#   Barceló Emperatriz, Barceló    — barcelo.com answers 403, and unlike the Torre de
+#   Imagine                          Madrid these two are ordinary buildings with
+#                                    nothing of them on Commons.
+#   B&B Hotel × 4                  — hotel-bb.com answers 403; two of the four have
+#                                    dead domains.
+#   Catalonia × 6                  — the `hoteles-catalonia.com` URLs OpenStreetMap
+#                                    carries are dead, and the group's current pages
+#                                    illustrate every hotel with the same brand
+#                                    photographs (an "about us" header, a numbered
+#                                    room), which say nothing about the house.
+#   H10 Puerta de Alcalá, H10      — no website tag, and h10hotels.com shows the
+#   Tribeca                          group's campaign pictures above the fold.
+#   Meliá Serrano, Best Western    — no website tag, or a 403.
+#   Los Condes, Ibis Budget
+#   Vallecas, Aparthotel NH La
+#   Florida
+
+[[hotel]]
+match = "Barceló Torre de Madrid"
+image_url = "https://commons.wikimedia.org/w/index.php?title=Special:FilePath/Torre_de_Madrid_2025.jpg&width=640"
+credit = "Fernando (CC BY-SA 4.0) · Wikimedia Commons"
+source_url = "https://commons.wikimedia.org/wiki/File:Torre_de_Madrid_2025.jpg"
+checked = 2026-09-22
+note = "barcelo.com answers 403; the hotel is the Torre de Madrid, and the file is geotagged 30 m from it."
+
+[[hotel]]
+match = "Four Seasons Hotel and Private Residences Madrid"
+image_url = "https://commons.wikimedia.org/w/index.php?title=Special:FilePath/Hotel_Four_Seasons_-_Madrid_01.jpg&width=640"
+credit = "Javier Perez Montes (CC BY-SA 4.0) · Wikimedia Commons"
+source_url = "https://commons.wikimedia.org/wiki/File:Hotel_Four_Seasons_-_Madrid_01.jpg"
+checked = 2026-09-22
+note = "fourseasons.com answers 403; the file names the hotel and is geotagged 60 m from it."
+
+[[hotel]]
+match = "Hotel Travelodge Torrelaguna"
+image_url = "https://media.booking-channel.com/api/hotels/3472/images/78.jpeg"
+credit = "travelodge.es"
+source_url = "https://www.travelodge.es/hoteles-madrid/arturo-soria"
+checked = 2026-09-22
+note = "Renamed Travelodge Madrid Arturo Soria; the picture's own caption still says Torrelaguna."
+
+[[hotel]]
+match = "Travelodge Madrid Metropolitano"
+image_url = "https://media.booking-channel.com/api/hotels/3471/images/105.jpeg"
+credit = "travelodge.es"
+source_url = "https://www.travelodge.es/hoteles-madrid/metropolitano"
+checked = 2026-09-22
+note = "The façade; the group's own preview is the chain banner both houses were sharing."

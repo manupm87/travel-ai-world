@@ -1,0 +1,69 @@
+# Budapest — hotel photos read by hand (TRA-211).
+#
+# Every entry was opened in a browser on the hotel's own group site (or, where the
+# group refuses every automated client, on Wikimedia Commons) and the picture the
+# hotel shows of itself was taken from that page. Never a reseller.
+#
+# Looked at and left out, with the reason the report gives and what was found:
+#
+#   Barceló Budapest              — OpenStreetMap's website tag points at an unrelated
+#                                   site (parkresidence.eu); barcelo.com answers 403 to
+#                                   every non-browser client and to this browser too.
+#   Crowne Plaza                  — ihg.com answers 403 to the browser as well.
+#   Hilton Budapest City          — hilton.com answers 403; nothing on Commons at its
+#                                   coordinates.
+#   Hilton Garden Inn Budapest    — hilton.com answers 403; nothing on Commons.
+#   Mercure Korona Hotel          — the same hotel as `Mercure Budapest Korona` below,
+#                                   listed twice by OpenStreetMap and Wikivoyage under
+#                                   two names and one Accor page. It keeps the picture
+#                                   its own site publishes; this file pictures the other
+#                                   document, so the two cards do not share one image.
+#   NH Budapest City              — nh-hotels.com answers 403; nothing on Commons.
+#   Park Inn By Radisson          — radissonhotels.com answers 403.
+#   St. Regis                     — marriott.com answers 403. The Commons files at its
+#                                   coordinates are of the Klotild palaces as a pair and
+#                                   do not say which of the two the hotel occupies.
+#   ibis Budapest Aero            — no Accor page answers to that name any more; the
+#                                   hotel may have been renamed or closed, and a picture
+#                                   of a different ibis would be a lie.
+#   ibis Budapest Stadium         — the same.
+
+[[hotel]]
+match = "Adina Apartment Hotel Budapest"
+image_url = "https://apimedia.tfehotels.com/media-green/optimized/46/bf/46bf629d-9df6-4d59-8e7d-b406736ea5de/adina-hotel-budapest-pool-01-1500w.jpg"
+credit = "adinahotels.com"
+source_url = "https://adinahotels.com/en/apartments/budapest/"
+checked = 2026-09-22
+note = "The rooftop pool; the page publishes no exterior."
+
+[[hotel]]
+match = "Eurostars Danube Budapest"
+image_url = "https://synergy.booking-channel.com/api/hotels/794/medias/89"
+credit = "eurostarsdanubebudapest.com"
+source_url = "https://www.eurostarsdanubebudapest.com/"
+checked = 2026-09-22
+note = "The hero of the hotel's own site, served from its booking engine's media host."
+
+[[hotel]]
+match = "Leonardo Hotel Budapest"
+image_url = "https://media.leonardo-hotels.com/static.leonardo-hotels.com/image/leonardohotelbudapest_facede1_2024_98b1a54e354e5cb8f08252dfbe60788e.jpg"
+credit = "leonardo-hotels.com"
+source_url = "https://www.leonardo-hotels.com/budapest/leonardo-hotel-budapest"
+checked = 2026-09-22
+note = "Alt text on the page: Leonardo Hotel Budapest - Exterior."
+
+[[hotel]]
+match = "Mercure Budapest Korona"
+image_url = "https://www.ahstatic.com/photos/1765_ho_01_p_1024x768.jpg"
+credit = "all.accor.com"
+source_url = "https://all.accor.com/hotel/1765/index.en.shtml"
+checked = 2026-09-22
+note = "The second exterior of the gallery; the first is the og:image the twin document takes."
+
+[[hotel]]
+match = "Ritz-Carlton"
+image_url = "https://commons.wikimedia.org/w/index.php?title=Special:FilePath/Budapest_-_Adria_biztos%C3%ADt%C3%B3_sz%C3%A9kh%C3%A1za_The_Ritz-Carlton_(24564849548).jpg&width=640"
+credit = "Fred Romero from Paris, France (CC BY 2.0) · Wikimedia Commons"
+source_url = "https://commons.wikimedia.org/wiki/File:Budapest_-_Adria_biztos%C3%ADt%C3%B3_sz%C3%A9kh%C3%A1za_The_Ritz-Carlton_(24564849548).jpg"
+checked = 2026-09-22
+note = "ritzcarlton.com answers 403; the Adria Palace is the hotel and the file title says so."

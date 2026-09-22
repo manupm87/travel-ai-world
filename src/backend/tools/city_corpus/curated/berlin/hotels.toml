@@ -1,0 +1,88 @@
+# Berlin — hotel photos read by hand (TRA-211).
+#
+# Every entry was opened in a browser on the hotel's own group site and the picture
+# the hotel shows of itself was taken from that page. Never a reseller — and note
+# that OpenStreetMap's `website` tag is a booking.com link for several Berlin
+# hotels, which is why the build finds a page and no photograph.
+#
+# Looked at and left out, with the reason the report gives and what was found:
+#
+#   B&B Hotel × 6                 — hotel-bb.com and hotelbb.de answer 403 to every
+#                                   automated client, this browser included; the rest
+#                                   carry a booking.com link as their website.
+#   Best Western × 3              — two have no website tag at all and the third's is
+#                                   a booking.com link.
+#   Courtyard by Marriott × 2,    — marriott.com answers 403 to the browser as well.
+#   JW Marriott Hotel Berlin        Nothing on Commons at their coordinates.
+#   DoubleTree by Hilton Ku'damm  — hilton.com answers 403.
+#   Holiday Inn, Hotel Indigo × 4 — ihg.com answers 403; the `hotelindigoberlin.com`
+#                                   pages OpenStreetMap points at publish no picture.
+#   Mercure Hotel Berlin Mitte    — its Accor page (hotel 4988) answers 410 Gone: the
+#                                   house has closed or been rebranded, and the
+#                                   photograph still on Accor's CDN would be a lie.
+#   Meininger Tempelhofer Ufer    — no page on meininger-hotels.com any more; the
+#                                   group's Berlin houses are Central Station, Mitte,
+#                                   Airport and East Side Gallery.
+#   Motel One × 5                 — the group's image host answers 400 to a `HEAD`,
+#                                   so no picture of theirs can be checked at build
+#                                   time, curated or not.
+#   NH × 7                        — nh-hotels.com and nh-hotels.de answer 403; the
+#                                   others have no website tag.
+#   Novotel, ibis Styles × 3,     — no website tag in OpenStreetMap and no Accor page
+#   ibis Berlin City Nord           that can be matched to the name with confidence.
+#   Premier Inn × 3, Scandic × 2  — premierinn.com and scandichotels.com answer 403.
+#   Radisson Blu, Radisson        — radissonhotels.com answers 403, and the Commons
+#   Collection                      files at their coordinates are all of the AquaDom,
+#                                   the lobby aquarium that burst in December 2022.
+#   Steigenberger                 — OpenStreetMap names it "Steigenberger" and points
+#                                   at a page that is gone; the group's Berlin houses
+#                                   cannot be told apart from that.
+#   Leonardo Hotel Berlin         — no website tag, and Leonardo runs several houses
+#                                   in Berlin under names too close to guess between.
+#   art'appart, Campanile, TRYP,  — dead domains, and nothing on Commons.
+#   Park Plaza Wallstreet
+
+[[hotel]]
+match = "Adina Apartment Hotel Berlin Checkpoint Charlie"
+image_url = "https://apimedia.tfehotels.com/media-green/optimized/b0/74/b0748438-39af-4dbf-9510-7b4cd575cd6f/adina-apartment-hotel-berlin-checkpoint-charlie-aussen-7-1500w.jpg"
+credit = "adinahotels.com"
+source_url = "https://adinahotels.com/en/apartments/berlin-checkpoint-charlie/"
+checked = 2026-09-22
+note = "The exterior of the gallery; OpenStreetMap's website tag is a booking.com link."
+
+[[hotel]]
+match = "Adina Apartment Hotel Berlin Mitte"
+image_url = "https://apimedia.tfehotels.com/media-green/optimized/ae/56/ae56528e-bbc1-4b6c-bb19-56393fc15f13/adina-apartment-hotel-berlin-mitte-aussen-3-1500w.jpg"
+credit = "adinahotels.com"
+source_url = "https://adinahotels.com/en/apartments/berlin-mitte/"
+checked = 2026-09-22
+note = "The exterior of the gallery."
+
+[[hotel]]
+match = "Ibis Berlin Messe"
+image_url = "https://www.ahstatic.com/photos/0657_ho_00_p_1024x768.jpg"
+credit = "all.accor.com"
+source_url = "https://all.accor.com/hotel/0657/index.en.shtml"
+checked = 2026-09-22
+
+[[hotel]]
+match = "Meininger Hotel Berlin Central Station"
+image_url = "https://www.meininger-hotels.com/fileadmin/_processed_/e/d/csm_MEININGER-Hotel_Berlin-Central-Station_Breakfast-Room-1-min_5165241167.jpg"
+credit = "meininger-hotels.com"
+source_url = "https://www.meininger-hotels.com/en/hotels/berlin/hotel-berlin-central-station/"
+checked = 2026-09-22
+note = "OpenStreetMap points at the group's home page, whose preview is another house."
+
+[[hotel]]
+match = "Mercure Hotel Berlin Zentrum"
+image_url = "https://www.ahstatic.com/photos/9068_ho_00_p_1024x768.jpg"
+credit = "all.accor.com"
+source_url = "https://all.accor.com/hotel/9068/index.en.shtml"
+checked = 2026-09-22
+
+[[hotel]]
+match = "ibis Berlin City Potsdamer Platz"
+image_url = "https://www.ahstatic.com/photos/3752_ho_00_p_1024x768.jpg"
+credit = "all.accor.com"
+source_url = "https://all.accor.com/hotel/3752/index.en.shtml"
+checked = 2026-09-22
