@@ -159,6 +159,7 @@ def test_gate_lists_every_missed_threshold_with_its_value() -> None:
         "Located eat places: 2 (needs ≥ 100)",
         "Sleep documents: 2 (needs ≥ 20)",
         "Located sleep places: 1 (needs ≥ 10)",
+        "Pictured located sleep places: 0 (needs ≥ 10)",
         "Districts: 2 (needs ≥ 5)",
         "Districts with a neighbourhood document: 0 (needs ≥ 5)",
         "Climate normals: 11 (needs = 12)",
@@ -170,6 +171,7 @@ def test_gate_lists_every_missed_threshold_with_its_value() -> None:
         located_eat=2,
         sleep=2,
         located_sleep=1,
+        pictured_sleep=0,
         districts=2,
         described_districts=0,
         climate_normals=11,
@@ -191,6 +193,57 @@ def test_tours_count_curated_and_reclassified_by_type() -> None:
     assert "2 tour documents: 1 curated" in markdown
     assert "- Free Old Town Walk" in markdown
     assert "| Curated tours | ≥ 3 | 1 | **FAIL** |" in markdown
+
+
+PHOTOS = {
+    "commons": 1,
+    "site": 1,
+    "facebook": 0,
+    "page": 0,
+    "dropped": 4,
+    "dropped_examples": ["Hotel Astra", "Hotel Zero"],
+}
+
+
+def test_the_hotels_section_accounts_for_every_photo() -> None:
+    corpus = [
+        *_corpus(),
+        _doc("osm:way/1", category=Category.SLEEP, image_url="https://c/a.jpg"),
+        _doc("osm:way/2", category=Category.SLEEP, image_url="https://c/b.jpg"),
+        _doc("osm:way/3", category=Category.SLEEP, image_url="https://c/c.jpg"),
+    ]
+    summary = report.summarise(corpus, "testville", hotel_photos=PHOTOS)
+
+    markdown = report.render_markdown(summary)
+    assert "## Hotels" in markdown
+    # Three pictured stays, two of them found by the stage: one is the corpus's.
+    assert "| corpus | 1 |" in markdown
+    assert "| commons | 1 |" in markdown
+    assert "| site | 1 |" in markdown
+    assert "| facebook | 0 |" in markdown
+    assert "| page | 0 |" in markdown
+    assert "4 hotels dropped for lack of a photo: Hotel Astra, Hotel Zero…" in markdown
+
+
+def test_without_a_manifest_the_hotels_section_prints_the_total() -> None:
+    summary = report.summarise(_corpus(), "testville")
+
+    markdown = report.render_markdown(summary)
+    assert "0 of 1 located sleep places are pictured." in markdown
+    assert "| Source | Hotels |" not in markdown
+
+
+def test_the_gate_wants_pictured_stays() -> None:
+    lenient = Thresholds(pictured_sleep=1)
+    pictured = [
+        *_corpus(),
+        _doc("osm:way/1", category=Category.SLEEP, image_url="https://c/a.jpg"),
+    ]
+
+    blind = report.summarise(_corpus(), "testville")
+    assert "Pictured located sleep places: 0 (needs ≥ 1)" in report.gate(blind, lenient)
+    seeing = report.summarise(pictured, "testville")
+    assert "Pictured located sleep places" not in " ".join(report.gate(seeing, lenient))
 
 
 def test_markdown_is_deterministic_and_ends_with_the_gate() -> None:
@@ -229,7 +282,11 @@ def test_cli_writes_both_files_and_gates(
     (folder / "documents.jsonl").write_text(
         "".join(to_json_line(d) + "\n" for d in _corpus()), encoding="utf-8"
     )
-    (folder / "manifest.json").write_text('{"built_at": "2026-09-19T00:00:00Z"}')
+    (folder / "manifest.json").write_text(
+        json.dumps(
+            {"built_at": "2026-09-19T00:00:00Z", "enrichment": {"photos": PHOTOS}}
+        )
+    )
 
     assert main(["report", "testville", "--data-dir", str(tmp_path)]) == 1
     out = capsys.readouterr().out
@@ -239,10 +296,11 @@ def test_cli_writes_both_files_and_gates(
         .read_text(encoding="utf-8")
         .startswith("# Readiness report — testville\n\nBuilt 2026-09-19T00:00:00Z")
     )
-    assert (
-        json.loads((folder / "report.json").read_text(encoding="utf-8"))["city"]
-        == "testville"
-    )
+    data = json.loads((folder / "report.json").read_text(encoding="utf-8"))
+    assert data["city"] == "testville"
+    # The manifest's photo counters travel into the report (ADR 0022).
+    assert data["hotel_photos"] == PHOTOS
+    assert "| Source | Hotels |" in (folder / "report.md").read_text(encoding="utf-8")
 
     assert main(["report", "testville", "--data-dir", str(tmp_path), "--no-gate"]) == 0
 

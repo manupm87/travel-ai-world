@@ -34,6 +34,8 @@ PRICE_TIERS = (1, 2, 3)
 MONTHS = tuple(f"{month:02d}" for month in range(1, 13))
 SMALL_DISTRICT_PLACES = 10
 SMOKE_TOP = 3
+# Where a hotel's photo came from, in the order the build tries them (ADR 0022).
+PHOTO_SOURCES = ("commons", "site", "facebook", "page")
 
 # What a traveller asks for first, per category, in any city: nothing here
 # names one city's specialities. A corpus that cannot name three places for
@@ -103,6 +105,9 @@ class Summary:
     tour_names: list[str]
     # category → query → hits
     smoke: dict[str, dict[str, list[SmokeHit]]] = field(default_factory=dict)
+    # What the build's photo stage did for the hotels (`manifest.json`
+    # `enrichment.photos`, ADR 0022); empty when the manifest has none.
+    hotel_photos: dict[str, Any] = field(default_factory=dict)
 
     @property
     def located_sights(self) -> int:
@@ -119,6 +124,10 @@ class Summary:
     @property
     def located_sleep(self) -> int:
         return self.located_by_category.get(Category.SLEEP.value, 0)
+
+    @property
+    def pictured_sleep(self) -> int:
+        return self.pictured_by_category.get(Category.SLEEP.value, 0)
 
     @property
     def tour_documents(self) -> int:
@@ -151,20 +160,39 @@ def load_documents(path: Path) -> list[CorpusDocument]:
     return documents
 
 
-def built_at_of(data_dir: Path) -> str | None:
-    """The build time recorded by `manifest.json`, when the corpus has one."""
+def _manifest_of(data_dir: Path) -> dict[str, Any]:
+    """`manifest.json` beside the corpus, or an empty mapping."""
     manifest = data_dir / "manifest.json"
     if not manifest.is_file():
-        return None
+        return {}
     try:
-        value = json.loads(manifest.read_text(encoding="utf-8")).get("built_at")
-    except (ValueError, AttributeError):
-        return None
+        data = json.loads(manifest.read_text(encoding="utf-8"))
+    except ValueError:
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def built_at_of(data_dir: Path) -> str | None:
+    """The build time recorded by `manifest.json`, when the corpus has one."""
+    value = _manifest_of(data_dir).get("built_at")
     return value if isinstance(value, str) else None
 
 
+def hotel_photos_of(data_dir: Path) -> dict[str, Any]:
+    """`enrichment.photos`: where each hotel's picture came from, and how many
+    hotels the build dropped for having none. A corpus built before the photo
+    stage has no such entry, and the report then counts only the total."""
+    enrichment = _manifest_of(data_dir).get("enrichment")
+    photos = enrichment.get("photos") if isinstance(enrichment, dict) else None
+    return photos if isinstance(photos, dict) else {}
+
+
 def summarise(
-    documents: list[CorpusDocument], city: str, *, built_at: str | None = None
+    documents: list[CorpusDocument],
+    city: str,
+    *,
+    built_at: str | None = None,
+    hotel_photos: dict[str, Any] | None = None,
 ) -> Summary:
     listings = [d for d in documents if d.kind == Kind.LISTING]
     by_category_source: dict[str, Counter[str]] = defaultdict(Counter)
@@ -255,6 +283,7 @@ def summarise(
         tours_by_type=dict(sorted(tours_by_type.items())),
         tour_names=sorted({d.name for d in tours if d.name})[:TOUR_NAMES_SHOWN],
         smoke=smoke(documents),
+        hotel_photos=dict(hotel_photos or {}),
     )
 
 
@@ -351,6 +380,12 @@ def checks(
             summary.located_sleep >= thresholds.located_sleep,
         ),
         Check(
+            "Pictured located sleep places",
+            f"≥ {thresholds.pictured_sleep}",
+            str(summary.pictured_sleep),
+            summary.pictured_sleep >= thresholds.pictured_sleep,
+        ),
+        Check(
             "Districts",
             f"≥ {thresholds.districts}",
             str(len(summary.districts)),
@@ -414,6 +449,45 @@ def _table(headers: list[str], rows: list[list[str]]) -> list[str]:
     return lines
 
 
+def hotel_photo_lines(summary: Summary) -> list[str]:
+    """Where the hotels' photos came from, and which hotels lost their place.
+
+    A corpus built before the photo stage (or reported without its manifest)
+    knows only how many of its stays are pictured; a corpus built with it
+    accounts for every one of them.
+    """
+    intro = (
+        "Every located `sleep` place carries a photo: the corpus's own, one found on "
+        "Commons, the preview the hotel's site publishes, its Facebook page or the "
+        "largest picture on its homepage (ADR 0022). A hotel that ends the build "
+        "without one is dropped."
+    )
+    photos = summary.hotel_photos
+    if not photos:
+        return [
+            intro,
+            "",
+            f"{summary.pictured_sleep} of {summary.located_sleep} located sleep "
+            "places are pictured.",
+        ]
+    found = {name: _count(photos.get(name)) for name in PHOTO_SOURCES}
+    corpus = max(summary.pictured_sleep - sum(found.values()), 0)
+    lines = [intro, ""]
+    lines += _table(
+        ["Source", "Hotels"],
+        [["corpus", str(corpus)], *[[k, str(v)] for k, v in found.items()]],
+    )
+    dropped = _count(photos.get("dropped"))
+    examples = [str(name) for name in photos.get("dropped_examples") or []]
+    shown = (": " + ", ".join(examples) + "…") if examples else "."
+    lines += ["", f"{dropped} hotels dropped for lack of a photo{shown}"]
+    return lines
+
+
+def _count(value: Any) -> int:
+    return value if isinstance(value, int) and not isinstance(value, bool) else 0
+
+
 def render_markdown(
     summary: Summary, thresholds: Thresholds = DEFAULT_THRESHOLDS
 ) -> str:
@@ -457,6 +531,8 @@ def render_markdown(
             ]
         )
     out += _table(["Category", "Named", "Located", "Pictured", "Pictured share"], rows)
+
+    out += ["", "## Hotels", "", *hotel_photo_lines(summary)]
 
     out += ["", "## Districts", "", f"{len(summary.districts)} districts.", ""]
     out += _table(
@@ -537,7 +613,12 @@ def write_report(
     """Report `data_dir/<slug>` into `report.md` and `report.json`; return the failures."""
     folder = data_dir / slug
     documents = load_documents(folder / "documents.jsonl")
-    summary = summarise(documents, slug, built_at=built_at_of(folder))
+    summary = summarise(
+        documents,
+        slug,
+        built_at=built_at_of(folder),
+        hotel_photos=hotel_photos_of(folder),
+    )
     (folder / "report.md").write_text(
         render_markdown(summary, thresholds), encoding="utf-8"
     )

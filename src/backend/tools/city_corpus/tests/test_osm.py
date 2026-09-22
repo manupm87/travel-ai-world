@@ -244,6 +244,80 @@ def test_merge_enriches_matches_and_creates_the_rest() -> None:
 
 
 @pytest.mark.parametrize(
+    ("tags", "expected"),
+    [
+        ({"contact:facebook": "HotelGellert"}, "https://www.facebook.com/HotelGellert"),
+        (
+            {"contact:facebook": "https://www.facebook.com/HotelGellert"},
+            "https://www.facebook.com/HotelGellert",
+        ),
+        (
+            {"contact:facebook": "http://facebook.com/HotelGellert"},
+            "https://facebook.com/HotelGellert",
+        ),
+        (
+            {"facebook": "www.facebook.com/HotelGellert"},
+            "https://www.facebook.com/HotelGellert",
+        ),
+        # `contact:facebook` wins over the bare tag.
+        (
+            {"contact:facebook": "First", "facebook": "Second"},
+            "https://www.facebook.com/First",
+        ),
+        ({"facebook": "Hotel Gellert"}, None),  # a caption, not a page
+        ({}, None),
+    ],
+)
+def test_facebook_pages_are_absolute_urls(
+    tags: dict[str, str], expected: str | None
+) -> None:
+    place = _place("node/50", 47.5, 19.05, Category.SLEEP, name="Hotel Gellért", **tags)
+    document = osm.merge([], [place], BUDAPEST, FixedDistrict(), osm.OsmStats())[0]  # type: ignore[arg-type]
+
+    assert document.facebook == expected
+
+
+def test_facebook_alone_does_not_make_a_document() -> None:
+    """A venue known by nothing but a Facebook page is not a venue (the tag is
+    not in `USEFUL_TAGS`); one that is already a document keeps its page."""
+    stats = osm.OsmStats()
+    elements = [
+        _node(60, 47.5, 19.05, name="Only Facebook", tourism="hotel", facebook="Only"),
+        _node(
+            61,
+            47.5,
+            19.05,
+            name="Hotel Kept",
+            tourism="hotel",
+            website="https://kept.hu",
+            **{"contact:facebook": "HotelKept"},
+        ),
+    ]
+    found = osm.places([(QUERY["sleep"], {"elements": elements})], BUDAPEST, stats)
+
+    assert [p.name for p in found] == ["Hotel Kept"]
+    [document] = osm.merge([], found, BUDAPEST, FixedDistrict(), osm.OsmStats())  # type: ignore[arg-type]
+    assert document.facebook == "https://www.facebook.com/HotelKept"
+
+
+def test_facebook_reaches_a_document_the_element_only_enriches() -> None:
+    documents = [_listing(category=Category.SLEEP, name="Hotel Gellért")]
+    place = _place(
+        "node/70",
+        47.49720,
+        19.04980,
+        Category.SLEEP,
+        name="Hotel Gellért",
+        **{"contact:facebook": "HotelGellert"},
+    )
+
+    assert (
+        osm.merge(documents, [place], BUDAPEST, FixedDistrict(), osm.OsmStats()) == []  # type: ignore[arg-type]
+    )
+    assert documents[0].facebook == "https://www.facebook.com/HotelGellert"
+
+
+@pytest.mark.parametrize(
     ("stars", "tier"), [("2", 1), ("3", 2), ("4S", 3), ("5", 3), (None, None)]
 )
 def test_price_tier_from_stars(stars: str | None, tier: int | None) -> None:

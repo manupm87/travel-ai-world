@@ -25,6 +25,7 @@ from city_corpus.sources import (
     districts,
     neighbourhoods,
     osm,
+    photos,
     tours,
     wikidata,
     wikipedia,
@@ -39,6 +40,7 @@ class Stage(StrEnum):
     WIKIPEDIA = "wikipedia"
     OPENSTREETMAP = "openstreetmap"  # also district boundaries
     WIKIDATA = "wikidata"  # and Commons image licences
+    PHOTOS = "photos"  # a photo for every hotel, or the hotel goes (TRA-208)
     CLIMATE = "climate"
     TOURS = "tours"  # curated/<city>/tours.toml
 
@@ -119,6 +121,8 @@ def collect(
         _enrich_wikidata(city, client, result)
     if locator:
         _assign_districts(result, locator)
+    if Stage.PHOTOS in stages:
+        _resolve_photos(city, client, result)
     if Stage.CLIMATE in stages:
         fetched = climate.fetch(client, city)
         result.fetched_at.append(fetched.fetched_at)
@@ -285,6 +289,17 @@ def _enrich_wikidata(city: CityConfig, client: ApiClient, result: BuildResult) -
         "image_files_free": free,
         "document_images_skipped_non_free": stats.images_non_free,
     }
+
+
+def _resolve_photos(city: CityConfig, client: ApiClient, result: BuildResult) -> None:
+    """A photo for every located `sleep` document, or out it goes (ADR 0022).
+
+    Last of the enrichment stages: it must see the images Wikidata and Commons
+    already found, and the districts the boundaries assigned, before deciding
+    that a hotel has no picture.
+    """
+    result.documents, stats = photos.resolve(client, city, result.documents)
+    result.enrichment["photos"] = stats.as_dict()
 
 
 def _assign_districts(result: BuildResult, locator: districts.DistrictLocator) -> None:

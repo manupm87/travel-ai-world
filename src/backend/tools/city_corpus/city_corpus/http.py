@@ -1,10 +1,16 @@
-"""MediaWiki API access with an on-disk cache.
+"""HTTP access with an on-disk cache: the APIs, and the venues' own sites.
 
 Used for the MediaWiki APIs, Overpass and Open-Meteo. Wikimedia API etiquette (https://www.mediawiki.org/wiki/API:Etiquette): a descriptive
 User-Agent with a contact, `maxlag`, serial requests (well under the concurrency of 2
 the issue allows) and backoff on 429/5xx/maxlag. Every response is cached under
 `.cache/` keyed by URL + parameters, so a rebuild with a warm cache never touches the
 network and produces byte-identical output.
+
+`get_text` and `head` are the other kind of fetch: a venue's own page, which is not
+an API — no JSON, no `maxlag`, two attempts instead of ten, a four-second timeout and
+the redirects followed by hand so that the caller decides, hop by hop, where the fetch
+may go (TRA-208). They cache under `.cache/sites/<host>/`, apart from the APIs, and a
+miss is cached like a hit: a dead hotel site must not be dialled again on every build.
 """
 
 import hashlib
@@ -16,6 +22,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+from urllib.parse import urljoin
 
 import httpx
 
@@ -34,6 +41,9 @@ POLITE_DELAY_SECONDS = 0.2
 # Hosts with stricter fair-use rules: seconds to wait before each request.
 SLOW_HOSTS = {
     "overpass-api.de": 5.0,
+    # The photo stage asks Commons twice per hotel without a picture; one second
+    # between calls keeps a whole city's build inside its fair-use budget.
+    "commons.wikimedia.org": 1.0,
     "archive-api.open-meteo.com": 1.0,
     "api.open-meteo.com": 1.0,
     "nominatim.openstreetmap.org": 1.0,
@@ -41,6 +51,15 @@ SLOW_HOSTS = {
 # Hosts that answer slower than the client's 60 s: the place queries ask Overpass
 # for `[timeout:240]`, and Berlin's took longer than a minute under load (TRA-33).
 SLOW_READ_SECONDS = {"overpass-api.de": 250.0}
+
+# Venue sites (`get_text`, `head`): not APIs, so a different budget.
+SITE_TIMEOUT_SECONDS = 4.0
+SITE_ATTEMPTS = 2
+SITE_MAX_REDIRECTS = 3
+SITE_MAX_BYTES = 262_144
+SITE_CACHE_DIR = "sites"
+_SITE_TIMEOUT = httpx.Timeout(SITE_TIMEOUT_SECONDS)
+_LOCATION = "_location"  # a redirect target, never written to the cache record
 
 
 class CacheMiss(RuntimeError):
@@ -50,6 +69,36 @@ class CacheMiss(RuntimeError):
 @dataclass(frozen=True)
 class Fetched:
     data: dict[str, Any]
+    fetched_at: str
+
+
+@dataclass(frozen=True)
+class FetchedPage:
+    """A venue's page: `status` 0 when nothing was read (transport error, or a
+    redirect the caller refused). `text` is cut at `SITE_MAX_BYTES`."""
+
+    final_url: str
+    status: int
+    content_type: str
+    text: str
+    fetched_at: str
+
+    @property
+    def is_html(self) -> bool:
+        return (
+            200 <= self.status < 300
+            and self.content_type.strip().lower().startswith("text/html")
+        )
+
+
+@dataclass(frozen=True)
+class FetchedHead:
+    """The headers of a candidate image; `status` 0 when nothing answered."""
+
+    final_url: str
+    status: int
+    content_type: str
+    content_length: int | None
     fetched_at: str
 
 
@@ -99,6 +148,150 @@ class ApiClient:
         return self._cached(
             url, dict(form), lambda: self._fetch(url, dict(form), post=True), "POST"
         )
+
+    def get_text(self, url: str, hop_allowed: Callable[[str], bool]) -> FetchedPage:
+        """A venue's page as text (never JSON), at most `SITE_MAX_BYTES` of it.
+
+        Redirects are followed here rather than by httpx so that every hop
+        passes `hop_allowed` first; a refused hop, a transport error or a
+        timeout all answer a miss (`status` 0), and the miss is cached.
+        """
+        record, fetched_at = self._cached_site(
+            url, "TEXT", lambda: self._fetch_page(url, hop_allowed)
+        )
+        return FetchedPage(
+            final_url=str(record.get("final_url") or url),
+            status=int(record.get("status") or 0),
+            content_type=str(record.get("content_type") or ""),
+            text=str(record.get("text") or ""),
+            fetched_at=fetched_at,
+        )
+
+    def head(
+        self, url: str, hop_allowed: Callable[[str], bool] | None = None
+    ) -> FetchedHead:
+        """The headers of a URL: what a candidate image says it is, without
+        downloading it. Redirects are followed by hand, each hop offered to
+        `hop_allowed` when one is given."""
+        record, fetched_at = self._cached_site(
+            url, "HEAD", lambda: self._fetch_head(url, hop_allowed)
+        )
+        length = record.get("content_length")
+        return FetchedHead(
+            final_url=str(record.get("final_url") or url),
+            status=int(record.get("status") or 0),
+            content_type=str(record.get("content_type") or ""),
+            content_length=int(length) if isinstance(length, int) else None,
+            fetched_at=fetched_at,
+        )
+
+    def _fetch_page(
+        self, url: str, hop_allowed: Callable[[str], bool]
+    ) -> dict[str, Any]:
+        current = url
+        for _ in range(SITE_MAX_REDIRECTS + 1):
+            record = self._read_page(current)
+            if record is None:
+                return _site_miss(current)
+            location = record.pop(_LOCATION, None)
+            if location is None:
+                return record
+            if not hop_allowed(location):
+                logger.info("%s: refused a redirect to %s", url, location)
+                return _site_miss(current)
+            current = location
+        return _site_miss(current)
+
+    def _fetch_head(
+        self, url: str, hop_allowed: Callable[[str], bool] | None
+    ) -> dict[str, Any]:
+        current = url
+        for _ in range(SITE_MAX_REDIRECTS + 1):
+            record = self._read_head(current)
+            if record is None:
+                return _site_miss(current)
+            location = record.pop(_LOCATION, None)
+            if location is None:
+                return record
+            if hop_allowed is not None and not hop_allowed(location):
+                logger.info("%s: refused a redirect to %s", url, location)
+                return _site_miss(current)
+            current = location
+        return _site_miss(current)
+
+    def _read_page(self, url: str) -> dict[str, Any] | None:
+        """One page, at most `SITE_ATTEMPTS` tries; None when none answered."""
+        for attempt in range(1, SITE_ATTEMPTS + 1):
+            self._pause(url)
+            try:
+                with self._client.stream(
+                    "GET", url, timeout=_SITE_TIMEOUT, follow_redirects=False
+                ) as response:
+                    if response.is_redirect:
+                        return {_LOCATION: _location_of(url, response)}
+                    body = _read_limited(response)
+                    return {
+                        "final_url": str(response.url),
+                        "status": response.status_code,
+                        "content_type": response.headers.get("content-type", ""),
+                        "text": _decoded(body, response.charset_encoding),
+                    }
+            except httpx.HTTPError as exc:
+                logger.info("GET %s: %s (attempt %d)", url, exc, attempt)
+        return None
+
+    def _read_head(self, url: str) -> dict[str, Any] | None:
+        for attempt in range(1, SITE_ATTEMPTS + 1):
+            self._pause(url)
+            try:
+                response = self._client.head(
+                    url, timeout=_SITE_TIMEOUT, follow_redirects=False
+                )
+            except httpx.HTTPError as exc:
+                logger.info("HEAD %s: %s (attempt %d)", url, exc, attempt)
+                continue
+            if response.is_redirect:
+                return {_LOCATION: _location_of(url, response)}
+            length = response.headers.get("content-length", "")
+            return {
+                "final_url": str(response.url),
+                "status": response.status_code,
+                "content_type": response.headers.get("content-type", ""),
+                "content_length": int(length) if length.isdigit() else None,
+            }
+        return None
+
+    def _pause(self, url: str) -> None:
+        self._sleep(SLOW_HOSTS.get(httpx.URL(url).host, POLITE_DELAY_SECONDS))
+
+    def _cached_site(
+        self, url: str, kind: str, fetch: Callable[[], dict[str, Any]]
+    ) -> tuple[dict[str, Any], str]:
+        """Like `_cached`, under `.cache/sites/<host>/`: the APIs and the open
+        web share no namespace, and a site's record has no parameters."""
+        path = self._site_cache_path(url, kind)
+        if path.exists():
+            cached = json.loads(path.read_text(encoding="utf-8"))
+            return cached["response"], cached["fetched_at"]
+        if self._offline:
+            raise CacheMiss(f"not cached: {kind} {url}")
+        data = fetch()
+        fetched_at = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        record = {
+            "url": url,
+            "method": kind,
+            "fetched_at": fetched_at,
+            "response": data,
+        }
+        path.write_text(json.dumps(record, ensure_ascii=False), encoding="utf-8")
+        return data, fetched_at
+
+    def _site_cache_path(self, url: str, kind: str) -> Path:
+        key = json.dumps([url, kind], ensure_ascii=False)
+        digest = hashlib.sha256(key.encode("utf-8")).hexdigest()[:32]
+        host = httpx.URL(url).host or "unknown"
+        return self._cache_dir / SITE_CACHE_DIR / host / f"{digest}.json"
 
     def _cached(
         self,
@@ -175,6 +368,34 @@ class ApiClient:
         key = json.dumps(parts, ensure_ascii=False)
         digest = hashlib.sha256(key.encode("utf-8")).hexdigest()[:32]
         return self._cache_dir / httpx.URL(url).host / f"{digest}.json"
+
+
+def _location_of(url: str, response: httpx.Response) -> str:
+    return urljoin(url, response.headers.get("location", ""))
+
+
+def _decoded(body: bytes, encoding: str | None) -> str:
+    try:
+        return body.decode(encoding or "utf-8", errors="replace")
+    except LookupError:  # a charset no codec knows
+        return body.decode("utf-8", errors="replace")
+
+
+def _site_miss(url: str) -> dict[str, Any]:
+    """Nothing was read. Cached all the same: a dead domain stays dead."""
+    return {"final_url": url, "status": 0, "content_type": "", "text": ""}
+
+
+def _read_limited(response: httpx.Response) -> bytes:
+    """At most `SITE_MAX_BYTES` of the body; the rest never crosses the wire."""
+    chunks: list[bytes] = []
+    read = 0
+    for chunk in response.iter_bytes():
+        chunks.append(chunk)
+        read += len(chunk)
+        if read >= SITE_MAX_BYTES:
+            break
+    return b"".join(chunks)[:SITE_MAX_BYTES]
 
 
 def _retryable_problem(response: httpx.Response) -> str | None:

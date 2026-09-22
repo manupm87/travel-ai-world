@@ -3,10 +3,19 @@ from pathlib import Path
 
 import httpx
 import pytest
-from city_corpus.build import BuildResult, CorpusValidationError, validate, write
+from city_corpus.build import (
+    ALL_STAGES,
+    BuildResult,
+    CorpusValidationError,
+    Stage,
+    _resolve_photos,
+    validate,
+    write,
+)
 from city_corpus.config.cities import BUDAPEST
 from city_corpus.http import ApiClient, CacheMiss
 from city_corpus.models import Category, CorpusDocument, Kind, Source
+from city_corpus.sources import photos
 
 TEXT = "A document text that is long enough to pass validation."
 
@@ -77,6 +86,42 @@ def test_write_is_deterministic(tmp_path: Path) -> None:
     assert manifest["built_at"] == "2026-09-17T11:00:00Z"
     assert manifest["listings_with_coordinates"] == 1
     assert manifest["revisions"] == {"wikivoyage:en:Budapest": 7}
+
+
+def test_the_photo_stage_runs_after_wikidata_and_before_climate() -> None:
+    """It must see the Commons images Wikidata found, and the districts the
+    boundaries assigned, before it decides a hotel has no picture (TRA-208)."""
+    order = list(ALL_STAGES)
+
+    assert order.index(Stage.WIKIDATA) < order.index(Stage.PHOTOS)
+    assert order.index(Stage.PHOTOS) < order.index(Stage.CLIMATE)
+
+
+def test_the_photo_stage_counters_reach_the_manifest(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    hotel = _doc(doc_id="osm:way/1", category=Category.SLEEP, name="Hotel Gellért")
+    blind = _doc(doc_id="osm:way/2", category=Category.SLEEP, name="Hotel Astra")
+    counters = photos.PhotoStats(site=1, dropped=1, dropped_names=["Hotel Astra"])
+    monkeypatch.setattr(
+        photos,
+        "resolve",
+        lambda client, city, documents: ([hotel], counters),
+    )
+    result = BuildResult(documents=[hotel, blind])
+
+    _resolve_photos(BUDAPEST, ApiClient(tmp_path), result)
+    info = write(tmp_path / "out", BUDAPEST, result)
+
+    assert result.documents == [hotel]
+    assert info["enrichment"]["photos"] == {
+        "commons": 0,
+        "site": 1,
+        "facebook": 0,
+        "page": 0,
+        "dropped": 1,
+        "dropped_examples": ["Hotel Astra"],
+    }
 
 
 def test_client_caches_and_retries(tmp_path: Path) -> None:

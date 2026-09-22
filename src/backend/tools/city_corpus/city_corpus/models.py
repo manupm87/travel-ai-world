@@ -79,7 +79,12 @@ class CorpusDocument(BaseModel):
     heritage: str | None = None
     image_license: str | None = None
     image_author: str | None = None
+    # What to print beside a photo that is not from Commons (the hotel's own
+    # site, its Facebook page): the bare domain it was read from (TRA-208).
+    image_credit: str | None = None
     osm_id: str | None = None
+    # The venue's Facebook page (OSM `contact:facebook`), a photo source.
+    facebook: str | None = None
     opening_hours: str | None = None
     stars: str | None = None
     cuisine: str | None = None

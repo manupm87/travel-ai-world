@@ -19,6 +19,9 @@ class Thresholds:
     # `sleep` documents, and how many of them the hotel step can place on a map.
     sleep: int = 20
     located_sleep: int = 10
+    # Located `sleep` places with an `image_url`. A stay is never offered
+    # without a photo (ADR 0022), so an unpictured hotel is not a hotel.
+    pictured_sleep: int = 10
     # Distinct districts: the neighbourhood carousel offers three.
     districts: int = 5
     # Districts with a `neighbourhood` document: what the carousel ranks. A
