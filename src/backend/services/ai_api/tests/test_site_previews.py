@@ -5,11 +5,16 @@ import logging
 import httpx
 import pytest
 from ai_api.infrastructure.commons_photos import USER_AGENT
-from ai_api.infrastructure.site_previews import MAX_REDIRECTS, SitePreviews
+from ai_api.infrastructure.site_previews import (
+    MAX_REDIRECTS,
+    SitePreviews,
+    registrable_domain,
+)
 from ai_api.testing import settings_for_tests
 
 SITE = "https://restaurantesamm.com/"
 IMAGE = "https://restaurantesamm.com/img/sala.jpg"
+PICTURE_HEADERS = {"content-type": "image/jpeg", "content-length": "84213"}
 
 
 def _html(head: str) -> str:
@@ -22,17 +27,24 @@ def _serving(
     status: int = 200,
     content_type: str = "text/html; charset=utf-8",
     final_url: str | None = None,
+    image_headers: dict[str, str] | None = None,
 ):
     """A handler answering this page, and the list of requests it saw."""
     seen: list[httpx.Request] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
         seen.append(request)
+        if request.method == "HEAD":
+            return httpx.Response(200, headers=image_headers or PICTURE_HEADERS)
         if final_url is not None and str(request.url) != final_url:
             return httpx.Response(301, headers={"location": final_url})
         return httpx.Response(status, text=html, headers={"content-type": content_type})
 
     return handler, seen
+
+
+def _gets(seen: list[httpx.Request]) -> list[httpx.Request]:
+    return [r for r in seen if r.method == "GET"]
 
 
 def _previews(handler, **kwargs) -> SitePreviews:
@@ -55,7 +67,7 @@ async def test_an_absolute_og_image_is_the_photo_credited_with_the_domain() -> N
     assert photo is not None
     assert photo.url == IMAGE
     assert photo.credit == "restaurantesamm.com"
-    assert len(seen) == 1
+    assert len(_gets(seen)) == 1
 
 
 async def test_a_relative_image_is_resolved_against_the_final_url() -> None:
@@ -160,7 +172,7 @@ async def test_a_page_that_is_not_html_is_none() -> None:
     handler, seen = _serving("{}", content_type="application/json")
 
     assert await _previews(handler).preview(SITE) is None
-    assert len(seen) == 1
+    assert len(_gets(seen)) == 1
 
 
 async def test_the_body_is_not_read_past_the_limit() -> None:
@@ -225,10 +237,135 @@ async def test_more_hops_than_allowed_is_none() -> None:
     def bouncing(request: httpx.Request) -> httpx.Response:
         seen.append(request)
         n = len(seen)
-        return httpx.Response(302, headers={"location": f"https://hop{n}.example/"})
+        return httpx.Response(302, headers={"location": f"{SITE}hop{n}/"})
 
     assert await _previews(bouncing).preview(SITE) is None
     assert len(seen) == MAX_REDIRECTS + 1
+
+
+# ─── What is not a photo of the place (TRA-207) ──────────────────────────────
+
+
+async def test_a_redirect_off_the_site_is_a_parked_or_moved_domain() -> None:
+    """`acehostel.com` answers 301 to a domain broker whose page has an
+    `og:image`: the venue is gone, and the broker's banner is not its photo."""
+    handler, seen = _serving(
+        _html('<meta property="og:image" content="https://cdn.broker.example/og.png">'),
+        final_url="https://www.broker.example/domain/restaurantesamm.com",
+    )
+
+    assert await _previews(handler).preview(SITE) is None
+    assert [str(r.url) for r in seen] == [SITE]
+
+
+async def test_a_redirect_to_www_or_https_stays_on_the_site() -> None:
+    handler, _ = _serving(
+        _html(f'<meta property="og:image" content="{IMAGE}">'),
+        final_url="https://www.restaurantesamm.com/en/",
+    )
+
+    photo = await _previews(handler).preview("http://restaurantesamm.com/")
+
+    assert photo is not None and photo.url == IMAGE
+
+
+@pytest.mark.parametrize(
+    "headers",
+    [
+        {"content-type": "image/svg+xml", "content-length": "5472"},
+        {"content-type": "text/html; charset=utf-8"},
+        {"content-type": "image/png", "content-length": "9872"},
+    ],
+    ids=["svg logo", "an html page", "a 10 KB badge"],
+)
+async def test_an_image_that_is_not_a_picture_is_none(headers) -> None:
+    handler, _ = _serving(
+        _html(f'<meta property="og:image" content="{IMAGE}">'), image_headers=headers
+    )
+
+    assert await _previews(handler).preview(SITE) is None
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/imgs/logo-desktop.svg",
+        "/uploads/noun_leaf_icon.png",
+        "/favicon-og.jpg",
+        "/sprite.png",
+    ],
+)
+async def test_a_file_named_like_a_logo_is_none_without_a_head(path) -> None:
+    handler, seen = _serving(
+        _html(f'<meta property="og:image" content="https://restaurantesamm.com{path}">')
+    )
+
+    assert await _previews(handler).preview(SITE) is None
+    assert [r.method for r in seen] == ["GET"]
+
+
+async def test_an_image_on_another_host_is_fine_when_the_page_is_the_sites() -> None:
+    """Facebook pages, Accor, Wix: the page is the venue's, the picture is on a CDN."""
+    cdn = "https://scontent.xx.fbcdn.net/v/t39/492152841_n.jpg"
+    handler, _ = _serving(_html(f'<meta property="og:image" content="{cdn}">'))
+
+    photo = await _previews(handler).preview("https://www.facebook.com/hazisarkany/")
+
+    assert photo is not None and photo.url == cdn
+    assert photo.credit == "facebook.com"
+
+
+async def test_a_server_that_refuses_head_or_omits_the_length_is_trusted() -> None:
+    seen: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request)
+        if request.method == "HEAD":
+            return httpx.Response(405)
+        return httpx.Response(
+            200,
+            text=_html(f'<meta property="og:image" content="{IMAGE}">'),
+            headers={"content-type": "text/html"},
+        )
+
+    photo = await _previews(handler).preview(SITE)
+    assert photo is not None and photo.url == IMAGE
+
+    handler2, _ = _serving(
+        _html(f'<meta property="og:image" content="{IMAGE}">'),
+        image_headers={"content-type": "image/jpeg"},
+    )
+    assert await _previews(handler2).preview(SITE) is not None
+
+
+async def test_a_head_that_fails_is_none_and_warns(caplog) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.method == "HEAD":
+            raise httpx.ConnectError("boom")
+        return httpx.Response(
+            200,
+            text=_html(f'<meta property="og:image" content="{IMAGE}">'),
+            headers={"content-type": "text/html"},
+        )
+
+    with caplog.at_level(logging.WARNING):
+        assert await _previews(handler).preview(SITE) is None
+    assert "image check failed" in caplog.text
+
+
+@pytest.mark.parametrize(
+    ("host", "domain"),
+    [
+        ("www.restaurantesamm.com", "restaurantesamm.com"),
+        ("all.accor.com", "accor.com"),
+        ("www.hotel.co.uk", "hotel.co.uk"),
+        ("shop.example.com.br", "example.com.br"),
+        ("static.hugedomains.com", "hugedomains.com"),
+        ("tf.hu", "tf.hu"),
+    ],
+)
+def test_registrable_domain(host, domain) -> None:
+    assert registrable_domain(host) == domain
 
 
 # ─── Failures answer None, never raise ───────────────────────────────────────
@@ -275,7 +412,7 @@ async def test_a_second_lookup_of_the_same_site_makes_no_request() -> None:
     second = await previews.preview(SITE)
 
     assert first == second
-    assert len(seen) == 1
+    assert len(_gets(seen)) == 1
 
 
 async def test_a_miss_is_cached_too() -> None:
@@ -285,7 +422,7 @@ async def test_a_miss_is_cached_too() -> None:
 
     assert await previews.preview(SITE) is None
     assert await previews.preview(SITE) is None
-    assert len(seen) == 1
+    assert len(_gets(seen)) == 1
 
 
 async def test_an_entry_older_than_the_ttl_is_fetched_again() -> None:
@@ -296,11 +433,11 @@ async def test_an_entry_older_than_the_ttl_is_fetched_again() -> None:
     await previews.preview(SITE)
     now[0] += 59
     await previews.preview(SITE)
-    assert len(seen) == 1
+    assert len(_gets(seen)) == 1
 
     now[0] += 2
     await previews.preview(SITE)
-    assert len(seen) == 2
+    assert len(_gets(seen)) == 2
 
 
 async def test_the_cache_never_grows_past_its_size() -> None:
@@ -313,7 +450,7 @@ async def test_the_cache_never_grows_past_its_size() -> None:
     assert len(previews._cache) == 2
     # The oldest went first: the first site is asked again.
     await previews.preview("https://samm0.example/")
-    assert len(seen) == 6
+    assert len(_gets(seen)) == 6
 
 
 # ─── Wiring ──────────────────────────────────────────────────────────────────

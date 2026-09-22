@@ -16,6 +16,7 @@ falls back.
 
 import ipaddress
 import logging
+import re
 import time
 from collections.abc import Callable
 from html.parser import HTMLParser
@@ -45,6 +46,16 @@ DENIED_HOSTS = (
 encyclopaedia, not the place. Commons is asked properly, before this."""
 
 PRIVATE_SUFFIXES = (".local", ".internal")
+
+SECOND_LEVEL = frozenset({"co", "com", "org", "net", "gov", "edu", "ac"})
+"""Under a two-letter country code these are not the site (`co.uk`, `com.br`)."""
+
+MIN_IMAGE_BYTES = 15_000
+"""Below this a "preview" is a favicon, a badge or a tiny logo, not a picture."""
+
+LOGO_PATH = re.compile(r"logo|icon|favicon|sprite", re.IGNORECASE)
+"""A preview whose file name says what it is. Sites that publish their logo as
+`og:image` are common; a logo on a card is not a photo of the place."""
 
 SECURE_URL = "og:image:secure_url"
 META_RANKS = {SECURE_URL: 0, "og:image": 1, "twitter:image": 2, "twitter:image:src": 3}
@@ -128,21 +139,55 @@ class SitePreviews:
         if candidate is None:
             return None
         image = absolute_image(final_url, candidate)
-        if image is None:
+        if image is None or LOGO_PATH.search(urlsplit(image).path):
+            return None
+        try:
+            if not await self._is_a_picture(image):
+                return None
+        except httpx.HTTPError as exc:
+            logger.warning("Site preview image check failed for %r: %s", image, exc)
             return None
         return Photo(url=image, credit=credit_for(final_url))
 
+    async def _is_a_picture(self, image: str) -> bool:
+        """One `HEAD` of the candidate: a raster image of a picture's size.
+
+        Parked domains, logos in SVG and 5 KB badges all declare an
+        `og:image`; the headers tell them from a photo. A server that does
+        not answer `HEAD` (405) is given the benefit of the doubt; a missing
+        `Content-Length` is too."""
+        url = image
+        for _ in range(MAX_REDIRECTS + 1):
+            response = await self._client.head(url)
+            if response.is_redirect:
+                url = urljoin(url, response.headers.get("location", ""))
+                if not fetchable(url):
+                    return False
+                continue
+            if response.status_code == 405:
+                return True
+            if not response.is_success:
+                return False
+            content_type = response.headers.get("content-type", "").lower()
+            if not content_type.startswith("image/") or "svg" in content_type:
+                return False
+            length = response.headers.get("content-length")
+            return not (length and length.isdigit() and int(length) < MIN_IMAGE_BYTES)
+        return False
+
     async def _get_following(self, site_url: str) -> tuple[str, bytes, str] | None:
         """The final HTML page behind at most `MAX_REDIRECTS` hops, each hop
-        checked with `fetchable` like the first URL: (final URL, at most
-        `max_bytes` of body, its charset), or None."""
+        checked with `fetchable` like the first URL and kept on the same
+        site (a venue whose domain now redirects elsewhere is parked, sold
+        or gone): (final URL, at most `max_bytes` of body, its charset), or
+        None."""
         url = site_url
         for _ in range(MAX_REDIRECTS + 1):
             async with self._client.stream("GET", url) as response:
                 if response.is_redirect:
                     location = response.headers.get("location", "")
                     url = urljoin(url, location)
-                    if not fetchable(url):
+                    if not fetchable(url) or not same_site(site_url, url):
                         logger.info("Site preview refused a redirect to %r", url)
                         return None
                     continue
@@ -277,6 +322,23 @@ def absolute_image(final_url: str, candidate: str) -> str | None:
     if parsed.scheme != "https" or not parsed.netloc:
         return None
     return urlunsplit(parsed)
+
+
+def registrable_domain(host: str) -> str:
+    """`www.hotel.co.uk` → `hotel.co.uk`, `all.accor.com` → `accor.com`.
+
+    Good enough without the public suffix list: two labels, or three when
+    the second is a generic word under a country code."""
+    labels = host.lower().removeprefix("www.").split(".")
+    if len(labels) >= 3 and labels[-2] in SECOND_LEVEL and len(labels[-1]) == 2:
+        return ".".join(labels[-3:])
+    return ".".join(labels[-2:])
+
+
+def same_site(site_url: str, other_url: str) -> bool:
+    first = urlsplit(site_url).hostname or ""
+    second = urlsplit(other_url).hostname or ""
+    return registrable_domain(first) == registrable_domain(second)
 
 
 def credit_for(final_url: str) -> str:
