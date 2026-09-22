@@ -19,7 +19,9 @@ infrastructure/ adapters: nvidia_provider.py, bedrock_provider.py, bedrock_embed
                 open_meteo.py (forecast), static_flight_search.py + data/airports.json (route deep links),
                 cities.py + data/cities.json (the cities manifest the corpus tool writes; PLANNER_CITIES narrows it),
                 commons_photos.py (a Wikimedia Commons photo near a venue and naming it, TRA-161),
-                site_previews.py (the og:image a venue publishes on its own site, ADR 0021),
+                site_previews.py (the og:image a venue publishes on its own site, ADR 0021;
+                its `GROUP_DOMAINS` — the hotel groups a brand domain may redirect to — is a copy
+                of the corpus tool's `config/hotel_groups.py`, kept in step by hand, TRA-211),
                 sse.py, retry.py, core_api_client.py
 api/            deps.py (per-request wiring; process resources come from app.state), v1/endpoints/{chat,planner,health}.py
 schemas/        chat.py (request), planner.py (PlannerTurn request, PlannerCity, CardDetail), planner_events.py

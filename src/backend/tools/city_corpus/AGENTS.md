@@ -18,15 +18,19 @@ city_corpus/
 ├── normalize.py         wikitext → text, chunking, slugs, wiki URLs, id de-duplication
 ├── http.py              ApiClient: User-Agent, maxlag, retries, on-disk cache
 ├── config/cities.py     CityConfig dataclasses + the strict TOML loader (CITIES = cities/*.toml)
+├── config/hotel_groups.py  the hotel chains as data: group domains a brand may redirect to,
+│                        brand-asset paths, and the name regex the report's notable list uses
 ├── config/readiness.py  Thresholds: the one place the readiness gate reads
 └── sources/             one module per source (fetch + parse): wikivoyage.py, wikipedia.py,
                          osm.py (Overpass, merge/new), districts.py (boundaries, shapely),
                          neighbourhoods.py (district Wikipedia articles when Wikivoyage has no page),
                          wikidata.py (Wikidata + Commons licences), climate.py (Open-Meteo),
                          tours.py (curated tours + the `tour` reclassification rule),
+                         curated_hotels.py (curated/<city>/hotels.toml: a hand-read hotel photo),
                          photos.py (a photo for every hotel, or the hotel goes: ADR 0022)
 cities/<slug>.toml       one file per city (the configuration; drafts `*.draft.toml` are ignored)
-curated/<city>/          hand-maintained inputs (tours.toml); see README "Tours file"
+curated/<city>/          hand-maintained inputs (tours.toml, hotels.toml); see README
+                         "Tours file" and "Hotel photos file"
 data/<city>/             committed output (source of truth for the vector store) + report.md/json
 tests/                   fixtures only; never hit the network
 ```
@@ -40,6 +44,12 @@ tests/                   fixtures only; never hit the network
 - **Curated tours are facts plus our own words**: read each fact on the operator's own site (not
   aggregators such as GuruWalk or Tripadvisor), never copy descriptions or photos, set `checked`.
   Rentals and public transport are not tours.
+- **Curated hotel photos are read in a browser, on the hotel's own site**: `curated/<city>/hotels.toml`
+  holds the URL of the picture the hotel publishes of itself, never a reseller's
+  (booking.com, Expedia, Tripadvisor, Google) and never a file copied anywhere. `match` names one
+  hotel, `checked` is the day someone looked, and the header lists the hotels left out and why.
+  The report's "Notable hotels without a photo" is the worklist; the chain names behind it live in
+  `config/hotel_groups.py`, never in a source module.
 - **Licence-clean sources only**: Wikivoyage, Wikipedia, OpenStreetMap, Wikidata/Commons, Open-Meteo, curated files.
   Never add Google Places content, TripAdvisor or Booking data. Every document carries `source_url` and a
   `license` matching its source; images carry `image_license`/`image_author`, and non-free files are skipped.

@@ -7,7 +7,7 @@ Claude Code runs the whole sequence with `/add-city <name>`; this page is the sa
 the reasoning, for a person. One step needs an AWS session (indexing) and is done by hand.
 
 Budapest is the reference: `src/backend/tools/city_corpus/cities/budapest.toml` (commented),
-`data/budapest/` (corpus, manifest, report) and `curated/budapest/tours.toml`.
+`data/budapest/` (corpus, manifest, report), `curated/budapest/tours.toml` and `curated/budapest/hotels.toml`.
 
 ## 1. Issue and branch
 
@@ -126,7 +126,30 @@ the PR, not a reason to list a reseller.
 Rebuild after adding it; the tours become documents, the automatic rule moves tour-like listings
 to the `tour` category, and the report's Tours section shows what landed.
 
-## 5. Smoke the planner
+## 5. Curated hotel photos (when the report asks for them)
+
+The build gives every hotel a photo or drops it (ADR 0022). What it cannot picture, it names: the
+report's **Notable hotels without a photo** table lists the chain hotels that left the corpus and
+why — `403` (the group's booking platform refuses anything that is not a browser), `no url`,
+`dead`, `no picture`, `shared picture`. A city whose Four Seasons, Marriott, Hilton or NH is on
+that list is missing the stays a traveller would recognise, so curate them.
+
+For each, open the hotel's page **on its own group's website** in a browser (`/check-site` drives
+the Playwright MCP, or any browser will do), find the picture it shows of itself — the hero of the
+page or the first gallery image, read off the rendered DOM — and check it is that hotel and not a
+brand banner or another house. Then add an entry to `curated/<slug>/hotels.toml` (README, "Hotel
+photos file") with `match`, `image_url`, `credit` = the group's bare domain, `source_url` = the
+page you read it on and `checked` = today. Never booking.com, Expedia, Tripadvisor or Google:
+those are resellers, their pictures are not the hotel's to give, and their terms forbid it. A hotel
+whose page shows only brand imagery gets no entry — write it in the file's header comment with the
+reason, so the next curator does not open it again. Work top down: five-star and well-known brands
+before budget chains, and stop when the list stops being names a traveller knows.
+
+Rebuild afterwards; the entries are applied before every other source, counted as `curated` in the
+report's Hotels table, and the notable list shrinks to what is left. The gate does not fail on that
+list, so this step is worth an afternoon, not a week.
+
+## 6. Smoke the planner
 
 ```bash
 just planner-smoke <slug> es
@@ -142,7 +165,7 @@ seconds per turn. Exit 0 is the pass. Then look at the log with your own eyes: t
 neighbourhood photos, districts named like real neighbourhoods, hotels in the chosen district, days
 that read like a route. A failing run is a corpus problem first; a prompt problem is its own ticket.
 
-## 6. Cities manifest and the PR
+## 7. Cities manifest and the PR
 
 `just corpus` ends by rewriting `src/backend/tools/city_corpus/data/cities.json` (every configured
 city with a built corpus: slug, name, aliases, centre, time zone, document count) and copying it to
@@ -159,7 +182,7 @@ The PR carries `cities/<slug>.toml`, `data/<slug>/` (documents, manifest, report
 if any, both manifest copies, the report's Readiness table, both smoke summaries and the deviations.
 `just lint`, `just test-corpus` and `just docs-check` pass; squash-merge when CI is green.
 
-## 7. Index
+## 8. Index
 
 ```bash
 just aws-login
@@ -175,7 +198,7 @@ step is done by hand, after the merge, with the committed file.
 **Cost.** Titan V2 embeddings cost about 0.01 USD per 6,000 documents; S3 Vectors storage and
 queries for a city are cents per month. Adding a city is not a budget decision.
 
-## 8. Deploy
+## 9. Deploy
 
 The manifest ships in the `ai_api` image, so the planner offers the new city once the merge commit
 has been built and promoted: [deploy runbook](deploy.md), "Promoting a backend change" (wait for
