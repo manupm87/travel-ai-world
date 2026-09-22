@@ -1,64 +1,196 @@
 """Operational commands, runnable wherever the service runs.
 
-On Lambda there is no container entrypoint to run migrations at start
-(ADR 0009): the deploy workflow invokes the function with
-`{"command": "migrate"}`, the Lambda Web Adapter delivers that payload as
-`POST /events`, and the command runs inside the process. The same commands
-are reachable from the container entrypoint (`entrypoint.sh migrate`) and
-from a shell (`python -m core_api.ops ...`, what `just migrate`-style recipes
-call).
+On Lambda there is no container entrypoint (ADR 0009): a direct invocation
+with `{"command": "..."}` reaches the process as `POST /events` through the
+Lambda Web Adapter, and the command runs inside it. The same commands run
+from a shell: `python -m core_api.ops <command>`.
 
-A command takes a dictionary of arguments; `migrate` ignores them. Unknown
-names and missing arguments are `BadRequest`, so an event with a typo answers
-400 instead of crashing the function.
+A command takes a dictionary of arguments and may return a result (what
+`POST /events` answers with). Unknown names are `BadRequest`, so an event
+with a typo answers 400 instead of crashing the function.
 
 `COMMANDS` is the whole surface `POST /events` exposes to whoever can invoke
 the function, so a command has to earn its place here. Developer helpers —
 anything that mints credentials or writes rows a request could not — live in
 their own module, which nothing in the running service imports.
+
+The one command today is `copy-from-postgres` (ADR 0023): production runs it
+once after the switch to DynamoDB (TRA-218), and it is deleted with RDS in
+TRA-219. It is the only reader of `core_api.legacy_sql`.
 """
 
 import argparse
 import asyncio
 import logging
+import uuid
 from collections.abc import Awaitable, Callable
-from pathlib import Path
 from typing import Any
 
-from alembic import command
-from alembic.config import Config
-from travel_common.exceptions import BadRequest
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+from travel_common.exceptions import BadRequest, DomainError
 from travel_common.http.logging import configure_logging
 
 from core_api.config import get_settings
+from core_api.domain import models as domain
+from core_api.infrastructure.dynamo.repositories import (
+    DynamoCopyTarget,
+    email_item,
+    message_item,
+    profile_item,
+    thread_item,
+    trip_item,
+)
+from core_api.infrastructure.dynamo.table import DynamoTable, open_table
+from core_api.legacy_sql import models as legacy
+from core_api.legacy_sql.engine import build_engine
 
 logger = logging.getLogger(__name__)
-
-# Relative to the working directory: `services/core_api/` locally, `/app` in the image.
-ALEMBIC_DIR = Path("alembic")
 
 Args = dict[str, Any]
 CommandHandler = Callable[[Args], Awaitable[Any]]
 
+COPIED_VERSION = 1
+"""Every copied profile, trip and thread starts at this `version`."""
 
-def upgrade_database(scripts: Path = ALEMBIC_DIR) -> None:
-    """`alembic upgrade head`, blocking. `env.py` opens its own event loop, so
-    call this from a worker thread when a loop is already running.
 
-    No `alembic.ini`: reading it would make `env.py` reconfigure the logging
-    of the running web process. The database URL comes from settings anyway.
+class CopyIncomplete(DomainError):
+    """The copy wrote fewer (or more) items than it read."""
+
+    error_code = "COPY_INCOMPLETE"
+    default_message = "copy-from-postgres did not write what it read"
+
+
+def legacy_user_id(old_id: int) -> uuid.UUID:
+    """The account's new id when it has not signed in on DynamoDB yet.
+
+    Deterministic, so a second run overwrites the same items instead of
+    duplicating them.
     """
-    logger.info("Applying migrations from %s", scripts.resolve())
-    config = Config()
-    config.set_main_option("script_location", str(scripts))
-    command.upgrade(config, "head")
+    return uuid.uuid5(uuid.NAMESPACE_URL, f"kyrian-world:user:{old_id}")
 
 
-async def migrate(args: Args) -> None:
-    await asyncio.to_thread(upgrade_database)
+# ── Rows to entities ────────────────────────────────────────────────────────
 
 
-COMMANDS: dict[str, CommandHandler] = {"migrate": migrate}
+def _columns(row: Any, entity: type, **overrides: Any) -> dict[str, Any]:
+    """The row's values for every field `entity` declares, plus overrides."""
+    names = entity.__dataclass_fields__  # type: ignore[attr-defined]
+    table_columns = {column.key for column in row.__table__.columns}
+    values = {name: getattr(row, name) for name in names if name in table_columns}
+    return {**values, **overrides}
+
+
+def _user(row: legacy.User, user_id: uuid.UUID) -> domain.User:
+    return domain.User(**_columns(row, domain.User, id=user_id, version=COPIED_VERSION))
+
+
+def _day(row: legacy.ItineraryDay) -> domain.ItineraryDay:
+    return domain.ItineraryDay(
+        **_columns(row, domain.ItineraryDay),
+        activities=[
+            domain.Activity(**_columns(a, domain.Activity)) for a in row.activities
+        ],
+        meals=[domain.Meal(**_columns(m, domain.Meal)) for m in row.meals],
+    )
+
+
+def _trip(row: legacy.Trip, user_id: uuid.UUID) -> domain.Trip:
+    return domain.Trip(
+        **_columns(row, domain.Trip, user_id=user_id, version=COPIED_VERSION),
+        itinerary_days=[_day(day) for day in row.itinerary_days],
+        accommodations=[
+            domain.Accommodation(**_columns(a, domain.Accommodation))
+            for a in row.accommodations
+        ],
+        transportations=[
+            domain.Transportation(**_columns(t, domain.Transportation))
+            for t in row.transportations
+        ],
+    )
+
+
+def _thread(row: legacy.ChatThread, user_id: uuid.UUID) -> domain.ChatThread:
+    return domain.ChatThread(
+        **_columns(row, domain.ChatThread, user_id=user_id, version=COPIED_VERSION)
+    )
+
+
+def _message(row: legacy.ChatMessage) -> domain.ChatMessage:
+    return domain.ChatMessage(**_columns(row, domain.ChatMessage))
+
+
+# ── The copy ────────────────────────────────────────────────────────────────
+
+
+async def copy_postgres_into(engine: AsyncEngine, table: DynamoTable) -> dict[str, int]:
+    """Copy every account, trip, thread and message from PostgreSQL.
+
+    Ids and timestamps are kept; users get UUIDs (the one already registered
+    for their email on DynamoDB, else `legacy_user_id`). Writes overwrite, so
+    the command can run again.
+    """
+    async with AsyncSession(engine) as session:
+        users = list(await session.scalars(select(legacy.User)))
+        trips = list(await session.scalars(select(legacy.Trip)))
+        threads = list(await session.scalars(select(legacy.ChatThread)))
+        messages = list(
+            await session.scalars(
+                select(legacy.ChatMessage).order_by(
+                    legacy.ChatMessage.thread_id,
+                    legacy.ChatMessage.created_at,
+                    legacy.ChatMessage.id,
+                )
+            )
+        )
+    read = {
+        "users": len(users),
+        "trips": len(trips),
+        "threads": len(threads),
+        "messages": len(messages),
+    }
+    logger.info("Read from PostgreSQL: %s", read)
+
+    target = DynamoCopyTarget(table)
+    ids: dict[int, uuid.UUID] = {}
+    for row in users:
+        ids[row.id] = await target.email_owner(row.email) or legacy_user_id(row.id)
+
+    accounts = [_user(row, ids[row.id]) for row in users]
+    written_users = await target.put_all(
+        [profile_item(user, COPIED_VERSION) for user in accounts]
+    )
+    await target.put_all([email_item(user) for user in accounts])
+    written = {
+        "users": written_users,
+        "trips": await target.put_all(
+            [trip_item(_trip(row, ids[row.user_id]), COPIED_VERSION) for row in trips]
+        ),
+        "threads": await target.put_all(
+            [
+                thread_item(_thread(row, ids[row.user_id]), COPIED_VERSION)
+                for row in threads
+            ]
+        ),
+        "messages": await target.put_all([message_item(_message(r)) for r in messages]),
+    }
+    logger.info("Written to DynamoDB table %s: %s", table.name, written)
+    if written != read:
+        raise CopyIncomplete(read=read, written=written)
+    return written
+
+
+async def copy_from_postgres(args: Args) -> dict[str, int]:
+    settings = get_settings()
+    table = await open_table(settings)
+    engine = build_engine(settings)
+    try:
+        return await copy_postgres_into(engine, table)
+    finally:
+        await engine.dispose()
+
+
+COMMANDS: dict[str, CommandHandler] = {"copy-from-postgres": copy_from_postgres}
 
 
 async def run_command(name: str, args: Args | None = None) -> Any:
@@ -71,17 +203,18 @@ async def run_command(name: str, args: Args | None = None) -> Any:
     return await handler(args or {})
 
 
-# ── CLI: python -m core_api.ops migrate ─────────────────────────────────────
+# ── CLI: python -m core_api.ops copy-from-postgres ──────────────────────────
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="python -m core_api.ops",
-        description="Run an operational command against the configured database.",
+        description="Run an operational command against the configured storage.",
     )
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser(
-        "migrate", help="apply Alembic migrations (alembic upgrade head)"
+        "copy-from-postgres",
+        help="copy every account, trip and conversation from PostgreSQL to DynamoDB",
     )
     return parser
 

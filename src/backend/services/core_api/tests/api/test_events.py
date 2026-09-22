@@ -11,6 +11,8 @@ from core_api.main import app
 from httpx import AsyncClient
 from travel_common.exceptions import BadRequest
 
+COUNTS = {"users": 2, "trips": 3, "threads": 1, "messages": 4}
+
 
 class FakeRunner:
     """Records dispatches; mirrors the client error `ops.run_command` raises."""
@@ -18,10 +20,11 @@ class FakeRunner:
     def __init__(self) -> None:
         self.ran: list[tuple[str, dict[str, Any]]] = []
 
-    async def __call__(self, name: str, args: dict[str, Any]) -> None:
+    async def __call__(self, name: str, args: dict[str, Any]) -> dict[str, int]:
         if name not in ops.COMMANDS:
             raise BadRequest(f"Unknown command: {name}")
         self.ran.append((name, args))
+        return COUNTS
 
 
 @pytest.fixture
@@ -41,16 +44,22 @@ async def lambda_client(client: AsyncClient) -> AsyncGenerator[AsyncClient, None
     yield client
 
 
-async def test_migrate_command_is_dispatched(client: AsyncClient, runner: FakeRunner):
-    response = await client.post("/events", json={"command": "migrate"})
+async def test_the_copy_is_dispatched_and_answers_its_counts(
+    client: AsyncClient, runner: FakeRunner
+):
+    response = await client.post("/events", json={"command": "copy-from-postgres"})
 
     assert response.status_code == 200, response.text
-    assert response.json() == {"command": "migrate", "status": "ok"}
-    assert runner.ran == [("migrate", {})]
+    assert response.json() == {
+        "command": "copy-from-postgres",
+        "status": "ok",
+        "result": COUNTS,
+    }
+    assert runner.ran == [("copy-from-postgres", {})]
 
 
 async def test_unknown_command_is_a_400(client: AsyncClient, runner: FakeRunner):
-    response = await client.post("/events", json={"command": "drop-everything"})
+    response = await client.post("/events", json={"command": "migrate"})
 
     assert response.status_code == 400
     assert runner.ran == []
@@ -58,43 +67,34 @@ async def test_unknown_command_is_a_400(client: AsyncClient, runner: FakeRunner)
 
 async def test_events_is_not_under_the_versioned_api(client: AsyncClient):
     assert (
-        await client.post("/api/v1/events", json={"command": "migrate"})
+        await client.post("/api/v1/events", json={"command": "copy-from-postgres"})
     ).status_code == 404
 
 
 async def test_events_only_exists_on_lambda(
     client: AsyncClient, lambda_client: AsyncClient, monkeypatch: pytest.MonkeyPatch
 ):
-    calls: list[str] = []
-    monkeypatch.setattr(ops.command, "upgrade", lambda cfg, rev: calls.append(rev))
+    calls: list[dict[str, Any]] = []
 
-    on_lambda = await lambda_client.post("/events", json={"command": "migrate"})
+    async def fake_copy(args: dict[str, Any]) -> dict[str, int]:
+        calls.append(args)
+        return COUNTS
 
-    assert on_lambda.status_code == 200, on_lambda.text
-    assert calls == ["head"]
+    monkeypatch.setitem(ops.COMMANDS, "copy-from-postgres", fake_copy)
 
-    app.dependency_overrides.pop(get_settings)
-    elsewhere = await client.post("/events", json={"command": "migrate"})
-
-    assert elsewhere.status_code == 404
-    assert calls == ["head"]
-
-
-async def test_run_command_upgrades_to_head_without_reading_the_ini(
-    monkeypatch: pytest.MonkeyPatch,
-):
-    seen: list[tuple[str | None, str | None, str]] = []
-    monkeypatch.setattr(
-        ops.command,
-        "upgrade",
-        lambda cfg, rev: seen.append(
-            (cfg.config_file_name, cfg.get_main_option("script_location"), rev)
-        ),
+    on_lambda = await lambda_client.post(
+        "/events", json={"command": "copy-from-postgres"}
     )
 
-    await ops.run_command("migrate")
+    assert on_lambda.status_code == 200, on_lambda.text
+    assert on_lambda.json()["result"] == COUNTS
+    assert calls == [{}]
 
-    assert seen == [(None, "alembic", "head")]
+    app.dependency_overrides.pop(get_settings)
+    elsewhere = await client.post("/events", json={"command": "copy-from-postgres"})
+
+    assert elsewhere.status_code == 404
+    assert calls == [{}]
 
 
 async def test_run_command_rejects_unknown_names():
@@ -102,14 +102,20 @@ async def test_run_command_rejects_unknown_names():
         await ops.run_command("nope")
 
 
-def test_migrate_is_the_whole_command_surface():
+def test_the_copy_is_the_whole_command_surface():
     """`POST /events` exposes exactly what `COMMANDS` holds, so the list is
-    the security boundary (`devtools` is deliberately not in it)."""
-    assert sorted(ops.COMMANDS) == ["migrate"]
+    the security boundary (`devtools` is deliberately not in it, and there
+    are no migrations any more: ADR 0023)."""
+    assert sorted(ops.COMMANDS) == ["copy-from-postgres"]
 
 
-def test_cli_parses_the_migrate_form():
-    assert ops.build_parser().parse_args(["migrate"]).command == "migrate"
+def test_cli_parses_the_copy_form():
+    assert (
+        ops.build_parser().parse_args(["copy-from-postgres"]).command
+        == "copy-from-postgres"
+    )
 
     with pytest.raises(SystemExit):
         ops.build_parser().parse_args([])
+    with pytest.raises(SystemExit):
+        ops.build_parser().parse_args(["migrate"])

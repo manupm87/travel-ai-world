@@ -36,7 +36,6 @@ target-version = "py312"
 exclude = [
     ".git",
     "__pycache__",
-    "alembic",
     ".venv",
     # Build output of the spike's bench zip: a vendored boto3, not our code.
     "tools/vector_store_bench/bench_lambda/build",

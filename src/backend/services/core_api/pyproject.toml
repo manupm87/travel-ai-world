@@ -5,14 +5,14 @@ build-backend = "hatchling.build"
 [project]
 name = "core-api"
 version = "0.1.1"
-description = "Kyrian World core API: Google auth, users and trip CRUD on PostgreSQL"
+description = "Kyrian World core API: auth, users, trips and conversations on DynamoDB"
 requires-python = ">=3.12"
 dependencies = [
     "travel-common",
     "fastapi[standard]>=0.141.1",
+    # Only for `copy-from-postgres` (core_api/legacy_sql); removed in TRA-219.
     "sqlalchemy>=2.0.52",
     "asyncpg>=0.31.0",
-    "alembic>=1.19.2",
     "email-validator>=2.3.0",
     "httpx>=0.28.1",
 ]

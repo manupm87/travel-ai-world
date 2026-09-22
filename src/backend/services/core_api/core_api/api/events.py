@@ -1,10 +1,10 @@
 """`POST /events`: the Lambda Web Adapter's pass-through for non-HTTP invocations.
 
-A direct `aws lambda invoke` with `{"command": "migrate"}` or
-`{"command": "seed", "args": {"email": "..."}}` lands here and runs the
-command in-process (`core_api.ops`). On Lambda only that IAM call can reach
-it (the gateway forwards `/api/*` alone); anywhere else, where a load
-balancer might expose the whole port, the route answers 404.
+A direct `aws lambda invoke` with `{"command": "copy-from-postgres"}` lands
+here and runs the command in-process (`core_api.ops`); the answer carries
+what the command returned (the copy's counts). On Lambda only that IAM call
+can reach it (the gateway forwards `/api/*` alone); anywhere else, where a
+load balancer might expose the whole port, the route answers 404.
 """
 
 from collections.abc import Awaitable, Callable
@@ -36,11 +36,12 @@ class Event(BaseModel):
 class EventResult(BaseModel):
     command: str
     status: str = "ok"
+    result: dict[str, Any] | None = None
 
 
 @router.post("/events", response_model=EventResult)
 async def handle_event(
     event: Event, run: CommandRunner = Depends(get_command_runner)
 ) -> EventResult:
-    await run(event.command, event.args)
-    return EventResult(command=event.command)
+    result = await run(event.command, event.args)
+    return EventResult(command=event.command, result=result)
