@@ -287,6 +287,28 @@ def bind_curated(
     return bound
 
 
+WIKIMEDIA_HOSTS = ("wikimedia.org", "wikipedia.org")
+
+
+def curated_image_allowed(url: str) -> bool:
+    """Where a curated `image_url` may point.
+
+    Everything `fetchable` allows, and Wikimedia besides. `DENIED_HOSTS` is
+    there to stop a venue's own `website` tag from being an encyclopaedia
+    article — nobody's hotel is a Commons page — but a curator who writes a
+    Commons file down has looked at it and means it, and for a chain whose own
+    site refuses every automated client that file is the only licence-clean
+    picture of the building there is (TRA-211).
+    """
+    if fetchable(url):
+        return True
+    parsed = urlsplit(url)
+    host = (parsed.hostname or "").lower()
+    return parsed.scheme == "https" and any(
+        host == domain or host.endswith(f".{domain}") for domain in WIKIMEDIA_HOSTS
+    )
+
+
 def _matches(entry: CuratedHotel, doc: CorpusDocument) -> bool:
     if entry.osm_id is not None:
         return doc.osm_id == entry.osm_id
@@ -306,10 +328,20 @@ def _from_curated(
     unpictured.
     """
     image = absolute_image(entry.image_url, entry.image_url)  # http → https
-    if image is None or not fetchable(image) or LOGO_PATH.search(urlsplit(image).path):
+    if (
+        image is None
+        or not curated_image_allowed(image)
+        or LOGO_PATH.search(urlsplit(image).path)
+    ):
         logger.warning("curated photo %s: %s is not a picture", entry.match, image)
         return None
-    if not _is_a_picture(client, image, MIN_PREVIEW_BYTES, trust_unstated=True):
+    if not _is_a_picture(
+        client,
+        image,
+        MIN_PREVIEW_BYTES,
+        trust_unstated=True,
+        hop_allowed=curated_image_allowed,
+    ):
         logger.warning(
             "curated photo %s: %s no longer answers as a picture", entry.match, image
         )
@@ -1163,13 +1195,19 @@ def _hop_allowed(site_url: str) -> Callable[[str], bool]:
 
 
 def _is_a_picture(
-    client: ApiClient, image: str, minimum: int, *, trust_unstated: bool
+    client: ApiClient,
+    image: str,
+    minimum: int,
+    *,
+    trust_unstated: bool,
+    hop_allowed: Callable[[str], bool] | None = None,
 ) -> bool:
     """One `HEAD`: a raster image of a picture's size. Parked domains, logos in
     SVG and 5 KB badges all declare an `og:image`; the headers tell them from a
     photo. A server that answers no `HEAD` (405) or states no length is trusted
-    only where something else vouches for the image."""
-    head = client.head(image, fetchable)
+    only where something else vouches for the image. `hop_allowed` says where
+    the image may live; `fetchable` unless a curated entry widens it."""
+    head = client.head(image, hop_allowed or fetchable)
     if head.status == 405:  # "method not allowed", not a size
         return trust_unstated
     if not 200 <= head.status < 300:

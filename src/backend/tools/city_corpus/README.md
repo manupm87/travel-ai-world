@@ -288,8 +288,11 @@ checked = 2026-09-22                    # the day a person looked at it
 note = "…"                              # for maintainers; not published
 ```
 
-`match` has to name exactly one located `sleep` document of the city, or the build stops and lists
-what it matched. The entry is applied before every other source and the image is checked with the
+`image_url` may be a Wikimedia Commons file (`Special:FilePath`, with the file's author and licence
+as the `credit`): a curator points at one on purpose, which no automatic source may, and for a chain
+whose own site answers 403 to every client it is the only licence-clean photograph of the building
+there is. `match` has to name exactly one located `sleep` document of the city, or the build stops
+and lists what it matched. The entry is applied before every other source and the image is checked with the
 same `HEAD` as a site preview (raster, ≥ 15 KB, no `logo`-ish path); an entry that no longer
 answers is a warning and the hotel falls through to the other sources. Entries not checked for 400
 days are warned about. The header comment carries the hotels that were looked at and left out, and

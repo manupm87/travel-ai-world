@@ -1300,3 +1300,43 @@ def test_a_curated_entry_for_a_pictured_hotel_is_a_warning(
 
     assert kept == [pictured] and stats.curated == 0
     assert "already pictured" in caplog.text
+
+
+@pytest.mark.parametrize(
+    ("url", "allowed"),
+    [
+        ("https://marriott.com/photos/a.jpg", True),
+        # A curator may point at Commons on purpose; no automatic source can.
+        (
+            "https://commons.wikimedia.org/w/index.php?title=Special:FilePath/A.jpg",
+            True,
+        ),
+        ("https://upload.wikimedia.org/wikipedia/commons/a/a1/A.jpg", True),
+        ("http://169.254.169.254/latest/meta-data/", False),
+        ("https://localhost/a.jpg", False),
+        ("file:///etc/passwd", False),
+        ("http://commons.wikimedia.org/a.jpg", False),  # https only for the exception
+    ],
+)
+def test_where_a_curated_image_may_point(url: str, allowed: bool) -> None:
+    assert photos.curated_image_allowed(url) is allowed
+
+
+def test_a_curated_commons_file_is_fetched_although_the_site_rules_refuse_one(
+    tmp_path: Path,
+) -> None:
+    """`DENIED_HOSTS` stops a hotel's `website` tag being an encyclopaedia page.
+    It must not stop a curator handing the build a licence-clean photograph of a
+    chain whose own site answers 403 to everything (TRA-211)."""
+    image = (
+        "https://commons.wikimedia.org/w/index.php"
+        "?title=Special:FilePath/Adria_Palace.jpg&width=640"
+    )
+    recorder = Recorder({"FilePath": lambda _: _image(), **_no_wikimedia()})
+    entry = _curated(image_url=image, credit="Fred (CC BY 2.0) · Wikimedia Commons")
+    with _client(recorder, tmp_path) as client:
+        kept, stats = photos.resolve(client, BUDAPEST, [_hotel(url=None)], [entry])
+
+    assert kept[0].image_url == image
+    assert kept[0].image_credit == "Fred (CC BY 2.0) · Wikimedia Commons"
+    assert stats.curated == 1
