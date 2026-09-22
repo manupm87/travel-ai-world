@@ -55,6 +55,13 @@ export interface TripPanelProps {
   onAskAlternatives: (slot: Slot, options?: AskAlternativesOptions) => void;
   onReset: () => void;
   /**
+   * "New trip" (TRA-223): leaves the trip on screen for an empty planner at a
+   * bare `/plan/`. The header offers it while a saved trip is open and can
+   * still be planned, and the pane beside a trip that is not there; a locked
+   * trip has `LockedNotice`'s instead.
+   */
+  onNewTrip?: () => void;
+  /**
    * What `/plan/?trip=` is doing, when the URL names one: the pane says so
    * instead of the page going blank. `null` once the trip is in the planner,
    * and for a planner that opened no trip at all.
@@ -130,6 +137,7 @@ export function TripPanel({
   onToggleShortlist,
   onAskAlternatives,
   onReset,
+  onNewTrip,
   openTrip = null,
   lockedPhase = null,
   save,
@@ -270,7 +278,7 @@ export function TripPanel({
   if (openTrip) {
     return (
       <div className="flex h-full flex-col gap-4 overflow-y-auto overscroll-y-contain p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-        <OpenTripNotice state={openTrip} />
+        <OpenTripNotice state={openTrip} onNewTrip={onNewTrip} />
       </div>
     );
   }
@@ -344,6 +352,16 @@ export function TripPanel({
                 canSave={save.canSave}
                 onSave={save.save}
               />
+              {save.tripId !== null && onNewTrip && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onNewTrip}
+                  className="px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                >
+                  {t.plan.trips.newTrip}
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 size="sm"
