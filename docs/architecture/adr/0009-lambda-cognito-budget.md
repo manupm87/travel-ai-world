@@ -1,6 +1,6 @@
 # 0009 — AWS v3 on a 30 €/month budget: Lambda instead of Fargate, Cognito for sign-in, no NAT
 
-**Status:** Accepted (applied 2026-09-15)
+**Status:** Accepted (applied 2026-09-15); data part superseded by [0023](0023-dynamodb-data-store.md)
 **Date:** 2026-09-15
 
 ## Context
