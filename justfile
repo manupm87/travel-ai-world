@@ -48,6 +48,10 @@ dev-ai:
 dev-frontend:
     cd {{frontend}} && npm run dev
 
+# In-memory DynamoDB on :8002 for `just dev-core`/`dev-ai` without Docker (moto); Compose uses amazon/dynamodb-local
+dynamodb-local:
+    cd {{backend}} && uv run moto_server -H 0.0.0.0 -p 8002
+
 # Run the city scraper (needs GOOGLE_API_KEY in {{scraper}}/.env); output in {{scraper}}/data/
 scrape:
     cd {{scraper}} && uv run python main.py

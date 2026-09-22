@@ -1,11 +1,12 @@
-# Local stack: PostgreSQL + core_api + ai_api + the frontend export behind one
-# nginx origin, the same shape as CloudFront in production.
+# Local stack: PostgreSQL + DynamoDB Local + core_api + ai_api + the frontend
+# export behind one nginx origin, the same shape as CloudFront in production.
 #
 #   just stack-up           full stack: frontend export built for :8080 + everything below
 #   just docker-up          backend only (no Node needed; "/" answers 404, /api/* works)
 #   http://localhost:8080   -> proxy: "/" static export, /api/* core_api, /api/v1/ai/* ai_api
 #   http://localhost:8000   -> core_api directly
 #   http://localhost:8001   -> ai_api directly
+#   http://localhost:8002   -> DynamoDB Local (in memory: tables and items vanish on restart)
 #
 # Each service reads its own .env (copy the .env.example next to it).
 # SECRET_KEY must be identical in both. The ${DB_*} values below are
@@ -43,11 +44,17 @@ services:
     env_file: services/core_api/.env
     environment:
       - DB_SERVER=db_postgres
+      - DYNAMODB_ENDPOINT_URL=http://dynamodb:8000
+      - AWS_ACCESS_KEY_ID=local
+      - AWS_SECRET_ACCESS_KEY=local
+      - AWS_REGION=eu-west-1
     ports:
       - "8000:8000"
     depends_on:
       db_postgres:
         condition: service_healthy
+      dynamodb:
+        condition: service_started
     restart: unless-stopped
 
   ai_api:
@@ -59,8 +66,25 @@ services:
     env_file: services/ai_api/.env
     environment:
       - CORE_API_URL=http://core_api:8000
+      - DYNAMODB_ENDPOINT_URL=http://dynamodb:8000
+      - AWS_ACCESS_KEY_ID=local
+      - AWS_SECRET_ACCESS_KEY=local
+      - AWS_REGION=eu-west-1
     ports:
       - "8001:8000"
+    depends_on:
+      dynamodb:
+        condition: service_started
+    restart: unless-stopped
+
+  # DynamoDB (ADR 0023), in memory: tables and items vanish on restart. The
+  # services create their tables here (endpoint override set); on AWS
+  # Terraform owns them.
+  dynamodb:
+    image: amazon/dynamodb-local:latest
+    command: ["-jar", "DynamoDBLocal.jar", "-sharedDb", "-inMemory"]
+    ports:
+      - "8002:8000"
     restart: unless-stopped
 
   db_postgres:

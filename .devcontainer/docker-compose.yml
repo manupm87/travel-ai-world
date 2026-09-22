@@ -1,4 +1,4 @@
-# Devcontainer stack: your terminal + PostgreSQL. Nothing else.
+# Devcontainer stack: your terminal + PostgreSQL + DynamoDB Local. Nothing else.
 #
 # The services are NOT started here on purpose: run them from the container
 # terminal with `just dev-core`, `just dev-ai` and `just dev-frontend` (hot
@@ -47,6 +47,13 @@ services:
       DB_USER: postgres
       DB_PASSWORD: postgres
       DB_NAME: travel_ai_world
+      # Same for DynamoDB: `just dev-core` / `just dev-ai` reach the `dynamodb`
+      # service below (DynamoDB Local, in memory) instead of AWS. No dummy
+      # AWS_ACCESS_KEY_ID here on purpose: environment keys beat AWS_PROFILE,
+      # which would break `aws`, `terraform` and Bedrock in this container.
+      # DynamoDB Local accepts any signature: the SSO session (`just aws-login`)
+      # signs for it, or export dummy keys in the one shell that runs a service.
+      DYNAMODB_ENDPOINT_URL: http://dynamodb:8000
       # The pyright PyPI wrapper nags when a newer pyright exists; the version is
       # pinned by uv.lock, so the notice is noise in `just lint`.
       PYRIGHT_PYTHON_IGNORE_WARNINGS: "1"
@@ -58,6 +65,15 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      dynamodb:
+        condition: service_started
+
+  # In-memory DynamoDB for `just dev-core` / `just dev-ai` and the tests
+  # (reached as dynamodb:8000; no host port).
+  dynamodb:
+    image: amazon/dynamodb-local:latest
+    restart: unless-stopped
+    command: ["-jar", "DynamoDBLocal.jar", "-sharedDb", "-inMemory"]
 
   db:
     image: postgres:16-alpine
