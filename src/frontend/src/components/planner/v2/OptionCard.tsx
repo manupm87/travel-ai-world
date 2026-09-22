@@ -95,9 +95,10 @@ export function OptionCard({
   // The gradient block is both the "no image" state and the placeholder under a
   // loading one; an image that fails to load falls back to it for good.
   const hasImage = !!card.image_url && image !== "error";
+  // The credit is the photo's own: the document's licence is not the image's
+  // (a Commons credit carries its licence, a site preview has none).
   const creditText = card.image_credit
-    ? interpolate(p.card.imageCredit, { credit: card.image_credit }) +
-      (card.license ? ` · ${card.license}` : "")
+    ? interpolate(p.card.imageCredit, { credit: card.image_credit })
     : null;
 
   return (
