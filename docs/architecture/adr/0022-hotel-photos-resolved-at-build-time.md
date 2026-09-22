@@ -137,12 +137,16 @@ Each of those is a different mistake, so each gets its own rule.
    included. On such a page the preview is refused when its path is a brand asset
    (`logo|brand|generic|default|placeholder|maldives`), and for a group that publishes one
    picture on every page whatever the hotel the preview is not read at all: the largest-picture
-   rule finds the house's own photograph further down. One group is measured that way — a&o,
-   whose preview is the lobby of its hostel in Venice on every house it runs. IHG was the other
-   candidate, and is not on the list: it offers a Maldives resort for the Crowne Plaza Madrid but
-   the right photograph for the Crowne Plaza Budapest, so the banner is caught by its path
-   (`maldives`) and the good picture is kept. Nothing else changes for the rest of the web — the
-   allowlist is twenty-six domains, not a relaxation of the same-site rule.
+   rule looks for the house's own photograph further down. That list (`OG_SKIPPED_DOMAINS`) is
+   empty, and measured empty. IHG was the candidate the issue named — it offers a Maldives resort
+   for the Crowne Plaza Madrid — but it publishes the right photograph for the Crowne Plaza
+   Budapest, and skipping the group's preview took that hotel out of the corpus; the banner is
+   caught by its own path (`maldives`) instead. a&o really does serve the lobby of its Venice
+   hostel to every house, but its gallery is loaded by script, so the page a build fetches holds
+   no picture of the house and skipping the preview only cost two hostels theirs. A group belongs
+   on that list when both halves hold: the same preview twice, and the house's own photograph in
+   the markup. Nothing else changes for the rest of the web — the allowlist is twenty-six
+   domains, not a relaxation of the same-site rule.
 3. **The hotel's Wikidata item, found by name near its coordinates**, is a new tier between
    Commons and the homepage. `wbsearchentities` for the name with its lodging words stripped, in
    English, in Spanish and in the city's language; an item is the hotel only when its P625 is

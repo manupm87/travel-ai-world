@@ -71,19 +71,26 @@ other side of the world (IHG offers the Maldives for a Crowne Plaza in Madrid).
 Checked on top of the usual `LOGO_PATH`, and only for a page on a group domain —
 `brand` and `generic` are ordinary words in an independent hotel's file names."""
 
-OG_SKIPPED_DOMAINS = frozenset({"aohostels.com"})
+OG_SKIPPED_DOMAINS: frozenset[str] = frozenset()
 """Groups whose `og:image` is the same picture on every page of the site, whatever
-the hotel. a&o publishes the lobby of its hostel in Venice for every house it runs,
-in Berlin and everywhere else; its preview is not read at all, and the
-largest-picture rule finds the house's own photograph further down the same page,
-where the gallery is per property.
+the hotel. Theirs is not read at all, and the largest-picture rule looks for the
+house's own photograph further down the same page.
 
-A group belongs here only once it has been measured on two of its hotels, and only
-when the picture is the same one both times. IHG was a candidate — it offers a
-Maldives resort as the preview of the Crowne Plaza Madrid — but it publishes the
-right photograph for the Crowne Plaza Budapest, and skipping its preview cost that
-hotel its place in the corpus. A campaign banner is a `BRAND_ASSET_PATH` problem,
-which is where `maldives` is; a group-wide picture is this list's."""
+Empty, and measured that way. Both candidates cost more hotels than they saved on
+Budapest, Berlin and Madrid:
+
+* **IHG** offers a Maldives resort as the preview of the Crowne Plaza Madrid — but
+  the right photograph for the Crowne Plaza Budapest, which skipping the group's
+  preview took away. A campaign banner is a `BRAND_ASSET_PATH` problem instead,
+  which is where `maldives` is.
+* **a&o** really does publish the lobby of its hostel in Venice for every house it
+  runs, and the shared-picture rule already refuses it. Skipping the preview gains
+  nothing: the group's gallery is loaded by script, so the page a build fetches
+  carries no picture of the house, and two hostels that had one lost it.
+
+So a group belongs here only when its preview is the same picture on two of its
+hotels **and** its pages carry the house's own photograph in their markup. Check
+both before adding one."""
 
 CHAIN_NAMES = re.compile(
     r"\b("

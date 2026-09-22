@@ -14,6 +14,7 @@ from typing import Any
 
 import httpx
 import pytest
+from city_corpus.config import hotel_groups
 from city_corpus.config.cities import BUDAPEST
 from city_corpus.http import ApiClient
 from city_corpus.models import Category, CorpusDocument, Kind, Source
@@ -1055,11 +1056,18 @@ def test_a_group_that_publishes_the_right_picture_keeps_it(tmp_path: Path) -> No
 
 
 def test_each_house_of_a_banner_group_gets_its_own_gallery_picture(
-    tmp_path: Path,
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """a&o publishes the lobby of its Venice hostel as the preview of every house
-    it runs, and a gallery per property below it. Skipping the preview turns one
-    picture claimed by five hostels into five pictures of five hostels."""
+    """The rule `OG_SKIPPED_DOMAINS` exists for, with a group put on the list.
+
+    a&o is the shape of it: the lobby of its hostel in Venice as the preview of
+    every house it runs, and a gallery per property below. Skipping the preview
+    turns one picture claimed by five hostels into five pictures of five hostels
+    — when the gallery is in the markup, which is why the list is empty today
+    (`config/hotel_groups.py`)."""
+    monkeypatch.setattr(
+        hotel_groups, "OG_SKIPPED_DOMAINS", frozenset({"aohostels.com"})
+    )
     venice = "https://cdn.aohostels.com/img/socialMediaTags/AOVeneziaLobby.jpg"
 
     def house(slug: str) -> Callable[[httpx.Request], httpx.Response]:

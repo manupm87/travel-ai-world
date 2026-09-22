@@ -83,9 +83,9 @@ manifest reports documents per category and what each one skipped.
    `all.accor.com`), not a parked domain; a group page's preview is refused when its path is a
    brand asset (`logo|brand|generic|default|placeholder|maldives`), and for the groups that
    publish one global banner on every page (IHG) the preview is not read at all and the
-   largest-picture rule finds the house. The groups whose preview is one picture on every page (a&o) are in
-   `OG_SKIPPED_DOMAINS`, which is a measurement, not a guess: open two of the group's hotels and
-   compare, and put the group there only when the picture is the same both times. `CHAIN_NAMES` recognises a chain hotel by name for one
+   largest-picture rule finds the house. `OG_SKIPPED_DOMAINS` names the groups whose preview is one picture on every page, and is
+   empty: both candidates (IHG, a&o) cost more hotels than they saved, and the file says why. It
+   is a measurement, not a guess. `CHAIN_NAMES` recognises a chain hotel by name for one
    purpose only: the report's **Notable hotels without a photo** list, with the reason (`403`,
    `no url`, `dead`, `no picture`, `shared picture`), which is the curator's worklist. The gate
    says nothing about it.
