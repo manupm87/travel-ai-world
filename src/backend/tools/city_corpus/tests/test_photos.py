@@ -444,6 +444,7 @@ def test_a_hotel_with_nothing_is_dropped_and_named(tmp_path: Path) -> None:
         "commons": 0,
         "page": 0,
         "dropped": 2,
+        "shared": 0,
         "dropped_examples": ["Hotel Astra", "Hotel Gellért"],
     }
 
@@ -488,3 +489,163 @@ def test_a_second_run_is_identical_and_makes_no_request(tmp_path: Path) -> None:
     assert offline_recorder.requests == []
     # Misses are cached too: the dead lookups of the second hotel cost nothing.
     assert json.loads(next(tmp_path.glob("sites/*/*.json")).read_text())["response"]
+
+
+# ─── Reading a file title as the hotel's name (TRA-208 review) ───────────────
+
+
+def _files(*titles: str) -> list[dict[str, Any]]:
+    return [{"title": t} for t in titles]
+
+
+@pytest.mark.parametrize(
+    ("name", "title"),
+    [
+        # A person, a ship, a flower, a footballer, a memorial stone and a
+        # metro station, each of them the first thing Commons answers with.
+        ("Timon", "File:5th Budapest Cup 2019 Timon Sternad Hiter.jpg"),
+        (
+            "Hotel Amadeus",
+            "File:Amadeus (ship, 1997), Hotel Gellért, Liberty Bridge.jpg",
+        ),
+        ("Aster Budapest", "File:Aster amellus.jpg"),
+        ("Kleist", "File:Stolperstein Weddigenweg 70 Marie von Kleist.jpg"),
+        ("Hostal Casillas", "File:Casillas besando la Copa del Mundo.jpg"),
+        ("Hotel Metro", "File:Deák Ferenc tér M1 metro station, 2024.jpg"),
+        ("Night Hotel", "File:Over Night bridge at dawn.jpg"),
+        ("Monarchy Residence", "File:Listed Baroque house. - 21 Országház Street.jpg"),
+        # A comma is a full stop for this purpose: the street is named first
+        # and the hotel second, so `Allee` is not written beside `Hotel`.
+        (
+            "Allee-Hotel Berlin",
+            "File:Bundesarchiv Bild 183, Karl-Marx-Allee, Hotel Berolina.jpg",
+        ),
+        ("Cortina", "File:Park Hotel, Cortina.jpg"),
+        # A postcard of the square the hotel took its name from, a century ago.
+        ("Hotel Bellevue", "File:Potsdamer Platz 1930s Bellevue postcard.jpg"),
+    ],
+)
+def test_a_title_that_merely_shares_a_word_is_not_the_hotel(
+    name: str, title: str
+) -> None:
+    assert photos.choose_named(name, _files(title), city="Budapest") is None
+
+
+@pytest.mark.parametrize(
+    ("name", "title"),
+    [
+        # The whole name, in order, once both sides drop their lodging words.
+        ("Ritz-Carlton", "File:The Ritz-Carlton, Budapest.jpg"),
+        ("K+K Opera Hotel", "File:Bud VI. K+K Hotel Opera.JPG"),
+        # Two distinctive words, both written in the title.
+        (
+            "Sofitel Budapest Chain Bridge",
+            "File:Sofitel Budapest Chain Bridge. NE.JPG",
+        ),
+        ("Danubius Hotel Astoria", "File:Danubius Hotel Astoria (Budapest).jpg"),
+        # One distinctive word, written beside a word for a place to sleep.
+        ("Carlton Hotel", "File:Carlton Hotel Budapest, 2017.jpg"),
+        ("Baltazár", "File:Hotel Baltazar Budapest, Orszaghaz Street.jpg"),
+        ("Adina Apartment Hotel Budapest", "File:Adina Apartment Hotel. Entrance.JPG"),
+        # Written together inside one phrase of a title that names three things.
+        (
+            "Gat Point Charlie",
+            "File:Berlin, Mitte, Mauerstrasse 81-82, Hotel Gat Point Charlie.jpg",
+        ),
+    ],
+)
+def test_a_title_that_names_the_hotel_is_taken(name: str, title: str) -> None:
+    assert photos.choose_named(name, _files(title), city="Budapest") == title
+
+
+def test_a_name_of_nothing_but_generic_words_matches_nothing() -> None:
+    """`Central Park Hotel` says what every third hotel says."""
+    assert (
+        photos.choose_named(
+            "Central Park Hotel",
+            _files("File:Central Park, New York.jpg"),
+            city="Budapest",
+        )
+        is None
+    )
+
+
+def test_the_twin_in_ai_api_is_kept_word_for_word() -> None:
+    """`ai_api/infrastructure/commons_photos.py` holds the same block; the tool
+    may not import a service, so this is how the copies are checked."""
+    header = "# ─── Reading a Commons file title as a venue's name"
+    twin = (
+        Path(photos.__file__).parents[4]
+        / "services/ai_api/ai_api/infrastructure/commons_photos.py"
+    )
+    if not twin.exists():  # the tool alone, without the services tree
+        pytest.skip("ai_api is not checked out beside the tool")
+    tool = Path(photos.__file__).read_text(encoding="utf-8")
+    service = twin.read_text(encoding="utf-8")
+
+    def block(text: str) -> str:
+        start = text.index(header)
+        return text[
+            start : text.index("\n\n\n", text.index("def choose_named(", start))
+        ]
+
+    assert block(tool) == block(service)
+
+
+# ─── A picture two hotels claim is neither one's ─────────────────────────────
+
+
+def test_a_picture_two_hotels_share_is_taken_from_both(tmp_path: Path) -> None:
+    """A&O runs one site for every house and serves them all the same hero
+    shot; the traveller would be offered the same room three times."""
+    chain = "https://aohostels.com/img/hero.jpg"
+    recorder = Recorder(
+        {
+            **_no_commons(),
+            "aohostels.com/img": lambda _: _image(),
+            "aohostels.com": lambda _: _html(
+                f'<head><meta property="og:image" content="{chain}"></head>'
+            ),
+            "hotelgellert.hu/img": lambda _: _image(),
+            "hotelgellert.hu": lambda _: _html(
+                f'<head><meta property="og:image" content="{GELLERT_IMAGE}"></head>'
+            ),
+        }
+    )
+    hotels = [
+        _hotel(doc_id="osm:way/1", name="A&O One", url="https://aohostels.com/hbf"),
+        _hotel(doc_id="osm:way/2", name="A&O Two", url="https://aohostels.com/mitte"),
+        _hotel(doc_id="osm:way/3", url="https://hotelgellert.hu/"),
+    ]
+    with _client(recorder, tmp_path) as client:
+        kept, stats = photos.resolve(client, BUDAPEST, hotels)
+
+    assert [d.doc_id for d in kept] == ["osm:way/3"]
+    assert (stats.site, stats.shared, stats.dropped) == (1, 2, 2)
+    assert sorted(stats.dropped_names) == ["A&O One", "A&O Two"]
+
+
+def test_two_hotels_with_their_own_pictures_keep_them(tmp_path: Path) -> None:
+    recorder = Recorder(
+        {
+            **_no_commons(),
+            "hotelgellert.hu/img": lambda _: _image(),
+            "hotelgellert.hu": lambda _: _html(
+                f'<head><meta property="og:image" content="{GELLERT_IMAGE}"></head>'
+            ),
+            "astra.hu/img": lambda _: _image(),
+            "astra.hu": lambda _: _html(
+                '<head><meta property="og:image" content="https://astra.hu/img/a.jpg">'
+                "</head>"
+            ),
+        }
+    )
+    hotels = [
+        _hotel(url="https://hotelgellert.hu/"),
+        _hotel(doc_id="osm:way/9", name="Hotel Astra", url="https://astra.hu/"),
+    ]
+    with _client(recorder, tmp_path) as client:
+        kept, stats = photos.resolve(client, BUDAPEST, hotels)
+
+    assert len(kept) == 2
+    assert (stats.site, stats.shared, stats.dropped) == (2, 0, 0)

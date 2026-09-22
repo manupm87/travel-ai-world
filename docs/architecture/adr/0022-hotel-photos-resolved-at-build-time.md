@@ -36,16 +36,23 @@ assignment and before climate. Its input is every `sleep` document with coordina
 
 1. **The hotel's own site preview** (`url`) — `og:image:secure_url` > `og:image` >
    `twitter:image` > `twitter:image:src` > `<link rel="image_src">`, under the rules of ADR 0021
-   and TRA-207: at most 256 KiB of HTML, at most three redirects, every hop on the same
-   registrable domain and through the same `fetchable` check, and one `HEAD` requiring a raster
-   `image/*` of at least 15 KB whose name is not `logo`/`icon`/`favicon`/`sprite`.
+   and TRA-207: at most 256 KiB of HTML, at most three redirects, the URL itself and every hop
+   after it on the same registrable domain and through the same `fetchable` check, and one `HEAD`
+   requiring a raster `image/*` of at least 15 KB whose name is not `logo`/`icon`/`favicon`/
+   `sprite` nor one of the placeholders a site serves when it has no picture (`platzhalter`,
+   `placeholder`, `404`, `pattern`, `stripe`, `shop.`, `default`, `dummy`, `sample`, `noimage`).
 2. **Its Facebook page** — the `facebook` field, which OpenStreetMap's `contact:facebook` tag
    now fills, read with the same preview rules.
 3. **Wikimedia Commons, by name only** — `list=search` in the File namespace for
-   `"<name> <city>"`, with the matching rules of `ai_api/infrastructure/commons_photos.py`
-   (distinctive words, the generic-word list) copied into the stage; a file counts only when its
-   title carries a distinctive word of the hotel's name, and non-free files are skipped. Stores
-   `image_url`, `image_license` and `image_author` exactly as the Wikidata stage does.
+   `"<name> <city>"`, matched by `choose_named`, the block this stage and
+   `ai_api/infrastructure/commons_photos.py` hold word for word. Commons search answers with
+   whatever shares a word with the query, so sharing a word proves nothing: a search result is the
+   hotel only when its title carries the **whole** name in order (once both sides drop `hotel`,
+   `panzió`, `hostal` and the like), or **both** of the name's distinctive words, or its one
+   distinctive word **written beside** a word for a place to sleep. Everything is compared as
+   whole words, case-folded and stripped of accents. Non-free files are skipped, and so are
+   plaques, coins, drawings and postcards. Stores `image_url`, `image_license` and `image_author`
+   exactly as the Wikidata stage does.
 4. **The largest picture on its homepage** — the `src`/`data-src` of each `<img>`, the first URL
    of a `srcset` and each CSS `background-image`, in document order, keeping only raster
    extensions whose path is not `logo|icon|sprite|flag|badge|payment|tripadvisor|booking|
@@ -64,6 +71,14 @@ site and the Facebook page, which is also why `geosearch` is gone from the stage
 live finder (`commons_photos.py`) for `eat` and `drink`, where there is no site to ask, but there
 too a file must name the venue.
 
+**A picture two hotels of the same city both claim is neither one's.** A chain runs one website
+for all its houses and a booking widget serves them the same hero shot, so the stage's last pass
+counts the pictures it assigned: any URL that reached two or more `sleep` documents is taken from
+all of them, and those hotels fall to the drop rule like any other unpictured hotel (counted as
+`shared` in the manifest and in the report). Twenty-odd hotels a city leave this way, which is the
+right trade: the same room offered as three different stays is a lie the traveller finds out at
+the door.
+
 The three sources that are not Commons store `image_credit`, the bare domain the picture came
 from (`hotelgellert.hu`, `facebook.com`), which is a new optional document field;
 `ai_api/application/cards.py` prints it in place of the Commons author-and-licence line when it
@@ -81,7 +96,9 @@ to fewer stays, never to a blank card. `ensure_photos` is unchanged and keeps do
 lookups for `eat`, `drink` and the rest.
 
 All fetching goes through `city_corpus.http.ApiClient`, which gains `get_text` and `head`:
-redirects followed by hand so the caller vets every hop, two attempts instead of ten, a
+redirects followed by hand so the caller vets the URL it asked for **and** every hop after it —
+an OpenStreetMap `website` tag is a stranger's string, and `http://169.254.169.254/` is a string
+like any other — two attempts instead of ten, a
 four-second timeout, and a cache of its own under `.cache/sites/<host>/` where a miss is stored
 like a hit. `--offline` therefore works for this stage too, a rebuild with a warm cache is
 byte-identical, and a dead hotel site is dialled once and never again. Commons is paced at one
@@ -89,11 +106,11 @@ second per request (`SLOW_HOSTS`).
 
 ## Consequences
 
-- Every stay the planner offers has a picture of itself. Budapest keeps 247 of its 415 located
-  hotels (36 already in the corpus, 69 from their own site, 27 from Facebook, 60 named on Commons,
-  55 from a homepage), Berlin 402 of 649 and Madrid 316 of 527; the report's Hotels section names
+- Every stay the planner offers has a picture of itself. Budapest keeps 206 of its 415 located
+  hotels (36 already in the corpus, 53 from their own site, 28 from Facebook, 31 named on Commons,
+  58 from a homepage), Berlin 338 of 649 and Madrid 279 of 527; the report's Hotels section names
   the ones that went.
-- The corpus loses about a third of its hotels, mostly to dead websites. That is the intended
+- The corpus loses about half of its hotels, mostly to dead websites. That is the intended
   trade: a name with no picture was not an offer. Hotels are plentiful, and the gate
   (`pictured_sleep`) is what stops the loss from going unnoticed.
 - The site, Facebook and homepage sources are **hot-linked URLs on the venue's own server, not
@@ -105,8 +122,14 @@ second per request (`SLOW_HOSTS`).
 - The build costs 20–45 minutes more per city on a cold `.cache/sites/`, almost all of it waiting
   politely. A rebuild that only touches the other stages pays nothing.
 - The Commons rules now live in two places, `tools/city_corpus/sources/photos.py` and
-  `ai_api/infrastructure/commons_photos.py`, because the tool may not import a service. Both say
-  so at the top; change one and read the other.
+  `ai_api/infrastructure/commons_photos.py`, because the tool may not import a service. The block
+  is identical in both, says so above itself, and a test in the tool's suite compares the two
+  files; change one and change the other.
+- The strict name match costs real photos as well as junk: a hotel whose Commons file spells its
+  name differently (`Margitsziget-GreenIslandHostel`) is now dropped rather than shown someone
+  else's building. Fewer hits was the trade asked for. What survives is a file that names the
+  right hotel in the wrong town (`Park Hotel, Cortina` for Madrid's `Cortina`): a title alone
+  cannot say where it was taken, and confirming it would cost a coordinates call per candidate.
 - The live lookups stay for `eat`, `drink` and `see`: those categories have no such rule, their
   cards are suggestions rather than commitments, and a restaurant with no photo is still worth
   offering.

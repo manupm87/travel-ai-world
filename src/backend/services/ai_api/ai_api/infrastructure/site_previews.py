@@ -53,7 +53,15 @@ SECOND_LEVEL = frozenset({"co", "com", "org", "net", "gov", "edu", "ac"})
 MIN_IMAGE_BYTES = 15_000
 """Below this a "preview" is a favicon, a badge or a tiny logo, not a picture."""
 
-LOGO_PATH = re.compile(r"logo|icon|favicon|sprite", re.IGNORECASE)
+JUNK_PATH = (
+    r"platzhalter|placeholder|404|pattern|stripe|shop\.|default|dummy|sample|"
+    r"noimage|no-image"
+)
+"""What a site serves when it has no picture: a placeholder in any language, a
+background pattern, the 404 image, a shop's furniture. Never the venue. Kept in
+step with the corpus tool's `sources/photos.py` (TRA-208)."""
+
+LOGO_PATH = re.compile(r"logo|icon|favicon|sprite|" + JUNK_PATH, re.IGNORECASE)
 """A preview whose file name says what it is. Sites that publish their logo as
 `og:image` are common; a logo on a card is not a photo of the place."""
 

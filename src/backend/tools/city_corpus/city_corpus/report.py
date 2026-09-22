@@ -481,6 +481,12 @@ def hotel_photo_lines(summary: Summary) -> list[str]:
     examples = [str(name) for name in photos.get("dropped_examples") or []]
     shown = (": " + ", ".join(examples) + "…") if examples else "."
     lines += ["", f"{dropped} hotels dropped for lack of a photo{shown}"]
+    shared = _count(photos.get("shared"))
+    lines += [
+        "",
+        f"{shared} shared chain pictures rejected: a picture two hotels of the "
+        "city both claim is neither one's, and those hotels are among the dropped.",
+    ]
     return lines
 
 

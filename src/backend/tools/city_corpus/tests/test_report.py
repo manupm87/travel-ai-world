@@ -201,6 +201,7 @@ PHOTOS = {
     "commons": 1,
     "page": 0,
     "dropped": 4,
+    "shared": 2,
     "dropped_examples": ["Hotel Astra", "Hotel Zero"],
 }
 
@@ -227,6 +228,8 @@ def test_the_hotels_section_accounts_for_every_photo() -> None:
         "| page | 0 |",
     ]
     assert "4 hotels dropped for lack of a photo: Hotel Astra, Hotel Zero…" in markdown
+    # Two of those four were a chain's, both showing the same hero picture.
+    assert "2 shared chain pictures rejected" in markdown
 
 
 def test_without_a_manifest_the_hotels_section_prints_the_total() -> None:

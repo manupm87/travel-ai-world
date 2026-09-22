@@ -81,7 +81,10 @@ testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, Ke
   `om:climate:<city>:<MM>` normal fetched by id. **Every card is pictured, and never by another place**
   (TRA-161, TRA-168, TRA-206 / ADR 0021): candidates are ordered pictured-first; a card without a corpus
   image is looked up on Commons by name (the search carries the city's name) and at its coordinates,
-  where a file still counts only when its title names the venue (`PhotoFinder`, `PHOTOS_ENABLED`); failing that, a card with a `deep_link` shows the preview its own
+  where a file still counts only when its title names the venue — the whole name in one phrase, both
+  distinctive words, or the single one beside a word for a place to sleep (`choose_named`, the block
+  the corpus tool holds word for word; TRA-208) — (`PhotoFinder`, `PHOTOS_ENABLED`); failing that, a
+  card with a `deep_link` shows the preview its own
   site publishes, credited with the bare domain (`SitePreviewFinder`, `SITE_PREVIEWS_ENABLED`); failing
   that, only a neighbourhood borrows — a pictured sight of its district, credited as that sight's
   (`PlanTrip._corpus_photo`); anything else gets the neutral placeholder credited `Illustrative photo`

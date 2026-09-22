@@ -3,17 +3,18 @@ from pathlib import Path
 
 import httpx
 import pytest
+from city_corpus import build
 from city_corpus.build import (
-    ALL_STAGES,
     BuildResult,
     CorpusValidationError,
     Stage,
     _resolve_photos,
+    collect,
     validate,
     write,
 )
 from city_corpus.config.cities import BUDAPEST
-from city_corpus.http import ApiClient, CacheMiss
+from city_corpus.http import ApiClient, CacheMiss, Fetched
 from city_corpus.models import Category, CorpusDocument, Kind, Source
 from city_corpus.sources import photos
 
@@ -88,13 +89,41 @@ def test_write_is_deterministic(tmp_path: Path) -> None:
     assert manifest["revisions"] == {"wikivoyage:en:Budapest": 7}
 
 
-def test_the_photo_stage_runs_after_wikidata_and_before_climate() -> None:
+def test_the_photo_stage_runs_after_wikidata_and_before_climate(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """It must see the Commons images Wikidata found, and the districts the
-    boundaries assigned, before it decides a hotel has no picture (TRA-208)."""
-    order = list(ALL_STAGES)
+    boundaries assigned, before it decides a hotel has no picture (TRA-208).
 
-    assert order.index(Stage.WIKIDATA) < order.index(Stage.PHOTOS)
-    assert order.index(Stage.PHOTOS) < order.index(Stage.CLIMATE)
+    The enum's order is not the build's: `collect` calls the stages by hand,
+    so the run itself is what is asserted.
+    """
+    order: list[str] = []
+
+    def record(name: str, answer: object = None):
+        def run(*args: object, **kwargs: object) -> object:
+            order.append(name)
+            return answer
+
+        return run
+
+    monkeypatch.setattr(build, "_collect_osm", record("openstreetmap", "a locator"))
+    monkeypatch.setattr(build, "_enrich_wikidata", record("wikidata"))
+    monkeypatch.setattr(build, "_assign_districts", record("districts"))
+    monkeypatch.setattr(build, "_resolve_photos", record("photos"))
+    monkeypatch.setattr(
+        build.climate, "fetch", record("climate", Fetched(data={}, fetched_at="2026"))
+    )
+    monkeypatch.setattr(build.climate, "aggregate", lambda data: [])
+    monkeypatch.setattr(build.climate, "documents", lambda rows, city: [])
+
+    collect(
+        BUDAPEST,
+        ApiClient(tmp_path),
+        stages=(Stage.OPENSTREETMAP, Stage.WIKIDATA, Stage.PHOTOS, Stage.CLIMATE),
+    )
+
+    assert order == ["openstreetmap", "wikidata", "districts", "photos", "climate"]
 
 
 def test_the_photo_stage_counters_reach_the_manifest(
@@ -120,8 +149,40 @@ def test_the_photo_stage_counters_reach_the_manifest(
         "commons": 0,
         "page": 0,
         "dropped": 1,
+        "shared": 0,
         "dropped_examples": ["Hotel Astra"],
     }
+
+
+def test_a_refused_url_is_never_requested(tmp_path: Path) -> None:
+    """`hop_allowed` judges the URL it is handed, not only the redirects after
+    it: a hotel's `website` tag can name the loopback interface or a cloud
+    host's metadata service, and the first hop is a hop too (TRA-208)."""
+    seen: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(str(request.url))
+        return httpx.Response(200, text="whatever answers there")
+
+    client = ApiClient(
+        tmp_path, transport=httpx.MockTransport(handler), sleep=lambda _: None
+    )
+
+    head = client.head("https://127.0.0.1:8001/x", hop_allowed=lambda _: False)
+    page = client.get_text("http://169.254.169.254/latest/meta-data/", lambda _: False)
+
+    assert seen == []
+    assert (head.status, page.status) == (0, 0)
+    assert page.text == "" and not page.is_html
+
+
+def test_a_refused_url_is_a_cached_miss(tmp_path: Path) -> None:
+    """Cached like any other miss, so `--offline` answers it the same way."""
+    client = ApiClient(tmp_path, sleep=lambda _: None)
+    client.get_text("https://parked.example/", lambda _: False)
+
+    offline = ApiClient(tmp_path, offline=True, sleep=lambda _: None)
+    assert offline.get_text("https://parked.example/", lambda _: False).status == 0
 
 
 def test_client_caches_and_retries(tmp_path: Path) -> None:

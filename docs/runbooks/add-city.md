@@ -93,7 +93,9 @@ Read the report before opening the PR:
   them) beat anything else.
 - **Hotels**: the gate wants ten pictured stays. A city that misses it has hotels whose websites
   the build could not read at all — widen the bbox or check that OpenStreetMap carries their
-  `website` tags, and rebuild with `--sources photos` once the rest of the cache is warm.
+  `website` tags, then run the **full** build again: with `.cache/` warm only the photo stage
+  costs time. Never rerun `--sources photos` alone — a partial `--sources` build writes only
+  what those stages produce, which would leave the corpus with nothing but its hotels.
 
 A failing gate is a configuration problem to fix and rebuild, never a reason to lower a threshold
 for one city. If a threshold is wrong for every city, change it in `readiness.py` with the reason in

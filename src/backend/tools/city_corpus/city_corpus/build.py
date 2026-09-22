@@ -300,6 +300,10 @@ def _resolve_photos(city: CityConfig, client: ApiClient, result: BuildResult) ->
     """
     result.documents, stats = photos.resolve(client, city, result.documents)
     result.enrichment["photos"] = stats.as_dict()
+    # Thousands of small fetches; `built_at` wants their newest, like every
+    # other stage's `fetched_at`.
+    if client.last_fetched_at:
+        result.fetched_at.append(client.last_fetched_at)
 
 
 def _assign_districts(result: BuildResult, locator: districts.DistrictLocator) -> None:

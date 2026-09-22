@@ -18,11 +18,10 @@ What is still unpictured is dropped: about a third of the hotel sites in a city
 are dead (DNS, timeout, parked), and the planner would rather offer fewer stays
 than a blank card.
 
-The Commons matching rules (`distinctive_words`, `choose_named` and the
-generic-word list) are a deliberate twin of
-`ai_api/infrastructure/commons_photos.py`, which does the same lookup live for
-restaurants and bars (there still around the coordinates, but never without a
-name match); the site rules are the twin of
+The block that reads a file title as a venue's name (`fold` to `choose_named`)
+is shared word for word with `ai_api/infrastructure/commons_photos.py`, which
+does the same lookup live for restaurants and bars (there still around the
+coordinates, but never without a name match); the site rules are the twin of
 `ai_api/infrastructure/site_previews.py` (ADR 0021, TRA-206/207). The tool never
 imports a service, so the two copies are kept in step by hand — change one, read
 the other.
@@ -36,6 +35,8 @@ import html
 import ipaddress
 import logging
 import re
+import unicodedata
+from collections import Counter
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from html.parser import HTMLParser
@@ -57,7 +58,181 @@ SEARCH_RESULTS = 5
 DROPPED_SHOWN = 10
 """How many names of dropped hotels the manifest and the report carry."""
 
-# ─── Commons by name: the twin of ai_api/infrastructure/commons_photos.py ────
+# ─── The venue's own site: the twin of ai_api/infrastructure/site_previews.py ─
+
+DENIED_HOSTS = (
+    "wikipedia.org",
+    "wikivoyage.org",
+    "wikimedia.org",
+    "wikidata.org",
+    "openstreetmap.org",
+)
+"""Never the hotel's own site: their preview pictures the encyclopaedia."""
+
+PRIVATE_SUFFIXES = (".local", ".internal")
+SECOND_LEVEL = frozenset({"co", "com", "org", "net", "gov", "edu", "ac"})
+"""Under a two-letter country code these are not the site (`co.uk`, `com.br`)."""
+
+MIN_PREVIEW_BYTES = 15_000
+"""Below this a "preview" is a favicon, a badge or a tiny logo, not a picture."""
+
+MIN_PAGE_IMAGE_BYTES = 40_000
+"""A picture taken from the page's markup has nothing vouching for it but its
+size, so the bar is higher and an image that states no size does not clear it."""
+
+MAX_PAGE_CANDIDATES = 5
+"""How many pictures of a homepage are checked with a `HEAD`."""
+
+JUNK_PATH = (
+    r"platzhalter|placeholder|404|pattern|stripe|shop\.|default|dummy|sample|"
+    r"noimage|no-image"
+)
+"""What a site serves when it has no picture: a placeholder in any language, a
+background pattern, the 404 image, a shop's furniture. Never the hotel."""
+
+LOGO_PATH = re.compile(r"logo|icon|favicon|sprite|" + JUNK_PATH, re.IGNORECASE)
+PAGE_IMAGE_SKIP = re.compile(
+    r"logo|icon|sprite|flag|badge|payment|tripadvisor|booking|"
+    r"blank|pixel|loading|avatar|" + JUNK_PATH,
+    re.IGNORECASE,
+)
+IMAGE_SUFFIXES = (".jpg", ".jpeg", ".png", ".webp", ".avif")
+
+SECURE_URL = "og:image:secure_url"
+META_RANKS = {SECURE_URL: 0, "og:image": 1, "twitter:image": 2, "twitter:image:src": 3}
+IMAGE_SRC_RANK = 4
+"""`<link rel="image_src">`: the oldest of the conventions, the last choice."""
+
+FACEBOOK_CREDIT = "facebook.com"
+
+
+@dataclass
+class PhotoStats:
+    """What the stage did, for the manifest and the readiness report."""
+
+    site: int = 0
+    facebook: int = 0
+    commons: int = 0
+    page: int = 0
+    dropped: int = 0
+    shared: int = 0
+    """Pictures rejected for being claimed by two hotels of the same city."""
+    dropped_names: list[str] = field(default_factory=list)
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "site": self.site,
+            "facebook": self.facebook,
+            "commons": self.commons,
+            "page": self.page,
+            "dropped": self.dropped,
+            "shared": self.shared,
+            "dropped_examples": sorted(self.dropped_names)[:DROPPED_SHOWN],
+        }
+
+
+@dataclass(frozen=True)
+class Found:
+    source: str  # site | facebook | commons | page
+    fields: dict[str, str | None]
+
+
+def needs_photo(doc: CorpusDocument) -> bool:
+    """A stay the planner could offer and no one can see."""
+    return (
+        doc.category == Category.SLEEP
+        and not doc.image_url
+        and doc.lat is not None
+        and doc.lon is not None
+    )
+
+
+def resolve(
+    client: ApiClient, city: CityConfig, documents: Sequence[CorpusDocument]
+) -> tuple[list[CorpusDocument], PhotoStats]:
+    """The same documents, every located `sleep` one pictured or gone."""
+    stats = PhotoStats()
+    kept: list[CorpusDocument] = []
+    resolved: dict[int, Found] = {}  # where each hotel's new picture came from
+    for doc in documents:
+        if not needs_photo(doc):
+            kept.append(doc)
+            continue
+        found = find(client, city, doc)
+        if found is None:
+            _drop(stats, doc, "no photo anywhere")
+            continue
+        setattr(stats, found.source, getattr(stats, found.source) + 1)
+        logger.info("%s: photo from %s", doc.doc_id, found.source)
+        resolved[len(kept)] = found
+        kept.append(doc.model_copy(update=found.fields))
+    return _without_shared(kept, resolved, stats), stats
+
+
+def _drop(stats: PhotoStats, doc: CorpusDocument, reason: str) -> None:
+    stats.dropped += 1
+    stats.dropped_names.append(doc.name or doc.doc_id)
+    logger.info("dropping %s: %s", doc.doc_id, reason)
+
+
+def _without_shared(
+    documents: list[CorpusDocument], resolved: dict[int, Found], stats: PhotoStats
+) -> list[CorpusDocument]:
+    """A picture two hotels of a city both claim is neither hotel's.
+
+    A chain runs one site for all its houses and a booking widget serves them
+    all the same hero shot, so the same room would be offered as three
+    different stays. Those hotels lose the picture, and with it their place in
+    the corpus: the sources were tried in order and none of the others answered.
+    """
+    shared = {
+        url
+        for url, count in Counter(
+            str(found.fields.get("image_url")) for found in resolved.values()
+        ).items()
+        if count > 1
+    }
+    if not shared:
+        return documents
+    kept: list[CorpusDocument] = []
+    for index, doc in enumerate(documents):
+        found = resolved.get(index)
+        if found is None or str(found.fields.get("image_url")) not in shared:
+            kept.append(doc)
+            continue
+        stats.shared += 1
+        setattr(stats, found.source, getattr(stats, found.source) - 1)
+        _drop(stats, doc, f"its {found.source} picture is another hotel's too")
+    return kept
+
+
+def find(client: ApiClient, city: CityConfig, doc: CorpusDocument) -> Found | None:
+    """The first photo of this hotel any of the four sources answers with."""
+    finders = (
+        ("site", _from_site),
+        ("facebook", _from_facebook),
+        ("commons", _from_commons),
+        ("page", _from_page),
+    )
+    for source, finder in finders:
+        try:
+            fields = finder(client, city, doc)
+        except CacheMiss:
+            raise
+        except (httpx.HTTPError, RuntimeError, ValueError, KeyError, TypeError) as exc:
+            logger.warning("%s photo lookup failed for %s: %s", source, doc.doc_id, exc)
+            continue
+        if fields:
+            return Found(source=source, fields=fields)
+    return None
+
+
+# ─── Reading a Commons file title as a venue's name ──────────────────────────
+# Everything from here to `choose_named` is shared, word for word, between
+#   tools/city_corpus/city_corpus/sources/photos.py
+#   services/ai_api/ai_api/infrastructure/commons_photos.py
+# The tool never imports a service, so the two copies are kept in step by hand:
+# change one, change the other.
 
 GENERIC_WORDS = frozenset(
     {
@@ -99,158 +274,186 @@ GENERIC_WORDS = frozenset(
         "magyar",
     }
 )
-"""Words that name nothing on their own: a file title holding one of them is no
-evidence that the photo shows this hotel."""
+"""Words that name nothing on their own: a title holding one of them is no
+evidence that the photo shows this venue."""
 
 SKIP_WORDS = re.compile(
     r"plaque|tábla|relief|mosaic|chasuble|manuscript|map|plan of|panel|"
-    r"grave|tomb|coin|medal|statue detail|inscription|drawing|logo",
+    r"grave|tomb|coin|medal|statue detail|inscription|drawing|logo|"
+    r"postcard|postkarte|ansichtskarte|lithograph|painting",
     re.IGNORECASE,
 )
-"""Files that are not a picture of a place, whatever their coordinates."""
+"""Files that are not a picture of the place as it stands: a plaque, a coin, a
+drawing — or a postcard of the square a hotel took its name from a century ago."""
 
-_NAME_WORDS = re.compile(r"[a-záéíóúöőüűñ]{4,}", re.IGNORECASE)
 _STOP = frozenset(
     {
         "restaurant",
-        "étterem",
+        "etterem",
         "bar",
         "pub",
-        "café",
         "cafe",
-        "kávéház",
-        "hotel",
-        "hostel",
+        "kavehaz",
         "kitchen",
         "house",
         "street",
         "utca",
         "bistro",
-        "bisztró",
-        "vendéglő",
-        "söröző",
+        "bisztro",
+        "vendeglo",
+        "sorozo",
     }
 )
+"""What kind of venue it is, never which one — the lodging half is `LODGING_WORDS`."""
 
-# ─── The venue's own site: the twin of ai_api/infrastructure/site_previews.py ─
-
-DENIED_HOSTS = (
-    "wikipedia.org",
-    "wikivoyage.org",
-    "wikimedia.org",
-    "wikidata.org",
-    "openstreetmap.org",
+LODGING_WORDS = frozenset(
+    {
+        "hotel",
+        "hostel",
+        "hostal",
+        "pension",
+        "panzio",
+        "guesthouse",
+        "apartment",
+        "apartments",
+        "inn",
+        "szallo",
+        "szalloda",
+        "residence",
+        "suites",
+        "rooms",
+        "motel",
+    }
 )
-"""Never the hotel's own site: their preview pictures the encyclopaedia."""
+"""A place to sleep, never which one. Dropped from both sides before the name
+and the title are compared, and the one thing that makes a single-word name
+believable: `Carlton` is a title only when `Hotel` stands next to it."""
 
-PRIVATE_SUFFIXES = (".local", ".internal")
-SECOND_LEVEL = frozenset({"co", "com", "org", "net", "gov", "edu", "ac"})
-"""Under a two-letter country code these are not the site (`co.uk`, `com.br`)."""
-
-MIN_PREVIEW_BYTES = 15_000
-"""Below this a "preview" is a favicon, a badge or a tiny logo, not a picture."""
-
-MIN_PAGE_IMAGE_BYTES = 40_000
-"""A picture taken from the page's markup has nothing vouching for it but its
-size, so the bar is higher and an image that states no size does not clear it."""
-
-MAX_PAGE_CANDIDATES = 5
-"""How many pictures of a homepage are checked with a `HEAD`."""
-
-LOGO_PATH = re.compile(r"logo|icon|favicon|sprite", re.IGNORECASE)
-PAGE_IMAGE_SKIP = re.compile(
-    r"logo|icon|sprite|flag|badge|payment|tripadvisor|booking|placeholder|"
-    r"blank|pixel|loading|avatar",
-    re.IGNORECASE,
-)
-IMAGE_SUFFIXES = (".jpg", ".jpeg", ".png", ".webp", ".avif")
-
-SECURE_URL = "og:image:secure_url"
-META_RANKS = {SECURE_URL: 0, "og:image": 1, "twitter:image": 2, "twitter:image:src": 3}
-IMAGE_SRC_RANK = 4
-"""`<link rel="image_src">`: the oldest of the conventions, the last choice."""
-
-FACEBOOK_CREDIT = "facebook.com"
+_BED_AND_BREAKFAST = re.compile(r"\bb\s*&\s*b\b", re.IGNORECASE)
 
 
-@dataclass
-class PhotoStats:
-    """What the stage did, for the manifest and the readiness report."""
+def fold(text: str) -> str:
+    """Lower case, accents dropped, everything else a space.
 
-    site: int = 0
-    facebook: int = 0
-    commons: int = 0
-    page: int = 0
-    dropped: int = 0
-    dropped_names: list[str] = field(default_factory=list)
-
-    def as_dict(self) -> dict[str, Any]:
-        return {
-            "site": self.site,
-            "facebook": self.facebook,
-            "commons": self.commons,
-            "page": self.page,
-            "dropped": self.dropped,
-            "dropped_examples": sorted(self.dropped_names)[:DROPPED_SHOWN],
-        }
+    `Bud_VI._K+K_Hotel_Opera.JPG` → `bud vi k k hotel opera jpg`, `Baltazár` →
+    `baltazar`. The two sides of the comparison are written by different people
+    and one of them is a file name, so only letters and digits survive.
+    """
+    plain = unicodedata.normalize("NFKD", _BED_AND_BREAKFAST.sub(" ", text).casefold())
+    letters = "".join(c for c in plain if not unicodedata.combining(c))
+    return " ".join(re.sub(r"[^0-9a-z]+", " ", letters).split())
 
 
-@dataclass(frozen=True)
-class Found:
-    source: str  # site | facebook | commons | page
-    fields: dict[str, str | None]
+def words_of(text: str) -> list[str]:
+    """The folded words of a name or a title, in order."""
+    return fold(text).split()
 
 
-def needs_photo(doc: CorpusDocument) -> bool:
-    """A stay the planner could offer and no one can see."""
-    return (
-        doc.category == Category.SLEEP
-        and not doc.image_url
-        and doc.lat is not None
-        and doc.lon is not None
+_PHRASE_BREAK = re.compile(r"""[,;:()\[\]{}"«»/·.!?]""")
+
+
+def phrases_of(text: str) -> list[list[str]]:
+    """The title's words grouped as they are written.
+
+    A comma, a bracket or a full stop separates two things named in one title:
+    `Karl-Marx-Allee, Hotel Berolina` names a street and then a hotel, and
+    `Park Hotel, Cortina` a hotel and then the town it is in. Words on either
+    side of such a mark are not written together, whatever the distance.
+    """
+    return [words for part in _PHRASE_BREAK.split(text) if (words := words_of(part))]
+
+
+def _city_words(city: str) -> set[str]:
+    """The city's own name is never distinctive of a venue in it."""
+    return set(words_of(city))
+
+
+def distinctive_words(name: str, *, city: str = "") -> set[str]:
+    """The words of a venue name that could only mean this venue."""
+    skip = _STOP | GENERIC_WORDS | LODGING_WORDS | _city_words(city)
+    return {w for w in words_of(name) if len(w) >= 5 and w not in skip}
+
+
+def _without_lodging(words: list[str]) -> list[str]:
+    return [w for w in words if w not in LODGING_WORDS]
+
+
+def _title_text(title: str) -> str:
+    """A file title without its `File:` prefix and its extension."""
+    stem = title.removeprefix("File:")
+    head, dot, tail = stem.rpartition(".")
+    return head if dot and len(tail) <= 5 else stem
+
+
+def _holds_phrase(words: list[str], phrase: list[str]) -> bool:
+    """`phrase` written inside `words`, in order and with nothing between."""
+    span = len(phrase)
+    return any(words[i : i + span] == phrase for i in range(len(words) - span + 1))
+
+
+def _beside_lodging(words: list[str], word: str) -> bool:
+    """`word` written next to `hotel`, `panzió`, `hostal`…: what tells the
+    hotel Amadeus from the ship Amadeus in a title that happens to name both."""
+    return any(
+        w == word
+        and any(
+            n in LODGING_WORDS for n in words[max(i - 1, 0) : i] + words[i + 1 : i + 2]
+        )
+        for i, w in enumerate(words)
     )
 
 
-def resolve(
-    client: ApiClient, city: CityConfig, documents: Sequence[CorpusDocument]
-) -> tuple[list[CorpusDocument], PhotoStats]:
-    """The same documents, every located `sleep` one pictured or gone."""
-    stats = PhotoStats()
-    kept: list[CorpusDocument] = []
-    for doc in documents:
-        if not needs_photo(doc):
-            kept.append(doc)
-            continue
-        found = find(client, city, doc)
-        if found is None:
-            stats.dropped += 1
-            stats.dropped_names.append(doc.name or doc.doc_id)
-            logger.info("dropping %s: no photo anywhere", doc.doc_id)
-            continue
-        setattr(stats, found.source, getattr(stats, found.source) + 1)
-        logger.info("%s: photo from %s", doc.doc_id, found.source)
-        kept.append(doc.model_copy(update=found.fields))
-    return kept, stats
+def _usable(files: Sequence[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [
+        f
+        for f in files
+        if isinstance(f.get("title"), str)
+        and f["title"].startswith("File:")
+        and not SKIP_WORDS.search(f["title"])
+        and f["title"].lower().endswith((".jpg", ".jpeg", ".png", ".webp"))
+    ]
 
 
-def find(client: ApiClient, city: CityConfig, doc: CorpusDocument) -> Found | None:
-    """The first photo of this hotel any of the four sources answers with."""
-    finders = (
-        ("site", _from_site),
-        ("facebook", _from_facebook),
-        ("commons", _from_commons),
-        ("page", _from_page),
-    )
-    for source, finder in finders:
-        try:
-            fields = finder(client, city, doc)
-        except CacheMiss:
-            raise
-        except (httpx.HTTPError, RuntimeError, ValueError, KeyError, TypeError) as exc:
-            logger.warning("%s photo lookup failed for %s: %s", source, doc.doc_id, exc)
-            continue
-        if fields:
-            return Found(source=source, fields=fields)
+def choose_named(
+    name: str, files: Sequence[dict[str, Any]], *, city: str = ""
+) -> str | None:
+    """The file whose title is this venue's name, or None.
+
+    Commons search answers with whatever shares a word with the query, and the
+    answer is junk far more often than not: a ship for `Hotel Amadeus`, a
+    flower for `Aster Budapest`, a footballer for `Hostal Casillas`, a memorial
+    stone for `Kleist`, a metro station for `Hotel Metro`. A search result is
+    the venue only when
+
+    * one phrase of its title carries the venue's whole name, in order, once
+      both sides have lost their lodging words (`Ritz-Carlton` in `The
+      Ritz-Carlton, Budapest`, `K+K … Opera` in `Bud VI. K+K Hotel Opera`); or
+    * the name has two or more distinctive words and the title carries all of
+      them (`Sofitel … Chain Bridge` in `Sofitel Budapest Chain Bridge. NE`); or
+    * the name has a single distinctive word and the title writes it beside a
+      word for a place to sleep, in the same phrase (`Carlton Hotel`) — on its
+      own that word is the flower, the footballer and the metro station.
+
+    Words are compared whole and folded, so `Aster` is not `Aster amellus` and
+    `night` is not `Over Night`.
+    """
+    words = distinctive_words(name, city=city)
+    if not words:
+        return None
+    named = _without_lodging(words_of(name))
+    for f in _usable(files):
+        phrases = phrases_of(_title_text(f["title"]))
+        title = {word for phrase in phrases for word in phrase}
+        if len(named) >= 2 and any(
+            _holds_phrase(_without_lodging(phrase), named) for phrase in phrases
+        ):
+            return str(f["title"])
+        if len(words) >= 2 and words <= title:
+            return str(f["title"])
+        if len(words) == 1 and any(
+            _beside_lodging(phrase, next(iter(words))) for phrase in phrases
+        ):
+            return str(f["title"])
     return None
 
 
@@ -301,46 +504,6 @@ def _search_by_name(client: ApiClient, name: str, city_name: str) -> str | None:
         {"title": hit.get("title")} for hit in data.get("query", {}).get("search", [])
     ]
     return choose_named(name, hits, city=city_name)
-
-
-def _city_words(city: str) -> set[str]:
-    """The city's own name is never distinctive of a venue in it."""
-    return {w.lower() for w in _NAME_WORDS.findall(city)}
-
-
-def distinctive_words(name: str, *, city: str = "") -> set[str]:
-    """The words of a venue name that could only mean this venue."""
-    skip = _STOP | GENERIC_WORDS | _city_words(city)
-    return {
-        w.lower()
-        for w in _NAME_WORDS.findall(name)
-        if len(w) >= 5 and w.lower() not in skip
-    }
-
-
-def _usable(files: Sequence[dict[str, Any]]) -> list[dict[str, Any]]:
-    return [
-        f
-        for f in files
-        if isinstance(f.get("title"), str)
-        and f["title"].startswith("File:")
-        and not SKIP_WORDS.search(f["title"])
-        and f["title"].lower().endswith((".jpg", ".jpeg", ".png", ".webp"))
-    ]
-
-
-def choose_named(
-    name: str, files: Sequence[dict[str, Any]], *, city: str = ""
-) -> str | None:
-    """A search result whose title carries a distinctive word of the name, or
-    the whole name; search results are not near the venue, so nothing less."""
-    words = distinctive_words(name, city=city)
-    whole = " ".join(name.lower().split())
-    for f in _usable(files):
-        lowered = f["title"].lower()
-        if whole in lowered or any(w in lowered for w in words):
-            return str(f["title"])
-    return None
 
 
 # ─── 1, 2 and 4. The hotel's own site, its Facebook page, its homepage ───────

@@ -57,12 +57,15 @@ manifest reports documents per category and what each one skipped.
 4. **Photos** (TRA-208, ADR 0022): every `sleep` document with coordinates and no `image_url`
    gets one, from the first of four sources that answers — the link preview of the hotel's own
    site (`url`), the preview of its Facebook page (`facebook`, from OSM `contact:facebook`),
-   Wikimedia Commons searched by name (a file counts only when its title carries a distinctive
-   word of the hotel's name; non-free files skipped), and the largest picture on its homepage
-   (at least 40 KB, `logo`/`badge`/`booking` names skipped). The hotel's own picture of itself
+   Wikimedia Commons searched by name (a search result counts only when its title carries the
+   hotel's whole name, or both of its distinctive words, or its one distinctive word beside a
+   word for a place to sleep — anything less answers with a ship, a flower or a footballer;
+   non-free files skipped), and the largest picture on its homepage (at least 40 KB,
+   `logo`/`badge`/`booking`/`placeholder` names skipped). The hotel's own picture of itself
    comes first because a photo merely taken at its coordinates is the street, not the hotel; the
-   three sources that are not Commons store the bare domain in `image_credit`; **a hotel still
-   without a photo is dropped from the corpus**. Roughly a third of them are, almost all with dead websites.
+   three sources that are not Commons store the bare domain in `image_credit`; a picture the
+   stage gave to two hotels of the same city is a chain's and is taken from both; **a hotel still
+   without a photo is dropped from the corpus**. Roughly half of them are, almost all with dead websites.
    The stage is the slow one: 20–45 minutes for a city with a cold `.cache/sites/`.
 5. **Districts**: every document with coordinates and no district gets one from the OSM boundary it
    falls in. The `[district_guides]` table in `cities/budapest.toml` maps the 23 administrative
@@ -178,9 +181,10 @@ and a new backend image.
 and `report.json` (the same numbers for tooling): documents per category and source, listings vs
 prose, places per category (a *place* is a document with a name; *located* when it has coordinates,
 which is what becomes a planner card; *pictured* when a located place has an `image_url`), districts
-with their located places and the ones under 10, where the hotels' photos came from and which
-hotels the build dropped for having none (**Hotels**, from the manifest — without it the section
-prints the total only), `eat` and `sleep` by price tier, the twelve monthly
+with their located places and the ones under 10, where the hotels' photos came from, which
+hotels the build dropped for having none and how many pictures it rejected as a chain's
+(**Hotels**, from the manifest — without it the section prints the total only), `eat` and `sleep`
+by price tier, the twelve monthly
 climate normals, and a few fixed smoke queries per category ("museum", "craft beer bar", "boutique
 hotel", "free walking tour", ...; the same for every city) answered by a keyword scorer with the top three names, so a reader
 sees at a glance whether the corpus answers.

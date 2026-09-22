@@ -9,6 +9,11 @@ are named after the place but carry no geotag), else a `geosearch` in the File
 namespace around the point — matched by name all the same — then `imageinfo`
 for the author and the licence the credit line needs.
 
+How a title is read as a name is the strict business of `choose_named`, shared
+word for word with the corpus tool's `sources/photos.py` (TRA-208): a search
+result that merely shares a word with the venue is a ship, a flower or a
+footballer far more often than it is the venue.
+
 Every photo on Commons is licence-clean by construction; the credit still has
 to name the author and the licence, which is what `Photo.credit` carries.
 A lookup that fails for any reason answers None: the caller falls back.
@@ -17,7 +22,8 @@ A lookup that fails for any reason answers None: the caller falls back.
 import html
 import logging
 import re
-from collections.abc import Mapping
+import unicodedata
+from collections.abc import Mapping, Sequence
 from typing import Any
 from urllib.parse import quote, unquote, urlparse
 
@@ -36,79 +42,7 @@ RADIUS_M = 60
 
 RESULTS = 10
 
-# Words that name nothing on their own: a title holding one of them is not
-# evidence that the photo shows the venue.
-GENERIC_WORDS = frozenset(
-    {
-        "park",
-        "house",
-        "green",
-        "grand",
-        "royal",
-        "central",
-        "square",
-        "market",
-        "garden",
-        "corner",
-        "little",
-        "small",
-        "old",
-        "new",
-        "city",
-        "castle",
-        "palace",
-        "bridge",
-        "river",
-        "station",
-        "plaza",
-        "place",
-        "food",
-        "wine",
-        "beer",
-        "coffee",
-        "kitchen",
-        "chop",
-        "pizza",
-        "pizzeria",
-        "burger",
-        "sushi",
-        "grill",
-        "terrace",
-        "hungarian",
-        "magyar",
-    }
-)
-
-# Files that are not a picture of a place, whatever their coordinates.
-SKIP_WORDS = re.compile(
-    r"plaque|tábla|relief|mosaic|chasuble|manuscript|map|plan of|panel|"
-    r"grave|tomb|coin|medal|statue detail|inscription|drawing|logo",
-    re.IGNORECASE,
-)
-
 _TAGS = re.compile(r"<[^>]+>")
-_NAME_WORDS = re.compile(r"[a-záéíóúöőüűñ]{4,}", re.IGNORECASE)
-_STOP = frozenset(
-    {
-        "restaurant",
-        "étterem",
-        "bar",
-        "pub",
-        "café",
-        "cafe",
-        "kávéház",
-        "hotel",
-        "hostel",
-        "kitchen",
-        "house",
-        "street",
-        "utca",
-        "bistro",
-        "bisztró",
-        "vendéglő",
-        "söröző",
-    }
-)
 
 
 class CommonsPhotos:
@@ -276,22 +210,183 @@ def wiki_page(page_url: str) -> tuple[str, str] | None:
     return (parsed.hostname or "", title) if title else None
 
 
+# ─── Reading a Commons file title as a venue's name ──────────────────────────
+# Everything from here to `choose_named` is shared, word for word, between
+#   tools/city_corpus/city_corpus/sources/photos.py
+#   services/ai_api/ai_api/infrastructure/commons_photos.py
+# The tool never imports a service, so the two copies are kept in step by hand:
+# change one, change the other.
+
+GENERIC_WORDS = frozenset(
+    {
+        "park",
+        "house",
+        "green",
+        "grand",
+        "royal",
+        "central",
+        "square",
+        "market",
+        "garden",
+        "corner",
+        "little",
+        "small",
+        "old",
+        "new",
+        "city",
+        "castle",
+        "palace",
+        "bridge",
+        "river",
+        "station",
+        "plaza",
+        "place",
+        "food",
+        "wine",
+        "beer",
+        "coffee",
+        "kitchen",
+        "chop",
+        "pizza",
+        "pizzeria",
+        "burger",
+        "sushi",
+        "grill",
+        "terrace",
+        "hungarian",
+        "magyar",
+    }
+)
+"""Words that name nothing on their own: a title holding one of them is no
+evidence that the photo shows this venue."""
+
+SKIP_WORDS = re.compile(
+    r"plaque|tábla|relief|mosaic|chasuble|manuscript|map|plan of|panel|"
+    r"grave|tomb|coin|medal|statue detail|inscription|drawing|logo|"
+    r"postcard|postkarte|ansichtskarte|lithograph|painting",
+    re.IGNORECASE,
+)
+"""Files that are not a picture of the place as it stands: a plaque, a coin, a
+drawing — or a postcard of the square a hotel took its name from a century ago."""
+
+_STOP = frozenset(
+    {
+        "restaurant",
+        "etterem",
+        "bar",
+        "pub",
+        "cafe",
+        "kavehaz",
+        "kitchen",
+        "house",
+        "street",
+        "utca",
+        "bistro",
+        "bisztro",
+        "vendeglo",
+        "sorozo",
+    }
+)
+"""What kind of venue it is, never which one — the lodging half is `LODGING_WORDS`."""
+
+LODGING_WORDS = frozenset(
+    {
+        "hotel",
+        "hostel",
+        "hostal",
+        "pension",
+        "panzio",
+        "guesthouse",
+        "apartment",
+        "apartments",
+        "inn",
+        "szallo",
+        "szalloda",
+        "residence",
+        "suites",
+        "rooms",
+        "motel",
+    }
+)
+"""A place to sleep, never which one. Dropped from both sides before the name
+and the title are compared, and the one thing that makes a single-word name
+believable: `Carlton` is a title only when `Hotel` stands next to it."""
+
+_BED_AND_BREAKFAST = re.compile(r"\bb\s*&\s*b\b", re.IGNORECASE)
+
+
+def fold(text: str) -> str:
+    """Lower case, accents dropped, everything else a space.
+
+    `Bud_VI._K+K_Hotel_Opera.JPG` → `bud vi k k hotel opera jpg`, `Baltazár` →
+    `baltazar`. The two sides of the comparison are written by different people
+    and one of them is a file name, so only letters and digits survive.
+    """
+    plain = unicodedata.normalize("NFKD", _BED_AND_BREAKFAST.sub(" ", text).casefold())
+    letters = "".join(c for c in plain if not unicodedata.combining(c))
+    return " ".join(re.sub(r"[^0-9a-z]+", " ", letters).split())
+
+
+def words_of(text: str) -> list[str]:
+    """The folded words of a name or a title, in order."""
+    return fold(text).split()
+
+
+_PHRASE_BREAK = re.compile(r"""[,;:()\[\]{}"«»/·.!?]""")
+
+
+def phrases_of(text: str) -> list[list[str]]:
+    """The title's words grouped as they are written.
+
+    A comma, a bracket or a full stop separates two things named in one title:
+    `Karl-Marx-Allee, Hotel Berolina` names a street and then a hotel, and
+    `Park Hotel, Cortina` a hotel and then the town it is in. Words on either
+    side of such a mark are not written together, whatever the distance.
+    """
+    return [words for part in _PHRASE_BREAK.split(text) if (words := words_of(part))]
+
+
 def _city_words(city: str) -> set[str]:
     """The city's own name is never distinctive of a venue in it."""
-    return {w.lower() for w in _NAME_WORDS.findall(city)}
+    return set(words_of(city))
 
 
 def distinctive_words(name: str, *, city: str = "") -> set[str]:
     """The words of a venue name that could only mean this venue."""
-    skip = _STOP | GENERIC_WORDS | _city_words(city)
-    return {
-        w.lower()
-        for w in _NAME_WORDS.findall(name)
-        if len(w) >= 5 and w.lower() not in skip
-    }
+    skip = _STOP | GENERIC_WORDS | LODGING_WORDS | _city_words(city)
+    return {w for w in words_of(name) if len(w) >= 5 and w not in skip}
 
 
-def _usable(files: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _without_lodging(words: list[str]) -> list[str]:
+    return [w for w in words if w not in LODGING_WORDS]
+
+
+def _title_text(title: str) -> str:
+    """A file title without its `File:` prefix and its extension."""
+    stem = title.removeprefix("File:")
+    head, dot, tail = stem.rpartition(".")
+    return head if dot and len(tail) <= 5 else stem
+
+
+def _holds_phrase(words: list[str], phrase: list[str]) -> bool:
+    """`phrase` written inside `words`, in order and with nothing between."""
+    span = len(phrase)
+    return any(words[i : i + span] == phrase for i in range(len(words) - span + 1))
+
+
+def _beside_lodging(words: list[str], word: str) -> bool:
+    """`word` written next to `hotel`, `panzió`, `hostal`…: what tells the
+    hotel Amadeus from the ship Amadeus in a title that happens to name both."""
+    return any(
+        w == word
+        and any(
+            n in LODGING_WORDS for n in words[max(i - 1, 0) : i] + words[i + 1 : i + 2]
+        )
+        for i, w in enumerate(words)
+    )
+
+
+def _usable(files: Sequence[dict[str, Any]]) -> list[dict[str, Any]]:
     return [
         f
         for f in files
@@ -303,15 +398,44 @@ def _usable(files: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def choose_named(
-    name: str, files: list[dict[str, Any]], *, city: str = ""
+    name: str, files: Sequence[dict[str, Any]], *, city: str = ""
 ) -> str | None:
-    """A search result whose title carries a distinctive word of the name, or
-    the whole name; search results are not near the venue, so nothing less."""
+    """The file whose title is this venue's name, or None.
+
+    Commons search answers with whatever shares a word with the query, and the
+    answer is junk far more often than not: a ship for `Hotel Amadeus`, a
+    flower for `Aster Budapest`, a footballer for `Hostal Casillas`, a memorial
+    stone for `Kleist`, a metro station for `Hotel Metro`. A search result is
+    the venue only when
+
+    * one phrase of its title carries the venue's whole name, in order, once
+      both sides have lost their lodging words (`Ritz-Carlton` in `The
+      Ritz-Carlton, Budapest`, `K+K … Opera` in `Bud VI. K+K Hotel Opera`); or
+    * the name has two or more distinctive words and the title carries all of
+      them (`Sofitel … Chain Bridge` in `Sofitel Budapest Chain Bridge. NE`); or
+    * the name has a single distinctive word and the title writes it beside a
+      word for a place to sleep, in the same phrase (`Carlton Hotel`) — on its
+      own that word is the flower, the footballer and the metro station.
+
+    Words are compared whole and folded, so `Aster` is not `Aster amellus` and
+    `night` is not `Over Night`.
+    """
     words = distinctive_words(name, city=city)
-    whole = " ".join(name.lower().split())
+    if not words:
+        return None
+    named = _without_lodging(words_of(name))
     for f in _usable(files):
-        lowered = f["title"].lower()
-        if whole in lowered or any(w in lowered for w in words):
+        phrases = phrases_of(_title_text(f["title"]))
+        title = {word for phrase in phrases for word in phrase}
+        if len(named) >= 2 and any(
+            _holds_phrase(_without_lodging(phrase), named) for phrase in phrases
+        ):
+            return str(f["title"])
+        if len(words) >= 2 and words <= title:
+            return str(f["title"])
+        if len(words) == 1 and any(
+            _beside_lodging(phrase, next(iter(words))) for phrase in phrases
+        ):
             return str(f["title"])
     return None
 
@@ -326,11 +450,11 @@ def choose_file(
     street, the neighbours' façade or a passing tram, and a card showing the
     wrong place is worse than a card showing none.
     """
-    skip = _STOP | _city_words(city)
-    words = {w.lower() for w in _NAME_WORDS.findall(name) if w.lower() not in skip}
+    skip = _STOP | LODGING_WORDS | _city_words(city)
+    words = {w for w in words_of(name) if len(w) >= 4 and w not in skip}
     for f in _usable(files):
-        lowered = f["title"].lower()
-        if any(w in lowered for w in words):
+        title = words_of(_title_text(f["title"]))
+        if any(w in title for w in words):
             return str(f["title"])
     return None
 

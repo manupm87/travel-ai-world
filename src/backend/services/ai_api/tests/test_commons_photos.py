@@ -10,6 +10,7 @@ from ai_api.infrastructure.commons_photos import (
     USER_AGENT,
     CommonsPhotos,
     choose_file,
+    choose_named,
     credit_line,
     file_url,
 )
@@ -341,7 +342,7 @@ CREDIT = {
 async def test_a_photo_named_after_the_venue_wins_without_a_geosearch():
     transport, seen = _by_list(
         {
-            "search": _search_hits("File:Fruska bistro sign, Lágymányos Bay Park.jpg"),
+            "search": _search_hits("File:Fruska bisztró sign, Lágymányos Bay Park.jpg"),
             "geosearch": {"query": {"geosearch": []}},
             "imageinfo": CREDIT,
         }
@@ -350,9 +351,24 @@ async def test_a_photo_named_after_the_venue_wins_without_a_geosearch():
 
     photo = await finder.find("Fruska bisztró", 47.47, 19.05, city="Budapest")
 
-    assert photo is not None and "Fruska%20bistro" in photo.url
+    assert photo is not None and "Fruska%20bisztr" in photo.url
     assert photo.credit == "Someone (CC BY 4.0) · Wikimedia Commons"
     assert seen == ["search", "imageinfo"]
+
+
+async def test_a_title_sharing_one_word_is_not_the_venue(caplog):
+    """`Fruska bistro` is not `Fruska bisztró`: one word in common is what
+    every ship, flower and footballer on Commons has (TRA-208)."""
+    transport, seen = _by_list(
+        {
+            "search": _search_hits("File:Fruska bistro sign, Lágymányos Bay.jpg"),
+            "geosearch": {"query": {"geosearch": []}},
+        }
+    )
+    finder = CommonsPhotos(httpx.AsyncClient(transport=transport))
+
+    assert await finder.find("Fruska bisztró", 47.47, 19.05, city="Budapest") is None
+    assert seen == ["search", "geosearch"]
 
 
 async def test_a_generic_word_in_a_search_result_is_not_a_match():
@@ -397,7 +413,57 @@ def test_names_made_of_generic_words_skip_the_search():
     assert distinctive_words("Green House Cafe") == set()
     assert distinctive_words("Chop Chop") == set()
     assert distinctive_words("Cortile Hotel") == {"cortile"}
-    assert distinctive_words("Stefánia Park Cafe") == {"stefánia"}
+    # Folded, because a file title spells `Stefánia` both ways (TRA-208).
+    assert distinctive_words("Stefánia Park Cafe") == {"stefania"}
+
+
+class TestChooseNamed:
+    """The gate shared word for word with the corpus tool's `sources/photos.py`
+    (TRA-208): what a search result has to say to be this venue."""
+
+    def _files(self, *titles: str) -> list[dict[str, object]]:
+        return [{"title": t} for t in titles]
+
+    def test_the_whole_name_written_in_the_title_is_the_venue(self):
+        assert (
+            choose_named(
+                "Ritz-Carlton", self._files("File:The Ritz-Carlton, Budapest.jpg")
+            )
+            == "File:The Ritz-Carlton, Budapest.jpg"
+        )
+
+    def test_two_distinctive_words_both_written_are_enough(self):
+        title = "File:Sofitel Budapest Chain Bridge. NE.jpg"
+        assert (
+            choose_named(
+                "Sofitel Budapest Chain Bridge", self._files(title), city="Budapest"
+            )
+            == title
+        )
+
+    def test_a_single_word_needs_a_lodging_word_beside_it(self):
+        title = "File:Carlton Hotel Budapest, 2017.jpg"
+        assert choose_named("Carlton Hotel", self._files(title)) == title
+
+    def test_a_single_word_alone_is_the_ship_the_flower_or_the_footballer(self):
+        assert (
+            choose_named(
+                "Hotel Amadeus", self._files("File:Amadeus (ship, 1997) at dawn.jpg")
+            )
+            is None
+        )
+        assert (
+            choose_named(
+                "Aster Budapest", self._files("File:Aster amellus.jpg"), city="Budapest"
+            )
+            is None
+        )
+        assert (
+            choose_named(
+                "Hostal Casillas", self._files("File:Casillas besando la Copa.jpg")
+            )
+            is None
+        )
 
 
 # ─── Page images (TRA-163) ───────────────────────────────────────────────────

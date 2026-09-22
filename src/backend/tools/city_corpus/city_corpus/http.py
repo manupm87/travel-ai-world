@@ -9,8 +9,11 @@ network and produces byte-identical output.
 `get_text` and `head` are the other kind of fetch: a venue's own page, which is not
 an API — no JSON, no `maxlag`, two attempts instead of ten, a four-second timeout and
 the redirects followed by hand so that the caller decides, hop by hop, where the fetch
-may go (TRA-208). They cache under `.cache/sites/<host>/`, apart from the APIs, and a
-miss is cached like a hit: a dead hotel site must not be dialled again on every build.
+may go (TRA-208). `hop_allowed` judges the URL it is given before anything is sent,
+not only the redirect targets: the first hop is a hop too, and a URL the caller refuses
+never reaches the network. They cache under `.cache/sites/<host>/`, apart from the
+APIs, and a miss is cached like a hit: a dead hotel site must not be dialled again on
+every build.
 """
 
 import hashlib
@@ -114,12 +117,28 @@ class ApiClient:
         self._cache_dir = cache_dir
         self._offline = offline
         self._sleep = sleep
+        self._last_fetched_at: str | None = None
         self._client = httpx.Client(
             headers={"User-Agent": USER_AGENT, "Accept-Encoding": "gzip"},
             timeout=httpx.Timeout(60.0),
             transport=transport,
             follow_redirects=True,
         )
+
+    @property
+    def last_fetched_at(self) -> str | None:
+        """The newest `fetched_at` this client has handed out, cached or fresh.
+
+        A stage that makes one request per document (the photos of TRA-208)
+        would otherwise have to carry thousands of timestamps around only for
+        the manifest's `built_at`, which is their maximum.
+        """
+        return self._last_fetched_at
+
+    def _remember(self, fetched_at: str) -> str:
+        if self._last_fetched_at is None or fetched_at > self._last_fetched_at:
+            self._last_fetched_at = fetched_at
+        return fetched_at
 
     def close(self) -> None:
         self._client.close()
@@ -152,8 +171,9 @@ class ApiClient:
     def get_text(self, url: str, hop_allowed: Callable[[str], bool]) -> FetchedPage:
         """A venue's page as text (never JSON), at most `SITE_MAX_BYTES` of it.
 
-        Redirects are followed here rather than by httpx so that every hop
-        passes `hop_allowed` first; a refused hop, a transport error or a
+        `url` itself and every redirect after it pass `hop_allowed` before
+        the request is made — redirects are followed here rather than by
+        httpx for that reason; a refused hop, a transport error or a
         timeout all answer a miss (`status` 0), and the miss is cached.
         """
         record, fetched_at = self._cached_site(
@@ -171,8 +191,9 @@ class ApiClient:
         self, url: str, hop_allowed: Callable[[str], bool] | None = None
     ) -> FetchedHead:
         """The headers of a URL: what a candidate image says it is, without
-        downloading it. Redirects are followed by hand, each hop offered to
-        `hop_allowed` when one is given."""
+        downloading it. Redirects are followed by hand, and `url` itself and
+        every hop after it are offered to `hop_allowed` when one is given —
+        a refused URL is a miss no request was made for."""
         record, fetched_at = self._cached_site(
             url, "HEAD", lambda: self._fetch_head(url, hop_allowed)
         )
@@ -188,6 +209,9 @@ class ApiClient:
     def _fetch_page(
         self, url: str, hop_allowed: Callable[[str], bool]
     ) -> dict[str, Any]:
+        if not hop_allowed(url):
+            logger.info("%s: refused before the first request", url)
+            return _site_miss(url)
         current = url
         for _ in range(SITE_MAX_REDIRECTS + 1):
             record = self._read_page(current)
@@ -205,6 +229,9 @@ class ApiClient:
     def _fetch_head(
         self, url: str, hop_allowed: Callable[[str], bool] | None
     ) -> dict[str, Any]:
+        if hop_allowed is not None and not hop_allowed(url):
+            logger.info("%s: refused before the first request", url)
+            return _site_miss(url)
         current = url
         for _ in range(SITE_MAX_REDIRECTS + 1):
             record = self._read_head(current)
@@ -272,11 +299,11 @@ class ApiClient:
         path = self._site_cache_path(url, kind)
         if path.exists():
             cached = json.loads(path.read_text(encoding="utf-8"))
-            return cached["response"], cached["fetched_at"]
+            return cached["response"], self._remember(cached["fetched_at"])
         if self._offline:
             raise CacheMiss(f"not cached: {kind} {url}")
         data = fetch()
-        fetched_at = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+        fetched_at = self._remember(datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"))
         path.parent.mkdir(parents=True, exist_ok=True)
         record = {
             "url": url,
@@ -303,12 +330,15 @@ class ApiClient:
         path = self._cache_path(url, params, method)
         if path.exists():
             cached = json.loads(path.read_text(encoding="utf-8"))
-            return Fetched(data=cached["response"], fetched_at=cached["fetched_at"])
+            return Fetched(
+                data=cached["response"],
+                fetched_at=self._remember(cached["fetched_at"]),
+            )
         if self._offline:
             raise CacheMiss(f"not cached: {method} {url} {params}")
 
         data = fetch()
-        fetched_at = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+        fetched_at = self._remember(datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"))
         path.parent.mkdir(parents=True, exist_ok=True)
         record = {
             "url": url,
