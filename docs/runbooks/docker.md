@@ -77,7 +77,7 @@ image with the right settings and that `migrate` exits instead of serving.
 ## Local stack
 
 ```bash
-just stack-up       # frontend export for :8080 + proxy + core_api + ai_api + PostgreSQL
+just stack-up       # frontend export for :8080 + proxy + core_api + ai_api + PostgreSQL + DynamoDB Local
 just docker-up      # the same without the frontend build (backend only, no Node needed)
 just docker-logs ai_api
 just docker-down    # or: just stack-down
@@ -89,9 +89,12 @@ just docker-down    # or: just stack-down
 | <http://localhost:8000/docs> | core_api directly |
 | <http://localhost:8001/api/v1/ai/docs> | ai_api directly |
 | localhost:5432 | PostgreSQL (`DB_USER`/`DB_PASSWORD` from `core_api/.env`) |
+| <http://localhost:8002> | DynamoDB Local (`amazon/dynamodb-local`, in memory: empty after every restart) |
 
 `docker-compose.yml` reads `services/core_api/.env` and `services/ai_api/.env`; `DB_SERVER` and
-`CORE_API_URL` are overridden to the Compose service names. PostgreSQL receives only `POSTGRES_*`
+`CORE_API_URL` are overridden to the Compose service names, and both services get
+`DYNAMODB_ENDPOINT_URL=http://dynamodb:8000` with dummy AWS keys (DynamoDB Local accepts any).
+Without Docker, `just dynamodb-local` serves the same API on `:8002` with moto. PostgreSQL receives only `POSTGRES_*`
 (interpolated from `DB_*` via `--env-file`), never the whole `.env`. The proxy waits for both
 services' health checks before it starts routing. Migrations run when `core_api` starts
 (`MIGRATE_ON_START`, see above), in both recipes.

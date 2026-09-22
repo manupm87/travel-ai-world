@@ -10,7 +10,8 @@ src/backend/
 ├── uv.lock                 ONE lockfile for every member (never edit by hand; `uv lock`)
 ├── Dockerfile              one file, two images: --build-arg SERVICE=core_api|ai_api; Lambda Web Adapter
 │                           in /opt/extensions (per-service AWS_LWA_* stage), inert outside Lambda
-├── docker-compose.yml      proxy :8080 → frontend export (/) / core_api (/api/) / ai_api (/api/v1/ai/), PostgreSQL
+├── docker-compose.yml      proxy :8080 → frontend export (/) / core_api (/api/) / ai_api (/api/v1/ai/), PostgreSQL,
+│                           DynamoDB Local :8002
 ├── docker/                 entrypoint.sh (serve, or `migrate`; no auto-migration on Lambda), nginx.conf
 ├── scripts/export_openapi.py
 ├── libs/travel_common/     shared kernel (see rules below)
@@ -39,9 +40,16 @@ uv run python scripts/export_openapi.py  # → docs/api/*.openapi.json (then `np
 - **`travel_common` holds only what crosses a service boundary**: `Principal`/`Claims`, `CommonSettings`,
   domain exceptions, token verification (`security.py` dispatches on `AUTH_MODE`: local HS256 or
   `cognito.py`'s RS256/JWKS), bearer extraction, the FastAPI app factory and error handlers, plus
-  `testing.py` (`CognitoTestIssuer`) for every package's tests.
+  `testing.py` (`CognitoTestIssuer`, `mock_dynamodb`) for every package's tests.
   If a thing is used by one service, it belongs to that service. Never add SQLAlchemy or httpx-based
   clients to `travel_common`.
+- **DynamoDB** (ADR 0023): `travel_common.dynamodb` is the one way to reach it — `dynamodb_client`
+  (cached per endpoint/region), `call` (runs a blocking boto3 method in a thread from async code),
+  `TableSpec` + `ensure_table` (creates a table only where an endpoint override is set: local,
+  Compose, tests), `to_item`/`from_item` (plain values ↔ typed attribute maps), and the
+  `DynamoSettings` mixin (`DYNAMODB_ENDPOINT_URL`, `AWS_REGION`). Tests wrap themselves in
+  `travel_common.testing.mock_dynamodb()` (moto, in-process; no container). On AWS the tables are
+  Terraform's; a service never creates them there.
 - **Settings**: each service subclasses `CommonSettings` and exposes `get_settings()` (cached);
   inject it with `Depends(get_settings)` — no module-level `settings` singleton. Token helpers take
   `settings` explicitly. `AUTH_MODE` and its settings (`SECRET_KEY` in local mode; `COGNITO_ISSUER`,

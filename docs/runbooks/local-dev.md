@@ -4,6 +4,8 @@
 
 - Node.js 24 (`src/frontend/.nvmrc`), Python 3.12 (`src/backend/.python-version`), [uv](https://github.com/astral-sh/uv), [just](https://just.systems)
 - PostgreSQL 16 (local, Docker, or the devcontainer's)
+- DynamoDB (ADR 0023): `just dynamodb-local` (moto, in memory, no Docker) or the devcontainer's /
+  Compose's DynamoDB Local; nothing else to install
 - A Google OAuth client ID (the local flow keeps `AUTH_MODE=local`; the deployed Cognito flow is
   described in [`infra/aws/README.md`](../../infra/aws/README.md#sign-in-cognito)); an NVIDIA API key for the chat
 
@@ -33,6 +35,16 @@ just dev-core      # http://localhost:8000/docs
 just dev-ai        # http://localhost:8001/api/v1/ai/docs
 just dev-frontend  # http://localhost:3000
 ```
+
+Outside the devcontainer, a fourth terminal gives the services an in-memory DynamoDB on
+`:8002` (`DYNAMODB_ENDPOINT_URL=http://localhost:8002`, the `.env.example` value):
+
+```bash
+just dynamodb-local  # moto server; tables and items vanish when it stops
+```
+
+Leave `DYNAMODB_ENDPOINT_URL` empty only on AWS. Tests need none of this: they use
+`travel_common.testing.mock_dynamodb()` (moto in-process).
 
 ## Chat grounded in the corpus (optional)
 
@@ -120,11 +132,15 @@ just docs-check
 ## Devcontainer
 
 Open the repo in VS Code → "Reopen in Container". `.devcontainer/` starts **only** a terminal
-container and PostgreSQL 16; the services are not run for you. On first creation it runs
+container, PostgreSQL 16 and DynamoDB Local (`dynamodb:8000`, in memory); the services are
+not run for you. On first creation it runs
 `just setup`, `just migrate` and installs Playwright's Chromium, then you fill in the secrets and
 run `just dev-core`, `just dev-ai` and `just dev-frontend` exactly as above (ports 3000, 8000
 and 8001 are forwarded). `DB_*` are injected by the compose file, so `core_api`, migrations and
-`just test-core` reach the container's database without editing `.env`.
+`just test-core` reach the container's database without editing `.env`; likewise
+`DYNAMODB_ENDPOINT_URL=http://dynamodb:8000` (no dummy AWS keys, so `just aws-login` keeps
+working: the SSO session signs the local requests). The DynamoDB service arrives with the next
+"Rebuild Container".
 That same Chromium backs the Playwright MCP server declared in `.mcp.json`, which lets coding
 agents drive a headless browser against `:3000` (see `.claude/commands/check-site.md`).
 Details: [`.devcontainer/README.md`](../../.devcontainer/README.md).
