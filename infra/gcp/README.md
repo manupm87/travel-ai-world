@@ -3,6 +3,11 @@
 Read [`infra/README.md`](../README.md) first: images, secrets, state and CORS/OAuth are the same
 for both clouds. This folder deploys the two services as separate **Cloud Run** services.
 
+> **Not ported to DynamoDB.** Since [ADR 0023](../../docs/architecture/adr/0023-dynamodb-data-store.md)
+> `core_api` stores its data in a DynamoDB table (`CORE_TABLE`) and runs no migrations; it reads
+> PostgreSQL only in the one-off `copy-from-postgres`. This folder still wires Cloud SQL and has
+> no DynamoDB endpoint, so it would need that before it could serve the current `core_api`.
+
 | Service | Image | Receives | Network |
 |---|---|---|---|
 | `${name_prefix}-core-api` | `core-api` | `DB_*`, `GOOGLE_*`, `SECRET_KEY` | egress through the VPC connector to Cloud SQL (private IP) |

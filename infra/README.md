@@ -8,7 +8,7 @@ pick one, apply only its folder. Nothing is created until you run `terraform app
 | Folder | Shape | Public origin(s) | Frontend variables |
 |---|---|---|---|
 | [`gcp/`](gcp/README.md) | Cloud Run ×2 + Cloud SQL + Artifact Registry + Secret Manager | two Cloud Run URLs | `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_AI_API_URL` |
-| [`aws/`](aws/README.md) | Lambda ×2 + API Gateway REST + Cognito + RDS + ECR, behind CloudFront (S3 frontend) | one CloudFront domain (`/api/*` → gateway) | `NEXT_PUBLIC_API_URL=https://<domain>` (same origin) |
+| [`aws/`](aws/README.md) | Lambda ×2 + API Gateway REST + Cognito + DynamoDB + ECR, behind CloudFront (S3 frontend, WAF); RDS only until TRA-219 | one CloudFront domain (`/api/*` → gateway) | `NEXT_PUBLIC_API_URL=https://<domain>` (same origin) |
 
 Both deploy `core_api` and `ai_api` as separate services, each with its own identity and access
 **only to its secrets**. On AWS the two services run in `AUTH_MODE=cognito`: a Cognito user pool
@@ -39,9 +39,10 @@ Why two services and why the frontend accepts two URLs: [ADR 0001](../docs/archi
   client (it stays in Google Cloud) must list the Cognito domain's `/oauth2/idpresponse` as a
   redirect URI on AWS (see [`aws/README.md`](aws/README.md#sign-in-cognito)), and the frontend
   origin itself where the Google button is used (GCP, local).
-- **Migrations**: `core_api` only. At container start on Compose and Cloud Run
-  (`src/backend/docker/entrypoint.sh`); on Lambda the deploy workflow invokes the function with
-  `{"command": "migrate"}` after each apply (see the
+- **No migrations**: `core_api` keeps its data in DynamoDB
+  ([ADR 0023](../docs/architecture/adr/0023-dynamodb-data-store.md)), whose table Terraform owns
+  on AWS, so neither the container start (`src/backend/docker/entrypoint.sh`) nor the deploy
+  workflow runs a schema step. The only `ops` command is the one-off `copy-from-postgres` (see the
   [Docker runbook](../docs/runbooks/docker.md#the-same-image-on-aws-lambda)).
 - **State**: commit `.terraform.lock.hcl`, never `*.tfstate` or `*.tfvars`. Sensitive variables end
   up in the state, so it lives in a remote backend with restricted access; the CI workflow

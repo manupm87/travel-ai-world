@@ -46,15 +46,15 @@ one-off `copy-from-postgres` command until it is retired in TRA-219.
 
 ## Code layout per service
 
-- `core_api` is **N-tier**: `api → services → repositories → models`. Generic `BaseRepository`
-  and `BaseService`; endpoints are thin; services raise domain errors; a single handler maps them
-  to HTTP. `Trip` is the aggregate root: its children are nested under `/trips/{trip_id}/...` and
+- `core_api` is **layered**: `api → services → domain` (plain dataclasses and repository
+  protocols), with `infrastructure/dynamo/` as the only storage adapter. Endpoints are thin;
+  services raise domain errors; a single handler maps them to HTTP. `Trip` is the aggregate root: its children are nested under `/trips/{trip_id}/...` and
   authorised once at the boundary ([ADR 0005](adr/0005-trip-aggregate-nested-resources.md)). One
   trip is one city; its `phase` (`upcoming | ongoing | past`) is derived from its dates, and an
   ongoing or past trip refuses every write with 409 `TRIP_LOCKED`
   ([ADR 0019](adr/0019-trips-live-in-the-planner.md)).
-  Entities own their invariants (`check_invariants()`); one transaction per request
-  (`unit_of_work`) commits on success and rolls back on any error.
+  Domain models own their invariants (`check_invariants()`); profile, trip and thread writes are
+  conditional on a `version`, and a lost race is 409 `CONFLICT`.
 - `ai_api` is **ports and adapters**: `domain` (types + Protocols) ← `application` (use cases) ←
   `infrastructure` (NVIDIA, SSE, core_api client) ← `api` (wiring). Swapping the LLM provider or
   adding a retriever touches only `infrastructure/` and `api/deps.py`.
@@ -239,6 +239,15 @@ edge and gateway decisions come from [ADR 0008](adr/0008-aws-architecture-v2-edg
 reached from `ai_api`, outside the VPC, and S3 Vectors needs no endpoint of its own. The retriever
 that reads it is TRA-152; the [vector store spike](vector-store-spike.md) (TRA-151) measured Qdrant
 against it and kept S3 Vectors.
+
+Since [ADR 0023](adr/0023-dynamodb-data-store.md), `core_api` stores its data in the DynamoDB
+table `travel-ai-core` (on-demand, `PK`/`SK` + `GSI1`, point-in-time recovery, deletion
+protection). The function still runs in the VPC's private subnets and reaches the table through a
+free **DynamoDB gateway endpoint** on the main route table (its security group allows 443 to the
+endpoint's prefix list). RDS PostgreSQL is drawn dashed: it is only the read-only source of the
+one-off `copy-from-postgres`, and TRA-219 retires it and takes `core_api` out of the VPC. CloudFront
+has a **WAF web ACL** (AWS managed rules: IP reputation, common rule set, known bad inputs),
+created from the console and not managed by Terraform.
 
 ## Known gaps (tracked)
 

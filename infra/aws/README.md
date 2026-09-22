@@ -1,12 +1,20 @@
-# AWS (Lambda + API Gateway + Cognito + RDS, behind CloudFront)
+# AWS (Lambda + API Gateway + Cognito + DynamoDB, behind CloudFront)
 
 Read [`infra/README.md`](../README.md) first: images, secrets and state are the same for both
 clouds. This folder is the **v3 shape** of [ADR 0009](../../docs/architecture/adr/0009-lambda-cognito-budget.md)
 (drawn in [`docs/architecture/aws-architecture.drawio.svg`](../../docs/architecture/aws-architecture.drawio.svg)):
 the same two container images run as **Lambda functions** behind an **API Gateway REST API**, the
 browser signs in through a **Cognito user pool**, and **CloudFront** is the single public origin
-for the static frontend (S3) and the API (`/api/*`). No load balancer, no NAT, no VPC endpoints,
-no Secrets Manager: about 4 €/month with the RDS free tier, ~19 € without.
+for the static frontend (S3) and the API (`/api/*`). `core_api` keeps its data in the DynamoDB
+table `${name_prefix}-core` ([ADR 0023](../../docs/architecture/adr/0023-dynamodb-data-store.md)).
+No load balancer, no NAT, no Secrets Manager; the only VPC endpoint is the free DynamoDB gateway.
+While RDS PostgreSQL still runs (only as the read-only source of the one-off copy) the bill is
+~15 €/month for RDS plus ~4 € for the rest; after TRA-219 retires it, about 5 €/month.
+
+CloudFront also has a **WAF web ACL** with the AWS managed rule groups
+`AmazonIpReputationList`, `CommonRuleSet` and `KnownBadInputsRuleSet`. It was created from the
+CloudFront console and is **not managed by Terraform**: a `terraform apply` neither creates nor
+removes it.
 
 | Function | Image | Where | Receives |
 |---|---|---|---|
@@ -22,8 +30,8 @@ a Cognito ID token, health endpoints included.
 
 | File | Resources |
 |---|---|
-| `network.tf`, `security.tf` | VPC with two private subnets (no IGW), DB subnet group, security groups `core-api` → `rds:5432` |
-| `rds.tf` | RDS PostgreSQL 16 `db.t4g.micro`, private, encrypted, deletion protection |
+| `network.tf`, `security.tf` | VPC with two private subnets (no IGW), DB subnet group, security groups: `core-api` egress to `rds:5432` and to the DynamoDB endpoint's prefix list on 443 |
+| `rds.tf` | RDS PostgreSQL 16 `db.t4g.micro`, private, encrypted, deletion protection; read only by the one-off `copy-from-postgres` until TRA-219 retires it |
 | `dynamodb.tf` | The `core_api` table `${name_prefix}-core` (on-demand, `PK`/`SK` + `GSI1`, point-in-time recovery, deletion protection), `core-api`'s item-level permissions on it, and the free DynamoDB gateway endpoint on the VPC's route table ([ADR 0023](../../docs/architecture/adr/0023-dynamodb-data-store.md)); see [DynamoDB cut-over](#dynamodb-cut-over-tra-218) |
 | `ecr.tf` | Two ECR repositories: `${name_prefix}-core-api`, `${name_prefix}-ai-api` |
 | `cognito.tf` | User pool, Google identity provider, public app client (code + PKCE), `admin` group, hosted-UI domain, the JWKS as output and environment |
@@ -103,16 +111,14 @@ terraform validate
    `provenance: false` are OCI indexes, and their `linux/amd64` child digest
    (`crane digest --platform linux/amd64 <ref>`) is the one to pin.
 
-2. Everything else, then the schema:
+2. Everything else:
 
    ```bash
    terraform plan && terraform apply
-   aws lambda invoke --function-name "$(terraform output -raw core_api_function_name)" \
-     --cli-binary-format raw-in-base64-out --payload '{"command": "migrate"}' /dev/stdout
    ```
 
-   Check the RDS free tier (account creation date) before this apply: `db.t4g.micro` is the
-   swing item of the budget.
+   There is no schema step: the DynamoDB table is created by Terraform and `core_api` has no
+   migrations (ADR 0023).
 
 3. [Sign-in (Cognito)](#sign-in-cognito): register the pool's domain on the Google OAuth client.
 
@@ -123,7 +129,7 @@ terraform validate
 
 Later backend deploys: the "Deploy backend" workflow with `cloud=aws`. It assumes the bootstrap's
 role through OIDC, initialises the same S3 backend, pins the functions to the new image digests,
-applies, and invokes `migrate`. It needs the secrets `AWS_REGION`, `AWS_ROLE_TO_ASSUME`, the
+and applies; there is no migrate step. It needs the secrets `AWS_REGION`, `AWS_ROLE_TO_ASSUME`, the
 variables `AWS_TF_STATE_BUCKET`, `FRONTEND_DOMAIN` and the `TF_VAR_*` listed in the workflow header.
 
 ## Sign-in (Cognito)

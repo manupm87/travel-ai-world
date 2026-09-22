@@ -11,7 +11,7 @@ two-step decision:
 
 1. **Choose a cloud**: read [`infra/README.md`](../../infra/README.md) (what both clouds share), then
    follow the cloud's README once for the initial `terraform apply`:
-   [AWS (Lambda + API Gateway + Cognito + RDS behind CloudFront)](../../infra/aws/README.md), the
+   [AWS (Lambda + API Gateway + Cognito + DynamoDB behind CloudFront)](../../infra/aws/README.md), the
    deployed one · [GCP (Cloud Run + Cloud SQL)](../../infra/gcp/README.md), the alternative.
    Both deploy `core_api` and `ai_api` separately with per-service configuration.
 2. **Subsequent deploys** run `.github/workflows/deploy-backend.yml` (Actions → "Deploy backend"
@@ -29,7 +29,8 @@ two-step decision:
    `TF_VAR_db_password`, `TF_VAR_nvidia_api_key` and `TF_VAR_google_client_secret` (the values of
    the local `terraform.tfvars`). Only secrets live there: non-secret inputs such as
    `google_client_id` and `backend_cors_origins` are defaults in `infra/aws/variables.tf`. A missing
-   secret reaches Terraform as an empty string, and the plan then resets the RDS password, the
+   secret reaches Terraform as an empty string, and the plan then resets the RDS password (RDS
+   stays until TRA-219, as the source of the one-off copy), the
    Lambda secrets and Cognito's Google client (TRA-133).
    Whenever one of these values changes (a rotation), update the secret **and** the local
    tfvars together. Before any `apply=true`, run with `apply=false` and require the plan to show
@@ -73,7 +74,7 @@ Nothing reaches AWS from a merge alone except the frontend. After `main` changes
 `core_api` stores everything in one DynamoDB table (`travel-ai-core`,
 [ADR 0023](../architecture/adr/0023-dynamodb-data-store.md)). The accounts, trips and
 conversations that were on RDS move once, with the `copy-from-postgres` command, after the image
-that speaks DynamoDB is live (TRA-218 does the switch by hand):
+that speaks DynamoDB is live (TRA-218 did the switch by hand):
 
 ```bash
 fn=$(terraform output -raw core_api_function_name)   # from infra/aws/, after just aws-login

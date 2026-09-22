@@ -2,7 +2,7 @@
 
 A reproducible VS Code environment for the monorepo: Node 24, Python 3.12 (via `uv`), `just`,
 `gh`, ripgrep/fd/jq, AWS CLI v2 + Terraform + `crane` + Session Manager plugin, Claude Code
-(plus optional agent CLIs), Playwright's Chromium, and a PostgreSQL 16 container. **It does not run the application**: you start the services yourself
+(plus optional agent CLIs), Playwright's Chromium, DynamoDB Local, and a PostgreSQL 16 container (only for the one-off copy, until TRA-219). **It does not run the application**: you start the services yourself
 with the same `just` recipes everyone uses.
 
 ## What starts
@@ -10,7 +10,8 @@ with the same `just` recipes everyone uses.
 | Service | Notes |
 |---|---|
 | `devcontainer` | your terminal; the repo is mounted at `/workspace` |
-| `db` | PostgreSQL 16, `postgres`/`postgres`, database `travel_ai_world`, forwarded to `localhost:5432` |
+| `dynamodb` | DynamoDB Local, in memory, reached as `dynamodb:8000` (`DYNAMODB_ENDPOINT_URL`; no host port): `core_api`'s table |
+| `db` | PostgreSQL 16, `postgres`/`postgres`, database `travel_ai_world`, forwarded to `localhost:5432`: only the source of `copy-from-postgres` and its test, until TRA-219 |
 
 `src/backend/.venv`, `src/frontend/node_modules` and `src/frontend/.next` are named Docker volumes, so the
 host's copies (with their platform-specific binaries) are never touched.

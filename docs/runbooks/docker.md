@@ -154,8 +154,8 @@ E2E_TOKEN=$(docker compose exec -T core_api python -m core_api.devtools token yo
 ```
 
 `just dev-token` runs `python -m core_api.devtools token <email>` with the host's
-`services/core_api/.env` (the Compose stack publishes PostgreSQL on :5432, so the same `.env`
-reaches it), creating the account when it is new; the container form needs no Python on the host
+`services/core_api/.env` (the Compose stack publishes DynamoDB Local on :8002, the `.env`'s
+`DYNAMODB_ENDPOINT_URL`, so the same `.env` reaches it), creating the account when it is new; the container form needs no Python on the host
 and is what CI uses. Either way the
 token is the HS256 JWT `POST /auth/google` would issue, signed with the stack's `SECRET_KEY`. The
 suite writes it into `localStorage` before the first navigation and is skipped without
