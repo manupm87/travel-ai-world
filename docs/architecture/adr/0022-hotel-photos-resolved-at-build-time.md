@@ -137,10 +137,12 @@ Each of those is a different mistake, so each gets its own rule.
    included. On such a page the preview is refused when its path is a brand asset
    (`logo|brand|generic|default|placeholder|maldives`), and for a group that publishes one
    picture on every page whatever the hotel the preview is not read at all: the largest-picture
-   rule finds the house's own photograph further down. Two groups are measured that way — IHG,
-   which offers a Maldives resort for a Crowne Plaza in Madrid, and a&o, whose preview is the
-   lobby of its Venice hostel on all five of its Berlin houses. Nothing else changes for the rest
-   of the web — the allowlist is twenty-six domains, not a relaxation of the same-site rule.
+   rule finds the house's own photograph further down. One group is measured that way — a&o,
+   whose preview is the lobby of its hostel in Venice on every house it runs. IHG was the other
+   candidate, and is not on the list: it offers a Maldives resort for the Crowne Plaza Madrid but
+   the right photograph for the Crowne Plaza Budapest, so the banner is caught by its path
+   (`maldives`) and the good picture is kept. Nothing else changes for the rest of the web — the
+   allowlist is twenty-six domains, not a relaxation of the same-site rule.
 3. **The hotel's Wikidata item, found by name near its coordinates**, is a new tier between
    Commons and the homepage. `wbsearchentities` for the name with its lodging words stripped, in
    English, in Spanish and in the city's language; an item is the hotel only when its P625 is

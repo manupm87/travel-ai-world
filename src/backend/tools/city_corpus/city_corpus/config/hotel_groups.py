@@ -71,16 +71,19 @@ other side of the world (IHG offers the Maldives for a Crowne Plaza in Madrid).
 Checked on top of the usual `LOGO_PATH`, and only for a page on a group domain —
 `brand` and `generic` are ordinary words in an independent hotel's file names."""
 
-OG_SKIPPED_DOMAINS = frozenset({"ihg.com", "aohostels.com"})
+OG_SKIPPED_DOMAINS = frozenset({"aohostels.com"})
 """Groups whose `og:image` is the same picture on every page of the site, whatever
-the hotel: IHG offers a Maldives resort for a Crowne Plaza in Madrid, and a&o the
-lobby of its Venice hostel for every house it runs. Their preview is not read at
-all; the largest-picture rule finds the house's own photograph further down the
-same page, where the gallery is per property.
+the hotel. a&o publishes the lobby of its hostel in Venice for every house it runs,
+in Berlin and everywhere else; its preview is not read at all, and the
+largest-picture rule finds the house's own photograph further down the same page,
+where the gallery is per property.
 
-A group belongs here only once it has been measured: open two of its hotels' pages
-and compare the `og:image`. Most groups publish the right picture and would lose
-their best one to this rule."""
+A group belongs here only once it has been measured on two of its hotels, and only
+when the picture is the same one both times. IHG was a candidate — it offers a
+Maldives resort as the preview of the Crowne Plaza Madrid — but it publishes the
+right photograph for the Crowne Plaza Budapest, and skipping its preview cost that
+hotel its place in the corpus. A campaign banner is a `BRAND_ASSET_PATH` problem,
+which is where `maldives` is; a group-wide picture is this list's."""
 
 CHAIN_NAMES = re.compile(
     r"\b("

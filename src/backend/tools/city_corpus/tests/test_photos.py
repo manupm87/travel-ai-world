@@ -1001,11 +1001,13 @@ def test_a_groups_brand_asset_is_not_the_hotel(tmp_path: Path) -> None:
     ]
 
 
-def test_a_group_that_banners_every_page_falls_to_the_largest_picture(
+def test_a_campaign_banner_falls_to_the_largest_picture_of_the_page(
     tmp_path: Path,
 ) -> None:
-    """IHG offers a Maldives resort as the `og:image` of a Madrid hotel; the
-    house's own photograph is further down the same page."""
+    """IHG offers a Maldives resort as the `og:image` of a Madrid hotel. The
+    path says so, and the house's own photograph is further down the page —
+    which is why the whole group's preview is read rather than skipped: for the
+    Crowne Plaza Budapest the same site publishes the right picture."""
     facade = "https://ihg.com/media/crowne-plaza-facade.jpg"
     recorder = Recorder(
         {
@@ -1027,6 +1029,29 @@ def test_a_group_that_banners_every_page_falls_to_the_largest_picture(
 
     assert kept[0].image_url == facade
     assert (stats.site, stats.page) == (0, 1)
+
+
+def test_a_group_that_publishes_the_right_picture_keeps_it(tmp_path: Path) -> None:
+    """The same group, a page whose preview is the hotel: nothing is skipped."""
+    facade = "https://digital.ihg.com/is/image/ihg/crowne-plaza-budapest.jpg"
+    recorder = Recorder(
+        {
+            **_no_wikimedia(),
+            "digital.ihg.com": lambda _: _image(),
+            "ihg.com/crowneplaza": lambda _: _html(
+                f'<head><meta property="og:image" content="{facade}"></head>'
+            ),
+        }
+    )
+    with _client(recorder, tmp_path) as client:
+        kept, stats = photos.resolve(
+            client,
+            BUDAPEST,
+            [_hotel(name="Crowne Plaza", url="https://ihg.com/crowneplaza/budapest")],
+        )
+
+    assert kept[0].image_url == facade
+    assert stats.site == 1
 
 
 def test_each_house_of_a_banner_group_gets_its_own_gallery_picture(
