@@ -469,6 +469,36 @@ describe("saveDraftAsTrip", () => {
     expect(trip.id).toBe("t1");
   });
 
+  it("never stores the placeholder photo, which the WAF blocks as markup (TRA-225)", async () => {
+    const placeholder = "data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%3E%3C/svg%3E";
+    const drawn = applyItineraryOps(EMPTY_ITINERARY, [
+      {
+        op: "put_activity",
+        slot: { day: 1, part: "evening" },
+        card: { ...RESTAURANTS.menza, image_url: placeholder, image_credit: "Illustrative photo" },
+      },
+      { op: "put_activity", slot: { day: 1, part: "morning" }, card: ACTIVITIES.greatMarket },
+    ]);
+
+    await saveDraftAsTrip(drawn, BRIEF_COMPLETE, BUDAPEST, { title: "t" });
+
+    const posted = JSON.stringify(bodies);
+    expect(posted).not.toContain("data:image");
+    const meal = bodies[calls.indexOf("POST /trips/t1/itinerary-days/day1/meals/")] as {
+      card: { image_url: string | null; image_credit: string | null };
+    };
+    expect(meal.card.image_url).toBeNull();
+    expect(meal.card.image_credit).toBeNull();
+    const activity = bodies[calls.indexOf("POST /trips/t1/itinerary-days/day1/activities/")] as {
+      card: { image_url: string | null };
+    };
+    expect(activity.card.image_url).toBe(ACTIVITIES.greatMarket.image_url);
+    // The cover is the first real photo, never the placeholder.
+    expect((bodies[0] as { image_url: string | null }).image_url).toBe(
+      ACTIVITIES.greatMarket.image_url ?? null
+    );
+  });
+
   it("writes the city from the planner's own city, and the brief onto the trip", async () => {
     await save();
 

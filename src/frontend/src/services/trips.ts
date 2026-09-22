@@ -379,9 +379,19 @@ function cardsOf(itinerary: ItineraryDraft): OptionCard[] {
   return cards;
 }
 
-/** The trip's cover: the stay's photo, or the first one the draft has. */
+/** The trip's cover: the stay's photo, or the first real one the draft has. */
 function coverOf(itinerary: ItineraryDraft): string | null {
-  return cardsOf(itinerary).find((card) => !!card.image_url)?.image_url ?? null;
+  return cardsOf(itinerary).find((card) => isPhotoUrl(card.image_url))?.image_url ?? null;
+}
+
+/**
+ * A photo worth keeping: anything but the illustrative placeholder ai_api
+ * draws for a venue with no picture (a `data:image/svg+xml` URL). It is
+ * decoration, and CloudFront's WAF reads its URL-encoded `<svg>` as
+ * cross-site scripting and blocks the whole write (TRA-225).
+ */
+function isPhotoUrl(url: string | null | undefined): url is string {
+  return !!url && !url.startsWith("data:");
 }
 
 /** How many days the trip lasts: its dates, or the days the draft has. */
@@ -391,10 +401,13 @@ function durationOf(itinerary: ItineraryDraft, brief: TripBrief): number | null 
 
 /**
  * The card as core_api stores it: a JSON object it never looks inside. The
- * spread is what gives the typed card an index signature; nothing is dropped.
+ * spread is what gives the typed card an index signature. Only the
+ * placeholder photo is dropped (see `isPhotoUrl`): a reopened trip shows the
+ * card's own no-photo fallback instead.
  */
 function cardJson(card: OptionCard): SavedCard {
-  return { ...card };
+  if (isPhotoUrl(card.image_url) || !card.image_url) return { ...card };
+  return { ...card, image_url: null, image_credit: null };
 }
 
 /**
