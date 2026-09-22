@@ -1,22 +1,22 @@
 {
   "city": "berlin",
-  "built_at": "2026-09-22T15:19:26Z",
-  "documents": 12237,
-  "listings": 9431,
-  "listings_with_coordinates": 9327,
+  "built_at": "2026-09-22T15:34:49Z",
+  "documents": 12215,
+  "listings": 9409,
+  "listings_with_coordinates": 9305,
   "by_source": {
     "curated": 4,
     "open-meteo": 12,
-    "openstreetmap": 8626,
+    "openstreetmap": 8610,
     "wikipedia": 2574,
-    "wikivoyage": 1021
+    "wikivoyage": 1015
   },
   "by_lang": {
-    "en": 12184,
+    "en": 12162,
     "es": 53
   },
   "by_kind": {
-    "listing": 9431,
+    "listing": 9409,
     "prose": 2806
   },
   "by_category": {
@@ -28,24 +28,24 @@
     "neighbourhood": 11,
     "practical": 30,
     "see": 1436,
-    "sleep": 375,
+    "sleep": 353,
     "tour": 5,
     "transport": 140
   },
   "by_district": {
     "(city-wide)": 405,
-    "City West": 2628,
-    "East": 802,
-    "East Central": 3060,
-    "Mitte": 2454,
+    "City West": 2620,
+    "East": 799,
+    "East Central": 3057,
+    "Mitte": 2448,
     "Reinickendorf and Spandau": 630,
     "Steglitz-Zehlendorf": 764,
-    "Tempelhof and Neukölln": 933,
+    "Tempelhof and Neukölln": 931,
     "Treptow-Köpenick": 561
   },
   "districts_missing": [],
   "images": {
-    "with_image": 3922,
+    "with_image": 3900,
     "see_documents": 1436,
     "see_with_image": 1180,
     "see_image_coverage": 0.822
@@ -135,12 +135,13 @@
     "photos": {
       "site": 88,
       "facebook": 5,
-      "commons": 49,
-      "page": 114,
-      "dropped": 311,
+      "commons": 22,
+      "page": 119,
+      "dropped": 333,
       "shared": 21,
       "dropped_examples": [
         "1a pension apartment berlin",
+        "25hours Hotel Bikini Berlin",
         "2A-Hostel",
         "A&O",
         "A&O Berlin Hauptbahnhof",
@@ -148,8 +149,7 @@
         "A&O Hotel and Hostel Berlin Mitte",
         "ADAPT APARTMENTS Berlin GmbH",
         "AMANO",
-        "AMANO Home",
-        "AWO Refugim (Flüchtlingsheim)"
+        "AMANO Home"
       ]
     },
     "tours": {

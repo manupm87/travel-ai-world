@@ -1,8 +1,8 @@
 {
   "city": "madrid",
-  "built_at": "2026-09-22T15:16:33Z",
-  "documents": 5586,
-  "listings": 4776,
+  "built_at": "2026-09-22T15:36:03Z",
+  "documents": 5556,
+  "listings": 4746,
   "prose": 810,
   "sources": [
     "curated",
@@ -57,8 +57,8 @@
       "wikivoyage": 99
     },
     "sleep": {
-      "openstreetmap": 263,
-      "wikivoyage": 21
+      "openstreetmap": 235,
+      "wikivoyage": 19
     },
     "tour": {
       "curated": 3,
@@ -76,7 +76,7 @@
     "history": 485,
     "practical": 14,
     "see": 542,
-    "sleep": 279,
+    "sleep": 249,
     "tour": 5,
     "transport": 3
   },
@@ -87,7 +87,7 @@
     "history": 451,
     "practical": 12,
     "see": 535,
-    "sleep": 279,
+    "sleep": 249,
     "tour": 5,
     "transport": 3
   },
@@ -97,7 +97,7 @@
     "eat": 21,
     "history": 446,
     "see": 444,
-    "sleep": 279,
+    "sleep": 249,
     "transport": 3
   },
   "districts": [
@@ -114,16 +114,16 @@
     "Southern Suburbs"
   ],
   "places_by_district": {
-    "Arganzuela": 390,
-    "Centro": 1778,
-    "Chamberí-Castellana": 774,
+    "Arganzuela": 389,
+    "Centro": 1768,
+    "Chamberí-Castellana": 768,
     "La Latina-Austrias": 151,
     "Malasaña-Chueca": 32,
-    "Moncloa": 328,
-    "Northern Suburbs": 404,
-    "Retiro-Paseo del Arte": 319,
-    "Salamanca": 483,
-    "Sol-Letras-Lavapiés": 50,
+    "Moncloa": 326,
+    "Northern Suburbs": 403,
+    "Retiro-Paseo del Arte": 318,
+    "Salamanca": 478,
+    "Sol-Letras-Lavapiés": 49,
     "Southern Suburbs": 78
   },
   "small_districts": [],
@@ -149,9 +149,9 @@
     },
     "sleep": {
       "1": 14,
-      "2": 24,
-      "3": 71,
-      "untiered": 175
+      "2": 21,
+      "3": 59,
+      "untiered": 160
     }
   },
   "climate_months": [
@@ -383,12 +383,13 @@
   "hotel_photos": {
     "site": 117,
     "facebook": 7,
-    "commons": 50,
-    "page": 71,
-    "dropped": 248,
-    "shared": 16,
+    "commons": 11,
+    "page": 80,
+    "dropped": 278,
+    "shared": 18,
     "dropped_examples": [
       "4C Bravo Murillo",
+      "AC Hotel Aitana",
       "AC Hotel Coslada Aeropuerto",
       "AC Hotel by Marriott Atocha",
       "AC Los Vascos",
@@ -396,8 +397,7 @@
       "Abalú",
       "Abalú Suites",
       "Abami II",
-      "Abba Madrid Hotel",
-      "Albergue juvenil San Fermín"
+      "Abba Madrid Hotel"
     ]
   },
   "readiness": {
@@ -418,19 +418,19 @@
       {
         "name": "Sleep documents",
         "threshold": "≥ 20",
-        "measured": "284",
+        "measured": "254",
         "passed": true
       },
       {
         "name": "Located sleep places",
         "threshold": "≥ 10",
-        "measured": "279",
+        "measured": "249",
         "passed": true
       },
       {
         "name": "Pictured located sleep places",
         "threshold": "≥ 10",
-        "measured": "279",
+        "measured": "249",
         "passed": true
       },
       {

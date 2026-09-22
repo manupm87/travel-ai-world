@@ -1,22 +1,22 @@
 {
   "city": "madrid",
-  "built_at": "2026-09-22T15:16:33Z",
-  "documents": 5586,
-  "listings": 4776,
-  "listings_with_coordinates": 4756,
+  "built_at": "2026-09-22T15:36:03Z",
+  "documents": 5556,
+  "listings": 4746,
+  "listings_with_coordinates": 4726,
   "by_source": {
     "curated": 3,
     "open-meteo": 12,
-    "openstreetmap": 4448,
+    "openstreetmap": 4420,
     "wikipedia": 679,
-    "wikivoyage": 444
+    "wikivoyage": 442
   },
   "by_lang": {
-    "en": 5513,
+    "en": 5483,
     "es": 73
   },
   "by_kind": {
-    "listing": 4776,
+    "listing": 4746,
     "prose": 810
   },
   "by_category": {
@@ -28,34 +28,33 @@
     "neighbourhood": 13,
     "practical": 34,
     "see": 545,
-    "sleep": 284,
+    "sleep": 254,
     "tour": 5,
     "transport": 32
   },
   "by_district": {
-    "(city-wide)": 754,
-    "Arganzuela": 392,
-    "Centro": 1779,
-    "Chamberí-Castellana": 781,
+    "(city-wide)": 751,
+    "Arganzuela": 391,
+    "Centro": 1769,
+    "Chamberí-Castellana": 775,
     "La Latina-Austrias": 154,
     "Malasaña-Chueca": 39,
-    "Moncloa": 331,
-    "Northern Suburbs": 408,
-    "Retiro-Paseo del Arte": 325,
-    "Salamanca": 486,
-    "Sol-Letras-Lavapiés": 57,
+    "Moncloa": 329,
+    "Northern Suburbs": 407,
+    "Retiro-Paseo del Arte": 324,
+    "Salamanca": 481,
+    "Sol-Letras-Lavapiés": 56,
     "Southern Suburbs": 80
   },
   "districts_missing": [],
   "images": {
-    "with_image": 1305,
+    "with_image": 1275,
     "see_documents": 545,
     "see_with_image": 445,
     "see_image_coverage": 0.817
   },
   "sleep_without_district": [
     "osm:node/12699227201",
-    "osm:node/1280769945",
     "osm:node/13512513287",
     "osm:node/13680211002",
     "osm:node/13680244801",
@@ -76,9 +75,7 @@
     "osm:way/221307546",
     "osm:way/234423155",
     "osm:way/321356771",
-    "osm:way/352041696",
     "osm:way/388634159",
-    "osm:way/396802968",
     "osm:way/438775731",
     "osm:way/450448364",
     "osm:way/949829351",
@@ -88,7 +85,7 @@
     "wv:en:Madrid#section:sleep/splurge:c1",
     "wv:en:Madrid#section:sleep:c1"
   ],
-  "sleep_listings_with_coordinates_without_district": 28,
+  "sleep_listings_with_coordinates_without_district": 25,
   "enrichment": {
     "wikipedia": {
       "articles": 190,
@@ -136,12 +133,13 @@
     "photos": {
       "site": 117,
       "facebook": 7,
-      "commons": 50,
-      "page": 71,
-      "dropped": 248,
-      "shared": 16,
+      "commons": 11,
+      "page": 80,
+      "dropped": 278,
+      "shared": 18,
       "dropped_examples": [
         "4C Bravo Murillo",
+        "AC Hotel Aitana",
         "AC Hotel Coslada Aeropuerto",
         "AC Hotel by Marriott Atocha",
         "AC Los Vascos",
@@ -149,8 +147,7 @@
         "Abalú",
         "Abalú Suites",
         "Abami II",
-        "Abba Madrid Hotel",
-        "Albergue juvenil San Fermín"
+        "Abba Madrid Hotel"
       ]
     },
     "tours": {

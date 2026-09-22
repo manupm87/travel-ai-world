@@ -1,22 +1,22 @@
 {
   "city": "budapest",
-  "built_at": "2026-09-22T15:15:44Z",
-  "documents": 6100,
-  "listings": 5007,
-  "listings_with_coordinates": 4862,
+  "built_at": "2026-09-22T15:33:29Z",
+  "documents": 6095,
+  "listings": 5002,
+  "listings_with_coordinates": 4857,
   "by_source": {
     "curated": 12,
     "open-meteo": 12,
-    "openstreetmap": 2983,
+    "openstreetmap": 2981,
     "wikipedia": 797,
-    "wikivoyage": 2296
+    "wikivoyage": 2293
   },
   "by_lang": {
-    "en": 5988,
+    "en": 5983,
     "es": 112
   },
   "by_kind": {
-    "listing": 5007,
+    "listing": 5002,
     "prose": 1093
   },
   "by_category": {
@@ -28,36 +28,36 @@
     "neighbourhood": 27,
     "practical": 118,
     "see": 1030,
-    "sleep": 224,
+    "sleep": 219,
     "tour": 24,
     "transport": 165
   },
   "by_district": {
     "(city-wide)": 321,
     "Angyalföld": 310,
-    "Aquincum": 226,
-    "Belváros": 780,
+    "Aquincum": 225,
+    "Belváros": 778,
     "Budavár": 268,
     "Csepel": 134,
     "East Pest": 238,
-    "Erzsébetváros": 418,
-    "Ferencváros": 328,
+    "Erzsébetváros": 419,
+    "Ferencváros": 327,
     "Hegyvidék": 187,
-    "Józsefváros": 336,
-    "Kőbánya": 154,
+    "Józsefváros": 335,
+    "Kőbánya": 153,
     "North Buda": 290,
     "North Pest": 177,
-    "South Buda": 424,
+    "South Buda": 423,
     "South Pest": 159,
     "Terézváros": 381,
     "Városliget": 205,
     "Víziváros": 330,
-    "Zugló": 151,
+    "Zugló": 152,
     "Óbuda": 283
   },
   "districts_missing": [],
   "images": {
-    "with_image": 1717,
+    "with_image": 1712,
     "see_documents": 1030,
     "see_with_image": 681,
     "see_image_coverage": 0.661
@@ -113,21 +113,21 @@
     "photos": {
       "site": 53,
       "facebook": 28,
-      "commons": 31,
-      "page": 58,
-      "dropped": 209,
-      "shared": 22,
+      "commons": 16,
+      "page": 68,
+      "dropped": 214,
+      "shared": 16,
       "dropped_examples": [
         "12 Revay Hotel",
         "2B Hostel & Rooms",
         "Aboriginal Budapest Apartments",
         "Abszolút Grasham Guesthouse",
         "Ace Hostel",
+        "Adina Apartment Hotel Budapest",
         "Age Budapest Youth Centre",
         "Airport Premium Apartments",
         "Alfréd Guesthouse",
-        "Alma Apartment",
-        "Amber Terrace Studios"
+        "Alma Apartment"
       ]
     },
     "tours": {

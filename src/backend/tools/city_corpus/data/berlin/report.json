@@ -1,8 +1,8 @@
 {
   "city": "berlin",
-  "built_at": "2026-09-22T15:19:26Z",
-  "documents": 12237,
-  "listings": 9431,
+  "built_at": "2026-09-22T15:34:49Z",
+  "documents": 12215,
+  "listings": 9409,
   "prose": 2806,
   "sources": [
     "curated",
@@ -57,8 +57,8 @@
       "wikivoyage": 210
     },
     "sleep": {
-      "openstreetmap": 285,
-      "wikivoyage": 90
+      "openstreetmap": 269,
+      "wikivoyage": 84
     },
     "tour": {
       "curated": 4,
@@ -77,7 +77,7 @@
     "history": 2029,
     "practical": 5,
     "see": 1419,
-    "sleep": 371,
+    "sleep": 349,
     "tour": 5,
     "transport": 67
   },
@@ -88,7 +88,7 @@
     "history": 1913,
     "practical": 1,
     "see": 1382,
-    "sleep": 338,
+    "sleep": 316,
     "tour": 4,
     "transport": 63
   },
@@ -98,7 +98,7 @@
     "eat": 43,
     "history": 1874,
     "see": 1169,
-    "sleep": 338,
+    "sleep": 316,
     "transport": 63
   },
   "districts": [
@@ -112,13 +112,13 @@
     "Treptow-Köpenick"
   ],
   "places_by_district": {
-    "City West": 2594,
-    "East": 794,
-    "East Central": 3024,
-    "Mitte": 2426,
+    "City West": 2586,
+    "East": 791,
+    "East Central": 3021,
+    "Mitte": 2420,
     "Reinickendorf and Spandau": 621,
     "Steglitz-Zehlendorf": 758,
-    "Tempelhof and Neukölln": 922,
+    "Tempelhof and Neukölln": 920,
     "Treptow-Köpenick": 550
   },
   "small_districts": [],
@@ -141,9 +141,9 @@
     },
     "sleep": {
       "1": 35,
-      "2": 55,
-      "3": 46,
-      "untiered": 239
+      "2": 50,
+      "3": 43,
+      "untiered": 225
     }
   },
   "climate_months": [
@@ -379,12 +379,13 @@
   "hotel_photos": {
     "site": 88,
     "facebook": 5,
-    "commons": 49,
-    "page": 114,
-    "dropped": 311,
+    "commons": 22,
+    "page": 119,
+    "dropped": 333,
     "shared": 21,
     "dropped_examples": [
       "1a pension apartment berlin",
+      "25hours Hotel Bikini Berlin",
       "2A-Hostel",
       "A&O",
       "A&O Berlin Hauptbahnhof",
@@ -392,8 +393,7 @@
       "A&O Hotel and Hostel Berlin Mitte",
       "ADAPT APARTMENTS Berlin GmbH",
       "AMANO",
-      "AMANO Home",
-      "AWO Refugim (Flüchtlingsheim)"
+      "AMANO Home"
     ]
   },
   "readiness": {
@@ -414,19 +414,19 @@
       {
         "name": "Sleep documents",
         "threshold": "≥ 20",
-        "measured": "375",
+        "measured": "353",
         "passed": true
       },
       {
         "name": "Located sleep places",
         "threshold": "≥ 10",
-        "measured": "338",
+        "measured": "316",
         "passed": true
       },
       {
         "name": "Pictured located sleep places",
         "threshold": "≥ 10",
-        "measured": "338",
+        "measured": "316",
         "passed": true
       },
       {
