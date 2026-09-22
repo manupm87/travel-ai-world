@@ -1,9 +1,10 @@
 from functools import lru_cache
 
 from travel_common.config import CommonSettings
+from travel_common.dynamodb import DynamoSettings
 
 
-class CoreSettings(CommonSettings):
+class CoreSettings(CommonSettings, DynamoSettings):
     PROJECT_NAME: str = "Kyrian World — Core API"
 
     # PostgreSQL (the only supported engine: migrations use Postgres types)

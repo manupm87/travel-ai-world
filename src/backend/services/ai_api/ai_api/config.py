@@ -2,11 +2,12 @@ from functools import lru_cache
 from typing import Literal
 
 from travel_common.config import CommonSettings
+from travel_common.dynamodb import DynamoSettings
 
 LLMProviderName = Literal["nvidia", "bedrock"]
 
 
-class AISettings(CommonSettings):
+class AISettings(CommonSettings, DynamoSettings):
     PROJECT_NAME: str = "Kyrian World — AI API"
 
     # Which adapter answers the chat: NVIDIA (local development, an API key)
