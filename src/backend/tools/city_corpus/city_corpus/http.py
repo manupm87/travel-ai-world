@@ -40,14 +40,20 @@ MAXLAG_SECONDS = 5
 # Wikidata folds its query service's lag into `maxlag` so that editing bots pause;
 # a read-only request has nothing to wait for and is re-sent without the parameter.
 QUERY_SERVICE_LAG = "maxlag:wikibase-queryservice"
-BUSY_CODES = frozenset(
-    {"cirrussearch-too-busy-error", "readonly", "internal_api_error"}
-)
-"""API errors that mean "not now", not "never": Wikimedia's search backend sheds
-load under pressure and answers this to a perfectly good query. Treated like
-`maxlag` — wait and ask again — because the alternative is a stage silently
-losing a source, and an answer that is not cached and so differs between builds
-(TRA-211)."""
+BUSY_CODES = frozenset({"cirrussearch-too-busy-error", "readonly"})
+"""API errors that mean "not now", not "never", and so are treated like `maxlag`
+— wait and ask again — because the alternative is a stage silently losing a
+source, and an answer that is not cached and so differs between builds (TRA-211).
+
+`cirrussearch-too-busy-error` is the one measured while building the three cities:
+Wikimedia's search backend sheds load under pressure and answers it to a perfectly
+good query. `readonly` is the wiki's database in read-only mode (a deployment or a
+replica switch), and `internal_api_error_*` an exception inside the API — both pass
+on their own. None of them is retried for ever: after `MAX_ATTEMPTS` the fetch still
+raises, so a code that never clears costs a build its backoff, not its correctness.
+"""
+# MediaWiki appends the exception class to this one: `internal_api_error_DBQueryError`.
+BUSY_CODE_PREFIX = "internal_api_error"
 POLITE_DELAY_SECONDS = 0.2
 # Hosts with stricter fair-use rules: seconds to wait before each request.
 SLOW_HOSTS = {
@@ -451,8 +457,10 @@ def _retryable_problem(response: httpx.Response) -> str | None:
             if error.get("type") == "wikibase-queryservice":
                 return QUERY_SERVICE_LAG
             return "maxlag"
-        if code in BUSY_CODES:
-            return str(code)
+        if isinstance(code, str) and (
+            code in BUSY_CODES or code.startswith(BUSY_CODE_PREFIX)
+        ):
+            return code
         raise RuntimeError(f"{response.url}: API error {error}")
     remark = data.get("remark")  # Overpass reports timeouts in a 200 response
     if isinstance(remark, str) and "error" in remark.lower():

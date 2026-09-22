@@ -174,7 +174,10 @@ One thing the Wikidata tier exposed in `ApiClient`: asking `wbsearchentities` on
 hotel is enough load for Wikimedia's search to shed some of it (`cirrussearch-too-busy-error`).
 That was being read as a permanent API error, so a handful of hotels silently lost the source and
 the answer was never cached — two builds off the same cache would differ. It is now retried like
-`maxlag`.
+`maxlag`, together with the two other codes that clear on their own (`readonly`, the wiki's
+database in read-only mode, and `internal_api_error_*`, an exception inside the API). The retry is
+bounded by the client's `MAX_ATTEMPTS`: a code that never clears still ends the fetch with an
+error, it only costs the build its backoff first. Every other API error still raises at once.
 
 What did **not** change: a hotel without a photo still leaves the corpus, Commons is still asked
 by name and place, and the hot-linking bargain is the same for a curated URL as for a preview.

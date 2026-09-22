@@ -67,7 +67,9 @@ def test_budapest_loads_from_its_toml() -> None:
     assert located == ["Buildings and structures in Budapest"]
     assert BUDAPEST.timezone == "Europe/Budapest"
     assert (BUDAPEST.country, BUDAPEST.country_code) == ("Hungary", "HU")
+    # Both curated files live at their default path, so neither key is written.
     assert BUDAPEST.curated_tours is None
+    assert BUDAPEST.curated_hotels is None
     assert BUDAPEST.hero is not None
     assert BUDAPEST.hero.file.endswith(".jpg")
     assert BUDAPEST.hero.credit.endswith("· Wikimedia Commons")
@@ -84,6 +86,8 @@ def test_minimal_file_fills_defaults(tmp_path: Path) -> None:
     assert city.wikivoyage[0].include_subpages is True
     assert city.wikipedia_categories[0].require_coordinates is True
     assert city.district_guides == {"1": ("Old Town",)}
+    assert city.curated_tours is None
+    assert city.curated_hotels is None
     assert city.hero is None  # the photo is optional; the gate does not ask for one
 
 
@@ -156,14 +160,15 @@ def test_osm_relation_is_a_positive_integer(tmp_path: Path) -> None:
         load_city(_write(tmp_path, _top(MINIMAL, 'osm_relation = "43172"')))
 
 
-def test_curated_tours_stays_inside_the_tool_folder(tmp_path: Path) -> None:
-    city = load_city(
-        _write(tmp_path, _top(MINIMAL, 'curated_tours = "curated/x/t.toml"'))
-    )
-    assert city.curated_tours == "curated/x/t.toml"
-    for value in ("/etc/tours.toml", "../tours.toml", "curated/../../t.toml"):
+@pytest.mark.parametrize("key", ["curated_tours", "curated_hotels"])
+def test_a_curated_file_stays_inside_the_tool_folder(tmp_path: Path, key: str) -> None:
+    """Both curated paths are read by the same rule, and each is pinned here so a
+    refactor cannot quietly exempt one of them (TRA-211)."""
+    city = load_city(_write(tmp_path, _top(MINIMAL, f'{key} = "curated/x/f.toml"')))
+    assert getattr(city, key) == "curated/x/f.toml"
+    for value in ("/etc/f.toml", "../f.toml", "curated/../../f.toml"):
         with pytest.raises(CityConfigError, match="inside the tool folder"):
-            load_city(_write(tmp_path, _top(MINIMAL, f'curated_tours = "{value}"')))
+            load_city(_write(tmp_path, _top(MINIMAL, f'{key} = "{value}"')))
 
 
 @pytest.mark.parametrize(

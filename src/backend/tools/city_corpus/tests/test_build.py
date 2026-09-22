@@ -216,16 +216,28 @@ def test_client_caches_and_retries(tmp_path: Path) -> None:
         offline.get(url, {"action": "query", "titles": "Pest"})
 
 
-def test_a_search_backend_that_is_too_busy_is_asked_again(tmp_path: Path) -> None:
-    """`cirrussearch-too-busy-error` means "not now", not "never": Wikimedia's
-    search sheds load under pressure. Giving up would cost the photo stage a
-    source and leave nothing in the cache, so two builds would differ (TRA-211)."""
+@pytest.mark.parametrize(
+    "code",
+    [
+        "cirrussearch-too-busy-error",
+        "readonly",
+        "internal_api_error_DBQueryError",
+    ],
+    ids=["search-busy", "read-only", "internal"],
+)
+def test_a_search_backend_that_is_too_busy_is_asked_again(
+    tmp_path: Path, code: str
+) -> None:
+    """These codes mean "not now", not "never": Wikimedia's search sheds load under
+    pressure, the database goes read-only, the API throws. Giving up would cost the
+    photo stage a source and leave nothing in the cache, so two builds would differ
+    (TRA-211). `internal_api_error` arrives with the exception class appended."""
     calls: list[httpx.Request] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
         calls.append(request)
         if len(calls) == 1:
-            error = {"code": "cirrussearch-too-busy-error", "info": "too busy"}
+            error = {"code": code, "info": "not now"}
             return httpx.Response(200, json={"error": error})
         return httpx.Response(200, json={"search": [{"id": "Q42"}]})
 
