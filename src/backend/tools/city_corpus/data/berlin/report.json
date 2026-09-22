@@ -1,8 +1,8 @@
 {
   "city": "berlin",
-  "built_at": "2026-09-22T13:29:08Z",
-  "documents": 12301,
-  "listings": 9495,
+  "built_at": "2026-09-22T15:19:26Z",
+  "documents": 12237,
+  "listings": 9431,
   "prose": 2806,
   "sources": [
     "curated",
@@ -57,8 +57,8 @@
       "wikivoyage": 210
     },
     "sleep": {
-      "openstreetmap": 330,
-      "wikivoyage": 109
+      "openstreetmap": 285,
+      "wikivoyage": 90
     },
     "tour": {
       "curated": 4,
@@ -77,7 +77,7 @@
     "history": 2029,
     "practical": 5,
     "see": 1419,
-    "sleep": 435,
+    "sleep": 371,
     "tour": 5,
     "transport": 67
   },
@@ -88,7 +88,7 @@
     "history": 1913,
     "practical": 1,
     "see": 1382,
-    "sleep": 402,
+    "sleep": 338,
     "tour": 4,
     "transport": 63
   },
@@ -98,7 +98,7 @@
     "eat": 43,
     "history": 1874,
     "see": 1169,
-    "sleep": 402,
+    "sleep": 338,
     "transport": 63
   },
   "districts": [
@@ -112,14 +112,14 @@
     "Treptow-Köpenick"
   ],
   "places_by_district": {
-    "City West": 2613,
-    "East": 802,
-    "East Central": 3036,
-    "Mitte": 2446,
-    "Reinickendorf and Spandau": 622,
-    "Steglitz-Zehlendorf": 759,
+    "City West": 2594,
+    "East": 794,
+    "East Central": 3024,
+    "Mitte": 2426,
+    "Reinickendorf and Spandau": 621,
+    "Steglitz-Zehlendorf": 758,
     "Tempelhof and Neukölln": 922,
-    "Treptow-Köpenick": 553
+    "Treptow-Köpenick": 550
   },
   "small_districts": [],
   "described_districts": [
@@ -140,10 +140,10 @@
       "untiered": 6344
     },
     "sleep": {
-      "1": 44,
-      "2": 62,
-      "3": 52,
-      "untiered": 281
+      "1": 35,
+      "2": 55,
+      "3": 46,
+      "untiered": 239
     }
   },
   "climate_months": [
@@ -345,12 +345,12 @@
           "score": 12.08
         },
         {
-          "name": "A&O Hotel and Hostel Berlin Mitte",
-          "district": "Mitte",
+          "name": "Almansi Hostel",
+          "district": "East Central",
           "score": 11.79
         },
         {
-          "name": "Almansi Hostel",
+          "name": "Berlin Surf Hostel",
           "district": "East Central",
           "score": 11.79
         }
@@ -377,22 +377,23 @@
     }
   },
   "hotel_photos": {
-    "site": 108,
+    "site": 88,
     "facebook": 5,
-    "commons": 104,
-    "page": 103,
-    "dropped": 247,
+    "commons": 49,
+    "page": 114,
+    "dropped": 311,
+    "shared": 21,
     "dropped_examples": [
       "1a pension apartment berlin",
       "2A-Hostel",
       "A&O",
+      "A&O Berlin Hauptbahnhof",
+      "A&O Berlin Kolumbus",
+      "A&O Hotel and Hostel Berlin Mitte",
       "ADAPT APARTMENTS Berlin GmbH",
-      "AWO Refugim (Flüchtlingsheim)",
-      "Adam",
-      "Adina Apartment Hotel Berlin Checkpoint Charlie",
-      "Alcatraz Backpacker Hostel",
-      "Alecsa Hotel am Olympiastadion",
-      "Alex Hotel"
+      "AMANO",
+      "AMANO Home",
+      "AWO Refugim (Flüchtlingsheim)"
     ]
   },
   "readiness": {
@@ -413,19 +414,19 @@
       {
         "name": "Sleep documents",
         "threshold": "≥ 20",
-        "measured": "439",
+        "measured": "375",
         "passed": true
       },
       {
         "name": "Located sleep places",
         "threshold": "≥ 10",
-        "measured": "402",
+        "measured": "338",
         "passed": true
       },
       {
         "name": "Pictured located sleep places",
         "threshold": "≥ 10",
-        "measured": "402",
+        "measured": "338",
         "passed": true
       },
       {

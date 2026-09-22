@@ -1,8 +1,8 @@
 {
   "city": "madrid",
-  "built_at": "2026-09-22T14:48:53Z",
-  "documents": 5623,
-  "listings": 4813,
+  "built_at": "2026-09-22T15:16:33Z",
+  "documents": 5586,
+  "listings": 4776,
   "prose": 810,
   "sources": [
     "curated",
@@ -57,8 +57,8 @@
       "wikivoyage": 99
     },
     "sleep": {
-      "openstreetmap": 296,
-      "wikivoyage": 25
+      "openstreetmap": 263,
+      "wikivoyage": 21
     },
     "tour": {
       "curated": 3,
@@ -76,7 +76,7 @@
     "history": 485,
     "practical": 14,
     "see": 542,
-    "sleep": 316,
+    "sleep": 279,
     "tour": 5,
     "transport": 3
   },
@@ -87,7 +87,7 @@
     "history": 451,
     "practical": 12,
     "see": 535,
-    "sleep": 316,
+    "sleep": 279,
     "tour": 5,
     "transport": 3
   },
@@ -97,7 +97,7 @@
     "eat": 21,
     "history": 446,
     "see": 444,
-    "sleep": 316,
+    "sleep": 279,
     "transport": 3
   },
   "districts": [
@@ -114,16 +114,16 @@
     "Southern Suburbs"
   ],
   "places_by_district": {
-    "Arganzuela": 391,
-    "Centro": 1799,
-    "Chamberí-Castellana": 778,
+    "Arganzuela": 390,
+    "Centro": 1778,
+    "Chamberí-Castellana": 774,
     "La Latina-Austrias": 151,
     "Malasaña-Chueca": 32,
-    "Moncloa": 329,
-    "Northern Suburbs": 408,
-    "Retiro-Paseo del Arte": 320,
+    "Moncloa": 328,
+    "Northern Suburbs": 404,
+    "Retiro-Paseo del Arte": 319,
     "Salamanca": 483,
-    "Sol-Letras-Lavapiés": 52,
+    "Sol-Letras-Lavapiés": 50,
     "Southern Suburbs": 78
   },
   "small_districts": [],
@@ -148,10 +148,10 @@
       "untiered": 3480
     },
     "sleep": {
-      "1": 15,
-      "2": 31,
-      "3": 76,
-      "untiered": 199
+      "1": 14,
+      "2": 24,
+      "3": 71,
+      "untiered": 175
     }
   },
   "climate_months": [
@@ -332,14 +332,14 @@
           "score": 23.4
         },
         {
-          "name": "Room Mate Alicia Hotel",
-          "district": "Centro",
-          "score": 22.64
+          "name": "Hostal Roisa Boutique",
+          "district": "Northern Suburbs",
+          "score": 22.3
         },
         {
-          "name": "Room Mate Mario Hotel",
-          "district": "Centro",
-          "score": 22.64
+          "name": "ITC Alcalá Norte by Soho Boutique",
+          "district": "Northern Suburbs",
+          "score": 22.3
         }
       ],
       "hostel": [
@@ -354,7 +354,7 @@
           "score": 11.79
         },
         {
-          "name": "Cats Hostel Madrid Lavapiés",
+          "name": "Ok Hostel Madrid",
           "district": "Centro",
           "score": 11.79
         }
@@ -381,11 +381,12 @@
     }
   },
   "hotel_photos": {
-    "site": 131,
-    "facebook": 9,
-    "commons": 76,
-    "page": 66,
-    "dropped": 211,
+    "site": 117,
+    "facebook": 7,
+    "commons": 50,
+    "page": 71,
+    "dropped": 248,
+    "shared": 16,
     "dropped_examples": [
       "4C Bravo Murillo",
       "AC Hotel Coslada Aeropuerto",
@@ -417,19 +418,19 @@
       {
         "name": "Sleep documents",
         "threshold": "≥ 20",
-        "measured": "321",
+        "measured": "284",
         "passed": true
       },
       {
         "name": "Located sleep places",
         "threshold": "≥ 10",
-        "measured": "316",
+        "measured": "279",
         "passed": true
       },
       {
         "name": "Pictured located sleep places",
         "threshold": "≥ 10",
-        "measured": "316",
+        "measured": "279",
         "passed": true
       },
       {

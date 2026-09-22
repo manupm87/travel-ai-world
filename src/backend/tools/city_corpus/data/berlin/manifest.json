@@ -1,22 +1,22 @@
 {
   "city": "berlin",
-  "built_at": "2026-09-22T13:29:08Z",
-  "documents": 12301,
-  "listings": 9495,
-  "listings_with_coordinates": 9391,
+  "built_at": "2026-09-22T15:19:26Z",
+  "documents": 12237,
+  "listings": 9431,
+  "listings_with_coordinates": 9327,
   "by_source": {
     "curated": 4,
     "open-meteo": 12,
-    "openstreetmap": 8671,
+    "openstreetmap": 8626,
     "wikipedia": 2574,
-    "wikivoyage": 1040
+    "wikivoyage": 1021
   },
   "by_lang": {
-    "en": 12248,
+    "en": 12184,
     "es": 53
   },
   "by_kind": {
-    "listing": 9495,
+    "listing": 9431,
     "prose": 2806
   },
   "by_category": {
@@ -28,24 +28,24 @@
     "neighbourhood": 11,
     "practical": 30,
     "see": 1436,
-    "sleep": 439,
+    "sleep": 375,
     "tour": 5,
     "transport": 140
   },
   "by_district": {
     "(city-wide)": 405,
-    "City West": 2647,
-    "East": 810,
-    "East Central": 3072,
-    "Mitte": 2474,
-    "Reinickendorf and Spandau": 631,
-    "Steglitz-Zehlendorf": 765,
+    "City West": 2628,
+    "East": 802,
+    "East Central": 3060,
+    "Mitte": 2454,
+    "Reinickendorf and Spandau": 630,
+    "Steglitz-Zehlendorf": 764,
     "Tempelhof and Neukölln": 933,
-    "Treptow-Köpenick": 564
+    "Treptow-Köpenick": 561
   },
   "districts_missing": [],
   "images": {
-    "with_image": 3986,
+    "with_image": 3922,
     "see_documents": 1436,
     "see_with_image": 1180,
     "see_image_coverage": 0.822
@@ -133,22 +133,23 @@
     },
     "districts_assigned_by_boundary": 2376,
     "photos": {
-      "site": 108,
+      "site": 88,
       "facebook": 5,
-      "commons": 104,
-      "page": 103,
-      "dropped": 247,
+      "commons": 49,
+      "page": 114,
+      "dropped": 311,
+      "shared": 21,
       "dropped_examples": [
         "1a pension apartment berlin",
         "2A-Hostel",
         "A&O",
+        "A&O Berlin Hauptbahnhof",
+        "A&O Berlin Kolumbus",
+        "A&O Hotel and Hostel Berlin Mitte",
         "ADAPT APARTMENTS Berlin GmbH",
-        "AWO Refugim (Flüchtlingsheim)",
-        "Adam",
-        "Adina Apartment Hotel Berlin Checkpoint Charlie",
-        "Alcatraz Backpacker Hostel",
-        "Alecsa Hotel am Olympiastadion",
-        "Alex Hotel"
+        "AMANO",
+        "AMANO Home",
+        "AWO Refugim (Flüchtlingsheim)"
       ]
     },
     "tours": {
