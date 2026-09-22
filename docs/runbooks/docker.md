@@ -36,23 +36,10 @@ uvicorn on `AWS_LWA_PORT=8000` and waits for the readiness path before the first
 The values are baked into the image (one tiny stage per service in the `Dockerfile`), so
 Terraform does not have to repeat them; the function's own environment can still override them.
 
-**Commands.** `core_api/ops.py` holds the commands the image can run on request:
-`copy-from-postgres` (the one-off copy of RDS into the DynamoDB table, ADR 0023), and nothing
-else: it is the whole surface `POST /events` exposes, so a command has to earn its place there.
-
-```bash
-# Compose form: the running core_api container (DB_SERVER points at the stack's PostgreSQL,
-# DYNAMODB_ENDPOINT_URL at DynamoDB Local)
-docker compose exec core_api python -m core_api.ops copy-from-postgres
-
-# Lambda form: the adapter delivers a non-HTTP payload as POST /events (404 outside Lambda; never routed by the gateway)
-aws lambda invoke --function-name <core-api function> --cli-binary-format raw-in-base64-out \
-  --payload '{"command": "copy-from-postgres"}' /dev/stdout
-```
-
-Every form ends in `core_api.ops.run_command`; an unknown command answers 400 (exit code 1 from
-the CLI). When production runs the copy, and what it does, is in
-[deploy.md](deploy.md#the-one-off-copy-from-rds-to-dynamodb).
+**No commands.** The images serve HTTP and nothing else: there is no direct-invocation
+command surface (the one-off `copy-from-postgres` and its `POST /events` route went with RDS in
+TRA-219). Developer-only helpers such as `python -m core_api.devtools token` run from a shell
+(`docker compose exec core_api ...` in the Compose stack), never through the function.
 
 **Trying it locally with the Runtime Interface Emulator** (optional; needs Docker and the
 [`aws-lambda-rie`](https://github.com/aws/aws-lambda-runtime-interface-emulator) binary in `~/.aws-lambda-rie/`):
@@ -67,12 +54,12 @@ curl -s -XPOST http://localhost:9000/2015-03-31/functions/function/invocations \
 
 The emulator does not support response streaming, hence `buffered` for the check; streaming is
 verified on the real function (TRA-121). CI checks on every PR that the adapter binary is in the
-image with the right settings and that `copy-from-postgres` is the only `ops` command.
+image with the right settings.
 
 ## Local stack
 
 ```bash
-just stack-up       # frontend export for :8080 + proxy + core_api + ai_api + DynamoDB Local (+ PostgreSQL)
+just stack-up       # frontend export for :8080 + proxy + core_api + ai_api + DynamoDB Local
 just docker-up      # the same without the frontend build (backend only, no Node needed)
 just docker-logs ai_api
 just docker-down    # or: just stack-down
@@ -83,16 +70,15 @@ just docker-down    # or: just stack-down
 | <http://localhost:8080> | nginx: the frontend export at `/`, `core_api` at `/api/*`, `ai_api` at `/api/v1/ai/*` |
 | <http://localhost:8000/docs> | core_api directly |
 | <http://localhost:8001/api/v1/ai/docs> | ai_api directly |
-| localhost:5432 | PostgreSQL (`DB_USER`/`DB_PASSWORD` from `core_api/.env`): only the source of `copy-from-postgres`, until TRA-219 |
 | <http://localhost:8002> | DynamoDB Local (`amazon/dynamodb-local`, in memory: empty after every restart) |
 
-`docker-compose.yml` reads `services/core_api/.env` and `services/ai_api/.env`; `DB_SERVER` and
-`CORE_API_URL` are overridden to the Compose service names, and both services get
+`docker-compose.yml` reads `services/core_api/.env` and `services/ai_api/.env`; `CORE_API_URL`
+is overridden to the Compose service name, and both services get
 `DYNAMODB_ENDPOINT_URL=http://dynamodb:8000` with dummy AWS keys (DynamoDB Local accepts any).
-Without Docker, `just dynamodb-local` serves the same API on `:8002` with moto. PostgreSQL receives only `POSTGRES_*`
-(interpolated from `DB_*` via `--env-file`), never the whole `.env`. The proxy waits for both
-services' health checks before it starts routing. `core_api` depends on DynamoDB Local, not on
-PostgreSQL, and creates its table there when it starts; a restarted stack starts empty.
+Without Docker, `just dynamodb-local` serves the same API on `:8002` with moto. The proxy waits
+for both services' health checks before it starts routing. `core_api` depends on DynamoDB Local
+and creates its table there when it starts; a restarted stack starts empty. There is no SQL
+database in the stack.
 
 ## The stack as deployed
 

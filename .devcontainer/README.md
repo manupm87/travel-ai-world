@@ -2,7 +2,8 @@
 
 A reproducible VS Code environment for the monorepo: Node 24, Python 3.12 (via `uv`), `just`,
 `gh`, ripgrep/fd/jq, AWS CLI v2 + Terraform + `crane` + Session Manager plugin, Claude Code
-(plus optional agent CLIs), Playwright's Chromium, DynamoDB Local, and a PostgreSQL 16 container (only for the one-off copy, until TRA-219). **It does not run the application**: you start the services yourself
+(plus optional agent CLIs), Playwright's Chromium and DynamoDB Local; there is no SQL database.
+**It does not run the application**: you start the services yourself
 with the same `just` recipes everyone uses.
 
 ## What starts
@@ -11,7 +12,6 @@ with the same `just` recipes everyone uses.
 |---|---|
 | `devcontainer` | your terminal; the repo is mounted at `/workspace` |
 | `dynamodb` | DynamoDB Local, in memory, reached as `dynamodb:8000` (`DYNAMODB_ENDPOINT_URL`; no host port): `core_api`'s table |
-| `db` | PostgreSQL 16, `postgres`/`postgres`, database `travel_ai_world`, forwarded to `localhost:5432`: only the source of `copy-from-postgres` and its test, until TRA-219 |
 
 `src/backend/.venv`, `src/frontend/node_modules` and `src/frontend/.next` are named Docker volumes, so the
 host's copies (with their platform-specific binaries) are never touched.
@@ -22,10 +22,9 @@ migrations: `core_api` creates its DynamoDB table in DynamoDB Local when it star
 
 ## Database wiring
 
-The `devcontainer` service exports `DB_SERVER=db`, `DB_USER`, `DB_PASSWORD` and `DB_NAME`
-as environment variables, which take precedence over `src/backend/services/core_api/.env`.
-`python -m core_api.ops copy-from-postgres` and its test therefore hit the `db` container with no
-edits to the `.env` (nothing else in `core_api` reads PostgreSQL since ADR 0023; it goes in TRA-219). The remaining keys (`SECRET_KEY`, `GOOGLE_*`, `NVIDIA_API_KEY`) still have
+The `devcontainer` service exports `DYNAMODB_ENDPOINT_URL=http://dynamodb:8000`, which takes
+precedence over the services' `.env` files, so `just dev-core` and `just dev-ai` reach DynamoDB
+Local with no edits. The remaining keys (`SECRET_KEY`, `GOOGLE_*`, `NVIDIA_API_KEY`) still have
 to be filled in the `.env` files, as in the [local-dev runbook](../docs/runbooks/local-dev.md).
 
 ## Use
@@ -45,15 +44,10 @@ Playwright MCP entry in `.mcp.json` therefore launch Chromium with `WAYLAND_DISP
 (TRA-180). If you start Chromium by hand, do the same: `env -u WAYLAND_DISPLAY npx playwright …`.
 
 Closing the VS Code window stops the compose stack (`shutdownAction: stopCompose`); the
-PostgreSQL data and the dependency volumes persist between sessions. To wipe them:
-`docker compose -f .devcontainer/docker-compose.yml down -v` on the host.
-
-If the copy test fails with `password authentication failed for user
-"postgres"`, the `postgres_data` volume was initialised by an older compose file with other
-credentials (`POSTGRES_*` only apply on first init). Wipe the volumes as above and rebuild, or,
-inside the container, create the missing role with the old credentials
-(`psql -h db -U <old-user> -c "CREATE ROLE postgres LOGIN SUPERUSER PASSWORD 'postgres'"`) and
-re-run `bash .devcontainer/post-create.sh`.
+dependency volumes persist between sessions, and DynamoDB Local starts empty each time. To wipe
+the volumes: `docker compose -f .devcontainer/docker-compose.yml down -v` on the host. A
+`postgres_data` volume left by an older compose file is no longer used; the same command
+removes it.
 
 ## AWS
 

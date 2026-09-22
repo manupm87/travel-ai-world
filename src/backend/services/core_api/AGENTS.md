@@ -16,8 +16,8 @@ domain/models.py        plain dataclasses + their rules (check_invariants, phase
 infrastructure/dynamo/  the only adapter: table.py, keys.py, codec.py, repositories.py
 ```
 
-- **Only `infrastructure/dynamo/` imports boto3/botocore**, and only `legacy_sql/` and `ops.py`
-  import SQLAlchemy (`tests/test_import_boundaries.py` checks both).
+- **Only `infrastructure/dynamo/` imports boto3/botocore**, and nothing imports `devtools`
+  (`tests/test_import_boundaries.py` checks both).
 - **Settings are injected**, never imported as a singleton: `Depends(get_settings)` in dependables,
   `get_settings()` at the composition root (`main.py`). The app `lifespan` calls
   `infrastructure/dynamo/table.py::open_table`: it builds the client
@@ -90,25 +90,22 @@ infrastructure/dynamo/  the only adapter: table.py, keys.py, codec.py, repositor
 - **No migrations.** A schema change is a change to the dataclass and, if needed, the codec
   (`infrastructure/dynamo/codec.py`); **items already written must stay readable** — a field missing
   from an old item takes the dataclass default. Rewriting old items, if ever needed, is a one-off
-  `ops` command.
+  script run from a shell, never a route of the deployed service.
 - A new child entity: dataclass in `domain/models.py` (+ its list on the parent) → `schemas/x.py`
   (`XBase`, `XCreate`, `XUpdate = partial(XBase, "XUpdate")`, `XResponse`) → a `ChildKind` in
   `services/trip_children.py` → one `ChildResource` in `api/v1/resources.py` → `just contracts`.
 
 ## Operations
 
-- `ops.COMMANDS = {"copy-from-postgres": ...}` is the whole surface `POST /events` exposes
-  (`python -m core_api.ops copy-from-postgres` from a shell). It reads RDS through
-  `legacy_sql/` (the last ORM schema, read-only; deleted with RDS in TRA-219), maps each account to
-  the UUID already registered for its email or to `uuid5(NAMESPACE_URL, "kyrian-world:user:<old id>")`,
-  and overwrites the items (so it can run again), keeping ids and timestamps. It returns the counts
-  and fails (`CopyIncomplete`, 500) if what it wrote differs from what it read.
-- **Dev-only helpers live in `devtools.py`, never in `ops.py`**: `python -m core_api.devtools token
+- The deployed function exposes no commands: nothing but HTTP under `/api/v1` reaches it. The
+  one-off copy from RDS (`copy-from-postgres`) ran on 2026-09-22 and was removed with RDS in
+  TRA-219.
+- **Dev-only helpers live in `devtools.py`**: `python -m core_api.devtools token
   <email>` (`just dev-token <email>`) prints the local-mode JWT the sign-in would issue for that
   account (`sub` = its UUID, `email`, `role`, `exp`), **creating it when it is new**, so the
   Playwright suite and the Playwright MCP sign in without Google. It honours
   `DYNAMODB_ENDPOINT_URL` like the service. Nothing in the service imports `devtools`
-  (`tests/test_devtools.py` checks it). Refuses in Cognito mode.
+  (`tests/test_import_boundaries.py` checks it). Refuses in Cognito mode.
 
 ## Commands
 
@@ -116,8 +113,7 @@ infrastructure/dynamo/  the only adapter: table.py, keys.py, codec.py, repositor
 just dynamodb-local                # another terminal: moto on :8002 (the devcontainer has DynamoDB Local)
 uv run uvicorn core_api.main:app --reload --port 8000
 uv run python -m core_api.devtools token you@example.com   # local JWT for that account (just dev-token)
-uv run pytest                      # moto in process, no database; tests/test_ops_copy.py uses
-                                   # PostgreSQL (<DB_NAME>_copytest) and skips when it is unreachable
+uv run pytest                      # moto in process, no database
 ```
 
 Tests: `tests/conftest.py` wraps every test in `mock_dynamodb()`, creates the table and overrides

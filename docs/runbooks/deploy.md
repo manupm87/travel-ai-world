@@ -26,15 +26,17 @@ two-step decision:
    reached through OIDC with the bootstrap's role, restricted to the `aws` GitHub environment.
 
    **The `aws` environment must hold every secret the applied state was built with**:
-   `TF_VAR_db_password`, `TF_VAR_nvidia_api_key` and `TF_VAR_google_client_secret` (the values of
+   `TF_VAR_nvidia_api_key` and `TF_VAR_google_client_secret` (the values of
    the local `terraform.tfvars`). Only secrets live there: non-secret inputs such as
    `google_client_id` and `backend_cors_origins` are defaults in `infra/aws/variables.tf`. A missing
-   secret reaches Terraform as an empty string, and the plan then resets the RDS password (RDS
-   stays until TRA-219, as the source of the one-off copy), the
-   Lambda secrets and Cognito's Google client (TRA-133).
+   secret reaches Terraform as an empty string, and the plan then resets the Lambda secrets and
+   Cognito's Google client (TRA-133). `TF_VAR_db_password` is only for GCP's Cloud SQL; AWS has
+   had no database password since TRA-219.
    Whenever one of these values changes (a rotation), update the secret **and** the local
    tfvars together. Before any `apply=true`, run with `apply=false` and require the plan to show
-   only the two Lambda `image_uri` changes.
+   only the two Lambda `image_uri` changes. The one exception is the apply that retires RDS and
+   the VPC ([infra/aws/README.md](../../infra/aws/README.md#retiring-rds-tra-219)), whose plan
+   also destroys them.
 
 Frontend variables per shape:
 
@@ -69,27 +71,13 @@ Nothing reaches AWS from a merge alone except the frontend. After `main` changes
    (Actions → "Deploy frontend" → Run workflow to redo it by hand). A backend deploy that does
    not change the contract needs no frontend deploy, and the reverse.
 
-## The one-off copy from RDS to DynamoDB
+## Data store history
 
 `core_api` stores everything in one DynamoDB table (`travel-ai-core`,
 [ADR 0023](../architecture/adr/0023-dynamodb-data-store.md)). The accounts, trips and
-conversations that were on RDS move once, with the `copy-from-postgres` command, after the image
-that speaks DynamoDB is live (TRA-218 did the switch by hand):
-
-```bash
-fn=$(terraform output -raw core_api_function_name)   # from infra/aws/, after just aws-login
-aws lambda invoke --function-name "$fn" --cli-binary-format raw-in-base64-out \
-  --payload '{"command": "copy-from-postgres"}' response.json
-cat response.json   # {"command": "copy-from-postgres", "status": "ok", "result": {"users": n, "trips": n, "threads": n, "messages": n}}
-```
-
-- It reads every row through `core_api/legacy_sql` (the function still has `DB_*` and the VPC
-  until TRA-219) and **overwrites** the items, so it can run again with the same result.
-- Ids and timestamps are kept. Users get UUIDs: the one already registered for their email when
-  they signed in on DynamoDB before the copy, otherwise
-  `uuid5(NAMESPACE_URL, "kyrian-world:user:<old integer id>")`; their trips and threads follow.
-- It fails (500, `COPY_INCOMPLETE`) when what it wrote differs from what it read; the answer's
-  `extras` carry both counts. Compare `result` with the row counts of RDS before retiring it.
+conversations that were on RDS moved once, on 2026-09-22, with a one-off `copy-from-postgres`
+command (TRA-218). TRA-219 then removed RDS, the VPC and that command; how the infrastructure
+was retired is in [infra/aws/README.md](../../infra/aws/README.md#retiring-rds-tra-219).
 
 ---
 

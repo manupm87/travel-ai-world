@@ -11,7 +11,7 @@ src/backend/
 ├── Dockerfile              one file, two images: --build-arg SERVICE=core_api|ai_api; Lambda Web Adapter
 │                           in /opt/extensions (per-service AWS_LWA_* stage), inert outside Lambda
 ├── docker-compose.yml      proxy :8080 → frontend export (/) / core_api (/api/) / ai_api (/api/v1/ai/),
-│                           DynamoDB Local :8002, PostgreSQL (copy-from-postgres source until TRA-219)
+│                           DynamoDB Local :8002
 ├── docker/                 entrypoint.sh (serve; nothing runs before it), nginx.conf
 ├── scripts/export_openapi.py
 ├── libs/travel_common/     shared kernel (see rules below)
@@ -29,7 +29,7 @@ src/backend/
 uv sync --all-packages                   # whole workspace (incl. tools/) into src/backend/.venv
 uv run ruff check . ../../scripts && uv run ruff format --check . ../../scripts
 uv run pyright                           # libs/ and services/, standard mode (CI runs it in `just lint-backend`)
-cd services/core_api && uv run pytest    # moto; the copy-from-postgres test uses PostgreSQL or skips
+cd services/core_api && uv run pytest    # moto, in process; no database server
 cd services/ai_api   && uv run pytest    # no external deps
 cd libs/travel_common && uv run pytest
 uv run python scripts/export_openapi.py  # → docs/api/*.openapi.json (then `npm run types:generate` in frontend)
@@ -41,7 +41,7 @@ uv run python scripts/export_openapi.py  # → docs/api/*.openapi.json (then `np
   domain exceptions, token verification (`security.py` dispatches on `AUTH_MODE`: local HS256 or
   `cognito.py`'s RS256/JWKS), bearer extraction, the FastAPI app factory and error handlers, plus
   `testing.py` (`CognitoTestIssuer`, `mock_dynamodb`) for every package's tests.
-  If a thing is used by one service, it belongs to that service. Never add SQLAlchemy or httpx-based
+  If a thing is used by one service, it belongs to that service. Never add database or httpx-based
   clients to `travel_common`.
 - **DynamoDB** (ADR 0023): `travel_common.dynamodb` is the one way to reach it — `dynamodb_client`
   (cached per endpoint/region), `call` (runs a blocking boto3 method in a thread from async code),
@@ -94,7 +94,7 @@ uv run python scripts/export_openapi.py  # → docs/api/*.openapi.json (then `np
   capped at 2 s before `SIGKILL`.
 
   Where that work goes instead: a CLI command run outside the request path (`city_corpus`,
-  `core_api.ops`), or its own scheduled function. If a request
+  `core_api.devtools`), or its own scheduled function. If a request
   genuinely needs to hand off work, it must leave the process (a queue or another function), not
   live in it.
 - **Logging**: `create_app` calls `travel_common.http.logging.configure_logging(settings.LOG_LEVEL)`

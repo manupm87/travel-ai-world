@@ -8,7 +8,7 @@ pick one, apply only its folder. Nothing is created until you run `terraform app
 | Folder | Shape | Public origin(s) | Frontend variables |
 |---|---|---|---|
 | [`gcp/`](gcp/README.md) | Cloud Run ×2 + Cloud SQL + Artifact Registry + Secret Manager | two Cloud Run URLs | `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_AI_API_URL` |
-| [`aws/`](aws/README.md) | Lambda ×2 + API Gateway REST + Cognito + DynamoDB + ECR, behind CloudFront (S3 frontend, WAF); RDS only until TRA-219 | one CloudFront domain (`/api/*` → gateway) | `NEXT_PUBLIC_API_URL=https://<domain>` (same origin) |
+| [`aws/`](aws/README.md) | Lambda ×2 + API Gateway REST + Cognito + DynamoDB + ECR, behind CloudFront (S3 frontend, WAF); no VPC | one CloudFront domain (`/api/*` → gateway) | `NEXT_PUBLIC_API_URL=https://<domain>` (same origin) |
 
 Both deploy `core_api` and `ai_api` as separate services, each with its own identity and access
 **only to its secrets**. On AWS the two services run in `AUTH_MODE=cognito`: a Cognito user pool
@@ -28,10 +28,10 @@ Why two services and why the frontend accepts two URLs: [ADR 0001](../docs/archi
   locally from `src/backend/` (`just docker-build`).
   Not `docker buildx imagetools create` for AWS: it wraps the image in an OCI index, which Lambda
   rejects ("image manifest ... media type is not supported").
-- **Secrets** are Terraform variables (`db_password`, `google_client_secret`, `nvidia_api_key`;
-  GCP also `secret_key`; `google_client_id` travels with them but is public). GCP stores them in Secret Manager and injects them per
-  service; AWS sets them as encrypted Lambda environment variables (a VPC without endpoints
-  cannot reach Secrets Manager; ADR 0009) and hands the Google client to Cognito. Locally they go
+- **Secrets** are Terraform variables (`google_client_secret`, `nvidia_api_key`; GCP also
+  `secret_key` and `db_password` for Cloud SQL; `google_client_id` travels with them but is
+  public). GCP stores them in Secret Manager and injects them per service; AWS sets them as encrypted Lambda environment variables (no Secrets Manager, ADR 0009)
+  and hands the Google client to Cognito. Locally they go
   in `terraform.tfvars` (ignored by git; start from `terraform.tfvars.example`). In CI they arrive
   as `TF_VAR_*` secrets of the cloud's GitHub environment (`aws`, `gcp`), which must match the
   local tfvars ([deploy runbook](../docs/runbooks/deploy.md)).
@@ -42,8 +42,7 @@ Why two services and why the frontend accepts two URLs: [ADR 0001](../docs/archi
 - **No migrations**: `core_api` keeps its data in DynamoDB
   ([ADR 0023](../docs/architecture/adr/0023-dynamodb-data-store.md)), whose table Terraform owns
   on AWS, so neither the container start (`src/backend/docker/entrypoint.sh`) nor the deploy
-  workflow runs a schema step. The only `ops` command is the one-off `copy-from-postgres` (see the
-  [Docker runbook](../docs/runbooks/docker.md#the-same-image-on-aws-lambda)).
+  workflow runs a schema step.
 - **State**: commit `.terraform.lock.hcl`, never `*.tfstate` or `*.tfvars`. Sensitive variables end
   up in the state, so it lives in a remote backend with restricted access; the CI workflow
   requires one. AWS: the private S3 bucket created by [`aws/bootstrap/`](aws/bootstrap/README.md)

@@ -41,8 +41,8 @@ Calls go in one direction only: `ai_api → core_api`. `core_api` works with `ai
 `core_api` keeps everything in **one DynamoDB table** ([ADR 0023](adr/0023-dynamodb-data-store.md)):
 the account under `USER#<id>`/`PROFILE` (plus an `EMAIL#` item for uniqueness), each trip as one
 item holding its whole aggregate, each conversation under its owner and its messages under
-`THREAD#<id>`, ordered by time. There are no migrations; PostgreSQL (RDS) is read only by the
-one-off `copy-from-postgres` command until it is retired in TRA-219.
+`THREAD#<id>`, ordered by time. There are no migrations and no SQL database: RDS was retired
+in TRA-219.
 
 ## Code layout per service
 
@@ -236,16 +236,15 @@ edge and gateway decisions come from [ADR 0008](adr/0008-aws-architecture-v2-edg
 `infra/aws/` is this shape ([README](../../infra/aws/README.md)), with the chat on Bedrock
 (TRA-122, `LLM_PROVIDER`) and the vector store on **Amazon S3 Vectors**
 ([ADR 0014](adr/0014-vector-store-s3-vectors.md)): the `pgvector` database of TRA-123 cannot be
-reached from `ai_api`, outside the VPC, and S3 Vectors needs no endpoint of its own. The retriever
+reached from `ai_api`, which runs outside any VPC, and S3 Vectors needs no endpoint of its own. The retriever
 that reads it is TRA-152; the [vector store spike](vector-store-spike.md) (TRA-151) measured Qdrant
 against it and kept S3 Vectors.
 
 Since [ADR 0023](adr/0023-dynamodb-data-store.md), `core_api` stores its data in the DynamoDB
 table `travel-ai-core` (on-demand, `PK`/`SK` + `GSI1`, point-in-time recovery, deletion
-protection). The function still runs in the VPC's private subnets and reaches the table through a
-free **DynamoDB gateway endpoint** on the main route table (its security group allows 443 to the
-endpoint's prefix list). RDS PostgreSQL is drawn dashed: it is only the read-only source of the
-one-off `copy-from-postgres`, and TRA-219 retires it and takes `core_api` out of the VPC. CloudFront
+protection). Like `ai_api`, the function runs outside any VPC and reaches the table over
+DynamoDB's public HTTPS endpoint, authorised by its IAM role. There is no VPC in the account's
+shape any more: RDS, the private subnets and the gateway endpoint were removed in TRA-219. CloudFront
 has a **WAF web ACL** (AWS managed rules: IP reputation, common rule set, known bad inputs),
 created from the console and not managed by Terraform.
 

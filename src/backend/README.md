@@ -42,7 +42,7 @@ settings must be the same in both: `ai_api` verifies the same tokens `core_api` 
 
 ```bash
 just lint             # ruff check + format + pyright (backend, scripts) + eslint
-just test-backend     # travel_common, core_api (moto; its copy test uses PostgreSQL or skips), ai_api
+just test-backend     # travel_common, core_api (moto, no database server), ai_api
 just contracts        # export OpenAPI → docs/api, regenerate frontend types
 ```
 
@@ -53,8 +53,7 @@ One `Dockerfile`, two images; `docker-compose.yml` adds nginx on `:8080` routing
 (`../frontend/out`, bind-mounted; `just stack-up` builds it, `just docker-up` skips it). The same
 origin for pages and API is what CloudFront does in production. The same images run on AWS Lambda through the Lambda Web
 Adapter baked into the runtime stage. There are no migrations (`core_api` is on DynamoDB,
-ADR 0023); the one-off `copy-from-postgres` runs as `python -m core_api.ops` or a
-`{"command": "copy-from-postgres"}` invocation. See the [Docker runbook](../../docs/runbooks/docker.md).
+ADR 0023). See the [Docker runbook](../../docs/runbooks/docker.md).
 
 ## Layout
 

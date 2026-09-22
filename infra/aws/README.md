@@ -7,9 +7,8 @@ the same two container images run as **Lambda functions** behind an **API Gatewa
 browser signs in through a **Cognito user pool**, and **CloudFront** is the single public origin
 for the static frontend (S3) and the API (`/api/*`). `core_api` keeps its data in the DynamoDB
 table `${name_prefix}-core` ([ADR 0023](../../docs/architecture/adr/0023-dynamodb-data-store.md)).
-No load balancer, no NAT, no Secrets Manager; the only VPC endpoint is the free DynamoDB gateway.
-While RDS PostgreSQL still runs (only as the read-only source of the one-off copy) the bill is
-~15 €/month for RDS plus ~4 € for the rest; after TRA-219 retires it, about 5 €/month.
+No VPC, no load balancer, no NAT, no Secrets Manager: both functions run outside any VPC and
+reach AWS services over their public endpoints with IAM. The bill is about 5 €/month.
 
 CloudFront also has a **WAF web ACL** with the AWS managed rule groups
 `AmazonIpReputationList`, `CommonRuleSet` and `KnownBadInputsRuleSet`. It was created from the
@@ -18,7 +17,7 @@ removes it.
 
 | Function | Image | Where | Receives |
 |---|---|---|---|
-| `core-api` | `core-api` | private subnets (until TRA-219); DynamoDB through a gateway endpoint, RDS only for the one-off copy | `CORE_TABLE`, `DB_*` (copy only), `AUTH_MODE=cognito` + `COGNITO_*`, `BACKEND_CORS_ORIGINS` |
+| `core-api` | `core-api` | outside the VPC (DynamoDB through IAM, HTTPS) | `CORE_TABLE`, `AUTH_MODE=cognito` + `COGNITO_*`, `BACKEND_CORS_ORIGINS` |
 | `ai-api` | `ai-api` | outside the VPC (Bedrock, NVIDIA, `core_api` through CloudFront) | `LLM_PROVIDER` (`bedrock` by default) + `BEDROCK_*`, `NVIDIA_*` (fallback), `AUTH_MODE=cognito` + `COGNITO_*`, `CORE_API_URL=https://<domain>`, `RETRIEVAL_ENABLED` + `VECTOR_*` + `EMBEDDINGS_*` |
 
 Request path: `https://<domain>/api/v1/...` → CloudFront (`/api/*`, no cache, `Authorization`
@@ -30,12 +29,10 @@ a Cognito ID token, health endpoints included.
 
 | File | Resources |
 |---|---|
-| `network.tf`, `security.tf` | VPC with two private subnets (no IGW), DB subnet group, security groups: `core-api` egress to `rds:5432` and to the DynamoDB endpoint's prefix list on 443 |
-| `rds.tf` | RDS PostgreSQL 16 `db.t4g.micro`, private, encrypted, deletion protection; read only by the one-off `copy-from-postgres` until TRA-219 retires it |
-| `dynamodb.tf` | The `core_api` table `${name_prefix}-core` (on-demand, `PK`/`SK` + `GSI1`, point-in-time recovery, deletion protection), `core-api`'s item-level permissions on it, and the free DynamoDB gateway endpoint on the VPC's route table ([ADR 0023](../../docs/architecture/adr/0023-dynamodb-data-store.md)); see [DynamoDB cut-over](#dynamodb-cut-over-tra-218) |
+| `dynamodb.tf` | The `core_api` table `${name_prefix}-core` (on-demand, `PK`/`SK` + `GSI1`, point-in-time recovery, deletion protection), and `core-api`'s item-level permissions on it ([ADR 0023](../../docs/architecture/adr/0023-dynamodb-data-store.md)); see [History](#history-rds--dynamodb-2026-09-22) |
 | `ecr.tf` | Two ECR repositories: `${name_prefix}-core-api`, `${name_prefix}-ai-api` |
 | `cognito.tf` | User pool, Google identity provider, public app client (code + PKCE), `admin` group, hosted-UI domain, the JWKS as output and environment |
-| `lambda.tf` | Two container-image functions with their roles (VPC access for `core-api`; for `ai-api`, Bedrock invoke on the EU inference profiles of the chat and title models, see [Chat model](#chat-model-bedrock)) and log groups; permissions for the gateway |
+| `lambda.tf` | Two container-image functions with their roles (basic execution for both; for `ai-api`, Bedrock invoke on the EU inference profiles of the chat and title models, see [Chat model](#chat-model-bedrock)) and log groups; permissions for the gateway |
 | `vectors.tf` | S3 Vectors bucket and the `city-kb` index (1024 dimensions, cosine), plus the read-only `s3vectors` and Titan embeddings permissions of the `ai-api` role, see [Vector store](#vector-store-s3-vectors) |
 | `apigateway.tf` | REST API (regional), Cognito authorizer, the two proxy resources, deployment and `prod` stage |
 | `frontend.tf` | Private S3 bucket (OAC), CloudFront with the S3 default behaviour, the `/api/*` behaviour to the gateway and a directory-index function, S3's 403 for a missing page served as the export's `404.html` with status 404, Route 53 aliases; the public hosted zone and the ACM certificate (us-east-1, apex + wildcard, DNS-validated), both `prevent_destroy` (ADR 0010) |
@@ -229,35 +226,32 @@ curl -H "Authorization: Bearer $TOKEN" "$(terraform output -raw api_gateway_invo
 - An API call answers 404 with HTML → the API returned 403 (someone else's resource, an
   authorizer deny); the distribution-wide error response maps it. API 404s stay JSON.
 
-## DynamoDB cut-over (TRA-218)
+## History: RDS → DynamoDB (2026-09-22)
 
-[ADR 0023](../../docs/architecture/adr/0023-dynamodb-data-store.md) moves `core_api` from RDS to
-DynamoDB. The move happens once, in this order, from `infra/aws/` after `just aws-login`:
+[ADR 0023](../../docs/architecture/adr/0023-dynamodb-data-store.md) moved `core_api` from RDS
+PostgreSQL to DynamoDB on 2026-09-22 (TRA-217, TRA-218): the table was applied first, the
+DynamoDB image deployed, and the one-off `copy-from-postgres` command copied every user, trip,
+thread and message. A manual snapshot `travel-ai-pre-dynamodb-2026-09-22` was taken before the
+copy. TRA-219 then removed RDS, the VPC and the copy command from the code.
 
-1. **Table, permissions and endpoint** (additive; the running functions do not change):
+## Retiring RDS (TRA-219)
+
+The Terraform code no longer declares RDS, the VPC, its subnets, security groups or the DynamoDB
+gateway endpoint, so the next apply destroys them. Once, from `infra/aws/` after `just aws-login`:
+
+1. **Switch off deletion protection** (it is `true` in the state, and Terraform cannot destroy the
+   instance while it is on):
 
    ```bash
-   terraform apply -target=aws_dynamodb_table.core \
-     -target=aws_iam_role_policy.core_api_dynamodb -target=aws_vpc_endpoint.dynamodb
+   aws rds modify-db-instance --db-instance-identifier travel-ai-postgres \
+     --no-deletion-protection --apply-immediately
    ```
 
-2. **Deploy the DynamoDB image** of `core_api` (the first `main` commit after TRA-217) the usual
-   way ([deploy runbook](../../docs/runbooks/deploy.md)). The apply also sets `CORE_TABLE` on the
-   function. From this moment the site reads an empty table until step 3 finishes.
-3. **Copy the data**, once:
-
-   ```bash
-   fn=$(terraform output -raw core_api_function_name)
-   aws lambda invoke --function-name "$fn" --cli-binary-format raw-in-base64-out \
-     --payload '{"command": "copy-from-postgres"}' copy.json && cat copy.json
-   ```
-
-   The answer carries `result` with the number of users, trips, threads and messages copied; the
-   command fails if any written count differs from the read count. It is idempotent: run it
-   again after a failure.
-4. **Check** with a real sign-in: the trips page lists the account's trips, a trip opens, a chat
-   answer is saved.
-
-**Rollback** during the following week: redeploy the previous `core_api` image digest. It still
-talks to RDS, which nobody has written to since step 2; anything written to DynamoDB in between
-is lost. After a week without incidents, TRA-219 retires RDS.
+2. **Deploy backend** with `apply=true` ([deploy runbook](../../docs/runbooks/deploy.md)). The
+   apply takes `core-api` out of the VPC and destroys the instance, which leaves the final snapshot
+   `${name_prefix}-final` (`skip_final_snapshot = false` is in the state).
+3. **Be patient with the network.** Lambda can take up to ~40 minutes to release the function's
+   ENIs, so deleting the security groups and subnets may be slow. If the workflow times out,
+   run the deploy again: the remaining deletions pick up where they stopped.
+4. **After 30 days**, delete the two snapshots (`travel-ai-pre-dynamodb-2026-09-22` and
+   `${name_prefix}-final`) by hand from the RDS console or with `aws rds delete-db-snapshot`.

@@ -131,5 +131,6 @@ TTL on `expires_at`, no point-in-time recovery.
   the trip's key.
 - **Supersedes** the data part of ADR 0009 (RDS, the `ai` database with `pgvector`, the
   `migrate` command, `core_api` inside the VPC). The rest of ADR 0009 stands.
+- **2026-09-22:** RDS, the VPC and the copy command removed (TRA-219).
 
 Delivery: epics TRA-212 (TRA-214 to TRA-219) and TRA-213 (TRA-220 to TRA-222).

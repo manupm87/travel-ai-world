@@ -26,8 +26,8 @@ would issue for that account, so a browser can be signed in without Google: the 
 (`just test-e2e-stack`) and the Playwright MCP write it into `localStorage`
 (`docs/runbooks/local-dev.md`). It creates the account when there is none — the real Google
 sign-in adopts it later, matching on the email — refuses an inactive one, and needs
-`AUTH_MODE=local`. Creating accounts is exactly why it is deliberately not an `ops` command:
-`ops` is what `/events` exposes, and nothing in the running service imports `devtools`.
+`AUTH_MODE=local`. Creating accounts is exactly why nothing in the running service imports
+`devtools` (`tests/test_import_boundaries.py` checks it).
 
 ## Endpoints (`/api/v1`)
 
@@ -47,7 +47,6 @@ sign-in adopts it later, matching on the email — refuses an inactive one, and 
 | `GET/PATCH/DELETE` | `/chat-threads/{id}` | Bearer (owner) | 404 for another user's thread; the response has no messages; delete takes them with it |
 | `GET/POST` | `/chat-threads/{id}/messages/` | Bearer (owner) | Append-only, in the order written; an answer may carry `sources`, `model`, tokens and `latency_ms` ([ADR 0013](../../../../docs/architecture/adr/0013-chat-conversations-in-core-api.md)) |
 | `GET` | `/health/`, `/health/db` | — | `/health/db` asks DynamoDB for the table; 503 when it cannot |
-| `POST` | `/events` (root, not versioned, not in the OpenAPI document) | Lambda only | `{"command": "copy-from-postgres"}` from a direct Lambda invocation, answered with the command's `result`; unknown commands 400; 404 outside Lambda |
 
 Every trip collection offers `GET /` (paginated with `skip`/`limit`), `POST /`, `GET/PATCH/DELETE /{item_id}`.
 A child that exists under another trip answers 404, never 403, so ids leak nothing
@@ -68,7 +67,7 @@ Errors: `{"detail": {"message": "...", "error_code": "NOT_FOUND" | "FORBIDDEN" |
 ```text
 core_api/
 ├── main.py            create_app(...) with a lifespan that opens the table (app.state.table)
-├── config.py          CoreSettings(CommonSettings, DynamoSettings): CORE_TABLE, GOOGLE_*, DB_* (copy only)
+├── config.py          CoreSettings(CommonSettings, DynamoSettings): CORE_TABLE, GOOGLE_*
 ├── domain/            models.py (dataclasses + rules), ports.py (repository protocols), enums.py
 ├── infrastructure/dynamo/
 │                      table.py (spec, DynamoTable, open_table), keys.py, codec.py, repositories.py
@@ -82,10 +81,7 @@ core_api/
 ├── auth/google.py     IdentityVerifier port + GoogleTokenInfoVerifier adapter (local mode)
 ├── auth/principal.py  AccountPrincipal = Principal + the account's UUID
 ├── schemas/           Pydantic models; XUpdate = partial(XBase) (_partial.py); formats in _types.py
-├── ops.py             commands a deployed function runs on request (copy-from-postgres)
-├── legacy_sql/        the old PostgreSQL schema, read only by copy-from-postgres (goes in TRA-219)
-├── api/events.py      POST /events: the Lambda Web Adapter's pass-through for direct invocations
-├── devtools.py        dev-only: a local JWT for an account (never an ops command)
+├── devtools.py        dev-only: a local JWT for an account (never imported by the service)
 └── pagination.py      Page(skip, limit)
 ```
 
@@ -94,8 +90,5 @@ core_api/
 ```bash
 uv run pytest      # DynamoDB on moto, in process: no container, no database
 ```
-
-`tests/test_ops_copy.py` alone needs PostgreSQL (it builds the legacy schema in
-`<DB_NAME>_copytest`); without it the test is skipped with the reason.
 
 For agents: [`AGENTS.md`](AGENTS.md).

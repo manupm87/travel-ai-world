@@ -42,7 +42,7 @@ just test           # every backend package + frontend unit tests
 just test-core / test-ai / test-common / test-corpus / test-frontend / test-e2e
 just contracts      # export OpenAPI docs + regenerate frontend types (run after changing any schema/route)
 just docs-check     # documentation hygiene
-just docker-up      # backend only: proxy :8080 + core_api + ai_api + DynamoDB Local + PostgreSQL (copy source) (no Node)
+just docker-up      # backend only: proxy :8080 + core_api + ai_api + DynamoDB Local (no Node)
 just stack-up       # the stack as deployed: frontend export + the above on one origin :8080
 just build-stack    # only the export for :8080 (what stack-up runs before docker-up)
 just scrape         # run the city scraper (needs GOOGLE_API_KEY in its .env)
@@ -52,14 +52,14 @@ just aws-login      # AWS via IAM Identity Center (devcontainer); never access k
 ```
 
 Windows: `winget install Casey.Just` and run the recipes from Git Bash or WSL (they are POSIX shell).
-`just test-core` needs a non-empty `SECRET_KEY` (see `src/backend/services/core_api/.env.example`); DynamoDB is
-moto in process, and only its `copy-from-postgres` test uses PostgreSQL (skipped without it).
+`just test-core` needs a non-empty `SECRET_KEY` (see `src/backend/services/core_api/.env.example`) and no
+database: DynamoDB is moto in process.
 
 ## Non-negotiable rules
 
 1. **Run the checks before you finish**: `just lint`, the tests of every package you touched, and
    `just contracts` whenever a Pydantic schema or route changed (CI rejects drift).
-2. **Keep the service boundary**: `ai_api` never imports `core_api` or SQLAlchemy; `core_api` never
+2. **Keep the service boundary**: `ai_api` never imports `core_api`; `core_api` never
    imports `ai_api`. They talk over HTTP. Shared code goes to `travel_common` only if both need it.
 3. **Errors are domain errors**: raise `travel_common.exceptions.*` from services; never
    `HTTPException`; endpoints contain no `if not x: raise 404`.

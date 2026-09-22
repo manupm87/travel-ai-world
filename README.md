@@ -27,7 +27,7 @@ travel-ai-world/
 ├── docs/            # architecture/, runbooks/, api/ (generated), design/
 ├── scripts/         # check_docs.py (docs CI) · release.py (version bump + GitHub release)
 ├── .github/         # PR checks, image publishing, Pages deploy, manual backend deploy
-├── .devcontainer/   # VS Code container: toolchain + DynamoDB Local (+ PostgreSQL until TRA-219)
+├── .devcontainer/   # VS Code container: toolchain + DynamoDB Local
 ├── .claude/         # Claude Code: CLAUDE.md (imports AGENTS.md) and slash commands
 ├── justfile         # the one task runner for humans, CI and agents
 ├── AGENTS.md        # rules for coding agents
@@ -68,7 +68,7 @@ just stack-up       # the same plus the frontend export, on one origin http://lo
 
 | Workflow | Trigger | Does |
 |---|---|---|
-| `pr.yml` | pull request | path-filtered jobs: ruff, per-package tests (moto for DynamoDB; PostgreSQL only for `core_api`'s copy test), Docker builds, Compose stack e2e (export + APIs on one origin, signed in with a minted token), contract drift, eslint + Vitest + Playwright + `next build`, docs hygiene |
+| `pr.yml` | pull request | path-filtered jobs: ruff, per-package tests (moto for DynamoDB, no database server), Docker builds, Compose stack e2e (export + APIs on one origin, signed in with a minted token), contract drift, eslint + Vitest + Playwright + `next build`, docs hygiene |
 | `deploy.yml` | push to `main` touching `src/frontend/` | static export → S3 + CloudFront invalidation (AWS) |
 | `backend-images.yml` | push to `main` touching `src/backend/` | publishes `ghcr.io/manupm87/travel-ai-world/{core-api,ai-api}` |
 | `deploy-backend.yml` | manual | copies the images to GCP or AWS and runs Terraform (plan by default) |

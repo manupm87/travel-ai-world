@@ -4,7 +4,7 @@
 
 - Node.js 24 (`src/frontend/.nvmrc`), Python 3.12 (`src/backend/.python-version`), [uv](https://github.com/astral-sh/uv), [just](https://just.systems)
 - DynamoDB (ADR 0023): `just dynamodb-local` (moto, in memory, no Docker) or the devcontainer's /
-  Compose's DynamoDB Local; nothing else to install. `core_api` needs no PostgreSQL and has no
+  Compose's DynamoDB Local; nothing else to install. `core_api` needs no SQL database and has no
   migrations: it creates its table at start against a local endpoint
 - A Google OAuth client ID (the local flow keeps `AUTH_MODE=local`; the deployed Cognito flow is
   described in [`infra/aws/README.md`](../../infra/aws/README.md#sign-in-cognito)); an NVIDIA API key for the chat
@@ -19,7 +19,7 @@ Then edit the three env files it created:
 
 | File | Must set |
 |---|---|
-| `src/backend/services/core_api/.env` | `SECRET_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` (`DB_*` only for `copy-from-postgres`) |
+| `src/backend/services/core_api/.env` | `SECRET_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` |
 | `src/backend/services/ai_api/.env` | `SECRET_KEY` (**same value**), `NVIDIA_API_KEY` |
 | `src/frontend/.env.local` | `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, `NEXT_PUBLIC_API_URL=http://localhost:8000`, `NEXT_PUBLIC_AI_API_URL=http://localhost:8001` |
 
@@ -81,8 +81,8 @@ The browser signs in when the token and the profile are in `localStorage` under 
 `{"id": "<the token's sub>", "email": "...", "name": "..."}`. The Playwright suite does this with
 `page.addInitScript` (`src/frontend/e2e/trips.spec.ts`), and a coding agent does it with the
 Playwright MCP's `browser_evaluate` (`.claude/commands/check-site.md`, mode 2). The command is
-`python -m core_api.devtools`, deliberately not an `ops` command — creating accounts is exactly
-why: `ops` is what the Lambda's `/events` exposes. In Cognito mode it refuses, since the pool issues those tokens.
+`python -m core_api.devtools`, which the deployed service never imports — creating accounts is
+exactly why. In Cognito mode it refuses, since the pool issues those tokens.
 
 ## Which mode
 
@@ -124,7 +124,7 @@ with `just dev-core` and `just dev-frontend` running; the Compose origin itself 
 
 ```bash
 just lint
-just test            # DynamoDB on moto; core_api's copy test uses PostgreSQL or skips
+just test            # DynamoDB on moto; no database server
 just contracts       # only if you changed a schema or a route
 just docs-check
 ```
@@ -132,12 +132,11 @@ just docs-check
 ## Devcontainer
 
 Open the repo in VS Code → "Reopen in Container". `.devcontainer/` starts **only** a terminal
-container, PostgreSQL 16 and DynamoDB Local (`dynamodb:8000`, in memory); the services are
+container and DynamoDB Local (`dynamodb:8000`, in memory); the services are
 not run for you. On first creation it runs
 `just setup` and installs Playwright's Chromium, then you fill in the secrets and
 run `just dev-core`, `just dev-ai` and `just dev-frontend` exactly as above (ports 3000, 8000
-and 8001 are forwarded). `DB_*` are injected by the compose file, so `copy-from-postgres` and
-its test reach the container's PostgreSQL without editing `.env`; likewise
+and 8001 are forwarded). The compose file injects
 `DYNAMODB_ENDPOINT_URL=http://dynamodb:8000` (no dummy AWS keys, so `just aws-login` keeps
 working: the SSO session signs the local requests). The DynamoDB service arrives with the next
 "Rebuild Container".
