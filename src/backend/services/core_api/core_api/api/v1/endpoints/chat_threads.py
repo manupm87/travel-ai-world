@@ -14,7 +14,7 @@ from core_api.api.deps import (
     page_params,
 )
 from core_api.auth.principal import AccountPrincipal
-from core_api.models.chat_thread import ChatThread
+from core_api.domain.models import ChatThread
 from core_api.pagination import Page
 from core_api.schemas.chat_message import ChatMessageCreate, ChatMessageResponse
 from core_api.schemas.chat_thread import (

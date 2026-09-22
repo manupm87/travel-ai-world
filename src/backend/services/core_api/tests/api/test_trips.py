@@ -1,6 +1,8 @@
 """Trips are private: listing, reading and mutating stop at the owner boundary."""
 
-from core_api.models.user import User
+import uuid
+
+from core_api.domain.models import User
 from httpx import AsyncClient
 from travel_common.principal import Role
 
@@ -17,7 +19,7 @@ async def test_create_and_list_only_own_trips(
         TRIPS_URL, json=trip_body(title="Lisboa"), headers=headers_for(alice)
     )
     assert created.status_code == 201
-    assert created.json()["user_id"] == alice.id
+    assert created.json()["user_id"] == str(alice.id)
 
     alice_trips = await client.get(TRIPS_URL, headers=headers_for(alice))
     bob_trips = await client.get(TRIPS_URL, headers=headers_for(bob))
@@ -38,7 +40,7 @@ async def test_list_is_paginated(client: AsyncClient, alice: User):
     assert too_big.status_code == 422
 
 
-async def test_other_users_trip_is_forbidden(
+async def test_other_users_trip_is_not_found(
     client: AsyncClient, alice: User, bob: User
 ):
     created = await client.post(
@@ -48,8 +50,9 @@ async def test_other_users_trip_is_forbidden(
 
     response = await client.get(f"{TRIPS_URL}{trip_id}", headers=headers_for(bob))
 
-    assert response.status_code == 403
-    assert response.json()["detail"]["error_code"] == "FORBIDDEN"
+    # The trip is keyed by its owner (ADR 0023): for anyone else it is not there.
+    assert response.status_code == 404
+    assert response.json()["detail"]["error_code"] == "NOT_FOUND"
 
 
 async def test_missing_trip_is_not_found(client: AsyncClient, alice: User):
@@ -109,7 +112,7 @@ async def test_a_trip_without_a_city_is_rejected(client: AsyncClient, alice: Use
 
 
 async def test_unknown_user_in_valid_token_is_unauthorized(client: AsyncClient):
-    ghost = User(id=999_999, email="ghost@example.com", role=Role.USER)
+    ghost = User(id=uuid.uuid4(), email="ghost@example.com", role=Role.USER)
 
     response = await client.get(TRIPS_URL, headers=headers_for(ghost))
 

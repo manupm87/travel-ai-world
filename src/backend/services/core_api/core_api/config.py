@@ -7,7 +7,14 @@ from travel_common.dynamodb import DynamoSettings
 class CoreSettings(CommonSettings, DynamoSettings):
     PROJECT_NAME: str = "Kyrian World — Core API"
 
-    # PostgreSQL (the only supported engine: migrations use Postgres types)
+    # The one DynamoDB table core_api keeps everything in (ADR 0023). Terraform
+    # sets `travel-ai-core` on AWS; the local default can never name a real
+    # table, so a laptop without DYNAMODB_ENDPOINT_URL fails with "table not
+    # found" instead of touching production.
+    CORE_TABLE: str = "travel-ai-local-core"
+
+    # PostgreSQL: read only by `copy-from-postgres` (core_api.ops), the one-off
+    # copy of RDS into DynamoDB. Removed with RDS in TRA-219.
     DB_SERVER: str = "127.0.0.1"
     DB_USER: str = ""
     DB_PASSWORD: str = ""

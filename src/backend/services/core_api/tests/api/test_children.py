@@ -1,14 +1,15 @@
 """Child resources live inside the owner's trip.
 
 The same contract holds for every collection: scoped listing, 404 (never a
-leak) for anything under someone else's trip, partial PATCH, cascade delete.
+leak) for anything under someone else's trip, partial PATCH, and the children
+go with the trip (they are stored inside it, ADR 0023).
 """
 
 from dataclasses import dataclass
 from typing import Any
 
 import pytest
-from core_api.models.user import User
+from core_api.domain.models import User
 from httpx import AsyncClient
 
 from tests.conftest import headers_for, trip_body
@@ -130,7 +131,7 @@ async def test_crud_inside_own_trip(client: AsyncClient, alice: User, child: Chi
 
 
 @pytest.mark.parametrize("child", CHILDREN)
-async def test_other_users_trip_is_forbidden_for_children(
+async def test_other_users_trip_is_not_found_for_children(
     client: AsyncClient, alice: User, bob: User, child: Child
 ):
     trip_id, day_id = await _trip_with_day(client, headers_for(alice))
@@ -139,20 +140,21 @@ async def test_other_users_trip_is_forbidden_for_children(
         await client.post(url, json=child.create, headers=headers_for(alice))
     ).json()
 
+    # The trip is keyed by its owner (ADR 0023): for bob it does not exist.
     bob_headers = headers_for(bob)
-    assert (await client.get(url, headers=bob_headers)).status_code == 403
+    assert (await client.get(url, headers=bob_headers)).status_code == 404
     assert (
         await client.post(url, json=child.create, headers=bob_headers)
-    ).status_code == 403
+    ).status_code == 404
     assert (
         await client.get(f"{url}{item['id']}", headers=bob_headers)
-    ).status_code == 403
+    ).status_code == 404
     assert (
         await client.patch(f"{url}{item['id']}", json=child.patch, headers=bob_headers)
-    ).status_code == 403
+    ).status_code == 404
     assert (
         await client.delete(f"{url}{item['id']}", headers=bob_headers)
-    ).status_code == 403
+    ).status_code == 404
 
     # Nothing changed for the owner.
     still = await client.get(f"{url}{item['id']}", headers=headers_for(alice))

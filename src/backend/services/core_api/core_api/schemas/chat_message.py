@@ -3,7 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from core_api.models.enums import ChatRole
+from core_api.domain.enums import ChatRole
 from core_api.schemas._types import Count, MessageText
 
 

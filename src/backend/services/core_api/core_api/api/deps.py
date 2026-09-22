@@ -1,38 +1,35 @@
-"""FastAPI dependables: pagination, authentication, RBAC, service wiring and
-the ownership boundaries (`get_owned_trip`, `get_owned_itinerary_day`,
-`get_owned_chat_thread`)."""
+"""FastAPI dependables: pagination, the table and its repositories, service
+wiring, authentication, RBAC and the ownership boundaries (`get_owned_trip`,
+`get_owned_itinerary_day`, `get_owned_chat_thread`)."""
 
-from collections.abc import Callable
-from typing import Any
 from uuid import UUID
 
-from fastapi import Depends, Query
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import Depends, Query, Request
 from travel_common.exceptions import Forbidden
 from travel_common.http.auth import extract_bearer_token
 
 from core_api.auth.google import GoogleTokenInfoVerifier, IdentityVerifier
 from core_api.auth.principal import AccountPrincipal
 from core_api.config import CoreSettings, get_settings
-from core_api.db.session import get_db
-from core_api.models.accommodation import Accommodation
-from core_api.models.activity import Activity
-from core_api.models.base import Base
-from core_api.models.chat_thread import ChatThread
-from core_api.models.itinerary_day import ItineraryDay
-from core_api.models.meal import Meal
-from core_api.models.transportation import Transportation
-from core_api.models.trip import Trip
+from core_api.domain.models import ChatThread, Trip
+from core_api.domain.ports import (
+    ChatMessageRepository,
+    ChatThreadRepository,
+    TripRepository,
+    UserRepository,
+)
+from core_api.infrastructure.dynamo.repositories import (
+    DynamoChatMessageRepository,
+    DynamoChatThreadRepository,
+    DynamoTripRepository,
+    DynamoUserRepository,
+)
+from core_api.infrastructure.dynamo.table import DynamoTable
 from core_api.pagination import MAX_PAGE_SIZE, Page
-from core_api.repositories.base import BaseRepository
-from core_api.repositories.chat_message_repository import ChatMessageRepository
-from core_api.repositories.chat_thread_repository import ChatThreadRepository
-from core_api.repositories.trip_repository import TripRepository
-from core_api.repositories.user_repository import UserRepository
 from core_api.services.auth_service import Authenticate, SignIn
-from core_api.services.base import BaseService
 from core_api.services.chat_message_service import ChatMessageService
 from core_api.services.chat_thread_service import ChatThreadService
+from core_api.services.trip_children import ITINERARY_DAYS, Located, get_child
 from core_api.services.trip_service import TripService
 from core_api.services.user_service import UserService
 
@@ -46,40 +43,58 @@ def page_params(
     return Page(skip=skip, limit=limit)
 
 
-# ── Service wiring ───────────────────────────────────────────────────────────
+# ── Storage and service wiring ───────────────────────────────────────────────
+# The lifespan (`main.py`) builds the table handle once per process; tests
+# override `get_table` with one over moto.
 
 
-def provide[S](
-    service_cls: Callable[[Any], S],
-    model: type[Base],
-    repository_cls: type[BaseRepository[Any]] = BaseRepository,
-) -> Callable[..., S]:
-    """Build a `Depends`-able that wires `service_cls(repository_cls(db, model))`.
-
-    Entities without custom queries or rules use the generic classes directly;
-    only pass a subclass when the entity needs more.
-    """
-
-    def _provider(db: AsyncSession = Depends(get_db)) -> S:
-        return service_cls(repository_cls(db, model))
-
-    _provider.__name__ = f"get_{model.__name__.lower()}_service"
-    return _provider
+def get_table(request: Request) -> DynamoTable:
+    return request.app.state.table
 
 
-get_user_service = provide(UserService, UserRepository.model, UserRepository)
-get_trip_service = provide(TripService, TripRepository.model, TripRepository)
-get_itinerary_day_service = provide(BaseService, ItineraryDay)
-get_activity_service = provide(BaseService, Activity)
-get_meal_service = provide(BaseService, Meal)
-get_accommodation_service = provide(BaseService, Accommodation)
-get_transportation_service = provide(BaseService, Transportation)
-get_chat_thread_service = provide(
-    ChatThreadService, ChatThreadRepository.model, ChatThreadRepository
-)
-get_chat_message_service = provide(
-    ChatMessageService, ChatMessageRepository.model, ChatMessageRepository
-)
+def get_user_repository(table: DynamoTable = Depends(get_table)) -> UserRepository:
+    return DynamoUserRepository(table)
+
+
+def get_trip_repository(table: DynamoTable = Depends(get_table)) -> TripRepository:
+    return DynamoTripRepository(table)
+
+
+def get_chat_thread_repository(
+    table: DynamoTable = Depends(get_table),
+) -> ChatThreadRepository:
+    return DynamoChatThreadRepository(table)
+
+
+def get_chat_message_repository(
+    table: DynamoTable = Depends(get_table),
+) -> ChatMessageRepository:
+    return DynamoChatMessageRepository(table)
+
+
+def get_user_service(
+    users: UserRepository = Depends(get_user_repository),
+) -> UserService:
+    return UserService(users)
+
+
+def get_trip_service(
+    trips: TripRepository = Depends(get_trip_repository),
+) -> TripService:
+    return TripService(trips)
+
+
+def get_chat_thread_service(
+    threads: ChatThreadRepository = Depends(get_chat_thread_repository),
+) -> ChatThreadService:
+    return ChatThreadService(threads)
+
+
+def get_chat_message_service(
+    messages: ChatMessageRepository = Depends(get_chat_message_repository),
+) -> ChatMessageService:
+    return ChatMessageService(messages)
+
 
 # ── Authentication ───────────────────────────────────────────────────────────
 
@@ -127,10 +142,11 @@ def get_sign_in(
 
 # ── Aggregate boundary ───────────────────────────────────────────────────────
 # A trip is the aggregate root: every child resource is reached through the
-# owner's trip, so authorization happens once, here. Reads resolve the owned
-# trip; writes resolve the *editable* one, because a trip that is happening
-# now or already over is read-only (ADR 0019) — the entity says so and the
-# endpoints never ask.
+# owner's trip, so authorization happens once, here. The trip is read with
+# the caller as its owner, so another user's trip is not found (404). Reads
+# resolve the owned trip; writes resolve the *editable* one, because a trip
+# that is happening now or already over is read-only (ADR 0019) — the entity
+# says so and the endpoints never ask.
 
 
 async def get_owned_trip(
@@ -147,21 +163,28 @@ async def get_editable_trip(trip: Trip = Depends(get_owned_trip)) -> Trip:
     return trip
 
 
+async def get_owned_trip_node(trip: Trip = Depends(get_owned_trip)) -> Located:
+    """The trip as the holder of a trip-level collection (reads)."""
+    return Located(trip=trip, parent=trip)
+
+
+async def get_editable_trip_node(trip: Trip = Depends(get_editable_trip)) -> Located:
+    """The trip as the holder of a trip-level collection (writes)."""
+    return Located(trip=trip, parent=trip)
+
+
 async def get_owned_itinerary_day(
-    itinerary_day_id: UUID,
-    trip: Trip = Depends(get_owned_trip),
-    days: BaseService[ItineraryDay, Any, Any] = Depends(get_itinerary_day_service),
-) -> ItineraryDay:
-    return await days.get_in(itinerary_day_id, trip_id=trip.id)
+    itinerary_day_id: UUID, trip: Trip = Depends(get_owned_trip)
+) -> Located:
+    """A day found inside the caller's trip, with the trip to save it by."""
+    return Located(trip=trip, parent=get_child(trip, ITINERARY_DAYS, itinerary_day_id))
 
 
 async def get_editable_itinerary_day(
-    itinerary_day_id: UUID,
-    trip: Trip = Depends(get_editable_trip),
-    days: BaseService[ItineraryDay, Any, Any] = Depends(get_itinerary_day_service),
-) -> ItineraryDay:
+    itinerary_day_id: UUID, trip: Trip = Depends(get_editable_trip)
+) -> Located:
     """A day of an editable trip: the lock is checked before the day is read."""
-    return await days.get_in(itinerary_day_id, trip_id=trip.id)
+    return Located(trip=trip, parent=get_child(trip, ITINERARY_DAYS, itinerary_day_id))
 
 
 # ── Chat threads ─────────────────────────────────────────────────────────────

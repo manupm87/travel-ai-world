@@ -1,14 +1,7 @@
-import logging
-
 from fastapi import APIRouter, Depends
-from sqlalchemy import text
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.ext.asyncio import AsyncSession
-from travel_common.exceptions import ProviderUnavailable
 
-from core_api.db.session import get_db
-
-logger = logging.getLogger(__name__)
+from core_api.api.deps import get_table
+from core_api.infrastructure.dynamo.table import DynamoTable
 
 router = APIRouter()
 
@@ -20,11 +13,7 @@ async def health_check():
 
 
 @router.get("/db")
-async def db_health_check(db: AsyncSession = Depends(get_db)):
-    """Readiness: the database answers. 503 (via ProviderUnavailable) when it does not."""
-    try:
-        await db.execute(text("SELECT 1"))
-    except (SQLAlchemyError, OSError) as exc:
-        logger.error("DB health check failed: %s", exc)
-        raise ProviderUnavailable("Database unavailable") from exc
+async def db_health_check(table: DynamoTable = Depends(get_table)):
+    """Readiness: the table answers. 503 (via ProviderUnavailable) when it does not."""
+    await table.ping()
     return {"status": "ok", "database": "connected"}

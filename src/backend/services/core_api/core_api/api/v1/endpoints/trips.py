@@ -9,7 +9,7 @@ from core_api.api.deps import (
     page_params,
 )
 from core_api.auth.principal import AccountPrincipal
-from core_api.models.trip import Trip
+from core_api.domain.models import Trip
 from core_api.pagination import Page
 from core_api.schemas.trip import TripCreate, TripResponse, TripUpdate
 from core_api.services.trip_service import TripService

@@ -3,7 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, computed_field
 
-from core_api.models.trip import TripPhase, phase_of
+from core_api.domain.models import TripPhase, phase_of
 from core_api.schemas._partial import partial
 from core_api.schemas._types import (
     BudgetTier,
@@ -71,10 +71,10 @@ TripUpdate = partial(TripBase, "TripUpdate")
 
 class TripResponse(TripBase):
     id: UUID
-    user_id: int
+    user_id: UUID
     created_at: datetime
     updated_at: datetime
-    # Nested relationships — names match the ORM attributes so they populate.
+    # The aggregate — names match the entity attributes so they populate.
     itinerary_days: list[ItineraryDayResponse] = []
     accommodations: list[AccommodationResponse] = []
     transportations: list[TransportationResponse] = []

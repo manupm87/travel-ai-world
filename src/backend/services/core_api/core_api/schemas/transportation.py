@@ -3,7 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
-from core_api.models.enums import TransportCategory, TransportType
+from core_api.domain.enums import TransportCategory, TransportType
 from core_api.schemas._partial import partial
 from core_api.schemas._types import Money, PositiveMinutes
 

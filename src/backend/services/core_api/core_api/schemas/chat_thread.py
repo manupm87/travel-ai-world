@@ -21,7 +21,7 @@ ChatThreadUpdate = partial(ChatThreadBase, "ChatThreadUpdate")
 
 class ChatThreadResponse(ChatThreadBase):
     id: UUID
-    user_id: int
+    user_id: UUID
     created_at: datetime
     updated_at: datetime
 

@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from pydantic import BaseModel, ConfigDict, EmailStr
 from travel_common.principal import Role
 
@@ -21,7 +23,7 @@ class UserRoleUpdate(BaseModel):
 
 
 class UserResponse(UserBase):
-    id: int
+    id: UUID
     role: Role
     name: str | None = None
     picture: str | None = None
@@ -42,7 +44,7 @@ class GoogleAuthRequest(BaseModel):
 class AuthUser(BaseModel):
     """The profile the frontend keeps next to the access token."""
 
-    id: int
+    id: UUID
     email: str
     name: str | None = None
     picture: str | None = None

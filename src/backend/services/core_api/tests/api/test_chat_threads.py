@@ -1,12 +1,13 @@
 """Conversations are private, and their messages are an append-only log."""
 
 from typing import Any
+from uuid import UUID
 
-from core_api.models.chat_message import ChatMessage
-from core_api.models.user import User
+from core_api.domain.models import User
+from core_api.infrastructure.dynamo.repositories import DynamoChatMessageRepository
+from core_api.infrastructure.dynamo.table import DynamoTable
+from core_api.pagination import Page
 from httpx import AsyncClient
-from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from tests.conftest import headers_for
 
@@ -44,7 +45,7 @@ async def test_create_and_list_only_own_threads(
         headers=headers_for(alice),
     )
     assert created.status_code == 201
-    assert created.json()["user_id"] == alice.id
+    assert created.json()["user_id"] == str(alice.id)
     assert created.json()["city"] == "berlin", "the city is stored as a slug"
 
     alice_threads = await client.get(THREADS_URL, headers=headers_for(alice))
@@ -143,7 +144,7 @@ async def test_invalid_input_is_rejected(client: AsyncClient, alice: User):
     assert bad_city.status_code == 422
 
 
-async def test_other_users_thread_is_forbidden(
+async def test_other_users_thread_is_not_found(
     client: AsyncClient, alice: User, bob: User
 ):
     thread_id = await start_thread(client, alice, title="privado")
@@ -159,7 +160,8 @@ async def test_other_users_thread_is_forbidden(
         await client.delete(f"{THREADS_URL}{thread_id}", headers=bob_headers),
     ]
 
-    assert [r.status_code for r in responses] == [403, 403, 403, 403]
+    # Threads are keyed by their owner (ADR 0023): for bob this one is not there.
+    assert [r.status_code for r in responses] == [404, 404, 404, 404]
 
 
 async def test_missing_thread_is_not_found(client: AsyncClient, alice: User):
@@ -170,7 +172,7 @@ async def test_missing_thread_is_not_found(client: AsyncClient, alice: User):
 
 
 async def test_rename_then_delete_takes_the_messages_with_it(
-    client: AsyncClient, alice: User, db_session: AsyncSession
+    client: AsyncClient, alice: User, table: DynamoTable
 ):
     headers = headers_for(alice)
     thread_id = await start_thread(client, alice, title="Berlín", city="berlin")
@@ -189,8 +191,10 @@ async def test_rename_then_delete_takes_the_messages_with_it(
     assert (
         await client.get(f"{THREADS_URL}{thread_id}", headers=headers)
     ).status_code == 404
-    remaining = await db_session.scalar(select(func.count()).select_from(ChatMessage))
-    assert remaining == 0
+    remaining = await DynamoChatMessageRepository(table).list_in(
+        UUID(thread_id), Page()
+    )
+    assert remaining == []
 
 
 async def test_threads_require_a_token(client: AsyncClient):

@@ -6,6 +6,7 @@ Google credential for one of our own tokens.
 """
 
 from dataclasses import dataclass
+from uuid import UUID
 
 from travel_common.exceptions import Unauthorized
 from travel_common.principal import Claims, Principal
@@ -14,7 +15,7 @@ from travel_common.security import create_access_token, verify_token
 from core_api.auth.google import ExternalIdentity, IdentityVerifier
 from core_api.auth.principal import AccountPrincipal
 from core_api.config import CoreSettings
-from core_api.models.user import User
+from core_api.domain.models import User
 from core_api.services.user_service import UserService
 
 COGNITO_PROVIDER = "cognito"
@@ -23,10 +24,10 @@ COGNITO_PROVIDER = "cognito"
 class Authenticate:
     """Verify the token, then confirm the account exists and is active.
 
-    The database is the source of truth for status: a revoked user is cut
+    The account store is the source of truth for status: a revoked user is cut
     off immediately, not when the token expires. Who owns the role depends
     on the mode: the database in local mode, the Cognito `admin` group in
-    Cognito mode (mirrored into the row so profiles read the same).
+    Cognito mode (mirrored into the profile so it reads the same).
     """
 
     def __init__(self, users: UserService, settings: CoreSettings) -> None:
@@ -44,7 +45,8 @@ class Authenticate:
         )
 
     async def _upsert_cognito_user(self, claims: Claims) -> User:
-        """The pool already authenticated the person; the row follows the claims."""
+        """The pool already authenticated the person; the profile follows the
+        claims, and is written only when they changed it."""
         identity = ExternalIdentity(
             subject=claims.subject,
             email=claims.email,
@@ -58,10 +60,10 @@ class Authenticate:
         return user
 
 
-def _account_id(claims: Claims) -> int:
-    """Local tokens name the account by its integer id."""
+def _account_id(claims: Claims) -> UUID:
+    """Local tokens name the account by its id, a UUID."""
     try:
-        return int(claims.subject)
+        return UUID(claims.subject)
     except ValueError as exc:
         raise Unauthorized("Invalid authentication credentials") from exc
 

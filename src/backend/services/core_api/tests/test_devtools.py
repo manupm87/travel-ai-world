@@ -8,21 +8,23 @@ import pytest
 from core_api import devtools, ops
 from core_api.api import events
 from core_api.config import CoreSettings, get_settings
+from core_api.domain.models import User
+from core_api.infrastructure.dynamo.repositories import DynamoUserRepository
 from core_api.main import app
-from core_api.models.user import User
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession
 from travel_common.exceptions import BadRequest, DomainError, Forbidden
 from travel_common.principal import Role
 from travel_common.security import decode_access_token, principal_from_token
 
-from tests.conftest import AsyncSessionTest, make_user
+from tests.conftest import TEST_TABLE, make_user
 
 settings = get_settings()
 
 
-async def test_the_token_is_what_the_sign_in_would_issue(alice: User):
-    token = await devtools.mint_token(AsyncSessionTest, alice.email, settings)
+async def test_the_token_is_what_the_sign_in_would_issue(
+    users: DynamoUserRepository, alice: User
+):
+    token = await devtools.mint_token(users, alice.email, settings)
 
     claims = decode_access_token(token, settings)
     assert claims["sub"] == str(alice.id)
@@ -37,8 +39,10 @@ async def test_the_token_is_what_the_sign_in_would_issue(alice: User):
     )
 
 
-async def test_the_api_accepts_the_token(client: AsyncClient, alice: User):
-    token = await devtools.mint_token(AsyncSessionTest, alice.email, settings)
+async def test_the_api_accepts_the_token(
+    client: AsyncClient, users: DynamoUserRepository, alice: User
+):
+    token = await devtools.mint_token(users, alice.email, settings)
 
     response = await client.get(
         "/api/v1/users/me", headers={"Authorization": f"Bearer {token}"}
@@ -48,18 +52,18 @@ async def test_the_api_accepts_the_token(client: AsyncClient, alice: User):
     assert response.json()["email"] == alice.email
 
 
-async def test_an_admin_keeps_its_role(admin: User):
-    token = await devtools.mint_token(AsyncSessionTest, admin.email, settings)
+async def test_an_admin_keeps_its_role(users: DynamoUserRepository, admin: User):
+    token = await devtools.mint_token(users, admin.email, settings)
 
     assert principal_from_token(token, settings).role is Role.ADMIN
 
 
 async def test_an_unknown_account_is_created(
-    client: AsyncClient, db_session: AsyncSession
+    client: AsyncClient, users: DynamoUserRepository
 ):
     """A developer (and CI) gets a usable account from the minter alone; the
     real Google sign-in adopts it later, matching on the email."""
-    token = await devtools.mint_token(AsyncSessionTest, "nobody@example.com", settings)
+    token = await devtools.mint_token(users, "nobody@example.com", settings)
 
     me = await client.get(
         "/api/v1/users/me", headers={"Authorization": f"Bearer {token}"}
@@ -67,26 +71,37 @@ async def test_an_unknown_account_is_created(
     assert me.status_code == 200, me.text
     assert me.json()["email"] == "nobody@example.com"
 
-    again = await devtools.mint_token(AsyncSessionTest, "nobody@example.com", settings)
+    again = await devtools.mint_token(users, "nobody@example.com", settings)
     assert principal_from_token(again, settings).subject == (
         principal_from_token(token, settings).subject
     ), "minting twice reuses the account"
 
 
-async def test_an_inactive_account_is_refused(db_session: AsyncSession):
-    user = await make_user(db_session, "gone@example.com")
-    user.is_active = False
-    await db_session.commit()
+async def test_an_inactive_account_is_refused(users: DynamoUserRepository):
+    user = await make_user("gone@example.com", is_active=False)
 
     with pytest.raises(Forbidden, match="inactive"):
-        await devtools.mint_token(AsyncSessionTest, user.email, settings)
+        await devtools.mint_token(users, user.email, settings)
 
 
-async def test_cognito_mode_refuses_to_mint(alice: User):
+async def test_cognito_mode_refuses_to_mint(users: DynamoUserRepository, alice: User):
     cognito = CoreSettings(AUTH_MODE="cognito", SECRET_KEY=settings.SECRET_KEY)
 
     with pytest.raises(Forbidden, match="Cognito"):
-        await devtools.mint_token(AsyncSessionTest, alice.email, cognito)
+        await devtools.mint_token(users, alice.email, cognito)
+
+
+async def test_the_command_opens_its_own_table(users: DynamoUserRepository):
+    """What `just dev-token` runs: settings name the table, nothing else."""
+    own = CoreSettings(
+        SECRET_KEY=settings.SECRET_KEY, CORE_TABLE=TEST_TABLE, DYNAMODB_ENDPOINT_URL=""
+    )
+
+    token = await devtools._mint_with_own_table("cli@example.com", own)
+
+    created = await users.get_by_email("cli@example.com")
+    assert created is not None
+    assert principal_from_token(token, settings).subject == str(created.id)
 
 
 def test_cli_prints_the_token_and_exits_zero(
@@ -95,7 +110,7 @@ def test_cli_prints_the_token_and_exits_zero(
     async def fake_mint(email: str, settings: Any) -> str:
         return f"jwt-for-{email}"
 
-    monkeypatch.setattr(devtools, "_mint_with_own_engine", fake_mint)
+    monkeypatch.setattr(devtools, "_mint_with_own_table", fake_mint)
 
     assert devtools.main(["token", "you@example.com"]) == 0
     out, err = capsys.readouterr()
@@ -109,7 +124,7 @@ def test_cli_exits_one_with_a_message_when_minting_is_refused(
     async def fake_mint(email: str, settings: Any) -> str:
         raise DomainError(f"Account {email} is inactive")
 
-    monkeypatch.setattr(devtools, "_mint_with_own_engine", fake_mint)
+    monkeypatch.setattr(devtools, "_mint_with_own_table", fake_mint)
 
     assert devtools.main(["token", "nobody@example.com"]) == 1
     out, err = capsys.readouterr()

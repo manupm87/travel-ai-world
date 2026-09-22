@@ -1,5 +1,7 @@
 """User endpoints: the caller manages their own account; admins see everyone."""
 
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, status
 
 from core_api.api.deps import (
@@ -16,7 +18,7 @@ from core_api.services.user_service import UserService
 router = APIRouter()
 
 # Static routes (/me) MUST be declared before parameterized ones (/{user_id}),
-# otherwise FastAPI tries to parse "me" as an int and returns 422.
+# otherwise FastAPI tries to parse "me" as a UUID and returns 422.
 
 
 @router.get("/", response_model=list[UserResponse])
@@ -40,7 +42,7 @@ async def read_user_me(
 
 @router.get("/{user_id}", response_model=UserResponse)
 async def read_user(
-    user_id: int,
+    user_id: UUID,
     _admin: AccountPrincipal = Depends(get_current_admin_user),
     service: UserService = Depends(get_user_service),
 ):
@@ -50,7 +52,7 @@ async def read_user(
 
 @router.patch("/{user_id}", response_model=UserResponse)
 async def update_user(
-    user_id: int,
+    user_id: UUID,
     user_in: UserUpdate,
     principal: AccountPrincipal = Depends(get_current_user),
     service: UserService = Depends(get_user_service),
@@ -61,7 +63,7 @@ async def update_user(
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user(
-    user_id: int,
+    user_id: UUID,
     principal: AccountPrincipal = Depends(get_current_user),
     service: UserService = Depends(get_user_service),
 ) -> None:
@@ -71,7 +73,7 @@ async def delete_user(
 
 @router.patch("/{user_id}/role", response_model=UserResponse)
 async def update_user_role(
-    user_id: int,
+    user_id: UUID,
     role_in: UserRoleUpdate,
     _admin: AccountPrincipal = Depends(get_current_admin_user),
     service: UserService = Depends(get_user_service),

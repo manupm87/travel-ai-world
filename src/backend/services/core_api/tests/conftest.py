@@ -1,89 +1,70 @@
-"""Fixtures: a throwaway PostgreSQL database, an app client and two users.
+"""Fixtures: the core table on moto, an app client and three users.
 
-Tests run against real PostgreSQL (the migrations use Postgres types). The
-database `<DB_NAME>_test` is created on demand and emptied after every test.
+Every test runs inside `mock_dynamodb()` (no AWS, no database server): the
+table is created fresh with `ensure_table` and the app's `get_table`
+dependency is pointed at it. Only `tests/test_ops_copy.py` needs PostgreSQL.
 """
 
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, AsyncIterator
 from datetime import UTC, datetime, timedelta
 
 import pytest
-from core_api import models  # noqa: F401 — registers models with Base.metadata
+from core_api.api.deps import get_table
 from core_api.config import get_settings
-from core_api.db.session import get_db, unit_of_work
+from core_api.domain.models import User
+from core_api.infrastructure.dynamo.repositories import DynamoUserRepository
+from core_api.infrastructure.dynamo.table import DynamoTable
 from core_api.main import app
-from core_api.models.base import Base
-from core_api.models.user import User
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.pool import NullPool
+from travel_common.dynamodb import dynamodb_client
 from travel_common.principal import Principal, Role
 from travel_common.security import create_access_token
+from travel_common.testing import mock_dynamodb
 
 settings = get_settings()
-TEST_DB_NAME = f"{settings.DB_NAME}_test"
-_SERVER = f"postgresql+asyncpg://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_SERVER}:{settings.DB_PORT}"
-
-# Engine for creating the test DB (connects to the default 'postgres' database)
-setup_engine = create_async_engine(
-    f"{_SERVER}/postgres", isolation_level="AUTOCOMMIT", poolclass=NullPool
-)
-engine_test = create_async_engine(f"{_SERVER}/{TEST_DB_NAME}", poolclass=NullPool)
-AsyncSessionTest = async_sessionmaker(
-    bind=engine_test, class_=AsyncSession, expire_on_commit=False
-)
+TEST_TABLE = "travel-ai-test-core"
 
 
-@pytest.fixture(scope="session")
-async def setup_db():
-    async with setup_engine.begin() as conn:
-        exists = await conn.execute(
-            text("SELECT 1 FROM pg_database WHERE datname = :name"),
-            {"name": TEST_DB_NAME},
-        )
-        if not exists.scalar():
-            await conn.execute(text(f'CREATE DATABASE "{TEST_DB_NAME}"'))
+class _Current:
+    """The table of the running test, for helpers that are not fixtures."""
 
-    async with engine_test.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-        await conn.run_sync(Base.metadata.create_all)
+    table: DynamoTable | None = None
 
-    yield
 
-    async with engine_test.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+def current_table() -> DynamoTable:
+    assert _Current.table is not None, "the `table` fixture is not active"
+    return _Current.table
+
+
+@pytest.fixture(autouse=True)
+async def table() -> AsyncIterator[DynamoTable]:
+    """A fresh core table on moto for every test, wired into the app."""
+    with mock_dynamodb():
+        handle = DynamoTable(dynamodb_client("", settings.AWS_REGION), TEST_TABLE)
+        await handle.ensure()
+        _Current.table = handle
+        app.dependency_overrides[get_table] = lambda: handle
+        try:
+            yield handle
+        finally:
+            app.dependency_overrides.pop(get_table, None)
+            _Current.table = None
 
 
 @pytest.fixture
-async def db_session(setup_db) -> AsyncGenerator[AsyncSession, None]:
-    """A session per test, and an empty database when the test is over."""
-    async with AsyncSessionTest() as session:
-        yield session
-
-    async with engine_test.begin() as conn:
-        for table in reversed(Base.metadata.sorted_tables):
-            await conn.execute(table.delete())
+def users(table: DynamoTable) -> DynamoUserRepository:
+    return DynamoUserRepository(table)
 
 
 @pytest.fixture
-async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
-    """App client against the test database.
-
-    Each request gets its own session and unit of work, exactly like
-    production; `db_session` is only for arranging data in the test.
-    """
-
-    async def _get_test_db():
-        async with AsyncSessionTest() as session, unit_of_work(session) as scoped:
-            yield scoped
-
-    app.dependency_overrides[get_db] = _get_test_db
+async def client(table: DynamoTable) -> AsyncGenerator[AsyncClient, None]:
+    """App client against the test table."""
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as ac:
         yield ac
     app.dependency_overrides.clear()
+    app.dependency_overrides[get_table] = lambda: table
 
 
 # ── Trips ────────────────────────────────────────────────────────────────────
@@ -114,12 +95,12 @@ def trip_body(**fields: object) -> dict[str, object]:
 # ── Users and credentials ────────────────────────────────────────────────────
 
 
-async def make_user(db: AsyncSession, email: str, role: Role = Role.USER) -> User:
-    user = User(email=email, name=email.split("@")[0], is_active=True, role=role)
-    db.add(user)
-    await db.commit()
-    await db.refresh(user)
-    return user
+async def make_user(
+    email: str, role: Role = Role.USER, *, is_active: bool = True
+) -> User:
+    """An account in the test table, created through the repository."""
+    user = User(email=email, name=email.split("@")[0], is_active=is_active, role=role)
+    return await DynamoUserRepository(current_table()).add(user)
 
 
 def headers_for(user: User) -> dict[str, str]:
@@ -128,15 +109,15 @@ def headers_for(user: User) -> dict[str, str]:
 
 
 @pytest.fixture
-async def alice(db_session: AsyncSession) -> User:
-    return await make_user(db_session, "alice@example.com")
+async def alice(table: DynamoTable) -> User:
+    return await make_user("alice@example.com")
 
 
 @pytest.fixture
-async def bob(db_session: AsyncSession) -> User:
-    return await make_user(db_session, "bob@example.com")
+async def bob(table: DynamoTable) -> User:
+    return await make_user("bob@example.com")
 
 
 @pytest.fixture
-async def admin(db_session: AsyncSession) -> User:
-    return await make_user(db_session, "admin@example.com", Role.ADMIN)
+async def admin(table: DynamoTable) -> User:
+    return await make_user("admin@example.com", Role.ADMIN)

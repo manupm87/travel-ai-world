@@ -2,7 +2,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
-from core_api.models.enums import MealType
+from core_api.domain.enums import MealType
 from core_api.schemas._partial import partial
 from core_api.schemas._types import (
     CardJson,

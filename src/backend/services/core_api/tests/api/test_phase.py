@@ -8,8 +8,7 @@ refuses every write — except its own deletion, which is not a change.
 from datetime import date
 
 import pytest
-from core_api.models.trip import phase_of
-from core_api.models.user import User
+from core_api.domain.models import User, phase_of
 from httpx import AsyncClient
 
 from tests.conftest import day_offset, headers_for, trip_body

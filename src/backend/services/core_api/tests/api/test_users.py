@@ -1,6 +1,6 @@
 """Accounts: owners manage their own; administrators see and promote everyone."""
 
-from core_api.models.user import User
+from core_api.domain.models import User
 from httpx import AsyncClient
 
 from tests.conftest import headers_for
@@ -77,3 +77,29 @@ async def test_owner_deletes_own_account(client: AsyncClient, alice: User):
     ).status_code == 204
     # The token is still valid but the account is gone: 401, not 404.
     assert (await client.get(f"{USERS_URL}me", headers=headers)).status_code == 401
+
+
+async def test_ids_are_uuids(client: AsyncClient, admin: User, alice: User):
+    me = await client.get(f"{USERS_URL}me", headers=headers_for(alice))
+    not_a_uuid = await client.get(f"{USERS_URL}42", headers=headers_for(admin))
+
+    assert me.json()["id"] == str(alice.id)
+    assert not_a_uuid.status_code == 422
+
+
+async def test_an_email_already_registered_is_a_conflict(
+    client: AsyncClient, alice: User, bob: User
+):
+    taken = await client.patch(
+        f"{USERS_URL}{alice.id}", json={"email": bob.email}, headers=headers_for(alice)
+    )
+    moved = await client.patch(
+        f"{USERS_URL}{alice.id}",
+        json={"email": "alice.l@example.com"},
+        headers=headers_for(alice),
+    )
+
+    assert taken.status_code == 409
+    assert taken.json()["detail"]["message"] == "email already registered"
+    assert moved.status_code == 200
+    assert moved.json()["email"] == "alice.l@example.com"
