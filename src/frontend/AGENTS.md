@@ -286,6 +286,13 @@ TypeScript 5, Tailwind CSS v4.
   and "Remove" and the alternatives sheet are not rendered — `onChange`/`onRemove` are optional on
   `DayCard`, `StayCard` and `ActivityDetail` for exactly that. core_api answers 409 `TRIP_LOCKED`
   to every one of those writes (ADR 0019), so the rule is enforced on both sides.
+  **`/plan/` without `?trip=` is a new trip** (TRA-223): when the tab's draft was saved as a trip,
+  the page drops it and its id (`clearPlannerDraft()`, in a lazy `useState` initializer that runs
+  before `usePlanner` and `useSaveTrip` read them), so nothing redirects to `?trip=` and `?q=`
+  starts the new trip; a draft never saved is still restored. A `?trip=` that is not found and is
+  the tab's own saved id drops the draft too, and `OpenTripNotice` offers "New trip" beside the
+  link home; `useTrips.remove` drops it when the deleted trip is the tab's. The panel's header
+  offers "New trip" (`onNewTrip`) while a saved, unlocked trip is open.
   **Assistant text is Markdown** (TRA-183): every assistant bubble goes through
   `components/planner/MarkdownContent.tsx` (`react-markdown` + `remark-gfm`, a short tag
   allow-list — headings become bold paragraphs, links open in a new tab in `text-accent` — styling
