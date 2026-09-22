@@ -51,8 +51,13 @@ assignment and before climate. Its input is every `sleep` document with coordina
    `panzió`, `hostal` and the like), or **both** of the name's distinctive words, or its one
    distinctive word **written beside** a word for a place to sleep. Everything is compared as
    whole words, case-folded and stripped of accents. Non-free files are skipped, and so are
-   plaques, coins, drawings and postcards. Stores `image_url`, `image_license` and `image_author`
-   exactly as the Wikidata stage does.
+   plaques, coins, drawings and postcards. **The file must also say it was taken there**: the
+   licence call asks `prop=imageinfo|coordinates` in one request, and the file is the hotel's only
+   when Commons places it within 500 m of the hotel's own coordinates. A file with no coordinates
+   is refused. A title names a hotel, never which town's — `Park Hotel, Cortina` is in the
+   Dolomites, `Austria Classic Hotel Wien` in Vienna, and both answered a search for a hotel
+   elsewhere. Stores `image_url`, `image_license` and `image_author` exactly as the Wikidata stage
+   does.
 4. **The largest picture on its homepage** — the `src`/`data-src` of each `<img>`, the first URL
    of a `srcset` and each CSS `background-image`, in document order, keeping only raster
    extensions whose path is not `logo|icon|sprite|flag|badge|payment|tripadvisor|booking|
@@ -125,11 +130,14 @@ second per request (`SLOW_HOSTS`).
   `ai_api/infrastructure/commons_photos.py`, because the tool may not import a service. The block
   is identical in both, says so above itself, and a test in the tool's suite compares the two
   files; change one and change the other.
-- The strict name match costs real photos as well as junk: a hotel whose Commons file spells its
-  name differently (`Margitsziget-GreenIslandHostel`) is now dropped rather than shown someone
-  else's building. Fewer hits was the trade asked for. What survives is a file that names the
-  right hotel in the wrong town (`Park Hotel, Cortina` for Madrid's `Cortina`): a title alone
-  cannot say where it was taken, and confirming it would cost a coordinates call per candidate.
+- The name match and the location check cost real photos as well as junk: a hotel whose Commons
+  file spells its name differently (`Margitsziget-GreenIslandHostel`), and every hotel whose file
+  was uploaded without a geotag, is now dropped rather than shown someone else's building. Fewer
+  hits was the trade asked for, and the Commons tier is the one source of the four that can be
+  checked this way — the hotel's own site vouches for its own picture by publishing it.
+- The live finder (`commons_photos.py`) applies the same location check to what it finds by name,
+  and only to that: a file found by `geosearch` was chosen for being within 60 m. A named file
+  taken elsewhere now falls through to the geosearch instead of being returned.
 - The live lookups stay for `eat`, `drink` and `see`: those categories have no such rule, their
   cards are suggestions rather than commitments, and a restaurant with no photo is still worth
   offering.

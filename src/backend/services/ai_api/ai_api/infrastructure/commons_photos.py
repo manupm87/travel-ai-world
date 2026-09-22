@@ -7,7 +7,9 @@ name is a picture of that venue; the one taken next door is the street. Up to
 three calls per lookup: a full-text `search` for the venue's name (many photos
 are named after the place but carry no geotag), else a `geosearch` in the File
 namespace around the point — matched by name all the same — then `imageinfo`
-for the author and the licence the credit line needs.
+for the author and the licence the credit line needs, with `coordinates`
+alongside: a file found by name must also have been taken at the venue, since
+a title says which hotel but not which town's (TRA-208).
 
 How a title is read as a name is the strict business of `choose_named`, shared
 word for word with the corpus tool's `sources/photos.py` (TRA-208): a search
@@ -21,6 +23,7 @@ A lookup that fails for any reason answers None: the caller falls back.
 
 import html
 import logging
+import math
 import re
 import unicodedata
 from collections.abc import Mapping, Sequence
@@ -78,12 +81,23 @@ class CommonsPhotos:
     ) -> Photo | None:
         title = await self._by_name(name, city)
         try:
+            described: Mapping[str, Any] = {}
+            if title is not None:
+                # A file found by name has said nothing about where it was
+                # taken, and a title says which hotel but not which town's
+                # (TRA-208). A file found by `geosearch` was picked for being
+                # here, so it is asked nothing more.
+                described = await self._describe(title)
+                if not taken_near(described, lat, lon):
+                    logger.info("%r: %s was not photographed here", name, title)
+                    title = None
             if title is None:
                 files = await self._geosearch(lat, lon)
                 title = choose_file(name, files, city=city)
-            if title is None:
-                return None
-            author, licence = await self._credit(title)
+                if title is None:
+                    return None
+                described = await self._describe(title)
+            author, licence = credit_of(described)
         except (httpx.HTTPError, ValueError, KeyError, TypeError) as exc:
             logger.warning("Commons photo lookup failed for %r: %s", name, exc)
             return None
@@ -169,27 +183,38 @@ class CommonsPhotos:
         response.raise_for_status()
         return list(response.json()["query"]["geosearch"])
 
-    async def _credit(self, title: str) -> tuple[str | None, str | None]:
+    async def _describe(self, title: str) -> Mapping[str, Any]:
+        """The file's author and licence, and where it was taken — one call:
+        `coordinates` rides along with `imageinfo` at no extra request."""
         response = await self._client.get(
             self._api_url,
             params={
                 "action": "query",
                 "titles": title,
-                "prop": "imageinfo",
+                "prop": "imageinfo|coordinates",
                 "iiprop": "extmetadata",
                 "iiextmetadatafilter": "Artist|LicenseShortName",
                 "format": "json",
             },
         )
         response.raise_for_status()
-        pages: Mapping[str, Any] = response.json()["query"]["pages"]
-        for page in pages.values():
-            info = (page.get("imageinfo") or [{}])[0]
-            meta = info.get("extmetadata") or {}
-            return _plain(meta.get("Artist", {}).get("value")), _plain(
-                meta.get("LicenseShortName", {}).get("value")
-            )
-        return None, None
+        described: Mapping[str, Any] = response.json()
+        return described
+
+    async def _credit(self, title: str) -> tuple[str | None, str | None]:
+        return credit_of(await self._describe(title))
+
+
+def credit_of(data: Mapping[str, Any]) -> tuple[str | None, str | None]:
+    """The author and licence of the file a `prop=imageinfo` answer describes."""
+    pages = (data.get("query") or {}).get("pages") or {}
+    for page in pages.values() if isinstance(pages, dict) else pages:
+        info = (page.get("imageinfo") or [{}])[0]
+        meta = info.get("extmetadata") or {}
+        return _plain(meta.get("Artist", {}).get("value")), _plain(
+            meta.get("LicenseShortName", {}).get("value")
+        )
+    return None, None
 
 
 WIKI_HOSTS = re.compile(r"^[a-z]{2,3}\.(wikivoyage|wikipedia)\.org$")
@@ -313,6 +338,55 @@ and the title are compared, and the one thing that makes a single-word name
 believable: `Carlton` is a title only when `Hotel` stands next to it."""
 
 _BED_AND_BREAKFAST = re.compile(r"\bb\s*&\s*b\b", re.IGNORECASE)
+
+NEAR_METRES = 500
+"""How far from the venue a file may have been taken and still be of it.
+
+A title names a hotel; it does not say which town's. `Park Hotel, Cortina` is a
+hotel of that name in the Dolomites, `Austria Classic Hotel Wien` one in
+Vienna, and both answered a search for a hotel elsewhere (TRA-208). Commons
+knows where most of its photographs were taken, so the file has to say — and
+say the right place — before it is anyone's picture.
+"""
+
+EARTH_RADIUS_M = 6_371_000
+
+
+def haversine_m(lat: float, lon: float, other_lat: float, other_lon: float) -> float:
+    """Metres between two points on the globe."""
+    phi, other_phi = math.radians(lat), math.radians(other_lat)
+    d_phi = other_phi - phi
+    d_lambda = math.radians(other_lon - lon)
+    a = (
+        math.sin(d_phi / 2) ** 2
+        + math.cos(phi) * math.cos(other_phi) * math.sin(d_lambda / 2) ** 2
+    )
+    return 2 * EARTH_RADIUS_M * math.asin(min(1.0, math.sqrt(a)))
+
+
+def file_coordinates(data: Mapping[str, Any]) -> tuple[float, float] | None:
+    """Where a `prop=coordinates` answer says the file was taken, or None.
+
+    Written for both shapes of the MediaWiki answer: `query.pages` is a list
+    under `formatversion=2` (the corpus tool) and a dictionary without it.
+    """
+    pages = (data.get("query") or {}).get("pages") or []
+    for page in pages.values() if isinstance(pages, dict) else pages:
+        for point in page.get("coordinates") or []:
+            lat, lon = point.get("lat"), point.get("lon")
+            if isinstance(lat, int | float) and isinstance(lon, int | float):
+                return float(lat), float(lon)
+    return None
+
+
+def taken_near(data: Mapping[str, Any], lat: float, lon: float) -> bool:
+    """Whether the file Commons just described was photographed at this venue.
+
+    A file that says nothing about where it was taken is refused: this tier is
+    worth having only while it is right, and a name is not a place.
+    """
+    where = file_coordinates(data)
+    return where is not None and haversine_m(lat, lon, *where) <= NEAR_METRES
 
 
 def fold(text: str) -> str:

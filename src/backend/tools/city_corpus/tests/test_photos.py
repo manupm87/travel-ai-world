@@ -32,8 +32,8 @@ def _hotel(**overrides: Any) -> CorpusDocument:
         "name": "Hotel Gellért",
         "text": TEXT,
         "heading_path": "Budapest › Belváros › Sleep",
-        "lat": 47.4863,
-        "lon": 19.0536,
+        "lat": HOTEL_LAT,
+        "lon": HOTEL_LON,
         "source": Source.OPENSTREETMAP,
         "source_url": "https://www.openstreetmap.org/way/1",
         "license": "ODbL 1.0",
@@ -50,24 +50,34 @@ def _search(*titles: str) -> httpx.Response:
     return _json(query={"search": [{"title": t} for t in titles]})
 
 
-def _imageinfo(title: str, licence: str, author: str = "Jane") -> httpx.Response:
-    return _json(
-        query={
-            "pages": [
-                {
-                    "title": title,
-                    "imageinfo": [
-                        {
-                            "extmetadata": {
-                                "LicenseShortName": {"value": licence},
-                                "Artist": {"value": author},
-                            }
-                        }
-                    ],
+# The hotel of `_hotel()`, and three places a file could have been taken.
+HOTEL_LAT, HOTEL_LON = 47.4863, 19.0536
+AT_THE_HOTEL = (47.4874, 19.0536)  # 120 m north
+ANOTHER_TOWN = (49.2863, 19.0536)  # 200 km north
+
+
+def _imageinfo(
+    title: str,
+    licence: str,
+    author: str = "Jane",
+    where: tuple[float, float] | None = AT_THE_HOTEL,
+) -> httpx.Response:
+    """One answer for `prop=imageinfo|coordinates`: what the file is and,
+    unless `where` is None, where Commons says it was photographed."""
+    page: dict[str, Any] = {
+        "title": title,
+        "imageinfo": [
+            {
+                "extmetadata": {
+                    "LicenseShortName": {"value": licence},
+                    "Artist": {"value": author},
                 }
-            ]
-        }
-    )
+            }
+        ],
+    }
+    if where is not None:
+        page["coordinates"] = [{"lat": where[0], "lon": where[1], "primary": ""}]
+    return _json(query={"pages": [page]})
 
 
 def _html(body: str) -> httpx.Response:
@@ -115,12 +125,13 @@ def _client(recorder: Recorder, cache: Path, *, offline: bool = False) -> ApiCli
 
 
 def _commons(*responses: httpx.Response) -> Callable[[httpx.Request], httpx.Response]:
-    """Commons answers `search` and then `imageinfo`; nothing else is asked."""
+    """Commons answers `search` and then `imageinfo|coordinates`, which is the
+    whole conversation: two calls per hotel, and nothing else is asked."""
 
     def answer(request: httpx.Request) -> httpx.Response:
-        action = request.url.params.get("list") or request.url.params.get("prop")
-        index = {"search": 0, "imageinfo": 1}[str(action)]
-        return responses[index]
+        params = request.url.params
+        asked = str(params.get("list") or params.get("prop"))
+        return responses[0 if asked == "search" else 1]
 
     return answer
 
@@ -326,6 +337,73 @@ def test_the_hotels_own_site_beats_commons(tmp_path: Path) -> None:
     assert kept[0].image_license is None
     assert (stats.site, stats.commons) == (1, 0)
     assert not any("commons.wikimedia.org" in url for url in recorder.urls)
+
+
+def test_a_file_of_the_same_name_in_another_town_is_refused(tmp_path: Path) -> None:
+    """`Park Hotel, Cortina` is a hotel of that name in the Dolomites and
+    `Austria Classic Hotel Wien` one in Vienna; both answered a search for a
+    hotel elsewhere. A title says which hotel, never which town's."""
+    recorder = Recorder(
+        {
+            "commons.wikimedia.org": _commons(
+                _search("File:Gellért Hotel front.jpg"),
+                _imageinfo(
+                    "File:Gellért Hotel front.jpg", "CC BY-SA 4.0", where=ANOTHER_TOWN
+                ),
+            )
+        }
+    )
+    with _client(recorder, tmp_path) as client:
+        kept, stats = photos.resolve(client, BUDAPEST, [_hotel(url=None)])
+
+    assert kept == [] and stats.dropped == 1
+    assert stats.commons == 0
+
+
+def test_a_file_that_does_not_say_where_it_was_taken_is_refused(
+    tmp_path: Path,
+) -> None:
+    """The tier is worth having only while it is right: a name is not a place."""
+    recorder = Recorder(
+        {
+            "commons.wikimedia.org": _commons(
+                _search("File:Gellért Hotel front.jpg"),
+                _imageinfo("File:Gellért Hotel front.jpg", "CC BY-SA 4.0", where=None),
+            )
+        }
+    )
+    with _client(recorder, tmp_path) as client:
+        kept, stats = photos.resolve(client, BUDAPEST, [_hotel(url=None)])
+
+    assert kept == [] and stats.dropped == 1
+    assert stats.commons == 0
+
+
+def test_the_location_check_costs_no_extra_request(tmp_path: Path) -> None:
+    """`coordinates` rides along with `imageinfo`: still two calls a hotel."""
+    recorder = Recorder(
+        {
+            "commons.wikimedia.org": _commons(
+                _search("File:Gellért Hotel front.jpg"),
+                _imageinfo("File:Gellért Hotel front.jpg", "CC BY-SA 4.0"),
+            )
+        }
+    )
+    with _client(recorder, tmp_path) as client:
+        kept, stats = photos.resolve(client, BUDAPEST, [_hotel(url=None)])
+
+    assert len(kept) == 1 and stats.commons == 1
+    asked = [
+        r.url.params.get("list") or r.url.params.get("prop") for r in recorder.requests
+    ]
+    assert asked == ["search", "imageinfo|coordinates"]
+
+
+def test_metres_between_two_points() -> None:
+    assert photos.haversine_m(*AT_THE_HOTEL, HOTEL_LAT, HOTEL_LON) == pytest.approx(
+        122, abs=5
+    )
+    assert photos.haversine_m(*ANOTHER_TOWN, HOTEL_LAT, HOTEL_LON) > 190_000
 
 
 def test_a_non_free_commons_file_is_not_used(tmp_path: Path) -> None:

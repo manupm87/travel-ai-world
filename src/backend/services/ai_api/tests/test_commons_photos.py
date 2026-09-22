@@ -311,7 +311,8 @@ def _by_list(handlers: dict[str, dict | int]) -> tuple[httpx.MockTransport, list
     seen: list[str] = []
 
     def handle(request: httpx.Request) -> httpx.Response:
-        kind = request.url.params.get("list") or request.url.params.get("prop") or ""
+        asked = request.url.params.get("list") or request.url.params.get("prop") or ""
+        kind = asked.split("|")[0]  # `imageinfo|coordinates` is one answer
         seen.append(kind)
         answer = handlers.get(kind, 404)
         if isinstance(answer, int):
@@ -321,22 +322,28 @@ def _by_list(handlers: dict[str, dict | int]) -> tuple[httpx.MockTransport, list
     return httpx.MockTransport(handle), seen
 
 
-CREDIT = {
-    "query": {
-        "pages": {
-            "1": {
-                "imageinfo": [
-                    {
-                        "extmetadata": {
-                            "Artist": {"value": "Someone"},
-                            "LicenseShortName": {"value": "CC BY 4.0"},
-                        }
-                    }
-                ]
+VENUE = (47.47, 19.05)
+FAR_AWAY = (41.89, 12.49)  # Rome: the same name, another country
+
+
+def _described(where: tuple[float, float] | None = VENUE) -> dict:
+    """What `prop=imageinfo|coordinates` answers for one file."""
+    page: dict = {
+        "imageinfo": [
+            {
+                "extmetadata": {
+                    "Artist": {"value": "Someone"},
+                    "LicenseShortName": {"value": "CC BY 4.0"},
+                }
             }
-        }
+        ]
     }
-}
+    if where is not None:
+        page["coordinates"] = [{"lat": where[0], "lon": where[1], "primary": ""}]
+    return {"query": {"pages": {"1": page}}}
+
+
+CREDIT = _described()
 
 
 async def test_a_photo_named_after_the_venue_wins_without_a_geosearch():
@@ -405,6 +412,63 @@ async def test_a_rate_limited_search_still_tries_the_geosearch(caplog):
     assert photo is not None and "Cortile%20front" in photo.url
     assert seen == ["search", "geosearch", "imageinfo"]
     assert "Commons name search failed" in caplog.text
+
+
+async def test_a_file_named_after_the_venue_elsewhere_is_refused():
+    """A title says which hotel, never which town's: `Park Hotel, Cortina` is
+    in the Dolomites (TRA-208). The geosearch still gets its turn."""
+    transport, seen = _by_list(
+        {
+            "search": _search_hits("File:Fruska bisztró, Roma.jpg"),
+            "geosearch": {"query": {"geosearch": []}},
+            "imageinfo": _described(FAR_AWAY),
+        }
+    )
+    finder = CommonsPhotos(httpx.AsyncClient(transport=transport))
+
+    photo = await finder.find("Fruska bisztró", 47.47, 19.05, city="Budapest")
+
+    assert photo is None
+    assert seen == ["search", "imageinfo", "geosearch"]
+
+
+async def test_a_file_that_does_not_say_where_it_was_taken_is_refused():
+    transport, _ = _by_list(
+        {
+            "search": _search_hits("File:Fruska bisztró sign.jpg"),
+            "geosearch": {"query": {"geosearch": []}},
+            "imageinfo": _described(None),
+        }
+    )
+    finder = CommonsPhotos(httpx.AsyncClient(transport=transport))
+
+    assert await finder.find("Fruska bisztró", 47.47, 19.05, city="Budapest") is None
+
+
+async def test_a_file_found_by_geosearch_is_not_asked_where_it_was_taken():
+    """It was chosen for being within 60 m of the venue (TRA-208)."""
+    transport, seen = _by_list(
+        {
+            "search": {"query": {"search": []}},
+            "geosearch": {
+                "query": {"geosearch": [{"title": "File:Cortile front.jpg", "dist": 4}]}
+            },
+            "imageinfo": _described(None),
+        }
+    )
+    finder = CommonsPhotos(httpx.AsyncClient(transport=transport))
+
+    photo = await finder.find("Cortile Hotel", 47.51, 19.06, city="Budapest")
+
+    assert photo is not None and "Cortile%20front" in photo.url
+    assert seen == ["search", "geosearch", "imageinfo"]
+
+
+def test_metres_between_two_points():
+    from ai_api.infrastructure.commons_photos import haversine_m
+
+    assert haversine_m(47.4863, 19.0536, 47.4874, 19.0536) == pytest.approx(122, abs=5)
+    assert haversine_m(*VENUE, *FAR_AWAY) > 800_000
 
 
 def test_names_made_of_generic_words_skip_the_search():

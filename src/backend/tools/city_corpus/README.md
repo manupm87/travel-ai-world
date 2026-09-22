@@ -59,8 +59,10 @@ manifest reports documents per category and what each one skipped.
    site (`url`), the preview of its Facebook page (`facebook`, from OSM `contact:facebook`),
    Wikimedia Commons searched by name (a search result counts only when its title carries the
    hotel's whole name, or both of its distinctive words, or its one distinctive word beside a
-   word for a place to sleep — anything less answers with a ship, a flower or a footballer;
-   non-free files skipped), and the largest picture on its homepage (at least 40 KB,
+   word for a place to sleep — anything less answers with a ship, a flower or a footballer —
+   **and** Commons says the file was photographed within 500 m of the hotel, since a title names
+   a hotel but not which town's; a file that states no coordinates is refused, non-free files
+   skipped), and the largest picture on its homepage (at least 40 KB,
    `logo`/`badge`/`booking`/`placeholder` names skipped). The hotel's own picture of itself
    comes first because a photo merely taken at its coordinates is the street, not the hotel; the
    three sources that are not Commons store the bare domain in `image_credit`; a picture the

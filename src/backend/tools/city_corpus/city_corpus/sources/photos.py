@@ -9,9 +9,10 @@ with a website and nothing else, so this stage resolves a photo for every locate
    itself, what every chat and search engine shows for a link to it, credited
    with the site's bare domain.
 2. **Its Facebook page** (OSM `contact:facebook`): the page's own `og:image`.
-3. **Wikimedia Commons**, by name only — licence-clean and credited to its
-   author, but a file is the hotel only when its title says so: a photo merely
-   taken near the coordinates is the street, not the room you would book.
+3. **Wikimedia Commons**, by name *and* place — licence-clean and credited to
+   its author, but a file is the hotel only when its title says so and Commons
+   says it was taken there: a photo merely near the coordinates is the street,
+   and a title alone does not say which town's `Park Hotel` it means.
 4. **The largest picture on its homepage**, when the site publishes no preview.
 
 What is still unpictured is dropped: about a third of the hotel sites in a city
@@ -34,10 +35,11 @@ a hotel without a photo.
 import html
 import ipaddress
 import logging
+import math
 import re
 import unicodedata
 from collections import Counter
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from html.parser import HTMLParser
 from typing import Any
@@ -331,6 +333,55 @@ believable: `Carlton` is a title only when `Hotel` stands next to it."""
 
 _BED_AND_BREAKFAST = re.compile(r"\bb\s*&\s*b\b", re.IGNORECASE)
 
+NEAR_METRES = 500
+"""How far from the venue a file may have been taken and still be of it.
+
+A title names a hotel; it does not say which town's. `Park Hotel, Cortina` is a
+hotel of that name in the Dolomites, `Austria Classic Hotel Wien` one in
+Vienna, and both answered a search for a hotel elsewhere (TRA-208). Commons
+knows where most of its photographs were taken, so the file has to say — and
+say the right place — before it is anyone's picture.
+"""
+
+EARTH_RADIUS_M = 6_371_000
+
+
+def haversine_m(lat: float, lon: float, other_lat: float, other_lon: float) -> float:
+    """Metres between two points on the globe."""
+    phi, other_phi = math.radians(lat), math.radians(other_lat)
+    d_phi = other_phi - phi
+    d_lambda = math.radians(other_lon - lon)
+    a = (
+        math.sin(d_phi / 2) ** 2
+        + math.cos(phi) * math.cos(other_phi) * math.sin(d_lambda / 2) ** 2
+    )
+    return 2 * EARTH_RADIUS_M * math.asin(min(1.0, math.sqrt(a)))
+
+
+def file_coordinates(data: Mapping[str, Any]) -> tuple[float, float] | None:
+    """Where a `prop=coordinates` answer says the file was taken, or None.
+
+    Written for both shapes of the MediaWiki answer: `query.pages` is a list
+    under `formatversion=2` (the corpus tool) and a dictionary without it.
+    """
+    pages = (data.get("query") or {}).get("pages") or []
+    for page in pages.values() if isinstance(pages, dict) else pages:
+        for point in page.get("coordinates") or []:
+            lat, lon = point.get("lat"), point.get("lon")
+            if isinstance(lat, int | float) and isinstance(lon, int | float):
+                return float(lat), float(lon)
+    return None
+
+
+def taken_near(data: Mapping[str, Any], lat: float, lon: float) -> bool:
+    """Whether the file Commons just described was photographed at this venue.
+
+    A file that says nothing about where it was taken is refused: this tier is
+    worth having only while it is right, and a name is not a place.
+    """
+    where = file_coordinates(data)
+    return where is not None and haversine_m(lat, lon, *where) <= NEAR_METRES
+
 
 def fold(text: str) -> str:
     """Lower case, accents dropped, everything else a space.
@@ -457,23 +508,25 @@ def choose_named(
     return None
 
 
-# ─── 3. Wikimedia Commons, by name only ──────────────────────────────────────
+# ─── 3. Wikimedia Commons: named after the hotel and taken there ────────────
 
 
 def _from_commons(
     client: ApiClient, city: CityConfig, doc: CorpusDocument
 ) -> dict[str, str | None] | None:
     name = doc.name or ""
-    if not name:
+    if not name or doc.lat is None or doc.lon is None:
         return None
     title = _search_by_name(client, name, city.name)
     if title is None:
         return None
     filename = title.removeprefix("File:")
-    info = wikidata.fetch_image_info(client, [filename]).get(
-        wikidata.commons_title(filename)
-    )
+    described = _describe(client, filename)
+    info = wikidata.parse_image_info(described).get(wikidata.commons_title(filename))
     if info is None or not wikidata.is_free(info.licence):
+        return None
+    if not taken_near(described, doc.lat, doc.lon):
+        logger.info("%s: %s was not photographed here", doc.doc_id, title)
         return None
     return {
         "image_url": wikidata.thumbnail_url(filename),
@@ -482,11 +535,30 @@ def _from_commons(
     }
 
 
+def _describe(client: ApiClient, filename: str) -> dict[str, Any]:
+    """One call for everything the stage has left to ask of a file: its licence
+    and author, and where it was taken. The Wikidata stage asks `imageinfo` on
+    its own for thousands of files and must keep its own cached answers, which
+    is why this request is written here rather than in `wikidata.py`."""
+    return client.get(
+        COMMONS_API,
+        {
+            "action": "query",
+            "prop": "imageinfo|coordinates",
+            "iiprop": "extmetadata",
+            "iiextmetadatafilter": "LicenseShortName|License|Artist",
+            "titles": f"File:{wikidata.commons_title(filename)}",
+        },
+    ).data
+
+
 def _search_by_name(client: ApiClient, name: str, city_name: str) -> str | None:
     """A file named after the hotel; the city narrows it to the right town.
 
     The only Commons question worth asking: a file the hotel's name is written
-    on. Coordinates are not evidence — the photo next door is the street.
+    on. Proximity is not evidence on its own — the photo next door is the
+    street — but the name is not evidence on its own either, which is why
+    `_from_commons` then asks the file where it was taken.
     """
     if not distinctive_words(name, city=city_name):
         return None
