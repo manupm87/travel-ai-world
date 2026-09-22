@@ -58,8 +58,10 @@ for a day, **hits and misses alike**, bounded to 2,000 entries.
 Before any request the adapter refuses anything that is not a venue's public site: a scheme other
 than http(s), credentials in the URL, an IP literal, `localhost`, a host without a dot or ending
 in `.local`/`.internal`, and the hosts that are never the venue's own (`wikipedia.org`,
-`wikivoyage.org`, `wikimedia.org`, `wikidata.org`, `openstreetmap.org`). A lookup that fails for
-any reason logs a warning and answers None, like the Commons one.
+`wikivoyage.org`, `wikimedia.org`, `wikidata.org`, `openstreetmap.org`). Redirects are followed by
+hand, at most three, and every hop passes the same check, so a site cannot redirect the lookup
+where the first URL could not go. A lookup that fails for any reason logs a warning and answers
+None, like the Commons one.
 
 It is wired in `main.lifespan` behind `SITE_PREVIEWS_ENABLED` (`SITE_PREVIEW_TIMEOUT`,
 `SITE_PREVIEW_MAX_BYTES`, `SITE_PREVIEW_CACHE_SECONDS`) and reaches both the planner and the card

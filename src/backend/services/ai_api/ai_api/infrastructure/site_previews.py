@@ -30,7 +30,9 @@ from ai_api.infrastructure.commons_photos import USER_AGENT
 logger = logging.getLogger(__name__)
 
 MAX_REDIRECTS = 3
-"""A venue's site may move to www or to https; three hops is plenty."""
+"""A venue's site may move to www or to https; three hops is plenty. The
+client never follows them itself: every hop passes `fetchable` first, so a
+redirect cannot lead where the first URL was not allowed to go."""
 
 DENIED_HOSTS = (
     "wikipedia.org",
@@ -87,8 +89,7 @@ class SitePreviews:
         client = httpx.AsyncClient(
             timeout=timeout,
             headers={"User-Agent": USER_AGENT},
-            follow_redirects=True,
-            max_redirects=MAX_REDIRECTS,
+            follow_redirects=False,
         )
         return cls(
             client,
@@ -116,12 +117,10 @@ class SitePreviews:
 
     async def _fetch(self, site_url: str) -> Photo | None:
         try:
-            async with self._client.stream("GET", site_url) as response:
-                if not response.is_success or not is_html(response.headers):
-                    return None
-                body = await read_limited(response, self._max_bytes)
-                final_url = str(response.url)
-                encoding = response.charset_encoding or "utf-8"
+            page = await self._get_following(site_url)
+            if page is None:
+                return None
+            final_url, body, encoding = page
             candidate = best_candidate(body.decode(encoding, errors="replace"))
         except (httpx.HTTPError, UnicodeError, ValueError, LookupError) as exc:
             logger.warning("Site preview lookup failed for %r: %s", site_url, exc)
@@ -132,6 +131,26 @@ class SitePreviews:
         if image is None:
             return None
         return Photo(url=image, credit=credit_for(final_url))
+
+    async def _get_following(self, site_url: str) -> tuple[str, bytes, str] | None:
+        """The final HTML page behind at most `MAX_REDIRECTS` hops, each hop
+        checked with `fetchable` like the first URL: (final URL, at most
+        `max_bytes` of body, its charset), or None."""
+        url = site_url
+        for _ in range(MAX_REDIRECTS + 1):
+            async with self._client.stream("GET", url) as response:
+                if response.is_redirect:
+                    location = response.headers.get("location", "")
+                    url = urljoin(url, location)
+                    if not fetchable(url):
+                        logger.info("Site preview refused a redirect to %r", url)
+                        return None
+                    continue
+                if not response.is_success or not is_html(response.headers):
+                    return None
+                body = await read_limited(response, self._max_bytes)
+                return str(response.url), body, response.charset_encoding or "utf-8"
+        return None
 
     def _cached(self, site_url: str) -> Photo | _Missing | None:
         entry = self._cache.get(site_url)

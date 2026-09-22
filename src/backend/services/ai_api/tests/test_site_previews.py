@@ -5,7 +5,7 @@ import logging
 import httpx
 import pytest
 from ai_api.infrastructure.commons_photos import USER_AGENT
-from ai_api.infrastructure.site_previews import SitePreviews
+from ai_api.infrastructure.site_previews import MAX_REDIRECTS, SitePreviews
 from ai_api.testing import settings_for_tests
 
 SITE = "https://restaurantesamm.com/"
@@ -38,7 +38,7 @@ def _serving(
 def _previews(handler, **kwargs) -> SitePreviews:
     return SitePreviews(
         httpx.AsyncClient(
-            transport=httpx.MockTransport(handler), follow_redirects=True
+            transport=httpx.MockTransport(handler), follow_redirects=False
         ),
         **kwargs,
     )
@@ -206,6 +206,29 @@ async def test_a_url_that_is_not_a_venues_public_site_makes_no_request(url) -> N
 
     assert await _previews(handler).preview(url) is None
     assert seen == []
+
+
+async def test_a_redirect_to_a_host_that_may_not_be_fetched_stops_there() -> None:
+    """The refusal list applies to every hop, not only to the first URL."""
+    handler, seen = _serving(
+        _html(f'<meta property="og:image" content="{IMAGE}">'),
+        final_url="http://127.0.0.1:8000/admin",
+    )
+
+    assert await _previews(handler).preview(SITE) is None
+    assert [str(r.url) for r in seen] == [SITE]
+
+
+async def test_more_hops_than_allowed_is_none() -> None:
+    seen: list[httpx.Request] = []
+
+    def bouncing(request: httpx.Request) -> httpx.Response:
+        seen.append(request)
+        n = len(seen)
+        return httpx.Response(302, headers={"location": f"https://hop{n}.example/"})
+
+    assert await _previews(bouncing).preview(SITE) is None
+    assert len(seen) == MAX_REDIRECTS + 1
 
 
 # ─── Failures answer None, never raise ───────────────────────────────────────
