@@ -19,6 +19,7 @@ infrastructure/ adapters: nvidia_provider.py, bedrock_provider.py, bedrock_embed
                 open_meteo.py (forecast), static_flight_search.py + data/airports.json (route deep links),
                 cities.py + data/cities.json (the cities manifest the corpus tool writes; PLANNER_CITIES narrows it),
                 commons_photos.py (a Wikimedia Commons photo near a venue, TRA-161),
+                site_previews.py (the og:image a venue publishes on its own site, ADR 0021),
                 sse.py, retry.py, core_api_client.py
 api/            deps.py (per-request wiring; process resources come from app.state), v1/endpoints/{chat,planner,health}.py
 schemas/        chat.py (request), planner.py (PlannerTurn request, PlannerCity, CardDetail), planner_events.py
@@ -27,7 +28,8 @@ openapi.py      puts the planner's stream models into the OpenAPI document (no r
 main.py         lifespan builds the provider and the retriever once (providers.build_*) and closes them
 indexing.py     CLI that fills the vector index from a corpus JSONL (just index); never runs in a request
 prompts.py      every prompt string (system prompt, RAG context template, format_context)
-testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, KeywordRetriever (tf-idf over a corpus file) + settings_for_tests()
+testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, KeywordRetriever (tf-idf over a corpus file),
+                FakePhotoFinder, FakeSitePreviews + settings_for_tests()
 ```
 
 - Routes live under `/api/v1/ai/*` so a proxy can route by prefix. Keep it that way.
@@ -76,14 +78,15 @@ testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, Ke
   `_named_places` runs one unfiltered search on the traveller's words and pins the listings whose
   title the ask names (`_named_at`) ahead of the candidates and of the model's picks, on the options
   route and in `_chat`; a `restaurant` ask with no part searches `eat` *and* `drink`. Weather: Open-Meteo within 16 days, else the corpus's
-  `om:climate:<city>:<MM>` normal fetched by id. **Every card is pictured** (TRA-161, TRA-168): candidates
-  are ordered pictured-first; a card without a corpus image is looked up on Commons by name (the search
-  carries the city's name) and at its coordinates (`PhotoFinder`, `PHOTOS_ENABLED`); failing that it takes
-  the photo of a pictured place of the same city and category from the corpus (a neighbourhood: a sight of
-  its district; a restaurant: another restaurant, else a sight), credited as that place's; only a corpus
-  that pictures nothing at all gets the neutral placeholder credited `Illustrative photo`
-  (`application/photos.py`, `PlanTrip._corpus_photo`). Tests drive it with `FakeProvider(replies=[...])`,
-  `FakeRetriever` (filter-aware), `FakePhotoFinder` and
+  `om:climate:<city>:<MM>` normal fetched by id. **Every card is pictured, and never by another place**
+  (TRA-161, TRA-168, TRA-206 / ADR 0021): candidates are ordered pictured-first; a card without a corpus
+  image is looked up on Commons by name (the search carries the city's name) and at its coordinates
+  (`PhotoFinder`, `PHOTOS_ENABLED`); failing that, a card with a `deep_link` shows the preview its own
+  site publishes, credited with the bare domain (`SitePreviewFinder`, `SITE_PREVIEWS_ENABLED`); failing
+  that, only a neighbourhood borrows — a pictured sight of its district, credited as that sight's
+  (`PlanTrip._corpus_photo`); anything else gets the neutral placeholder credited `Illustrative photo`
+  (`application/photos.py`). Tests drive it with `FakeProvider(replies=[...])`,
+  `FakeRetriever` (filter-aware), `FakePhotoFinder`, `FakeSitePreviews` and
   `testing.documents_from_corpus(tests/fixtures/budapest_sample.jsonl)`.
 - **The planner knows no city by name.** `PlanTrip` takes `City` objects (`domain/models.py`) from the
   manifest; `resolve_city` matches a typed destination against every alias (ascii-folded whole words, so

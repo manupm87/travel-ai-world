@@ -19,7 +19,7 @@ uv run uvicorn ai_api.main:app --reload --port 8001    # http://localhost:8001/a
 | `POST` | `/chat` | Bearer | SSE stream: `data: {"content"}` ×n, `data: {"thread_id"}` when the exchange was recorded, `data: {"error", "error_code"}` on failure, `data: [DONE]` |
 | `POST` | `/planner` | Bearer | The trip planner (ADR 0015): body `PlannerTurn` (message or `select`/`remove` action + brief + itinerary snapshot + transcript + `exclude_card_ids`); SSE v2 stream of typed events (`text`, `brief`, `options`, `itinerary_patch`, `error`) then `[DONE]`; 503 without `RETRIEVAL_ENABLED` |
 | `GET` | `/planner/cities` | Bearer | The cities the planner covers, from the manifest shipped with the service: `[{slug, name, centre: [lat, lon], timezone, intro, image_url, image_credit}]`. The page offers them as destinations and introduces the chosen one: `intro` is the city's description per language (`{en: {text, source_url}}`, from its Wikivoyage lead, CC BY-SA 4.0), `image_url` its photo on Commons and `image_credit` the line to print beside it (both `null` for a city whose TOML has no `[hero]`) |
-| `GET` | `/planner/card?id=` | Bearer | One card in full (`CardDetail`): the `OptionCard` fields plus `description` (the corpus document's text, trimmed at a sentence boundary), `address`, `phone`, `website`, `heading_path`. The id is a corpus document id (slashes and colons, hence a query parameter); 404 when the index does not hold it, 503 without `RETRIEVAL_ENABLED`. Additive over `OptionCard` but not a replacement for one: `why` comes back empty (the model writes it per turn) and `image_url`/`image_credit` are the corpus's own or a Commons lookup's, `null` when neither has a photo — where the streamed card carries a fallback picture. A client holding the card merges the detail onto it (keeping that card's `why`, and its photo with its credit when the detail brings none) |
+| `GET` | `/planner/card?id=` | Bearer | One card in full (`CardDetail`): the `OptionCard` fields plus `description` (the corpus document's text, trimmed at a sentence boundary), `address`, `phone`, `website`, `heading_path`. The id is a corpus document id (slashes and colons, hence a query parameter); 404 when the index does not hold it, 503 without `RETRIEVAL_ENABLED`. Additive over `OptionCard` but not a replacement for one: `why` comes back empty (the model writes it per turn) and `image_url`/`image_credit` are the corpus's own, a Commons lookup's or the venue's site preview (ADR 0021), `null` when none of the three has a photo — where the streamed card carries a fallback picture. A client holding the card merges the detail onto it (keeping that card's `why`, and its photo with its credit when the detail brings none) |
 | `GET` | `/health/` | — | |
 | `GET` | `/health/provider` | — | 503 when the active provider is not configured (no `NVIDIA_API_KEY`, or an empty `BEDROCK_CHAT_MODEL`); answers its `name` |
 
@@ -69,13 +69,13 @@ Full contract: [`docs/api/ai-api.openapi.json`](../../../../docs/api/ai-api.open
 ```text
 ai_api/
 ├── main.py         lifespan: one provider (by LLM_PROVIDER) and, with RETRIEVAL_ENABLED, one retriever per process, on app.state
-├── config.py       AISettings: LLM_PROVIDER, NVIDIA_*, BEDROCK_*, CHAT_*, RETRIEVAL_*, VECTOR_*, EMBEDDINGS_*, PLANNER_*, OPEN_METEO_*, PHOTOS_ENABLED, COMMONS_*
+├── config.py       AISettings: LLM_PROVIDER, NVIDIA_*, BEDROCK_*, CHAT_*, RETRIEVAL_*, VECTOR_*, EMBEDDINGS_*, PLANNER_*, OPEN_METEO_*, PHOTOS_ENABLED, COMMONS_*, SITE_PREVIEW_*
 ├── prompts.py      CHAT_SYSTEM_PROMPT, RAG_CONTEXT_PROMPT, format_context(), the planner prompts and its fixed en/es sentences
 ├── openapi.py      registers the planner's stream models in the OpenAPI document (no route declares them)
 ├── indexing.py     python -m ai_api.indexing <documents.jsonl>: fills the vector index (just index)
 ├── domain/         models.py (Message, Document, RetrievalFilters, GenerationParams, Usage, ChatTrace, ChatTurn, DayWeather, RouteSuggestion) · ports.py (LLMProvider, Embedder, Retriever, WeatherForecast, TripGateway, ConversationGateway)
 ├── application/    stream_chat.py, record_conversation.py, plan_trip.py, card_detail.py — the use cases, depend only on ports · structured.py (JSON out of a completion) · cards.py · photos.py · validate.py · language.py
-├── infrastructure/ nvidia_provider.py · bedrock_provider.py · bedrock_embedder.py · bedrock.py (client config and retry rules both Bedrock adapters share) · s3vectors.py (client, keys, metadata split) · s3vectors_retriever.py · providers.py (settings → adapters) · open_meteo.py · static_flight_search.py (+ data/airports.json) · cities.py (+ data/cities.json, the cities manifest the corpus tool writes) · commons_photos.py · sse.py · retry.py · core_api_client.py
+├── infrastructure/ nvidia_provider.py · bedrock_provider.py · bedrock_embedder.py · bedrock.py (client config and retry rules both Bedrock adapters share) · s3vectors.py (client, keys, metadata split) · s3vectors_retriever.py · providers.py (settings → adapters) · open_meteo.py · static_flight_search.py (+ data/airports.json) · cities.py (+ data/cities.json, the cities manifest the corpus tool writes) · commons_photos.py · site_previews.py (the image a venue publishes on its own site, ADR 0021) · sse.py · retry.py · core_api_client.py
 ├── api/            deps.py (wiring) · v1/endpoints/chat.py, planner.py, health.py
 ├── schemas/        chat.py · planner.py (PlannerTurn, PlannerCity, CardDetail) · planner_events.py (SSE v2 events and ops)
 └── testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, documents_from_corpus(), settings_for_tests()
@@ -184,8 +184,9 @@ uv run python tests/manual/planner_smoke.py --city budapest --lang en
 a neighbourhood, a hotel, the alternatives of one slot, a restaurant request, a question — with the
 NVIDIA model (`--model`, default `nvidia/nemotron-3-super-120b-a12b`), `testing.KeywordRetriever`
 over the city's committed `tools/city_corpus/data/<city>/documents.jsonl`, the real Commons photo
-lookup and the real Open-Meteo forecast. It prints each turn's events and a summary (activities per
-day, photo source per card, duplicate ids or titles, prices that slipped into a card, seconds per
+lookup, the real preview of each venue's own site and the real Open-Meteo forecast. It prints each
+turn's events and a summary (activities per day, where each photo came from — `corpus`, `commons`,
+`site`, `illustrative`, `none` — duplicate ids or titles, prices that slipped into a card, seconds per
 turn) and exits 1 on an unpictured activity or a price, 2 when the provider fails. Needs
 `NVIDIA_API_KEY` in `.env`; about a minute. pytest never collects `tests/manual`.
 

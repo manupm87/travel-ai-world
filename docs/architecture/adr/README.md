@@ -23,6 +23,7 @@ One file per decision, numbered, never deleted (superseded ones get a new status
 | [0018](0018-chat-answers-carry-cards-client-names-the-slot.md) | A chat answer's places become cards; the client names the slot | Accepted |
 | [0019](0019-trips-live-in-the-planner.md) | Trips live in the planner: one city, a derived phase, a read-only past | Accepted (amended by 0020) |
 | [0020](0020-signed-in-home-is-the-trips-page.md) | The signed-in home is the trips page; the planner makes and reads one trip | Accepted |
+| [0021](0021-venue-photos-from-the-venues-site-preview.md) | A venue with no photo shows the preview of its own site, never another venue's | Accepted |
 
 ## Inputs
 

@@ -183,9 +183,9 @@ A card the page holds is an id, so opening one asks the service for it again: `G
 /api/v1/ai/planner/card?id=<doc id>` answers a `CardDetail` — the card's own fields plus the
 corpus document's text, its address, phone and site (`application/card_detail.py`). Nothing is
 taken from the client: an id the index does not hold is a 404. The lookup pictures that card the
-way the carousel's are (Commons), but it cannot know the `why` the model wrote for a turn, nor the
-same-category fallback photo that turn picked, so the page merges the detail onto the card it
-already holds rather than replacing it.
+way the carousel's are (Commons, then the venue's own site preview), but it cannot know the `why`
+the model wrote for a turn, nor the fallback photo that turn picked, so the page merges the detail
+onto the card it already holds rather than replacing it.
 
 Every card is a retrieved corpus document (`application/cards.py`); ids the model returns that were
 not retrieved are dropped, prices are tiers, flights a prefilled search link (`static_flight_search.py`),

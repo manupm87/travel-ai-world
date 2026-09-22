@@ -21,7 +21,9 @@ Cities are TOML files under `cities/`; Budapest is the reference one (see "Add a
 
 `Category:Baths in Budapest` (named in TRA-138) has no articles; the bath articles are in
 `Category:Thermal baths in Budapest`. Google Places content, TripAdvisor and Booking are forbidden
-sources (ToS).
+sources (ToS). Photos of venues are not stored here either: a restaurant, a bar or a hotel the
+corpus has no free photo of is pictured at request time by `ai_api`, from the preview the venue
+publishes on its own site, and that image is never written to the corpus (ADR 0021).
 
 Categories are city-scoped on purpose: `Landmarks in Hungary` and `Castles in Hungary` would add 46
 articles, most of them outside Budapest. A category may set `require_coordinates`, which admits only
