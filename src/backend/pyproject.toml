@@ -61,9 +61,6 @@ ignore = [
 "tools/vector_store_bench/tests/**" = ["S101", "RUF001"]
 "tools/scraper/**" = ["I", "UP", "B", "SIM", "N", "RUF", "ASYNC", "S"]
 
-[tool.ruff.lint.pep8-naming]
-classmethod-decorators = ["sqlalchemy.orm.declared_attr"]
-
 [tool.pyright]
 include = [
     "libs/travel_common/travel_common",

@@ -10,9 +10,6 @@ requires-python = ">=3.12"
 dependencies = [
     "travel-common",
     "fastapi[standard]>=0.141.1",
-    # Only for `copy-from-postgres` (core_api/legacy_sql); removed in TRA-219.
-    "sqlalchemy>=2.0.52",
-    "asyncpg>=0.31.0",
     "email-validator>=2.3.0",
     "httpx>=0.28.1",
 ]

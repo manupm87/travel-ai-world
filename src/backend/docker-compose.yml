@@ -1,4 +1,4 @@
-# Local stack: PostgreSQL + DynamoDB Local + core_api + ai_api + the frontend
+# Local stack: DynamoDB Local + core_api + ai_api + the frontend
 # export behind one nginx origin, the same shape as CloudFront in production.
 #
 #   just stack-up           full stack: frontend export built for :8080 + everything below
@@ -10,13 +10,8 @@
 #
 # Each service reads its own .env (copy the .env.example next to it).
 # SECRET_KEY must be identical in both. core_api keeps everything in DynamoDB
-# Local (ADR 0023) and creates its table there at start. PostgreSQL stays only
-# as the source of `python -m core_api.ops copy-from-postgres` until TRA-219:
-# the ${DB_*} values below are interpolated by Compose, so pass
-# --env-file services/core_api/.env (as `just docker-up` does) to keep it and
-# core_api on the same credentials. PostgreSQL itself receives only those
-# three values, never the service's .env (which holds SECRET_KEY and the
-# Google client secret).
+# Local (ADR 0023) and creates its table there at start; there is no SQL
+# database.
 #
 # The proxy bind-mounts ../frontend/out (the static export, gitignored) read-only.
 # Docker creates a missing bind-mount source as a root-owned directory, which
@@ -46,7 +41,6 @@ services:
     image: travel-ai-world/core-api:local
     env_file: services/core_api/.env
     environment:
-      - DB_SERVER=db_postgres
       - DYNAMODB_ENDPOINT_URL=http://dynamodb:8000
       - AWS_ACCESS_KEY_ID=local
       - AWS_SECRET_ACCESS_KEY=local
@@ -87,24 +81,3 @@ services:
     ports:
       - "8002:8000"
     restart: unless-stopped
-
-  # Only the source of copy-from-postgres; removed with RDS in TRA-219.
-  db_postgres:
-    image: postgres:16-alpine
-    restart: always
-    environment:
-      - POSTGRES_USER=${DB_USER:-postgres}
-      - POSTGRES_PASSWORD=${DB_PASSWORD:-postgres}
-      - POSTGRES_DB=${DB_NAME:-postgres}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-volumes:
-  postgres_data:

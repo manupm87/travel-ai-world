@@ -1,10 +1,8 @@
 """Developer-only commands: `python -m core_api.devtools token <email>`.
 
-Kept apart from `core_api.ops` on purpose. `ops` is the command surface that
-the Lambda's `POST /events` exposes to whoever can invoke the function, and
-minting a bearer token for an arbitrary account must never be one of those
-commands: nothing in the web process imports this module, and `ops` does not
-know it exists. It runs from a shell that already holds `SECRET_KEY` and
+Minting a bearer token for an arbitrary account must never be reachable from
+the deployed service: nothing in the web process imports this module (a test
+walks the package). It runs from a shell that already holds `SECRET_KEY` and
 reaches the table (a developer's terminal, `docker compose exec core_api`, CI).
 
     just dev-token you@example.com      # the JWT on stdout, nothing else
@@ -14,7 +12,7 @@ The token is exactly what `POST /auth/google` issues in local mode
 `sub` = the account's id (a UUID), `email`, `role`, `exp`. The account is
 created on the spot when there is none — the real Google sign-in adopts it
 later, because both modes match an account by its email. Creating accounts
-is why this module is developer-only and why `ops` does not know it exists.
+is why this module is developer-only.
 It honours `DYNAMODB_ENDPOINT_URL` and creates the table there when it is
 missing, like the service does. The Playwright suite and the Playwright MCP
 write the token into `localStorage` to sign in without Google

@@ -469,18 +469,3 @@ class DynamoChatMessageRepository(_Store):
         thread.updated_at = message.created_at
         thread.version += 1
         return message
-
-
-# ── The one-off copy from PostgreSQL ────────────────────────────────────────
-
-
-class DynamoCopyTarget(_Store):
-    """Unconditional writes for `copy-from-postgres`: a second run overwrites."""
-
-    async def email_owner(self, email: str) -> UUID | None:
-        lookup = await self._get(keys.email_pk(email), keys.EMAIL)
-        return UUID(lookup["user_id"]["S"]) if lookup else None
-
-    async def put_all(self, items: list[Item]) -> int:
-        """Put every item (overwriting); returns how many were written."""
-        return await self._batch([{"PutRequest": {"Item": item}} for item in items])

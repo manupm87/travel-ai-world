@@ -14,5 +14,5 @@ def configure_logging(level: str = "INFO") -> None:
     logging.basicConfig(level=level.upper(), format=FORMAT, force=True)
     # Third-party chatter stays at WARNING unless the app itself is in DEBUG.
     if level.upper() != "DEBUG":
-        for noisy in ("httpx", "httpcore", "sqlalchemy.engine"):
+        for noisy in ("httpx", "httpcore"):
             logging.getLogger(noisy).setLevel(logging.WARNING)

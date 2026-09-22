@@ -2,7 +2,7 @@
 
 Every test runs inside `mock_dynamodb()` (no AWS, no database server): the
 table is created fresh with `ensure_table` and the app's `get_table`
-dependency is pointed at it. Only `tests/test_ops_copy.py` needs PostgreSQL.
+dependency is pointed at it.
 """
 
 from collections.abc import AsyncGenerator, AsyncIterator

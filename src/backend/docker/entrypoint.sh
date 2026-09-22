@@ -5,8 +5,7 @@
 #
 # There is nothing to run before serving: core_api keeps its data in DynamoDB
 # (ADR 0023), whose table Terraform owns on AWS and the service creates itself
-# against a local endpoint. One-off operations are `python -m core_api.ops ...`
-# (or `{"command": ...}` through POST /events on Lambda).
+# against a local endpoint.
 set -e
 
 echo "==> [${SERVICE}] Starting uvicorn on :8000"

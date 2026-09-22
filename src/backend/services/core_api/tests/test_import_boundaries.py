@@ -1,10 +1,9 @@
 """Who may import what, checked on the source (ADR 0023).
 
-- PostgreSQL survives only as the read side of `copy-from-postgres`:
-  `sqlalchemy` and `core_api.legacy_sql` are imported by `legacy_sql/` itself
-  and by `ops.py`, nowhere else.
 - DynamoDB is reached through the adapter: `boto3`/`botocore` appear only in
   `infrastructure/dynamo/`.
+- `core_api.devtools` mints tokens for any account, so nothing in the web
+  process imports it.
 """
 
 import ast
@@ -22,7 +21,7 @@ def _imports(path: Path) -> Iterator[str]:
             yield from (alias.name for alias in node.names)
         elif isinstance(node, ast.ImportFrom) and node.module and node.level == 0:
             yield node.module
-            # `from core_api import legacy_sql` names the package in the alias.
+            # `from core_api import devtools` names the module in the alias.
             yield from (f"{node.module}.{alias.name}" for alias in node.names)
 
 
@@ -38,18 +37,18 @@ def _offenders(roots: tuple[str, ...], allowed: tuple[str, ...]) -> list[str]:
     return sorted(set(found))
 
 
-def test_only_the_copy_reads_postgresql():
-    offenders = _offenders(
-        ("sqlalchemy", "core_api.legacy_sql"), ("legacy_sql/", "ops.py")
-    )
-    assert offenders == [], offenders
-
-
 def test_only_the_adapter_talks_to_dynamodb():
     offenders = _offenders(("boto3", "botocore"), ("infrastructure/dynamo/",))
     assert offenders == [], offenders
 
 
+def test_the_service_never_imports_devtools():
+    offenders = _offenders(("core_api.devtools",), ("devtools.py",))
+    assert offenders == [], offenders
+
+
 def test_the_walk_sees_the_package():
-    """Guard against a vacuous pass: the walk does find the copy's imports."""
-    assert "sqlalchemy" in set(_imports(PACKAGE / "ops.py"))
+    """Guard against a vacuous pass: the walk does find the adapter's imports."""
+    assert "botocore.exceptions" in set(
+        _imports(PACKAGE / "infrastructure" / "dynamo" / "repositories.py")
+    )

@@ -78,12 +78,6 @@ jobs:
             test "$AWS_LWA_PORT" = 8000
             if [ "$SERVICE" = ai_api ]; then test "$AWS_LWA_INVOKE_MODE" = response_stream; else test "$AWS_LWA_INVOKE_MODE" = buffered; fi'
 
-      - name: "`copy-from-postgres` is the only command the image exposes"
-        if: ${{ !inputs.push && inputs.service == 'core_api' }}
-        run: |
-          docker run --rm --entrypoint python -e SECRET_KEY=x ${{ inputs.service }}:pr \
-            -c "from core_api.ops import COMMANDS; print(sorted(COMMANDS)); assert sorted(COMMANDS) == ['copy-from-postgres']"
-
       # core_api needs its DynamoDB table to be ready; its tests job and the
       # Compose stack e2e cover it. ai_api has no dependencies, so the
       # container is started.

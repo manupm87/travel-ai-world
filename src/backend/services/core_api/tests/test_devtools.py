@@ -1,18 +1,15 @@
 """`python -m core_api.devtools token <email>`: a local-mode JWT for an account,
-never reachable through `core_api.ops` / `POST /events`."""
+never reachable from the web process (`tests/test_import_boundaries.py`)."""
 
-import inspect
 from typing import Any
 
 import pytest
-from core_api import devtools, ops
-from core_api.api import events
+from core_api import devtools
 from core_api.config import CoreSettings, get_settings
 from core_api.domain.models import User
 from core_api.infrastructure.dynamo.repositories import DynamoUserRepository
-from core_api.main import app
 from httpx import AsyncClient
-from travel_common.exceptions import BadRequest, DomainError, Forbidden
+from travel_common.exceptions import DomainError, Forbidden
 from travel_common.principal import Role
 from travel_common.security import decode_access_token, principal_from_token
 
@@ -135,32 +132,3 @@ def test_cli_exits_one_with_a_message_when_minting_is_refused(
 def test_cli_requires_the_email():
     with pytest.raises(SystemExit):
         devtools.build_parser().parse_args(["token"])
-
-
-# ── The boundary: minting is not an operational command ─────────────────────
-
-
-async def test_token_is_not_an_ops_command():
-    assert "token" not in ops.COMMANDS
-    with pytest.raises(BadRequest, match="Unknown command"):
-        await ops.run_command("token", {"email": "you@example.com"})
-
-
-async def test_events_cannot_mint_a_token(client: AsyncClient):
-    app.dependency_overrides[get_settings] = lambda: CoreSettings(
-        AWS_LAMBDA_FUNCTION_NAME="travel-ai-core-api", SECRET_KEY=settings.SECRET_KEY
-    )
-    try:
-        response = await client.post(
-            "/events", json={"command": "token", "args": {"email": "you@example.com"}}
-        )
-    finally:
-        app.dependency_overrides.pop(get_settings)
-
-    assert response.status_code == 400
-    assert "jwt" not in response.text.lower()
-
-
-def test_the_service_never_imports_devtools():
-    for module in (ops, events):
-        assert "devtools" not in inspect.getsource(module)
