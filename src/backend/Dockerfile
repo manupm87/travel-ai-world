@@ -50,12 +50,6 @@ COPY services/${SERVICE} services/${SERVICE}
 RUN uv sync --frozen --no-dev --no-editable \
     --package "$(echo "$SERVICE" | tr _ -)"
 
-# Runtime files that live outside the package (migrations, if the service has them).
-RUN mkdir -p /runtime \
-    && if [ -d "services/${SERVICE}/alembic" ]; then \
-         cp -r "services/${SERVICE}/alembic" "services/${SERVICE}/alembic.ini" /runtime/; \
-       fi
-
 # ── Stage 2a: per-service Lambda Web Adapter settings ───────────────────────
 # ENV cannot branch on a build arg, so each service has a one-line stage and
 # the runtime stage inherits from the matching one.
@@ -75,7 +69,6 @@ WORKDIR /app
 
 COPY --from=lwa /lambda-adapter /opt/extensions/lambda-adapter
 COPY --from=builder /opt/venv /opt/venv
-COPY --from=builder /runtime /app
 COPY docker/entrypoint.sh /app/entrypoint.sh
 
 RUN useradd -m appuser \

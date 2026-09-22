@@ -78,26 +78,15 @@ jobs:
             test "$AWS_LWA_PORT" = 8000
             if [ "$SERVICE" = ai_api ]; then test "$AWS_LWA_INVOKE_MODE" = response_stream; else test "$AWS_LWA_INVOKE_MODE" = buffered; fi'
 
-      - name: "`migrate` without a database fails fast instead of serving"
-        if: ${{ !inputs.push && inputs.service == 'core_api' }}
-        run: |
-          set +e
-          out=$(timeout 60 docker run --rm -e SECRET_KEY=x -e DB_SERVER=127.0.0.1 -e DB_USER=x ${{ inputs.service }}:pr migrate 2>&1)
-          code=$?
-          set -e
-          echo "$out" | tail -5
-          test $code -ne 0
-          echo "$out" | grep -q "Running Alembic migrations"
-          ! echo "$out" | grep -q "Starting uvicorn"
-
-      - name: "`migrate` is the only command the image exposes"
+      - name: "`copy-from-postgres` is the only command the image exposes"
         if: ${{ !inputs.push && inputs.service == 'core_api' }}
         run: |
           docker run --rm --entrypoint python -e SECRET_KEY=x ${{ inputs.service }}:pr \
-            -c "from core_api.ops import COMMANDS; print(sorted(COMMANDS)); assert sorted(COMMANDS) == ['migrate']"
+            -c "from core_api.ops import COMMANDS; print(sorted(COMMANDS)); assert sorted(COMMANDS) == ['copy-from-postgres']"
 
-      # core_api runs migrations at start and needs a database; its tests job
-      # covers it. ai_api has no dependencies, so the container is started.
+      # core_api needs its DynamoDB table to be ready; its tests job and the
+      # Compose stack e2e cover it. ai_api has no dependencies, so the
+      # container is started.
       - name: Image serves its health endpoint
         if: ${{ !inputs.push && inputs.service == 'ai_api' }}
         run: |

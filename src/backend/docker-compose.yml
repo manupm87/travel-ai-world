@@ -9,11 +9,14 @@
 #   http://localhost:8002   -> DynamoDB Local (in memory: tables and items vanish on restart)
 #
 # Each service reads its own .env (copy the .env.example next to it).
-# SECRET_KEY must be identical in both. The ${DB_*} values below are
-# interpolated by Compose, so pass --env-file services/core_api/.env (as
-# `just docker-up` does) to keep PostgreSQL and core_api on the same credentials.
-# PostgreSQL itself receives only those three values, never the service's .env
-# (which holds SECRET_KEY and the Google client secret).
+# SECRET_KEY must be identical in both. core_api keeps everything in DynamoDB
+# Local (ADR 0023) and creates its table there at start. PostgreSQL stays only
+# as the source of `python -m core_api.ops copy-from-postgres` until TRA-219:
+# the ${DB_*} values below are interpolated by Compose, so pass
+# --env-file services/core_api/.env (as `just docker-up` does) to keep it and
+# core_api on the same credentials. PostgreSQL itself receives only those
+# three values, never the service's .env (which holds SECRET_KEY and the
+# Google client secret).
 #
 # The proxy bind-mounts ../frontend/out (the static export, gitignored) read-only.
 # Docker creates a missing bind-mount source as a root-owned directory, which
@@ -51,8 +54,6 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      db_postgres:
-        condition: service_healthy
       dynamodb:
         condition: service_started
     restart: unless-stopped
@@ -87,6 +88,7 @@ services:
       - "8002:8000"
     restart: unless-stopped
 
+  # Only the source of copy-from-postgres; removed with RDS in TRA-219.
   db_postgres:
     image: postgres:16-alpine
     restart: always

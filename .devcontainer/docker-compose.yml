@@ -39,8 +39,8 @@ services:
       - shell_history:/commandhistory
     command: sleep infinity
     environment:
-      # Override the DB_* keys of src/backend/services/core_api/.env so core_api,
-      # alembic and the tests always talk to the `db` service below.
+      # Override the DB_* keys of src/backend/services/core_api/.env so
+      # copy-from-postgres and its test always talk to the `db` service below.
       # (Environment variables win over .env in pydantic-settings.)
       DB_SERVER: db
       DB_PORT: "5432"

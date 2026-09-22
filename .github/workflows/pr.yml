@@ -118,6 +118,8 @@ jobs:
     defaults:
       run:
         working-directory: src/backend/services/core_api
+    # PostgreSQL only for tests/test_ops_copy.py (the copy-from-postgres command,
+    # removed with RDS in TRA-219); everything else runs on moto, in process.
     services:
       postgres:
         image: postgres:16-alpine
@@ -144,10 +146,6 @@ jobs:
       - uses: ./.github/actions/setup-uv
       - name: Import validation
         run: uv run python -c "from core_api.main import app; print('core_api imports OK')"
-      - name: Migrations apply cleanly and match the models
-        run: |
-          uv run alembic upgrade head
-          uv run alembic check
       - run: uv run pytest -q
 
   backend-ai:
@@ -306,8 +304,8 @@ jobs:
           echo "GET / -> ${status:-no answer}"
           test "${status:-}" = "200" && grep -q '<html' body
 
-      # Seed and token run inside the core_api container: it already holds
-      # SECRET_KEY and the database, so the runner needs no Python toolchain.
+      # The token is minted inside the core_api container: it already holds
+      # SECRET_KEY and reaches DynamoDB Local, so the runner needs no Python toolchain.
       # `python -m core_api.devtools token` is exactly what `just dev-token` runs.
       - name: Mint a local token for the e2e account (TRA-131)
         working-directory: src/backend

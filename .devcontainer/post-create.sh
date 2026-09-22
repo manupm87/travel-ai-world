@@ -16,9 +16,6 @@ fi
 # .env files from templates, uv sync (into the venv volume), npm install (into the node_modules volume).
 just setup
 
-# Schema of the devcontainer's PostgreSQL (DB_* come from docker-compose.yml).
-just migrate
-
 # Chromium for `just test-e2e` (system deps need sudo, which the base image grants).
 (cd src/frontend && npx playwright install --with-deps chromium)
 

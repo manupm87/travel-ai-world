@@ -36,7 +36,8 @@ setup:
 
 # ── Run ──────────────────────────────────────────────────────────────────────
 
-# core_api with hot reload on :8000
+# core_api with hot reload on :8000. Needs DynamoDB: `just dynamodb-local` in another terminal
+# (the devcontainer and Compose bring their own); the table is created at start.
 dev-core:
     cd {{core}} && uv run uvicorn core_api.main:app --reload --host 0.0.0.0 --port 8000
 
@@ -118,14 +119,14 @@ format:
 # All tests: backend packages + frontend unit tests
 test: test-backend test-frontend
 
-# Every backend package (needs PostgreSQL for core_api)
+# Every backend package (core_api's copy-from-postgres test needs PostgreSQL, else it skips)
 test-backend: test-common test-core test-ai test-corpus
 
 # travel_common unit tests
 test-common:
     cd {{common}} && uv run pytest -q
 
-# core_api tests (PostgreSQL required; creates <DB_NAME>_test)
+# core_api tests (DynamoDB on moto, in process; tests/test_ops_copy.py uses PostgreSQL or skips)
 test-core:
     cd {{core}} && uv run pytest -q
 
@@ -191,15 +192,7 @@ aws-login:
     aws sso login
     aws sts get-caller-identity
 
-# ── Database ─────────────────────────────────────────────────────────────────
-
-# Apply core_api migrations
-migrate:
-    cd {{core}} && uv run alembic upgrade head
-
-# Autogenerate a migration after changing core_api models: just migration "add x"
-migration message:
-    cd {{core}} && uv run alembic revision --autogenerate -m "{{message}}"
+# ── Accounts ─────────────────────────────────────────────────────────────────
 
 # Print a local-mode JWT for an account (created when it is new), to sign in without Google:
 # E2E_TOKEN=$(just dev-token you@example.com). Dev-only: not an `ops` command, never on /events.
@@ -217,7 +210,7 @@ docker-build:
     cd {{backend}} && docker build --build-arg SERVICE=core_api -t travel-ai-world/core-api:local .
     cd {{backend}} && docker build --build-arg SERVICE=ai_api -t travel-ai-world/ai-api:local .
 
-# Backend-only stack: proxy :8080 + core_api + ai_api + PostgreSQL (no Node needed).
+# Backend-only stack: proxy :8080 + core_api + ai_api + DynamoDB Local + PostgreSQL (no Node needed).
 # The proxy serves whatever is in {{frontend}}/out; without a build "/" answers 404
 # and /api/* still works. mkdir keeps the bind-mount source owned by you, not root.
 docker-up:
@@ -234,7 +227,7 @@ docker-down:
 build-stack:
     cd {{frontend}} && NEXT_PUBLIC_API_URL=http://localhost:8080 NEXT_PUBLIC_AI_API_URL= npm run build
 
-# Full stack as deployed on http://localhost:8080: export + proxy + core_api + ai_api + PostgreSQL.
+# Full stack as deployed on http://localhost:8080: export + proxy + core_api + ai_api + DynamoDB Local.
 # `next build` deletes and recreates out/, so a proxy that was already running would keep the
 # old, unlinked directory (404 on every page): recreate it so the bind mount is the new one.
 stack-up: build-stack docker-up

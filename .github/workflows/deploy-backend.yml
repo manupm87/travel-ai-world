@@ -3,7 +3,8 @@ name: Deploy backend
 # Promotes the images built by backend-images.yml (GHCR) into the chosen
 # cloud's registry and applies that cloud's Terraform with them. On AWS the
 # functions receive the image *digests* (a mutable tag would not redeploy
-# them) and, after the apply, core_api is invoked with {"command": "migrate"}.
+# them). There are no migrations to run after the apply: core_api keeps its
+# data in DynamoDB (ADR 0023), whose table belongs to Terraform.
 #
 # Prerequisites (one-off, per cloud):
 #   - A remote Terraform state backend: for AWS, apply infra/aws/bootstrap once
@@ -167,25 +168,3 @@ jobs:
       - name: Apply
         if: inputs.apply
         run: terraform apply -input=false tfplan
-
-      # On Lambda nothing migrates at start (src/backend/docker/entrypoint.sh):
-      # the function is asked to, once, after the new image is live.
-      - name: Apply database migrations (AWS)
-        if: inputs.apply && inputs.cloud == 'aws'
-        run: |
-          fn=$(terraform output -raw core_api_function_name)
-          aws lambda wait function-updated --function-name "$fn"
-          aws lambda invoke --function-name "$fn" --cli-binary-format raw-in-base64-out \
-            --payload '{"command": "migrate"}' response.json
-          cat response.json; echo
-          # The Web Adapter may wrap the app's answer as {"statusCode", "body": "<json>"}.
-          python3 - <<'PY'
-          import json, sys
-          data = json.load(open("response.json"))
-          if isinstance(data, dict) and "body" in data:
-              status_code = int(data.get("statusCode", 0))
-              data = json.loads(data["body"]) if isinstance(data["body"], str) else data["body"]
-              assert status_code == 200, f"core_api answered {status_code}: {data}"
-          assert data.get("status") == "ok", f"migrate did not report ok: {data}"
-          print("migrations applied")
-          PY
