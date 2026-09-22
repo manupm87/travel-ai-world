@@ -436,10 +436,12 @@ class DynamoChatMessageRepository(_Store):
         last = await self._last_created_at(thread.id)
         if last is not None and message.created_at <= last:
             message.created_at = last + timedelta(microseconds=1)
-        new_version = thread.version + 1
+        # The thread is bumped, not compared: an append never conflicts with a
+        # rename or another append (ai_api writes question and answer back to
+        # back), it only requires the thread to still exist.
         await self._write(
             "transact_write_items",
-            [STALE, STALE],
+            [STALE, "the conversation no longer exists"],
             TransactItems=[
                 {
                     "Put": {
@@ -454,19 +456,18 @@ class DynamoChatMessageRepository(_Store):
                         "Key": keys.key(
                             keys.user_pk(thread.user_id), keys.thread_sk(thread.id)
                         ),
-                        "UpdateExpression": "SET updated_at = :now, version = :new",
-                        "ConditionExpression": "version = :expected",
+                        "UpdateExpression": "SET updated_at = :now ADD version :one",
+                        "ConditionExpression": "attribute_exists(PK)",
                         "ExpressionAttributeValues": {
                             ":now": {"S": message.created_at.isoformat()},
-                            ":new": {"N": str(new_version)},
-                            ":expected": {"N": str(thread.version)},
+                            ":one": {"N": "1"},
                         },
                     }
                 },
             ],
         )
         thread.updated_at = message.created_at
-        thread.version = new_version
+        thread.version += 1
         return message
 
 

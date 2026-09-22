@@ -1,7 +1,7 @@
 import uuid
 
 from pydantic import BaseModel
-from travel_common.exceptions import EntityNotFound, Forbidden, Unauthorized
+from travel_common.exceptions import Conflict, EntityNotFound, Forbidden, Unauthorized
 from travel_common.principal import Role
 
 from core_api.auth.google import ExternalIdentity
@@ -63,18 +63,37 @@ class UserService:
         """
         user = await self.users.get_by_email(identity.email)
         if user is None:
-            return await self.users.add(
-                User(
-                    email=identity.email,
-                    google_id=identity.subject,
-                    name=identity.name,
-                    picture=identity.picture,
-                    auth_provider=identity.provider,
-                    is_active=True,
-                    role=role or Role.USER,
+            try:
+                return await self.users.add(
+                    User(
+                        email=identity.email,
+                        google_id=identity.subject,
+                        name=identity.name,
+                        picture=identity.picture,
+                        auth_provider=identity.provider,
+                        is_active=True,
+                        role=role or Role.USER,
+                    )
                 )
-            )
+            except Conflict:
+                # A first sign-in fires several requests at once; one of them
+                # created the account between our read and our write.
+                user = await self.users.get_by_email(identity.email)
+                if user is None:
+                    raise
+        try:
+            return await self._refresh(user, identity, role)
+        except Conflict:
+            # Another request refreshed the same profile first: start from it.
+            fresh = await self.users.get_by_email(identity.email)
+            if fresh is None:
+                raise
+            return await self._refresh(fresh, identity, role)
 
+    async def _refresh(
+        self, user: User, identity: ExternalIdentity, role: Role | None
+    ) -> User:
+        """Bring the stored profile in line with the identity; write only on a change."""
         profile = {
             "google_id": identity.subject,
             "name": identity.name,

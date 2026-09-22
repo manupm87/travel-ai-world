@@ -307,6 +307,40 @@ async def test_an_append_moves_the_thread(
     assert stored.version == thread.version == 1
 
 
+async def test_an_append_does_not_race_a_rename(
+    threads: DynamoChatThreadRepository, messages: DynamoChatMessageRepository
+):
+    """ai_api appends while another request renames the thread: both land."""
+    owner = uuid.uuid4()
+    thread = await threads.add(ChatThread(user_id=owner))
+    stale = await threads.get(owner, thread.id)
+    assert stale is not None
+
+    renamed = await threads.get(owner, thread.id)
+    assert renamed is not None
+    renamed.title = "Budapest in May"
+    await threads.save(renamed)
+
+    await messages.append(stale, a_message(stale, "hi"))
+
+    stored = await threads.get(owner, thread.id)
+    assert stored is not None
+    assert stored.title == "Budapest in May"
+    assert stored.version == 2
+    assert [m.content for m in await messages.list_in(thread.id, Page())] == ["hi"]
+
+
+async def test_an_append_to_a_deleted_thread_is_a_conflict(
+    threads: DynamoChatThreadRepository, messages: DynamoChatMessageRepository
+):
+    owner = uuid.uuid4()
+    thread = await threads.add(ChatThread(user_id=owner))
+    await threads.delete(thread)
+
+    with pytest.raises(Conflict):
+        await messages.append(thread, a_message(thread, "hi"))
+
+
 async def test_messages_page_in_order(
     threads: DynamoChatThreadRepository, messages: DynamoChatMessageRepository
 ):
