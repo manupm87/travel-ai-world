@@ -231,8 +231,8 @@ curl -H "Authorization: Bearer $TOKEN" "$(terraform output -raw api_gateway_invo
 [ADR 0023](../../docs/architecture/adr/0023-dynamodb-data-store.md) moved `core_api` from RDS
 PostgreSQL to DynamoDB on 2026-09-22 (TRA-217, TRA-218): the table was applied first, the
 DynamoDB image deployed, and the one-off `copy-from-postgres` command copied every user, trip,
-thread and message. A manual snapshot `travel-ai-pre-dynamodb-2026-09-22` was taken before the
-copy. TRA-219 then removed RDS, the VPC and the copy command from the code.
+thread and message. TRA-219 then removed RDS, the VPC and the copy command. No snapshot of the
+old database is kept: every row lives in DynamoDB, which has point-in-time recovery.
 
 ## Retiring RDS (TRA-219)
 
@@ -253,5 +253,9 @@ gateway endpoint, so the next apply destroys them. Once, from `infra/aws/` after
 3. **Be patient with the network.** Lambda can take up to ~40 minutes to release the function's
    ENIs, so deleting the security groups and subnets may be slow. If the workflow times out,
    run the deploy again: the remaining deletions pick up where they stopped.
-4. **After 30 days**, delete the two snapshots (`travel-ai-pre-dynamodb-2026-09-22` and
-   `${name_prefix}-final`) by hand from the RDS console or with `aws rds delete-db-snapshot`.
+4. **Delete the final snapshot** right away. Nothing needs it, and it costs storage every month.
+   The automated backups go with the instance.
+
+   ```bash
+   aws rds delete-db-snapshot --db-snapshot-identifier travel-ai-final
+   ```
