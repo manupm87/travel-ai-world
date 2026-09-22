@@ -1,8 +1,8 @@
-"""Closed vocabularies shared by the ORM, the schemas and, through OpenAPI,
+"""Closed vocabularies shared by the entities, the schemas and, through OpenAPI,
 the frontend, all stored as plain strings.
 
 A trip's phase is not one of them: it is derived from its dates, never
-stored, and lives with the entity it describes (`models/trip.py`, ADR 0019).
+stored, and lives with the entity it describes (`domain/models.py`, ADR 0019).
 """
 
 import enum
