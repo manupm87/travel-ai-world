@@ -15,7 +15,7 @@ import { useSaveTrip } from "@/hooks/useSaveTrip";
 import { isTripId, useTrip } from "@/hooks/useTrip";
 import { findCity, usePlannerCities } from "@/hooks/usePlannerCities";
 import { useSelectedDay } from "@/hooks/useSelectedDay";
-import { readSavedTripId } from "@/services/plannerDraft";
+import { clearPlannerDraft, readSavedTripId } from "@/services/plannerDraft";
 import { tripToDraft } from "@/services/tripDraft";
 import type { Slot } from "@/types/planner";
 
@@ -34,6 +34,13 @@ import type { Slot } from "@/types/planner";
  * to the same trip — which is also why "Save trip" puts the new id there. A
  * trip that is not upcoming is read-only: core_api refuses every write on it,
  * so the page hides the controls that would be refused (ADR 0019).
+ *
+ * `/plan/` without `?trip=` is always a new trip (TRA-223). The tab's stored
+ * draft is restored there only while it was never saved: once it has a trip
+ * id it belongs to that trip, which `?trip=` reopens, so a bare `/plan/` (the
+ * home's ask and its "New trip") starts empty instead of being sent back to
+ * it. A `?trip=` that is not found and is the tab's own saved trip (deleted
+ * elsewhere) drops the draft too, and the pane offers a new trip.
  */
 export default function PlannerClientPage() {
   const { t } = useLanguage();
@@ -41,6 +48,18 @@ export default function PlannerClientPage() {
   const params = useSearchParams();
   const query = params.get("q");
   const tripParam = params.get("trip");
+  // A bare `/plan/` is a new trip (TRA-223). When the tab still holds the
+  // draft of a saved trip, the draft and its id are dropped here, once per
+  // mount and before the hooks below read them: `usePlanner` restores the
+  // draft in its reducer's initializer and `useSaveTrip` reads the id in its
+  // state's, so clearing any later would flash the old conversation and let
+  // the redirect effect further down send the page back to `?trip=`. A lazy
+  // `useState` initializer is the one place that runs first and only once. A
+  // draft that was never saved has no id and is restored, as before.
+  useState(() => {
+    if (tripParam === null && readSavedTripId() !== null) clearPlannerDraft();
+    return null;
+  });
   const {
     state,
     demo,
@@ -113,12 +132,28 @@ export default function PlannerClientPage() {
     hydratedRef.current = saved;
     router.replace(`/plan/?trip=${encodeURIComponent(saved)}`);
   }, [router, save.tripId, tripParam]);
-  /** "New trip", from a trip that can no longer be planned: an empty planner. */
+  /**
+   * "New trip": an empty planner with no trip to update, and a bare `/plan/`.
+   * Offered by a trip that can no longer be planned, by the panel's header
+   * while a saved trip is open, and by a trip that is not there at all.
+   */
   const newTrip = useCallback(() => {
     hydratedRef.current = null;
     startNew();
     router.replace("/plan/");
   }, [router, startNew]);
+
+  // A `?trip=` that is not found but is the very trip this tab saved: it was
+  // deleted (or lost) elsewhere, so the draft kept for it belongs to nothing.
+  // It goes with its id, from storage and from the planner, instead of being
+  // restored beside a trip that no longer exists. Another missing id leaves
+  // the tab's own draft alone.
+  useEffect(() => {
+    if (tripStatus !== "not-found" || tripParam === null) return;
+    if (readSavedTripId() !== tripParam) return;
+    hydratedRef.current = null;
+    startNew();
+  }, [tripStatus, tripParam, startNew]);
 
   // One walk of the itinerary for both columns (TRA-147): the map draws these
   // pins and the panel numbers its cards from the very same list.
@@ -214,6 +249,7 @@ export default function PlannerClientPage() {
           onToggleShortlist={toggleShortlist}
           onAskAlternatives={askAlternatives}
           onReset={startNew}
+          onNewTrip={newTrip}
           openTrip={openTrip}
           lockedPhase={lockedPhase}
           save={save}

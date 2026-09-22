@@ -12,6 +12,11 @@ export type OpenTripState =
 
 export interface OpenTripNoticeProps {
   state: OpenTripState;
+  /**
+   * "New trip" beside the way home when the trip is not there (TRA-223): an
+   * empty planner, on this very page. Without it the link stands alone.
+   */
+  onNewTrip?: () => void;
 }
 
 /**
@@ -27,8 +32,10 @@ export interface OpenTripNoticeProps {
  * The way on from a trip that is not there is the home, where the account's
  * trips are listed (`/dashboard/`, TRA-201) — a link, because it is a
  * navigation; the error state keeps its button, because retrying is not.
+ * Starting a new trip instead is an action on this page, so it is a button
+ * too (`onNewTrip`, TRA-223).
  */
-export function OpenTripNotice({ state }: OpenTripNoticeProps) {
+export function OpenTripNotice({ state, onNewTrip }: OpenTripNoticeProps) {
   const { t } = useLanguage();
   const l = t.plan.trips;
 
@@ -55,12 +62,23 @@ export function OpenTripNotice({ state }: OpenTripNoticeProps) {
         {notFound ? l.notFoundDescription : l.loadErrorDescription}
       </p>
       {state.status === "not-found" ? (
-        <Link
-          href="/dashboard/"
-          className="mt-2 rounded-lg border border-glass-border bg-glass-bg px-3.5 py-2 text-sm font-medium text-text-primary transition hover:border-accent-border focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none"
-        >
-          {l.title}
-        </Link>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <Link
+            href="/dashboard/"
+            className="rounded-lg border border-glass-border bg-glass-bg px-3.5 py-2 text-sm font-medium text-text-primary transition hover:border-accent-border focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none"
+          >
+            {l.title}
+          </Link>
+          {onNewTrip && (
+            <button
+              type="button"
+              onClick={onNewTrip}
+              className="rounded-lg border border-glass-border bg-glass-bg px-3.5 py-2 text-sm font-medium text-text-primary transition hover:border-accent-border focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none"
+            >
+              {l.newTrip}
+            </button>
+          )}
+        </div>
       ) : (
         <button
           type="button"
