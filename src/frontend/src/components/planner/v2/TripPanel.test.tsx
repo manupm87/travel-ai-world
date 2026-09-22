@@ -583,6 +583,15 @@ describe("TripPanel", () => {
 
       expect(newTripButton()).toBeNull();
     });
+
+    it("tells itself apart from Start over, which stays on the trip", () => {
+      renderPanel({}, { tripId: "trip-1" }, { onNewTrip: vi.fn() });
+
+      expect(newTripButton()).toHaveAccessibleDescription(en.plan.panel.newTripHint);
+      expect(screen.getByRole("button", { name: en.plan.panel.reset })).toHaveAccessibleDescription(
+        en.plan.panel.resetHint
+      );
+    });
   });
 
   it("shows the placeholder, not a trips list, before the conversation starts", () => {

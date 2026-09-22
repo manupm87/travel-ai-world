@@ -171,6 +171,8 @@ const en: Translations = {
       saveError: "Couldn't save",
       saveRetry: "Try again",
       reset: "Start over",
+      newTripHint: "Leave this saved trip as it is and plan another one.",
+      resetHint: "Clear the conversation and keep working on this trip.",
       route: "Route {from} → {to}",
       searchFlights: "Search flights",
       daysNav: "Days",

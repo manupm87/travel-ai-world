@@ -145,6 +145,7 @@ export function TripPanel({
   const { t } = useLanguage();
   const [changing, setChanging] = useState<Slot | null>(null);
   const dayPanelId = useId();
+  const hintId = useId();
   const scrollerRef = useRef<HTMLDivElement>(null);
   const p = t.plan.panel;
   const { brief, itinerary } = state;
@@ -346,30 +347,48 @@ export function TripPanel({
         <div className="flex shrink-0 flex-wrap items-center gap-2 sm:ml-auto">
           {!lockedPhase && (
             <>
-              <SaveTripButton
-                status={save.status}
-                tripId={save.tripId}
-                canSave={save.canSave}
-                onSave={save.save}
-              />
-              {save.tripId !== null && onNewTrip && (
+              {/* "New trip" leaves the saved trip and "Start over" stays on it:
+                  the first sits with "Save trip" (both are about the trip), the
+                  second stands apart behind a rule, and each carries a short
+                  description, so the two are never mistaken for synonyms. */}
+              <div className="flex flex-wrap items-center gap-2">
+                <SaveTripButton
+                  status={save.status}
+                  tripId={save.tripId}
+                  canSave={save.canSave}
+                  onSave={save.save}
+                />
+                {save.tripId !== null && onNewTrip && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onNewTrip}
+                    title={p.newTripHint}
+                    aria-describedby={`${hintId}-new`}
+                    className="px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                  >
+                    {t.plan.trips.newTrip}
+                  </Button>
+                )}
+              </div>
+              <div className="flex items-center gap-2 border-l border-border pl-2">
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={onNewTrip}
+                  onClick={onReset}
+                  title={p.resetHint}
+                  aria-describedby={`${hintId}-reset`}
                   className="px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                 >
-                  {t.plan.trips.newTrip}
+                  {p.reset}
                 </Button>
-              )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onReset}
-                className="px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
-              >
-                {p.reset}
-              </Button>
+              </div>
+              <span id={`${hintId}-new`} className="sr-only">
+                {p.newTripHint}
+              </span>
+              <span id={`${hintId}-reset`} className="sr-only">
+                {p.resetHint}
+              </span>
             </>
           )}
         </div>

@@ -231,6 +231,10 @@ export default function PlannerClientPage() {
           onToggleShortlist={toggleShortlist}
           lockedPhase={lockedPhase}
           onNewTrip={newTrip}
+          // The panel shows the trip's notice meanwhile; the column shows no
+          // transcript until the trip is in the planner, so the draft of a
+          // deleted trip is never painted before the effect above drops it.
+          holding={openTrip !== null}
         />
       }
       panel={

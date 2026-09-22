@@ -132,3 +132,22 @@ describe("ChatColumn", () => {
     expect(screen.getByText(p.subtitle)).toBeInTheDocument();
   });
 });
+
+describe("ChatColumn — while the URL's trip is not in the planner (TRA-223)", () => {
+  it("shows no transcript and takes no turn", () => {
+    const { onSend } = renderColumn({}, null, { holding: true });
+
+    expect(screen.queryByText("5 days in Budapest")).toBeNull();
+    expect(screen.queryByText("Good plan!")).toBeNull();
+
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "3 days in Bologna" } });
+    fireEvent.keyDown(screen.getByRole("textbox"), { key: "Enter" });
+    expect(onSend).not.toHaveBeenCalled();
+  });
+
+  it("shows the transcript again once the trip is there", () => {
+    renderColumn({}, null, { holding: false });
+
+    expect(screen.getByText("5 days in Budapest")).toBeInTheDocument();
+  });
+});

@@ -164,6 +164,8 @@ const es: Translations = {
       saveError: "No se pudo guardar",
       saveRetry: "Reintentar",
       reset: "Empezar de nuevo",
+      newTripHint: "Deja este viaje guardado como está y planifica otro.",
+      resetHint: "Borra la conversación y sigue con este mismo viaje.",
       route: "Ruta {from} → {to}",
       searchFlights: "Buscar vuelos",
       daysNav: "Días",

@@ -36,6 +36,13 @@ export interface ChatColumnProps {
   lockedPhase?: LockedPhase | null;
   /** From the notice: leave this trip where it is and start another. */
   onNewTrip?: () => void;
+  /**
+   * The URL names a trip that is not in the planner yet: loading, not found
+   * or failed (TRA-223). The transcript in state may be another trip's — a
+   * deleted one's included — so the column shows none of it and takes no
+   * turn until the trip panel has something to show.
+   */
+  holding?: boolean;
 }
 
 function isEmptyAssistant(message: PlannerMessage | undefined): boolean {
@@ -60,6 +67,7 @@ export function ChatColumn({
   onToggleShortlist,
   lockedPhase = null,
   onNewTrip,
+  holding = false,
 }: ChatColumnProps) {
   const { t } = useLanguage();
   const [input, setInput] = useState("");
@@ -69,20 +77,24 @@ export function ChatColumn({
   });
 
   const isStreaming = state.status === "streaming";
-  const canSubmit = input.trim().length > 0 && !isStreaming && !unavailable;
+  const canSubmit = input.trim().length > 0 && !isStreaming && !unavailable && !holding;
+  // What the log shows: nothing at all while holding, so a draft that belongs
+  // to some other trip never paints for the beat before it is dropped.
+  const messages = holding ? [] : state.messages;
 
   const submit = () => {
     const text = input.trim();
-    if (!text || isStreaming || unavailable) return;
+    if (!text || isStreaming || unavailable || holding) return;
     onSend(text);
     setInput("");
   };
 
-  const lastIndex = state.messages.length - 1;
-  const lastIsEmptyAssistant = isEmptyAssistant(state.messages[lastIndex]);
+  const lastIndex = messages.length - 1;
+  const lastIsEmptyAssistant = isEmptyAssistant(messages[lastIndex]);
   /** The error never hides: without an empty bubble to fill, add one. */
-  const showExtraError = !!errorText && !lastIsEmptyAssistant;
-  const showQuickReplies = !isStreaming && !hasItinerary(state.itinerary) && !lockedPhase;
+  const showExtraError = !!errorText && !lastIsEmptyAssistant && !holding;
+  const showQuickReplies =
+    !isStreaming && !hasItinerary(state.itinerary) && !lockedPhase && !holding;
 
   const renderEntry = (message: PlannerMessage, index: number) => {
     switch (message.kind) {
@@ -122,7 +134,7 @@ export function ChatColumn({
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-3">
-      {state.messages.length === 0 && !lockedPhase && (
+      {messages.length === 0 && !lockedPhase && !holding && (
         <p className="text-sm leading-relaxed text-text-secondary">{t.plan.subtitle}</p>
       )}
 
@@ -133,7 +145,7 @@ export function ChatColumn({
         aria-live="polite"
         className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-y-contain px-1"
       >
-        {state.messages.map((message, index) => (
+        {messages.map((message, index) => (
           <Fragment key={message.id}>{renderEntry(message, index)}</Fragment>
         ))}
 
@@ -167,9 +179,9 @@ export function ChatColumn({
         <>
           <SuggestionChips
             onPick={onSend}
-            disabled={isStreaming || unavailable}
+            disabled={isStreaming || unavailable || holding}
             cities={cities}
-            showStarters={state.messages.length === 0}
+            showStarters={messages.length === 0}
           />
 
           <PromptComposer

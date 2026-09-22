@@ -184,6 +184,10 @@ export interface Translations {
       saveError: string;
       saveRetry: string;
       reset: string;
+      /** Beside a saved trip: "New trip" leaves it and opens an empty planner. */
+      newTripHint: string;
+      /** "Start over" clears the conversation but stays on the same trip. */
+      resetHint: string;
       /** "Route {from} → {to}" */
       route: string;
       searchFlights: string;
