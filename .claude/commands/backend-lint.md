@@ -12,4 +12,4 @@ uv run ruff check .
 uv run ruff format .
 ```
 
-Configuration lives in `src/backend/pyproject.toml` (`[tool.ruff]`: line length 88, target py312, rules E4/E7/E9/F, `alembic/` excluded) and applies to every workspace member.
+Configuration lives in `src/backend/pyproject.toml` (`[tool.ruff]`: line length 88, target py312, rules E4/E7/E9/F) and applies to every workspace member.
