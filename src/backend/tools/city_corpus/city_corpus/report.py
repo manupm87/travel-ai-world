@@ -35,7 +35,7 @@ MONTHS = tuple(f"{month:02d}" for month in range(1, 13))
 SMALL_DISTRICT_PLACES = 10
 SMOKE_TOP = 3
 # Where a hotel's photo came from, in the order the build tries them (ADR 0022).
-PHOTO_SOURCES = ("commons", "site", "facebook", "page")
+PHOTO_SOURCES = ("site", "facebook", "commons", "page")
 
 # What a traveller asks for first, per category, in any city: nothing here
 # names one city's specialities. A corpus that cannot name three places for
@@ -457,10 +457,10 @@ def hotel_photo_lines(summary: Summary) -> list[str]:
     accounts for every one of them.
     """
     intro = (
-        "Every located `sleep` place carries a photo: the corpus's own, one found on "
-        "Commons, the preview the hotel's site publishes, its Facebook page or the "
-        "largest picture on its homepage (ADR 0022). A hotel that ends the build "
-        "without one is dropped."
+        "Every located `sleep` place carries a photo: the corpus's own, the preview "
+        "the hotel's site publishes, its Facebook page, a Wikimedia Commons file "
+        "named after it or the largest picture on its homepage (ADR 0022). A hotel "
+        "that ends the build without one is dropped."
     )
     photos = summary.hotel_photos
     if not photos:

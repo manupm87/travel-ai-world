@@ -18,7 +18,7 @@ infrastructure/ adapters: nvidia_provider.py, bedrock_provider.py, bedrock_embed
                 Bedrock adapters), s3vectors.py + s3vectors_retriever.py, providers.py (settings → adapters),
                 open_meteo.py (forecast), static_flight_search.py + data/airports.json (route deep links),
                 cities.py + data/cities.json (the cities manifest the corpus tool writes; PLANNER_CITIES narrows it),
-                commons_photos.py (a Wikimedia Commons photo near a venue, TRA-161),
+                commons_photos.py (a Wikimedia Commons photo near a venue and naming it, TRA-161),
                 site_previews.py (the og:image a venue publishes on its own site, ADR 0021),
                 sse.py, retry.py, core_api_client.py
 api/            deps.py (per-request wiring; process resources come from app.state), v1/endpoints/{chat,planner,health}.py
@@ -80,13 +80,14 @@ testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, Ke
   route and in `_chat`; a `restaurant` ask with no part searches `eat` *and* `drink`. Weather: Open-Meteo within 16 days, else the corpus's
   `om:climate:<city>:<MM>` normal fetched by id. **Every card is pictured, and never by another place**
   (TRA-161, TRA-168, TRA-206 / ADR 0021): candidates are ordered pictured-first; a card without a corpus
-  image is looked up on Commons by name (the search carries the city's name) and at its coordinates
-  (`PhotoFinder`, `PHOTOS_ENABLED`); failing that, a card with a `deep_link` shows the preview its own
+  image is looked up on Commons by name (the search carries the city's name) and at its coordinates,
+  where a file still counts only when its title names the venue (`PhotoFinder`, `PHOTOS_ENABLED`); failing that, a card with a `deep_link` shows the preview its own
   site publishes, credited with the bare domain (`SitePreviewFinder`, `SITE_PREVIEWS_ENABLED`); failing
   that, only a neighbourhood borrows — a pictured sight of its district, credited as that sight's
   (`PlanTrip._corpus_photo`); anything else gets the neutral placeholder credited `Illustrative photo`
   (`application/photos.py`). **A stay is always a pictured document** (TRA-208 / ADR 0022): the corpus
-  resolves a photo for every hotel it keeps, so `_hotel_candidates` drops `sleep` documents without an
+  resolves a photo for every hotel it keeps — the hotel's own site first, Commons by name only — so
+  `_hotel_candidates` drops `sleep` documents without an
   `image_url` (searching twice as wide to make up for them) instead of falling back to a placeholder
   under "sleep here". Their credit travels with them: `image_credit` in the corpus — the bare domain the
   picture was read from — wins over the Commons author-and-licence line `cards.py` derives.

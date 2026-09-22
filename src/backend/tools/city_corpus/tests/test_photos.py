@@ -50,10 +50,6 @@ def _search(*titles: str) -> httpx.Response:
     return _json(query={"search": [{"title": t} for t in titles]})
 
 
-def _geosearch(*files: tuple[str, float]) -> httpx.Response:
-    return _json(query={"geosearch": [{"title": t, "dist": d} for t, d in files]})
-
-
 def _imageinfo(title: str, licence: str, author: str = "Jane") -> httpx.Response:
     return _json(
         query={
@@ -88,7 +84,6 @@ def _image(
 
 
 MISSING = _json(query={"search": []})
-NO_FILES = _json(query={"geosearch": []})
 
 
 class Recorder:
@@ -120,105 +115,23 @@ def _client(recorder: Recorder, cache: Path, *, offline: bool = False) -> ApiCli
 
 
 def _commons(*responses: httpx.Response) -> Callable[[httpx.Request], httpx.Response]:
-    """Commons answers `search`, `geosearch` and `imageinfo` in that order."""
+    """Commons answers `search` and then `imageinfo`; nothing else is asked."""
 
     def answer(request: httpx.Request) -> httpx.Response:
         action = request.url.params.get("list") or request.url.params.get("prop")
-        index = {"search": 0, "geosearch": 1, "imageinfo": 2}[str(action)]
+        index = {"search": 0, "imageinfo": 1}[str(action)]
         return responses[index]
 
     return answer
 
 
-# ─── 1. Commons ──────────────────────────────────────────────────────────────
-
-
-def test_a_file_named_after_the_hotel_wins(tmp_path: Path) -> None:
-    recorder = Recorder(
-        {
-            "commons.wikimedia.org": _commons(
-                _search("File:Gellért Hotel front.jpg"),
-                NO_FILES,
-                _imageinfo("File:Gellért Hotel front.jpg", "CC BY-SA 4.0"),
-            )
-        }
-    )
-    with _client(recorder, tmp_path) as client:
-        kept, stats = photos.resolve(client, BUDAPEST, [_hotel()])
-
-    [document] = kept
-    assert "Special:FilePath/Gell" in (document.image_url or "")
-    assert document.image_license == "CC BY-SA 4.0"
-    assert document.image_author == "Jane"
-    assert document.image_credit is None  # the Commons line is derived from these
-    assert (stats.commons, stats.dropped) == (1, 0)
-
-
-def test_a_file_photographed_at_the_hotel_wins_when_none_is_named(
-    tmp_path: Path,
-) -> None:
-    recorder = Recorder(
-        {
-            "commons.wikimedia.org": _commons(
-                MISSING,
-                _geosearch(("File:Szent Gellért tér 1.jpg", 12.0)),
-                _imageinfo("File:Szent Gellért tér 1.jpg", "CC BY 4.0"),
-            )
-        }
-    )
-    with _client(recorder, tmp_path) as client:
-        kept, stats = photos.resolve(client, BUDAPEST, [_hotel()])
-
-    assert "Szent" in (kept[0].image_url or "")
-    assert stats.commons == 1
-
-
-def test_a_far_away_file_is_not_the_hotel(tmp_path: Path) -> None:
-    recorder = Recorder(
-        {
-            "commons.wikimedia.org": _commons(
-                MISSING, _geosearch(("File:A street.jpg", 55.0)), MISSING
-            )
-        }
-    )
-    with _client(recorder, tmp_path) as client:
-        kept, stats = photos.resolve(client, BUDAPEST, [_hotel(url=None)])
-
-    assert kept == [] and stats.dropped == 1
-
-
-def test_a_non_free_commons_file_is_skipped_and_the_site_is_tried(
-    tmp_path: Path,
-) -> None:
-    recorder = Recorder(
-        {
-            "commons.wikimedia.org": _commons(
-                _search("File:Gellért lobby.jpg"),
-                NO_FILES,
-                _imageinfo("File:Gellért lobby.jpg", "CC BY-NC 2.0"),
-            ),
-            "hotelgellert.hu/img": lambda _: _image(),
-            "hotelgellert.hu": lambda _: _html(
-                f'<head><meta property="og:image" content="{GELLERT_IMAGE}"></head>'
-            ),
-        }
-    )
-    with _client(recorder, tmp_path) as client:
-        kept, stats = photos.resolve(
-            client, BUDAPEST, [_hotel(url="https://hotelgellert.hu/")]
-        )
-
-    assert kept[0].image_url == GELLERT_IMAGE
-    assert kept[0].image_credit == "hotelgellert.hu"
-    assert kept[0].image_license is None
-    assert (stats.commons, stats.site) == (0, 1)
-
-
-# ─── 2. The hotel's own site ─────────────────────────────────────────────────
+# ─── 1. The hotel's own site ─────────────────────────────────────────────────
 
 
 def _no_commons() -> dict[str, Callable[[httpx.Request], httpx.Response]]:
-    return {"commons.wikimedia.org": _commons(MISSING, NO_FILES, MISSING)}
+    """Commons knows no file of this hotel — the usual case, and never the
+    reason a hotel keeps its place: the site is asked first."""
+    return {"commons.wikimedia.org": _commons(MISSING, MISSING)}
 
 
 def test_the_site_preview_is_credited_with_its_domain(tmp_path: Path) -> None:
@@ -316,7 +229,7 @@ def test_a_preview_whose_server_states_no_size_is_trusted(tmp_path: Path) -> Non
     assert kept[0].image_url == GELLERT_IMAGE
 
 
-# ─── 3. The Facebook page ────────────────────────────────────────────────────
+# ─── 2. The Facebook page ────────────────────────────────────────────────────
 
 
 def test_the_facebook_page_pictures_a_hotel_whose_site_has_no_preview(
@@ -348,6 +261,87 @@ def test_the_facebook_page_pictures_a_hotel_whose_site_has_no_preview(
     assert kept[0].image_url == profile
     assert kept[0].image_credit == "facebook.com"
     assert (stats.site, stats.facebook) == (0, 1)
+
+
+# ─── 3. Wikimedia Commons, by name only ──────────────────────────────────────
+
+
+def test_a_file_named_after_the_hotel_wins(tmp_path: Path) -> None:
+    recorder = Recorder(
+        {
+            "commons.wikimedia.org": _commons(
+                _search("File:Gellért Hotel front.jpg"),
+                _imageinfo("File:Gellért Hotel front.jpg", "CC BY-SA 4.0"),
+            )
+        }
+    )
+    with _client(recorder, tmp_path) as client:
+        kept, stats = photos.resolve(client, BUDAPEST, [_hotel()])
+
+    [document] = kept
+    assert "Special:FilePath/Gell" in (document.image_url or "")
+    assert document.image_license == "CC BY-SA 4.0"
+    assert document.image_author == "Jane"
+    assert document.image_credit is None  # the Commons line is derived from these
+    assert (stats.commons, stats.dropped) == (1, 0)
+
+
+def test_commons_is_searched_by_name_only(tmp_path: Path) -> None:
+    """A photo taken at the hotel's corner is the street, not the hotel: only
+    a file whose title carries the name counts, and `geosearch` is never asked.
+    """
+    recorder = Recorder(
+        {"commons.wikimedia.org": _commons(_search("File:Szabadság híd.jpg"), MISSING)}
+    )
+    with _client(recorder, tmp_path) as client:
+        kept, stats = photos.resolve(client, BUDAPEST, [_hotel(url=None)])
+
+    assert kept == [] and stats.dropped == 1
+    assert stats.commons == 0
+    assert not any("geosearch" in url for url in recorder.urls)
+
+
+def test_the_hotels_own_site_beats_commons(tmp_path: Path) -> None:
+    """The hotel's own picture of itself is the one a traveller wants, so a
+    named Commons file is not even looked for while the site answers."""
+    recorder = Recorder(
+        {
+            "commons.wikimedia.org": _commons(
+                _search("File:Gellért Hotel front.jpg"),
+                _imageinfo("File:Gellért Hotel front.jpg", "CC BY-SA 4.0"),
+            ),
+            "hotelgellert.hu/img": lambda _: _image(),
+            "hotelgellert.hu": lambda _: _html(
+                f'<head><meta property="og:image" content="{GELLERT_IMAGE}"></head>'
+            ),
+        }
+    )
+    with _client(recorder, tmp_path) as client:
+        kept, stats = photos.resolve(
+            client, BUDAPEST, [_hotel(url="https://hotelgellert.hu/")]
+        )
+
+    assert kept[0].image_url == GELLERT_IMAGE
+    assert kept[0].image_credit == "hotelgellert.hu"
+    assert kept[0].image_license is None
+    assert (stats.site, stats.commons) == (1, 0)
+    assert not any("commons.wikimedia.org" in url for url in recorder.urls)
+
+
+def test_a_non_free_commons_file_is_not_used(tmp_path: Path) -> None:
+    recorder = Recorder(
+        {
+            "commons.wikimedia.org": _commons(
+                _search("File:Gellért lobby.jpg"),
+                _imageinfo("File:Gellért lobby.jpg", "CC BY-NC 2.0"),
+            )
+        }
+    )
+    with _client(recorder, tmp_path) as client:
+        kept, stats = photos.resolve(client, BUDAPEST, [_hotel(url=None)])
+
+    assert kept == [] and stats.dropped == 1
+    assert stats.commons == 0
 
 
 # ─── 4. The largest picture on the homepage ──────────────────────────────────
@@ -445,9 +439,9 @@ def test_a_hotel_with_nothing_is_dropped_and_named(tmp_path: Path) -> None:
 
     assert kept == []
     assert stats.as_dict() == {
-        "commons": 0,
         "site": 0,
         "facebook": 0,
+        "commons": 0,
         "page": 0,
         "dropped": 2,
         "dropped_examples": ["Hotel Astra", "Hotel Gellért"],

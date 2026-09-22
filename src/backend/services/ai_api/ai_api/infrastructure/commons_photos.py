@@ -1,12 +1,13 @@
 """PhotoFinder adapter over the Wikimedia Commons API.
 
 Most restaurants, bars and hotels in the corpus come from OpenStreetMap and
-carry no picture. Commons knows where its photos were taken, so a file
-geotagged at the venue's coordinates is usually the venue itself or its
-street. Up to three calls per lookup: a full-text `search` for the venue's
-name (many photos are named after the place but carry no geotag), else a
-`geosearch` in the File namespace around the point, then `imageinfo` for the
-author and the licence the credit line needs.
+carry no picture. Commons knows where its photos were taken, which narrows the
+search to the right town — but only a file whose title carries the venue's own
+name is a picture of that venue; the one taken next door is the street. Up to
+three calls per lookup: a full-text `search` for the venue's name (many photos
+are named after the place but carry no geotag), else a `geosearch` in the File
+namespace around the point — matched by name all the same — then `imageinfo`
+for the author and the licence the credit line needs.
 
 Every photo on Commons is licence-clean by construction; the credit still has
 to name the author and the licence, which is what `Photo.credit` carries.
@@ -32,9 +33,6 @@ USER_AGENT = "travel-ai-world/0.1 (https://github.com/manupm87/travel-ai-world)"
 
 RADIUS_M = 60
 """How far from the coordinates a photo may have been taken."""
-
-NEAREST_RADIUS_M = 30
-"""A photo that does not name the venue must be this close to count."""
 
 RESULTS = 10
 
@@ -321,21 +319,18 @@ def choose_named(
 def choose_file(
     name: str, files: list[dict[str, Any]], *, city: str = ""
 ) -> str | None:
-    """The file that names the venue, else the nearest one close enough.
+    """The file near the venue that names it, or none at all.
 
-    `geosearch` answers nearest first. A title with one of the venue's own
-    words (Szimpla, Náncsi) is the venue; otherwise a photo taken within a
-    few metres is its street or façade, still worth showing.
+    A title with one of the venue's own words (Szimpla, Náncsi) is the venue.
+    Proximity alone proves nothing: the nearest photo is as likely to be the
+    street, the neighbours' façade or a passing tram, and a card showing the
+    wrong place is worse than a card showing none.
     """
     skip = _STOP | _city_words(city)
     words = {w.lower() for w in _NAME_WORDS.findall(name) if w.lower() not in skip}
-    usable = _usable(files)
-    for f in usable:
+    for f in _usable(files):
         lowered = f["title"].lower()
         if any(w in lowered for w in words):
-            return str(f["title"])
-    for f in usable:
-        if float(f.get("dist", RADIUS_M)) <= NEAREST_RADIUS_M:
             return str(f["title"])
     return None
 

@@ -3,23 +3,26 @@
 A hotel card with no picture is the worst card the planner shows: the traveller
 is asked to sleep somewhere they cannot see. Most hotels come from OpenStreetMap
 with a website and nothing else, so this stage resolves a photo for every located
-`sleep` document that has none, in order of how well we may use the image:
+`sleep` document that has none, in order of how well the image shows the hotel:
 
-1. **Wikimedia Commons**, by name near the coordinates — licence-clean, credited
-   to its author, and the only one of the four we could ever copy.
-2. **The hotel's own site preview** (`og:image`): what every chat and search
-   engine shows for a link to that hotel, credited with the site's bare domain.
-3. **Its Facebook page** (OSM `contact:facebook`): the page's own `og:image`.
+1. **The hotel's own site preview** (`og:image`): the picture the hotel chose of
+   itself, what every chat and search engine shows for a link to it, credited
+   with the site's bare domain.
+2. **Its Facebook page** (OSM `contact:facebook`): the page's own `og:image`.
+3. **Wikimedia Commons**, by name only — licence-clean and credited to its
+   author, but a file is the hotel only when its title says so: a photo merely
+   taken near the coordinates is the street, not the room you would book.
 4. **The largest picture on its homepage**, when the site publishes no preview.
 
 What is still unpictured is dropped: about a third of the hotel sites in a city
 are dead (DNS, timeout, parked), and the planner would rather offer fewer stays
 than a blank card.
 
-The Commons matching rules (`distinctive_words`, `choose_named`, `choose_file`
-and the generic-word list) are a deliberate twin of
+The Commons matching rules (`distinctive_words`, `choose_named` and the
+generic-word list) are a deliberate twin of
 `ai_api/infrastructure/commons_photos.py`, which does the same lookup live for
-restaurants and bars; the site rules are the twin of
+restaurants and bars (there still around the coordinates, but never without a
+name match); the site rules are the twin of
 `ai_api/infrastructure/site_previews.py` (ADR 0021, TRA-206/207). The tool never
 imports a service, so the two copies are kept in step by hand — change one, read
 the other.
@@ -50,15 +53,11 @@ logger = logging.getLogger(__name__)
 
 COMMONS_API = wikidata.COMMONS_API
 SEARCH_RESULTS = 5
-GEO_RADIUS_M = 60
-GEO_RESULTS = 20
-NEAREST_RADIUS_M = 30
-"""A file that does not name the hotel must have been taken this close."""
 
 DROPPED_SHOWN = 10
 """How many names of dropped hotels the manifest and the report carry."""
 
-# ─── Commons: the twin of ai_api/infrastructure/commons_photos.py ────────────
+# ─── Commons by name: the twin of ai_api/infrastructure/commons_photos.py ────
 
 GENERIC_WORDS = frozenset(
     {
@@ -178,18 +177,18 @@ FACEBOOK_CREDIT = "facebook.com"
 class PhotoStats:
     """What the stage did, for the manifest and the readiness report."""
 
-    commons: int = 0
     site: int = 0
     facebook: int = 0
+    commons: int = 0
     page: int = 0
     dropped: int = 0
     dropped_names: list[str] = field(default_factory=list)
 
     def as_dict(self) -> dict[str, Any]:
         return {
-            "commons": self.commons,
             "site": self.site,
             "facebook": self.facebook,
+            "commons": self.commons,
             "page": self.page,
             "dropped": self.dropped,
             "dropped_examples": sorted(self.dropped_names)[:DROPPED_SHOWN],
@@ -198,7 +197,7 @@ class PhotoStats:
 
 @dataclass(frozen=True)
 class Found:
-    source: str  # commons | site | facebook | page
+    source: str  # site | facebook | commons | page
     fields: dict[str, str | None]
 
 
@@ -237,9 +236,9 @@ def resolve(
 def find(client: ApiClient, city: CityConfig, doc: CorpusDocument) -> Found | None:
     """The first photo of this hotel any of the four sources answers with."""
     finders = (
-        ("commons", _from_commons),
         ("site", _from_site),
         ("facebook", _from_facebook),
+        ("commons", _from_commons),
         ("page", _from_page),
     )
     for source, finder in finders:
@@ -255,18 +254,16 @@ def find(client: ApiClient, city: CityConfig, doc: CorpusDocument) -> Found | No
     return None
 
 
-# ─── 1. Wikimedia Commons ────────────────────────────────────────────────────
+# ─── 3. Wikimedia Commons, by name only ──────────────────────────────────────
 
 
 def _from_commons(
     client: ApiClient, city: CityConfig, doc: CorpusDocument
 ) -> dict[str, str | None] | None:
     name = doc.name or ""
-    if not name or doc.lat is None or doc.lon is None:
+    if not name:
         return None
-    title = _search_by_name(client, name, city.name) or _geosearch(
-        client, name, doc.lat, doc.lon, city.name
-    )
+    title = _search_by_name(client, name, city.name)
     if title is None:
         return None
     filename = title.removeprefix("File:")
@@ -283,7 +280,11 @@ def _from_commons(
 
 
 def _search_by_name(client: ApiClient, name: str, city_name: str) -> str | None:
-    """A file named after the hotel; the city narrows it to the right town."""
+    """A file named after the hotel; the city narrows it to the right town.
+
+    The only Commons question worth asking: a file the hotel's name is written
+    on. Coordinates are not evidence — the photo next door is the street.
+    """
     if not distinctive_words(name, city=city_name):
         return None
     data = client.get(
@@ -300,25 +301,6 @@ def _search_by_name(client: ApiClient, name: str, city_name: str) -> str | None:
         {"title": hit.get("title")} for hit in data.get("query", {}).get("search", [])
     ]
     return choose_named(name, hits, city=city_name)
-
-
-def _geosearch(
-    client: ApiClient, name: str, lat: float, lon: float, city_name: str
-) -> str | None:
-    """A file photographed at the hotel: its façade, or its street."""
-    data = client.get(
-        COMMONS_API,
-        {
-            "action": "query",
-            "list": "geosearch",
-            "gscoord": f"{lat}|{lon}",
-            "gsradius": GEO_RADIUS_M,
-            "gsnamespace": 6,
-            "gslimit": GEO_RESULTS,
-        },
-    ).data
-    files = list(data.get("query", {}).get("geosearch", []))
-    return choose_file(name, files, city=city_name)
 
 
 def _city_words(city: str) -> set[str]:
@@ -361,29 +343,7 @@ def choose_named(
     return None
 
 
-def choose_file(
-    name: str, files: Sequence[dict[str, Any]], *, city: str = ""
-) -> str | None:
-    """The file that names the venue, else the nearest one close enough.
-
-    `geosearch` answers nearest first. A title with one of the hotel's own
-    words is the hotel; otherwise a photo taken within a few metres is its
-    street or façade, still worth showing.
-    """
-    skip = _STOP | _city_words(city)
-    words = {w.lower() for w in _NAME_WORDS.findall(name) if w.lower() not in skip}
-    usable = _usable(files)
-    for f in usable:
-        lowered = f["title"].lower()
-        if any(w in lowered for w in words):
-            return str(f["title"])
-    for f in usable:
-        if float(f.get("dist", GEO_RADIUS_M)) <= NEAREST_RADIUS_M:
-            return str(f["title"])
-    return None
-
-
-# ─── 2-4. The hotel's own site, its Facebook page, its homepage ──────────────
+# ─── 1, 2 and 4. The hotel's own site, its Facebook page, its homepage ───────
 
 
 def _from_site(

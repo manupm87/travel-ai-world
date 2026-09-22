@@ -196,9 +196,9 @@ def test_tours_count_curated_and_reclassified_by_type() -> None:
 
 
 PHOTOS = {
-    "commons": 1,
     "site": 1,
     "facebook": 0,
+    "commons": 1,
     "page": 0,
     "dropped": 4,
     "dropped_examples": ["Hotel Astra", "Hotel Zero"],
@@ -217,11 +217,15 @@ def test_the_hotels_section_accounts_for_every_photo() -> None:
     markdown = report.render_markdown(summary)
     assert "## Hotels" in markdown
     # Three pictured stays, two of them found by the stage: one is the corpus's.
-    assert "| corpus | 1 |" in markdown
-    assert "| commons | 1 |" in markdown
-    assert "| site | 1 |" in markdown
-    assert "| facebook | 0 |" in markdown
-    assert "| page | 0 |" in markdown
+    # The rows read in the order the stage tries the sources.
+    rows = [line for line in markdown.splitlines() if line.startswith("| ")]
+    assert rows[rows.index("| corpus | 1 |") : rows.index("| corpus | 1 |") + 5] == [
+        "| corpus | 1 |",
+        "| site | 1 |",
+        "| facebook | 0 |",
+        "| commons | 1 |",
+        "| page | 0 |",
+    ]
     assert "4 hotels dropped for lack of a photo: Hotel Astra, Hotel Zero…" in markdown
 
 

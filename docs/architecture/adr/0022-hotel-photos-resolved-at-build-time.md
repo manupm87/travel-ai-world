@@ -13,10 +13,10 @@ site publishes, and that filled some hotel cards at request time, but only some:
 misses leaves the placeholder, and a placeholder under "sleep here" is not an offer.
 
 Measured on those 415 hotels (2026-09-22): 36 were pictured by the corpus already; **+97** were
-found on Wikimedia Commons by name near their coordinates, which the live lookup never tried for
-hotels in this order; **+47** came from the site preview (the ADR 0021 rules); OpenStreetMap
-carries `contact:facebook` on 137 of Budapest's 621 hotel elements, and a Facebook page's
-`og:image` is its profile photo, which is reliably a picture of the place; and a
+found on Wikimedia Commons by name or near their coordinates, which the live lookup never tried
+for hotels; **+47** came from the site preview (the ADR 0021 rules); OpenStreetMap carries
+`contact:facebook` on 137 of Budapest's 621 hotel elements, and a Facebook page's `og:image` is
+its profile photo, which is reliably a picture of the place; and a
 largest-image-on-the-homepage heuristic pictures about a third of what is left. About a third of
 the hotel websites in a city are dead — DNS failures, timeouts, parked domains — and those
 hotels can never be pictured at all.
@@ -34,18 +34,18 @@ stay the corpus does offer is a stay they can look at.
 assignment and before climate. Its input is every `sleep` document with coordinates and no
 `image_url`; for each it tries four sources in order and stops at the first hit:
 
-1. **Wikimedia Commons** — `list=search` in the File namespace for `"<name> <city>"`, then
-   `list=geosearch` within 60 m, with the matching rules of
-   `ai_api/infrastructure/commons_photos.py` (distinctive words, the generic-word list, the
-   nearest-file rule) copied into the stage; non-free files are skipped. Stores `image_url`,
-   `image_license` and `image_author` exactly as the Wikidata stage does.
-2. **The hotel's own site preview** (`url`) — `og:image:secure_url` > `og:image` >
+1. **The hotel's own site preview** (`url`) — `og:image:secure_url` > `og:image` >
    `twitter:image` > `twitter:image:src` > `<link rel="image_src">`, under the rules of ADR 0021
    and TRA-207: at most 256 KiB of HTML, at most three redirects, every hop on the same
    registrable domain and through the same `fetchable` check, and one `HEAD` requiring a raster
    `image/*` of at least 15 KB whose name is not `logo`/`icon`/`favicon`/`sprite`.
-3. **Its Facebook page** — the `facebook` field, which OpenStreetMap's `contact:facebook` tag
+2. **Its Facebook page** — the `facebook` field, which OpenStreetMap's `contact:facebook` tag
    now fills, read with the same preview rules.
+3. **Wikimedia Commons, by name only** — `list=search` in the File namespace for
+   `"<name> <city>"`, with the matching rules of `ai_api/infrastructure/commons_photos.py`
+   (distinctive words, the generic-word list) copied into the stage; a file counts only when its
+   title carries a distinctive word of the hotel's name, and non-free files are skipped. Stores
+   `image_url`, `image_license` and `image_author` exactly as the Wikidata stage does.
 4. **The largest picture on its homepage** — the `src`/`data-src` of each `<img>`, the first URL
    of a `srcset` and each CSS `background-image`, in document order, keeping only raster
    extensions whose path is not `logo|icon|sprite|flag|badge|payment|tripadvisor|booking|
@@ -53,9 +53,21 @@ assignment and before climate. Its input is every `sleep` document with coordina
    raster image of at least 40 KB wins. A stated length is required here: nothing else vouches
    for the picture.
 
-Sources 2–4 store `image_credit`, the bare domain the picture came from (`hotelgellert.hu`,
-`facebook.com`), which is a new optional document field; `ai_api/application/cards.py` prints it
-in place of the Commons author-and-licence line when it is there.
+**The hotel's own picture of itself comes first, and Commons is asked by name only.** The first
+version of this stage put Commons first because it is the only licence-clean source, and it
+accepted a file merely photographed within 30 m when nothing named the hotel. Both were wrong for
+a stay: the picture a traveller wants is the one the hotel publishes of itself, and a file found
+by coordinates is as likely to show the street, the neighbours' façade or a passing tram — a
+plausible-looking card of the wrong building is worse than a plainer card of the right one. So
+Commons now answers only when the hotel's name is written on the file, and it answers after the
+site and the Facebook page, which is also why `geosearch` is gone from the stage. It stays in the
+live finder (`commons_photos.py`) for `eat` and `drink`, where there is no site to ask, but there
+too a file must name the venue.
+
+The three sources that are not Commons store `image_credit`, the bare domain the picture came
+from (`hotelgellert.hu`, `facebook.com`), which is a new optional document field;
+`ai_api/application/cards.py` prints it in place of the Commons author-and-licence line when it
+is there.
 
 **A hotel that ends the stage without an `image_url` is removed from the corpus.** The manifest
 records where every photo came from and how many hotels went (`enrichment.photos`), `report.md`
@@ -77,14 +89,17 @@ second per request (`SLOW_HOSTS`).
 
 ## Consequences
 
-- Every stay the planner offers has a picture of itself. Budapest keeps 227 of its 415 located
-  hotels and all of them are pictured; the report's Hotels section names the ones that went.
+- Every stay the planner offers has a picture of itself. Budapest keeps 247 of its 415 located
+  hotels (36 already in the corpus, 69 from their own site, 27 from Facebook, 60 named on Commons,
+  55 from a homepage), Berlin 402 of 649 and Madrid 316 of 527; the report's Hotels section names
+  the ones that went.
 - The corpus loses about a third of its hotels, mostly to dead websites. That is the intended
   trade: a name with no picture was not an offer. Hotels are plentiful, and the gate
   (`pictured_sleep`) is what stops the loss from going unnoticed.
-- Sources 2–4 are **hot-linked URLs on the venue's own server, not licence-clean material**. They
-  are stored as URLs and credited by domain — never copied, never re-hosted — which is the same
-  bargain as ADR 0021, and the reason `license` and `image_license` stay empty for them. A picture
+- The site, Facebook and homepage sources are **hot-linked URLs on the venue's own server, not
+  licence-clean material**. They are stored as URLs and credited by domain — never copied,
+  never re-hosted — which is the same bargain as ADR 0021, and the reason `license` and
+  `image_license` stay empty for them. A picture
   that moves or disappears leaves a broken image until the next rebuild; the card's `onError`
   hides it, and rebuilding a city is one command.
 - The build costs 20–45 minutes more per city on a cold `.cache/sites/`, almost all of it waiting

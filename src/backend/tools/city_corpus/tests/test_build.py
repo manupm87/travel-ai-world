@@ -115,9 +115,9 @@ def test_the_photo_stage_counters_reach_the_manifest(
 
     assert result.documents == [hotel]
     assert info["enrichment"]["photos"] == {
-        "commons": 0,
         "site": 1,
         "facebook": 0,
+        "commons": 0,
         "page": 0,
         "dropped": 1,
         "dropped_examples": ["Hotel Astra"],

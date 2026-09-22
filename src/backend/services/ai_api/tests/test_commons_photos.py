@@ -91,15 +91,14 @@ class TestChooseFile:
             "File:Náncsi néni Restaurant.jpg"
         )
 
-    def test_without_a_name_match_the_nearest_within_30m_wins(self) -> None:
+    def test_without_a_name_match_nothing_wins(self) -> None:
+        """However close it was taken, a file that does not name the venue is
+        the street, the neighbours or a passing tram (TRA-208)."""
         files = [
-            {"title": "File:Street view one.jpg", "dist": 12.0},
+            {"title": "File:Street view one.jpg", "dist": 2.0},
             {"title": "File:Street view two.jpg", "dist": 25.0},
+            {"title": "File:Far away shot.jpg", "dist": 55.0},
         ]
-        assert choose_file("Some Bistro", files) == "File:Street view one.jpg"
-
-    def test_beyond_30m_without_a_name_match_is_none(self) -> None:
-        files = [{"title": "File:Far away shot.jpg", "dist": 35.0}]
         assert choose_file("Some Bistro", files) is None
 
     @pytest.mark.parametrize(
@@ -128,14 +127,11 @@ class TestChooseFile:
         assert choose_file("Anything", files) is None
 
     def test_stop_words_in_the_name_do_not_count_as_a_match(self) -> None:
-        """ "Budapest", "Bar" and "Restaurant" are all stop words: the file
-        must be picked by distance, not by a spurious name match."""
-        files = [{"title": "File:Building facade shot.jpg", "dist": 10.0}]
-        assert choose_file("Budapest Bar Restaurant", files) == (
-            "File:Building facade shot.jpg"
-        )
-        far = [{"title": "File:Building facade shot.jpg", "dist": 35.0}]
-        assert choose_file("Budapest Bar Restaurant", far) is None
+        """ "Bar" and "Restaurant" are stop words and the city names the town,
+        not the venue: nothing is left to match, so the file at the door is
+        not this bar's photo however close it was taken."""
+        files = [{"title": "File:Building facade shot.jpg", "dist": 2.0}]
+        assert choose_file("Budapest Bar Restaurant", files, city="Budapest") is None
 
 
 # ─── file_url / credit_line: pure formatting ─────────────────────────────────
@@ -200,7 +196,9 @@ async def test_the_credit_strips_html_from_the_artist_field() -> None:
         licence="CC BY-SA 4.0",
     )
 
-    photo = await _photos(handler).find("Some Place", 47.5, 19.05, city="Budapest")
+    photo = await _photos(handler).find(
+        "Courtyard Bistro", 47.5, 19.05, city="Budapest"
+    )
 
     assert photo is not None
     assert photo.credit == "J. Doe (CC BY-SA 4.0) · Wikimedia Commons"
@@ -212,14 +210,16 @@ async def test_no_author_or_licence_credits_wikimedia_commons_alone() -> None:
         [{"title": "File:Courtyard view.jpg", "dist": 5.0}], artist=None, licence=None
     )
 
-    photo = await _photos(handler).find("Some Place", 47.5, 19.05, city="Budapest")
+    photo = await _photos(handler).find(
+        "Courtyard Bistro", 47.5, 19.05, city="Budapest"
+    )
 
     assert photo is not None
     assert photo.credit == "Wikimedia Commons"
 
 
-async def test_no_usable_file_is_none_and_makes_no_second_call() -> None:
-    handler, seen = _found([{"title": "File:Far away shot.jpg", "dist": 45.0}])
+async def test_a_file_that_does_not_name_the_venue_is_none() -> None:
+    handler, seen = _found([{"title": "File:A street corner.jpg", "dist": 5.0}])
 
     photo = await _photos(handler).find("Some Place", 47.5, 19.05, city="Budapest")
 

@@ -17,7 +17,7 @@ Cities are TOML files under `cities/`; Budapest is the reference one (see "Add a
 | [OpenStreetMap](https://www.openstreetmap.org/) (Overpass API) | Hotels, hostels, guest houses, apartments; restaurants, cafés; bars, pubs; museums, attractions, viewpoints, historic places, galleries with a Wikidata item; named parks; thermal baths. Also the 23 district boundaries and the Wikidata tags used to link listings | ODbL 1.0 |
 | [Wikidata](https://www.wikidata.org/) + [Commons](https://commons.wikimedia.org/) | Enrichment only (no documents): image, official website, coordinates, heritage status, Spanish label. Images keep their own licence and author | CC0 (Wikidata); per file (Commons) |
 | [Open-Meteo](https://open-meteo.com/) historical API | Daily 1996–2025 weather → 12 monthly climate documents | CC BY 4.0 |
-| The hotel's own website and Facebook page | **Photos only**, and only for a `sleep` document that nothing else pictures: the link preview the site publishes (`og:image`), else the largest picture on its homepage (ADR 0022) | Not licence-clean: the URL is stored and hot-linked, credited with the bare domain (`image_credit`), never copied |
+| The hotel's own website and Facebook page | **Photos only**, and only for a `sleep` document that nothing else pictures: the link preview the site publishes (`og:image`) — tried before Commons — else the largest picture on its homepage (ADR 0022) | Not licence-clean: the URL is stored and hot-linked, credited with the bare domain (`image_credit`), never copied |
 | `curated/<city>/tours.toml` (this repo) | Public tours no open source lists, above all free (tip-based) walking tours: hand-maintained from each operator's own website, summaries in our own words | CC BY-SA 4.0 (our text; the operator page is `source_url`) |
 
 `Category:Baths in Budapest` (named in TRA-138) has no articles; the bath articles are in
@@ -55,12 +55,14 @@ manifest reports documents per category and what each one skipped.
    `image_url` is a 640 px Commons thumbnail of the first free-licensed file among the Wikidata image
    (P18), the listing's `image` and OSM's `wikimedia_commons`. Non-free files (NC, ND, fair use) are skipped.
 4. **Photos** (TRA-208, ADR 0022): every `sleep` document with coordinates and no `image_url`
-   gets one, from the first of four sources that answers — Wikimedia Commons (searched by name,
-   then within 60 m of the coordinates; non-free files skipped), the link preview of the hotel's
-   own site (`url`), the preview of its Facebook page (`facebook`, from OSM `contact:facebook`),
-   and the largest picture on its homepage (at least 40 KB, `logo`/`badge`/`booking` names
-   skipped). The last three store the bare domain in `image_credit`; **a hotel still without a
-   photo is dropped from the corpus**. Roughly a third of them are, almost all with dead websites.
+   gets one, from the first of four sources that answers — the link preview of the hotel's own
+   site (`url`), the preview of its Facebook page (`facebook`, from OSM `contact:facebook`),
+   Wikimedia Commons searched by name (a file counts only when its title carries a distinctive
+   word of the hotel's name; non-free files skipped), and the largest picture on its homepage
+   (at least 40 KB, `logo`/`badge`/`booking` names skipped). The hotel's own picture of itself
+   comes first because a photo merely taken at its coordinates is the street, not the hotel; the
+   three sources that are not Commons store the bare domain in `image_credit`; **a hotel still
+   without a photo is dropped from the corpus**. Roughly a third of them are, almost all with dead websites.
    The stage is the slow one: 20–45 minutes for a city with a cold `.cache/sites/`.
 5. **Districts**: every document with coordinates and no district gets one from the OSM boundary it
    falls in. The `[district_guides]` table in `cities/budapest.toml` maps the 23 administrative
