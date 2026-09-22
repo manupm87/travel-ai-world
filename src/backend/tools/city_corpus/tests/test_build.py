@@ -216,6 +216,42 @@ def test_client_caches_and_retries(tmp_path: Path) -> None:
         offline.get(url, {"action": "query", "titles": "Pest"})
 
 
+def test_a_search_backend_that_is_too_busy_is_asked_again(tmp_path: Path) -> None:
+    """`cirrussearch-too-busy-error` means "not now", not "never": Wikimedia's
+    search sheds load under pressure. Giving up would cost the photo stage a
+    source and leave nothing in the cache, so two builds would differ (TRA-211)."""
+    calls: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(request)
+        if len(calls) == 1:
+            error = {"code": "cirrussearch-too-busy-error", "info": "too busy"}
+            return httpx.Response(200, json={"error": error})
+        return httpx.Response(200, json={"search": [{"id": "Q42"}]})
+
+    client = ApiClient(
+        tmp_path, transport=httpx.MockTransport(handler), sleep=lambda _: None
+    )
+    url = "https://www.wikidata.org/w/api.php"
+    params: dict[str, str | int] = {"action": "wbsearchentities", "search": "hilton"}
+
+    assert client.get(url, params).data == {"search": [{"id": "Q42"}]}
+    assert len(calls) == 2
+
+
+def test_an_api_error_that_is_not_the_backend_being_busy_still_raises(
+    tmp_path: Path,
+) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"error": {"code": "badvalue"}})
+
+    client = ApiClient(
+        tmp_path, transport=httpx.MockTransport(handler), sleep=lambda _: None
+    )
+    with pytest.raises(RuntimeError, match="API error"):
+        client.get("https://www.wikidata.org/w/api.php", {"action": "wbgetentities"})
+
+
 def test_query_service_lag_does_not_hold_a_read(tmp_path: Path) -> None:
     calls: list[httpx.Request] = []
 

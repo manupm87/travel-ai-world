@@ -40,6 +40,14 @@ MAXLAG_SECONDS = 5
 # Wikidata folds its query service's lag into `maxlag` so that editing bots pause;
 # a read-only request has nothing to wait for and is re-sent without the parameter.
 QUERY_SERVICE_LAG = "maxlag:wikibase-queryservice"
+BUSY_CODES = frozenset(
+    {"cirrussearch-too-busy-error", "readonly", "internal_api_error"}
+)
+"""API errors that mean "not now", not "never": Wikimedia's search backend sheds
+load under pressure and answers this to a perfectly good query. Treated like
+`maxlag` — wait and ask again — because the alternative is a stage silently
+losing a source, and an answer that is not cached and so differs between builds
+(TRA-211)."""
 POLITE_DELAY_SECONDS = 0.2
 # Hosts with stricter fair-use rules: seconds to wait before each request.
 SLOW_HOSTS = {
@@ -438,10 +446,13 @@ def _retryable_problem(response: httpx.Response) -> str | None:
         return None
     error = data.get("error")
     if isinstance(error, dict):
-        if error.get("code") == "maxlag":
+        code = error.get("code")
+        if code == "maxlag":
             if error.get("type") == "wikibase-queryservice":
                 return QUERY_SERVICE_LAG
             return "maxlag"
+        if code in BUSY_CODES:
+            return str(code)
         raise RuntimeError(f"{response.url}: API error {error}")
     remark = data.get("remark")  # Overpass reports timeouts in a 200 response
     if isinstance(remark, str) and "error" in remark.lower():
