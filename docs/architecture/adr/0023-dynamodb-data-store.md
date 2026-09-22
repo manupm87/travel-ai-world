@@ -51,7 +51,7 @@ Point-in-time recovery on, deletion protection on. `PK`/`SK` strings, one GSI
 | Item | `PK` | `SK` | Notes |
 |---|---|---|---|
 | Account | `USER#<user_id>` | `PROFILE` | `user_id` is a UUID string (it was an integer); `GSI1PK=USERS`, `GSI1SK=<email>` for the admin list |
-| Uniqueness / lookup | `EMAIL#<email>`, `GOOGLE#<google_id>`, `SUB#<cognito_sub>` | `EMAIL`, `GOOGLE`, `SUB` | Point at `user_id`; written in the same `TransactWriteItems` as the profile, guarded by `attribute_not_exists(PK)` |
+| Uniqueness / lookup | `EMAIL#<email, lowercased>` | `EMAIL` | Points at `user_id`; written in the same `TransactWriteItems` as the profile, guarded by `attribute_not_exists(PK)` (amended, see below) |
 | Trip | `USER#<user_id>` | `TRIP#<trip_id>` | The whole aggregate in one item; children keep their UUIDs; over 350 KB is `UnprocessableEntity` |
 | Conversation | `USER#<user_id>` | `THREAD#<thread_id>` | Without its messages |
 | Message | `THREAD#<thread_id>` | `MSG#<created_at µs ISO>#<message_id>` | The sort key is the order; `created_at` strictly increases within a thread |
@@ -66,7 +66,7 @@ The rules that come with it:
 3. **Optimistic concurrency.** Profile, trip and thread carry a `version`, and every write is
    conditional on it. A lost race is `Conflict`.
 4. **No database cascades.** Deleting a thread deletes its messages first. Deleting a user
-   deletes every thread's messages, every item under `USER#<id>`, and the lookup items.
+   deletes every thread's messages, every item under `USER#<id>`, and the lookup item.
 5. **Domain models are plain Python** (`core_api/domain/`). The invariants live there
    (`ensure_editable`, the derived phase of ADR 0019, a message's `check_invariants`).
    Repositories are protocols; storage is an adapter behind them.
@@ -75,6 +75,11 @@ The rules that come with it:
    integer ids is applied to their trips and threads. Production switches with a variable
    (`core_storage_backend`) and keeps RDS for one week as a fallback. After that, `core_api`
    leaves the VPC and RDS is destroyed, leaving a final snapshot that is kept for 30 days.
+
+**Amendment (TRA-217, 2026-09-22): only the email has a lookup item.** The code never looks
+an account up by its Google id or its Cognito `sub`: both sign-in modes identify the person by
+email, so `GOOGLE#` and `SUB#` items would be written and deleted without ever being read. The
+email item alone gives uniqueness and the lookup the upsert needs.
 
 ### `ai_api`: the interaction log, `<prefix>-interactions`
 

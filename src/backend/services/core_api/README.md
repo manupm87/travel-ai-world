@@ -1,7 +1,8 @@
 # core_api
 
 Users, trip data (trips, itinerary days, activities, meals, accommodations, transportations)
-and chat conversations (threads and their messages) on PostgreSQL. Owns the account behind every bearer token: in local mode it also
+and chat conversations (threads and their messages), all in one DynamoDB table
+([ADR 0023](../../../../docs/architecture/adr/0023-dynamodb-data-store.md)). Owns the account behind every bearer token: in local mode it also
 signs people in with Google and issues the JWTs every service trusts; in Cognito mode
 ([ADR 0009](../../../../docs/architecture/adr/0009-lambda-cognito-budget.md)) the user pool issues
 them and this service upserts the account from the claims.
@@ -9,11 +10,16 @@ them and this service upserts the account from the claims.
 ## Run
 
 ```bash
-cp .env.example .env       # AUTH_MODE=local: SECRET_KEY, GOOGLE_*, DB_* (Cognito mode: COGNITO_*)
-uv run alembic upgrade head
+cp .env.example .env       # AUTH_MODE=local: SECRET_KEY, GOOGLE_* (Cognito mode: COGNITO_*)
+just dynamodb-local        # from the repo root, in another terminal: DynamoDB on :8002
 uv run python -m core_api.devtools token you@example.com # optional: a local JWT for that account (see below)
 uv run uvicorn core_api.main:app --reload --port 8000    # http://localhost:8000/docs
 ```
+
+With `DYNAMODB_ENDPOINT_URL` set (the `.env.example` default, the devcontainer and Compose), the
+service creates its table (`CORE_TABLE`) at start when it is missing. Without it the service talks to
+DynamoDB on AWS, where Terraform owns the table (`travel-ai-core`); the local default name matches no
+real table, so a forgotten endpoint fails instead of writing to production. There are no migrations.
 
 `devtools token` (`just dev-token you@example.com`) prints the local-mode JWT `POST /auth/google`
 would issue for that account, so a browser can be signed in without Google: the Playwright suite
@@ -29,23 +35,25 @@ sign-in adopts it later, matching on the email — refuses an inactive one, and 
 |---|---|---|---|
 | `POST` | `/auth/google` | — | Local mode only: Google ID token → our JWT + profile (absent when `AUTH_MODE=cognito`) |
 | `GET` | `/users/me` | Bearer | Own profile |
-| `GET` | `/users/` | Admin | List users |
-| `GET` | `/users/{id}` | Admin | Profiles are not public |
-| `PATCH/DELETE` | `/users/{id}` | Bearer (owner) | Only your own account |
+| `GET` | `/users/` | Admin | List users, by email |
+| `GET` | `/users/{id}` | Admin | Profiles are not public; ids are UUIDs |
+| `PATCH/DELETE` | `/users/{id}` | Bearer (owner) | Only your own account (403 otherwise); an email already registered is 409; delete takes trips and conversations with it |
 | `PATCH` | `/users/{id}/role` | Admin | |
 | `GET/POST` | `/trips/` | Bearer | Only the caller's trips |
-| `GET/PATCH/DELETE` | `/trips/{id}` | Bearer (owner) | 403 for another user's trip; response embeds every child and its derived `phase`; `PATCH` is 409 `TRIP_LOCKED` once the trip is ongoing or past, `DELETE` never is |
+| `GET/PATCH/DELETE` | `/trips/{id}` | Bearer (owner) | 404 for another user's trip; response embeds every child and its derived `phase`; `PATCH` is 409 `TRIP_LOCKED` once the trip is ongoing or past, `DELETE` never is |
 | CRUD | `/trips/{id}/itinerary-days/`, `/trips/{id}/accommodations/`, `/trips/{id}/transportations/` | Bearer (owner) | Nested under the owner's trip; writes 409 `TRIP_LOCKED` unless the trip is `upcoming` |
 | CRUD | `/trips/{id}/itinerary-days/{day_id}/activities/`, `.../meals/` | Bearer (owner) | Nested under a day of the owner's trip; same lock |
 | `GET/POST` | `/chat-threads/` | Bearer | Only the caller's conversations, most recent activity first |
-| `GET/PATCH/DELETE` | `/chat-threads/{id}` | Bearer (owner) | 403 for another user's thread; the response has no messages; delete takes them with it |
+| `GET/PATCH/DELETE` | `/chat-threads/{id}` | Bearer (owner) | 404 for another user's thread; the response has no messages; delete takes them with it |
 | `GET/POST` | `/chat-threads/{id}/messages/` | Bearer (owner) | Append-only, in the order written; an answer may carry `sources`, `model`, tokens and `latency_ms` ([ADR 0013](../../../../docs/architecture/adr/0013-chat-conversations-in-core-api.md)) |
-| `GET` | `/health/`, `/health/db` | — | |
-| `POST` | `/events` (root, not versioned, not in the OpenAPI document) | Lambda only | `{"command": "migrate"}` from a direct Lambda invocation; unknown commands 400; 404 outside Lambda |
+| `GET` | `/health/`, `/health/db` | — | `/health/db` asks DynamoDB for the table; 503 when it cannot |
+| `POST` | `/events` (root, not versioned, not in the OpenAPI document) | Lambda only | `{"command": "copy-from-postgres"}` from a direct Lambda invocation, answered with the command's `result`; unknown commands 400; 404 outside Lambda |
 
 Every trip collection offers `GET /` (paginated with `skip`/`limit`), `POST /`, `GET/PATCH/DELETE /{item_id}`.
 A child that exists under another trip answers 404, never 403, so ids leak nothing
 ([ADR 0005](../../../../docs/architecture/adr/0005-trip-aggregate-nested-resources.md)).
+Writes that lose a race (someone saved the same trip, thread or profile in between) answer 409
+`CONFLICT`: reload and retry.
 
 A trip is **one city** and its `phase` (`upcoming | ongoing | past`) is derived from its dates,
 never stored; everything inside an ongoing or past trip is read-only
@@ -59,33 +67,35 @@ Errors: `{"detail": {"message": "...", "error_code": "NOT_FOUND" | "FORBIDDEN" |
 
 ```text
 core_api/
-├── main.py            create_app(get_settings(), [build_api_router(settings)], lifespan=...) — engine on app.state
-├── config.py          CoreSettings(CommonSettings): DB_*, GOOGLE_*; get_settings() (injected)
-├── api/deps.py        get_current_user (token + DB check) → AccountPrincipal; provide() wiring;
+├── main.py            create_app(...) with a lifespan that opens the table (app.state.table)
+├── config.py          CoreSettings(CommonSettings, DynamoSettings): CORE_TABLE, GOOGLE_*, DB_* (copy only)
+├── domain/            models.py (dataclasses + rules), ports.py (repository protocols), enums.py
+├── infrastructure/dynamo/
+│                      table.py (spec, DynamoTable, open_table), keys.py, codec.py, repositories.py
+├── services/          trip_service.py, trip_children.py (every nested collection), user_service.py,
+│                      chat_thread_service.py, chat_message_service.py,
+│                      auth_service.py (Authenticate: both modes; SignIn: local issuer)
+├── api/deps.py        get_table → repositories → services; get_current_user → AccountPrincipal;
 │                      get_owned_trip / get_owned_itinerary_day / get_owned_chat_thread; get_sign_in
 ├── api/v1/endpoints/  thin controllers for auth (local mode only), users, trips, chat_threads, health
 ├── api/v1/resources.py  CHILD_RESOURCES + child_router(): the nested CRUD collections
 ├── auth/google.py     IdentityVerifier port + GoogleTokenInfoVerifier adapter (local mode)
-├── auth/principal.py  AccountPrincipal = Principal + users.id
-├── services/          base.py (generic; every child entity) + trip_service.py, user_service.py,
-│                      chat_thread_service.py, chat_message_service.py,
-│                      auth_service.py (Authenticate: both modes; SignIn: local issuer)
-├── repositories/      base.py (generic) + trip_repository.py, user_repository.py,
-│                      chat_thread_repository.py, chat_message_repository.py
-├── models/            SQLAlchemy 2 typed tables; mixins + check_invariants() in base.py; enums.py
+├── auth/principal.py  AccountPrincipal = Principal + the account's UUID
 ├── schemas/           Pydantic models; XUpdate = partial(XBase) (_partial.py); formats in _types.py
-├── ops.py             commands a deployed function runs on request (`migrate` = alembic upgrade head)
+├── ops.py             commands a deployed function runs on request (copy-from-postgres)
+├── legacy_sql/        the old PostgreSQL schema, read only by copy-from-postgres (goes in TRA-219)
 ├── api/events.py      POST /events: the Lambda Web Adapter's pass-through for direct invocations
-├── pagination.py      Page(skip, limit)
-└── db/session.py      build_engine / build_session_factory + get_db (one transaction per request)
+├── devtools.py        dev-only: a local JWT for an account (never an ops command)
+└── pagination.py      Page(skip, limit)
 ```
 
-## Tests and migrations
+## Tests
 
 ```bash
-uv run pytest                                          # creates <DB_NAME>_test, empties it per test
-uv run alembic revision --autogenerate -m "message"    # after changing models; review the file
-uv run alembic check                                   # models == migrations (CI runs it)
+uv run pytest      # DynamoDB on moto, in process: no container, no database
 ```
+
+`tests/test_ops_copy.py` alone needs PostgreSQL (it builds the legacy schema in
+`<DB_NAME>_copytest`); without it the test is skipped with the reason.
 
 For agents: [`AGENTS.md`](AGENTS.md).

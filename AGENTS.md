@@ -15,7 +15,7 @@ AI-powered travel planner. Static Next.js frontend + two FastAPI services:
 | Path | Role | Talks to |
 |---|---|---|
 | `src/frontend/` | Next.js 16 static export (S3 + CloudFront on AWS) | `core_api`, `ai_api` |
-| `src/backend/services/core_api/` | Google auth, users, trips CRUD, chat conversations | PostgreSQL |
+| `src/backend/services/core_api/` | Google auth, users, trips CRUD, chat conversations | DynamoDB (one table, ADR 0023) |
 | `src/backend/services/ai_api/` | LLM chat streaming (NVIDIA), future RAG | `core_api` (with the caller's token) |
 | `src/backend/libs/travel_common/` | Shared kernel: Principal, settings, errors, JWT, app factory | — |
 | `src/backend/tools/scraper/` | City data ingestion scripts (JSON output) | Google Places, Wikipedia |
@@ -33,7 +33,7 @@ Diagram and request flows: [docs/architecture/overview.md](docs/architecture/ove
 ```bash
 just                # list recipes
 just setup          # .env files + uv sync + npm install
-just dev-core       # core_api  :8000 (hot reload)
+just dev-core       # core_api  :8000 (hot reload; needs `just dynamodb-local` outside the devcontainer)
 just dev-ai         # ai_api    :8001 (hot reload)
 just dev-frontend   # Next.js   :3000
 just dynamodb-local # in-memory DynamoDB :8002 (moto) for dev-core/dev-ai without Docker
@@ -42,8 +42,7 @@ just test           # every backend package + frontend unit tests
 just test-core / test-ai / test-common / test-corpus / test-frontend / test-e2e
 just contracts      # export OpenAPI docs + regenerate frontend types (run after changing any schema/route)
 just docs-check     # documentation hygiene
-just migrate / just migration "message"
-just docker-up      # backend only: proxy :8080 + core_api + ai_api + PostgreSQL + DynamoDB Local (no Node)
+just docker-up      # backend only: proxy :8080 + core_api + ai_api + DynamoDB Local + PostgreSQL (copy source) (no Node)
 just stack-up       # the stack as deployed: frontend export + the above on one origin :8080
 just build-stack    # only the export for :8080 (what stack-up runs before docker-up)
 just scrape         # run the city scraper (needs GOOGLE_API_KEY in its .env)
@@ -53,7 +52,8 @@ just aws-login      # AWS via IAM Identity Center (devcontainer); never access k
 ```
 
 Windows: `winget install Casey.Just` and run the recipes from Git Bash or WSL (they are POSIX shell).
-`just test-core` needs PostgreSQL and a non-empty `SECRET_KEY` (see `src/backend/services/core_api/.env.example`).
+`just test-core` needs a non-empty `SECRET_KEY` (see `src/backend/services/core_api/.env.example`); DynamoDB is
+moto in process, and only its `copy-from-postgres` test uses PostgreSQL (skipped without it).
 
 ## Non-negotiable rules
 

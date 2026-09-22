@@ -9,9 +9,9 @@ runtime except the way they verify bearer tokens. See [ADR 0001](adr/0001-backen
 flowchart LR
     Browser["Browser<br/>Next.js static export"]
     Proxy["Reverse proxy<br/>(nginx in Compose / CloudFront)<br/>optional"]
-    Core["core_api<br/>FastAPI · SQLAlchemy<br/>auth · users · trips"]
+    Core["core_api<br/>FastAPI · boto3<br/>auth · users · trips"]
     AI["ai_api<br/>FastAPI · httpx · boto3<br/>chat streaming · RAG"]
-    PG[("PostgreSQL")]
+    DDB[("DynamoDB<br/>one table, travel-ai-core<br/>(owned by core_api)")]
     Cognito["Cognito user pool<br/>(Google IdP) · deployed"]
     Google["Google OAuth<br/>tokeninfo · local"]
     NVIDIA["LLM provider<br/>Bedrock (deployed) · NVIDIA (local)"]
@@ -23,7 +23,7 @@ flowchart LR
     Browser -. "or two base URLs" .-> Core
     Browser -. "or two base URLs" .-> AI
     Browser -->|"managed login, code + PKCE"| Cognito
-    Core --> PG
+    Core --> DDB
     Core -. "local mode only" .-> Google
     AI --> NVIDIA
     AI -->|"IAM, RETRIEVAL_ENABLED"| Vec
@@ -33,10 +33,16 @@ flowchart LR
 | Component | Owns | Never touches |
 |---|---|---|
 | `core_api` | users, trips and their children; account upsert and revocation; local-mode sign-in and token issuing | LLM providers |
-| `ai_api` | prompts, providers, retrieval, streaming | the relational database, ORM models |
+| `ai_api` | prompts, providers, retrieval, streaming | `core_api`'s table and entities |
 | `travel_common` | `Principal`, settings base, domain errors, token verification (local HS256, Cognito RS256), app factory | anything used by one service only |
 
 Calls go in one direction only: `ai_api → core_api`. `core_api` works with `ai_api` down.
+
+`core_api` keeps everything in **one DynamoDB table** ([ADR 0023](adr/0023-dynamodb-data-store.md)):
+the account under `USER#<id>`/`PROFILE` (plus an `EMAIL#` item for uniqueness), each trip as one
+item holding its whole aggregate, each conversation under its owner and its messages under
+`THREAD#<id>`, ordered by time. There are no migrations; PostgreSQL (RDS) is read only by the
+one-off `copy-from-postgres` command until it is retired in TRA-219.
 
 ## Code layout per service
 
@@ -114,10 +120,10 @@ A card opens `/plan/?trip=<id>`, read-only when its phase is not `upcoming`
 
 In both modes:
 
-- `core_api` verifies the token **and** checks the account in the database on every request:
-  a deactivated user is cut off immediately. In Cognito mode the row is upserted from the claims
-  on first sight and the `admin` role mirrors the pool's `admin` group; in local mode the database
-  owns the role (`PATCH /users/{id}/role`).
+- `core_api` verifies the token **and** checks the account in its table on every request:
+  a deactivated user is cut off immediately. In Cognito mode the profile is upserted from the
+  claims (written only when they change it) and the `admin` role mirrors the pool's `admin`
+  group; in local mode the table owns the role (`PATCH /users/{id}/role`).
 - `ai_api` verifies the token only (stateless). A deactivated user can keep chatting until the
   token expires (60 min). See [ADR 0002](adr/0002-auth-between-services.md) (superseded for the
   issuer, still the rule for the boundary).

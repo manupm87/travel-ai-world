@@ -16,14 +16,15 @@ with the same `just` recipes everyone uses.
 host's copies (with their platform-specific binaries) are never touched.
 
 On first creation `post-create.sh` runs `just setup` (creates the four `.env` files, including the
-scraper's, `uv sync`, `npm install`), `just migrate` and installs Chromium for `just test-e2e`.
+scraper's, `uv sync`, `npm install`) and installs Chromium for `just test-e2e`. There are no
+migrations: `core_api` creates its DynamoDB table in DynamoDB Local when it starts (ADR 0023).
 
 ## Database wiring
 
 The `devcontainer` service exports `DB_SERVER=db`, `DB_USER`, `DB_PASSWORD` and `DB_NAME`
 as environment variables, which take precedence over `src/backend/services/core_api/.env`.
-`just dev-core`, `just migrate` and `just test-core` therefore hit the `db` container with no
-edits to the `.env`. The remaining keys (`SECRET_KEY`, `GOOGLE_*`, `NVIDIA_API_KEY`) still have
+`python -m core_api.ops copy-from-postgres` and its test therefore hit the `db` container with no
+edits to the `.env` (nothing else in `core_api` reads PostgreSQL since ADR 0023; it goes in TRA-219). The remaining keys (`SECRET_KEY`, `GOOGLE_*`, `NVIDIA_API_KEY`) still have
 to be filled in the `.env` files, as in the [local-dev runbook](../docs/runbooks/local-dev.md).
 
 ## Use
@@ -46,7 +47,7 @@ Closing the VS Code window stops the compose stack (`shutdownAction: stopCompose
 PostgreSQL data and the dependency volumes persist between sessions. To wipe them:
 `docker compose -f .devcontainer/docker-compose.yml down -v` on the host.
 
-If `postCreate` fails at `just migrate` with `password authentication failed for user
+If the copy test fails with `password authentication failed for user
 "postgres"`, the `postgres_data` volume was initialised by an older compose file with other
 credentials (`POSTGRES_*` only apply on first init). Wipe the volumes as above and rebuild, or,
 inside the container, create the missing role with the old credentials

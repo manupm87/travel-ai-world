@@ -17,8 +17,9 @@ two-step decision:
 2. **Subsequent deploys** run `.github/workflows/deploy-backend.yml` (Actions → "Deploy backend"
    → Run workflow): pick the cloud, the image tag (a commit SHA or `latest`) and whether to apply.
    It copies the GHCR images into the cloud registry and runs Terraform; on AWS it pins the
-   functions to the image digests and, after the apply, invokes `core-api` with
-   `{"command": "migrate"}`. Requires a remote Terraform state backend
+   functions to the image digests. Nothing runs after the apply: `core_api` keeps its data in
+   DynamoDB (ADR 0023), whose table is Terraform's, so there are no migrations. Requires a remote
+   Terraform state backend
    (AWS: [`infra/aws/bootstrap/`](../../infra/aws/bootstrap/README.md), applied once by hand), the
    secrets listed in the workflow header and the repository variables `AWS_TF_STATE_BUCKET` +
    `FRONTEND_DOMAIN` (AWS) or `GCP_REGION` (GCP). CI never holds cloud credentials: AWS is
@@ -53,8 +54,7 @@ Nothing reaches AWS from a merge alone except the frontend. After `main` changes
    (Actions → "Backend images") before promoting; `latest` moves with every run.
 2. **Promote**: Actions → "Deploy backend" → Run workflow with `cloud=aws`, `image_tag=<that
    SHA, or latest>`, `apply=true` (`apply=false` first if the Terraform plan is in doubt). It
-   pins both functions to the image digests, applies, waits for `core-api` to be updated and
-   invokes `{"command": "migrate"}`; the run fails if the answer is not `status: ok`.
+   pins both functions to the image digests and applies.
 3. **Confirm** the running image, from `infra/aws/` initialised against the state backend
    ([AWS README](../../infra/aws/README.md)) after `just aws-login`:
 
@@ -68,24 +68,27 @@ Nothing reaches AWS from a merge alone except the frontend. After `main` changes
    (Actions → "Deploy frontend" → Run workflow to redo it by hand). A backend deploy that does
    not change the contract needs no frontend deploy, and the reverse.
 
-## What the TRA-196 migration does to production data
+## The one-off copy from RDS to DynamoDB
 
-The deploy's `migrate` step applies revision `9d3400b9db7a`
-([ADR 0019](../architecture/adr/0019-trips-live-in-the-planner.md)), which **deletes rows**:
+`core_api` stores everything in one DynamoDB table (`travel-ai-core`,
+[ADR 0023](../architecture/adr/0023-dynamodb-data-store.md)). The accounts, trips and
+conversations that were on RDS move once, with the `copy-from-postgres` command, after the image
+that speaks DynamoDB is live (TRA-218 does the switch by hand):
 
-- the four demo trips, by title — the seed that wrote them is gone, and so is the `seed`
-  command (`migrate` is now the only thing `POST /events` accepts);
-- every trip that does not have exactly one destination, because a trip is one city now and
-  there is no city to give those.
+```bash
+fn=$(terraform output -raw core_api_function_name)   # from infra/aws/, after just aws-login
+aws lambda invoke --function-name "$fn" --cli-binary-format raw-in-base64-out \
+  --payload '{"command": "copy-from-postgres"}' response.json
+cat response.json   # {"command": "copy-from-postgres", "status": "ok", "result": {"users": n, "trips": n, "threads": n, "messages": n}}
+```
 
-What is left keeps its city, moved from its single destination onto the trip itself. It runs
-once, inside the ordinary `migrate` invocation of the deploy; there is nothing to run by hand
-and nothing to undo (the downgrade restores the structure, not the rows). Take the RDS snapshot
-before the deploy if the account holds anything worth keeping.
-
-Afterwards, sign in with the Google account and open `/plan/`: it lists the account's trips
-(happening now, coming up, past) and opens one at `/plan/?trip=<uuid>`. There is no demo data to
-load any more — a new account starts empty, which is what the planner is for.
+- It reads every row through `core_api/legacy_sql` (the function still has `DB_*` and the VPC
+  until TRA-219) and **overwrites** the items, so it can run again with the same result.
+- Ids and timestamps are kept. Users get UUIDs: the one already registered for their email when
+  they signed in on DynamoDB before the copy, otherwise
+  `uuid5(NAMESPACE_URL, "kyrian-world:user:<old integer id>")`; their trips and threads follow.
+- It fails (500, `COPY_INCOMPLETE`) when what it wrote differs from what it read; the answer's
+  `extras` carry both counts. Compare `result` with the row counts of RDS before retiring it.
 
 ---
 
