@@ -681,14 +681,14 @@ def test_the_twin_in_ai_api_is_kept_word_for_word() -> None:
 
 
 def test_a_picture_two_hotels_share_is_taken_from_both(tmp_path: Path) -> None:
-    """A&O runs one site for every house and serves them all the same hero
+    """A chain runs one site for every house and serves them all the same hero
     shot; the traveller would be offered the same room three times."""
-    chain = "https://aohostels.com/img/hero.jpg"
+    chain = "https://chainhotels.example/img/hero.jpg"
     recorder = Recorder(
         {
             **_no_wikimedia(),
-            "aohostels.com/img": lambda _: _image(),
-            "aohostels.com": lambda _: _html(
+            "chainhotels.example/img": lambda _: _image(),
+            "chainhotels.example": lambda _: _html(
                 f'<head><meta property="og:image" content="{chain}"></head>'
             ),
             "hotelgellert.hu/img": lambda _: _image(),
@@ -698,8 +698,14 @@ def test_a_picture_two_hotels_share_is_taken_from_both(tmp_path: Path) -> None:
         }
     )
     hotels = [
-        _hotel(doc_id="osm:way/1", name="A&O One", url="https://aohostels.com/hbf"),
-        _hotel(doc_id="osm:way/2", name="A&O Two", url="https://aohostels.com/mitte"),
+        _hotel(
+            doc_id="osm:way/1", name="Chain One", url="https://chainhotels.example/hbf"
+        ),
+        _hotel(
+            doc_id="osm:way/2",
+            name="Chain Two",
+            url="https://chainhotels.example/mitte",
+        ),
         _hotel(doc_id="osm:way/3", url="https://hotelgellert.hu/"),
     ]
     with _client(recorder, tmp_path) as client:
@@ -707,7 +713,7 @@ def test_a_picture_two_hotels_share_is_taken_from_both(tmp_path: Path) -> None:
 
     assert [d.doc_id for d in kept] == ["osm:way/3"]
     assert (stats.site, stats.shared, stats.dropped) == (1, 2, 2)
-    assert sorted(stats.dropped_names) == ["A&O One", "A&O Two"]
+    assert sorted(stats.dropped_names) == ["Chain One", "Chain Two"]
 
 
 def test_two_hotels_with_their_own_pictures_keep_them(tmp_path: Path) -> None:
@@ -1021,6 +1027,51 @@ def test_a_group_that_banners_every_page_falls_to_the_largest_picture(
 
     assert kept[0].image_url == facade
     assert (stats.site, stats.page) == (0, 1)
+
+
+def test_each_house_of_a_banner_group_gets_its_own_gallery_picture(
+    tmp_path: Path,
+) -> None:
+    """a&o publishes the lobby of its Venice hostel as the preview of every house
+    it runs, and a gallery per property below it. Skipping the preview turns one
+    picture claimed by five hostels into five pictures of five hostels."""
+    venice = "https://cdn.aohostels.com/img/socialMediaTags/AOVeneziaLobby.jpg"
+
+    def house(slug: str) -> Callable[[httpx.Request], httpx.Response]:
+        return lambda _: _html(
+            f'<head><meta property="og:image" content="{venice}"></head>'
+            f'<body><img src="https://cdn.aohostels.com/img/house/{slug}/1.jpg">'
+            "</body>"
+        )
+
+    recorder = Recorder(
+        {
+            **_no_wikimedia(),
+            "cdn.aohostels.com": lambda _: _image(),
+            "aohostels.com/en/berlin/hauptbahnhof": house("hauptbahnhof"),
+            "aohostels.com/en/berlin/mitte": house("mitte"),
+        }
+    )
+    hotels = [
+        _hotel(
+            doc_id="osm:way/1",
+            name="a&o Berlin Hauptbahnhof",
+            url="https://www.aohostels.com/en/berlin/hauptbahnhof/",
+        ),
+        _hotel(
+            doc_id="osm:way/2",
+            name="a&o Berlin Mitte",
+            url="https://www.aohostels.com/en/berlin/mitte/",
+        ),
+    ]
+    with _client(recorder, tmp_path) as client:
+        kept, stats = photos.resolve(client, BUDAPEST, hotels)
+
+    assert [d.image_url for d in kept] == [
+        "https://cdn.aohostels.com/img/house/hauptbahnhof/1.jpg",
+        "https://cdn.aohostels.com/img/house/mitte/1.jpg",
+    ]
+    assert (stats.site, stats.page, stats.shared) == (0, 2, 0)
 
 
 # ── Its Wikidata item, found by name near its coordinates ────────────────────

@@ -71,10 +71,16 @@ other side of the world (IHG offers the Maldives for a Crowne Plaza in Madrid).
 Checked on top of the usual `LOGO_PATH`, and only for a page on a group domain —
 `brand` and `generic` are ordinary words in an independent hotel's file names."""
 
-OG_SKIPPED_DOMAINS = frozenset({"ihg.com"})
-"""Groups whose `og:image` is a global banner on every page of the site, whatever
-the hotel. Their preview is not read at all; the largest-picture rule finds the
-house's own photograph further down the same page."""
+OG_SKIPPED_DOMAINS = frozenset({"ihg.com", "aohostels.com"})
+"""Groups whose `og:image` is the same picture on every page of the site, whatever
+the hotel: IHG offers a Maldives resort for a Crowne Plaza in Madrid, and a&o the
+lobby of its Venice hostel for every house it runs. Their preview is not read at
+all; the largest-picture rule finds the house's own photograph further down the
+same page, where the gallery is per property.
+
+A group belongs here only once it has been measured: open two of its hotels' pages
+and compare the `og:image`. Most groups publish the right picture and would lose
+their best one to this rule."""
 
 CHAIN_NAMES = re.compile(
     r"\b("
