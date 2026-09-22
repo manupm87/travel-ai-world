@@ -1,9 +1,9 @@
 {
   "city": "berlin",
-  "built_at": "2026-09-21T18:27:18Z",
-  "documents": 12551,
-  "listings": 9743,
-  "prose": 2808,
+  "built_at": "2026-09-22T13:29:08Z",
+  "documents": 12301,
+  "listings": 9495,
+  "prose": 2806,
   "sources": [
     "curated",
     "open-meteo",
@@ -38,11 +38,11 @@
       "wikivoyage": 133
     },
     "eat": {
-      "openstreetmap": 6287,
+      "openstreetmap": 6286,
       "wikivoyage": 186
     },
     "history": {
-      "wikipedia": 2029,
+      "wikipedia": 2027,
       "wikivoyage": 40
     },
     "neighbourhood": {
@@ -57,8 +57,8 @@
       "wikivoyage": 210
     },
     "sleep": {
-      "openstreetmap": 530,
-      "wikivoyage": 156
+      "openstreetmap": 330,
+      "wikivoyage": 109
     },
     "tour": {
       "curated": 4,
@@ -73,22 +73,22 @@
     "climate": 12,
     "do": 481,
     "drink": 1167,
-    "eat": 6462,
-    "history": 2031,
+    "eat": 6461,
+    "history": 2029,
     "practical": 5,
     "see": 1419,
-    "sleep": 682,
+    "sleep": 435,
     "tour": 5,
     "transport": 67
   },
   "located_by_category": {
     "do": 451,
     "drink": 1149,
-    "eat": 6454,
-    "history": 1915,
+    "eat": 6453,
+    "history": 1913,
     "practical": 1,
     "see": 1382,
-    "sleep": 649,
+    "sleep": 402,
     "tour": 4,
     "transport": 63
   },
@@ -96,9 +96,9 @@
     "do": 332,
     "drink": 44,
     "eat": 43,
-    "history": 1876,
+    "history": 1874,
     "see": 1169,
-    "sleep": 82,
+    "sleep": 402,
     "transport": 63
   },
   "districts": [
@@ -112,14 +112,14 @@
     "Treptow-Köpenick"
   ],
   "places_by_district": {
-    "City West": 2694,
-    "East": 819,
-    "East Central": 3093,
-    "Mitte": 2488,
-    "Reinickendorf and Spandau": 636,
-    "Steglitz-Zehlendorf": 765,
-    "Tempelhof and Neukölln": 939,
-    "Treptow-Köpenick": 569
+    "City West": 2613,
+    "East": 802,
+    "East Central": 3036,
+    "Mitte": 2446,
+    "Reinickendorf and Spandau": 622,
+    "Steglitz-Zehlendorf": 759,
+    "Tempelhof and Neukölln": 922,
+    "Treptow-Köpenick": 553
   },
   "small_districts": [],
   "described_districts": [
@@ -137,13 +137,13 @@
       "1": 55,
       "2": 54,
       "3": 19,
-      "untiered": 6345
+      "untiered": 6344
     },
     "sleep": {
-      "1": 69,
-      "2": 102,
-      "3": 65,
-      "untiered": 450
+      "1": 44,
+      "2": 62,
+      "3": 52,
+      "untiered": 281
     }
   },
   "climate_months": [
@@ -323,19 +323,19 @@
     "sleep": {
       "boutique hotel": [
         {
-          "name": "Boutique Hotel Fährhaus",
-          "district": "Reinickendorf and Spandau",
-          "score": 23.4
-        },
-        {
-          "name": "Boutique Hotel Kerlin",
-          "district": "City West",
-          "score": 23.4
-        },
-        {
           "name": "Louisa’s Place",
           "district": "City West",
           "score": 21.39
+        },
+        {
+          "name": "Wyndham Berlin Excelsior Hotel",
+          "district": "City West",
+          "score": 12.08
+        },
+        {
+          "name": "Garner Hotel Berlin Mitte",
+          "district": "East Central",
+          "score": 11.95
         }
       ],
       "hostel": [
@@ -345,13 +345,13 @@
           "score": 12.08
         },
         {
-          "name": "2A-Hostel",
-          "district": "Tempelhof and Neukölln",
+          "name": "A&O Hotel and Hostel Berlin Mitte",
+          "district": "Mitte",
           "score": 11.79
         },
         {
-          "name": "A&O Hotel and Hostel Berlin Mitte",
-          "district": "Mitte",
+          "name": "Almansi Hostel",
+          "district": "East Central",
           "score": 11.79
         }
       ]
@@ -376,31 +376,56 @@
       ]
     }
   },
+  "hotel_photos": {
+    "site": 108,
+    "facebook": 5,
+    "commons": 104,
+    "page": 103,
+    "dropped": 247,
+    "dropped_examples": [
+      "1a pension apartment berlin",
+      "2A-Hostel",
+      "A&O",
+      "ADAPT APARTMENTS Berlin GmbH",
+      "AWO Refugim (Flüchtlingsheim)",
+      "Adam",
+      "Adina Apartment Hotel Berlin Checkpoint Charlie",
+      "Alcatraz Backpacker Hostel",
+      "Alecsa Hotel am Olympiastadion",
+      "Alex Hotel"
+    ]
+  },
   "readiness": {
     "passed": true,
     "checks": [
       {
         "name": "Located see + history + do places",
         "threshold": "≥ 150",
-        "measured": "3748",
+        "measured": "3746",
         "passed": true
       },
       {
         "name": "Located eat places",
         "threshold": "≥ 100",
-        "measured": "6454",
+        "measured": "6453",
         "passed": true
       },
       {
         "name": "Sleep documents",
         "threshold": "≥ 20",
-        "measured": "686",
+        "measured": "439",
         "passed": true
       },
       {
         "name": "Located sleep places",
         "threshold": "≥ 10",
-        "measured": "649",
+        "measured": "402",
+        "passed": true
+      },
+      {
+        "name": "Pictured located sleep places",
+        "threshold": "≥ 10",
+        "measured": "402",
         "passed": true
       },
       {
@@ -445,6 +470,7 @@
       "located_eat": 100,
       "sleep": 20,
       "located_sleep": 10,
+      "pictured_sleep": 10,
       "districts": 5,
       "described_districts": 5,
       "pictured_sights_share": 0.5,

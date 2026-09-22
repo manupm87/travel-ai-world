@@ -1,8 +1,8 @@
 {
   "city": "budapest",
   "built_at": "2026-09-17T23:14:43Z",
-  "documents": 6330,
-  "listings": 5237,
+  "documents": 6141,
+  "listings": 5048,
   "prose": 1093,
   "sources": [
     "curated",
@@ -52,13 +52,13 @@
       "wikivoyage": 118
     },
     "see": {
-      "openstreetmap": 315,
+      "openstreetmap": 294,
       "wikipedia": 169,
       "wikivoyage": 567
     },
     "sleep": {
-      "openstreetmap": 238,
-      "wikivoyage": 195
+      "openstreetmap": 134,
+      "wikivoyage": 131
     },
     "tour": {
       "curated": 12,
@@ -76,8 +76,8 @@
     "eat": 2454,
     "history": 632,
     "practical": 90,
-    "see": 1033,
-    "sleep": 425,
+    "see": 1012,
+    "sleep": 257,
     "tour": 24,
     "transport": 64
   },
@@ -87,8 +87,8 @@
     "eat": 2429,
     "history": 569,
     "practical": 63,
-    "see": 1000,
-    "sleep": 415,
+    "see": 979,
+    "sleep": 247,
     "tour": 23,
     "transport": 58
   },
@@ -98,8 +98,8 @@
     "eat": 54,
     "history": 513,
     "practical": 20,
-    "see": 676,
-    "sleep": 36,
+    "see": 666,
+    "sleep": 247,
     "tour": 4,
     "transport": 38
   },
@@ -126,26 +126,26 @@
     "Óbuda"
   ],
   "places_by_district": {
-    "Angyalföld": 309,
-    "Aquincum": 214,
-    "Belváros": 793,
+    "Angyalföld": 301,
+    "Aquincum": 210,
+    "Belváros": 764,
     "Budavár": 257,
-    "Csepel": 134,
-    "East Pest": 236,
-    "Erzsébetváros": 417,
-    "Ferencváros": 344,
-    "Hegyvidék": 183,
-    "Józsefváros": 358,
-    "Kőbánya": 158,
-    "North Buda": 293,
-    "North Pest": 163,
-    "South Buda": 419,
-    "South Pest": 170,
-    "Terézváros": 396,
-    "Városliget": 197,
-    "Víziváros": 317,
-    "Zugló": 153,
-    "Óbuda": 281
+    "Csepel": 128,
+    "East Pest": 232,
+    "Erzsébetváros": 403,
+    "Ferencváros": 328,
+    "Hegyvidék": 178,
+    "Józsefváros": 336,
+    "Kőbánya": 149,
+    "North Buda": 285,
+    "North Pest": 158,
+    "South Buda": 409,
+    "South Pest": 157,
+    "Terézváros": 377,
+    "Városliget": 194,
+    "Víziváros": 314,
+    "Zugló": 149,
+    "Óbuda": 274
   },
   "small_districts": [],
   "described_districts": [
@@ -178,10 +178,10 @@
       "untiered": 2101
     },
     "sleep": {
-      "1": 61,
-      "2": 108,
-      "3": 108,
-      "untiered": 156
+      "1": 33,
+      "2": 66,
+      "3": 83,
+      "untiered": 83
     }
   },
   "climate_months": [
@@ -387,18 +387,18 @@
       ],
       "hostel": [
         {
-          "name": "2B Hostel & Rooms",
-          "district": "Belváros",
+          "name": "Avenue Hostel",
+          "district": "Terézváros",
           "score": 11.79
         },
         {
-          "name": "Ace Hostel",
-          "district": "Belváros",
+          "name": "Factory Hostel Budapest",
+          "district": "Ferencváros",
           "score": 11.79
         },
         {
-          "name": "Andante Hostel",
-          "district": "Erzsébetváros",
+          "name": "Flow Hostel",
+          "district": "Ferencváros",
           "score": 11.79
         }
       ]
@@ -423,13 +423,32 @@
       ]
     }
   },
+  "hotel_photos": {
+    "site": 69,
+    "facebook": 27,
+    "commons": 60,
+    "page": 55,
+    "dropped": 168,
+    "dropped_examples": [
+      "12 Revay Hotel",
+      "2B Hostel & Rooms",
+      "Aboriginal Budapest Apartments",
+      "Abszolút Grasham Guesthouse",
+      "Ace Hostel",
+      "Age Budapest Youth Centre",
+      "Airport Premium Apartments",
+      "Alfréd Guesthouse",
+      "Alma Apartment",
+      "Amber Terrace Studios"
+    ]
+  },
   "readiness": {
     "passed": true,
     "checks": [
       {
         "name": "Located see + history + do places",
         "threshold": "≥ 150",
-        "measured": "2019",
+        "measured": "1998",
         "passed": true
       },
       {
@@ -441,13 +460,19 @@
       {
         "name": "Sleep documents",
         "threshold": "≥ 20",
-        "measured": "433",
+        "measured": "265",
         "passed": true
       },
       {
         "name": "Located sleep places",
         "threshold": "≥ 10",
-        "measured": "415",
+        "measured": "247",
+        "passed": true
+      },
+      {
+        "name": "Pictured located sleep places",
+        "threshold": "≥ 10",
+        "measured": "247",
         "passed": true
       },
       {
@@ -492,6 +517,7 @@
       "located_eat": 100,
       "sleep": 20,
       "located_sleep": 10,
+      "pictured_sleep": 10,
       "districts": 5,
       "described_districts": 5,
       "pictured_sights_share": 0.5,

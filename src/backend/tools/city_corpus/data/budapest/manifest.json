@@ -1,22 +1,22 @@
 {
   "city": "budapest",
   "built_at": "2026-09-17T23:14:43Z",
-  "documents": 6330,
-  "listings": 5237,
-  "listings_with_coordinates": 5092,
+  "documents": 6141,
+  "listings": 5048,
+  "listings_with_coordinates": 4903,
   "by_source": {
     "curated": 12,
     "open-meteo": 12,
-    "openstreetmap": 3130,
+    "openstreetmap": 3005,
     "wikipedia": 797,
-    "wikivoyage": 2379
+    "wikivoyage": 2315
   },
   "by_lang": {
-    "en": 6218,
+    "en": 6029,
     "es": 112
   },
   "by_kind": {
-    "listing": 5237,
+    "listing": 5048,
     "prose": 1093
   },
   "by_category": {
@@ -27,40 +27,40 @@
     "history": 667,
     "neighbourhood": 27,
     "practical": 118,
-    "see": 1051,
-    "sleep": 433,
+    "see": 1030,
+    "sleep": 265,
     "tour": 24,
     "transport": 165
   },
   "by_district": {
     "(city-wide)": 321,
-    "Angyalföld": 322,
-    "Aquincum": 233,
-    "Belváros": 811,
+    "Angyalföld": 314,
+    "Aquincum": 229,
+    "Belváros": 782,
     "Budavár": 268,
-    "Csepel": 140,
-    "East Pest": 245,
-    "Erzsébetváros": 435,
-    "Ferencváros": 349,
-    "Hegyvidék": 192,
-    "Józsefváros": 363,
-    "Kőbánya": 165,
-    "North Buda": 298,
-    "North Pest": 182,
-    "South Buda": 436,
-    "South Pest": 175,
-    "Terézváros": 405,
-    "Városliget": 210,
-    "Víziváros": 333,
-    "Zugló": 157,
-    "Óbuda": 290
+    "Csepel": 134,
+    "East Pest": 241,
+    "Erzsébetváros": 421,
+    "Ferencváros": 333,
+    "Hegyvidék": 187,
+    "Józsefváros": 341,
+    "Kőbánya": 156,
+    "North Buda": 290,
+    "North Pest": 177,
+    "South Buda": 426,
+    "South Pest": 162,
+    "Terézváros": 386,
+    "Városliget": 207,
+    "Víziváros": 330,
+    "Zugló": 153,
+    "Óbuda": 283
   },
   "districts_missing": [],
   "images": {
-    "with_image": 1557,
-    "see_documents": 1051,
-    "see_with_image": 691,
-    "see_image_coverage": 0.657
+    "with_image": 1758,
+    "see_documents": 1030,
+    "see_with_image": 681,
+    "see_image_coverage": 0.661
   },
   "sleep_without_district": [
     "wv:en:Budapest#section:sleep:c1",
@@ -96,20 +96,39 @@
       "district_boundaries": 23,
       "documents_linked_to_wikidata": 202,
       "elements": 7673,
-      "candidates": 3628,
+      "candidates": 3607,
       "merged_into_existing": 491,
-      "new_documents": 3130,
+      "new_documents": 3109,
       "outside_bbox": 0,
       "skipped_too_short": 7
     },
     "wikidata": {
-      "ids": 779,
-      "entities": 779,
-      "image_files_checked": 1006,
-      "image_files_free": 1002,
+      "ids": 766,
+      "entities": 766,
+      "image_files_checked": 995,
+      "image_files_free": 991,
       "document_images_skipped_non_free": 7
     },
     "districts_assigned_by_boundary": 762,
+    "photos": {
+      "site": 69,
+      "facebook": 27,
+      "commons": 60,
+      "page": 55,
+      "dropped": 168,
+      "dropped_examples": [
+        "12 Revay Hotel",
+        "2B Hostel & Rooms",
+        "Aboriginal Budapest Apartments",
+        "Abszolút Grasham Guesthouse",
+        "Ace Hostel",
+        "Age Budapest Youth Centre",
+        "Airport Premium Apartments",
+        "Alfréd Guesthouse",
+        "Alma Apartment",
+        "Amber Terrace Studios"
+      ]
+    },
     "tours": {
       "curated": 12,
       "reclassified_as_tour": 12,

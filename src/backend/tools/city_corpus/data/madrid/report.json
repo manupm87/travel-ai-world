@@ -1,8 +1,8 @@
 {
   "city": "madrid",
-  "built_at": "2026-09-21T19:25:28Z",
-  "documents": 5999,
-  "listings": 5189,
+  "built_at": "2026-09-22T14:48:53Z",
+  "documents": 5623,
+  "listings": 4813,
   "prose": 810,
   "sources": [
     "curated",
@@ -38,7 +38,7 @@
       "wikivoyage": 44
     },
     "eat": {
-      "openstreetmap": 3460,
+      "openstreetmap": 3462,
       "wikivoyage": 82
     },
     "history": {
@@ -52,13 +52,13 @@
       "wikivoyage": 34
     },
     "see": {
-      "openstreetmap": 419,
+      "openstreetmap": 252,
       "wikipedia": 194,
       "wikivoyage": 99
     },
     "sleep": {
-      "openstreetmap": 490,
-      "wikivoyage": 42
+      "openstreetmap": 296,
+      "wikivoyage": 25
     },
     "tour": {
       "curated": 3,
@@ -72,22 +72,22 @@
     "climate": 12,
     "do": 164,
     "drink": 433,
-    "eat": 3528,
+    "eat": 3530,
     "history": 485,
     "practical": 14,
-    "see": 709,
-    "sleep": 527,
+    "see": 542,
+    "sleep": 316,
     "tour": 5,
     "transport": 3
   },
   "located_by_category": {
     "do": 151,
     "drink": 430,
-    "eat": 3527,
+    "eat": 3529,
     "history": 451,
     "practical": 12,
-    "see": 702,
-    "sleep": 527,
+    "see": 535,
+    "sleep": 316,
     "tour": 5,
     "transport": 3
   },
@@ -96,8 +96,8 @@
     "drink": 16,
     "eat": 21,
     "history": 446,
-    "see": 568,
-    "sleep": 34,
+    "see": 444,
+    "sleep": 316,
     "transport": 3
   },
   "districts": [
@@ -114,17 +114,17 @@
     "Southern Suburbs"
   ],
   "places_by_district": {
-    "Arganzuela": 413,
-    "Centro": 1994,
-    "Chamberí-Castellana": 824,
-    "La Latina-Austrias": 154,
-    "Malasaña-Chueca": 35,
-    "Moncloa": 343,
-    "Northern Suburbs": 428,
-    "Retiro-Paseo del Arte": 336,
-    "Salamanca": 513,
-    "Sol-Letras-Lavapiés": 58,
-    "Southern Suburbs": 79
+    "Arganzuela": 391,
+    "Centro": 1799,
+    "Chamberí-Castellana": 778,
+    "La Latina-Austrias": 151,
+    "Malasaña-Chueca": 32,
+    "Moncloa": 329,
+    "Northern Suburbs": 408,
+    "Retiro-Paseo del Arte": 320,
+    "Salamanca": 483,
+    "Sol-Letras-Lavapiés": 52,
+    "Southern Suburbs": 78
   },
   "small_districts": [],
   "described_districts": [
@@ -145,13 +145,13 @@
       "1": 31,
       "2": 22,
       "3": 11,
-      "untiered": 3478
+      "untiered": 3480
     },
     "sleep": {
-      "1": 29,
-      "2": 46,
-      "3": 111,
-      "untiered": 346
+      "1": 15,
+      "2": 31,
+      "3": 76,
+      "untiered": 199
     }
   },
   "climate_months": [
@@ -332,12 +332,12 @@
           "score": 23.4
         },
         {
-          "name": "Meninas Hotel",
-          "district": "La Latina-Austrias",
+          "name": "Room Mate Alicia Hotel",
+          "district": "Centro",
           "score": 22.64
         },
         {
-          "name": "Room Mate Alicia Hotel",
+          "name": "Room Mate Mario Hotel",
           "district": "Centro",
           "score": 22.64
         }
@@ -349,12 +349,12 @@
           "score": 11.79
         },
         {
-          "name": "Barbieri SOL Hostel",
+          "name": "Bastardo Hostel",
           "district": "Centro",
           "score": 11.79
         },
         {
-          "name": "Bastardo Hostel",
+          "name": "Cats Hostel Madrid Lavapiés",
           "district": "Centro",
           "score": 11.79
         }
@@ -380,31 +380,56 @@
       ]
     }
   },
+  "hotel_photos": {
+    "site": 131,
+    "facebook": 9,
+    "commons": 76,
+    "page": 66,
+    "dropped": 211,
+    "dropped_examples": [
+      "4C Bravo Murillo",
+      "AC Hotel Coslada Aeropuerto",
+      "AC Hotel by Marriott Atocha",
+      "AC Los Vascos",
+      "AYZ Javier Cabrini",
+      "Abalú",
+      "Abalú Suites",
+      "Abami II",
+      "Abba Madrid Hotel",
+      "Albergue juvenil San Fermín"
+    ]
+  },
   "readiness": {
     "passed": true,
     "checks": [
       {
         "name": "Located see + history + do places",
         "threshold": "≥ 150",
-        "measured": "1304",
+        "measured": "1137",
         "passed": true
       },
       {
         "name": "Located eat places",
         "threshold": "≥ 100",
-        "measured": "3527",
+        "measured": "3529",
         "passed": true
       },
       {
         "name": "Sleep documents",
         "threshold": "≥ 20",
-        "measured": "532",
+        "measured": "321",
         "passed": true
       },
       {
         "name": "Located sleep places",
         "threshold": "≥ 10",
-        "measured": "527",
+        "measured": "316",
+        "passed": true
+      },
+      {
+        "name": "Pictured located sleep places",
+        "threshold": "≥ 10",
+        "measured": "316",
         "passed": true
       },
       {
@@ -422,7 +447,7 @@
       {
         "name": "Pictured share of located see + history places",
         "threshold": "≥ 50%",
-        "measured": "88%",
+        "measured": "90%",
         "passed": true
       },
       {
@@ -449,6 +474,7 @@
       "located_eat": 100,
       "sleep": 20,
       "located_sleep": 10,
+      "pictured_sleep": 10,
       "districts": 5,
       "described_districts": 5,
       "pictured_sights_share": 0.5,
