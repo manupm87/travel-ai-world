@@ -28,7 +28,7 @@ const authResponse = {
   access_token: "our-jwt",
   token_type: "bearer",
   user: {
-    id: 42,
+    id: "0b6f7c1e-5d3a-4c8e-9f21-7a4b2c9d1e60",
     email: "ada@example.com",
     name: null,
     picture: null,
@@ -65,9 +65,9 @@ describe("auth service", () => {
   });
 
   describe("userFromAuthResponse", () => {
-    it("normalises ids to strings and nulls to optional fields", () => {
+    it("keeps the account's UUID and turns nulls into optional fields", () => {
       expect(userFromAuthResponse(authResponse)).toEqual({
-        id: "42",
+        id: "0b6f7c1e-5d3a-4c8e-9f21-7a4b2c9d1e60",
         email: "ada@example.com",
         name: "",
         picture: undefined,
@@ -107,7 +107,12 @@ describe("auth service", () => {
       const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
       expect(url).toMatch(/\/api\/v1\/auth\/google$/);
       expect(JSON.parse(init.body as string)).toEqual({ credential: googleCredential });
-      expect(user).toEqual({ id: "42", email: "ada@example.com", name: "", picture: undefined });
+      expect(user).toEqual({
+        id: "0b6f7c1e-5d3a-4c8e-9f21-7a4b2c9d1e60",
+        email: "ada@example.com",
+        name: "",
+        picture: undefined,
+      });
       expect(readSession()).toEqual({ token: "our-jwt", profile: user });
     });
 

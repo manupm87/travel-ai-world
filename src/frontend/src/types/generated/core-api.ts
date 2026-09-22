@@ -132,7 +132,7 @@ export interface paths {
         };
         /**
          * Db Health Check
-         * @description Readiness: the database answers. 503 (via ProviderUnavailable) when it does not.
+         * @description Readiness: the table answers. 503 (via ProviderUnavailable) when it does not.
          */
         get: operations["db_health_check_api_v1_health_db_get"];
         put?: never;
@@ -745,8 +745,11 @@ export interface components {
         AuthUser: {
             /** Email */
             email: string;
-            /** Id */
-            id: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
             /** Name */
             name?: string | null;
             /** Picture */
@@ -846,8 +849,11 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
-            /** User Id */
-            user_id: number;
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
         };
         /**
          * ChatThreadUpdate
@@ -1347,8 +1353,11 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
-            /** User Id */
-            user_id: number;
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
         };
         /**
          * TripUpdate
@@ -1426,8 +1435,11 @@ export interface components {
              * Format: email
              */
             email: string;
-            /** Id */
-            id: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
             /**
              * Is Active
              * @default true
@@ -2843,7 +2855,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                user_id: number;
+                user_id: string;
             };
             cookie?: never;
         };
@@ -2874,7 +2886,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                user_id: number;
+                user_id: string;
             };
             cookie?: never;
         };
@@ -2903,7 +2915,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                user_id: number;
+                user_id: string;
             };
             cookie?: never;
         };
@@ -2938,7 +2950,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                user_id: number;
+                user_id: string;
             };
             cookie?: never;
         };

@@ -1309,8 +1309,9 @@
             "type": "string"
           },
           "id": {
+            "format": "uuid",
             "title": "Id",
-            "type": "integer"
+            "type": "string"
           },
           "name": {
             "anyOf": [
@@ -1657,8 +1658,9 @@
             "type": "string"
           },
           "user_id": {
+            "format": "uuid",
             "title": "User Id",
-            "type": "integer"
+            "type": "string"
           }
         },
         "required": [
@@ -3729,8 +3731,9 @@
             "type": "string"
           },
           "user_id": {
+            "format": "uuid",
             "title": "User Id",
-            "type": "integer"
+            "type": "string"
           }
         },
         "required": [
@@ -4134,8 +4137,9 @@
             "type": "string"
           },
           "id": {
+            "format": "uuid",
             "title": "Id",
-            "type": "integer"
+            "type": "string"
           },
           "is_active": {
             "default": true,
@@ -4748,7 +4752,7 @@
     },
     "/api/v1/health/db": {
       "get": {
-        "description": "Readiness: the database answers. 503 (via ProviderUnavailable) when it does not.",
+        "description": "Readiness: the table answers. 503 (via ProviderUnavailable) when it does not.",
         "operationId": "db_health_check_api_v1_health_db_get",
         "responses": {
           "200": {
@@ -6746,8 +6750,9 @@
             "name": "user_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "User Id",
-              "type": "integer"
+              "type": "string"
             }
           }
         ],
@@ -6785,8 +6790,9 @@
             "name": "user_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "User Id",
-              "type": "integer"
+              "type": "string"
             }
           }
         ],
@@ -6831,8 +6837,9 @@
             "name": "user_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "User Id",
-              "type": "integer"
+              "type": "string"
             }
           }
         ],
@@ -6889,8 +6896,9 @@
             "name": "user_id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "title": "User Id",
-              "type": "integer"
+              "type": "string"
             }
           }
         ],

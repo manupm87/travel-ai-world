@@ -41,8 +41,8 @@ export async function verifyGoogleToken(
 }
 
 /**
- * core_api ids are integers and profile fields nullable; the UI type is
- * string-keyed and optional, so normalise at the boundary.
+ * core_api ids are UUID strings and profile fields nullable; the UI type
+ * has optional fields, so normalise at the boundary.
  */
 export function userFromAuthResponse(response: GoogleAuthResponse): User {
   return {

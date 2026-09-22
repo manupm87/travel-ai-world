@@ -97,9 +97,10 @@ export interface GetTripOptions {
 
 /**
  * One trip as the planner reopens it, or `null` when there is nothing to
- * show: a 404 (no such trip) and a 403 (someone else's trip) both resolve to
- * `null`, so the UI shows the same "not here" pane and leaks nothing about
- * other users' ids. Any other failure rethrows (`UnauthorizedError` on 401,
+ * show: a 404 (no such trip, or someone else's: core_api answers 404 for both
+ * since ADR 0023) and a 403 (what it answered before) both resolve to `null`,
+ * so the UI shows the same "not here" pane and leaks nothing about other
+ * users' ids. Any other failure rethrows (`UnauthorizedError` on 401,
  * or when there is no session, before any network call).
  */
 export async function getTrip(id: string, { signal }: GetTripOptions = {}): Promise<Trip | null> {

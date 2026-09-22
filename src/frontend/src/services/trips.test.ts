@@ -22,7 +22,7 @@ import {
 /** The smallest valid backend answer: every optional field absent. */
 const minimal: TripResponse = {
   id: "t1",
-  user_id: 7,
+  user_id: "0b6f7c1e-5d3a-4c8e-9f21-7a4b2c9d1e60",
   phase: "upcoming",
   created_at: "2026-01-01T00:00:00Z",
   updated_at: "2026-01-02T00:00:00Z",
