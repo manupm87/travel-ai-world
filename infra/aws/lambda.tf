@@ -23,7 +23,7 @@ data "aws_iam_policy_document" "lambda_assume" {
   }
 }
 
-# ── core_api: inside the VPC, talks to RDS only ─────────────────────────────
+# ── core_api: inside the VPC until TRA-219; DynamoDB through the gateway endpoint ─
 
 resource "aws_cloudwatch_log_group" "core_api" {
   name              = "/aws/lambda/${var.name_prefix}-core-api"
@@ -58,6 +58,8 @@ resource "aws_lambda_function" "core_api" {
 
   environment {
     variables = merge(local.backend_env, {
+      CORE_TABLE = aws_dynamodb_table.core.name
+      # Read only by the one-off `copy-from-postgres` command; removed with RDS (TRA-219).
       DB_SERVER   = aws_db_instance.main.address
       DB_PORT     = "5432"
       DB_USER     = var.db_user

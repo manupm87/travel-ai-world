@@ -10,7 +10,7 @@ no Secrets Manager: about 4 €/month with the RDS free tier, ~19 € without.
 
 | Function | Image | Where | Receives |
 |---|---|---|---|
-| `core-api` | `core-api` | private subnets, security group to RDS only | `DB_*`, `AUTH_MODE=cognito` + `COGNITO_*`, `BACKEND_CORS_ORIGINS` |
+| `core-api` | `core-api` | private subnets (until TRA-219); DynamoDB through a gateway endpoint, RDS only for the one-off copy | `CORE_TABLE`, `DB_*` (copy only), `AUTH_MODE=cognito` + `COGNITO_*`, `BACKEND_CORS_ORIGINS` |
 | `ai-api` | `ai-api` | outside the VPC (Bedrock, NVIDIA, `core_api` through CloudFront) | `LLM_PROVIDER` (`bedrock` by default) + `BEDROCK_*`, `NVIDIA_*` (fallback), `AUTH_MODE=cognito` + `COGNITO_*`, `CORE_API_URL=https://<domain>`, `RETRIEVAL_ENABLED` + `VECTOR_*` + `EMBEDDINGS_*` |
 
 Request path: `https://<domain>/api/v1/...` → CloudFront (`/api/*`, no cache, `Authorization`
@@ -24,6 +24,7 @@ a Cognito ID token, health endpoints included.
 |---|---|
 | `network.tf`, `security.tf` | VPC with two private subnets (no IGW), DB subnet group, security groups `core-api` → `rds:5432` |
 | `rds.tf` | RDS PostgreSQL 16 `db.t4g.micro`, private, encrypted, deletion protection |
+| `dynamodb.tf` | The `core_api` table `${name_prefix}-core` (on-demand, `PK`/`SK` + `GSI1`, point-in-time recovery, deletion protection), `core-api`'s item-level permissions on it, and the free DynamoDB gateway endpoint on the VPC's route table ([ADR 0023](../../docs/architecture/adr/0023-dynamodb-data-store.md)); see [DynamoDB cut-over](#dynamodb-cut-over-tra-218) |
 | `ecr.tf` | Two ECR repositories: `${name_prefix}-core-api`, `${name_prefix}-ai-api` |
 | `cognito.tf` | User pool, Google identity provider, public app client (code + PKCE), `admin` group, hosted-UI domain, the JWKS as output and environment |
 | `lambda.tf` | Two container-image functions with their roles (VPC access for `core-api`; for `ai-api`, Bedrock invoke on the EU inference profiles of the chat and title models, see [Chat model](#chat-model-bedrock)) and log groups; permissions for the gateway |
@@ -221,3 +222,37 @@ curl -H "Authorization: Bearer $TOKEN" "$(terraform output -raw api_gateway_invo
   `/404.html`, 404) is missing, or `404.html` is not at the root of the bucket.
 - An API call answers 404 with HTML → the API returned 403 (someone else's resource, an
   authorizer deny); the distribution-wide error response maps it. API 404s stay JSON.
+
+## DynamoDB cut-over (TRA-218)
+
+[ADR 0023](../../docs/architecture/adr/0023-dynamodb-data-store.md) moves `core_api` from RDS to
+DynamoDB. The move happens once, in this order, from `infra/aws/` after `just aws-login`:
+
+1. **Table, permissions and endpoint** (additive; the running functions do not change):
+
+   ```bash
+   terraform apply -target=aws_dynamodb_table.core \
+     -target=aws_iam_role_policy.core_api_dynamodb -target=aws_vpc_endpoint.dynamodb
+   ```
+
+2. **Deploy the DynamoDB image** of `core_api` (the first `main` commit after TRA-217) the usual
+   way ([deploy runbook](../../docs/runbooks/deploy.md)). The apply also sets `CORE_TABLE` on the
+   function. From this moment the site reads an empty table until step 3 finishes.
+3. **Copy the data**, once:
+
+   ```bash
+   fn=$(terraform output -raw core_api_function_name)
+   aws lambda invoke --function-name "$fn" --cli-binary-format raw-in-base64-out \
+     --payload '{"command": "copy-from-postgres"}' copy.json && cat copy.json
+   ```
+
+   The answer carries `result` with the number of users, trips, threads and messages copied; the
+   command fails if any written count differs from the read count. It is idempotent: run it
+   again after a failure.
+4. **Check** with a real sign-in: the trips page lists the account's trips, a trip opens, a chat
+   answer is saved.
+
+**Rollback** during the following week: redeploy the previous `core_api` image digest. It still
+talks to RDS, which nobody has written to since step 2; anything written to DynamoDB in between
+is lost. After a week without incidents, TRA-219 retires RDS.
+

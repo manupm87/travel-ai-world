@@ -158,7 +158,7 @@ variable "db_instance_class" {
 }
 
 variable "deletion_protection" {
-  description = "Protect RDS from accidental deletion."
+  description = "Protect RDS and the DynamoDB tables from accidental deletion."
   type        = bool
   default     = true
 }
