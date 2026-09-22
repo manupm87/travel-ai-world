@@ -17,13 +17,19 @@ Cities are TOML files under `cities/`; Budapest is the reference one (see "Add a
 | [OpenStreetMap](https://www.openstreetmap.org/) (Overpass API) | Hotels, hostels, guest houses, apartments; restaurants, cafés; bars, pubs; museums, attractions, viewpoints, historic places, galleries with a Wikidata item; named parks; thermal baths. Also the 23 district boundaries and the Wikidata tags used to link listings | ODbL 1.0 |
 | [Wikidata](https://www.wikidata.org/) + [Commons](https://commons.wikimedia.org/) | Enrichment only (no documents): image, official website, coordinates, heritage status, Spanish label. Images keep their own licence and author | CC0 (Wikidata); per file (Commons) |
 | [Open-Meteo](https://open-meteo.com/) historical API | Daily 1996–2025 weather → 12 monthly climate documents | CC BY 4.0 |
+| The hotel's own website and Facebook page | **Photos only**, and only for a `sleep` document that nothing else pictures: the link preview the site publishes (`og:image`), else the largest picture on its homepage (ADR 0022) | Not licence-clean: the URL is stored and hot-linked, credited with the bare domain (`image_credit`), never copied |
 | `curated/<city>/tours.toml` (this repo) | Public tours no open source lists, above all free (tip-based) walking tours: hand-maintained from each operator's own website, summaries in our own words | CC BY-SA 4.0 (our text; the operator page is `source_url`) |
 
 `Category:Baths in Budapest` (named in TRA-138) has no articles; the bath articles are in
 `Category:Thermal baths in Budapest`. Google Places content, TripAdvisor and Booking are forbidden
-sources (ToS). Photos of venues are not stored here either: a restaurant, a bar or a hotel the
-corpus has no free photo of is pictured at request time by `ai_api`, from the preview the venue
-publishes on its own site, and that image is never written to the corpus (ADR 0021).
+sources (ToS). Photos of restaurants and bars are not stored here either: a venue the corpus has
+no free photo of is pictured at request time by `ai_api`, from the preview the venue publishes on
+its own site, and that image is never written to the corpus (ADR 0021).
+
+Hotels are the exception: a stay is the one thing the
+planner asks the traveller to commit to, so the build resolves a picture for every `sleep`
+document and drops the ones it cannot picture (step 4 below, ADR 0022). The URL is stored, never
+the file.
 
 Categories are city-scoped on purpose: `Landmarks in Hungary` and `Castles in Hungary` would add 46
 articles, most of them outside Budapest. A category may set `require_coordinates`, which admits only
@@ -48,7 +54,15 @@ manifest reports documents per category and what each one skipped.
    missing, add `name_es`, `heritage` and `entity_id` (documents about the same entity share it).
    `image_url` is a 640 px Commons thumbnail of the first free-licensed file among the Wikidata image
    (P18), the listing's `image` and OSM's `wikimedia_commons`. Non-free files (NC, ND, fair use) are skipped.
-4. **Districts**: every document with coordinates and no district gets one from the OSM boundary it
+4. **Photos** (TRA-208, ADR 0022): every `sleep` document with coordinates and no `image_url`
+   gets one, from the first of four sources that answers — Wikimedia Commons (searched by name,
+   then within 60 m of the coordinates; non-free files skipped), the link preview of the hotel's
+   own site (`url`), the preview of its Facebook page (`facebook`, from OSM `contact:facebook`),
+   and the largest picture on its homepage (at least 40 KB, `logo`/`badge`/`booking` names
+   skipped). The last three store the bare domain in `image_credit`; **a hotel still without a
+   photo is dropped from the corpus**. Roughly a third of them are, almost all with dead websites.
+   The stage is the slow one: 20–45 minutes for a city with a cold `.cache/sites/`.
+5. **Districts**: every document with coordinates and no district gets one from the OSM boundary it
    falls in. The `[district_guides]` table in `cities/budapest.toml` maps the 23 administrative
    districts (by OSM `ref`; by name for a city whose boundaries carry none) to the 20 Wikivoyage
    guides. Districts I, III and XIV are split between two guides; the nearest Wikivoyage listing
@@ -59,14 +73,14 @@ manifest reports documents per category and what each one skipped.
    English and Spanish, then the first other Wikipedia: Italian for Bologna's quartieri) becomes the
    district's `neighbourhood` prose, named after the district. Only a district that is exactly one
    boundary mapped to exactly one guide qualifies; Budapest's groupings keep their Wikivoyage pages.
-5. **Tours**: listings from any source that are things you *join* move to `category=tour` with a
+6. **Tours**: listings from any source that are things you *join* move to `category=tour` with a
    `tour_type` (`walking`, `bike`, `boat`, `bus`, `cave`, `food`, `other`). The automatic rule looks
    for a tour heading (*Tours*, *Guided tours*, *Cave tours*, *Boating*, *Cruises*, *Sightseeing*) or a
    tour-like name (tour, cruise, boat trip, sightseeing, hop-on/hop-off). `[reclassify]` in the tours
    file adds what the rule misses and excludes false positives. Rentals and scheduled public transport
    are not tours. Curated tours are then added as documents (`doc_id` `tour:<city>:<id>`). Their district
    comes from the boundaries.
-6. **Climate**: monthly highs, lows, rainfall and days with ≥ 1 mm. Open-Meteo's reanalysis
+7. **Climate**: monthly highs, lows, rainfall and days with ≥ 1 mm. Open-Meteo's reanalysis
    overestimates sunshine for Budapest (about 3,150 h a year against about 2,000 h measured), so
    sunshine is left out; rain days run about a third high, hence "about" in the text.
 
@@ -78,14 +92,16 @@ just corpus-report budapest # only the report (`--no-gate` prints without failin
 just corpus-discover "..."  # draft cities/<slug>.draft.toml for a new city
 # or, from this directory:
 uv run python -m city_corpus build budapest \
-  [--sources wikivoyage,wikipedia,openstreetmap,wikidata,climate,tours] [--offline] [-v]
+  [--sources wikivoyage,wikipedia,openstreetmap,wikidata,photos,climate,tours] [--offline] [-v]
 uv run python -m city_corpus report budapest [--no-gate] [--data-dir DIR]
 uv run python -m city_corpus discover "Bologna" [-v]
 ```
 
-Every API response is cached in `.cache/` (ignored by git). A rebuild with a warm cache makes no
+Every API response is cached in `.cache/` (ignored by git); the pages of the venues' own sites
+are cached apart, under `.cache/sites/<host>/`, misses included — a hotel whose domain is dead is
+dialled once and never again. A rebuild with a warm cache makes no
 requests and writes byte-identical files; `--offline` fails on a cache miss instead of fetching.
-Delete `.cache/` to pick up new page revisions and map data. A cold build takes 5–10 minutes: requests
+Delete `.cache/` to pick up new page revisions and map data. A cold build takes 25–55 minutes, most of it the photo stage: requests
 are serial, with a descriptive User-Agent, `maxlag` and backoff for Wikimedia, a 5-second pause
 between Overpass queries, and retries on 429/5xx. Wikidata and Commons are requested in batches of 50
 sorted ids, so a change to the set of ids re-fetches those batches.
@@ -110,7 +126,9 @@ sorted ids, so a change to the set of ids re-fetches those batches.
 
 Optional fields, written only when present. Listing extras: `alt`, `address`, `directions`, `phone`,
 `checkin`, `checkout`, `image` (Commons file name). Enrichment: `entity_id`, `name_es`, `heritage`,
-`image_license`, `image_author` (show them with the image), `osm_id`, `opening_hours` (OSM syntax),
+`image_license`, `image_author` (show them with the image), `image_credit` (the line to print
+instead when the photo is not from Commons: the bare domain it was read from), `facebook` (the
+venue's page, an OSM tag and a photo source), `osm_id`, `opening_hours` (OSM syntax),
 `stars`, `cuisine`, `wheelchair`. Tours: `tour_type` (all tour documents); `operator`, `start_times`,
 `days`, `duration_minutes`, `languages`, `price_model`, `booking_required`, `checked` (curated tours).
 In an itinerary a tour is an `Activity` with `category="tour"`, `time`, `duration_minutes`, `cost` 0
@@ -124,7 +142,9 @@ the previous chunk. Wiki markup is stripped (link labels kept; inline templates 
 `data/<city>/manifest.json`: newest fetch time, counts per source, language, kind, category and
 district, image coverage (overall and for `see`), `sleep` documents without a district (city-wide
 text only), enrichment counters (OSM elements, merges, new documents, Wikidata links, image licences,
-districts assigned), skipped listings, and the revision id of every Wikimedia page used.
+districts assigned), where each hotel's photo came from and how many hotels were dropped for
+lack of one (`enrichment.photos`), skipped listings, and the revision id of every Wikimedia page
+used.
 
 The build validates before writing and fails on: duplicate or empty `doc_id`, `text` under 40
 characters, wrong `city`, unknown `category`, half coordinates or coordinates outside the bbox, or a
@@ -156,7 +176,9 @@ and a new backend image.
 and `report.json` (the same numbers for tooling): documents per category and source, listings vs
 prose, places per category (a *place* is a document with a name; *located* when it has coordinates,
 which is what becomes a planner card; *pictured* when a located place has an `image_url`), districts
-with their located places and the ones under 10, `eat` and `sleep` by price tier, the twelve monthly
+with their located places and the ones under 10, where the hotels' photos came from and which
+hotels the build dropped for having none (**Hotels**, from the manifest — without it the section
+prints the total only), `eat` and `sleep` by price tier, the twelve monthly
 climate normals, and a few fixed smoke queries per category ("museum", "craft beer bar", "boutique
 hotel", "free walking tour", ...; the same for every city) answered by a keyword scorer with the top three names, so a reader
 sees at a glance whether the corpus answers.
@@ -169,6 +191,7 @@ The report ends with the **readiness gate**, the thresholds in `city_corpus/conf
 | Located `see` + `history` + `do` places | ≥ 150 |
 | Located `eat` places | ≥ 100 |
 | `sleep` documents / located `sleep` places | ≥ 20 / ≥ 10 |
+| Pictured located `sleep` places | ≥ 10 |
 | Districts | ≥ 5 |
 | Districts with a `neighbourhood` document | ≥ 5 |
 | Pictured share of located `see` + `history` places | ≥ 50 % |

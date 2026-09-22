@@ -85,7 +85,12 @@ testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, Ke
   site publishes, credited with the bare domain (`SitePreviewFinder`, `SITE_PREVIEWS_ENABLED`); failing
   that, only a neighbourhood borrows — a pictured sight of its district, credited as that sight's
   (`PlanTrip._corpus_photo`); anything else gets the neutral placeholder credited `Illustrative photo`
-  (`application/photos.py`). Tests drive it with `FakeProvider(replies=[...])`,
+  (`application/photos.py`). **A stay is always a pictured document** (TRA-208 / ADR 0022): the corpus
+  resolves a photo for every hotel it keeps, so `_hotel_candidates` drops `sleep` documents without an
+  `image_url` (searching twice as wide to make up for them) instead of falling back to a placeholder
+  under "sleep here". Their credit travels with them: `image_credit` in the corpus — the bare domain the
+  picture was read from — wins over the Commons author-and-licence line `cards.py` derives.
+  Tests drive it with `FakeProvider(replies=[...])`,
   `FakeRetriever` (filter-aware), `FakePhotoFinder`, `FakeSitePreviews` and
   `testing.documents_from_corpus(tests/fixtures/budapest_sample.jsonl)`.
 - **The planner knows no city by name.** `PlanTrip` takes `City` objects (`domain/models.py`) from the

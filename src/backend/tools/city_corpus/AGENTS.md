@@ -23,7 +23,8 @@ city_corpus/
                          osm.py (Overpass, merge/new), districts.py (boundaries, shapely),
                          neighbourhoods.py (district Wikipedia articles when Wikivoyage has no page),
                          wikidata.py (Wikidata + Commons licences), climate.py (Open-Meteo),
-                         tours.py (curated tours + the `tour` reclassification rule)
+                         tours.py (curated tours + the `tour` reclassification rule),
+                         photos.py (a photo for every hotel, or the hotel goes: ADR 0022)
 cities/<slug>.toml       one file per city (the configuration; drafts `*.draft.toml` are ignored)
 curated/<city>/          hand-maintained inputs (tours.toml); see README "Tours file"
 data/<city>/             committed output (source of truth for the vector store) + report.md/json
@@ -42,6 +43,9 @@ tests/                   fixtures only; never hit the network
 - **Licence-clean sources only**: Wikivoyage, Wikipedia, OpenStreetMap, Wikidata/Commons, Open-Meteo, curated files.
   Never add Google Places content, TripAdvisor or Booking data. Every document carries `source_url` and a
   `license` matching its source; images carry `image_license`/`image_author`, and non-free files are skipped.
+  The one exception is a hotel's photo (ADR 0022): when Commons has none, `sources/photos.py` stores the
+  URL the hotel publishes on its own site or Facebook page, credited by domain in `image_credit` and
+  hot-linked, never copied. It applies to `sleep` only, and a hotel with no photo at all is dropped.
 - **Be polite to Wikimedia and Overpass**: all requests go through `ApiClient` (serial, User-Agent,
   `maxlag`, per-host pauses, backoff, cache). Do not parallelize beyond 2 concurrent requests.
 - **Enrichment never deletes or overwrites**: it fills empty fields only. Documents about the same place

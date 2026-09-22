@@ -56,17 +56,29 @@ just corpus-report <slug>     # the report alone; add --no-gate to print without
 ```
 
 The build fetches serially, politely (User-Agent, `maxlag`, a five-second pause between Overpass
-queries, backoff on 429), and caches every response in `.cache/`: a cold build takes five to ten
+queries, backoff on 429), and caches every response in `.cache/`: a cold build takes 25 to 55
 minutes, a warm one seconds and produces byte-identical files. `--offline` (as
 `uv run python -m city_corpus build <slug> --offline` from the tool folder) proves it; deleting
-`.cache/<host>/` refreshes one source.
+`.cache/<host>/` refreshes one source, and `.cache/sites/` the venues' own pages.
+
+Most of that time is the **photo stage** (ADR 0022): every hotel with coordinates and no picture
+is looked up on Commons, then through the preview of its own site, its Facebook page and its
+homepage. Two things to expect from it, both by design:
+
+- **Hotels leave the corpus.** One that none of the four sources pictures is dropped — roughly a
+  third of them, almost all with a dead or parked website. A stay is the one card the traveller
+  is asked to commit to, so the planner offers no stay it cannot show. The report's **Hotels**
+  section names what went and where the rest of the photos came from.
+- **It runs long and mostly waits.** Run it in the background and watch the log
+  (`-v` logs a line per hotel); never build two cities at once (Overpass).
 
 A city corpus is ready to index when it passes the readiness gate. The gate is a command, not an
 opinion: it writes `data/<slug>/report.md` (committed with the corpus) and `report.json`, and exits 1
 with the failing lines when a threshold is missed. The thresholds live in
 `src/backend/tools/city_corpus/city_corpus/config/readiness.py` and are documented in the
 [city_corpus README](../../src/backend/tools/city_corpus/README.md#readiness-report): located
-sights, located restaurants, hotels, districts, pictured share of the sights, twelve climate normals.
+sights, located restaurants, hotels (and how many of them are pictured), districts, pictured
+share of the sights, twelve climate normals.
 
 Read the report before opening the PR:
 
@@ -79,6 +91,9 @@ Read the report before opening the PR:
   a reason to invent districts.
 - **Pictured share**: below the threshold, more Wikipedia categories (Wikidata images come with
   them) beat anything else.
+- **Hotels**: the gate wants ten pictured stays. A city that misses it has hotels whose websites
+  the build could not read at all — widen the bbox or check that OpenStreetMap carries their
+  `website` tags, and rebuild with `--sources photos` once the rest of the cache is warm.
 
 A failing gate is a configuration problem to fix and rebuild, never a reason to lower a threshold
 for one city. If a threshold is wrong for every city, change it in `readiness.py` with the reason in
