@@ -1,22 +1,22 @@
 {
   "city": "madrid",
-  "built_at": "2026-09-22T15:36:03Z",
-  "documents": 5556,
-  "listings": 4746,
-  "listings_with_coordinates": 4726,
+  "built_at": "2026-09-22T16:58:22Z",
+  "documents": 5574,
+  "listings": 4764,
+  "listings_with_coordinates": 4744,
   "by_source": {
     "curated": 3,
     "open-meteo": 12,
-    "openstreetmap": 4420,
+    "openstreetmap": 4435,
     "wikipedia": 679,
-    "wikivoyage": 442
+    "wikivoyage": 445
   },
   "by_lang": {
-    "en": 5483,
+    "en": 5501,
     "es": 73
   },
   "by_kind": {
-    "listing": 4746,
+    "listing": 4764,
     "prose": 810
   },
   "by_category": {
@@ -28,27 +28,27 @@
     "neighbourhood": 13,
     "practical": 34,
     "see": 545,
-    "sleep": 254,
+    "sleep": 272,
     "tour": 5,
     "transport": 32
   },
   "by_district": {
-    "(city-wide)": 751,
+    "(city-wide)": 752,
     "Arganzuela": 391,
-    "Centro": 1769,
-    "Chamberí-Castellana": 775,
+    "Centro": 1779,
+    "Chamberí-Castellana": 777,
     "La Latina-Austrias": 154,
     "Malasaña-Chueca": 39,
-    "Moncloa": 329,
-    "Northern Suburbs": 407,
-    "Retiro-Paseo del Arte": 324,
-    "Salamanca": 481,
-    "Sol-Letras-Lavapiés": 56,
+    "Moncloa": 330,
+    "Northern Suburbs": 408,
+    "Retiro-Paseo del Arte": 325,
+    "Salamanca": 482,
+    "Sol-Letras-Lavapiés": 57,
     "Southern Suburbs": 80
   },
   "districts_missing": [],
   "images": {
-    "with_image": 1275,
+    "with_image": 1293,
     "see_documents": 545,
     "see_with_image": 445,
     "see_image_coverage": 0.817
@@ -78,6 +78,7 @@
     "osm:way/388634159",
     "osm:way/438775731",
     "osm:way/450448364",
+    "osm:way/452964709",
     "osm:way/949829351",
     "wv:en:Madrid#section:sleep/budget:c1",
     "wv:en:Madrid#section:sleep/hostels:c1",
@@ -85,7 +86,7 @@
     "wv:en:Madrid#section:sleep/splurge:c1",
     "wv:en:Madrid#section:sleep:c1"
   ],
-  "sleep_listings_with_coordinates_without_district": 25,
+  "sleep_listings_with_coordinates_without_district": 26,
   "enrichment": {
     "wikipedia": {
       "articles": 190,
@@ -131,12 +132,14 @@
     },
     "districts_assigned_by_boundary": 666,
     "photos": {
-      "site": 117,
+      "curated": 4,
+      "site": 122,
       "facebook": 7,
       "commons": 11,
+      "wikidata": 9,
       "page": 80,
-      "dropped": 278,
-      "shared": 18,
+      "dropped": 260,
+      "shared": 16,
       "dropped_examples": [
         "4C Bravo Murillo",
         "AC Hotel Aitana",
@@ -148,6 +151,236 @@
         "Abalú Suites",
         "Abami II",
         "Abba Madrid Hotel"
+      ],
+      "notable_without_photo": [
+        {
+          "name": "AC Hotel Aitana",
+          "reason": "403"
+        },
+        {
+          "name": "AC Hotel Coslada Aeropuerto",
+          "reason": "403"
+        },
+        {
+          "name": "AC Hotel by Marriott Atocha",
+          "reason": "403"
+        },
+        {
+          "name": "Aparthotel NH La Florida",
+          "reason": "dead"
+        },
+        {
+          "name": "Atocha Hotel Madrid, Tapestry Collection by Hilton",
+          "reason": "403"
+        },
+        {
+          "name": "B&B HOTEL Madrid Vallecas Ensanche",
+          "reason": "403"
+        },
+        {
+          "name": "B&B Hotel Madrid Airport T1 T2 T3",
+          "reason": "403"
+        },
+        {
+          "name": "B&B Hotel Madrid Carabanchel",
+          "reason": "dead"
+        },
+        {
+          "name": "B&B Hotel Madrid Vallecas La Gavia",
+          "reason": "403"
+        },
+        {
+          "name": "Barceló Emperatriz",
+          "reason": "403"
+        },
+        {
+          "name": "Barceló Imagine",
+          "reason": "no url"
+        },
+        {
+          "name": "Best Western Los Condes",
+          "reason": "403"
+        },
+        {
+          "name": "Catalonia Plaza España",
+          "reason": "dead"
+        },
+        {
+          "name": "Catalonia Plaza Mayor",
+          "reason": "dead"
+        },
+        {
+          "name": "Catalonia Puerta del Sol",
+          "reason": "dead"
+        },
+        {
+          "name": "Crowne Plaza Madrid - Centre Retiro",
+          "reason": "no url"
+        },
+        {
+          "name": "Crowne Plaza Madrid Airport",
+          "reason": "dead"
+        },
+        {
+          "name": "DoubleTree by Hilton Madrid - Prado",
+          "reason": "403"
+        },
+        {
+          "name": "H10 Puerta de Alcalá",
+          "reason": "no url"
+        },
+        {
+          "name": "H10 Tribeca",
+          "reason": "no url"
+        },
+        {
+          "name": "Hilton Madrid Airport",
+          "reason": "403"
+        },
+        {
+          "name": "Hotel Catalonia Goya",
+          "reason": "no url"
+        },
+        {
+          "name": "Hotel Catalonia Gran Vía",
+          "reason": "dead"
+        },
+        {
+          "name": "Hotel Catalonia Las Cortes",
+          "reason": "no picture"
+        },
+        {
+          "name": "Hotel Indigo Madrid - Princesa, an IHG Hotel",
+          "reason": "dead"
+        },
+        {
+          "name": "Hotel Meliá Serrano",
+          "reason": "no url"
+        },
+        {
+          "name": "Hotel NH Collection Madrid Suecia",
+          "reason": "403"
+        },
+        {
+          "name": "Ibis Budget Madrid Vallecas",
+          "reason": "dead"
+        },
+        {
+          "name": "Madrid Marriott Auditorium Hotel & Conference Center",
+          "reason": "403"
+        },
+        {
+          "name": "Madrid Marriott Hotel Princesa Plaza",
+          "reason": "403"
+        },
+        {
+          "name": "NH Atocha",
+          "reason": "403"
+        },
+        {
+          "name": "NH Barajas Airport",
+          "reason": "403"
+        },
+        {
+          "name": "NH Collection Abascal",
+          "reason": "no url"
+        },
+        {
+          "name": "NH Collection Madrid Colón",
+          "reason": "403"
+        },
+        {
+          "name": "NH Eurobuilding",
+          "reason": "403"
+        },
+        {
+          "name": "NH La Habana",
+          "reason": "403"
+        },
+        {
+          "name": "NH Lagasca",
+          "reason": "no url"
+        },
+        {
+          "name": "NH Las Tablas",
+          "reason": "403"
+        },
+        {
+          "name": "NH Madrid Chamberí",
+          "reason": "no url"
+        },
+        {
+          "name": "NH Madrid Ventas",
+          "reason": "403"
+        },
+        {
+          "name": "NH Madrid Zurbano",
+          "reason": "403"
+        },
+        {
+          "name": "NH Palacio de Tepa",
+          "reason": "403"
+        },
+        {
+          "name": "NH Príncipe de Vergara",
+          "reason": "no url"
+        },
+        {
+          "name": "NH Ribera del Manzanares",
+          "reason": "403"
+        },
+        {
+          "name": "Novotel Madrid Center",
+          "reason": "no url"
+        },
+        {
+          "name": "Petit Palace Los Austrias",
+          "reason": "no picture"
+        },
+        {
+          "name": "Petit Palace San Bernardo",
+          "reason": "dead"
+        },
+        {
+          "name": "Radisson Blu Hotel, Madrid Prado",
+          "reason": "no url"
+        },
+        {
+          "name": "Radisson RED",
+          "reason": "no url"
+        },
+        {
+          "name": "Room Mate Alba",
+          "reason": "shared picture"
+        },
+        {
+          "name": "Room Mate Alicia Hotel",
+          "reason": "shared picture"
+        },
+        {
+          "name": "Room Mate Mario Hotel",
+          "reason": "shared picture"
+        },
+        {
+          "name": "Room Mate Oscar Hotel",
+          "reason": "shared picture"
+        },
+        {
+          "name": "Spark by Hilton Madrid Alcalá",
+          "reason": "403"
+        },
+        {
+          "name": "Wipton By Petit Palace",
+          "reason": "no picture"
+        },
+        {
+          "name": "ibis Madrid Calle Alcalá",
+          "reason": "no picture"
+        },
+        {
+          "name": "ibis budget Madrid Calle Alcalá",
+          "reason": "no picture"
+        }
       ]
     },
     "tours": {

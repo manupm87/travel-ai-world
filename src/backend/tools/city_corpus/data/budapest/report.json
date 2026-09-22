@@ -1,8 +1,8 @@
 {
   "city": "budapest",
-  "built_at": "2026-09-22T15:33:29Z",
-  "documents": 6095,
-  "listings": 5002,
+  "built_at": "2026-09-22T16:58:32Z",
+  "documents": 6105,
+  "listings": 5012,
   "prose": 1093,
   "sources": [
     "curated",
@@ -57,8 +57,8 @@
       "wikivoyage": 567
     },
     "sleep": {
-      "openstreetmap": 110,
-      "wikivoyage": 109
+      "openstreetmap": 116,
+      "wikivoyage": 113
     },
     "tour": {
       "curated": 12,
@@ -77,7 +77,7 @@
     "history": 632,
     "practical": 90,
     "see": 1012,
-    "sleep": 211,
+    "sleep": 221,
     "tour": 24,
     "transport": 64
   },
@@ -88,7 +88,7 @@
     "history": 569,
     "practical": 63,
     "see": 979,
-    "sleep": 201,
+    "sleep": 211,
     "tour": 23,
     "transport": 58
   },
@@ -99,7 +99,7 @@
     "history": 513,
     "practical": 20,
     "see": 666,
-    "sleep": 201,
+    "sleep": 211,
     "tour": 4,
     "transport": 38
   },
@@ -126,14 +126,14 @@
     "Óbuda"
   ],
   "places_by_district": {
-    "Angyalföld": 297,
-    "Aquincum": 206,
-    "Belváros": 760,
+    "Angyalföld": 298,
+    "Aquincum": 208,
+    "Belváros": 764,
     "Budavár": 257,
     "Csepel": 128,
     "East Pest": 229,
-    "Erzsébetváros": 401,
-    "Ferencváros": 322,
+    "Erzsébetváros": 402,
+    "Ferencváros": 323,
     "Hegyvidék": 178,
     "Józsefváros": 330,
     "Kőbánya": 146,
@@ -143,7 +143,7 @@
     "South Pest": 154,
     "Terézváros": 372,
     "Városliget": 192,
-    "Víziváros": 314,
+    "Víziváros": 315,
     "Zugló": 148,
     "Óbuda": 274
   },
@@ -179,9 +179,9 @@
     },
     "sleep": {
       "1": 24,
-      "2": 54,
-      "3": 70,
-      "untiered": 71
+      "2": 55,
+      "3": 75,
+      "untiered": 75
     }
   },
   "climate_months": [
@@ -424,23 +424,59 @@
     }
   },
   "hotel_photos": {
-    "site": 53,
+    "curated": 5,
+    "site": 58,
     "facebook": 28,
-    "commons": 16,
-    "page": 68,
-    "dropped": 214,
-    "shared": 16,
+    "commons": 15,
+    "wikidata": 5,
+    "page": 64,
+    "dropped": 204,
+    "shared": 12,
     "dropped_examples": [
       "12 Revay Hotel",
       "2B Hostel & Rooms",
       "Aboriginal Budapest Apartments",
       "Abszolút Grasham Guesthouse",
       "Ace Hostel",
-      "Adina Apartment Hotel Budapest",
       "Age Budapest Youth Centre",
       "Airport Premium Apartments",
       "Alfréd Guesthouse",
-      "Alma Apartment"
+      "Alma Apartment",
+      "Amber Terrace Studios"
+    ],
+    "notable_without_photo": [
+      {
+        "name": "Barceló Budapest",
+        "reason": "no picture"
+      },
+      {
+        "name": "Hilton Budapest City",
+        "reason": "dead"
+      },
+      {
+        "name": "Hilton Garden Inn Budapest City Centre",
+        "reason": "403"
+      },
+      {
+        "name": "NH Budapest City",
+        "reason": "403"
+      },
+      {
+        "name": "Park Inn By Radisson",
+        "reason": "403"
+      },
+      {
+        "name": "St. Regis",
+        "reason": "403"
+      },
+      {
+        "name": "ibis Budapest Aero",
+        "reason": "dead"
+      },
+      {
+        "name": "ibis Budapest Stadium",
+        "reason": "no url"
+      }
     ]
   },
   "readiness": {
@@ -461,19 +497,19 @@
       {
         "name": "Sleep documents",
         "threshold": "≥ 20",
-        "measured": "219",
+        "measured": "229",
         "passed": true
       },
       {
         "name": "Located sleep places",
         "threshold": "≥ 10",
-        "measured": "201",
+        "measured": "211",
         "passed": true
       },
       {
         "name": "Pictured located sleep places",
         "threshold": "≥ 10",
-        "measured": "201",
+        "measured": "211",
         "passed": true
       },
       {

@@ -1,22 +1,22 @@
 {
   "city": "berlin",
-  "built_at": "2026-09-22T15:34:49Z",
-  "documents": 12215,
-  "listings": 9409,
-  "listings_with_coordinates": 9305,
+  "built_at": "2026-09-22T16:58:45Z",
+  "documents": 12240,
+  "listings": 9434,
+  "listings_with_coordinates": 9330,
   "by_source": {
     "curated": 4,
     "open-meteo": 12,
-    "openstreetmap": 8610,
+    "openstreetmap": 8629,
     "wikipedia": 2574,
-    "wikivoyage": 1015
+    "wikivoyage": 1021
   },
   "by_lang": {
-    "en": 12162,
+    "en": 12187,
     "es": 53
   },
   "by_kind": {
-    "listing": 9409,
+    "listing": 9434,
     "prose": 2806
   },
   "by_category": {
@@ -28,24 +28,24 @@
     "neighbourhood": 11,
     "practical": 30,
     "see": 1436,
-    "sleep": 353,
+    "sleep": 378,
     "tour": 5,
     "transport": 140
   },
   "by_district": {
     "(city-wide)": 405,
-    "City West": 2620,
-    "East": 799,
-    "East Central": 3057,
-    "Mitte": 2448,
+    "City West": 2631,
+    "East": 801,
+    "East Central": 3064,
+    "Mitte": 2452,
     "Reinickendorf and Spandau": 630,
     "Steglitz-Zehlendorf": 764,
     "Tempelhof and Neukölln": 931,
-    "Treptow-Köpenick": 561
+    "Treptow-Köpenick": 562
   },
   "districts_missing": [],
   "images": {
-    "with_image": 3900,
+    "with_image": 3925,
     "see_documents": 1436,
     "see_with_image": 1180,
     "see_image_coverage": 0.822
@@ -133,12 +133,14 @@
     },
     "districts_assigned_by_boundary": 2376,
     "photos": {
-      "site": 88,
+      "curated": 6,
+      "site": 97,
       "facebook": 5,
       "commons": 22,
-      "page": 119,
-      "dropped": 333,
-      "shared": 21,
+      "wikidata": 15,
+      "page": 114,
+      "dropped": 308,
+      "shared": 16,
       "dropped_examples": [
         "1a pension apartment berlin",
         "25hours Hotel Bikini Berlin",
@@ -150,6 +152,236 @@
         "ADAPT APARTMENTS Berlin GmbH",
         "AMANO",
         "AMANO Home"
+      ],
+      "notable_without_photo": [
+        {
+          "name": "A&O",
+          "reason": "shared picture"
+        },
+        {
+          "name": "A&O Berlin Hauptbahnhof",
+          "reason": "shared picture"
+        },
+        {
+          "name": "A&O Berlin Kolumbus",
+          "reason": "shared picture"
+        },
+        {
+          "name": "A&O Hotel and Hostel Berlin Mitte",
+          "reason": "shared picture"
+        },
+        {
+          "name": "B&B HOTEL Berlin-Adlershof",
+          "reason": "no picture"
+        },
+        {
+          "name": "B&B Hotel Berlin City-Ost",
+          "reason": "no picture"
+        },
+        {
+          "name": "B&B Hotel Berlin-Alexanderplatz",
+          "reason": "403"
+        },
+        {
+          "name": "B&B Hotel Berlin-Mitte",
+          "reason": "403"
+        },
+        {
+          "name": "B&B Hotel Berlin-Potsdamer Platz",
+          "reason": "no picture"
+        },
+        {
+          "name": "B&B Hotel Berlin-Tiergarten",
+          "reason": "403"
+        },
+        {
+          "name": "Best Western Hotel Am Spittelmarkt",
+          "reason": "no url"
+        },
+        {
+          "name": "Best Western Hotel Berlin Mitte",
+          "reason": "no url"
+        },
+        {
+          "name": "Best Western Hotel Kantstraße Berlin",
+          "reason": "no picture"
+        },
+        {
+          "name": "Courtyard by Marriott Berlin City Centre",
+          "reason": "403"
+        },
+        {
+          "name": "Courtyard by Marriott Berlin Mitte",
+          "reason": "no picture"
+        },
+        {
+          "name": "DoubleTree by Hilton Berlin Ku'damm",
+          "reason": "403"
+        },
+        {
+          "name": "Holiday Inn Berlin-Alexanderplatz",
+          "reason": "dead"
+        },
+        {
+          "name": "Hotel Berlin Mitte by Campanile",
+          "reason": "dead"
+        },
+        {
+          "name": "Hotel Indigo Alexanderplatz",
+          "reason": "no picture"
+        },
+        {
+          "name": "Hotel Indigo Berlin Ku'damm",
+          "reason": "dead"
+        },
+        {
+          "name": "Hotel Indigo Berlin-Alexanderplatz",
+          "reason": "no picture"
+        },
+        {
+          "name": "Hotel Indigo Ku'damm",
+          "reason": "no picture"
+        },
+        {
+          "name": "Ibis Hotel",
+          "reason": "no url"
+        },
+        {
+          "name": "JW Marriott Hotel Berlin",
+          "reason": "403"
+        },
+        {
+          "name": "Leonardo Hotel Berlin",
+          "reason": "no url"
+        },
+        {
+          "name": "Mercure Berlin Wittenbergplatz",
+          "reason": "no url"
+        },
+        {
+          "name": "Mercure Berlin-Alexanderplatz",
+          "reason": "no url"
+        },
+        {
+          "name": "Mercure Hotel Berlin City West",
+          "reason": "no url"
+        },
+        {
+          "name": "Mercure Hotel Berlin Mitte",
+          "reason": "dead"
+        },
+        {
+          "name": "Motel One",
+          "reason": "dead"
+        },
+        {
+          "name": "Motel One Berlin-Bellevue",
+          "reason": "shared picture"
+        },
+        {
+          "name": "Motel One Berlin-Ku'Damm",
+          "reason": "dead"
+        },
+        {
+          "name": "Motel One Berlin-Spittelmarkt",
+          "reason": "shared picture"
+        },
+        {
+          "name": "Motel One Potsdamer Platz",
+          "reason": "no url"
+        },
+        {
+          "name": "NH Berlin Alexanderplatz",
+          "reason": "403"
+        },
+        {
+          "name": "NH Berlin Friederichstraße",
+          "reason": "no url"
+        },
+        {
+          "name": "NH Berlin Kreuzberg",
+          "reason": "403"
+        },
+        {
+          "name": "NH Berlin Mitte",
+          "reason": "403"
+        },
+        {
+          "name": "NH Berlin Potsdamer Platz",
+          "reason": "no url"
+        },
+        {
+          "name": "NH Collection Berlin Mitte am Checkpoint Charlie",
+          "reason": "403"
+        },
+        {
+          "name": "Novotel Berlin Mitte",
+          "reason": "no url"
+        },
+        {
+          "name": "Park Plaza Wallstreet Berlin Mitte",
+          "reason": "no url"
+        },
+        {
+          "name": "Premier Inn Berlin City Centre Hotel",
+          "reason": "dead"
+        },
+        {
+          "name": "Premier Inn Berlin City Süd Hotel",
+          "reason": "no url"
+        },
+        {
+          "name": "Premier Inn Berlin City Wilmersdorf",
+          "reason": "dead"
+        },
+        {
+          "name": "Radisson Blu Hotel, Berlin",
+          "reason": "403"
+        },
+        {
+          "name": "Radisson Collection Hotel Berlin",
+          "reason": "403"
+        },
+        {
+          "name": "Scandic Berlin Kurfürstendamm",
+          "reason": "dead"
+        },
+        {
+          "name": "Scandic Charlottenburg",
+          "reason": "dead"
+        },
+        {
+          "name": "Steigenberger",
+          "reason": "dead"
+        },
+        {
+          "name": "TRYP Berlin Mitte",
+          "reason": "no url"
+        },
+        {
+          "name": "TRYP Berlin am Ku'damm",
+          "reason": "dead"
+        },
+        {
+          "name": "art'appart - kempinski plaza",
+          "reason": "dead"
+        },
+        {
+          "name": "iStay by NH Berlin CIty Ost",
+          "reason": "403"
+        },
+        {
+          "name": "ibis Berlin City Nord",
+          "reason": "no url"
+        },
+        {
+          "name": "ibis Styles Berlin Alexanderplatz",
+          "reason": "no url"
+        },
+        {
+          "name": "ibis Styles Berlin Mitte",
+          "reason": "no url"
+        }
       ]
     },
     "tours": {

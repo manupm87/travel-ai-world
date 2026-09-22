@@ -1,22 +1,22 @@
 {
   "city": "budapest",
-  "built_at": "2026-09-22T15:33:29Z",
-  "documents": 6095,
-  "listings": 5002,
-  "listings_with_coordinates": 4857,
+  "built_at": "2026-09-22T16:58:32Z",
+  "documents": 6105,
+  "listings": 5012,
+  "listings_with_coordinates": 4867,
   "by_source": {
     "curated": 12,
     "open-meteo": 12,
-    "openstreetmap": 2981,
+    "openstreetmap": 2987,
     "wikipedia": 797,
-    "wikivoyage": 2293
+    "wikivoyage": 2297
   },
   "by_lang": {
-    "en": 5983,
+    "en": 5993,
     "es": 112
   },
   "by_kind": {
-    "listing": 5002,
+    "listing": 5012,
     "prose": 1093
   },
   "by_category": {
@@ -28,20 +28,20 @@
     "neighbourhood": 27,
     "practical": 118,
     "see": 1030,
-    "sleep": 219,
+    "sleep": 229,
     "tour": 24,
     "transport": 165
   },
   "by_district": {
     "(city-wide)": 321,
-    "Angyalföld": 310,
-    "Aquincum": 225,
-    "Belváros": 778,
+    "Angyalföld": 311,
+    "Aquincum": 227,
+    "Belváros": 782,
     "Budavár": 268,
     "Csepel": 134,
     "East Pest": 238,
-    "Erzsébetváros": 419,
-    "Ferencváros": 327,
+    "Erzsébetváros": 420,
+    "Ferencváros": 328,
     "Hegyvidék": 187,
     "Józsefváros": 335,
     "Kőbánya": 153,
@@ -51,13 +51,13 @@
     "South Pest": 159,
     "Terézváros": 381,
     "Városliget": 205,
-    "Víziváros": 330,
+    "Víziváros": 331,
     "Zugló": 152,
     "Óbuda": 283
   },
   "districts_missing": [],
   "images": {
-    "with_image": 1712,
+    "with_image": 1722,
     "see_documents": 1030,
     "see_with_image": 681,
     "see_image_coverage": 0.661
@@ -111,23 +111,59 @@
     },
     "districts_assigned_by_boundary": 762,
     "photos": {
-      "site": 53,
+      "curated": 5,
+      "site": 58,
       "facebook": 28,
-      "commons": 16,
-      "page": 68,
-      "dropped": 214,
-      "shared": 16,
+      "commons": 15,
+      "wikidata": 5,
+      "page": 64,
+      "dropped": 204,
+      "shared": 12,
       "dropped_examples": [
         "12 Revay Hotel",
         "2B Hostel & Rooms",
         "Aboriginal Budapest Apartments",
         "Abszolút Grasham Guesthouse",
         "Ace Hostel",
-        "Adina Apartment Hotel Budapest",
         "Age Budapest Youth Centre",
         "Airport Premium Apartments",
         "Alfréd Guesthouse",
-        "Alma Apartment"
+        "Alma Apartment",
+        "Amber Terrace Studios"
+      ],
+      "notable_without_photo": [
+        {
+          "name": "Barceló Budapest",
+          "reason": "no picture"
+        },
+        {
+          "name": "Hilton Budapest City",
+          "reason": "dead"
+        },
+        {
+          "name": "Hilton Garden Inn Budapest City Centre",
+          "reason": "403"
+        },
+        {
+          "name": "NH Budapest City",
+          "reason": "403"
+        },
+        {
+          "name": "Park Inn By Radisson",
+          "reason": "403"
+        },
+        {
+          "name": "St. Regis",
+          "reason": "403"
+        },
+        {
+          "name": "ibis Budapest Aero",
+          "reason": "dead"
+        },
+        {
+          "name": "ibis Budapest Stadium",
+          "reason": "no url"
+        }
       ]
     },
     "tours": {
