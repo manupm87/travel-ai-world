@@ -16,8 +16,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     git \
     build-essential \
-    libpq-dev \
-    postgresql-client \
     ripgrep \
     fd-find \
     jq \

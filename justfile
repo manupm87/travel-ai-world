@@ -119,14 +119,14 @@ format:
 # All tests: backend packages + frontend unit tests
 test: test-backend test-frontend
 
-# Every backend package (core_api's copy-from-postgres test needs PostgreSQL, else it skips)
+# Every backend package
 test-backend: test-common test-core test-ai test-corpus
 
 # travel_common unit tests
 test-common:
     cd {{common}} && uv run pytest -q
 
-# core_api tests (DynamoDB on moto, in process; tests/test_ops_copy.py uses PostgreSQL or skips)
+# core_api tests (DynamoDB on moto, in process; no database server needed)
 test-core:
     cd {{core}} && uv run pytest -q
 
@@ -195,7 +195,7 @@ aws-login:
 # ── Accounts ─────────────────────────────────────────────────────────────────
 
 # Print a local-mode JWT for an account (created when it is new), to sign in without Google:
-# E2E_TOKEN=$(just dev-token you@example.com). Dev-only: not an `ops` command, never on /events.
+# E2E_TOKEN=$(just dev-token you@example.com). Dev-only: the deployed service never imports it.
 dev-token email:
     @cd {{core}} && uv run --quiet python -m core_api.devtools token {{email}}
 
@@ -210,12 +210,12 @@ docker-build:
     cd {{backend}} && docker build --build-arg SERVICE=core_api -t travel-ai-world/core-api:local .
     cd {{backend}} && docker build --build-arg SERVICE=ai_api -t travel-ai-world/ai-api:local .
 
-# Backend-only stack: proxy :8080 + core_api + ai_api + DynamoDB Local + PostgreSQL (no Node needed).
+# Backend-only stack: proxy :8080 + core_api + ai_api + DynamoDB Local (no Node needed).
 # The proxy serves whatever is in {{frontend}}/out; without a build "/" answers 404
 # and /api/* still works. mkdir keeps the bind-mount source owned by you, not root.
 docker-up:
     mkdir -p {{frontend}}/out
-    cd {{backend}} && docker compose --env-file services/core_api/.env up --build -d
+    cd {{backend}} && docker compose up --build -d
 
 # Stop the Compose stack
 docker-down:
@@ -231,7 +231,7 @@ build-stack:
 # `next build` deletes and recreates out/, so a proxy that was already running would keep the
 # old, unlinked directory (404 on every page): recreate it so the bind mount is the new one.
 stack-up: build-stack docker-up
-    cd {{backend}} && docker compose --env-file services/core_api/.env up -d --force-recreate --no-deps proxy
+    cd {{backend}} && docker compose up -d --force-recreate --no-deps proxy
 
 # Stop the full stack (same as docker-down)
 stack-down: docker-down

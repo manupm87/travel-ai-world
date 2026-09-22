@@ -118,28 +118,7 @@ jobs:
     defaults:
       run:
         working-directory: src/backend/services/core_api
-    # PostgreSQL only for tests/test_ops_copy.py (the copy-from-postgres command,
-    # removed with RDS in TRA-219); everything else runs on moto, in process.
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: fastapi_db
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     env:
-      DB_SERVER: localhost
-      DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      DB_NAME: fastapi_db
       SECRET_KEY: ci-test-secret-key-that-is-long-enough-32b
     steps:
       - uses: actions/checkout@v7
@@ -250,8 +229,6 @@ jobs:
             sed -e "s|^SECRET_KEY=.*|SECRET_KEY=\"$key\"|" \
                 -e 's|^GOOGLE_CLIENT_ID=.*|GOOGLE_CLIENT_ID="placeholder"|' \
                 -e 's|^NVIDIA_API_KEY=.*|NVIDIA_API_KEY="placeholder"|' \
-                -e 's|^DB_PASSWORD=.*|DB_PASSWORD="postgres"|' \
-                -e 's|^DB_NAME=.*|DB_NAME="travel_ai_world"|' \
                 "$service/.env.example" > "$service/.env"
           done
           grep -c '^SECRET_KEY="[0-9a-f]\{64\}"$' core_api/.env ai_api/.env
@@ -311,7 +288,7 @@ jobs:
         working-directory: src/backend
         run: |
           set -euo pipefail
-          compose="docker compose --env-file services/core_api/.env"
+          compose="docker compose"
           # The account is created by the minter itself; nothing else is loaded.
           token=$($compose exec -T core_api python -m core_api.devtools token "$E2E_EMAIL")
           echo "::add-mask::$token"
@@ -337,12 +314,12 @@ jobs:
       - name: Container logs
         if: failure()
         working-directory: src/backend
-        run: docker compose --env-file services/core_api/.env logs --no-color
+        run: docker compose logs --no-color
 
       - name: Tear down
         if: always()
         working-directory: src/backend
-        run: docker compose --env-file services/core_api/.env down -v
+        run: docker compose down -v
 
   infra:
     name: Terraform (${{ matrix.cloud }})
