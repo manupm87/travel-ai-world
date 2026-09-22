@@ -247,9 +247,43 @@ class TestImageCredit:
         )
         assert card.image_credit == "CC0 · Wikimedia Commons"
 
+    def test_the_corpus_credit_wins_over_the_commons_line(self) -> None:
+        """A photo resolved at build time from the hotel's own site carries
+        its own credit (TRA-208): the domain, not a Commons author."""
+        card = card_from_document(
+            _doc(
+                category="sleep",
+                extra=(
+                    '{"image_url":"https://hotelgellert.hu/a.jpg",'
+                    '"image_credit":"hotelgellert.hu",'
+                    '"image_author":"Jane Doe","image_license":"CC0"}'
+                ),
+            )
+        )
+        assert card.image_credit == "hotelgellert.hu"
+
+    def test_a_blank_corpus_credit_falls_back_to_the_commons_line(self) -> None:
+        card = card_from_document(
+            _doc(
+                category="see",
+                extra=(
+                    '{"image_url":"https://x/y.jpg","image_credit":"  ",'
+                    '"image_author":"Jane Doe"}'
+                ),
+            )
+        )
+        assert card.image_credit == "Jane Doe · Wikimedia Commons"
+
     def test_no_image_means_no_credit_even_with_author(self) -> None:
         card = card_from_document(
             _doc(category="see", extra='{"image_author":"Jane Doe"}')
+        )
+        assert card.image_url is None
+        assert card.image_credit is None
+
+    def test_no_image_means_no_credit_even_with_a_corpus_credit(self) -> None:
+        card = card_from_document(
+            _doc(category="sleep", extra='{"image_credit":"hotelgellert.hu"}')
         )
         assert card.image_url is None
         assert card.image_credit is None

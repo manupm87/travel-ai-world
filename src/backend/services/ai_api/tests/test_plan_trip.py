@@ -41,10 +41,13 @@ from ai_api.testing import (
 
 BOLOGNA = city_for("bologna", "bolonia", name="Bologna")
 SIGHTS = ("see", "do", "tour", "history")
+SLEEP = ("sleep",)
 
 FIXTURE = Path(__file__).parent / "fixtures" / "budapest_sample.jsonl"
 CORPUS = documents_from_corpus(FIXTURE)
 BY_ID = {d.id: d for d in CORPUS}
+CORPUS_PROSE = [d for d in CORPUS if d.metadata.get("category") != "sleep"]
+"""The sample without its hotels: the corpus a stay search finds nothing in."""
 
 BELVAROS = "wv:en:Budapest/Belváros#section:intro:c1"
 ASTORIA = "wv:en:Budapest/Belváros#sleep:danubius-hotel-astoria"
@@ -384,6 +387,52 @@ async def test_selecting_a_neighbourhood_lists_hotels_there_within_budget():
     # Two hotels at ≤ €€ in the sample: the tier was relaxed to reach three.
     assert retriever.searches[1][2] is not None
     assert retriever.searches[1][2].price_tier_max is None
+
+
+async def test_an_unpictured_stay_is_never_offered():
+    """A hotel card with no photo is the worst card the planner shows, so the
+    corpus resolves one for every stay it keeps (TRA-208). A document that
+    still has none is stale: it is never offered, even alone."""
+    blind = Document(
+        id="osm:way/404",
+        content="Hotel Sin Foto - hotel in Belvaros, Budapest.",
+        metadata={
+            "city": "budapest",
+            "category": "sleep",
+            "district": "Belv\u00e1ros",
+            "kind": "listing",
+            "lang": "en",
+            "source": "openstreetmap",
+            "lat": 47.4979,
+            "lon": 19.0402,
+            "doc_id": "osm:way/404",
+            "name": "Hotel Sin Foto",
+            "extra": '{"address":"R\u00e9giposta utca 1."}',
+        },
+    )
+    use_case, _, retriever = planner(
+        [picks("osm:way/404")], documents=[*CORPUS_PROSE, blind]
+    )
+
+    events = await run(
+        use_case(
+            turn(
+                action={
+                    "type": "select",
+                    "group_id": "nb",
+                    "card_ids": [BELVAROS],
+                    "slot": None,
+                },
+                brief=brief(),
+            )
+        )
+    )
+
+    assert not only(events, OptionsEvent)
+    assert "no places to stay" in joined_text(events)
+    # It was searched for and then dropped, not filtered out of the query.
+    stay_searches = [f for _, _, f in retriever.searches if f and f.categories == SLEEP]
+    assert stay_searches
 
 
 async def test_a_stale_group_id_is_answered_with_fresh_advice_not_an_error():
@@ -1441,8 +1490,6 @@ async def test_spanish_warnings_and_day_titles():
 ANNA_CAFE_SITE = "http://annacafe.hu/en/"
 """What the corpus document carries as the venue's own URL (`deep_link`)."""
 
-ASTORIA_SITE = "http://www.danubiushotels.com"
-
 
 async def test_every_activity_and_the_stay_carry_a_photo():
     finder = FakePhotoFinder(
@@ -1456,13 +1503,7 @@ async def test_every_activity_and_the_stay_carry_a_photo():
     use_case, _, _ = planner(
         [skeleton(1), day_picks(evening=[{"id": ANNA_CAFE, "why": "Close."}])],
         photos=finder,
-        previews=FakeSitePreviews(
-            {
-                ASTORIA_SITE: Photo(
-                    "https://danubiushotels.com/a.jpg", "danubiushotels.com"
-                )
-            }
-        ),
+        previews=FakeSitePreviews({}),
     )
 
     events = await run(
@@ -1495,10 +1536,11 @@ async def test_every_activity_and_the_stay_carry_a_photo():
     assert "Anna Cafe" in looked_up and "Parliament" not in looked_up
     # Every lookup names the city the trip is in.
     assert set(finder.cities) == {"Budapest"}
-    # Nothing on Commons and no corpus image of the hotel: the image the
-    # hotel's own site publishes, credited with its domain (TRA-206).
-    assert stay.card.image_url == "https://danubiushotels.com/a.jpg"
+    # The hotel's photo was resolved at build time from its own site, and the
+    # corpus carries the credit line with it (TRA-208): nothing is looked up.
+    assert stay.card.image_url == "https://danubiushotels.com/img/astoria-facade.jpg"
     assert stay.card.image_credit == "danubiushotels.com"
+    assert "Danubius Hotel Astoria" not in looked_up
 
 
 async def test_a_venue_is_pictured_by_its_own_site_when_commons_has_nothing():

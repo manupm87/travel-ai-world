@@ -826,15 +826,22 @@ class PlanTrip:
                 turn,
                 query,
                 STAY_CATEGORIES,
-                limit=self._candidate_count,
+                # Twice as many, because the unpictured ones are dropped next.
+                limit=self._candidate_count * 2,
                 districts=districts,
                 tier=tier_max,
             )
-            found = image_first(
+            # A stay is always shown with a photo of itself: the corpus
+            # resolves one for every hotel it keeps (ADR 0022), so a document
+            # without one is stale and is never offered as a place to sleep.
+            found = [
                 d
                 for d in found
-                if is_place(d) and d.id != turn.stay_id and d.id not in turn.used_ids
-            )
+                if is_place(d)
+                and has_image(d)
+                and d.id != turn.stay_id
+                and d.id not in turn.used_ids
+            ]
             if len(found) >= OPTIONS_COUNT:
                 return found, district if districts else None
         return found, None

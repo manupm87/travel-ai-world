@@ -207,8 +207,18 @@ def _subtitle(extra: dict[str, Any], segments: list[str]) -> str | None:
 
 
 def _image_credit(extra: dict[str, Any], image_url: str | None) -> str | None:
+    """What is printed beside the photo, or None when there is no photo.
+
+    A picture the corpus resolved from the venue's own site or its Facebook
+    page carries its own credit line — the bare domain (ADR 0022) — and that
+    line wins. Anything else in the corpus is a Commons file, credited from
+    the author and the licence stored next to it.
+    """
     if not image_url:
         return None
+    corpus_credit = _extra_str(extra, "image_credit")
+    if corpus_credit:
+        return corpus_credit
     author = _extra_str(extra, "image_author")
     license_ = _extra_str(extra, "image_license")
     if author and license_:
