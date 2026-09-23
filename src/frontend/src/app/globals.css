@@ -110,6 +110,8 @@
   --shadow-field-glow: var(--shadow-field-glow);
   --font-sans: var(--font-sans), system-ui, sans-serif;
   --font-heading: var(--font-heading), system-ui, sans-serif;
+  /* Ids, hashes and JSON in the admin console (TRA-222); nowhere else. */
+  --font-mono: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 /* ---------------------------------------------------------------------------

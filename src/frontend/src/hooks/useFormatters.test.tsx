@@ -25,6 +25,33 @@ describe("useFormatters", () => {
     expect(result.current.f.formatDate("2026-05-15T12:00:00Z", { month: "long", day: "numeric" })).toBe("15 de mayo");
   });
 
+  it("formats counts, latencies, dollars and ratios in the active locale", () => {
+    const { result } = renderHook(
+      () => ({ f: useFormatters(), lang: useLanguage() }),
+      { wrapper }
+    );
+    const f = () => result.current.f;
+    // Intl separates with a non-breaking (or narrow no-break) space in es-ES.
+    const nbsp = (s: string) => s.replace(/[  ]/g, " ");
+
+    expect(f().formatNumber(12345)).toBe("12,345");
+    expect(f().formatMs(640)).toBe("640 ms");
+    expect(f().formatMs(1234)).toBe("1.2 s");
+    expect(f().formatMs(1000)).toBe("1.0 s");
+    expect(f().formatUsd(1.5)).toBe("$1.50");
+    expect(f().formatUsd(0.00123)).toBe("$0.0012");
+    expect(f().formatUsd(0)).toBe("$0.00");
+    expect(f().formatPercent(0.125)).toBe("12.5%");
+    expect(f().formatPercent(0)).toBe("0%");
+
+    act(() => result.current.lang.setLanguage("es"));
+
+    expect(nbsp(f().formatNumber(12345))).toBe("12.345");
+    expect(f().formatMs(1234)).toBe("1,2 s");
+    expect(nbsp(f().formatUsd(1.5))).toBe("1,50 US$");
+    expect(nbsp(f().formatPercent(0.125))).toBe("12,5 %");
+  });
+
   it("returns a stable object while the language is unchanged", () => {
     const { result, rerender } = renderHook(() => useFormatters(), { wrapper });
     const first = result.current;
