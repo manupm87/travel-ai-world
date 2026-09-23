@@ -63,6 +63,8 @@ async def test_first_sign_in_creates_the_account_and_issues_our_token(
         "/api/v1/users/me", headers={"Authorization": f"Bearer {body['access_token']}"}
     )
     assert me.status_code == 200
+    # Our token names the account by its id, so that is its subject (ADR 0024).
+    assert me.json()["subject"] == str(body["user"]["id"])
 
 
 async def test_returning_user_keeps_id_and_refreshes_profile(

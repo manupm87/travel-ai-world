@@ -54,9 +54,31 @@ async def test_first_request_creates_the_account_from_the_claims(
     assert me.json()["name"] == "Ada"
     assert me.json()["role"] == "user"
     assert me.json()["auth_provider"] == "cognito"
+    assert me.json()["subject"] == "sub-ada"
     account = await users.get_by_email("ada@example.com")
     assert account is not None
     assert account.google_id == "sub-ada"
+    assert account.subject == "sub-ada"
+
+
+async def test_an_existing_account_learns_its_subject_once(
+    cognito_client: AsyncClient, users: DynamoUserRepository
+):
+    """Accounts from before ADR 0024 have no subject: the next request writes
+    it, and the one after writes nothing."""
+    existing = await make_user("ada@example.com")
+    assert existing.subject is None
+    token = pool.id_token(sub="sub-ada", email="ada@example.com")
+
+    me = await cognito_client.get("/api/v1/users/me", headers=bearer(token))
+    assert me.json()["subject"] == "sub-ada"
+    after_first = await users.get(existing.id)
+    await cognito_client.get("/api/v1/users/me", headers=bearer(token))
+    after_second = await users.get(existing.id)
+
+    assert after_first is not None and after_second is not None
+    assert after_first.subject == "sub-ada"
+    assert after_second.version == after_first.version, "no write when unchanged"
 
 
 async def test_returning_user_keeps_id_and_admin_group_is_mirrored(

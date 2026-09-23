@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from travel_common.exceptions import EntityNotFound
 
 from core_api.auth.principal import AccountPrincipal
-from core_api.domain.models import Trip
+from core_api.domain.models import Trip, TripSummary
 from core_api.domain.ports import TripRepository
 from core_api.pagination import Page
 from core_api.schemas.trip import TripCreate
@@ -27,6 +27,19 @@ class TripService:
         """Only the owner's trips exist for the caller: anyone else's is a 404
         (the key includes the owner, ADR 0023)."""
         trip = await self.trips.get(principal.id, trip_id)
+        if trip is None:
+            raise EntityNotFound("Trip", trip_id)
+        return trip
+
+    async def list_all(
+        self, cursor: str | None, limit: int
+    ) -> tuple[list[TripSummary], str | None]:
+        """Every user's trips, newest first (admins only, ADR 0024)."""
+        return await self.trips.list_all(cursor, limit)
+
+    async def get_any(self, owner_id: uuid.UUID, trip_id: uuid.UUID) -> Trip:
+        """Any user's trip, read by its owner and id (admins only, ADR 0024)."""
+        trip = await self.trips.get(owner_id, trip_id)
         if trip is None:
             raise EntityNotFound("Trip", trip_id)
         return trip

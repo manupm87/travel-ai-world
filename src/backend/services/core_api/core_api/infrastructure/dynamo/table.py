@@ -18,15 +18,24 @@ from core_api.config import CoreSettings
 logger = logging.getLogger(__name__)
 
 GSI1 = "GSI1"
+GSI2 = "GSI2"
 
 
 def core_table_spec(name: str) -> TableSpec:
-    """`PK`/`SK` strings and one index, `GSI1` (`GSI1PK`/`GSI1SK`), no TTL.
+    """`PK`/`SK` strings and two indexes, no TTL: `GSI1` (`GSI1PK`/`GSI1SK`,
+    the accounts by email) and `GSI2` (`GSI2PK`/`GSI2SK`, every trip by
+    creation time; ADR 0024).
 
-    On AWS Terraform owns the table (`infra/aws/dynamodb.tf`); this spec only
-    creates it locally, in Compose and in tests (`ensure_table`).
+    On AWS Terraform owns the table (`infra/aws/dynamodb.tf`, where GSI2
+    projects only the summary fields); this spec only creates it locally, in
+    Compose and in tests (`ensure_table`), with every attribute projected.
+    A local table created before GSI2 existed keeps its old schema: delete it
+    (or restart DynamoDB Local) to get the index.
     """
-    return TableSpec(name=name, gsis=((GSI1, "GSI1PK", "GSI1SK"),))
+    return TableSpec(
+        name=name,
+        gsis=((GSI1, "GSI1PK", "GSI1SK"), (GSI2, "GSI2PK", "GSI2SK")),
+    )
 
 
 @dataclass(frozen=True, slots=True)

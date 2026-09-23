@@ -1,7 +1,7 @@
 """`partial()` derives the PATCH body from the base schema, field by field."""
 
 from core_api.schemas._partial import partial
-from core_api.schemas.trip import TripBase, TripUpdate
+from core_api.schemas.trip import TripUpdate, TripWrite
 from pydantic import BaseModel
 
 
@@ -28,6 +28,6 @@ def test_validation_still_applies():
     assert ThingUpdate.model_validate({"size": "7"}).size == 7
 
 
-def test_trip_update_tracks_trip_base():
-    assert set(TripUpdate.model_fields) == set(TripBase.model_fields)
+def test_trip_update_tracks_what_a_client_writes():
+    assert set(TripUpdate.model_fields) == set(TripWrite.model_fields)
     assert TripUpdate.__name__ == "TripUpdate"

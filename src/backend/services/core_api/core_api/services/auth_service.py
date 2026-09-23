@@ -86,7 +86,10 @@ class SignIn:
 
     async def __call__(self, credential: str) -> SignedIn:
         identity = await self._verifier.verify(credential)
-        user = await self._users.upsert_from_identity(identity)
+        # Our own tokens name the account by its id: that is its subject.
+        user = await self._users.upsert_from_identity(
+            identity, subject_is_account_id=True
+        )
         if not user.is_active:
             raise Unauthorized("Inactive user account")
         principal = Principal(subject=str(user.id), email=user.email, role=user.role)

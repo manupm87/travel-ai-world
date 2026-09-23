@@ -14,6 +14,7 @@ async def test_me_returns_own_profile(client: AsyncClient, alice: User):
     assert response.status_code == 200
     assert response.json()["email"] == alice.email
     assert response.json()["role"] == "user"
+    assert "subject" in response.json(), "nullable, always present"
 
 
 async def test_profiles_are_not_public(client: AsyncClient, alice: User, bob: User):

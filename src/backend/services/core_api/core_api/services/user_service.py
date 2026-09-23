@@ -1,3 +1,4 @@
+import builtins
 import uuid
 
 from pydantic import BaseModel
@@ -44,6 +45,12 @@ class UserService:
     async def list(self, page: Page = Page()) -> list[User]:
         return await self.users.list(page)
 
+    async def list_page(
+        self, cursor: str | None, limit: int
+    ) -> tuple[builtins.list[User], str | None]:
+        """Every account by email, a cursor page at a time (admins, ADR 0024)."""
+        return await self.users.list_page(cursor, limit)
+
     async def update(self, user: User, data: BaseModel) -> User:
         apply_changes(user, data)
         return await self.users.save(user)
@@ -52,7 +59,11 @@ class UserService:
         await self.users.delete(user)
 
     async def upsert_from_identity(
-        self, identity: ExternalIdentity, role: Role | None = None
+        self,
+        identity: ExternalIdentity,
+        role: Role | None = None,
+        *,
+        subject_is_account_id: bool = False,
     ) -> User:
         """Find the account by email or create it; refresh the profile either way.
 
@@ -60,21 +71,26 @@ class UserService:
         (Cognito groups); left `None`, the account keeps its own. Nothing is
         written when the profile already says the same: Cognito mode runs this
         on every request, and a request must not cost a write.
+
+        `User.subject` is the `sub` of the tokens the account will present
+        (ADR 0024): the identity's own subject with Cognito, the account id
+        when this service issues the token itself (`subject_is_account_id`,
+        local mode).
         """
         user = await self.users.get_by_email(identity.email)
         if user is None:
+            created = User(
+                email=identity.email,
+                google_id=identity.subject,
+                name=identity.name,
+                picture=identity.picture,
+                auth_provider=identity.provider,
+                is_active=True,
+                role=role or Role.USER,
+            )
+            created.subject = _token_subject(created, identity, subject_is_account_id)
             try:
-                return await self.users.add(
-                    User(
-                        email=identity.email,
-                        google_id=identity.subject,
-                        name=identity.name,
-                        picture=identity.picture,
-                        auth_provider=identity.provider,
-                        is_active=True,
-                        role=role or Role.USER,
-                    )
-                )
+                return await self.users.add(created)
             except Conflict:
                 # A first sign-in fires several requests at once; one of them
                 # created the account between our read and our write.
@@ -82,19 +98,24 @@ class UserService:
                 if user is None:
                     raise
         try:
-            return await self._refresh(user, identity, role)
+            return await self._refresh(user, identity, role, subject_is_account_id)
         except Conflict:
             # Another request refreshed the same profile first: start from it.
             fresh = await self.users.get_by_email(identity.email)
             if fresh is None:
                 raise
-            return await self._refresh(fresh, identity, role)
+            return await self._refresh(fresh, identity, role, subject_is_account_id)
 
     async def _refresh(
-        self, user: User, identity: ExternalIdentity, role: Role | None
+        self,
+        user: User,
+        identity: ExternalIdentity,
+        role: Role | None,
+        subject_is_account_id: bool,
     ) -> User:
         """Bring the stored profile in line with the identity; write only on a change."""
         profile = {
+            "subject": _token_subject(user, identity, subject_is_account_id),
             "google_id": identity.subject,
             "name": identity.name,
             "picture": identity.picture,
@@ -112,3 +133,9 @@ class UserService:
         for field, value in changed.items():
             setattr(user, field, value)
         return await self.users.save(user)
+
+
+def _token_subject(
+    user: User, identity: ExternalIdentity, subject_is_account_id: bool
+) -> str:
+    return str(user.id) if subject_is_account_id else identity.subject

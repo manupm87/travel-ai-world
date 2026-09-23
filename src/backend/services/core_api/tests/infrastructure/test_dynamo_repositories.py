@@ -25,7 +25,7 @@ from core_api.infrastructure.dynamo.repositories import (
 from core_api.infrastructure.dynamo.table import DynamoTable
 from core_api.pagination import Page
 from travel_common.dynamodb import from_item
-from travel_common.exceptions import Conflict, UnprocessableEntity
+from travel_common.exceptions import BadRequest, Conflict, UnprocessableEntity
 
 CARD: dict[str, Any] = {"id": "osm:node/1", "score": 0.25, "note": None, "tags": []}
 
@@ -104,6 +104,12 @@ async def test_every_item_type_has_its_key(
     assert (profile["GSI1PK"], profile["GSI1SK"]) == ("USERS", "Ada@Example.com")
     lookup = next(i for i in all_items(table) if i["SK"] == "EMAIL")
     assert lookup["user_id"] == str(user.id)
+    stored_trip = next(i for i in all_items(table) if i["SK"].startswith("TRIP#"))
+    assert (stored_trip["GSI2PK"], stored_trip["GSI2SK"]) == (
+        "TRIPS",
+        f"{trip.created_at.astimezone(UTC).isoformat(timespec='microseconds')}"
+        f"#{trip.id}",
+    )
 
 
 async def test_a_trip_round_trips_whole(trips: DynamoTripRepository):
@@ -368,6 +374,81 @@ async def test_trips_are_listed_by_creation(trips: DynamoTripRepository):
     listed = await trips.list_for(owner)
 
     assert [t.title for t in listed] == ["t0", "t1", "t2"]
+
+
+async def test_every_trip_is_listed_newest_first_by_cursor(
+    trips: DynamoTripRepository,
+):
+    start = datetime(2026, 1, 1, tzinfo=UTC)
+    for n in (2, 0, 3, 1):
+        await trips.add(
+            a_trip(
+                uuid.uuid4(),
+                title=f"t{n}",
+                planner_session_id=f"session-{n}",
+                created_at=start + timedelta(minutes=n),
+            )
+        )
+
+    first, cursor = await trips.list_all(None, 3)
+    rest, end = await trips.list_all(cursor, 3)
+
+    assert [t.title for t in first] == ["t3", "t2", "t1"]
+    assert cursor is not None
+    assert [t.title for t in rest] == ["t0"]
+    assert end is None
+    assert first[0].planner_session_id == "session-3"
+    assert first[0].phase == "upcoming"
+
+
+async def test_a_cursor_from_elsewhere_is_a_bad_request(
+    trips: DynamoTripRepository, users: DynamoUserRepository
+):
+    for email in ("a@example.com", "b@example.com"):
+        await users.add(User(email=email))
+    _, user_cursor = await users.list_page(None, 1)
+    assert user_cursor is not None
+
+    for cursor in ("%%%", "bm90IGpzb24", user_cursor):
+        with pytest.raises(BadRequest):
+            await trips.list_all(cursor, 10)
+
+
+async def test_users_page_by_cursor_and_keep_their_subject(
+    users: DynamoUserRepository,
+):
+    for email in ("carol@example.com", "ada@example.com", "bob@example.com"):
+        await users.add(User(email=email, subject=f"sub-{email[0]}"))
+
+    first, cursor = await users.list_page(None, 2)
+    rest, end = await users.list_page(cursor, 2)
+
+    assert [u.email for u in first] == ["ada@example.com", "bob@example.com"]
+    assert [u.email for u in rest] == ["carol@example.com"]
+    assert end is None
+    assert [u.subject for u in first] == ["sub-a", "sub-b"]
+
+
+async def test_items_written_before_the_new_fields_still_read(
+    table: DynamoTable, users: DynamoUserRepository, trips: DynamoTripRepository
+):
+    """No migrations (ADR 0023): an old item lacks `subject`, the GSI2 keys and
+    `planner_session_id`, and reads with the defaults."""
+    user = await users.add(User(email="old@example.com"))
+    trip = await trips.add(a_trip(user.id))
+    for item in table.client.scan(TableName=table.name)["Items"]:
+        table.client.update_item(
+            TableName=table.name,
+            Key={"PK": item["PK"], "SK": item["SK"]},
+            UpdateExpression="REMOVE subject, planner_session_id, GSI2PK, GSI2SK",
+        )
+
+    old_user = await users.get(user.id)
+    old_trip = await trips.get(user.id, trip.id)
+
+    assert old_user is not None and old_user.subject is None
+    assert old_trip is not None and old_trip.planner_session_id is None
+    assert await trips.list_all(None, 10) == ([], None), "GSI2 is sparse"
 
 
 async def test_threads_are_listed_most_recent_first(

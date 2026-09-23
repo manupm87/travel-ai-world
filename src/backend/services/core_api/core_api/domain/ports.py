@@ -6,10 +6,11 @@ of a versioned entity (profile, trip, thread) are optimistic: a stale
 `version` raises `travel_common.exceptions.Conflict`.
 """
 
+import builtins
 from typing import Protocol
 from uuid import UUID
 
-from core_api.domain.models import ChatMessage, ChatThread, Trip, User
+from core_api.domain.models import ChatMessage, ChatThread, Trip, TripSummary, User
 from core_api.pagination import Page
 
 
@@ -20,6 +21,13 @@ class UserRepository(Protocol):
 
     async def list(self, page: Page) -> list[User]:
         """Every account, ordered by email."""
+        ...
+
+    async def list_page(
+        self, cursor: str | None, limit: int
+    ) -> tuple[builtins.list[User], str | None]:
+        """Up to `limit` accounts by email after `cursor`, and the next cursor
+        (None on the last page). `BadRequest` for a cursor it did not issue."""
         ...
 
     async def add(self, user: User) -> User:
@@ -41,6 +49,13 @@ class TripRepository(Protocol):
 
     async def list_for(self, owner_id: UUID) -> list[Trip]:
         """All the owner's trips, by `created_at` then `id`."""
+        ...
+
+    async def list_all(
+        self, cursor: str | None, limit: int
+    ) -> tuple[list[TripSummary], str | None]:
+        """Every user's trips, newest first, as summaries (the admin list), and
+        the next cursor (None on the last page). `BadRequest` for a bad cursor."""
         ...
 
     async def add(self, trip: Trip) -> Trip: ...
