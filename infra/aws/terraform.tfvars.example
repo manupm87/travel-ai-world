@@ -19,7 +19,6 @@ frontend_bucket_name = "www.example.com"
 # Optional: the Cognito managed-login host (the certificate must cover it).
 # cognito_subdomain = "auth"   # "" keeps the pool's default *.amazoncognito.com host
 
-# Administrators (ADR 0024): Cognito usernames put in the `admin` group on apply.
-# A Google account's username is `google_<sub>`, known after its first sign-in:
-# `just cognito-username <email>` prints it. Sign out and in again after the apply.
-admin_usernames = []
+# Administrators (ADR 0024) are NOT set here: they live in the committed
+# `admins.auto.tfvars`, which Terraform loads by itself (this file is ignored by
+# git and absent in CI, so a list here would be emptied by the CI deploy).

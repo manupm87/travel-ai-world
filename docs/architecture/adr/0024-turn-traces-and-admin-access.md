@@ -94,12 +94,13 @@ users list. The trace never carries the email (ADR 0023's rule stands).
 
 ### Admins are the Cognito group, filled from Terraform
 
-The list of administrators is `admin_usernames` in `infra/aws/terraform.tfvars`; `terraform
-apply` puts each one in the user pool group `admin` (`aws_cognito_user_in_group`). The ID token
+The list of administrators is `admin_usernames` in `infra/aws/admins.auto.tfvars` (committed: it
+holds no secret, and the CI deploy applies from a clean checkout where the ignored
+`terraform.tfvars` does not exist — TRA-231); `terraform apply` puts each one in the user pool group `admin` (`aws_cognito_user_in_group`). The ID token
 then carries `cognito:groups`, which `travel_common.cognito` already maps to `Role.ADMIN`, and
 `core_api` mirrors it on the profile. The list is code-reviewed, the runtime source of truth is
 the token, and no service reads a list at request time. The username of a federated account is
-`google_<sub>`, known only after the person's first sign-in (`just cognito-username <email>`
+`Google_<sub>`, known only after the person's first sign-in (`just cognito-username <email>`
 finds it). Locally, `python -m core_api.devtools token <email> --admin` mints an admin token.
 Rejected: an `ADMIN_EMAILS` setting (a second source of truth, checked on every request in two
 services) and a pre-token-generation Lambda (a function and a deploy path for a list of two).

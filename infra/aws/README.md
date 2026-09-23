@@ -152,8 +152,8 @@ first `terraform apply`:
 3. **Backend**: both functions receive `AUTH_MODE=cognito`, `COGNITO_ISSUER`,
    `COGNITO_CLIENT_ID` and `COGNITO_JWKS` from the same outputs; run them locally with
    `terraform output -raw cognito_jwks` in `.env` to test against the real pool.
-4. **Administrators**: `admin_usernames` in `terraform.tfvars` (below); the role travels in the
-   ID token as `cognito:groups`.
+4. **Administrators**: `admin_usernames` in `admins.auto.tfvars` (committed; below); the role
+   travels in the ID token as `cognito:groups`.
 
 The managed-login host is `auth.<domain>` by default (`cognito_subdomain`, covered by the wildcard
 certificate); set it to `""` to fall back to the pool's own host
@@ -168,9 +168,13 @@ username of `admin_usernames` in the pool's `admin` group (`aws_cognito_user_in_
 ID token carries the group, and `core_api` mirrors it as `role=admin`. No service reads a list.
 
 1. The person signs in once with Google, so the pool has their user.
-2. `just aws-login`, then `just cognito-username <email>` prints the username (`google_<sub>`).
-3. Add it to `admin_usernames = ["google_..."]` in `terraform.tfvars` (and the PR that changes it).
-4. `terraform apply` (it only adds or removes the group memberships).
+2. `just aws-login`, then `just cognito-username <email>` prints the username (`Google_<sub>`,
+   capital G as Cognito prints it).
+3. Add it to `admin_usernames` in `admins.auto.tfvars` and open the PR: the file is committed
+   because the CI deploy applies from a clean checkout, where `terraform.tfvars` (ignored, it
+   holds secrets) does not exist — a list kept there would be emptied by the first deploy.
+4. `terraform apply` (it only adds or removes the group memberships), or let the next
+   `Deploy backend` run with `apply=true` do it.
 5. The person signs out and in again: the ID token they hold was issued before the change.
 
 Removing a name from the list and applying takes the group away; the role follows at the next
