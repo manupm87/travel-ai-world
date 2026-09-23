@@ -185,6 +185,9 @@ sequenceDiagram
     Note over A: stateless: the group id says what a selection means (nb, hotels:<district>, slot:<day>:<part>)
 ```
 
+The turn's trace (its model calls, retrievals with their top-k, tools, the SSE timeline) is
+written to `<prefix>-interactions` before `[DONE]`, keyed by the page's `session_id` (ADR 0024).
+
 A card the page holds is an id, so opening one asks the service for it again: `GET
 /api/v1/ai/planner/card?id=<doc id>` answers a `CardDetail` — the card's own fields plus the
 corpus document's text, its address, phone and site (`application/card_detail.py`). Nothing is

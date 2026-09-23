@@ -2,7 +2,8 @@
 
 Everything that talks to language models: a streaming chat and a trip planner over NVIDIA-hosted
 models (local development) or Amazon Bedrock (deployed), grounded in a corpus of city documents
-searched in Amazon S3 Vectors. No database; authenticates with the bearer token alone (core_api's HS256 JWT
+searched in Amazon S3 Vectors. No database of its own besides the turn traces it writes to
+DynamoDB (ADR 0024); authenticates with the bearer token alone (core_api's HS256 JWT
 locally, the Cognito pool's RS256 ID token when deployed).
 
 ## Run
@@ -166,6 +167,41 @@ running `ai_api` without `core_api`).
 Errors: upstream status codes and bodies never reach the browser. A domain error mid-stream is sent
 as `{"error": message, "error_code": CODE}`; anything unexpected is logged with its traceback and
 sent as `{"error": "Chat stream failed", "error_code": "INTERNAL"}`.
+
+## Turn traces (ADR 0024)
+
+Every planner turn, chat answer and card detail leaves a trace in the DynamoDB table named by
+`INTERACTIONS_TABLE` (`<prefix>-interactions` on AWS, `infra/aws/traces.tf`). Nothing reads it yet;
+the admin console does (TRA-221).
+
+| Item | `PK` | `SK` | Holds |
+|---|---|---|---|
+| Summary | `DAY#<YYYY-MM-DD>` | `<ts µs ISO>#<turn_id>` | kind, route, subject, `session_id`, `trip_id`, city, language, action, model, provider, `prompt_version`, tokens, `cost_usd` + `pricing_version`, latency, time to first event, status, counters, event and op counts, `sources` (≤ 200, with distance and `used`), previews |
+| Context | `TURN#<turn_id>` | `CONTEXT` | the request (message or action, brief, snapshot ids, history), the answer text, the ops and option groups emitted |
+| Step | `TURN#<turn_id>` | `SPAN#<seq>` | `kind` (`llm`, `retriever`, `tool`, `chain`), name, phase, parent, `t0_ms`, `dur_ms`, level, payload, results |
+| Events | `TURN#<turn_id>` | `EVENTS` | the SSE timeline (text deltas collapsed) |
+
+GSI1 is `SUBJECT#<subject>` (one user's turns), GSI2 `SESSION#<session_id>` (one planner draft,
+sparse). Every item has `expires_at` (`INTERACTION_TTL_DAYS`, 90 by default).
+
+- **How.** The endpoint builds a `TurnTracer` (`application/tracing.py`), makes it current for the
+  request and wraps the stream with `RecordTrace` (`application/record_trace.py`), which writes the
+  trace with `BatchWriteItem` *before* `[DONE]` (Lambda may freeze once the response ends). A write
+  that fails is logged and never reaches the client; a client that goes away leaves a `cancelled`
+  trace, best effort. Outside a request `current_tracer()` is a `NullTracer`: the use cases call it
+  unconditionally and their unit tests need no fixture.
+- **Phases** (`open`, `wardrobe`, `fold`, `weigh`, `zip`): reading the turn and the brief; weather,
+  skeleton and the neighbourhood, hotel, named and chat searches; candidates and picks; validation,
+  prices and photos; the closing text.
+- **Used, without a judge.** The ids a pick keeps (and the ones `_fill` adds) are marked `used` on
+  every retrieval that returned them; ids the model invented are the llm step's `dropped_ids`.
+- **Caps and privacy.** 8 KB per text field (`TRACE_PAYLOAD_BYTES`, cut on a UTF-8 boundary), 200
+  steps, 500 event marks, 200 sources, `truncated=true` beyond. The subject only, never the email.
+- **Cost** comes from `application/pricing.py` (versioned); a model without a public price (NVIDIA)
+  costs `null`. Embedding tokens are not measured yet: `Retriever.search` reports none.
+- **Locally.** Empty `INTERACTIONS_TABLE` records nothing. Set it (`travel-ai-local-interactions`)
+  with `DYNAMODB_ENDPOINT_URL` pointing at `just dynamodb-local` and `just dev-ai` creates the table
+  at start-up; Compose (`just docker-up`) sets both for you.
 
 ## Tests
 

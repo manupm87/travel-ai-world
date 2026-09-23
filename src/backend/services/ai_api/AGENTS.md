@@ -1,7 +1,8 @@
 # AGENTS.md — ai_api
 
 Read [`backend/AGENTS.md`](../../AGENTS.md) first. `ai_api` owns everything that talks to language
-models and retrieval. It has **no database** and never imports `core_api`.
+models and retrieval. It has **no database** beyond the append-only trace log (ADR 0024) and never
+imports `core_api`.
 
 ## Layout (ports and adapters)
 
@@ -9,7 +10,8 @@ models and retrieval. It has **no database** and never imports `core_api`.
 domain/         Message, ChatRole, Document, RetrievalFilters, GenerationParams, Usage, ChatTrace, ChatTurn, ThreadSaved,
                 DayWeather, RouteSuggestion
                 + Protocols: LLMProvider (stream + complete), Embedder, Retriever (search + fetch), WeatherForecast,
-                TripGateway, ConversationGateway
+                TripGateway, ConversationGateway, TraceLog
+                tracing.py: TurnTrace, Span, RetrievedDoc, EventMark, TurnContext (ADR 0024)
 application/    use cases (StreamChat, RecordConversation, PlanTrip, CardDetailLookup) and their pure helpers:
                 structured.py (complete_json: JSON out of `LLMProvider.complete`, one repair retry), cards.py
                 (OptionCard — and the fuller CardDetail — from a Document), validate.py (distance, load, closed,
@@ -35,6 +37,15 @@ testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, Ke
 ```
 
 - Routes live under `/api/v1/ai/*` so a proxy can route by prefix. Keep it that way.
+- **Every request is traced (ADR 0024).** `application/tracing.py` (`TurnTracer`, `current_tracer`,
+  `traced_llm_stream`), `application/record_trace.py` (writes before `[DONE]`),
+  `application/pricing.py` (versioned USD per million tokens), `infrastructure/dynamo_traces.py`
+  (`DynamoTraceLog`, `NullTraceLog` when `INTERACTIONS_TABLE` is empty; `testing.InMemoryTraceLog`
+  in tests). Rules: every model call goes through `complete_json(name=..., template=...)` or
+  `traced_llm_stream(...)`; every planner search through `PlanTrip._search(..., purpose=...)` (and
+  every fetch through `_fetch`), whose results are recorded; the ids a pick keeps go through
+  `tracer.note_picks` / `mark_used`; `tracer.phase(...)` is set before each phase's steps. A trace
+  write never fails a turn. Never put the email in a trace; the subject is enough.
 - Auth is **stateless**: `principal_from_token(token, settings)`; no user lookup. `AUTH_MODE` picks
   the issuer (local HS256 with `SECRET_KEY`, or the Cognito pool's RS256 ID tokens against
   `COGNITO_JWKS`); `tests/test_cognito_mode.py` covers the second with `CognitoTestIssuer`.

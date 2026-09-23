@@ -53,8 +53,10 @@ TypeScript 5, Tailwind CSS v4.
   `getTrip`'s `null` is not-found too); `usePlanner.ts` drives the planner page over the pure reducer in
   `plannerReducer.ts` (every transition, including `applyItineraryOps`, is unit-tested without React;
   the hook owns the stream, aborts it on a new turn, and keeps the per-tab draft through
-  `services/plannerDraft.ts`; `hydrate(draft, tripId)` opens a saved trip in its place and
-  `startNew()` empties it, both moving the id "Save trip" writes to); `useSaveTrip.ts` owns "Save trip" (`idle | saving | saved | error`,
+  `services/plannerDraft.ts`, which also keeps the draft's planner session id — minted per draft,
+  sent with every turn as `session_id` beside `trip_id` so the backend's traces of one draft read
+  together (TRA-220); `hydrate(draft, tripId, sessionId?)` opens a saved trip in its place and
+  `startNew()` empties it with a new session, both moving the id "Save trip" writes to); `useSaveTrip.ts` owns "Save trip" (`idle | saving | saved | error`,
   the title in the reader's language, the resolved `PlannerCity` without which there is nothing
   valid to save, and the id of the trip the draft was saved as — the trip `?trip=` opened, or what
   this tab last wrote, kept beside the draft by `plannerDraft.ts` — so a second press updates that
