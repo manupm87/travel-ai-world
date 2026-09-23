@@ -128,7 +128,13 @@ TypeScript 5, Tailwind CSS v4.
   `KpiTiles` (over the pure `overview/kpis.ts`), `RangePicker` and `DailyChart` (hand-drawn SVG over
   the pure `charts/scale.ts`: bars stacked by status over a separate output-tokens panel, focusable
   days with a tooltip, an `sr-only` table), and the turns filters and table. `/admin/turn/` is a
-  placeholder TRA-228 turns into the inspector; `useTurn` stays. Ids and JSON are `font-mono`
+  placeholder TRA-228 turns into the inspector; `useTurn` stays. `/admin/trip/?user=&id=`
+  (TRA-229) is anyone's saved trip, **read only**: `useAdminTrip` (`getAdminTrip` → `toTrip` →
+  `tripToDraft`; a malformed id is not-found without a request), `components/admin/trip/`
+  `TripHeader` (owner, city, dates, phase, ids with `CopyButton`), `AdminTripView` (the planner's
+  `RouteStrip`, `StayCard`, `TripOverview` and a selected day's `DayCard` with no handlers: no
+  Change, no Remove, no map) and `TripTurns` (`useSessionTurns`, up to 200 turns, over the shared
+  `TurnsTable`). Nothing on that page writes, and nothing may be added that does. Ids and JSON are `font-mono`
   (JetBrains Mono, `--font-mono`, loaded in `app/layout.tsx`) — the only monospace in the app.
 - **The landing is the field** (TRA-190): `/` is `components/landing/AskField.tsx` and nothing else
   — the question (the page's only `h1`, and the field's `aria-labelledby`), the field, the button.
