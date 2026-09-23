@@ -9,6 +9,7 @@ import {
   formatMs,
   formatNumber,
   formatPercent,
+  formatTime,
   formatUsd,
 } from "@/utils/format";
 
@@ -34,6 +35,8 @@ export function useFormatters() {
       formatUsd: (n: number) => formatUsd(n, locale),
       /** A 0–1 ratio as a percentage, at most one decimal. */
       formatPercent: (x: number) => formatPercent(x, locale),
+      /** The local time of a timestamp, `HH:mm:ss`. */
+      formatTime: (iso: string) => formatTime(iso, locale),
     }),
     [locale]
   );

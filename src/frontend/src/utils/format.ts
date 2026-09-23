@@ -40,6 +40,16 @@ export function formatDuration(minutes: number): string {
   return `${m}m`;
 }
 
+/** The local time of an ISO timestamp as `HH:mm:ss` (24 h, whatever the locale). */
+export function formatTime(iso: string, locale = "en-US"): string {
+  return new Date(iso).toLocaleTimeString(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  });
+}
+
 /** A plain count with the locale's grouping ("12,345" / "12.345"). */
 export function formatNumber(n: number, locale = "en-US"): string {
   return new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(n);

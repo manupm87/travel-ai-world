@@ -13,7 +13,7 @@ import { useLanguage } from "@/context/LanguageContext";
 const REDIRECT_MS = 2000;
 
 /** Those routes: a path under one of them was a link that has moved. */
-const STRAY = ["/dashboard/", "/trip/", "/plan/"];
+const STRAY = ["/dashboard/", "/trip/", "/plan/", "/admin/"];
 
 /**
  * The page for a URL that is not one of ours.
