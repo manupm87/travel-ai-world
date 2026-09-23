@@ -77,8 +77,8 @@ class CardDetailLookup:
                 last_resort=False,
             )
             span.payload["details"] = tally.sources([card], [pictured])
-        if self._previews is not None and card.deep_link and not card.image_url:
-            # The venue's own site was asked only when Commons had nothing.
+        if tally.site_asked and card.deep_link:
+            # The venue's own site is asked only when Commons had nothing.
             with tracer.sync_span(
                 "tool",
                 "site_preview",

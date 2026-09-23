@@ -104,6 +104,8 @@ class PhotoTally:
 
     commons: int = 0
     site: int = 0
+    site_asked: int = 0
+    """How many times a venue's own site was asked, answered or not."""
 
     def finder(self, finder: PhotoFinder | None) -> PhotoFinder | None:
         return None if finder is None else _CountingFinder(finder, self)
@@ -156,6 +158,7 @@ class _CountingPreviews:
         self._tally = tally
 
     async def preview(self, site_url: str) -> Photo | None:
+        self._tally.site_asked += 1
         photo = await self._wrapped.preview(site_url)
         if photo is not None:
             self._tally.site += 1
