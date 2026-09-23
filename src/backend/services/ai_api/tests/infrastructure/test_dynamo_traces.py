@@ -1,17 +1,20 @@
 """`infrastructure.dynamo_traces.DynamoTraceLog` against moto's DynamoDB."""
 
 from collections.abc import Iterator
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from typing import Any
 
 import pytest
 from ai_api.application.tracing import TurnTracer
 from ai_api.domain.models import Document
-from ai_api.domain.tracing import TurnTrace
+from ai_api.domain.tracing import RetrievedDoc, Span, TurnFilters, TurnTrace
 from ai_api.infrastructure.dynamo_traces import DynamoTraceLog, TraceWriteFailed, spec
+from ai_api.testing import InMemoryTraceLog, make_trace
 from boto3.dynamodb.types import TypeDeserializer
+from botocore.exceptions import ClientError
 from travel_common.dynamodb import dynamodb_client, ensure_table
+from travel_common.exceptions import BadRequest, ProviderUnavailable
 from travel_common.testing import mock_dynamodb
 
 TABLE = "test-interactions"
@@ -152,3 +155,183 @@ async def test_unprocessed_items_are_retried_then_raise():
         await DynamoTraceLog(fake, TABLE, backoff=0).record(trace)
 
     assert fake.calls == 4  # the first try and three retries
+
+
+# ─── Reads (TRA-221) ────────────────────────────────────────────────────────
+
+
+def seeded_traces() -> list[TurnTrace]:
+    """Three turns on two days, two subjects, two sessions."""
+    return [
+        make_trace(
+            turn_id="a",
+            ts=datetime(2026, 9, 22, 9, 0, tzinfo=UTC),
+            subject="sub-1",
+            session_id="sess-1",
+        ),
+        make_trace(
+            turn_id="b",
+            ts=datetime(2026, 9, 23, 9, 0, tzinfo=UTC),
+            subject="sub-1",
+            session_id="sess-1",
+            status="error",
+            error_code="SERVICE_UNAVAILABLE",
+            cost_usd=None,
+            spans=[
+                Span(
+                    seq=2,
+                    parent_seq=1,
+                    kind="retriever",
+                    name="search:see",
+                    phase="wardrobe",
+                    t0_ms=10,
+                    dur_ms=40,
+                    level="warning",
+                    message="widened",
+                    payload={"k": 5, "filters": {"city": "budapest"}, "query": None},
+                    results=[
+                        RetrievedDoc(
+                            doc_id="doc-9",
+                            title=None,
+                            category="see",
+                            district="V",
+                            distance=0.375,
+                            rank=1,
+                            used=False,
+                        )
+                    ],
+                ),
+                Span(
+                    seq=1,
+                    parent_seq=None,
+                    kind="chain",
+                    name="read",
+                    phase="open",
+                    t0_ms=0,
+                ),
+            ],
+        ),
+        make_trace(
+            turn_id="c",
+            ts=datetime(2026, 9, 23, 10, 0, tzinfo=UTC),
+            kind="card",
+            subject="sub-2",
+            session_id="sess-2",
+            city="bologna",
+        ),
+    ]
+
+
+@pytest.fixture
+async def log(client: Any) -> DynamoTraceLog:
+    await ensure_table(client, spec(TABLE))
+    traces = DynamoTraceLog(client, TABLE)
+    for trace in seeded_traces():
+        await traces.record(trace)
+    return traces
+
+
+def turn_ids(page: Any) -> list[str]:
+    return [turn.turn_id for turn in page.items]
+
+
+async def test_a_day_lists_newest_first_and_filters(log: DynamoTraceLog):
+    day = date(2026, 9, 23)
+
+    every = await log.list_day(day, TurnFilters(), None, 50)
+    cards = await log.list_day(day, TurnFilters(kind="card"), None, 50)
+    errors = await log.list_day(
+        day, TurnFilters(status="error", city="budapest"), None, 50
+    )
+
+    assert turn_ids(every) == ["c", "b"] and every.next_cursor is None
+    assert turn_ids(cards) == ["c"]
+    assert turn_ids(errors) == ["b"]
+    assert every.items[0].day == "2026-09-23"
+
+
+async def test_a_cursor_walks_a_day(log: DynamoTraceLog):
+    day = date(2026, 9, 23)
+
+    first = await log.list_day(day, TurnFilters(), None, 1)
+    assert first.next_cursor is not None
+    second = await log.list_day(day, TurnFilters(), first.next_cursor, 1)
+
+    assert turn_ids(first) == ["c"] and turn_ids(second) == ["b"]
+
+
+async def test_a_filtered_page_queries_until_it_is_full(log: DynamoTraceLog):
+    page = await log.list_day(date(2026, 9, 23), TurnFilters(kind="planner"), None, 1)
+
+    assert turn_ids(page) == ["b"]
+
+
+async def test_a_user_lists_newest_first(log: DynamoTraceLog):
+    page = await log.list_subject("sub-1", TurnFilters(), None, 50)
+    walked = await log.list_subject("sub-1", TurnFilters(), None, 1)
+    rest = await log.list_subject("sub-1", TurnFilters(), walked.next_cursor, 1)
+
+    assert turn_ids(page) == ["b", "a"]
+    assert turn_ids(walked) + turn_ids(rest) == ["b", "a"]
+
+
+async def test_a_session_lists_oldest_first(log: DynamoTraceLog):
+    page = await log.list_session("sess-1", None, 50)
+
+    assert turn_ids(page) == ["a", "b"]
+
+
+async def test_a_turn_round_trips_every_field(log: DynamoTraceLog):
+    trace = seeded_traces()[1]
+    expected = InMemoryTraceLog()
+    expected.traces.append(trace)
+
+    detail = await log.get("b")
+
+    assert detail is not None
+    assert detail == await expected.get("b")
+    assert detail.summary.cost_usd is None
+    assert [span.seq for span in detail.spans] == [1, 2]
+    retrieval = detail.spans[1]
+    assert retrieval.payload == {"k": 5, "filters": {"city": "budapest"}, "query": None}
+    assert retrieval.results[0].distance == 0.375
+    assert isinstance(detail.summary.latency_ms, int)
+
+
+async def test_an_unknown_turn_is_none(log: DynamoTraceLog):
+    assert await log.get("nope") is None
+
+
+async def test_a_range_yields_every_summary_of_every_day(log: DynamoTraceLog):
+    turns = [t async for t in log.iter_range(date(2026, 9, 21), date(2026, 9, 23))]
+
+    assert sorted(t.turn_id for t in turns) == ["a", "b", "c"]
+
+
+@pytest.mark.parametrize(
+    "cursor",
+    [
+        "not base64!",
+        "bm90IGpzb24",
+        "eyJQSyI6IHsiUyI6ICJ4In19",
+    ],  # garbage, text, wrong keys
+)
+async def test_a_malformed_cursor_is_bad_request(log: DynamoTraceLog, cursor: str):
+    with pytest.raises(BadRequest):
+        await log.list_day(date(2026, 9, 23), TurnFilters(), cursor, 10)
+
+
+class Throttled:
+    """A client whose every read is refused."""
+
+    def query(self, **kwargs: Any) -> Any:
+        raise ClientError(
+            {"Error": {"Code": "ProvisionedThroughputExceededException"}}, "Query"
+        )
+
+
+async def test_a_dynamodb_failure_is_provider_unavailable():
+    log = DynamoTraceLog(Throttled(), TABLE)
+
+    with pytest.raises(ProviderUnavailable, match="ProvisionedThroughput"):
+        await log.list_session("sess-1", None, 10)

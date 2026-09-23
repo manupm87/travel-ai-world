@@ -7,9 +7,11 @@ import re
 import uuid
 from collections import Counter
 from collections.abc import AsyncIterator, Sequence
+from datetime import UTC, date, datetime
 from pathlib import Path
+from typing import Any
 
-from travel_common.exceptions import DomainError, EntityNotFound
+from travel_common.exceptions import BadRequest, DomainError, EntityNotFound
 
 from ai_api.config import AISettings
 from ai_api.domain.models import (
@@ -21,7 +23,18 @@ from ai_api.domain.models import (
     RetrievalFilters,
     Usage,
 )
-from ai_api.domain.tracing import TurnTrace
+from ai_api.domain.tracing import (
+    EventMark,
+    RetrievedDoc,
+    Span,
+    TurnContext,
+    TurnDetail,
+    TurnFilters,
+    TurnPage,
+    TurnSummary,
+    TurnTrace,
+)
+from ai_api.infrastructure.dynamo_traces import summary_sk
 
 
 def settings_for_tests() -> AISettings:
@@ -346,7 +359,10 @@ def documents_from_corpus(path: Path, *, limit: int | None = None) -> list[Docum
 
 
 class InMemoryTraceLog:
-    """Keeps every recorded trace in `traces`; `fail_with` makes it raise."""
+    """Keeps every recorded trace in `traces`; `fail_with` makes it raise.
+
+    The reads follow `DynamoTraceLog`'s order and filters; a cursor is the
+    offset of the next item, as text."""
 
     def __init__(self, fail_with: Exception | None = None) -> None:
         self.traces: list[TurnTrace] = []
@@ -356,3 +372,141 @@ class InMemoryTraceLog:
         if self.fail_with is not None:
             raise self.fail_with
         self.traces.append(trace)
+
+    async def list_day(
+        self, day: date, filters: TurnFilters, cursor: str | None, limit: int
+    ) -> TurnPage:
+        turns = [t for t in self._summaries() if t.day == day.isoformat()]
+        return _page(turns, filters, cursor, limit, newest=True)
+
+    async def list_subject(
+        self, subject: str, filters: TurnFilters, cursor: str | None, limit: int
+    ) -> TurnPage:
+        turns = [t for t in self._summaries() if t.subject == subject]
+        return _page(turns, filters, cursor, limit, newest=True)
+
+    async def list_session(
+        self, session_id: str, cursor: str | None, limit: int
+    ) -> TurnPage:
+        turns = [t for t in self._summaries() if t.session_id == session_id]
+        return _page(turns, TurnFilters(), cursor, limit, newest=False)
+
+    async def get(self, turn_id: str) -> TurnDetail | None:
+        for trace in self.traces:
+            if trace.turn_id == turn_id:
+                return TurnDetail(
+                    summary=_summary(trace),
+                    context=trace.context,
+                    spans=sorted(trace.spans, key=lambda span: span.seq),
+                    timeline=list(trace.timeline),
+                )
+        return None
+
+    async def iter_range(self, start: date, end: date) -> AsyncIterator[TurnSummary]:
+        for turn in self._summaries():
+            if start.isoformat() <= turn.day <= end.isoformat():
+                yield turn
+
+    def _summaries(self) -> list[TurnSummary]:
+        return [_summary(trace) for trace in self.traces]
+
+
+def make_trace(**overrides: Any) -> TurnTrace:
+    """A finished planner turn with every field set; `overrides` replace any.
+    `ts` defaults to 2026-09-23 10:00 UTC."""
+    values: dict[str, Any] = {
+        "turn_id": "turn-1",
+        "ts": datetime(2026, 9, 23, 10, 0, tzinfo=UTC),
+        "kind": "planner",
+        "route": "/api/v1/ai/planner",
+        "subject": "sub-1",
+        "session_id": "sess-1",
+        "trip_id": None,
+        "city": "budapest",
+        "language": "en",
+        "action": "message",
+        "model": "model-a",
+        "provider": "bedrock",
+        "prompt_version": "abc123",
+        "input_tokens": 100,
+        "output_tokens": 50,
+        "embed_tokens": 10,
+        "cost_usd": 0.001,
+        "pricing_version": "2026-09",
+        "latency_ms": 1000,
+        "first_event_ms": 200,
+        "status": "ok",
+        "error_code": None,
+        "llm_calls": 1,
+        "retrievals": 1,
+        "docs_retrieved": 1,
+        "docs_used": 1,
+        "repairs": 0,
+        "dropped_ids": 0,
+        "prices_stripped": 0,
+        "warnings": 0,
+        "events": {"text": 1},
+        "ops": {},
+        "sources": [
+            RetrievedDoc(
+                doc_id="doc-1",
+                title="Doc 1",
+                category="see",
+                district=None,
+                distance=0.25,
+                rank=1,
+                used=True,
+            )
+        ],
+        "question_preview": "5 days in Budapest",
+        "answer_preview": "Here is a plan",
+        "truncated": False,
+        "spans": [
+            Span(
+                seq=2, parent_seq=None, kind="llm", name="pick", phase="fold", t0_ms=5
+            ),
+            Span(
+                seq=1, parent_seq=None, kind="chain", name="read", phase="open", t0_ms=0
+            ),
+        ],
+        "timeline": [EventMark(t_ms=200, type="text", summary="", bytes=12)],
+        "context": TurnContext(
+            message="5 days in Budapest",
+            action=None,
+            brief=None,
+            itinerary_ids=[],
+            exclude_card_ids=[],
+            history=[],
+            answer_text="Here is a plan",
+            ops=[],
+            option_groups=[],
+        ),
+    }
+    values.update(overrides)
+    return TurnTrace(**values)
+
+
+def _summary(trace: TurnTrace) -> TurnSummary:
+    return trace.summary(trace.ts.date().isoformat(), summary_sk(trace))
+
+
+def _page(
+    turns: list[TurnSummary],
+    filters: TurnFilters,
+    cursor: str | None,
+    limit: int,
+    *,
+    newest: bool,
+) -> TurnPage:
+    try:
+        offset = int(cursor) if cursor else 0
+    except ValueError as exc:
+        raise BadRequest("Invalid cursor") from exc
+    if offset < 0:
+        raise BadRequest("Invalid cursor")
+    kept = sorted(
+        (t for t in turns if filters.matches(t)), key=lambda t: t.sk, reverse=newest
+    )
+    items = kept[offset : offset + limit]
+    more = offset + limit < len(kept)
+    return TurnPage(items=items, next_cursor=str(offset + limit) if more else None)

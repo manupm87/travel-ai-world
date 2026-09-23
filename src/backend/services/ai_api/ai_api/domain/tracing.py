@@ -7,9 +7,12 @@ timeline. The vocabulary is the industry's (Langfuse's trace / observation,
 OpenInference's span kinds), so the data can be exported as it is.
 
 Plain dataclasses: the tracer (`application/tracing.py`) fills them, the
-adapter (`infrastructure/dynamo_traces.py`) writes them.
+adapter (`infrastructure/dynamo_traces.py`) writes them. The read models
+(`TurnSummary`, `TurnDetail`, `TurnFilters`, `TurnPage`) are what the admin
+API reads back (TRA-221).
 """
 
+import dataclasses
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Literal
@@ -134,3 +137,103 @@ class TurnTrace:
     spans: list[Span]
     timeline: list[EventMark]
     context: TurnContext
+
+    def summary(self, day: str, sk: str) -> "TurnSummary":
+        """The summary item's view of this trace (what a list shows)."""
+        values = {
+            f.name: getattr(self, f.name)
+            for f in dataclasses.fields(TurnSummary)
+            if f.name not in ("day", "sk")
+        }
+        return TurnSummary(**values, day=day, sk=sk)
+
+
+# ─── Read models (admin API) ────────────────────────────────────────────────
+
+
+@dataclass(slots=True)
+class TurnSummary:
+    """One turn as a list shows it: every `TurnTrace` field but the steps,
+    the timeline and the context, plus the summary item's day and key."""
+
+    turn_id: str
+    ts: datetime
+    kind: Kind
+    route: str
+    subject: str
+    session_id: str | None
+    trip_id: str | None
+    city: str | None
+    language: str | None
+    action: str | None
+    model: str | None
+    provider: str | None
+    prompt_version: str | None
+    input_tokens: int
+    output_tokens: int
+    embed_tokens: int
+    cost_usd: float | None
+    pricing_version: str
+    latency_ms: int
+    first_event_ms: int | None
+    status: Status
+    error_code: str | None
+    llm_calls: int
+    retrievals: int
+    docs_retrieved: int
+    docs_used: int
+    repairs: int
+    dropped_ids: int
+    prices_stripped: int
+    warnings: int
+    events: dict[str, int]
+    ops: dict[str, int]
+    sources: list[RetrievedDoc]
+    question_preview: str
+    answer_preview: str
+    truncated: bool
+    day: str
+    sk: str
+
+
+@dataclass(slots=True)
+class TurnDetail:
+    """One turn, whole: its summary, the request context, every step (by
+    `seq`) and the SSE timeline."""
+
+    summary: TurnSummary
+    context: TurnContext
+    spans: list[Span]
+    timeline: list[EventMark]
+
+
+@dataclass(slots=True)
+class TurnFilters:
+    """What a list keeps; `None` keeps everything."""
+
+    kind: Kind | None = None
+    status: Status | None = None
+    subject: str | None = None
+    session_id: str | None = None
+    trip_id: str | None = None
+    city: str | None = None
+
+    def matches(self, turn: TurnSummary) -> bool:
+        return all(
+            wanted is None or getattr(turn, name) == wanted
+            for name, wanted in self.active().items()
+        )
+
+    def active(self) -> dict[str, str]:
+        """The filters in force, by summary attribute name."""
+        return {
+            f.name: value
+            for f in dataclasses.fields(self)
+            if (value := getattr(self, f.name)) is not None
+        }
+
+
+@dataclass(slots=True)
+class TurnPage:
+    items: list[TurnSummary]
+    next_cursor: str | None
