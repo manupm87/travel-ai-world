@@ -276,7 +276,9 @@ export function DailyChart({
         ))}
       </ul>
 
-      <table className="sr-only">
+      {/* The wrapper, not the table, is `sr-only`: a table never shrinks below its content. */}
+      <div className="sr-only">
+      <table>
         <caption>{label}</caption>
         <thead>
           <tr>
@@ -301,6 +303,7 @@ export function DailyChart({
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

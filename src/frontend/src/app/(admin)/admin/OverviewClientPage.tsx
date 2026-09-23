@@ -60,7 +60,7 @@ export default function OverviewClientPage() {
       {stats.status !== "ready" ? (
         <AdminLoadState status={stats.status} error={stats.status === "error" ? stats.error : null} onRetry={stats.reload} />
       ) : (
-        <div className="flex flex-col gap-8">
+        <div className="flex min-w-0 flex-col gap-8">
           <KpiTiles stats={stats.stats} />
 
           <Panel title={to.chart.title}>
@@ -69,7 +69,7 @@ export default function OverviewClientPage() {
             </div>
           </Panel>
 
-          <div className="grid gap-8 xl:grid-cols-2">
+          <div className="grid grid-cols-1 gap-8 xl:grid-cols-2">
             <Panel title={tt.byModel}>
               <DataTable<Row<"by_model">>
                 caption={tt.byModel}

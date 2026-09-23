@@ -28,7 +28,9 @@ export function KpiTiles({ stats }: { stats: TraceStats }) {
           <p className="mt-1 truncate font-heading text-2xl font-light tabular-nums text-text-primary">
             {kpi.value}
           </p>
-          <p className="mt-1 truncate text-xs text-text-secondary">{kpi.hint}</p>
+          <p className="mt-1 truncate text-xs text-text-secondary" title={kpi.hint}>
+            {kpi.hint}
+          </p>
         </li>
       ))}
     </ul>
