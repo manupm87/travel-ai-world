@@ -546,6 +546,169 @@ export interface Translations {
       spans: string;
       timeline: string;
       export: string;
+      /** The inspector (TRA-228): the left column, what the traveller saw. */
+      traveller: {
+        title: string;
+        hint: string;
+        /** "Chosen: {group}" — a `select` action. */
+        chosen: string;
+        /** "Removed {card}" — a `remove` action. */
+        removed: string;
+        itinerary: string;
+        stay: string;
+        route: string;
+        /** "{origin} to {destination}" */
+        routeValue: string;
+        weather: string;
+        /** "Day {day}" */
+        day: string;
+        places: string;
+        /** "Options: {group}" */
+        options: string;
+        /** "{count} cards" and its singular. */
+        cards: string;
+        cardOne: string;
+        warnings: string;
+        noAnswer: string;
+      };
+      /** The numbered marks: "Go to {section}". */
+      marks: {
+        goTo: string;
+        events: string;
+        model: string;
+        trace: string;
+        kb: string;
+      };
+      /** The right column's heading, "What is not seen". */
+      inspector: {
+        title: string;
+        /** "Turn {n} of {total}" */
+        position: string;
+        previous: string;
+        next: string;
+      };
+      chips: {
+        label: string;
+        action: string;
+        model: string;
+        llmCalls: string;
+        validated: string;
+        /** "{count} repairs" and its singular. */
+        repairs: string;
+        repairOne: string;
+        searches: string;
+        /** "+{count} by id" */
+        byId: string;
+        tokens: string;
+        duration: string;
+        /** "first event at {ms}" */
+        firstEvent: string;
+      };
+      /** The five phases, named after packing a suitcase (ADR 0024). */
+      phases: { open: string; wardrobe: string; fold: string; weigh: string; zip: string };
+      trace: {
+        title: string;
+        /** "0 to {total}" */
+        range: string;
+        legend: string;
+        kinds: { llm: string; retriever: string; tool: string; chain: string };
+        warning: string;
+        error: string;
+        goToKb: string;
+        message: string;
+        empty: string;
+      };
+      brief: {
+        title: string;
+        complete: string;
+        /** "{count} missing" */
+        missing: string;
+        empty: string;
+      };
+      calls: {
+        title: string;
+        tabs: string;
+        /** "day {day}" after the schema's name. */
+        day: string;
+        /** "{model}, {input} in, {output} out" */
+        caption: string;
+        /** ", first chunk at {ttfc}" appended to the caption. */
+        ttfc: string;
+        validated: string;
+        /** "{count} repairs" and its singular. */
+        repairs: string;
+        repairOne: string;
+        /** "{count} ids dropped" and its singular. */
+        dropped: string;
+        droppedOne: string;
+        /** "{count} prices stripped" and its singular. */
+        prices: string;
+        priceOne: string;
+        noOutput: string;
+        empty: string;
+      };
+      events: {
+        title: string;
+        /** "{count} events" and its singular. */
+        count: string;
+        countOne: string;
+        caption: string;
+        time: string;
+        type: string;
+        summary: string;
+        /** "{count} deltas" and its singular. */
+        deltas: string;
+        deltaOne: string;
+        warning: string;
+        end: string;
+      };
+      kb: {
+        title: string;
+        filters: string;
+        embeddings: string;
+        /** "ladder step {step}" */
+        ladder: string;
+        purposes: {
+          neighbourhoods: string;
+          /** "candidates for day {day}, {part}" */
+          candidatesDay: string;
+          candidates: string;
+          hotels: string;
+          named: string;
+          chat: string;
+          climate: string;
+          fetch: string;
+          photos: string;
+        };
+        /** The results table's accessible name: "Results of search {seq}". */
+        caption: string;
+        columns: {
+          used: string;
+          document: string;
+          id: string;
+          category: string;
+          district: string;
+          distance: string;
+        };
+        usedYes: string;
+        usedNo: string;
+        /** "Cosine distance: lower is closer. {used} of {k} used." */
+        footnote: string;
+        noResults: string;
+        empty: string;
+      };
+      /** The phone's bottom sheet. */
+      sheet: {
+        expand: string;
+        collapse: string;
+        tabs: string;
+        tab: { trace: string; kb: string; model: string; events: string };
+        stats: { model: string; duration: string; calls: string; searches: string };
+        /** "{count} to the model" */
+        callsValue: string;
+        /** "{count} searches" */
+        searchesValue: string;
+      };
     };
   };
   notFound: {
