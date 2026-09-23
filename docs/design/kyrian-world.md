@@ -116,6 +116,22 @@ stays exactly as it was: the days, the cards, the photos, the map. What is gone 
 over", every "Change" and every "Remove" — never disabled, simply not there, because a control
 that can never be pressed is an explanation nobody asked for.
 
+## Admin console
+
+`/admin/` is a tool, not a page to admire (TRA-222), so it bends three rules on purpose and keeps
+the rest. It is **dense**: 14 px body, tables with 8 px rows, no max width, a 240 px sidebar that
+stays put while the content scrolls — and no aurora, the plain `--color-bg-primary`, because
+weather behind a table is noise. It is the one place with **monospace**: JetBrains Mono
+(`--font-mono`, `font-mono`) for ids, subjects, model names and JSON, nowhere else and never for
+labels. Numbers are right-aligned in `tabular-nums` and go through `useFormatters()`
+(`formatNumber`, `formatMs`, `formatUsd`, `formatPercent`). Its charts are hand-drawn SVG in four
+colours, each with one meaning: **`--color-accent`** turns that answered, **`--color-error`** turns
+that failed, **`--color-text-muted`** turns the traveller cancelled, **`--color-gold`** output
+tokens. Tokens get their own panel under the bars rather than a second y-axis — two scales on one
+plot read as a correlation that is not there. Text never wears a series colour; a status is a
+dot beside a word (`Pill`), never colour alone, and every chart has a legend, a tooltip that
+keyboard focus opens too, and an `sr-only` table with the same numbers.
+
 ## Copy
 
 Sentence case, plain verbs, the reader's perspective. A button says what happens ("Plan it",

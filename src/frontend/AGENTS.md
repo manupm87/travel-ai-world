@@ -18,7 +18,11 @@ TypeScript 5, Tailwind CSS v4.
   resolves `null` on 404 and on 403, so someone else's id looks exactly like a missing one; owns
   `toTrip`, the only place that turns a `TripResponse` into the `Trip` view model — ADR 0006),
   `tripDraft.ts` (`tripToDraft`, the pure inverse of the save: a saved trip back as the planner
-  draft it was written from).
+  draft it was written from), `users.ts` (`getMe`: `GET /users/me`, the account's `role` and
+  `subject`; `null` on 401/404) and `admin.ts` (the admin console's reads, TRA-222: `getStats`,
+  `listTurns`, `getTurn`, `listSessionTurns` on ai_api; `listAdminUsers`, `listAdminTrips`,
+  `getAdminTrip` on core_api; every shape the generated one, only the set query params sent,
+  `null` on 404 for the single reads).
   Components never `fetch` or touch the session storage.
   **The writes live there too**: `createTrip`, `updateTrip`, `deleteTrip`, and
   `saveDraftAsTrip(itinerary, brief, city, { title, tripId? })`, which stores a whole planner draft
@@ -42,7 +46,11 @@ TypeScript 5, Tailwind CSS v4.
   hydrates from; a child with no stored card is rebuilt from its columns. Keeping a saved trip in
   step with the draft as it changes, without pressing Save, is still TRA-146.
   `AuthContext.provider` (`"cognito" | "google"`) says which sign-in the build has; it is decided by
-  `NEXT_PUBLIC_COGNITO_DOMAIN` + `NEXT_PUBLIC_COGNITO_CLIENT_ID`.
+  `NEXT_PUBLIC_COGNITO_DOMAIN` + `NEXT_PUBLIC_COGNITO_CLIENT_ID`. `AuthContext.isAdmin` is
+  `user.role === "admin"`: whenever a session with a token exists and `isApiAvailable()`, the
+  provider calls `getMe()` once per signed-in account (on restore and right after a login) and
+  merges the role into the stored profile through `session.ts::updateStoredUser` — the only writer
+  of the storage still. A failure is silent; a profile without a role is not an admin.
   The one sanctioned exception is the planner map's tiles: `maplibre-gl` fetches
   `tiles.openfreemap.org` itself (ADR 0016). That is the library's own traffic, not app code —
   no component gains the right to call `fetch`.
@@ -104,7 +112,24 @@ TypeScript 5, Tailwind CSS v4.
 - Routes live in groups: `app/(marketing)/` (public; layout = the aurora, Header and Footer in a
   `min-h-dvh` column whose `main` takes what the footer leaves, includes `auth/callback/`, where
   Cognito sends the browser back) and `app/(app)/` (signed-in; layout = shell + `ProtectedRoute`).
-  Do not wrap pages in `ProtectedRoute` again.
+  Do not wrap pages in `ProtectedRoute` again. `app/(admin)/` is the admin console (TRA-222, ADR
+  0024): its layout is the `app` header (no aurora, plain `bg-bg-primary`), `ProtectedRoute` and
+  `components/admin/AdminGate.tsx` — a spinner while the session is read, `NotAllowed` for anyone
+  who is not an admin, and `AdminShell` for the rest (a 240 px sticky sidebar from `lg`, a tab strip
+  below it, a dense content area with no max width). The header's **Admin** link (`ShieldCheck`,
+  desktop bar and drawer) exists only when `isAdmin`. Pages are static shells over client pages
+  (`admin/page.tsx` overview with `?range=30`, `turns/` with its filters in the URL, `turn/?id=`,
+  `trips/`, `users/`); hooks in `hooks/admin/` own the async state (`useAdminStats`, `useTurns`,
+  `useTurn`, `useAdminUsers` — every page read, `byId` and `bySubject` for the joins — and
+  `useAdminTrips`, the lists over one `useCursorList`); a 401 clears the session, a 403 is
+  `"forbidden"`. `components/admin/` holds the one `DataTable` (sticky header, numeric columns
+  right-aligned in `tabular-nums`, a scrolling wrapper, a real link in the first cell of a row with
+  an `href`), the `Pill` (a coloured dot and the word, never colour alone), the overview's
+  `KpiTiles` (over the pure `overview/kpis.ts`), `RangePicker` and `DailyChart` (hand-drawn SVG over
+  the pure `charts/scale.ts`: bars stacked by status over a separate output-tokens panel, focusable
+  days with a tooltip, an `sr-only` table), and the turns filters and table. `/admin/turn/` is a
+  placeholder TRA-228 turns into the inspector; `useTurn` stays. Ids and JSON are `font-mono`
+  (JetBrains Mono, `--font-mono`, loaded in `app/layout.tsx`) — the only monospace in the app.
 - **The landing is the field** (TRA-190): `/` is `components/landing/AskField.tsx` and nothing else
   — the question (the page's only `h1`, and the field's `aria-labelledby`), the field, the button.
   The field itself is `components/common/AskComposer.tsx` (TRA-199), shared with the signed-in home:
@@ -323,7 +348,8 @@ TypeScript 5, Tailwind CSS v4.
   are unused and a new surface should not reach for them.
 - Tests: `renderWithProviders` from `src/test/render.tsx` and the typed builders in
   `src/test/fixtures.ts` (`src/test/fixtures/trip-budapest.ts` when a test needs a whole
-  `TripResponse`, `src/test/fixtures/planner-city.ts` when it needs a `PlannerCity`);
+  `TripResponse`, `src/test/fixtures/planner-city.ts` when it needs a `PlannerCity`,
+  `src/test/fixtures/admin.ts` for the admin routes' answers, shared with `e2e/admin.spec.ts`);
   assert on roles/names/`data-*` state and on `en.ts` copy, not on class names.
   Do not mock `Card`/`Section`/`Container`/`next/link` or `lucide-react` icon by icon.
 - Playwright, three configs over one `e2e/` folder: `playwright.config.ts` (`just test-e2e`: starts
@@ -345,7 +371,9 @@ TypeScript 5, Tailwind CSS v4.
   "map unavailable" fallback where there is none. `mobile.spec.ts` is the phone-viewport suite
   (`test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true })`): it runs in
   all three configs, signs the planner in with a fake unsigned JWT and sends no turn, so it needs no
-  backend either.
+  backend either. `admin.spec.ts` (TRA-222) runs in all three too: every admin route is mocked with
+  `page.route` from `src/test/fixtures/admin.ts`, the stored profile carries `role`, and
+  `/api/v1/users/me` is mocked for the builds that have a core_api to ask.
 
 ## Commands
 
