@@ -1,5 +1,6 @@
 """Prompts. Kept out of code paths so they can be tuned in isolation."""
 
+import hashlib
 from collections.abc import Iterable, Sequence
 
 from ai_api.domain.models import City, Document
@@ -19,6 +20,12 @@ RAG_CONTEXT_PROMPT = (
     "{context}"
 )
 """Second system turn carrying retrieved passages; `{context}` is filled in."""
+
+
+def prompt_version(template: str) -> str:
+    """Which wording of a prompt a model call used: the first 12 hex of the
+    SHA-256 of its template (ADR 0024), so a trace tells two tunings apart."""
+    return hashlib.sha256(template.encode()).hexdigest()[:12]
 
 
 def format_context(documents: Iterable[Document]) -> str:

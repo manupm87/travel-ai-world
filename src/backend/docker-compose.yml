@@ -10,8 +10,8 @@
 #
 # Each service reads its own .env (copy the .env.example next to it).
 # SECRET_KEY must be identical in both. core_api keeps everything in DynamoDB
-# Local (ADR 0023) and creates its table there at start; there is no SQL
-# database.
+# Local (ADR 0023) and creates its table there at start; ai_api writes the
+# turn traces to its own table there (ADR 0024). There is no SQL database.
 #
 # The proxy bind-mounts ../frontend/out (the static export, gitignored) read-only.
 # Docker creates a missing bind-mount source as a root-owned directory, which
@@ -62,6 +62,8 @@ services:
     environment:
       - CORE_API_URL=http://core_api:8000
       - DYNAMODB_ENDPOINT_URL=http://dynamodb:8000
+      # The trace of every turn (ADR 0024), table created at start-up.
+      - INTERACTIONS_TABLE=travel-ai-local-interactions
       - AWS_ACCESS_KEY_ID=local
       - AWS_SECRET_ACCESS_KEY=local
       - AWS_REGION=eu-west-1

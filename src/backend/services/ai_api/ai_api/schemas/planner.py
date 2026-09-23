@@ -97,7 +97,13 @@ class PlannerTurn(BaseModel):
         description="ids the traveller already saw for this ask; never offered again",
     )
     trip_id: UUID | None = Field(
-        description="Reserved: the Trip this draft will be saved to"
+        description="The Trip this draft was saved as, once it was (else null)"
+    )
+    session_id: UUID | None = Field(
+        description=(
+            "The planner draft this turn belongs to, minted by the page: links "
+            "the turn's trace to the others of the same conversation (ADR 0024)"
+        )
     )
 
 

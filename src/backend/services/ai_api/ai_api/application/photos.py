@@ -13,6 +13,7 @@ placeholder is shown and credited as such, so no card is ever blank.
 import asyncio
 import logging
 from collections.abc import Awaitable, Callable, Sequence
+from dataclasses import dataclass
 from urllib.parse import quote
 
 from ai_api.domain.models import Photo
@@ -91,3 +92,71 @@ async def ensure_photos(
         )
 
     return list(await asyncio.gather(*(with_photo(card) for card in cards)))
+
+
+# ─── Where the pictures came from (the trace's `photos` step, ADR 0024) ─────
+
+
+@dataclass(slots=True)
+class PhotoTally:
+    """Counts the photos Commons and the venues' own sites answered while it
+    wraps the two lookups; `sources` then tells every card's origin."""
+
+    commons: int = 0
+    site: int = 0
+
+    def finder(self, finder: PhotoFinder | None) -> PhotoFinder | None:
+        return None if finder is None else _CountingFinder(finder, self)
+
+    def previews(self, previews: SitePreviewFinder | None) -> SitePreviewFinder | None:
+        return None if previews is None else _CountingPreviews(previews, self)
+
+    def sources(
+        self, before: Sequence[OptionCard], after: Sequence[OptionCard]
+    ) -> dict[str, int]:
+        """`corpus` (pictured already), `commons`, `site`, `placeholder`, and
+        `district` (a neighbourhood's borrowed sight) for the rest."""
+        corpus = sum(1 for card in before if card.image_url)
+        placeholder = sum(
+            1 for card in after if card.image_credit == LAST_RESORT.credit
+        )
+        pictured = sum(1 for card in after if card.image_url)
+        district = pictured - corpus - self.commons - self.site - placeholder
+        return {
+            "corpus": corpus,
+            "commons": self.commons,
+            "site": self.site,
+            "district": max(0, district),
+            "placeholder": placeholder,
+        }
+
+
+class _CountingFinder:
+    def __init__(self, wrapped: PhotoFinder, tally: PhotoTally) -> None:
+        self._wrapped = wrapped
+        self._tally = tally
+
+    async def find(
+        self, name: str, lat: float, lon: float, *, city: str
+    ) -> Photo | None:
+        return self._count(await self._wrapped.find(name, lat, lon, city=city))
+
+    async def find_for_page(self, page_url: str) -> Photo | None:
+        return self._count(await self._wrapped.find_for_page(page_url))
+
+    def _count(self, photo: Photo | None) -> Photo | None:
+        if photo is not None:
+            self._tally.commons += 1
+        return photo
+
+
+class _CountingPreviews:
+    def __init__(self, wrapped: SitePreviewFinder, tally: PhotoTally) -> None:
+        self._wrapped = wrapped
+        self._tally = tally
+
+    async def preview(self, site_url: str) -> Photo | None:
+        photo = await self._wrapped.preview(site_url)
+        if photo is not None:
+            self._tally.site += 1
+        return photo

@@ -1,15 +1,20 @@
 """Which adapters the process runs: the LLM, decided by `LLM_PROVIDER`, the
 retriever, switched on by `RETRIEVAL_ENABLED`, and the cities the planner
-covers, read from the packaged manifest and narrowed by `PLANNER_CITIES`.
+covers, read from the packaged manifest and narrowed by `PLANNER_CITIES`,
+and where the traces go, decided by `INTERACTIONS_TABLE` (ADR 0024).
 
 The use cases and the endpoints only see the ports; this is the one place that
 knows the concrete adapters.
 """
 
+from travel_common.dynamodb import dynamodb_client
+
 from ai_api.config import AISettings
+from ai_api.domain.ports import TraceLog
 from ai_api.infrastructure.bedrock_embedder import TitanEmbedder
 from ai_api.infrastructure.bedrock_provider import BedrockProvider
 from ai_api.infrastructure.cities import City, load_cities, select_cities
+from ai_api.infrastructure.dynamo_traces import DynamoTraceLog, NullTraceLog
 from ai_api.infrastructure.nvidia_provider import NvidiaProvider
 from ai_api.infrastructure.s3vectors_retriever import S3VectorsRetriever
 
@@ -42,3 +47,14 @@ def planner_cities(settings: AISettings) -> tuple[City, ...]:
     An unknown slug raises at start-up, naming the ones the manifest knows.
     """
     return select_cities(load_cities(), settings.PLANNER_CITIES)
+
+
+def build_trace_log(settings: AISettings) -> TraceLog:
+    """The interactions table, or nothing when `INTERACTIONS_TABLE` is empty."""
+    if not settings.INTERACTIONS_TABLE:
+        return NullTraceLog()
+    return DynamoTraceLog(
+        dynamodb_client(settings.DYNAMODB_ENDPOINT_URL, settings.AWS_REGION),
+        settings.INTERACTIONS_TABLE,
+        settings.INTERACTION_TTL_DAYS,
+    )

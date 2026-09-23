@@ -21,6 +21,7 @@ from collections.abc import AsyncIterator, Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 from typing import Literal, cast
+from urllib.parse import urlparse
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
@@ -28,8 +29,16 @@ from travel_common.exceptions import DomainError
 
 from ai_api.application.cards import card_from_document, cards_for, title_of
 from ai_api.application.language import Language, detect_language
-from ai_api.application.photos import ensure_photos
+from ai_api.application.photos import PhotoTally, ensure_photos
 from ai_api.application.structured import complete_json
+from ai_api.application.tracing import (
+    NullTracer,
+    TurnTracer,
+    clip_query,
+    current_tracer,
+    filters_payload,
+    traced_llm_stream,
+)
 from ai_api.application.validate import Placed, strip_prices, validate_day
 from ai_api.domain.models import (
     City,
@@ -178,6 +187,9 @@ MONTH_NAMES: dict[str, list[str]] = {
         "diciembre",
     ],
 }
+OPEN_METEO_HOST = "api.open-meteo.com"
+"""Where the forecast comes from, as the trace names it."""
+
 NORMALS_PATTERN = re.compile(r"highs\s+(-?\d+)\s*°C\s+and\s+lows\s+(-?\d+)\s*°C")
 
 
@@ -249,6 +261,8 @@ class Turn:
     # A corpus photo per category (or district), searched once per turn even
     # when several cards ask at the same time (they await the same task).
     corpus_photos: dict[str, asyncio.Task[Photo | None]] = field(default_factory=dict)
+    # The request's trace (ADR 0024); records nothing outside a request.
+    tracer: TurnTracer = field(default_factory=NullTracer)
 
     def use(self, document: Document) -> None:
         self.used_ids.add(document.id)
@@ -444,6 +458,11 @@ def _keep_known(picks: Sequence[Pick], known: Mapping[str, Document]) -> list[Pi
     return kept
 
 
+def _unknown(picks: Sequence[Pick], known: Mapping[str, Document]) -> list[str]:
+    """Ids the model returned that were never retrieved: dropped, counted."""
+    return list(dict.fromkeys(p.id for p in picks if p.id not in known))
+
+
 def _fill(picks: list[Pick], candidates: Sequence[Document], count: int) -> list[Pick]:
     """Top candidates up to `count` when the model picked too few or unknown ids."""
     chosen = {p.id for p in picks}
@@ -556,7 +575,16 @@ class PlanTrip:
         self._today = today
 
     async def __call__(self, request: PlannerTurn) -> AsyncIterator[PlannerEvent]:
-        turn = _read_turn(request)
+        tracer = current_tracer()
+        tracer.phase("open")
+        with tracer.sync_span("chain", "read_turn") as span:
+            turn = _read_turn(request)
+            span.payload["details"] = {
+                "language": turn.language,
+                "used_ids": len(turn.used_ids),
+                "has_stay": turn.stay_id is not None,
+            }
+        turn.tracer = tracer
         action = request.action
         if isinstance(action, SelectAction):
             events = self._on_select(turn, action)
@@ -564,8 +592,13 @@ class PlanTrip:
             events = self._on_remove(turn, action)
         else:
             events = self._on_message(turn)
-        async for event in events:
-            yield event
+        try:
+            async for event in events:
+                yield event
+        finally:
+            city = resolve_city(turn.brief.destination, self._cities)
+            tracer.city = city.slug if city is not None else tracer.city
+            tracer.language = turn.language
 
     # ── Messages ─────────────────────────────────────────────────────────
 
@@ -668,7 +701,13 @@ class PlanTrip:
             Message("user", turn.message),
         ]
         try:
-            update = await complete_json(self._provider, messages, BriefUpdate)
+            update = await complete_json(
+                self._provider,
+                messages,
+                BriefUpdate,
+                name="extract_brief",
+                template=BRIEF_EXTRACTION_PROMPT,
+            )
         except DomainError as exc:
             logger.warning("Brief kept as the client sent it: %s", exc.message)
             return turn.brief
@@ -689,7 +728,14 @@ class PlanTrip:
             *turn.history(6),
             Message("user", turn.message or "(the user updated the checklist)"),
         ]
-        async for delta in self._provider.stream(messages):
+        turn.tracer.phase("zip")
+        async for delta in traced_llm_stream(
+            self._provider,
+            messages,
+            name="ask_missing",
+            tracer=turn.tracer,
+            template=ASK_MISSING_PROMPT,
+        ):
             yield text(delta)
 
     # ── Neighbourhoods and hotels ────────────────────────────────────────
@@ -698,8 +744,15 @@ class PlanTrip:
         query = " ".join(
             ["neighbourhood to stay", *turn.brief.interests, turn.brief.pace or ""]
         )
+        turn.tracer.phase("wardrobe")
         found = await self._search(
-            turn, query, ("neighbourhood",), limit=24, districts=(), tier=None
+            turn,
+            query,
+            ("neighbourhood",),
+            limit=24,
+            districts=(),
+            tier=None,
+            purpose="neighbourhoods",
         )
         by_district: dict[str, Document] = {}
         for document in found:
@@ -723,7 +776,16 @@ class PlanTrip:
             count=OPTIONS_COUNT,
             language=LANGUAGE_NAMES[turn.language],
         )
-        picks = await self._pick(turn, prompt, candidates, OPTIONS_COUNT)
+        turn.tracer.phase("fold")
+        picks = await self._pick(
+            turn,
+            prompt,
+            candidates,
+            OPTIONS_COUNT,
+            name="rank_neighbourhoods",
+            template=RANK_NEIGHBOURHOODS_PROMPT,
+        )
+        turn.tracer.phase("weigh")
         return await self._with_photos(
             turn,
             [card_from_document(known[p.id], self._clean(turn, p.why)) for p in picks],
@@ -779,6 +841,7 @@ class PlanTrip:
                 limit=self._candidate_count,
                 districts=districts,
                 tier=None,
+                purpose="photos",
             )
         except DomainError as exc:
             logger.warning("No corpus photo for %s: %s", key, exc.message)
@@ -798,6 +861,7 @@ class PlanTrip:
         if not cards:
             yield text(planner_text(turn.language, "no_neighbourhoods"))
             return
+        turn.tracer.phase("zip")
         yield text(planner_text(turn.language, "neighbourhoods"))
         yield options(
             "nb",
@@ -821,7 +885,8 @@ class PlanTrip:
             ((), None),
         ]
         found: list[Document] = []
-        for districts, tier_max in attempts:
+        turn.tracer.phase("wardrobe")
+        for step, (districts, tier_max) in enumerate(attempts):
             found = await self._search(
                 turn,
                 query,
@@ -830,6 +895,8 @@ class PlanTrip:
                 limit=self._candidate_count * 2,
                 districts=districts,
                 tier=tier_max,
+                purpose="hotels",
+                ladder_step=step,
             )
             # A stay is always shown with a photo of itself: the corpus
             # resolves one for every hotel it keeps (ADR 0022), so a document
@@ -850,7 +917,7 @@ class PlanTrip:
         self, turn: Turn, district: str | None, *, cheaper: bool = False
     ) -> AsyncIterator[PlannerEvent]:
         if district is None and turn.stay_id:
-            stay = await self._fetch_one(turn.stay_id)
+            stay = await self._fetch_one(turn, turn.stay_id)
             if stay is not None:
                 district = _district_of(stay)
         candidates, area = await self._hotel_candidates(turn, district, cheaper=cheaper)
@@ -865,12 +932,22 @@ class PlanTrip:
             count=OPTIONS_COUNT,
             language=LANGUAGE_NAMES[turn.language],
         )
-        picks = await self._pick(turn, prompt, candidates, OPTIONS_COUNT)
+        turn.tracer.phase("fold")
+        picks = await self._pick(
+            turn,
+            prompt,
+            candidates,
+            OPTIONS_COUNT,
+            name="pick_hotels",
+            template=PICK_HOTELS_PROMPT,
+        )
+        turn.tracer.phase("weigh")
         cards = await self._with_photos(
             turn,
             [card_from_document(known[p.id], self._clean(turn, p.why)) for p in picks],
         )
         label = area or self._city(turn).name
+        turn.tracer.phase("zip")
         yield text(planner_text(turn.language, "hotels", district=label))
         yield options(
             f"hotels:{label}",
@@ -891,6 +968,7 @@ class PlanTrip:
         if not candidates:
             yield text(planner_text(turn.language, "no_hotels"))
             return
+        turn.tracer.mark_used([candidates[0].id])
         [stay] = await self._with_photos(turn, [card_from_document(candidates[0])])
         async for event in self._set_stay_and_draft(turn, stay):
             yield event
@@ -916,10 +994,20 @@ class PlanTrip:
         pace: Pace = brief.pace or "balanced"
         plan = PART_PLAN[pace]
 
-        route_ops = self._route_ops(brief)
+        tracer = turn.tracer
+        tracer.phase("open")
+        with tracer.sync_span("tool", "flights", service="flights") as span:
+            route_ops = self._route_ops(brief)
+            link = getattr(route_ops[0], "deep_link", None) if route_ops else None
+            span.payload.update(
+                host=urlparse(link).netloc if link else None,
+                status="ok" if route_ops else "empty",
+                count=len(route_ops),
+            )
         if route_ops:
             yield patch(*route_ops)
 
+        tracer.phase("wardrobe")
         weather, skeleton = await asyncio.gather(
             self._weather_by_day(turn, stay, days), self._skeleton(turn, stay, days)
         )
@@ -931,33 +1019,46 @@ class PlanTrip:
             # The title goes out before the searches and the pick, so the page
             # shows the day taking shape and the stream never sits silent long.
             yield patch(set_day_title(day, sketch.title))
+            tracer.phase("fold")
             picks = await self._day_picks(turn, sketch, days, plan)
+            tracer.phase("weigh")
             ops: list[Op] = []
             placed: list[Placed] = []
             price_seen = False
+            stripped = 0
             slots: list[Slot] = []
             cards: list[OptionCard] = []
             for part in DAY_PARTS:
                 for document, why in picks.get(part, []):
                     clean, found = strip_prices(why)
                     price_seen = price_seen or found
+                    stripped += int(found)
                     slots.append(Slot(day=day, part=part))
                     cards.append(card_from_document(document, clean))
                     turn.use(document)
+            if stripped:
+                with tracer.sync_span("chain", "strip_prices") as span:
+                    span.payload["details"] = {"day": day, "stripped": stripped}
             for slot, card in zip(
                 slots, await self._with_photos(turn, cards), strict=True
             ):
                 ops.append(put_activity(slot, card))
                 placed.append(Placed(slot=slot, card=card))
-            ops.extend(
-                validate_day(
+            with tracer.sync_span("chain", "validate_day") as span:
+                warnings = validate_day(
                     day,
                     placed,
                     pace=pace,
                     on=_date_of(brief, day),
                     language=turn.language,
                 )
-            )
+                span.payload["details"] = {
+                    "day": day,
+                    "warnings": [w.code for w in warnings],
+                }
+                if warnings:
+                    span.level = "warning"
+            ops.extend(warnings)
             if price_seen:
                 ops.append(
                     warn(
@@ -976,6 +1077,7 @@ class PlanTrip:
             if ops:
                 yield patch(*ops)
 
+        tracer.phase("zip")
         yield text(planner_text(turn.language, "draft_done", days=days))
 
     def _route_ops(self, brief: TripBrief) -> list[Op]:
@@ -1003,9 +1105,15 @@ class PlanTrip:
         end = brief.start_date + timedelta(days=days - 1)
         found: dict[date, DayWeather] = {}
         if self._weather is not None and stay.lat is not None and stay.lon is not None:
-            for w in await self._weather.daily(
-                stay.lat, stay.lon, brief.start_date, end
-            ):
+            async with turn.tracer.span(
+                "tool", "weather", service="open-meteo", host=OPEN_METEO_HOST
+            ) as span:
+                forecast = await self._weather.daily(
+                    stay.lat, stay.lon, brief.start_date, end
+                )
+                span.payload["status"] = "ok" if forecast else "empty"
+                span.payload["count"] = len(forecast)
+            for w in forecast:
                 found[w.day] = w
         result: dict[int, DayWeather] = {}
         normals: dict[int, DayWeather | None] = {}
@@ -1031,7 +1139,9 @@ class PlanTrip:
         """The corpus's monthly normal (`om:climate:<city>:<MM>`), if indexed."""
         city = self._city(turn).slug
         try:
-            found = await self._retriever.fetch([f"om:climate:{city}:{on.month:02d}"])
+            found = await self._fetch(
+                turn, [f"om:climate:{city}:{on.month:02d}"], purpose="climate"
+            )
         except DomainError as exc:
             logger.warning("Climate normals unavailable: %s", exc.message)
             return None
@@ -1080,6 +1190,8 @@ class PlanTrip:
                 self._provider,
                 [Message("system", self._persona(turn)), Message("user", prompt)],
                 Skeleton,
+                name="skeleton",
+                template=SKELETON_PROMPT,
             )
         except DomainError as exc:
             logger.warning("Skeleton unavailable, using plain days: %s", exc.message)
@@ -1110,7 +1222,12 @@ class PlanTrip:
             else:
                 query = f"bar evening {theme}"
             found = await self._candidates(
-                turn, query, categories, sketch.districts, tier
+                turn,
+                query,
+                categories,
+                sketch.districts,
+                tier,
+                purpose=f"candidates:{sketch.day}:{part}",
             )
             return found[: max(self._candidate_count, count)]
 
@@ -1146,10 +1263,18 @@ class PlanTrip:
                     self._provider,
                     [Message("system", self._persona(turn)), Message("user", prompt)],
                     DayPicks,
+                    name=f"day_picks:{sketch.day}",
+                    template=DAY_PICKS_PROMPT,
                 )
+                dropped: list[str] = []
                 for part in plan:
                     allowed = {d.id: d for d in candidates.get(part, [])}
-                    picks_by_part[part] = _keep_known(getattr(answer, part), allowed)
+                    returned: list[Pick] = getattr(answer, part)
+                    picks_by_part[part] = _keep_known(returned, allowed)
+                    dropped.extend(_unknown(returned, allowed))
+                turn.tracer.note_picks(
+                    [p.id for kept in picks_by_part.values() for p in kept], dropped
+                )
             except DomainError as exc:
                 logger.warning(
                     "Day %d picked without the model: %s", sketch.day, exc.message
@@ -1166,6 +1291,7 @@ class PlanTrip:
             )
             chosen.update(p.id for p in picks)
             result[part] = [(known[p.id], p.why) for p in picks]
+        turn.tracer.mark_used(chosen)
         return result
 
     def _part_categories(
@@ -1184,6 +1310,8 @@ class PlanTrip:
         categories: tuple[str, ...],
         districts: Sequence[str],
         tier: int | None,
+        *,
+        purpose: str,
     ) -> list[Document]:
         """Places for a part of the day: the day's districts first, then the
         rest of the city (a bath or a market is worth a tram ride), and only
@@ -1197,7 +1325,7 @@ class PlanTrip:
         collected: list[Document] = []
         seen: set[str] = set()
         wanted = self._candidate_count + OPTIONS_COUNT
-        for districts_try, tier_try in attempts:
+        for step, (districts_try, tier_try) in enumerate(attempts):
             if len(collected) >= wanted:
                 break
             found = await self._search(
@@ -1207,6 +1335,8 @@ class PlanTrip:
                 limit=self._candidate_count + len(turn.used_ids),
                 districts=districts_try,
                 tier=tier_try,
+                purpose=purpose,
+                ladder_step=step,
             )
             taken = [*turn.used_titles, *(title_words(title_of(d)) for d in collected)]
             for document in _dedupe_by_title(found, taken):
@@ -1223,9 +1353,10 @@ class PlanTrip:
         self, turn: Turn, action: SelectAction
     ) -> AsyncIterator[PlannerEvent]:
         group = action.group_id
-        documents = await self._retriever.fetch(action.card_ids)
+        documents = await self._fetch(turn, action.card_ids, purpose="fetch")
         by_id = {d.id: d for d in documents}
         picked = [by_id[i] for i in action.card_ids if i in by_id]
+        turn.tracer.mark_used(d.id for d in picked)
         if not picked:
             yield text(planner_text(turn.language, "stale_group"))
             return
@@ -1248,7 +1379,9 @@ class PlanTrip:
         if slot is None:
             yield text(planner_text(turn.language, "stale_group"))
             return
+        turn.tracer.phase("weigh")
         cards = await self._with_photos(turn, cards_for(picked, {}))
+        turn.tracer.phase("zip")
         yield patch(*(put_activity(slot, card) for card in cards))
         yield text(
             planner_text(
@@ -1281,6 +1414,8 @@ class PlanTrip:
                     Message("user", turn.message),
                 ],
                 Intent,
+                name="classify",
+                template=INTENT_PROMPT,
             )
         except DomainError as exc:
             logger.warning("Intent unavailable, answering as chat: %s", exc.message)
@@ -1318,8 +1453,13 @@ class PlanTrip:
             categories, tier = SIGHT_CATEGORIES, None
         request = query or turn.message or " ".join(turn.brief.interests)
         await self._seed_used_titles(turn)
+        turn.tracer.phase("wardrobe")
         pinned = await self._named_places(turn, turn.message or request)
-        candidates = await self._candidates(turn, request, categories, (), tier)
+        turn.tracer.phase("fold")
+        where = f"{slot.day}:{part or 'any'}" if slot is not None else "any"
+        candidates = await self._candidates(
+            turn, request, categories, (), tier, purpose=f"candidates:{where}"
+        )
         candidates = _pin_candidates(
             pinned, [d for d in candidates if d.id not in turn.used_ids]
         )
@@ -1339,8 +1479,17 @@ class PlanTrip:
             count=OPTIONS_COUNT,
             language=LANGUAGE_NAMES[turn.language],
         )
-        picks = await self._pick(turn, prompt, candidates, OPTIONS_COUNT)
+        picks = await self._pick(
+            turn,
+            prompt,
+            candidates,
+            OPTIONS_COUNT,
+            name="pick_options",
+            template=PICK_OPTIONS_PROMPT,
+        )
         picks = _pin_picks(pinned, picks, OPTIONS_COUNT)
+        turn.tracer.mark_used(p.id for p in picks)
+        turn.tracer.phase("weigh")
         cards = await self._with_photos(
             turn,
             [card_from_document(known[p.id], self._clean(turn, p.why)) for p in picks],
@@ -1354,6 +1503,7 @@ class PlanTrip:
             )
             group_id = f"slot:{slot.day}:{part or 'morning'}"
             placed = Slot(day=slot.day, part=part or "morning")
+        turn.tracer.phase("zip")
         yield text(prompt_text)
         yield options(group_id, kind, prompt_text, cards, slot=placed)
 
@@ -1368,9 +1518,16 @@ class PlanTrip:
                 ),
             ),
         ]
+        turn.tracer.phase("wardrobe")
         try:
             passages = await self._search(
-                turn, turn.message, (), limit=6, districts=(), tier=None
+                turn,
+                turn.message,
+                (),
+                limit=6,
+                districts=(),
+                tier=None,
+                purpose="chat",
             )
         except DomainError as exc:
             logger.warning("Answering without retrieval: %s", exc.message)
@@ -1385,7 +1542,14 @@ class PlanTrip:
         messages.extend(turn.history())
         messages.append(Message("user", turn.message))
         answer: list[str] = []
-        async for delta in self._provider.stream(messages):
+        turn.tracer.phase("zip")
+        async for delta in traced_llm_stream(
+            self._provider,
+            messages,
+            name="chat",
+            tracer=turn.tracer,
+            template=CHAT_INTRO,
+        ):
             answer.append(delta)
             yield text(delta)
         # The places the prose just named are cards the traveller can add
@@ -1408,6 +1572,7 @@ class PlanTrip:
             if all(d.metadata.get("category") in EAT_DRINK for d in offered)
             else "experience"
         )
+        turn.tracer.mark_used(d.id for d in offered)
         # `why` stays empty: the answer above already explains every one of them.
         cards = await self._with_photos(turn, cards_for(offered, {}))
         yield options(
@@ -1426,13 +1591,17 @@ class PlanTrip:
         """Every card pictured: its own, one found on Commons, the preview of
         the venue's own site, a sight of the district for a neighbourhood
         card, or the neutral placeholder — never another venue's photo."""
-        return await ensure_photos(
-            cards,
-            self._photos,
-            city=self._city(turn).name,
-            previews=self._previews,
-            fallback=lambda card: self._corpus_photo(turn, card),
-        )
+        tally = PhotoTally()
+        async with turn.tracer.span("chain", "photos") as span:
+            pictured = await ensure_photos(
+                cards,
+                tally.finder(self._photos),
+                city=self._city(turn).name,
+                previews=tally.previews(self._previews),
+                fallback=lambda card: self._corpus_photo(turn, card),
+            )
+            span.payload["details"] = tally.sources(cards, pictured)
+        return pictured
 
     def _city(self, turn: Turn) -> City:
         """The city this turn plans: the brief's destination when it is one
@@ -1443,10 +1612,21 @@ class PlanTrip:
         return PLANNER_PERSONA.format(language=LANGUAGE_NAMES[turn.language])
 
     def _clean(self, turn: Turn, why: str) -> str:
-        return strip_prices(why)[0]
+        clean, found = strip_prices(why)
+        if found:
+            with turn.tracer.sync_span("chain", "strip_prices") as span:
+                span.payload["details"] = {"stripped": 1}
+        return clean
 
     async def _pick(
-        self, turn: Turn, prompt: str, candidates: Sequence[Document], count: int
+        self,
+        turn: Turn,
+        prompt: str,
+        candidates: Sequence[Document],
+        count: int,
+        *,
+        name: str,
+        template: str,
     ) -> list[Pick]:
         known = {d.id: d for d in candidates}
         try:
@@ -1454,12 +1634,17 @@ class PlanTrip:
                 self._provider,
                 [Message("system", self._persona(turn)), Message("user", prompt)],
                 Picks,
+                name=name,
+                template=template,
             )
             picks = _keep_known(answer.picks, known)
+            turn.tracer.note_picks([p.id for p in picks], _unknown(answer.picks, known))
         except DomainError as exc:
             logger.warning("Picking without the model: %s", exc.message)
             picks = []
-        return _fill(picks, candidates, count)
+        filled = _fill(picks, candidates, count)
+        turn.tracer.mark_used(p.id for p in filled)
+        return filled
 
     async def _search(
         self,
@@ -1470,16 +1655,47 @@ class PlanTrip:
         limit: int,
         districts: tuple[str, ...],
         tier: int | None,
+        purpose: str,
+        ladder_step: int | None = None,
     ) -> list[Document]:
+        """One search of the corpus, traced as a `retriever` step with its
+        `purpose` (`neighbourhoods`, `candidates:<day>:<part>`, `hotels`,
+        `named`, `chat`, `photos`) and the step of a widening ladder."""
         filters = RetrievalFilters(
             city=self._city(turn).slug,
             districts=districts,
             categories=categories,
             price_tier_max=tier,
         )
-        return await self._retriever.search(
-            query.strip() or "places", limit=limit, filters=filters
-        )
+        asked = query.strip() or "places"
+        async with turn.tracer.span(
+            "retriever",
+            f"search:{purpose}",
+            purpose=purpose,
+            query=clip_query(asked),
+            filters=filters_payload(filters),
+            k=limit,
+            ladder_step=ladder_step,
+        ) as span:
+            found = await self._retriever.search(asked, limit=limit, filters=filters)
+            turn.tracer.retrieved(span, found)
+        return found
+
+    async def _fetch(
+        self, turn: Turn, ids: Sequence[str], *, purpose: str
+    ) -> list[Document]:
+        """Documents by id (a selection, the trip's places, a climate normal),
+        traced as a `retriever` step."""
+        async with turn.tracer.span(
+            "retriever",
+            f"fetch:{purpose}",
+            purpose=purpose,
+            query=clip_query(" ".join(ids)),
+            k=len(ids),
+        ) as span:
+            found = await self._retriever.fetch(ids)
+            turn.tracer.retrieved(span, found)
+        return found
 
     async def _named_places(self, turn: Turn, ask: str) -> list[Document]:
         """The places the ask names by their own name, deterministically.
@@ -1495,7 +1711,13 @@ class PlanTrip:
             return []
         try:
             found = await self._search(
-                turn, ask, (), limit=NAMED_LIMIT, districts=(), tier=None
+                turn,
+                ask,
+                (),
+                limit=NAMED_LIMIT,
+                districts=(),
+                tier=None,
+                purpose="named",
             )
         except DomainError as exc:
             logger.warning("Looking up the named places failed: %s", exc.message)
@@ -1515,14 +1737,14 @@ class PlanTrip:
         if turn.used_titles or not turn.used_ids:
             return
         try:
-            held = await self._retriever.fetch(sorted(turn.used_ids))
+            held = await self._fetch(turn, sorted(turn.used_ids), purpose="fetch")
         except DomainError as exc:
             logger.warning("Could not read the itinerary's places: %s", exc.message)
             return
         turn.used_titles.extend(title_words(title_of(d)) for d in held)
 
-    async def _fetch_one(self, doc_id: str) -> Document | None:
-        found = await self._retriever.fetch([doc_id])
+    async def _fetch_one(self, turn: Turn, doc_id: str) -> Document | None:
+        found = await self._fetch(turn, [doc_id], purpose="fetch")
         return found[0] if found else None
 
 

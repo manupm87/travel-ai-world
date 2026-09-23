@@ -18,6 +18,7 @@ from ai_api.testing import (
     FakeConversations,
     FakeProvider,
     FakeRetriever,
+    InMemoryTraceLog,
     settings_for_tests,
 )
 from httpx import AsyncClient
@@ -328,3 +329,26 @@ async def test_provider_health_reports_the_adapter_name(client: AsyncClient):
 
     assert resp.status_code == 200
     assert resp.json() == {"status": "ok", "provider": "configured", "name": "fake"}
+
+
+async def test_a_chat_answer_leaves_a_trace(
+    client: AsyncClient,
+    auth_headers,
+    trace_log: InMemoryTraceLog,
+):
+    gellert = Document("wv:gellert", "Gellért Baths.", {"name": "Gellért Baths"})
+    app.dependency_overrides[get_retriever] = lambda: FakeRetriever([gellert])
+
+    await client.post(
+        CHAT_URL, json={"message": "¿Un balneario en Buda?"}, headers=auth_headers
+    )
+
+    [trace] = trace_log.traces
+    assert trace.kind == "chat" and trace.status == "ok"
+    assert trace.question_preview == "¿Un balneario en Buda?"
+    assert trace.answer_preview == "Hola mundo"
+    assert trace.events == {"text": 2, "thread": 1}
+    retriever, llm = trace.spans
+    assert retriever.payload["purpose"] == "chat" and retriever.results[0].used
+    assert llm.kind == "llm" and llm.payload["output"] == "Hola mundo"
+    assert trace.input_tokens == 3 and trace.output_tokens == 2

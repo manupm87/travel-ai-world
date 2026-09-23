@@ -102,6 +102,16 @@ class AISettings(CommonSettings, DynamoSettings):
     SITE_PREVIEW_MAX_BYTES: int = 262144
     SITE_PREVIEW_CACHE_SECONDS: int = 86400
 
+    # The trace of every request (ADR 0024): the DynamoDB table the turns are
+    # written to (`<prefix>-interactions`, Terraform's on AWS; created on
+    # start-up against DYNAMODB_ENDPOINT_URL locally). Empty records nothing.
+    INTERACTIONS_TABLE: str = ""
+    # Days a trace is kept (the table's TTL on `expires_at`).
+    INTERACTION_TTL_DAYS: int = 90
+    # Longest text one trace field keeps (bytes, cut on a UTF-8 boundary):
+    # a model call's input and output, the answer, the history.
+    TRACE_PAYLOAD_BYTES: int = 8192
+
 
 @lru_cache
 def get_settings() -> AISettings:

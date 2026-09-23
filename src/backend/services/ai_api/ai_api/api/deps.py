@@ -14,19 +14,24 @@ from travel_common.security import principal_from_token
 from ai_api.application.card_detail import CardDetailLookup
 from ai_api.application.plan_trip import PlanTrip
 from ai_api.application.record_conversation import RecordConversation
+from ai_api.application.record_trace import RecordTrace
 from ai_api.application.stream_chat import StreamChat
+from ai_api.application.tracing import TurnTracer
 from ai_api.config import AISettings, get_settings
-from ai_api.domain.models import City
+from ai_api.domain.models import City, GenerationParams
 from ai_api.domain.ports import (
     ConversationGateway,
     LLMProvider,
     PhotoFinder,
     Retriever,
     SitePreviewFinder,
+    TraceLog,
     TripGateway,
     WeatherForecast,
 )
+from ai_api.domain.tracing import Kind
 from ai_api.infrastructure.core_api_client import CoreApiClient
+from ai_api.infrastructure.dynamo_traces import NullTraceLog
 from ai_api.infrastructure.providers import ChatProvider, planner_cities
 from ai_api.prompts import CHAT_SYSTEM_PROMPT
 
@@ -152,3 +157,33 @@ def get_record_conversation(
     conversations: ConversationGateway | None = Depends(get_conversation_gateway),
 ) -> RecordConversation | None:
     return RecordConversation(conversations) if conversations is not None else None
+
+
+def get_trace_log(request: Request) -> TraceLog:
+    """The trace log built in `lifespan` (ADR 0024); nothing without one."""
+    log: TraceLog | None = getattr(request.app.state, "trace_log", None)
+    return log if log is not None else NullTraceLog()
+
+
+def get_record_trace(log: TraceLog = Depends(get_trace_log)) -> RecordTrace:
+    return RecordTrace(log)
+
+
+def new_tracer(
+    kind: Kind, request: Request, principal: Principal, settings: AISettings
+) -> TurnTracer:
+    """The trace of this request: who asked (the subject, never the email),
+    on which route, with the sampling and the embeddings model in force."""
+    tracer = TurnTracer(
+        kind,
+        route=request.url.path,
+        subject=principal.subject,
+        payload_bytes=settings.TRACE_PAYLOAD_BYTES,
+    )
+    tracer.embedding_model = settings.EMBEDDINGS_MODEL
+    tracer.params = GenerationParams(
+        max_tokens=settings.CHAT_MAX_TOKENS,
+        temperature=settings.CHAT_TEMPERATURE,
+        top_p=settings.CHAT_TOP_P,
+    )
+    return tracer

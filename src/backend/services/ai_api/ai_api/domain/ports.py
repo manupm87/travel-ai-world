@@ -16,6 +16,7 @@ from ai_api.domain.models import (
     RetrievalFilters,
     Usage,
 )
+from ai_api.domain.tracing import TurnTrace
 
 
 class LLMProvider(Protocol):
@@ -144,3 +145,11 @@ class ConversationGateway(Protocol):
     async def append_turn(
         self, bearer_token: str, thread_id: str, turn: ChatTurn
     ) -> None: ...
+
+
+class TraceLog(Protocol):
+    """Where the trace of every request goes (ADR 0024): the interactions
+    table in DynamoDB, nothing when `INTERACTIONS_TABLE` is empty, a list in
+    tests. May raise; `RecordTrace` logs the failure and the turn goes on."""
+
+    async def record(self, trace: TurnTrace) -> None: ...

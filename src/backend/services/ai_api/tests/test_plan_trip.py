@@ -147,6 +147,7 @@ def turn(
             "itinerary": itinerary,
             "exclude_card_ids": list(exclude),
             "trip_id": None,
+            "session_id": None,
         }
     )
 

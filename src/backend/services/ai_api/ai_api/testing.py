@@ -21,6 +21,7 @@ from ai_api.domain.models import (
     RetrievalFilters,
     Usage,
 )
+from ai_api.domain.tracing import TurnTrace
 
 
 def settings_for_tests() -> AISettings:
@@ -342,3 +343,16 @@ def documents_from_corpus(path: Path, *, limit: int | None = None) -> list[Docum
             Document(id=corpus_document.doc_id, content=content, metadata=metadata)
         )
     return documents
+
+
+class InMemoryTraceLog:
+    """Keeps every recorded trace in `traces`; `fail_with` makes it raise."""
+
+    def __init__(self, fail_with: Exception | None = None) -> None:
+        self.traces: list[TurnTrace] = []
+        self.fail_with = fail_with
+
+    async def record(self, trace: TurnTrace) -> None:
+        if self.fail_with is not None:
+            raise self.fail_with
+        self.traces.append(trace)

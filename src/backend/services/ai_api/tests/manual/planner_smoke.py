@@ -193,6 +193,7 @@ class Session:
                 "itinerary": self._tally.snapshot(),
                 "exclude_card_ids": [],
                 "trip_id": None,
+                "session_id": None,
             }
         )
         label = message or json.dumps(action, ensure_ascii=False)
