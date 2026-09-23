@@ -4,6 +4,8 @@
   `infrastructure/dynamo/`.
 - `core_api.devtools` mints tokens for any account, so nothing in the web
   process imports it.
+- `core_api.ops` runs one-off table backfills from a shell; nothing in the web
+  process imports it either.
 """
 
 import ast
@@ -44,6 +46,11 @@ def test_only_the_adapter_talks_to_dynamodb():
 
 def test_the_service_never_imports_devtools():
     offenders = _offenders(("core_api.devtools",), ("devtools.py",))
+    assert offenders == [], offenders
+
+
+def test_the_service_never_imports_ops():
+    offenders = _offenders(("core_api.ops",), ("ops.py",))
     assert offenders == [], offenders
 
 
