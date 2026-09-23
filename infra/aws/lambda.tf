@@ -152,6 +152,8 @@ resource "aws_lambda_function" "ai_api" {
       VECTOR_REGION     = var.region
       EMBEDDINGS_MODEL  = var.embeddings_model
       EMBEDDINGS_REGION = var.region
+      # The trace of every turn (ADR 0024), table in traces.tf.
+      INTERACTIONS_TABLE = aws_dynamodb_table.interactions.name
     })
   }
 

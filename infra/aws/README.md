@@ -6,7 +6,9 @@ clouds. This folder is the **v3 shape** of [ADR 0009](../../docs/architecture/ad
 the same two container images run as **Lambda functions** behind an **API Gateway REST API**, the
 browser signs in through a **Cognito user pool**, and **CloudFront** is the single public origin
 for the static frontend (S3) and the API (`/api/*`). `core_api` keeps its data in the DynamoDB
-table `${name_prefix}-core` ([ADR 0023](../../docs/architecture/adr/0023-dynamodb-data-store.md)).
+table `${name_prefix}-core` ([ADR 0023](../../docs/architecture/adr/0023-dynamodb-data-store.md));
+`ai_api` writes the trace of every turn to `${name_prefix}-interactions`
+(ADR 0024, TRA-226).
 No VPC, no load balancer, no NAT, no Secrets Manager: both functions run outside any VPC and
 reach AWS services over their public endpoints with IAM. The bill is about 5 €/month.
 
@@ -18,7 +20,7 @@ removes it.
 | Function | Image | Where | Receives |
 |---|---|---|---|
 | `core-api` | `core-api` | outside the VPC (DynamoDB through IAM, HTTPS) | `CORE_TABLE`, `AUTH_MODE=cognito` + `COGNITO_*`, `BACKEND_CORS_ORIGINS` |
-| `ai-api` | `ai-api` | outside the VPC (Bedrock, NVIDIA, `core_api` through CloudFront) | `LLM_PROVIDER` (`bedrock` by default) + `BEDROCK_*`, `NVIDIA_*` (fallback), `AUTH_MODE=cognito` + `COGNITO_*`, `CORE_API_URL=https://<domain>`, `RETRIEVAL_ENABLED` + `VECTOR_*` + `EMBEDDINGS_*` |
+| `ai-api` | `ai-api` | outside the VPC (Bedrock, NVIDIA, `core_api` through CloudFront) | `LLM_PROVIDER` (`bedrock` by default) + `BEDROCK_*`, `NVIDIA_*` (fallback), `AUTH_MODE=cognito` + `COGNITO_*`, `CORE_API_URL=https://<domain>`, `RETRIEVAL_ENABLED` + `VECTOR_*` + `EMBEDDINGS_*`, `INTERACTIONS_TABLE` |
 
 Request path: `https://<domain>/api/v1/...` → CloudFront (`/api/*`, no cache, `Authorization`
 forwarded) → API Gateway (Cognito authorizer, then `/api/v1/ai/{proxy+}` streamed to `ai-api`,
@@ -30,6 +32,7 @@ a Cognito ID token, health endpoints included.
 | File | Resources |
 |---|---|
 | `dynamodb.tf` | The `core_api` table `${name_prefix}-core` (on-demand, `PK`/`SK` + `GSI1`, point-in-time recovery, deletion protection), and `core-api`'s item-level permissions on it ([ADR 0023](../../docs/architecture/adr/0023-dynamodb-data-store.md)); see [History](#history-rds--dynamodb-2026-09-22) |
+| `traces.tf` | `ai_api`'s interaction log `${name_prefix}-interactions` (on-demand, `PK`/`SK` + `GSI1` by subject + sparse `GSI2` by planner session, TTL on `expires_at`: traces expire after `INTERACTION_TTL_DAYS`, 90 by default; no point-in-time recovery, no deletion protection) and the `ai-api` role's `PutItem`, `BatchWriteItem`, `Query`, `GetItem` and `DescribeTable` on it and its indexes — the reads are granted now for the admin console (TRA-221) (ADR 0024, TRA-226) |
 | `ecr.tf` | Two ECR repositories: `${name_prefix}-core-api`, `${name_prefix}-ai-api` |
 | `cognito.tf` | User pool, Google identity provider, public app client (code + PKCE), `admin` group, hosted-UI domain, the JWKS as output and environment |
 | `lambda.tf` | Two container-image functions with their roles (basic execution for both; for `ai-api`, Bedrock invoke on the EU inference profiles of the chat and title models, see [Chat model](#chat-model-bedrock)) and log groups; permissions for the gateway |
