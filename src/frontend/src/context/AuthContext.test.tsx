@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { renderHook, act } from "@testing-library/react";
+import { renderHook, act, waitFor } from "@testing-library/react";
 import React from "react";
 import { AuthProvider, useAuth } from "./AuthContext";
 import { loginWithGoogle } from "@/services/auth";
@@ -11,7 +11,10 @@ import {
   refreshCognitoSession,
   startCognitoLogin,
 } from "@/services/cognito";
+import { isApiAvailable } from "@/services/http";
 import { writeSession, writeToken } from "@/services/session";
+import { getMe } from "@/services/users";
+import { ADMIN_USER_PAGE } from "@/test/fixtures/admin";
 import { makeJwt, nowInSeconds } from "@/test/jwt";
 
 vi.mock("@/services/auth", () => ({
@@ -25,6 +28,15 @@ vi.mock("@/services/cognito", () => ({
   startCognitoLogin: vi.fn(),
   completeCognitoLogin: vi.fn(),
   logoutFromCognito: vi.fn(),
+}));
+
+vi.mock("@/services/users", () => ({
+  getMe: vi.fn(),
+}));
+
+vi.mock("@/services/http", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/services/http")>()),
+  isApiAvailable: vi.fn(() => false),
 }));
 
 const user = {
@@ -205,6 +217,60 @@ describe("AuthContext", () => {
 
       expect(result.current.isLoading).toBe(false);
       expect(result.current.user).toEqual(user);
+    });
+  });
+
+  describe("the account's role", () => {
+    const admin = ADMIN_USER_PAGE.items[0]!;
+
+    beforeEach(() => {
+      vi.mocked(isApiAvailable).mockReturnValue(true);
+    });
+
+    afterEach(() => {
+      vi.mocked(isApiAvailable).mockReturnValue(false);
+    });
+
+    it("asks core_api once on restore and merges the role into the profile", async () => {
+      vi.mocked(getMe).mockResolvedValue(admin);
+      writeSession(validToken, user);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+      expect(result.current.isAdmin).toBe(false);
+
+      await waitFor(() => expect(result.current.isAdmin).toBe(true));
+      expect(result.current.user).toEqual({ ...user, role: "admin" });
+      expect(JSON.parse(localStorage.getItem("travel_ai_user")!)).toMatchObject({ role: "admin" });
+      expect(getMe).toHaveBeenCalledTimes(1);
+    });
+
+    it("asks right after a login", async () => {
+      vi.mocked(getMe).mockResolvedValue({ ...admin, role: "user" });
+      const { result } = renderHook(() => useAuth(), { wrapper });
+      expect(getMe).not.toHaveBeenCalled();
+
+      await act(async () => {
+        await result.current.login(validToken);
+      });
+
+      await waitFor(() => expect(result.current.user?.role).toBe("user"));
+      expect(result.current.isAdmin).toBe(false);
+    });
+
+    it("keeps the stored role when the call fails, and never asks without an API", async () => {
+      vi.mocked(getMe).mockRejectedValue(new Error("offline"));
+      writeSession(validToken, { ...user, role: "admin" });
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+      await waitFor(() => expect(getMe).toHaveBeenCalled());
+      expect(result.current.isAdmin).toBe(true);
+    });
+
+    it("does not ask when no API is configured", () => {
+      vi.mocked(isApiAvailable).mockReturnValue(false);
+      writeSession(validToken, user);
+      renderHook(() => useAuth(), { wrapper });
+      expect(getMe).not.toHaveBeenCalled();
     });
   });
 

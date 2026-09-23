@@ -15,6 +15,7 @@ import {
   resolveUser,
   subscribe,
   tokenExpiresWithin,
+  updateStoredUser,
   userFromIdToken,
   writeSession,
   writeToken,
@@ -100,6 +101,29 @@ describe("session", () => {
       expect(userFromIdToken(makeJwt({ email: "x" }))).toBeNull();
       expect(userFromIdToken(makeJwt({ sub: "1", email: "x" }))?.name).toBe("");
     });
+  });
+
+  it("merges a patch into the stored profile and keeps the tokens", () => {
+    writeSession(validToken, user, "refresh-1");
+    const listener = vi.fn();
+    const unsubscribe = subscribe(listener);
+
+    updateStoredUser({ role: "admin" });
+
+    expect(readSession()).toEqual({ token: validToken, profile: { ...user, role: "admin" } });
+    expect(readRefreshToken()).toBe("refresh-1");
+    expect(listener).toHaveBeenCalled();
+
+    // The same role again changes nothing and notifies nobody.
+    listener.mockClear();
+    updateStoredUser({ role: "admin" });
+    expect(listener).not.toHaveBeenCalled();
+    unsubscribe();
+  });
+
+  it("patches nothing when there is no profile", () => {
+    updateStoredUser({ role: "admin" });
+    expect(readSession()).toEqual({ token: null, profile: null });
   });
 
   it("tolerates a corrupt profile", () => {

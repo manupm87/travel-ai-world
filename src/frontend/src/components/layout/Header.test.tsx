@@ -116,6 +116,25 @@ describe("Header", () => {
     expect(screen.queryByRole("link", { name: en.nav.openPlanner })).not.toBeInTheDocument();
   });
 
+  it("shows the Admin link to administrators only, in the bar and in the drawer", () => {
+    signedIn();
+    const { unmount } = renderWithProviders(<Header variant="app" />);
+    expect(screen.queryByRole("link", { name: en.nav.admin })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: en.nav.openMenu }));
+    expect(
+      within(screen.getByRole("dialog", { name: en.nav.menu })).queryByRole("link", { name: en.nav.admin })
+    ).not.toBeInTheDocument();
+    unmount();
+
+    vi.mocked(useAuth).mockReturnValue({ ...vi.mocked(useAuth)(), isAdmin: true });
+    renderWithProviders(<Header variant="app" />);
+    expect(screen.getByRole("link", { name: en.nav.admin }).getAttribute("href")).toMatch(/^\/admin\/?$/);
+    fireEvent.click(screen.getByRole("button", { name: en.nav.openMenu }));
+    expect(
+      within(screen.getByRole("dialog", { name: en.nav.menu })).getByRole("link", { name: en.nav.admin })
+    ).toBeInTheDocument();
+  });
+
   it("reaches the trips from the account menu", () => {
     signedIn();
     renderWithProviders(<Header />);
