@@ -78,6 +78,9 @@ Nothing reaches AWS from a merge alone except the frontend. After `main` changes
 conversations that were on RDS moved once, on 2026-09-22, with a one-off `copy-from-postgres`
 command (TRA-218). TRA-219 then removed RDS, the VPC and that command; how the infrastructure
 was retired is in [infra/aws/README.md](../../infra/aws/README.md#retiring-rds-tra-219).
+After the TRA-227 deploy (the admin index, GSI2), the trips saved before it are stamped once with
+`just backfill-trip-index` (TRA-230, idempotent; see the
+[AWS README](../../infra/aws/README.md#making-someone-an-administrator)).
 
 ---
 

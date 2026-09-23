@@ -13,11 +13,11 @@ services/*.py           use cases; raise travel_common.exceptions.*; never impor
 domain/ports.py         repository protocols the services depend on
 domain/models.py        plain dataclasses + their rules (check_invariants, phase, ensure_editable)
       ↑
-infrastructure/dynamo/  the only adapter: table.py, keys.py, codec.py, repositories.py
+infrastructure/dynamo/  the only adapter: table.py, keys.py, codec.py, repositories.py, backfill.py
 ```
 
 - **Only `infrastructure/dynamo/` imports boto3/botocore**, and nothing imports `devtools`
-  (`tests/test_import_boundaries.py` checks both).
+  or `ops` (`tests/test_import_boundaries.py` checks all three).
 - **Settings are injected**, never imported as a singleton: `Depends(get_settings)` in dependables,
   `get_settings()` at the composition root (`main.py`). The app `lifespan` calls
   `infrastructure/dynamo/table.py::open_table`: it builds the client
@@ -123,6 +123,11 @@ infrastructure/dynamo/  the only adapter: table.py, keys.py, codec.py, repositor
   (`just dev-token <email> --admin`) stores `role=admin` first; without it the role is left alone. It honours
   `DYNAMODB_ENDPOINT_URL` like the service. Nothing in the service imports `devtools`
   (`tests/test_import_boundaries.py` checks it). Refuses in Cognito mode.
+- **One-off table operations live in `ops.py`** (the CLI) with the algorithm in the adapter
+  (`infrastructure/dynamo/backfill.py`): `python -m core_api.ops backfill-trip-index [--dry-run]`
+  (`just backfill-trip-index`) writes `GSI2PK`/`GSI2SK` on trips saved before TRA-227 with the
+  helpers `trip_item` uses (`keys.TRIPS_GSI2PK`, `keys.trip_gsi2_sk`). Idempotent, conditional
+  on `attribute_not_exists(GSI2PK)`; exits 1 on a `DomainError`. Nothing in the service imports it.
 
 ## Commands
 
@@ -131,6 +136,7 @@ just dynamodb-local                # another terminal: moto on :8002 (the devcon
 uv run uvicorn core_api.main:app --reload --port 8000
 uv run python -m core_api.devtools token you@example.com   # local JWT for that account (just dev-token)
 uv run python -m core_api.devtools token you@example.com --admin   # ... as an administrator
+uv run python -m core_api.ops backfill-trip-index --dry-run         # one-off GSI2 backfill (just backfill-trip-index)
 uv run pytest                      # moto in process, no database
 ```
 

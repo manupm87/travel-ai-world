@@ -170,6 +170,22 @@ ID token carries the group, and `core_api` mirrors it as `role=admin`. No servic
 4. `terraform apply` (it only adds or removes the group memberships).
 5. The person signs out and in again: the ID token they hold was issued before the change.
 
+**Trips saved before the admin index (TRA-227).** GSI2 is sparse: only trips written by the
+TRA-227 code carry `GSI2PK`/`GSI2SK`, so older trips are missing from `/admin/trips` until they are
+backfilled. Once, right after the apply that created GSI2 and the backend deploy that writes it,
+from a laptop with the SSO session and no `DYNAMODB_ENDPOINT_URL`:
+
+```bash
+just aws-login
+export CORE_TABLE=$(terraform output -raw core_table_name) AWS_REGION=eu-west-1
+just backfill-trip-index --dry-run                      # how many trips lack the keys
+just backfill-trip-index                                # scanned=<n> updated=<n> skipped=<n>
+```
+
+It is idempotent (a second run reports `scanned=0`) and needs `dynamodb:Scan` and
+`dynamodb:UpdateItem` on the table, which the SSO permission set (`AdministratorAccess`) has
+([core_api README](../../src/backend/services/core_api/README.md#ops-commands)).
+
 Removing a name from the list and applying takes the group away; the role follows at the next
 sign-in. A user added to the group by hand in the console is not in the list and Terraform leaves
 them alone, so do not: the list is the source of truth.
