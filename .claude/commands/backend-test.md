@@ -2,7 +2,7 @@ Run the backend test suites.
 
 ```bash
 just test-backend        # travel_common + core_api + ai_api
-just test-core           # core_api only — DynamoDB is mocked in-process (moto); only the copy-from-postgres test needs PostgreSQL
+just test-core           # core_api only — DynamoDB is mocked in-process (moto), no database needed
 just test-ai             # ai_api only — no network, no API key (FakeProvider + MockTransport)
 just test-common
 ```

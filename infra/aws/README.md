@@ -234,28 +234,24 @@ DynamoDB image deployed, and the one-off `copy-from-postgres` command copied eve
 thread and message. TRA-219 then removed RDS, the VPC and the copy command. No snapshot of the
 old database is kept: every row lives in DynamoDB, which has point-in-time recovery.
 
-## Retiring RDS (TRA-219)
+## Retiring RDS (TRA-219, done 2026-09-23)
 
-The Terraform code no longer declares RDS, the VPC, its subnets, security groups or the DynamoDB
-gateway endpoint, so the next apply destroys them. Once, from `infra/aws/` after `just aws-login`:
+RDS, the VPC, its subnets, security groups and the DynamoDB gateway endpoint were destroyed on
+2026-09-23; none of them is in the Terraform code any more. Kept here because a single apply
+could not do it, which is worth knowing the next time a Lambda leaves a VPC.
 
-1. **Switch off deletion protection** (it is `true` in the state, and Terraform cannot destroy the
-   instance while it is on):
-
-   ```bash
-   aws rds modify-db-instance --db-instance-identifier travel-ai-postgres \
-     --no-deletion-protection --apply-immediately
-   ```
-
-2. **Deploy backend** with `apply=true` ([deploy runbook](../../docs/runbooks/deploy.md)). The
-   apply takes `core-api` out of the VPC and destroys the instance, which leaves the final snapshot
-   `${name_prefix}-final` (`skip_final_snapshot = false` is in the state).
-3. **Be patient with the network.** Lambda can take up to ~40 minutes to release the function's
-   ENIs, so deleting the security groups and subnets may be slow. If the workflow times out,
-   run the deploy again: the remaining deletions pick up where they stopped.
-4. **Delete the final snapshot** right away. Nothing needs it, and it costs storage every month.
-   The automated backups go with the instance.
-
-   ```bash
-   aws rds delete-db-snapshot --db-snapshot-identifier travel-ai-final
-   ```
+1. **Deletion protection off** (`aws rds modify-db-instance --db-instance-identifier
+   travel-ai-postgres --no-deletion-protection --apply-immediately`): Terraform cannot destroy
+   the instance while it is on.
+2. **The plain apply fails with `Error: Cycle`** between `aws_lambda_function.core_api` (update:
+   drop `vpc_config`) and the destroys of its security group, the subnets and the VPC. So the
+   apply ran in two steps, locally, with both images pinned to the digests already in ECR
+   (`-var core_api_image=... -var ai_api_image=...`; a stale `terraform.tfvars` would deploy an
+   image that no longer exists):
+   - `terraform apply -target=aws_lambda_function.core_api`: 1 added
+     (`AWSLambdaBasicExecutionRole`), 1 changed (new image, no `DB_*` variables, no VPC);
+     `core-api` answered `/api/v1/health/db` from outside the VPC before going on.
+   - `terraform apply`: 10 destroyed, `ai-api` moved to the same commit's image. RDS took 7 min;
+     the ENIs did not hold the security groups or the subnets back.
+3. **Final snapshot deleted** (`aws rds delete-db-snapshot --db-snapshot-identifier
+   travel-ai-final`); the automated snapshots went with the instance.
