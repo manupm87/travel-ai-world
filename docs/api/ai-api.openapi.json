@@ -344,6 +344,29 @@
         "title": "CityIntro",
         "type": "object"
       },
+      "CityStatsResponse": {
+        "properties": {
+          "city": {
+            "title": "City",
+            "type": "string"
+          },
+          "errors": {
+            "title": "Errors",
+            "type": "integer"
+          },
+          "turns": {
+            "title": "Turns",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "city",
+          "turns",
+          "errors"
+        ],
+        "title": "CityStatsResponse",
+        "type": "object"
+      },
       "DaySlots": {
         "description": "Card ids per part of the day. Every part is sent, empty or not, so the\ngenerated type matches the page's `Record<DayPart, string[]>`.",
         "properties": {
@@ -407,6 +430,95 @@
         "title": "DaySnapshot",
         "type": "object"
       },
+      "DayStatsResponse": {
+        "properties": {
+          "cancelled": {
+            "title": "Cancelled",
+            "type": "integer"
+          },
+          "cost_usd": {
+            "title": "Cost Usd",
+            "type": "number"
+          },
+          "day": {
+            "title": "Day",
+            "type": "string"
+          },
+          "embed_tokens": {
+            "title": "Embed Tokens",
+            "type": "integer"
+          },
+          "errors": {
+            "title": "Errors",
+            "type": "integer"
+          },
+          "first_event_p50_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Event P50 Ms"
+          },
+          "input_tokens": {
+            "title": "Input Tokens",
+            "type": "integer"
+          },
+          "latency_p50_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latency P50 Ms"
+          },
+          "latency_p95_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latency P95 Ms"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "integer"
+          },
+          "output_tokens": {
+            "title": "Output Tokens",
+            "type": "integer"
+          },
+          "turns": {
+            "title": "Turns",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "day",
+          "turns",
+          "ok",
+          "errors",
+          "cancelled",
+          "input_tokens",
+          "output_tokens",
+          "embed_tokens",
+          "cost_usd",
+          "latency_p50_ms",
+          "latency_p95_ms",
+          "first_event_p50_ms"
+        ],
+        "title": "DayStatsResponse",
+        "type": "object"
+      },
       "DoneEvent": {
         "properties": {
           "type": {
@@ -443,6 +555,40 @@
           "error_code"
         ],
         "title": "ErrorEvent",
+        "type": "object"
+      },
+      "EventMarkResponse": {
+        "description": "One SSE event as it left; `count` collapses consecutive text deltas.",
+        "properties": {
+          "bytes": {
+            "title": "Bytes",
+            "type": "integer"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "t_ms": {
+            "title": "T Ms",
+            "type": "integer"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "t_ms",
+          "type",
+          "summary",
+          "bytes",
+          "count"
+        ],
+        "title": "EventMarkResponse",
         "type": "object"
       },
       "HTTPValidationError": {
@@ -579,6 +725,97 @@
           "days"
         ],
         "title": "ItinerarySnapshot",
+        "type": "object"
+      },
+      "KindStatsResponse": {
+        "properties": {
+          "cost_usd": {
+            "title": "Cost Usd",
+            "type": "number"
+          },
+          "errors": {
+            "title": "Errors",
+            "type": "integer"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "turns": {
+            "title": "Turns",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind",
+          "turns",
+          "errors",
+          "cost_usd"
+        ],
+        "title": "KindStatsResponse",
+        "type": "object"
+      },
+      "ModelStatsResponse": {
+        "properties": {
+          "cost_usd": {
+            "title": "Cost Usd",
+            "type": "number"
+          },
+          "input_tokens": {
+            "title": "Input Tokens",
+            "type": "integer"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "output_tokens": {
+            "title": "Output Tokens",
+            "type": "integer"
+          },
+          "turns": {
+            "title": "Turns",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "model",
+          "turns",
+          "input_tokens",
+          "output_tokens",
+          "cost_usd"
+        ],
+        "title": "ModelStatsResponse",
+        "type": "object"
+      },
+      "NeverUsedDocResponse": {
+        "properties": {
+          "doc_id": {
+            "title": "Doc Id",
+            "type": "string"
+          },
+          "retrieved": {
+            "title": "Retrieved",
+            "type": "integer"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "required": [
+          "doc_id",
+          "title",
+          "retrieved"
+        ],
+        "title": "NeverUsedDocResponse",
         "type": "object"
       },
       "OptionCard": {
@@ -1078,6 +1315,79 @@
         "title": "PutActivityOp",
         "type": "object"
       },
+      "RagStatsResponse": {
+        "properties": {
+          "dropped_ids": {
+            "title": "Dropped Ids",
+            "type": "integer"
+          },
+          "mean_distance_used": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mean Distance Used"
+          },
+          "no_hit_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "No Hit Rate"
+          },
+          "repair_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Repair Rate"
+          },
+          "retrievals_per_turn": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrievals Per Turn"
+          },
+          "used_over_retrieved": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Used Over Retrieved"
+          }
+        },
+        "required": [
+          "retrievals_per_turn",
+          "no_hit_rate",
+          "used_over_retrieved",
+          "mean_distance_used",
+          "repair_rate",
+          "dropped_ids"
+        ],
+        "title": "RagStatsResponse",
+        "type": "object"
+      },
       "RemoveAction": {
         "description": "An activity taken out of a slot.",
         "properties": {
@@ -1124,6 +1434,77 @@
           "card_id"
         ],
         "title": "RemoveActivityOp",
+        "type": "object"
+      },
+      "RetrievedDocResponse": {
+        "properties": {
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "distance": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Distance"
+          },
+          "district": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "District"
+          },
+          "doc_id": {
+            "title": "Doc Id",
+            "type": "string"
+          },
+          "rank": {
+            "title": "Rank",
+            "type": "integer"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "used": {
+            "title": "Used",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "doc_id",
+          "title",
+          "category",
+          "district",
+          "distance",
+          "rank",
+          "used"
+        ],
+        "title": "RetrievedDocResponse",
         "type": "object"
       },
       "SelectAction": {
@@ -1362,6 +1743,113 @@
         "title": "Slot",
         "type": "object"
       },
+      "SpanResponse": {
+        "description": "One step of a turn; `payload` holds its kind's keys.",
+        "properties": {
+          "dur_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dur Ms"
+          },
+          "kind": {
+            "enum": [
+              "llm",
+              "retriever",
+              "tool",
+              "chain"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "level": {
+            "enum": [
+              "default",
+              "warning",
+              "error"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "parent_seq": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Seq"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "title": "Payload",
+            "type": "object"
+          },
+          "phase": {
+            "enum": [
+              "open",
+              "wardrobe",
+              "fold",
+              "weigh",
+              "zip"
+            ],
+            "title": "Phase",
+            "type": "string"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/RetrievedDocResponse"
+            },
+            "title": "Results",
+            "type": "array"
+          },
+          "seq": {
+            "title": "Seq",
+            "type": "integer"
+          },
+          "t0_ms": {
+            "title": "T0 Ms",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "seq",
+          "parent_seq",
+          "kind",
+          "name",
+          "phase",
+          "t0_ms",
+          "dur_ms",
+          "level",
+          "message",
+          "payload",
+          "results"
+        ],
+        "title": "SpanResponse",
+        "type": "object"
+      },
       "TextEvent": {
         "properties": {
           "delta": {
@@ -1379,6 +1867,175 @@
           "delta"
         ],
         "title": "TextEvent",
+        "type": "object"
+      },
+      "TotalsResponse": {
+        "properties": {
+          "cancelled": {
+            "title": "Cancelled",
+            "type": "integer"
+          },
+          "cost_usd": {
+            "title": "Cost Usd",
+            "type": "number"
+          },
+          "embed_tokens": {
+            "title": "Embed Tokens",
+            "type": "integer"
+          },
+          "errors": {
+            "title": "Errors",
+            "type": "integer"
+          },
+          "first_event_p50_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Event P50 Ms"
+          },
+          "input_tokens": {
+            "title": "Input Tokens",
+            "type": "integer"
+          },
+          "latency_p50_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latency P50 Ms"
+          },
+          "latency_p95_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latency P95 Ms"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "integer"
+          },
+          "output_tokens": {
+            "title": "Output Tokens",
+            "type": "integer"
+          },
+          "sessions": {
+            "title": "Sessions",
+            "type": "integer"
+          },
+          "subjects": {
+            "title": "Subjects",
+            "type": "integer"
+          },
+          "turns": {
+            "title": "Turns",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "turns",
+          "ok",
+          "errors",
+          "cancelled",
+          "input_tokens",
+          "output_tokens",
+          "embed_tokens",
+          "cost_usd",
+          "latency_p50_ms",
+          "latency_p95_ms",
+          "first_event_p50_ms",
+          "subjects",
+          "sessions"
+        ],
+        "title": "TotalsResponse",
+        "type": "object"
+      },
+      "TraceStatsResponse": {
+        "description": "The stats of a range of days; definitions in `application/trace_stats.py`.",
+        "properties": {
+          "by_city": {
+            "items": {
+              "$ref": "#/components/schemas/CityStatsResponse"
+            },
+            "title": "By City",
+            "type": "array"
+          },
+          "by_kind": {
+            "items": {
+              "$ref": "#/components/schemas/KindStatsResponse"
+            },
+            "title": "By Kind",
+            "type": "array"
+          },
+          "by_model": {
+            "items": {
+              "$ref": "#/components/schemas/ModelStatsResponse"
+            },
+            "title": "By Model",
+            "type": "array"
+          },
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/DayStatsResponse"
+            },
+            "title": "Days",
+            "type": "array"
+          },
+          "end": {
+            "title": "End",
+            "type": "string"
+          },
+          "never_used": {
+            "items": {
+              "$ref": "#/components/schemas/NeverUsedDocResponse"
+            },
+            "title": "Never Used",
+            "type": "array"
+          },
+          "rag": {
+            "$ref": "#/components/schemas/RagStatsResponse"
+          },
+          "start": {
+            "title": "Start",
+            "type": "string"
+          },
+          "top_used": {
+            "items": {
+              "$ref": "#/components/schemas/UsedDocResponse"
+            },
+            "title": "Top Used",
+            "type": "array"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/TotalsResponse"
+          }
+        },
+        "required": [
+          "start",
+          "end",
+          "days",
+          "totals",
+          "by_kind",
+          "by_model",
+          "by_city",
+          "rag",
+          "top_used",
+          "never_used"
+        ],
+        "title": "TraceStatsResponse",
         "type": "object"
       },
       "TripBrief": {
@@ -1518,6 +2175,496 @@
         "title": "TripBrief",
         "type": "object"
       },
+      "TurnContextResponse": {
+        "description": "The request and the answer, truncated to the payload cap.",
+        "properties": {
+          "action": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Action"
+          },
+          "answer_text": {
+            "title": "Answer Text",
+            "type": "string"
+          },
+          "brief": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Brief"
+          },
+          "exclude_card_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Exclude Card Ids",
+            "type": "array"
+          },
+          "history": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "title": "History",
+            "type": "array"
+          },
+          "itinerary_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Itinerary Ids",
+            "type": "array"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          },
+          "ops": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Ops",
+            "type": "array"
+          },
+          "option_groups": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Option Groups",
+            "type": "array"
+          },
+          "truncated": {
+            "title": "Truncated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "message",
+          "action",
+          "brief",
+          "itinerary_ids",
+          "exclude_card_ids",
+          "history",
+          "answer_text",
+          "ops",
+          "option_groups",
+          "truncated"
+        ],
+        "title": "TurnContextResponse",
+        "type": "object"
+      },
+      "TurnDetailResponse": {
+        "description": "One turn, whole: summary, context, steps by `seq`, SSE timeline.",
+        "properties": {
+          "context": {
+            "$ref": "#/components/schemas/TurnContextResponse"
+          },
+          "spans": {
+            "items": {
+              "$ref": "#/components/schemas/SpanResponse"
+            },
+            "title": "Spans",
+            "type": "array"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/TurnSummaryResponse"
+          },
+          "timeline": {
+            "items": {
+              "$ref": "#/components/schemas/EventMarkResponse"
+            },
+            "title": "Timeline",
+            "type": "array"
+          }
+        },
+        "required": [
+          "summary",
+          "context",
+          "spans",
+          "timeline"
+        ],
+        "title": "TurnDetailResponse",
+        "type": "object"
+      },
+      "TurnPageResponse": {
+        "description": "A page of turns; pass `next_cursor` back to read the next one.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TurnSummaryResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "TurnPageResponse",
+        "type": "object"
+      },
+      "TurnSummaryResponse": {
+        "description": "One turn as a list shows it; `day` and `sk` are its summary's key.",
+        "properties": {
+          "action": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Action"
+          },
+          "answer_preview": {
+            "title": "Answer Preview",
+            "type": "string"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "cost_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Usd"
+          },
+          "day": {
+            "title": "Day",
+            "type": "string"
+          },
+          "docs_retrieved": {
+            "title": "Docs Retrieved",
+            "type": "integer"
+          },
+          "docs_used": {
+            "title": "Docs Used",
+            "type": "integer"
+          },
+          "dropped_ids": {
+            "title": "Dropped Ids",
+            "type": "integer"
+          },
+          "embed_tokens": {
+            "title": "Embed Tokens",
+            "type": "integer"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "events": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Events",
+            "type": "object"
+          },
+          "first_event_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Event Ms"
+          },
+          "input_tokens": {
+            "title": "Input Tokens",
+            "type": "integer"
+          },
+          "kind": {
+            "enum": [
+              "planner",
+              "chat",
+              "card"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language"
+          },
+          "latency_ms": {
+            "title": "Latency Ms",
+            "type": "integer"
+          },
+          "llm_calls": {
+            "title": "Llm Calls",
+            "type": "integer"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "ops": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Ops",
+            "type": "object"
+          },
+          "output_tokens": {
+            "title": "Output Tokens",
+            "type": "integer"
+          },
+          "prices_stripped": {
+            "title": "Prices Stripped",
+            "type": "integer"
+          },
+          "pricing_version": {
+            "title": "Pricing Version",
+            "type": "string"
+          },
+          "prompt_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompt Version"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          },
+          "question_preview": {
+            "title": "Question Preview",
+            "type": "string"
+          },
+          "repairs": {
+            "title": "Repairs",
+            "type": "integer"
+          },
+          "retrievals": {
+            "title": "Retrievals",
+            "type": "integer"
+          },
+          "route": {
+            "title": "Route",
+            "type": "string"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id"
+          },
+          "sk": {
+            "title": "Sk",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/RetrievedDocResponse"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "error",
+              "cancelled"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "subject": {
+            "title": "Subject",
+            "type": "string"
+          },
+          "trip_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trip Id"
+          },
+          "truncated": {
+            "title": "Truncated",
+            "type": "boolean"
+          },
+          "ts": {
+            "format": "date-time",
+            "title": "Ts",
+            "type": "string"
+          },
+          "turn_id": {
+            "title": "Turn Id",
+            "type": "string"
+          },
+          "warnings": {
+            "title": "Warnings",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "turn_id",
+          "ts",
+          "day",
+          "sk",
+          "kind",
+          "route",
+          "subject",
+          "session_id",
+          "trip_id",
+          "city",
+          "language",
+          "action",
+          "model",
+          "provider",
+          "prompt_version",
+          "input_tokens",
+          "output_tokens",
+          "embed_tokens",
+          "cost_usd",
+          "pricing_version",
+          "latency_ms",
+          "first_event_ms",
+          "status",
+          "error_code",
+          "llm_calls",
+          "retrievals",
+          "docs_retrieved",
+          "docs_used",
+          "repairs",
+          "dropped_ids",
+          "prices_stripped",
+          "warnings",
+          "events",
+          "ops",
+          "sources",
+          "question_preview",
+          "answer_preview",
+          "truncated"
+        ],
+        "title": "TurnSummaryResponse",
+        "type": "object"
+      },
+      "UsedDocResponse": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "doc_id": {
+            "title": "Doc Id",
+            "type": "string"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "required": [
+          "doc_id",
+          "title",
+          "count"
+        ],
+        "title": "UsedDocResponse",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -1613,6 +2760,389 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/ai/admin/sessions/{session_id}": {
+      "get": {
+        "description": "One planner conversation's turns, oldest first.",
+        "operationId": "read_session_api_v1_ai_admin_sessions__session_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TurnPageResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Session",
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/api/v1/ai/admin/stats": {
+      "get": {
+        "description": "Per-day and total counts, tokens, cost, latency, and the RAG metrics\nover `[start, end]` (at most 31 days).",
+        "operationId": "read_stats_api_v1_ai_admin_stats_get",
+        "parameters": [
+          {
+            "description": "First day, `YYYY-MM-DD`.",
+            "in": "query",
+            "name": "start",
+            "required": true,
+            "schema": {
+              "description": "First day, `YYYY-MM-DD`.",
+              "format": "date",
+              "title": "Start",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Last day, included.",
+            "in": "query",
+            "name": "end",
+            "required": true,
+            "schema": {
+              "description": "Last day, included.",
+              "format": "date",
+              "title": "End",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TraceStatsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Stats",
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/api/v1/ai/admin/turns": {
+      "get": {
+        "description": "Turns by session (oldest first), else by day, else by user (newest\nfirst), with the other filters applied on top.",
+        "operationId": "list_turns_api_v1_ai_admin_turns_get",
+        "parameters": [
+          {
+            "description": "A UTC day, `YYYY-MM-DD`.",
+            "in": "query",
+            "name": "day",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A UTC day, `YYYY-MM-DD`.",
+              "title": "Day"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "planner",
+                    "chat",
+                    "card"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "ok",
+                    "error",
+                    "cancelled"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "description": "The token subject of a user.",
+            "in": "query",
+            "name": "subject",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The token subject of a user.",
+              "title": "Subject"
+            }
+          },
+          {
+            "description": "A planner session id.",
+            "in": "query",
+            "name": "session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A planner session id.",
+              "title": "Session"
+            }
+          },
+          {
+            "in": "query",
+            "name": "trip_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Trip Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "city",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "City"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TurnPageResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Turns",
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/api/v1/ai/admin/turns/{turn_id}": {
+      "get": {
+        "description": "One turn, whole: summary, request context, steps and SSE timeline.",
+        "operationId": "read_turn_api_v1_ai_admin_turns__turn_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "turn_id",
+            "required": true,
+            "schema": {
+              "title": "Turn Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TurnDetailResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Turn",
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
     "/api/v1/ai/chat": {
       "post": {
         "description": "Stream a chat completion for the authenticated user.\n\nWire format, one JSON object per `data:` line, terminated by `[DONE]`:\n\n    data: {\"content\": \"Hola\"}\n    data: {\"thread_id\": \"...\"}\n    data: {\"error\": \"...\"}\n    data: [DONE]\n\nThe `system` prompt is inserted server-side; clients may only send\n`user` and `assistant` turns. Once the answer is complete, the exchange is\nrecorded in the caller's conversation (`thread_id`, or a new one) and\n`{\"thread_id\"}` is sent before `[DONE]`; if recording fails, the answer is\nstill delivered and that event is simply missing. The answer's trace\nis written to the interactions table before `[DONE]` (ADR 0024).",

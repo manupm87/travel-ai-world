@@ -4,6 +4,88 @@
  */
 
 export interface paths {
+    "/api/v1/ai/admin/sessions/{session_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Session
+         * @description One planner conversation's turns, oldest first.
+         */
+        get: operations["read_session_api_v1_ai_admin_sessions__session_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ai/admin/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Stats
+         * @description Per-day and total counts, tokens, cost, latency, and the RAG metrics
+         *     over `[start, end]` (at most 31 days).
+         */
+        get: operations["read_stats_api_v1_ai_admin_stats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ai/admin/turns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Turns
+         * @description Turns by session (oldest first), else by day, else by user (newest
+         *     first), with the other filters applied on top.
+         */
+        get: operations["list_turns_api_v1_ai_admin_turns_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ai/admin/turns/{turn_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Turn
+         * @description One turn, whole: summary, request context, steps and SSE timeline.
+         */
+        get: operations["read_turn_api_v1_ai_admin_turns__turn_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ai/chat": {
         parameters: {
             query?: never;
@@ -283,6 +365,15 @@ export interface components {
             /** Text */
             text: string;
         };
+        /** CityStatsResponse */
+        CityStatsResponse: {
+            /** City */
+            city: string;
+            /** Errors */
+            errors: number;
+            /** Turns */
+            turns: number;
+        };
         /**
          * DaySlots
          * @description Card ids per part of the day. Every part is sent, empty or not, so the
@@ -304,6 +395,33 @@ export interface components {
             day: number;
             slots: components["schemas"]["DaySlots"];
         };
+        /** DayStatsResponse */
+        DayStatsResponse: {
+            /** Cancelled */
+            cancelled: number;
+            /** Cost Usd */
+            cost_usd: number;
+            /** Day */
+            day: string;
+            /** Embed Tokens */
+            embed_tokens: number;
+            /** Errors */
+            errors: number;
+            /** First Event P50 Ms */
+            first_event_p50_ms: number | null;
+            /** Input Tokens */
+            input_tokens: number;
+            /** Latency P50 Ms */
+            latency_p50_ms: number | null;
+            /** Latency P95 Ms */
+            latency_p95_ms: number | null;
+            /** Ok */
+            ok: number;
+            /** Output Tokens */
+            output_tokens: number;
+            /** Turns */
+            turns: number;
+        };
         /** DoneEvent */
         DoneEvent: {
             /**
@@ -323,6 +441,22 @@ export interface components {
              * @enum {string}
              */
             type: "error";
+        };
+        /**
+         * EventMarkResponse
+         * @description One SSE event as it left; `count` collapses consecutive text deltas.
+         */
+        EventMarkResponse: {
+            /** Bytes */
+            bytes: number;
+            /** Count */
+            count: number;
+            /** Summary */
+            summary: string;
+            /** T Ms */
+            t_ms: number;
+            /** Type */
+            type: string;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -349,6 +483,39 @@ export interface components {
             days: components["schemas"]["DaySnapshot"][];
             /** Stay Card Id */
             stay_card_id: string | null;
+        };
+        /** KindStatsResponse */
+        KindStatsResponse: {
+            /** Cost Usd */
+            cost_usd: number;
+            /** Errors */
+            errors: number;
+            /** Kind */
+            kind: string;
+            /** Turns */
+            turns: number;
+        };
+        /** ModelStatsResponse */
+        ModelStatsResponse: {
+            /** Cost Usd */
+            cost_usd: number;
+            /** Input Tokens */
+            input_tokens: number;
+            /** Model */
+            model: string;
+            /** Output Tokens */
+            output_tokens: number;
+            /** Turns */
+            turns: number;
+        };
+        /** NeverUsedDocResponse */
+        NeverUsedDocResponse: {
+            /** Doc Id */
+            doc_id: string;
+            /** Retrieved */
+            retrieved: number;
+            /** Title */
+            title: string | null;
         };
         /**
          * OptionCard
@@ -510,6 +677,21 @@ export interface components {
             op: "put_activity";
             slot: components["schemas"]["Slot"];
         };
+        /** RagStatsResponse */
+        RagStatsResponse: {
+            /** Dropped Ids */
+            dropped_ids: number;
+            /** Mean Distance Used */
+            mean_distance_used: number | null;
+            /** No Hit Rate */
+            no_hit_rate: number | null;
+            /** Repair Rate */
+            repair_rate: number | null;
+            /** Retrievals Per Turn */
+            retrievals_per_turn: number | null;
+            /** Used Over Retrieved */
+            used_over_retrieved: number | null;
+        };
         /**
          * RemoveAction
          * @description An activity taken out of a slot.
@@ -534,6 +716,23 @@ export interface components {
              */
             op: "remove_activity";
             slot: components["schemas"]["Slot"];
+        };
+        /** RetrievedDocResponse */
+        RetrievedDocResponse: {
+            /** Category */
+            category: string | null;
+            /** Distance */
+            distance: number | null;
+            /** District */
+            district: string | null;
+            /** Doc Id */
+            doc_id: string;
+            /** Rank */
+            rank: number;
+            /** Title */
+            title: string | null;
+            /** Used */
+            used: boolean;
         };
         /**
          * SelectAction
@@ -626,6 +825,45 @@ export interface components {
             /** Part */
             part: ("morning" | "afternoon" | "evening" | "night") | null;
         };
+        /**
+         * SpanResponse
+         * @description One step of a turn; `payload` holds its kind's keys.
+         */
+        SpanResponse: {
+            /** Dur Ms */
+            dur_ms: number | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "llm" | "retriever" | "tool" | "chain";
+            /**
+             * Level
+             * @enum {string}
+             */
+            level: "default" | "warning" | "error";
+            /** Message */
+            message: string | null;
+            /** Name */
+            name: string;
+            /** Parent Seq */
+            parent_seq: number | null;
+            /** Payload */
+            payload: {
+                [key: string]: unknown;
+            };
+            /**
+             * Phase
+             * @enum {string}
+             */
+            phase: "open" | "wardrobe" | "fold" | "weigh" | "zip";
+            /** Results */
+            results: components["schemas"]["RetrievedDocResponse"][];
+            /** Seq */
+            seq: number;
+            /** T0 Ms */
+            t0_ms: number;
+        };
         /** TextEvent */
         TextEvent: {
             /** Delta */
@@ -635,6 +873,59 @@ export interface components {
              * @enum {string}
              */
             type: "text";
+        };
+        /** TotalsResponse */
+        TotalsResponse: {
+            /** Cancelled */
+            cancelled: number;
+            /** Cost Usd */
+            cost_usd: number;
+            /** Embed Tokens */
+            embed_tokens: number;
+            /** Errors */
+            errors: number;
+            /** First Event P50 Ms */
+            first_event_p50_ms: number | null;
+            /** Input Tokens */
+            input_tokens: number;
+            /** Latency P50 Ms */
+            latency_p50_ms: number | null;
+            /** Latency P95 Ms */
+            latency_p95_ms: number | null;
+            /** Ok */
+            ok: number;
+            /** Output Tokens */
+            output_tokens: number;
+            /** Sessions */
+            sessions: number;
+            /** Subjects */
+            subjects: number;
+            /** Turns */
+            turns: number;
+        };
+        /**
+         * TraceStatsResponse
+         * @description The stats of a range of days; definitions in `application/trace_stats.py`.
+         */
+        TraceStatsResponse: {
+            /** By City */
+            by_city: components["schemas"]["CityStatsResponse"][];
+            /** By Kind */
+            by_kind: components["schemas"]["KindStatsResponse"][];
+            /** By Model */
+            by_model: components["schemas"]["ModelStatsResponse"][];
+            /** Days */
+            days: components["schemas"]["DayStatsResponse"][];
+            /** End */
+            end: string;
+            /** Never Used */
+            never_used: components["schemas"]["NeverUsedDocResponse"][];
+            rag: components["schemas"]["RagStatsResponse"];
+            /** Start */
+            start: string;
+            /** Top Used */
+            top_used: components["schemas"]["UsedDocResponse"][];
+            totals: components["schemas"]["TotalsResponse"];
         };
         /**
          * TripBrief
@@ -661,6 +952,168 @@ export interface components {
             pace: ("relaxed" | "balanced" | "intense") | null;
             /** Start Date */
             start_date: string | null;
+        };
+        /**
+         * TurnContextResponse
+         * @description The request and the answer, truncated to the payload cap.
+         */
+        TurnContextResponse: {
+            /** Action */
+            action: {
+                [key: string]: unknown;
+            } | null;
+            /** Answer Text */
+            answer_text: string;
+            /** Brief */
+            brief: {
+                [key: string]: unknown;
+            } | null;
+            /** Exclude Card Ids */
+            exclude_card_ids: string[];
+            /** History */
+            history: {
+                [key: string]: string;
+            }[];
+            /** Itinerary Ids */
+            itinerary_ids: string[];
+            /** Message */
+            message: string | null;
+            /** Ops */
+            ops: {
+                [key: string]: unknown;
+            }[];
+            /** Option Groups */
+            option_groups: {
+                [key: string]: unknown;
+            }[];
+            /** Truncated */
+            truncated: boolean;
+        };
+        /**
+         * TurnDetailResponse
+         * @description One turn, whole: summary, context, steps by `seq`, SSE timeline.
+         */
+        TurnDetailResponse: {
+            context: components["schemas"]["TurnContextResponse"];
+            /** Spans */
+            spans: components["schemas"]["SpanResponse"][];
+            summary: components["schemas"]["TurnSummaryResponse"];
+            /** Timeline */
+            timeline: components["schemas"]["EventMarkResponse"][];
+        };
+        /**
+         * TurnPageResponse
+         * @description A page of turns; pass `next_cursor` back to read the next one.
+         */
+        TurnPageResponse: {
+            /** Items */
+            items: components["schemas"]["TurnSummaryResponse"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /**
+         * TurnSummaryResponse
+         * @description One turn as a list shows it; `day` and `sk` are its summary's key.
+         */
+        TurnSummaryResponse: {
+            /** Action */
+            action: string | null;
+            /** Answer Preview */
+            answer_preview: string;
+            /** City */
+            city: string | null;
+            /** Cost Usd */
+            cost_usd: number | null;
+            /** Day */
+            day: string;
+            /** Docs Retrieved */
+            docs_retrieved: number;
+            /** Docs Used */
+            docs_used: number;
+            /** Dropped Ids */
+            dropped_ids: number;
+            /** Embed Tokens */
+            embed_tokens: number;
+            /** Error Code */
+            error_code: string | null;
+            /** Events */
+            events: {
+                [key: string]: number;
+            };
+            /** First Event Ms */
+            first_event_ms: number | null;
+            /** Input Tokens */
+            input_tokens: number;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "planner" | "chat" | "card";
+            /** Language */
+            language: string | null;
+            /** Latency Ms */
+            latency_ms: number;
+            /** Llm Calls */
+            llm_calls: number;
+            /** Model */
+            model: string | null;
+            /** Ops */
+            ops: {
+                [key: string]: number;
+            };
+            /** Output Tokens */
+            output_tokens: number;
+            /** Prices Stripped */
+            prices_stripped: number;
+            /** Pricing Version */
+            pricing_version: string;
+            /** Prompt Version */
+            prompt_version: string | null;
+            /** Provider */
+            provider: string | null;
+            /** Question Preview */
+            question_preview: string;
+            /** Repairs */
+            repairs: number;
+            /** Retrievals */
+            retrievals: number;
+            /** Route */
+            route: string;
+            /** Session Id */
+            session_id: string | null;
+            /** Sk */
+            sk: string;
+            /** Sources */
+            sources: components["schemas"]["RetrievedDocResponse"][];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "error" | "cancelled";
+            /** Subject */
+            subject: string;
+            /** Trip Id */
+            trip_id: string | null;
+            /** Truncated */
+            truncated: boolean;
+            /**
+             * Ts
+             * Format: date-time
+             */
+            ts: string;
+            /** Turn Id */
+            turn_id: string;
+            /** Warnings */
+            warnings: number;
+        };
+        /** UsedDocResponse */
+        UsedDocResponse: {
+            /** Count */
+            count: number;
+            /** Doc Id */
+            doc_id: string;
+            /** Title */
+            title: string | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -700,6 +1153,147 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    read_session_api_v1_ai_admin_sessions__session_id__get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TurnPageResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_stats_api_v1_ai_admin_stats_get: {
+        parameters: {
+            query: {
+                /** @description First day, `YYYY-MM-DD`. */
+                start: string;
+                /** @description Last day, included. */
+                end: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TraceStatsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_turns_api_v1_ai_admin_turns_get: {
+        parameters: {
+            query?: {
+                /** @description A UTC day, `YYYY-MM-DD`. */
+                day?: string | null;
+                kind?: ("planner" | "chat" | "card") | null;
+                status?: ("ok" | "error" | "cancelled") | null;
+                /** @description The token subject of a user. */
+                subject?: string | null;
+                /** @description A planner session id. */
+                session?: string | null;
+                trip_id?: string | null;
+                city?: string | null;
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TurnPageResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_turn_api_v1_ai_admin_turns__turn_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                turn_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TurnDetailResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     chat_api_v1_ai_chat_post: {
         parameters: {
             query?: never;
