@@ -8,7 +8,7 @@ import { kindTone, Pill, statusTone } from "@/components/admin/Pill";
 import { Button } from "@/components/ui/Button";
 import { useLanguage } from "@/context/LanguageContext";
 import { TurnInspector } from "@/components/admin/turn/TurnInspector";
-import { useSessionTurns } from "@/hooks/admin/useSessionTurns";
+import { useSessionPosition } from "@/hooks/admin/useSessionPosition";
 import { useTurn } from "@/hooks/admin/useTurn";
 import type { TurnDetail } from "@/services/admin";
 
@@ -27,7 +27,7 @@ function exportTurn(turn: TurnDetail) {
 
 /**
  * `/admin/turn/?id=` — the turn inspector (TRA-228): the turn loaded with
- * `useTurn`, its place in the planner session with `useSessionTurns`, and
+ * `useTurn`, its place in the planner session with `useSessionPosition`, and
  * `TurnInspector` for the rest; "Export JSON" hands the whole turn over.
  */
 export default function TurnClientPage() {
@@ -37,7 +37,7 @@ export default function TurnClientPage() {
   const id = useSearchParams().get("id");
   const state = useTurn(id);
   const turn = state.status === "ready" ? state.turn : null;
-  const position = useSessionTurns(turn?.summary.session_id ?? null, turn?.summary.turn_id ?? null);
+  const position = useSessionPosition(turn?.summary.session_id ?? null, turn?.summary.turn_id ?? null);
 
   const back = (
     <Link

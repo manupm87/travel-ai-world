@@ -13,13 +13,24 @@ export function turnHref(turnId: string): string {
   return `/admin/turn/?id=${encodeURIComponent(turnId)}`;
 }
 
-/** One row per turn; the time links to the turn. */
+/**
+ * One row per turn; the time links to the turn. Purely presentational: the
+ * explorer and the trip page (TRA-229) each load their own turns and may
+ * name the table, say what it shows when empty, and put the day before the
+ * time when the rows span several days.
+ */
 export function TurnsTable({
   turns,
   bySubject,
+  caption,
+  empty,
+  withDate = false,
 }: {
   turns: TurnSummary[];
   bySubject: Map<string, AdminUser>;
+  caption?: string;
+  empty?: string;
+  withDate?: boolean;
 }) {
   const { t } = useLanguage();
   const tc = t.admin.turns.columns;
@@ -28,13 +39,21 @@ export function TurnsTable({
 
   return (
     <DataTable<TurnSummary>
-      caption={t.admin.turns.caption}
-      empty={t.admin.turns.empty}
+      caption={caption ?? t.admin.turns.caption}
+      empty={empty ?? t.admin.turns.empty}
       rows={turns}
       rowKey={(turn) => turn.turn_id}
       href={(turn) => turnHref(turn.turn_id)}
       columns={[
-        { key: "time", header: tc.time, numeric: true, cell: (turn) => f.formatTime(turn.ts) },
+        {
+          key: "time",
+          header: tc.time,
+          numeric: true,
+          cell: (turn) =>
+            withDate
+              ? `${f.formatDate(turn.ts, { month: "short", day: "numeric" })} ${f.formatTime(turn.ts)}`
+              : f.formatTime(turn.ts),
+        },
         {
           key: "user",
           header: tc.user,

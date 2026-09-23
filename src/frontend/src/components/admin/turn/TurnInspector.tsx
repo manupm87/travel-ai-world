@@ -3,7 +3,7 @@
 import { BookOpen, ChevronLeft, ChevronRight, Layers } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useLanguage } from "@/context/LanguageContext";
-import type { SessionPosition } from "@/hooks/admin/useSessionTurns";
+import type { SessionPosition } from "@/hooks/admin/useSessionPosition";
 import { useFormatters } from "@/hooks/useFormatters";
 import { interpolate } from "@/i18n";
 import type { TurnDetail } from "@/services/admin";

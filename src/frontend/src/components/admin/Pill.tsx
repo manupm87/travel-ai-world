@@ -52,3 +52,10 @@ export function kindTone(kind: "planner" | "chat" | "card"): PillTone {
   if (kind === "chat") return "purple";
   return "gold";
 }
+
+/** A trip's phase as a tone: the trip under way stands out, a past one fades. */
+export function phaseTone(phase: "upcoming" | "ongoing" | "past"): PillTone {
+  if (phase === "ongoing") return "gold";
+  if (phase === "upcoming") return "accent";
+  return "muted";
+}
