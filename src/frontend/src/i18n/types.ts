@@ -528,6 +528,41 @@ export interface Translations {
       };
       empty: string;
     };
+    /** One saved trip, read only (`/admin/trip/?user=&id=`, TRA-229). */
+    trip: {
+      title: string;
+      back: string;
+      notFound: string;
+      /** Says the page changes nothing. */
+      readOnly: string;
+      details: string;
+      owner: string;
+      city: string;
+      dates: string;
+      phase: string;
+      created: string;
+      updated: string;
+      tripId: string;
+      sessionId: string;
+      /** The copy buttons' accessible names. */
+      copyTripId: string;
+      copySessionId: string;
+      itinerary: string;
+      /** Over the selected day's cards; `{day}` is its number. */
+      dayHeading: string;
+      closeDay: string;
+      noDays: string;
+      turnsTitle: string;
+      /** `{count}` turns. */
+      turnsCount: string;
+      turnsCountOne: string;
+      turnsCaption: string;
+      /** The trip was saved before TRA-220 recorded sessions. */
+      noSession: string;
+      noTurns: string;
+      /** Shown when the session has more than the page reads; `{count}` is the cap. */
+      truncated: string;
+    };
     turn: {
       title: string;
       back: string;
