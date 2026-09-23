@@ -2,19 +2,13 @@
 
 import { AdminHeading, AdminLoadState, LoadMore } from "@/components/admin/AdminStates";
 import { DataTable } from "@/components/admin/DataTable";
-import { Pill, type PillTone } from "@/components/admin/Pill";
+import { phaseTone, Pill } from "@/components/admin/Pill";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAdminTrips } from "@/hooks/admin/useAdminTrips";
 import { displayName, useAdminUsers } from "@/hooks/admin/useAdminUsers";
 import { useFormatters } from "@/hooks/useFormatters";
 import { interpolate } from "@/i18n";
 import type { AdminTripSummary } from "@/services/admin";
-
-const PHASE_TONE: Record<AdminTripSummary["phase"], PillTone> = {
-  ongoing: "gold",
-  upcoming: "accent",
-  past: "muted",
-};
 
 /** Where a trip row leads: TRA-229's trip page. */
 export function adminTripHref(trip: Pick<AdminTripSummary, "user_id" | "id">): string {
@@ -73,7 +67,7 @@ export default function TripsClientPage() {
               {
                 key: "phase",
                 header: tt.columns.phase,
-                cell: (trip) => <Pill tone={PHASE_TONE[trip.phase]}>{t.plan.trips.phase[trip.phase]}</Pill>,
+                cell: (trip) => <Pill tone={phaseTone(trip.phase)}>{t.plan.trips.phase[trip.phase]}</Pill>,
               },
               {
                 key: "created",
