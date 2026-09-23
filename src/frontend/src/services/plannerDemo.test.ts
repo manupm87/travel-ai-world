@@ -26,6 +26,7 @@ function turn(overrides: Partial<PlannerTurn> = {}): PlannerTurn {
     itinerary: null,
     exclude_card_ids: [],
     trip_id: null,
+    session_id: null,
     ...overrides,
   };
 }

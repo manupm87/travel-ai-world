@@ -7,8 +7,12 @@ import { UnauthorizedError } from "@/services/http";
 import { streamPlannerTurn } from "@/services/planner";
 import {
   clearPlannerDraft,
+  newPlannerSessionId,
   readPlannerDraft,
+  readPlannerSessionId,
+  readSavedTripId,
   writePlannerDraft,
+  writePlannerSessionId,
   writeSavedTripId,
 } from "@/services/plannerDraft";
 import type { PlannerTurn, Slot, TripBrief } from "@/types/planner";
@@ -37,7 +41,7 @@ export interface AskAlternativesOptions {
 /** A turn as the callers describe it: the request's own fields minus the state. */
 type TurnInput = Omit<
   PlannerTurn,
-  "history" | "brief" | "itinerary" | "exclude_card_ids" | "trip_id"
+  "history" | "brief" | "itinerary" | "exclude_card_ids" | "trip_id" | "session_id"
 > & { exclude_card_ids?: string[] };
 
 /**
@@ -55,7 +59,9 @@ type TurnInput = Omit<
  *   the traveller typed, and the cards that ask already showed, so a second
  *   page never repeats the first (TRA-184).
  * - The draft is written to `sessionStorage` after every change and restored
- *   on mount, through `services/plannerDraft.ts` only.
+ *   on mount, through `services/plannerDraft.ts` only, with its planner
+ *   session id: every turn sends it as `session_id` (with the saved trip's id
+ *   as `trip_id`), so the backend's traces of one draft read together.
  * - `hydrate` opens a saved trip in its place and `startNew` empties it; both
  *   move the id of the trip "Save trip" writes to along with the draft.
  */
@@ -64,6 +70,10 @@ export function usePlanner() {
   const [state, dispatch] = useReducer(plannerReducer, null, () =>
     initialPlannerState(readPlannerDraft())
   );
+
+  /** This draft's planner session (ADR 0024): restored with it, or new. */
+  const sessionIdRef = useRef<string | null>(null);
+  sessionIdRef.current ??= readPlannerSessionId() ?? newPlannerSessionId();
 
   /** Latest state, readable from the stable callbacks. */
   const stateRef = useRef<PlannerState>(state);
@@ -80,7 +90,7 @@ export function usePlanner() {
     if (pristine) {
       clearPlannerDraft();
     } else {
-      writePlannerDraft(toPlannerDraft(state));
+      writePlannerDraft(toPlannerDraft(state), sessionIdRef.current ?? undefined);
     }
   }, [state]);
 
@@ -160,7 +170,8 @@ export function usePlanner() {
         itinerary: toItinerarySnapshot(next.itinerary),
         // Nothing to rule out unless this ask already offered something.
         exclude_card_ids: turn.exclude_card_ids ?? [],
-        trip_id: null,
+        trip_id: readSavedTripId(),
+        session_id: sessionIdRef.current,
       };
 
       try {
@@ -292,20 +303,26 @@ export function usePlanner() {
    * A saved trip opened in the planner (`/plan/?trip=`, TRA-196): the draft
    * `services/tripDraft.ts` rebuilt replaces the state, and the trip it came
    * from becomes the one "Save trip" updates. Any stream in flight is for the
-   * conversation that just went away, so it is cancelled first.
+   * conversation that just went away, so it is cancelled first. The draft
+   * continues the planner session it was saved from when one is given, else a
+   * new one starts.
    */
   const hydrate = useCallback(
-    (draft: PlannerDraft, tripId: string) => {
+    (draft: PlannerDraft, tripId: string, sessionId?: string | null) => {
       abort();
+      const id = sessionId || newPlannerSessionId();
+      sessionIdRef.current = id;
       dispatch({ type: "hydrated", draft });
       writeSavedTripId(tripId);
+      writePlannerSessionId(id);
     },
     [abort]
   );
 
-  /** "Start over": an empty planner, and no trip to update any more. */
+  /** "Start over": an empty planner, a new session, and no trip to update any more. */
   const startNew = useCallback(() => {
     abort();
+    sessionIdRef.current = newPlannerSessionId();
     dispatch({ type: "reset" }); // the persist effect clears the stored draft
     clearPlannerDraft();
   }, [abort]);

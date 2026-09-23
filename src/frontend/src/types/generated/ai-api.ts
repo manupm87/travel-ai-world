@@ -28,7 +28,8 @@ export interface paths {
          *     `user` and `assistant` turns. Once the answer is complete, the exchange is
          *     recorded in the caller's conversation (`thread_id`, or a new one) and
          *     `{"thread_id"}` is sent before `[DONE]`; if recording fails, the answer is
-         *     still delivered and that event is simply missing.
+         *     still delivered and that event is simply missing. The answer's trace
+         *     is written to the interactions table before `[DONE]` (ADR 0024).
          */
         post: operations["chat_api_v1_ai_chat_post"];
         delete?: never;
@@ -94,7 +95,9 @@ export interface paths {
          *     snapshot and the transcript. Events are discriminated on `type` (`text`,
          *     `brief`, `options`, `itinerary_patch`, `error`, `done`); the stream ends
          *     with `data: [DONE]`. Needs retrieval (`RETRIEVAL_ENABLED`): every card is
-         *     a corpus document, so without a store the endpoint answers 503.
+         *     a corpus document, so without a store the endpoint answers 503. The
+         *     turn's trace is written to the interactions table before `[DONE]`
+         *     (ADR 0024).
          */
         post: operations["planner_api_v1_ai_planner_post"];
         delete?: never;
@@ -117,7 +120,8 @@ export interface paths {
          *     The id travels as a query parameter because corpus ids contain slashes
          *     and colons. It is read back from the store, so the answer never depends
          *     on what the client kept; an id the index does not hold is a 404. Needs
-         *     retrieval (`RETRIEVAL_ENABLED`), like the planner itself.
+         *     retrieval (`RETRIEVAL_ENABLED`), like the planner itself. Traced like a
+         *     turn (ADR 0024), written before the answer is sent.
          */
         get: operations["card_api_v1_ai_planner_card_get"];
         put?: never;
@@ -486,8 +490,13 @@ export interface components {
             /** Message */
             message: string | null;
             /**
+             * Session Id
+             * @description The planner draft this turn belongs to, minted by the page: links the turn's trace to the others of the same conversation (ADR 0024)
+             */
+            session_id: string | null;
+            /**
              * Trip Id
-             * @description Reserved: the Trip this draft will be saved to
+             * @description The Trip this draft was saved as, once it was (else null)
              */
             trip_id: string | null;
         };

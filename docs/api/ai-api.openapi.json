@@ -1016,6 +1016,19 @@
             ],
             "title": "Message"
           },
+          "session_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The planner draft this turn belongs to, minted by the page: links the turn's trace to the others of the same conversation (ADR 0024)",
+            "title": "Session Id"
+          },
           "trip_id": {
             "anyOf": [
               {
@@ -1026,7 +1039,7 @@
                 "type": "null"
               }
             ],
-            "description": "Reserved: the Trip this draft will be saved to",
+            "description": "The Trip this draft was saved as, once it was (else null)",
             "title": "Trip Id"
           }
         },
@@ -1037,7 +1050,8 @@
           "brief",
           "itinerary",
           "exclude_card_ids",
-          "trip_id"
+          "trip_id",
+          "session_id"
         ],
         "title": "PlannerTurn",
         "type": "object"
@@ -1601,7 +1615,7 @@
   "paths": {
     "/api/v1/ai/chat": {
       "post": {
-        "description": "Stream a chat completion for the authenticated user.\n\nWire format, one JSON object per `data:` line, terminated by `[DONE]`:\n\n    data: {\"content\": \"Hola\"}\n    data: {\"thread_id\": \"...\"}\n    data: {\"error\": \"...\"}\n    data: [DONE]\n\nThe `system` prompt is inserted server-side; clients may only send\n`user` and `assistant` turns. Once the answer is complete, the exchange is\nrecorded in the caller's conversation (`thread_id`, or a new one) and\n`{\"thread_id\"}` is sent before `[DONE]`; if recording fails, the answer is\nstill delivered and that event is simply missing.",
+        "description": "Stream a chat completion for the authenticated user.\n\nWire format, one JSON object per `data:` line, terminated by `[DONE]`:\n\n    data: {\"content\": \"Hola\"}\n    data: {\"thread_id\": \"...\"}\n    data: {\"error\": \"...\"}\n    data: [DONE]\n\nThe `system` prompt is inserted server-side; clients may only send\n`user` and `assistant` turns. Once the answer is complete, the exchange is\nrecorded in the caller's conversation (`thread_id`, or a new one) and\n`{\"thread_id\"}` is sent before `[DONE]`; if recording fails, the answer is\nstill delivered and that event is simply missing. The answer's trace\nis written to the interactions table before `[DONE]` (ADR 0024).",
         "operationId": "chat_api_v1_ai_chat_post",
         "requestBody": {
           "content": {
@@ -1685,7 +1699,7 @@
     },
     "/api/v1/ai/planner": {
       "post": {
-        "description": "Stream the planner's answer to one turn for the authenticated user.\n\nThe service keeps no state: the turn carries the brief, the itinerary\nsnapshot and the transcript. Events are discriminated on `type` (`text`,\n`brief`, `options`, `itinerary_patch`, `error`, `done`); the stream ends\nwith `data: [DONE]`. Needs retrieval (`RETRIEVAL_ENABLED`): every card is\na corpus document, so without a store the endpoint answers 503.",
+        "description": "Stream the planner's answer to one turn for the authenticated user.\n\nThe service keeps no state: the turn carries the brief, the itinerary\nsnapshot and the transcript. Events are discriminated on `type` (`text`,\n`brief`, `options`, `itinerary_patch`, `error`, `done`); the stream ends\nwith `data: [DONE]`. Needs retrieval (`RETRIEVAL_ENABLED`): every card is\na corpus document, so without a store the endpoint answers 503. The\nturn's trace is written to the interactions table before `[DONE]`\n(ADR 0024).",
         "operationId": "planner_api_v1_ai_planner_post",
         "requestBody": {
           "content": {
@@ -1735,7 +1749,7 @@
     },
     "/api/v1/ai/planner/card": {
       "get": {
-        "description": "One card in full: the article behind it, its address, phone and site.\n\nThe id travels as a query parameter because corpus ids contain slashes\nand colons. It is read back from the store, so the answer never depends\non what the client kept; an id the index does not hold is a 404. Needs\nretrieval (`RETRIEVAL_ENABLED`), like the planner itself.",
+        "description": "One card in full: the article behind it, its address, phone and site.\n\nThe id travels as a query parameter because corpus ids contain slashes\nand colons. It is read back from the store, so the answer never depends\non what the client kept; an id the index does not hold is a 404. Needs\nretrieval (`RETRIEVAL_ENABLED`), like the planner itself. Traced like a\nturn (ADR 0024), written before the answer is sent.",
         "operationId": "card_api_v1_ai_planner_card_get",
         "parameters": [
           {

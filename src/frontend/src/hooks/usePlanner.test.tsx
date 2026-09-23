@@ -8,8 +8,12 @@ import { UnauthorizedError } from "@/services/http";
 import { streamPlannerTurn, type StreamPlannerOptions } from "@/services/planner";
 import {
   clearPlannerDraft,
+  newPlannerSessionId,
   readPlannerDraft,
+  readPlannerSessionId,
+  readSavedTripId,
   writePlannerDraft,
+  writePlannerSessionId,
   writeSavedTripId,
 } from "@/services/plannerDraft";
 import {
@@ -32,7 +36,11 @@ vi.mock("@/services/plannerDraft", () => ({
   readPlannerDraft: vi.fn(),
   writePlannerDraft: vi.fn(),
   clearPlannerDraft: vi.fn(),
+  readSavedTripId: vi.fn(),
   writeSavedTripId: vi.fn(),
+  readPlannerSessionId: vi.fn(),
+  writePlannerSessionId: vi.fn(),
+  newPlannerSessionId: vi.fn(),
 }));
 
 const streamPlannerTurnMock = vi.mocked(streamPlannerTurn);
@@ -40,6 +48,13 @@ const readPlannerDraftMock = vi.mocked(readPlannerDraft);
 const writePlannerDraftMock = vi.mocked(writePlannerDraft);
 const clearPlannerDraftMock = vi.mocked(clearPlannerDraft);
 const writeSavedTripIdMock = vi.mocked(writeSavedTripId);
+const readSavedTripIdMock = vi.mocked(readSavedTripId);
+const readPlannerSessionIdMock = vi.mocked(readPlannerSessionId);
+const writePlannerSessionIdMock = vi.mocked(writePlannerSessionId);
+const newPlannerSessionIdMock = vi.mocked(newPlannerSessionId);
+
+const STORED_SESSION = "11111111-1111-4111-8111-111111111111";
+let minted = 0;
 
 /** Turns a fixed array of events into a mocked stream implementation. */
 function streamOf(events: readonly PlannerEvent[]) {
@@ -65,6 +80,10 @@ function deferred<T = void>() {
 beforeEach(() => {
   vi.clearAllMocks();
   readPlannerDraftMock.mockReturnValue(null);
+  readSavedTripIdMock.mockReturnValue(null);
+  readPlannerSessionIdMock.mockReturnValue(null);
+  minted = 0;
+  newPlannerSessionIdMock.mockImplementation(() => `new-session-${++minted}`);
   streamPlannerTurnMock.mockImplementation(streamOf([{ type: "done" }]));
   // Deterministic frame scheduling, as in PlannerCard.test.tsx.
   vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) =>
@@ -78,7 +97,7 @@ afterEach(() => {
 });
 
 describe("usePlanner — sendMessage", () => {
-  it("sends the message, action null, the current brief, the itinerary snapshot, trip_id null and an abort signal", async () => {
+  it("sends the message, action null, the current brief, the itinerary snapshot, trip_id null, a session id and an abort signal", async () => {
     const { result } = renderHook(() => usePlanner(), { wrapper });
 
     act(() => {
@@ -95,6 +114,7 @@ describe("usePlanner — sendMessage", () => {
     expect(turn.brief).toEqual(EMPTY_BRIEF);
     expect(turn.itinerary).toEqual({ stay_card_id: null, days: [] });
     expect(turn.trip_id).toBeNull();
+    expect(turn.session_id).toBe("new-session-1");
     expect(options.signal).toBeInstanceOf(AbortSignal);
 
     await waitFor(() => expect(result.current.state.status).toBe("idle"));
@@ -546,5 +566,90 @@ describe("usePlanner — unmount", () => {
 
     expect(signal?.aborted).toBe(true);
     gate.resolve();
+  });
+});
+
+describe("usePlanner — planner session (TRA-220)", () => {
+  function lastTurn(): PlannerTurn {
+    return streamPlannerTurnMock.mock.calls.at(-1)?.[0] as PlannerTurn;
+  }
+
+  it("sends the stored draft's session id and the saved trip's id on the wire", async () => {
+    readPlannerSessionIdMock.mockReturnValue(STORED_SESSION);
+    readSavedTripIdMock.mockReturnValue("22222222-2222-4222-8222-222222222222");
+    const { result } = renderHook(() => usePlanner(), { wrapper });
+
+    act(() => {
+      result.current.sendMessage("hello");
+    });
+    await waitFor(() => expect(streamPlannerTurnMock).toHaveBeenCalledTimes(1));
+
+    expect(lastTurn()).toEqual({
+      message: "hello",
+      action: null,
+      history: [],
+      brief: EMPTY_BRIEF,
+      itinerary: { stay_card_id: null, days: [] },
+      exclude_card_ids: [],
+      trip_id: "22222222-2222-4222-8222-222222222222",
+      session_id: STORED_SESSION,
+    });
+    expect(newPlannerSessionIdMock).not.toHaveBeenCalled();
+    await waitFor(() => expect(result.current.state.status).toBe("idle"));
+    const [, stored] = writePlannerDraftMock.mock.calls.at(-1) ?? [];
+    expect(stored).toBe(STORED_SESSION);
+  });
+
+  it("keeps one session across turns and starts a new one on startNew", async () => {
+    const { result } = renderHook(() => usePlanner(), { wrapper });
+
+    act(() => {
+      result.current.sendMessage("one");
+    });
+    await waitFor(() => expect(result.current.state.status).toBe("idle"));
+    act(() => {
+      result.current.sendMessage("two");
+    });
+    await waitFor(() => expect(streamPlannerTurnMock).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(result.current.state.status).toBe("idle"));
+    const [first, second] = streamPlannerTurnMock.mock.calls.map(
+      ([turn]) => (turn as PlannerTurn).session_id
+    );
+    expect(first).toBe(second);
+
+    act(() => {
+      result.current.startNew();
+    });
+    act(() => {
+      result.current.sendMessage("three");
+    });
+    await waitFor(() => expect(streamPlannerTurnMock).toHaveBeenCalledTimes(3));
+
+    expect(lastTurn().session_id).not.toBe(first);
+    await waitFor(() => expect(result.current.state.status).toBe("idle"));
+  });
+
+  it("hydrate continues the session it is given, or mints one", () => {
+    const draft: PlannerDraft = {
+      messages: [],
+      groups: {},
+      brief: { ...EMPTY_BRIEF, destination: "Budapest" },
+      missing: [],
+      itinerary: { ...EMPTY_ITINERARY, stay: HOTELS.rum },
+      shortlist: [],
+    };
+    const { result } = renderHook(() => usePlanner(), { wrapper });
+
+    act(() => {
+      result.current.hydrate(draft, "trip-1", STORED_SESSION);
+    });
+    expect(writePlannerSessionIdMock).toHaveBeenLastCalledWith(STORED_SESSION);
+
+    act(() => {
+      result.current.hydrate(draft, "trip-2");
+    });
+    const [minted] = writePlannerSessionIdMock.mock.calls.at(-1) ?? [];
+    expect(minted).toMatch(/^new-session-/);
+    expect(minted).not.toBe(STORED_SESSION);
   });
 });

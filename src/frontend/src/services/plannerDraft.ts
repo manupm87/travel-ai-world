@@ -5,6 +5,10 @@
  * that trip instead of leaving a second one behind. Keeping the two in step
  * while the traveller plans is the follow-up (TRA-146); this is the
  * browser-side safety net, and the one module that touches the storage.
+ *
+ * The draft also carries its planner session id (TRA-220, ADR 0024): minted
+ * once per draft and sent with every turn as `session_id`, so the backend's
+ * traces of one conversation can be read together.
  */
 
 import type { PlannerDraft } from "@/hooks/plannerReducer";
@@ -12,11 +16,18 @@ import type { PlannerDraft } from "@/hooks/plannerReducer";
 export const PLANNER_DRAFT_KEY = "travel_ai_planner_draft";
 
 /** Bumped whenever the persisted shape changes; older drafts are dropped. */
-const DRAFT_VERSION = 1;
+const DRAFT_VERSION = 2;
 
 interface StoredDraft {
   version: number;
   draft: PlannerDraft;
+  /** The planner session this draft belongs to (`PlannerTurn.session_id`). */
+  sessionId: string;
+}
+
+/** A fresh planner session id, one per draft. */
+export function newPlannerSessionId(): string {
+  return crypto.randomUUID();
 }
 
 /** The reducer indexes into these at once; a draft without them cannot be restored. */
@@ -47,26 +58,58 @@ function storage(): Storage | null {
   }
 }
 
-/** The draft saved in this tab, or `null` when absent, stale or unreadable. */
-export function readPlannerDraft(): PlannerDraft | null {
+/** The stored entry when it is current and restorable, else `null`. */
+function readStored(): Partial<StoredDraft> & { draft: PlannerDraft } | null {
   const raw = storage()?.getItem(PLANNER_DRAFT_KEY) ?? null;
   if (!raw) return null;
   try {
     const stored = JSON.parse(raw) as Partial<StoredDraft> | null;
     if (!stored || stored.version !== DRAFT_VERSION || !hasDraftShape(stored.draft)) return null;
-    return stored.draft;
+    return stored as Partial<StoredDraft> & { draft: PlannerDraft };
   } catch {
     return null;
   }
 }
 
-export function writePlannerDraft(draft: PlannerDraft): void {
-  const stored: StoredDraft = { version: DRAFT_VERSION, draft };
+function writeStored(stored: StoredDraft): void {
   try {
     storage()?.setItem(PLANNER_DRAFT_KEY, JSON.stringify(stored));
   } catch {
     // Quota exceeded or storage disabled: the in-memory state still works.
   }
+}
+
+/** The draft saved in this tab, or `null` when absent, stale or unreadable. */
+export function readPlannerDraft(): PlannerDraft | null {
+  return readStored()?.draft ?? null;
+}
+
+/**
+ * Saves the draft with its session id. Without one, the stored draft's id is
+ * kept, and a draft that never had one gets a new id.
+ */
+export function writePlannerDraft(draft: PlannerDraft, sessionId?: string): void {
+  const id = sessionId ?? readStored()?.sessionId ?? newPlannerSessionId();
+  writeStored({ version: DRAFT_VERSION, draft, sessionId: id });
+}
+
+/**
+ * The session id of the draft saved in this tab, or `null` when there is no
+ * draft. A stored draft without one is given one here, and keeps it.
+ */
+export function readPlannerSessionId(): string | null {
+  const stored = readStored();
+  if (!stored) return null;
+  if (typeof stored.sessionId === "string" && stored.sessionId) return stored.sessionId;
+  const id = newPlannerSessionId();
+  writeStored({ version: DRAFT_VERSION, draft: stored.draft, sessionId: id });
+  return id;
+}
+
+/** Moves the saved draft to another session (a saved trip reopened, a fresh start). */
+export function writePlannerSessionId(id: string): void {
+  const stored = readStored();
+  if (stored) writeStored({ version: DRAFT_VERSION, draft: stored.draft, sessionId: id });
 }
 
 const SAVED_TRIP_KEY = "travel_ai_planner_trip_id";

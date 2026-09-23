@@ -351,6 +351,7 @@ const TURN: PlannerTurn = {
   itinerary: null,
   exclude_card_ids: [],
   trip_id: null,
+  session_id: null,
 };
 
 describe("streamPlannerTurn", () => {
@@ -455,6 +456,7 @@ describe("streamPlannerTurn — demo fallback (TRA-158)", () => {
     itinerary: null,
     exclude_card_ids: [],
     trip_id: null,
+    session_id: null,
   };
 
   beforeEach(() => {
