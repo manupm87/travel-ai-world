@@ -205,6 +205,12 @@ cognito-username email:
 dev-token email *flags="":
     @cd {{core}} && uv run --quiet python -m core_api.devtools token {{email}} {{flags}}
 
+# One-off, after the TRA-227 apply: write the admin index keys (GSI2) on trips saved before it, so
+# /admin/trips lists them. Idempotent; `just backfill-trip-index --dry-run` only counts. For the real
+# table: `just aws-login`, then CORE_TABLE / AWS_REGION in the environment and no DYNAMODB_ENDPOINT_URL.
+backfill-trip-index *flags="":
+    @cd {{core}} && uv run --quiet python -m core_api.ops backfill-trip-index {{flags}}
+
 # ── Build & Docker ───────────────────────────────────────────────────────────
 
 # Production static export of the frontend
