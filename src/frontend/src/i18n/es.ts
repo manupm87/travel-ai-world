@@ -419,7 +419,7 @@ const es: Translations = {
       cityPlaceholder: "Cualquier ciudad",
       all: "Todos",
       anyone: "Cualquiera",
-      kinds: { planner: "Planificador", chat: "Chat", card: "Ficha" },
+      kinds: { planner: "Planificador", chat: "Chat", card: "Tarjeta" },
       statuses: { ok: "Correcto", error: "Error", cancelled: "Cancelado" },
       columns: {
         time: "Hora",

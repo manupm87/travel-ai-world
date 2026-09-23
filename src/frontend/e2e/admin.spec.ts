@@ -44,7 +44,11 @@ async function signIn(page: Page, role: Role) {
     {
       keys: { token: TOKEN_STORAGE_KEY, user: USER_STORAGE_KEY },
       session: {
-        token: fakeToken(me.subject ?? "sub", me.email),
+        // Against a real backend (the Compose stack) the dashboard asks core_api
+        // for the account's trips as it opens, and a made-up token comes back
+        // 401 and drops the session (see `mobile.spec.ts`): the runner's real
+        // `E2E_TOKEN` wins whenever it has one.
+        token: process.env.E2E_TOKEN ?? fakeToken(me.subject ?? "sub", me.email),
         user: { id: me.id, email: me.email, name: me.name, role },
       },
     }
@@ -229,6 +233,16 @@ test.describe("Admin console — on a phone", () => {
       expect(width).toBeLessThanOrEqual(390);
     });
   }
+
+  test("the turn detail never scrolls sideways", async ({ page }) => {
+    await page.goto(`/admin/turn/?id=${TURN_DETAIL.summary.turn_id}`);
+    await expect(consoleNav(page)).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Turn", exact: true })).toBeVisible();
+    for (const summary of await page.locator("details > summary").all()) await summary.click();
+    const width = await page.evaluate(() => document.documentElement.scrollWidth);
+    expect(width).toBeLessThanOrEqual(390);
+  });
+
 });
 
 test.describe("Admin console — as a traveller", () => {

@@ -6,7 +6,7 @@ import { useFormatters } from "@/hooks/useFormatters";
 import { interpolate } from "@/i18n";
 import type { AdminUser, TurnSummary } from "@/services/admin";
 import { DataTable } from "../DataTable";
-import { Pill, statusTone } from "../Pill";
+import { Pill, kindTone, statusTone } from "../Pill";
 
 /** Where a turn row leads: the turn page (TRA-228's inspector). */
 export function turnHref(turnId: string): string {
@@ -49,9 +49,12 @@ export function TurnsTable({
           key: "action",
           header: tc.action,
           className: "whitespace-nowrap",
-          cell: (turn) => (
-            <span className="font-mono text-xs">{turn.action ?? t.admin.turns.kinds[turn.kind]}</span>
-          ),
+          cell: (turn) =>
+            turn.action ? (
+              <span className="font-mono text-xs">{turn.action}</span>
+            ) : (
+              <Pill tone={kindTone(turn.kind)}>{t.admin.turns.kinds[turn.kind]}</Pill>
+            ),
         },
         { key: "calls", header: tc.llmCalls, numeric: true, cell: (turn) => f.formatNumber(turn.llm_calls) },
         {
