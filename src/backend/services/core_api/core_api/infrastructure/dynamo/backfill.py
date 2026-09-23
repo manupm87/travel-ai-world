@@ -19,8 +19,9 @@ from botocore.exceptions import BotoCoreError, ClientError
 from travel_common.dynamodb import call
 from travel_common.exceptions import ProviderUnavailable
 
+from core_api.config import CoreSettings
 from core_api.infrastructure.dynamo import keys
-from core_api.infrastructure.dynamo.table import DynamoTable
+from core_api.infrastructure.dynamo.table import DynamoTable, open_table
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +44,19 @@ def _gsi2_keys(item: dict[str, Any]) -> tuple[str, str]:
     created_at = datetime.fromisoformat(item["created_at"]["S"])
     trip_id = UUID(item["id"]["S"])
     return keys.TRIPS_GSI2PK, keys.trip_gsi2_sk(created_at, trip_id)
+
+
+async def open_core_table(settings: CoreSettings) -> DynamoTable:
+    """`open_table` for a one-off command: a refusal becomes a domain error.
+
+    With `DYNAMODB_ENDPOINT_URL` set, `open_table` already calls DynamoDB
+    (`ensure()`), before `backfill_trip_index` wraps anything.
+    """
+    try:
+        return await open_table(settings)
+    except (BotoCoreError, ClientError) as exc:
+        logger.error("Opening the core table failed: %s", exc)
+        raise ProviderUnavailable(f"DynamoDB: {exc}") from exc
 
 
 async def backfill_trip_index(

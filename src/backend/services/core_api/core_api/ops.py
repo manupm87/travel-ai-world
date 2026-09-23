@@ -25,12 +25,12 @@ from core_api.config import get_settings
 from core_api.infrastructure.dynamo.backfill import (
     BackfillResult,
     backfill_trip_index,
+    open_core_table,
 )
-from core_api.infrastructure.dynamo.table import open_table
 
 
 async def _backfill_with_own_table(*, dry_run: bool) -> BackfillResult:
-    table = await open_table(get_settings())
+    table = await open_core_table(get_settings())
     return await backfill_trip_index(table, dry_run=dry_run)
 
 

@@ -6,9 +6,10 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import pytest
+from botocore.exceptions import EndpointConnectionError
 from core_api import ops
 from core_api.domain.models import Trip
-from core_api.infrastructure.dynamo import keys
+from core_api.infrastructure.dynamo import backfill, keys
 from core_api.infrastructure.dynamo.backfill import backfill_trip_index
 from core_api.infrastructure.dynamo.repositories import DynamoTripRepository
 from core_api.infrastructure.dynamo.table import DynamoTable
@@ -179,7 +180,7 @@ def own_table(table: DynamoTable, monkeypatch: pytest.MonkeyPatch) -> None:
     async def fake_open_table(_settings: object) -> DynamoTable:
         return table
 
-    monkeypatch.setattr(ops, "open_table", fake_open_table)
+    monkeypatch.setattr(ops, "open_core_table", fake_open_table)
 
 
 @pytest.mark.usefixtures("own_table")
@@ -210,6 +211,20 @@ def test_the_cli_exits_1_when_dynamodb_refuses(
     captured = capsys.readouterr()
     assert captured.out == ""
     assert "ResourceNotFoundException" in captured.err
+
+
+def test_the_cli_exits_1_when_opening_the_table_fails(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+):
+    async def unreachable(_settings: object) -> DynamoTable:
+        raise EndpointConnectionError(endpoint_url="http://localhost:8002")
+
+    monkeypatch.setattr(backfill, "open_table", unreachable)
+
+    assert ops.main(["backfill-trip-index"]) == 1
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert captured.err.startswith("error: DynamoDB: ")
 
 
 async def test_a_missing_table_is_a_domain_error(table: DynamoTable):
