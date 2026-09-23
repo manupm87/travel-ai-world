@@ -27,6 +27,7 @@ const auth = (state: { isAuthenticated: boolean; isLoading: boolean }) =>
     provider: "google" as const,
     loginWithRedirect: vi.fn(),
     completeLogin: vi.fn(),
+    isAdmin: false,
   });
 
 describe("ProtectedRoute", () => {

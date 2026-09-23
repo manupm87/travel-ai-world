@@ -29,6 +29,7 @@ describe("AuthCallback", () => {
       provider: "cognito",
       user: null,
       isAuthenticated: false,
+      isAdmin: false,
       isLoading: false,
     });
   });

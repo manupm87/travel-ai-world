@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   useSyncExternalStore,
   type ReactNode,
@@ -20,13 +21,17 @@ import {
   refreshCognitoSession,
   startCognitoLogin,
 } from "@/services/cognito";
+import { isApiAvailable } from "@/services/http";
 import {
   clearSession,
   getServerSnapshot,
   getSnapshot,
   pruneInvalidSession,
+  readToken,
   subscribe,
+  updateStoredUser,
 } from "@/services/session";
+import { getMe } from "@/services/users";
 
 /**
  * How this build signs people in (ADR 0009):
@@ -38,6 +43,8 @@ export type AuthProvider = "cognito" | "google";
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
+  /** `user.role === "admin"`: the role core_api reported for this account (TRA-222). */
+  isAdmin: boolean;
   /** True until the client has hydrated and storage has been read (and, in
    * Cognito mode, an expired session has been refreshed or dropped). */
   isLoading: boolean;
@@ -91,6 +98,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void refreshCognitoSession().finally(() => setRestoring(false));
   }, []);
 
+  // The role is the account's, not the token's: ask core_api once per signed-in
+  // account (on restore, and right after a login) and merge it into the stored
+  // profile. A failure is silent — the role stays whatever was stored.
+  const roleCheckedFor = useRef<string | null>(null);
+  const isLoading = !isHydrated || restoring;
+  const userId = user?.id ?? null;
+  useEffect(() => {
+    if (isLoading || userId === null) {
+      if (userId === null) roleCheckedFor.current = null;
+      return;
+    }
+    if (roleCheckedFor.current === userId) return;
+    if (!readToken() || !isApiAvailable()) return;
+    roleCheckedFor.current = userId;
+    getMe()
+      .then((me) => {
+        if (me) updateStoredUser({ role: me.role });
+      })
+      .catch(() => {});
+  }, [isLoading, userId]);
+
   const login = useCallback(async (credential: string) => {
     await loginWithGoogle(credential);
   }, []);
@@ -113,14 +141,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       user,
       isAuthenticated: user !== null,
-      isLoading: !isHydrated || restoring,
+      isAdmin: user?.role === "admin",
+      isLoading,
       provider,
       login,
       loginWithRedirect,
       completeLogin,
       logout,
     }),
-    [user, isHydrated, restoring, provider, login, loginWithRedirect, completeLogin, logout]
+    [user, isLoading, provider, login, loginWithRedirect, completeLogin, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

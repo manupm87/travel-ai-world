@@ -1,8 +1,9 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu } from "lucide-react";
+import { Menu, ShieldCheck } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
 import type { Translations } from "@/i18n/types";
@@ -57,7 +58,7 @@ function pill(pathname: string | null, t: Translations) {
  */
 export default function Header({ variant = "landing" }: HeaderProps) {
   const { t } = useLanguage();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isAdmin } = useAuth();
   const pathname = usePathname();
   const scrolled = useScrolled();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -83,6 +84,17 @@ export default function Header({ variant = "landing" }: HeaderProps) {
           <div className="flex-1" />
 
           <div className="flex items-center gap-3 md:gap-4">
+            {isAuthenticated && isAdmin && (
+              /* Only an administrator ever sees the way in (TRA-222); on a
+                 phone it lives in the drawer. */
+              <Link
+                href="/admin/"
+                className="hidden md:inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-surface transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+              >
+                <ShieldCheck size={16} aria-hidden="true" />
+                {t.nav.admin}
+              </Link>
+            )}
             {variant === "app" && (
               <span className="hidden md:flex items-center gap-3">
                 <LanguageSwitcher />

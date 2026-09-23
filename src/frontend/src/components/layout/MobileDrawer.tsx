@@ -1,6 +1,8 @@
 "use client";
 
-import { X } from "lucide-react";
+import Link from "next/link";
+import { ShieldCheck, X } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { cn } from "@/utils/cn";
 import { LanguageSwitcher } from "./LanguageSwitcher";
@@ -24,6 +26,7 @@ interface MobileDrawerProps {
  */
 export function MobileDrawer({ open, onClose, onLogin }: MobileDrawerProps) {
   const { t } = useLanguage();
+  const { isAuthenticated, isAdmin } = useAuth();
 
   return (
     <div
@@ -52,6 +55,17 @@ export function MobileDrawer({ open, onClose, onLogin }: MobileDrawerProps) {
         </div>
 
         <UserMenu variant="inline" onLogin={onLogin} onAfterAction={onClose} />
+
+        {isAuthenticated && isAdmin && (
+          <Link
+            href="/admin/"
+            onClick={onClose}
+            className="mt-4 flex items-center gap-3 rounded-lg px-3 py-3 text-text-primary hover:bg-bg-surface transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+          >
+            <ShieldCheck size={20} aria-hidden="true" />
+            {t.nav.admin}
+          </Link>
+        )}
 
         <div className="mt-auto pt-8 border-t border-border">
           <div className="flex items-center justify-between mb-4">

@@ -23,6 +23,8 @@ export interface Translations {
     selectLanguage: string;
     userMenu: string;
     menu: string;
+    /** The way into the admin console, shown to administrators only. */
+    admin: string;
   };
   common: {
     loading: string;
@@ -377,6 +379,174 @@ export interface Translations {
     completingSignIn: string;
     callbackError: string;
     backHome: string;
+  };
+  /** The admin console (`/admin/`, TRA-222): only administrators ever see it. */
+  admin: {
+    nav: {
+      /** The console's own navigation (sidebar and tab strip). */
+      label: string;
+      overview: string;
+      turns: string;
+      trips: string;
+      users: string;
+    };
+    /** Any `/admin/` URL opened by an account that is not an administrator. */
+    gate: {
+      title: string;
+      description: string;
+      back: string;
+    };
+    common: {
+      loading: string;
+      error: string;
+      forbidden: string;
+      retry: string;
+      loadMore: string;
+      loadingMore: string;
+      empty: string;
+      /** A value the backend does not have (no price, no city). */
+      none: string;
+      copied: string;
+      yes: string;
+      no: string;
+    };
+    overview: {
+      title: string;
+      /** The range picker's label. */
+      range: string;
+      last7: string;
+      last30: string;
+      rangeSpan: string;
+      kpis: {
+        label: string;
+        turns: string;
+        turnsHint: string;
+        errorRate: string;
+        errorRateHint: string;
+        p95: string;
+        p95Hint: string;
+        outputTokens: string;
+        outputTokensHint: string;
+        cost: string;
+        costHint: string;
+        noHit: string;
+        noHitHint: string;
+        usedRetrieved: string;
+        usedRetrievedHint: string;
+      };
+      chart: {
+        title: string;
+        /** The SVG's accessible name. */
+        label: string;
+        tokensTitle: string;
+        ok: string;
+        errors: string;
+        cancelled: string;
+        tokens: string;
+        p95: string;
+        day: string;
+        empty: string;
+        legend: string;
+      };
+      tables: {
+        byModel: string;
+        byCity: string;
+        byKind: string;
+        topUsed: string;
+        neverUsed: string;
+        model: string;
+        turns: string;
+        tokensIn: string;
+        tokensOut: string;
+        cost: string;
+        city: string;
+        errors: string;
+        kind: string;
+        docId: string;
+        title: string;
+        count: string;
+        retrieved: string;
+      };
+    };
+    turns: {
+      title: string;
+      filters: string;
+      day: string;
+      kind: string;
+      status: string;
+      user: string;
+      city: string;
+      cityPlaceholder: string;
+      all: string;
+      anyone: string;
+      kinds: { planner: string; chat: string; card: string };
+      statuses: { ok: string; error: string; cancelled: string };
+      columns: {
+        time: string;
+        user: string;
+        city: string;
+        action: string;
+        llmCalls: string;
+        searches: string;
+        tokens: string;
+        latency: string;
+        status: string;
+        preview: string;
+      };
+      /** `{used}` of `{retrieved}` documents were used. */
+      searchesHint: string;
+      caption: string;
+      empty: string;
+    };
+    users: {
+      title: string;
+      caption: string;
+      columns: {
+        name: string;
+        email: string;
+        role: string;
+        subject: string;
+        active: string;
+        turns: string;
+      };
+      roles: { user: string; admin: string };
+      viewTurns: string;
+      /** The copy button's accessible name. */
+      copySubject: string;
+      empty: string;
+    };
+    trips: {
+      title: string;
+      caption: string;
+      columns: {
+        owner: string;
+        title: string;
+        city: string;
+        dates: string;
+        phase: string;
+        created: string;
+      };
+      empty: string;
+    };
+    turn: {
+      title: string;
+      back: string;
+      notFound: string;
+      summary: string;
+      id: string;
+      ts: string;
+      kind: string;
+      status: string;
+      city: string;
+      model: string;
+      tokens: string;
+      latency: string;
+      cost: string;
+      context: string;
+      spans: string;
+      timeline: string;
+      export: string;
+    };
   };
   notFound: {
     title: string;

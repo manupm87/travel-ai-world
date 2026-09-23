@@ -133,6 +133,19 @@ export function writeToken(token: string): void {
   tokenStore.write(token);
 }
 
+/**
+ * Merges `patch` into the stored profile (the role `core_api` reports, TRA-222),
+ * keeping the token and the refresh token as they are. Does nothing when there
+ * is no profile to patch, and writes nothing when the patch changes nothing.
+ */
+export function updateStoredUser(patch: Partial<User>): void {
+  const raw = userStore.read();
+  const profile = parseProfile(raw);
+  if (!profile) return;
+  const json = JSON.stringify({ ...profile, ...patch });
+  if (json !== raw) userStore.write(json);
+}
+
 /** Signs out locally and notifies subscribers. */
 export function clearSession(): void {
   tokenStore.remove();

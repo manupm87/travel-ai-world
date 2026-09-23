@@ -33,6 +33,7 @@ const signedOut = () =>
     provider: "google" as const,
     loginWithRedirect: vi.fn(),
     completeLogin: vi.fn(),
+    isAdmin: false,
   });
 
 const signedIn = () =>
@@ -45,6 +46,7 @@ const signedIn = () =>
     provider: "google" as const,
     loginWithRedirect: vi.fn(),
     completeLogin: vi.fn(),
+    isAdmin: false,
   });
 
 describe("Header", () => {
