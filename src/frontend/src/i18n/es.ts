@@ -468,7 +468,7 @@ const es: Translations = {
     },
     trip: {
       title: "Viaje",
-      back: "Todos los viajes",
+      back: "Volver a los viajes",
       notFound: "Este viaje no existe. Puede que se haya borrado.",
       readOnly: "Solo lectura: nada en esta página modifica el viaje.",
       details: "Datos del viaje",

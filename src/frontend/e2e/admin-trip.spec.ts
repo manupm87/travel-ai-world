@@ -109,11 +109,14 @@ test.describe("Admin trip page — as an administrator", () => {
     await days.nth(1).click();
     const day = page.locator('[data-admin-day="2"]');
     await expect(day.getByRole("heading", { name: "Day 2 in detail", exact: true })).toBeVisible();
+    // Focus follows the day in, and goes back to its row when it closes.
+    await expect(day.getByRole("heading", { name: "Day 2 in detail", exact: true })).toBeFocused();
     await expect(day.locator("[data-stop-row]")).toHaveCount(4);
     await expect(day.getByRole("button", { name: /^Change/ })).toHaveCount(0);
     await expect(day.getByRole("button", { name: /^Remove/ })).toHaveCount(0);
     await day.getByRole("button", { name: "Close the day", exact: true }).click();
     await expect(day).toHaveCount(0);
+    await expect(days.nth(1)).toBeFocused();
 
     // The turns of the session, each linking to the inspector.
     await expect(page.getByText("2 turns", { exact: true })).toBeVisible();

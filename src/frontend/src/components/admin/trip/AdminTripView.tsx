@@ -31,13 +31,34 @@ export function AdminTripView({ itinerary, brief, city }: AdminTripViewProps) {
   const tt = t.admin.trip;
   const [selected, setSelected] = useState<number | null>(null);
   const dayRef = useRef<HTMLElement | null>(null);
+  const headingRef = useRef<HTMLHeadingElement | null>(null);
+  const overviewRef = useRef<HTMLDivElement | null>(null);
+  const openedRef = useRef<number | null>(null);
 
   const shownDay = selected === null ? null : (itinerary.days.find((d) => d.day === selected) ?? null);
 
-  // The day opens below a long overview: bring it into view.
+  // The day opens below a long overview, after the whole list of days: focus
+  // moves to its heading, so Tab carries on into its cards and a screen reader
+  // hears where it went, and the section is brought into view. No `behavior`:
+  // the global reduced-motion rule decides how it scrolls.
+  //
+  // Closing it unmounts the focused "Close" button with it, so focus would fall
+  // to the body: it goes back to the day's row instead, as `TripPanel` does.
   useEffect(() => {
-    if (shownDay) dayRef.current?.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
-  }, [shownDay]);
+    const previous = openedRef.current;
+    openedRef.current = selected;
+    if (selected !== null) {
+      headingRef.current?.focus({ preventScroll: true });
+      dayRef.current?.scrollIntoView?.({ block: "nearest" });
+      return;
+    }
+    if (previous === null) return;
+    const index = itinerary.days.findIndex((d) => d.day === previous);
+    const rows = overviewRef.current?.querySelectorAll<HTMLButtonElement>("li > button");
+    const row = index >= 0 ? rows?.[index] : undefined;
+    row?.focus({ preventScroll: true });
+    row?.scrollIntoView?.({ block: "nearest" });
+  }, [selected, itinerary.days]);
 
   return (
     <section aria-labelledby="admin-trip-itinerary" className="mb-8 flex flex-col gap-4">
@@ -51,12 +72,14 @@ export function AdminTripView({ itinerary, brief, city }: AdminTripViewProps) {
       {itinerary.days.length === 0 ? (
         <p className="text-sm text-text-secondary">{tt.noDays}</p>
       ) : (
-        <TripOverview
-          itinerary={itinerary}
-          brief={brief}
-          city={city}
-          onSelectDay={(day) => setSelected((current) => (current === day ? null : day))}
-        />
+        <div ref={overviewRef}>
+          <TripOverview
+            itinerary={itinerary}
+            brief={brief}
+            city={city}
+            onSelectDay={(day) => setSelected((current) => (current === day ? null : day))}
+          />
+        </div>
       )}
 
       {shownDay && (
@@ -67,7 +90,12 @@ export function AdminTripView({ itinerary, brief, city }: AdminTripViewProps) {
           className="flex flex-col gap-2"
         >
           <div className="flex items-center justify-between gap-3">
-            <h3 id="admin-trip-day" className="text-base font-medium text-text-primary">
+            <h3
+              ref={headingRef}
+              id="admin-trip-day"
+              tabIndex={-1}
+              className="text-base font-medium text-text-primary focus:outline-none"
+            >
               {interpolate(tt.dayHeading, { day: shownDay.day })}
             </h3>
             <button

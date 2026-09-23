@@ -475,7 +475,7 @@ const en: Translations = {
     },
     trip: {
       title: "Trip",
-      back: "All trips",
+      back: "Back to the trips",
       notFound: "There is no such trip. It may have been deleted.",
       readOnly: "Read only: nothing on this page changes the trip.",
       details: "Trip details",
