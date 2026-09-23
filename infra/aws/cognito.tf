@@ -98,6 +98,15 @@ resource "aws_cognito_user_group" "admin" {
   description  = "Application administrators (Principal.role = admin)."
 }
 
+# Who is in it (ADR 0024): `admin_usernames`, code-reviewed in terraform.tfvars.
+# The ID token then carries `cognito:groups`; no service reads a list.
+resource "aws_cognito_user_in_group" "admin" {
+  for_each     = toset(var.admin_usernames)
+  user_pool_id = aws_cognito_user_pool.main.id
+  group_name   = aws_cognito_user_group.admin.name
+  username     = each.value
+}
+
 # -----------------------------------------------------------------------------
 # Managed login domain: `auth.<domain>` by default, the pool's own host if
 # `cognito_subdomain` is emptied.

@@ -29,9 +29,9 @@ a Cognito ID token, health endpoints included.
 
 | File | Resources |
 |---|---|
-| `dynamodb.tf` | The `core_api` table `${name_prefix}-core` (on-demand, `PK`/`SK` + `GSI1`, point-in-time recovery, deletion protection), and `core-api`'s item-level permissions on it ([ADR 0023](../../docs/architecture/adr/0023-dynamodb-data-store.md)); see [History](#history-rds--dynamodb-2026-09-22) |
+| `dynamodb.tf` | The `core_api` table `${name_prefix}-core` (on-demand, `PK`/`SK` + `GSI1` (accounts) + `GSI2` (every trip, summary projection), point-in-time recovery, deletion protection), and `core-api`'s item-level permissions on it ([ADR 0023](../../docs/architecture/adr/0023-dynamodb-data-store.md)); see [History](#history-rds--dynamodb-2026-09-22) |
 | `ecr.tf` | Two ECR repositories: `${name_prefix}-core-api`, `${name_prefix}-ai-api` |
-| `cognito.tf` | User pool, Google identity provider, public app client (code + PKCE), `admin` group, hosted-UI domain, the JWKS as output and environment |
+| `cognito.tf` | User pool, Google identity provider, public app client (code + PKCE), `admin` group and its members (`admin_usernames`), hosted-UI domain, the JWKS as output and environment |
 | `lambda.tf` | Two container-image functions with their roles (basic execution for both; for `ai-api`, Bedrock invoke on the EU inference profiles of the chat and title models, see [Chat model](#chat-model-bedrock)) and log groups; permissions for the gateway |
 | `vectors.tf` | S3 Vectors bucket and the `city-kb` index (1024 dimensions, cosine), plus the read-only `s3vectors` and Titan embeddings permissions of the `ai-api` role, see [Vector store](#vector-store-s3-vectors) |
 | `apigateway.tf` | REST API (regional), Cognito authorizer, the two proxy resources, deployment and `prod` stage |
@@ -149,14 +149,30 @@ first `terraform apply`:
 3. **Backend**: both functions receive `AUTH_MODE=cognito`, `COGNITO_ISSUER`,
    `COGNITO_CLIENT_ID` and `COGNITO_JWKS` from the same outputs; run them locally with
    `terraform output -raw cognito_jwks` in `.env` to test against the real pool.
-4. **Administrators**: add the user to the `admin` group in the pool (console or
-   `aws cognito-idp admin-add-user-to-group`); the role travels in the ID token as `cognito:groups`.
+4. **Administrators**: `admin_usernames` in `terraform.tfvars` (below); the role travels in the
+   ID token as `cognito:groups`.
 
 The managed-login host is `auth.<domain>` by default (`cognito_subdomain`, covered by the wildcard
 certificate); set it to `""` to fall back to the pool's own host
 (`<name_prefix>-<account id>.auth.<region>.amazoncognito.com`).
 Key rotation: the pool's signing keys are stable, but if `cognito_jwks` ever changes, a
 `terraform apply` refreshes the functions' environment.
+
+## Making someone an administrator
+
+The administrators are a reviewed list in Terraform (ADR 0024): `terraform apply` puts each
+username of `admin_usernames` in the pool's `admin` group (`aws_cognito_user_in_group.admin`), the
+ID token carries the group, and `core_api` mirrors it as `role=admin`. No service reads a list.
+
+1. The person signs in once with Google, so the pool has their user.
+2. `just aws-login`, then `just cognito-username <email>` prints the username (`google_<sub>`).
+3. Add it to `admin_usernames = ["google_..."]` in `terraform.tfvars` (and the PR that changes it).
+4. `terraform apply` (it only adds or removes the group memberships).
+5. The person signs out and in again: the ID token they hold was issued before the change.
+
+Removing a name from the list and applying takes the group away; the role follows at the next
+sign-in. A user added to the group by hand in the console is not in the list and Terraform leaves
+them alone, so do not: the list is the source of truth.
 
 ## Chat model (Bedrock)
 

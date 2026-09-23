@@ -177,6 +177,12 @@ variable "cognito_dev_origins" {
   default     = ["http://localhost:3000"]
 }
 
+variable "admin_usernames" {
+  description = "Cognito usernames to put in the `admin` group (Principal.role = admin). A federated account's username is `google_<sub>` and exists only after its first sign-in: `just cognito-username <email>` prints it."
+  type        = list(string)
+  default     = []
+}
+
 variable "tags" {
   description = "Tags to apply to all resources."
   type        = map(string)
