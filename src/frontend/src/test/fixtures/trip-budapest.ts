@@ -121,6 +121,7 @@ const BUDAPEST = {
   image_url: HOTELS.rum.image_url,
   created_at: "2026-09-01T10:00:00Z",
   updated_at: "2026-09-01T10:00:00Z",
+  planner_session_id: null,
   itinerary_days: [
     day(0, "Arrival: Belváros and the Danube", [
       activity(0, "morning", ACTIVITIES.greatMarket),

@@ -234,6 +234,7 @@ describe("useTrips", () => {
         phase: "upcoming",
         created_at: "2026-01-01T00:00:00Z",
         updated_at: "2026-01-02T00:00:00Z",
+        planner_session_id: null,
         title: "New",
         city_slug: "budapest",
         city: "Budapest",
