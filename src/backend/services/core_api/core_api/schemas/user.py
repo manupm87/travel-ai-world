@@ -28,6 +28,9 @@ class UserResponse(UserBase):
     name: str | None = None
     picture: str | None = None
     auth_provider: str = "google"
+    # The token `sub` the account signs in with; the AI traces name users by
+    # it (ADR 0024). Null until the account's next request.
+    subject: str | None
 
     model_config = ConfigDict(from_attributes=True)
 

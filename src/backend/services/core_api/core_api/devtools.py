@@ -1,4 +1,4 @@
-"""Developer-only commands: `python -m core_api.devtools token <email>`.
+"""Developer-only commands: `python -m core_api.devtools token <email> [--admin]`.
 
 Minting a bearer token for an arbitrary account must never be reachable from
 the deployed service: nothing in the web process imports this module (a test
@@ -9,7 +9,9 @@ reaches the table (a developer's terminal, `docker compose exec core_api`, CI).
 
 The token is exactly what `POST /auth/google` issues in local mode
 (`travel_common.security.create_access_token`): HS256 with `SECRET_KEY`,
-`sub` = the account's id (a UUID), `email`, `role`, `exp`. The account is
+`sub` = the account's id (a UUID), `email`, `role`, `exp`. `--admin` makes
+the account an administrator first (ADR 0024: in production the Cognito
+`admin` group, filled from Terraform, does that). The account is
 created on the spot when there is none — the real Google sign-in adopts it
 later, because both modes match an account by its email. Creating accounts
 is why this module is developer-only.
@@ -34,8 +36,14 @@ from core_api.infrastructure.dynamo.repositories import DynamoUserRepository
 from core_api.infrastructure.dynamo.table import open_table
 
 
-async def mint_token(users: UserRepository, email: str, settings: CoreSettings) -> str:
+async def mint_token(
+    users: UserRepository, email: str, settings: CoreSettings, *, admin: bool = False
+) -> str:
     """A local-mode bearer token for the account `email`, created if it is new.
+
+    `admin` stores `Role.ADMIN` on the account before minting; without it the
+    account keeps the role it has. The account's `subject` is its id, as in
+    every local-mode token.
 
     `Forbidden` when the account exists but is inactive (the API would answer
     401 to its token) or when the service verifies Cognito tokens, which a
@@ -48,21 +56,29 @@ async def mint_token(users: UserRepository, email: str, settings: CoreSettings) 
         )
     user = await users.get_by_email(email)
     if user is None:
-        user = await users.add(
-            User(email=email, name=email.split("@")[0], is_active=True, role=Role.USER)
-        )
+        user = User(email=email, name=email.split("@")[0], is_active=True)
+        user.role = Role.ADMIN if admin else Role.USER
+        user.subject = str(user.id)
+        user = await users.add(user)
     if not user.is_active:
         raise Forbidden(f"Account {email} is inactive")
+    wanted_role = Role.ADMIN if admin else user.role
+    if user.role != wanted_role or user.subject != str(user.id):
+        user.role = wanted_role
+        user.subject = str(user.id)
+        user = await users.save(user)
     principal = Principal(subject=str(user.id), email=user.email, role=user.role)
     return create_access_token(principal, settings)
 
 
-async def _mint_with_own_table(email: str, settings: CoreSettings) -> str:
+async def _mint_with_own_table(
+    email: str, settings: CoreSettings, *, admin: bool = False
+) -> str:
     table = await open_table(settings)
-    return await mint_token(DynamoUserRepository(table), email, settings)
+    return await mint_token(DynamoUserRepository(table), email, settings, admin=admin)
 
 
-# ── CLI: python -m core_api.devtools token <email> ──────────────────────────
+# ── CLI: python -m core_api.devtools token <email> [--admin] ─────────────────
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -76,6 +92,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="print a local-mode JWT for an account, creating it when it is new",
     )
     token.add_argument("email", help="the account to sign in as")
+    token.add_argument(
+        "--admin",
+        action="store_true",
+        help="make the account an administrator before minting",
+    )
     return parser
 
 
@@ -83,7 +104,9 @@ def main(argv: list[str] | None = None) -> int:
     """Exit 0 with the token on stdout; exit 1 with the reason on stderr."""
     namespace = build_parser().parse_args(argv)
     try:
-        token = asyncio.run(_mint_with_own_table(namespace.email, get_settings()))
+        token = asyncio.run(
+            _mint_with_own_table(namespace.email, get_settings(), admin=namespace.admin)
+        )
     except DomainError as exc:
         print(f"error: {exc.message}", file=sys.stderr)
         return 1

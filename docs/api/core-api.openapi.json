@@ -1301,6 +1301,175 @@
         "title": "ActivityUpdate",
         "type": "object"
       },
+      "AdminTripPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AdminTripSummary"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "AdminTripPage",
+        "type": "object"
+      },
+      "AdminTripSummary": {
+        "description": "A trip as GSI2 projects it: its owner, dates, and the planner session.",
+        "properties": {
+          "city": {
+            "title": "City",
+            "type": "string"
+          },
+          "city_slug": {
+            "title": "City Slug",
+            "type": "string"
+          },
+          "country_code": {
+            "title": "Country Code",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "end_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Date"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "phase": {
+            "enum": [
+              "upcoming",
+              "ongoing",
+              "past"
+            ],
+            "title": "Phase",
+            "type": "string"
+          },
+          "planner_session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Planner Session Id"
+          },
+          "start_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Date"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "user_id",
+          "title",
+          "city_slug",
+          "city",
+          "country_code",
+          "start_date",
+          "end_date",
+          "image_url",
+          "created_at",
+          "updated_at",
+          "planner_session_id",
+          "phase"
+        ],
+        "title": "AdminTripSummary",
+        "type": "object"
+      },
+      "AdminUserPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/UserResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "AdminUserPage",
+        "type": "object"
+      },
       "AuthUser": {
         "description": "The profile the frontend keeps next to the access token.",
         "properties": {
@@ -3316,6 +3485,17 @@
             ],
             "title": "Pace Preference"
           },
+          "planner_session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Planner Session Id"
+          },
           "start_date": {
             "anyOf": [
               {
@@ -3667,6 +3847,17 @@
             "title": "Phase",
             "type": "string"
           },
+          "planner_session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Planner Session Id"
+          },
           "start_date": {
             "anyOf": [
               {
@@ -3746,13 +3937,14 @@
           "user_id",
           "created_at",
           "updated_at",
+          "planner_session_id",
           "phase"
         ],
         "title": "TripResponse",
         "type": "object"
       },
       "TripUpdate": {
-        "description": "Partial update of TripBase.",
+        "description": "Partial update of TripWrite.",
         "properties": {
           "accommodation_type": {
             "anyOf": [
@@ -4050,6 +4242,17 @@
             ],
             "title": "Pace Preference"
           },
+          "planner_session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Planner Session Id"
+          },
           "start_date": {
             "anyOf": [
               {
@@ -4170,12 +4373,24 @@
           },
           "role": {
             "$ref": "#/components/schemas/Role"
+          },
+          "subject": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject"
           }
         },
         "required": [
           "email",
           "id",
-          "role"
+          "role",
+          "subject"
         ],
         "title": "UserResponse",
         "type": "object"
@@ -4298,6 +4513,199 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/admin/trips": {
+      "get": {
+        "description": "Every user's trips, newest first, a page at a time.",
+        "operationId": "list_all_trips_api_v1_admin_trips_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminTripPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List All Trips",
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/api/v1/admin/trips/{user_id}/{trip_id}": {
+      "get": {
+        "description": "One trip, whole, whoever owns it.",
+        "operationId": "read_any_trip_api_v1_admin_trips__user_id___trip_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "trip_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Trip Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Any Trip",
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/api/v1/admin/users": {
+      "get": {
+        "description": "Every account by email, with the `subject` the AI traces name it by.",
+        "operationId": "list_all_users_api_v1_admin_users_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUserPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List All Users",
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
     "/api/v1/auth/google": {
       "post": {
         "description": "Verify the Google credential, upsert the user and issue our JWT.",

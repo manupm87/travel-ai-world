@@ -124,6 +124,9 @@ In both modes:
   a deactivated user is cut off immediately. In Cognito mode the profile is upserted from the
   claims (written only when they change it) and the `admin` role mirrors the pool's `admin`
   group; in local mode the table owns the role (`PATCH /users/{id}/role`).
+- Administrators read every trip and account under `core_api`'s `/api/v1/admin` (GSI2 lists
+  every trip newest first; each read logs an audit line). The Cognito `admin` group is filled from
+  `admin_usernames` in Terraform (ADR 0024).
 - `ai_api` verifies the token only (stateless). A deactivated user can keep chatting until the
   token expires (60 min). See [ADR 0002](adr/0002-auth-between-services.md) (superseded for the
   issuer, still the rule for the boundary).

@@ -8,6 +8,10 @@ item owns and remove it in batches.
 """
 
 import asyncio
+import base64
+import binascii
+import builtins
+import json
 from collections.abc import Sequence
 from datetime import datetime, timedelta
 from typing import Any
@@ -16,20 +20,21 @@ from uuid import UUID
 from botocore.exceptions import ClientError
 from travel_common.dynamodb import call, from_item
 from travel_common.exceptions import (
+    BadRequest,
     Conflict,
     EntityNotFound,
     ProviderUnavailable,
     UnprocessableEntity,
 )
 
-from core_api.domain.models import ChatMessage, ChatThread, Trip, User
+from core_api.domain.models import ChatMessage, ChatThread, Trip, TripSummary, User
 from core_api.infrastructure.dynamo import keys
 from core_api.infrastructure.dynamo.codec import (
     entity_to_item,
     item_to_entity,
     json_size,
 )
-from core_api.infrastructure.dynamo.table import GSI1, DynamoTable
+from core_api.infrastructure.dynamo.table import GSI1, GSI2, DynamoTable
 from core_api.pagination import Page
 
 STALE = "changed by another request, reload and retry"
@@ -70,7 +75,12 @@ def email_item(user: User) -> Item:
 
 def trip_item(trip: Trip, version: int) -> Item:
     return entity_to_item(
-        trip, PK=keys.user_pk(trip.user_id), SK=keys.trip_sk(trip.id), version=version
+        trip,
+        PK=keys.user_pk(trip.user_id),
+        SK=keys.trip_sk(trip.id),
+        GSI2PK=keys.TRIPS_GSI2PK,
+        GSI2SK=keys.trip_gsi2_sk(trip.created_at, trip.id),
+        version=version,
     )
 
 
@@ -89,6 +99,43 @@ def message_item(message: ChatMessage) -> Item:
         PK=keys.thread_pk(message.thread_id),
         SK=keys.message_sk(message.created_at, message.id),
     )
+
+
+# ── Cursors ─────────────────────────────────────────────────────────────────
+# An index page ends with DynamoDB's `LastEvaluatedKey`; the client gets it
+# back as an opaque cursor (base64url of its JSON) and hands it in to go on.
+
+
+def encode_cursor(last_key: Item | None) -> str | None:
+    if not last_key:
+        return None
+    raw = json.dumps(last_key, separators=(",", ":"), sort_keys=True).encode()
+    return base64.urlsafe_b64encode(raw).decode().rstrip("=")
+
+
+def decode_cursor(cursor: str | None, index_keys: tuple[str, str]) -> Item | None:
+    """The `ExclusiveStartKey` a cursor stands for; `BadRequest` when it is not
+    one this index could have produced."""
+    if not cursor:
+        return None
+    expected = {keys.PK, keys.SK, *index_keys}
+    try:
+        padded = cursor + "=" * (-len(cursor) % 4)
+        start = json.loads(base64.urlsafe_b64decode(padded.encode()))
+    except (binascii.Error, ValueError, UnicodeDecodeError) as exc:
+        raise BadRequest("Invalid cursor") from exc
+    if (
+        not isinstance(start, dict)
+        or set(start) != expected
+        or not all(
+            isinstance(value, dict)
+            and set(value) == {"S"}
+            and isinstance(value["S"], str)
+            for value in start.values()
+        )
+    ):
+        raise BadRequest("Invalid cursor")
+    return start
 
 
 def ensure_fits(trip: Trip) -> None:
@@ -146,6 +193,33 @@ class _Store:
             if not last or (wanted is not None and len(items) >= wanted):
                 return items
             kwargs["ExclusiveStartKey"] = last
+
+    async def _index_page(
+        self,
+        index: str,
+        index_keys: tuple[str, str],
+        partition: str,
+        *,
+        cursor: str | None,
+        limit: int,
+        newest_first: bool = False,
+    ) -> tuple[list[Item], str | None]:
+        """One page of an index partition and the cursor to the next one."""
+        kwargs: dict[str, Any] = {
+            "TableName": self.table.name,
+            "IndexName": index,
+            "KeyConditionExpression": f"{index_keys[0]} = :partition",
+            "ExpressionAttributeValues": {":partition": {"S": partition}},
+            "ScanIndexForward": not newest_first,
+            "Limit": limit,
+        }
+        start = decode_cursor(cursor, index_keys)
+        if start is not None:
+            kwargs["ExclusiveStartKey"] = start
+        response = await call(self._client.query, **kwargs)
+        return response.get("Items", []), encode_cursor(
+            response.get("LastEvaluatedKey")
+        )
 
     async def _write(self, operation: str, messages: Sequence[str], **kwargs: Any):
         """Run a write; a failed condition becomes a `Conflict`.
@@ -243,6 +317,14 @@ class DynamoUserRepository(_Store):
         window = items[page.skip : page.skip + page.limit]
         return [item_to_entity(User, item) for item in window]
 
+    async def list_page(
+        self, cursor: str | None, limit: int
+    ) -> tuple[builtins.list[User], str | None]:
+        items, next_cursor = await self._index_page(
+            GSI1, (keys.GSI1PK, keys.GSI1SK), keys.USERS, cursor=cursor, limit=limit
+        )
+        return [item_to_entity(User, item) for item in items], next_cursor
+
     async def add(self, user: User) -> User:
         await self._write(
             "transact_write_items",
@@ -328,6 +410,20 @@ class DynamoTripRepository(_Store):
         items = await self._query(keys.user_pk(owner_id), keys.TRIP_PREFIX)
         trips = [item_to_entity(Trip, item) for item in items]
         return sorted(trips, key=lambda trip: (trip.created_at, str(trip.id)))
+
+    async def list_all(
+        self, cursor: str | None, limit: int
+    ) -> tuple[list[TripSummary], str | None]:
+        """Every user's trips, newest first, from GSI2's summary projection."""
+        items, next_cursor = await self._index_page(
+            GSI2,
+            (keys.GSI2PK, keys.GSI2SK),
+            keys.TRIPS_GSI2PK,
+            cursor=cursor,
+            limit=limit,
+            newest_first=True,
+        )
+        return [item_to_entity(TripSummary, item) for item in items], next_cursor
 
     async def add(self, trip: Trip) -> Trip:
         ensure_fits(trip)

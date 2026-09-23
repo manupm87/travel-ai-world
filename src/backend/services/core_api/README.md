@@ -27,7 +27,12 @@ would issue for that account, so a browser can be signed in without Google: the 
 (`docs/runbooks/local-dev.md`). It creates the account when there is none — the real Google
 sign-in adopts it later, matching on the email — refuses an inactive one, and needs
 `AUTH_MODE=local`. Creating accounts is exactly why nothing in the running service imports
-`devtools` (`tests/test_import_boundaries.py` checks it).
+`devtools` (`tests/test_import_boundaries.py` checks it). `--admin`
+(`just dev-token you@example.com --admin`) stores `role=admin` on the account first, so the token
+opens the `/admin` routes; without it the account keeps the role it has.
+
+A table created before GSI2 existed (ADR 0024) keeps its old schema: restart DynamoDB Local (or
+delete the table) so the service creates it again with both indexes.
 
 ## Endpoints (`/api/v1`)
 
@@ -46,6 +51,9 @@ sign-in adopts it later, matching on the email — refuses an inactive one, and 
 | `GET/POST` | `/chat-threads/` | Bearer | Only the caller's conversations, most recent activity first |
 | `GET/PATCH/DELETE` | `/chat-threads/{id}` | Bearer (owner) | 404 for another user's thread; the response has no messages; delete takes them with it |
 | `GET/POST` | `/chat-threads/{id}/messages/` | Bearer (owner) | Append-only, in the order written; an answer may carry `sources`, `model`, tokens and `latency_ms` ([ADR 0013](../../../../docs/architecture/adr/0013-chat-conversations-in-core-api.md)) |
+| `GET` | `/admin/trips?cursor=&limit=50` | Admin | Every user's trips, newest first (GSI2 summary: owner, city, dates, `phase`, `planner_session_id`); `limit` 1..200, `next_cursor` is `null` on the last page |
+| `GET` | `/admin/trips/{user_id}/{trip_id}` | Admin | Anyone's trip, whole (`TripResponse`); 404 when there is none |
+| `GET` | `/admin/users?cursor=&limit=100` | Admin | Every account by email, with the token `subject` the AI traces name it by |
 | `GET` | `/health/`, `/health/db` | — | `/health/db` asks DynamoDB for the table; 503 when it cannot |
 
 Every trip collection offers `GET /` (paginated with `skip`/`limit`), `POST /`, `GET/PATCH/DELETE /{item_id}`.
@@ -57,6 +65,14 @@ Writes that lose a race (someone saved the same trip, thread or profile in betwe
 A trip is **one city** and its `phase` (`upcoming | ongoing | past`) is derived from its dates,
 never stored; everything inside an ongoing or past trip is read-only
 ([ADR 0019](../../../../docs/architecture/adr/0019-trips-live-in-the-planner.md)).
+
+**Admin reads** (ADR 0024) log one audit line per request
+(`admin_read subject=… route=… target=…`). Admins are the Cognito `admin` group in production
+(filled from `admin_usernames` in Terraform, `infra/aws/README.md`) and `role=admin` on the account
+locally. Every profile carries `subject` (the `sub` of its tokens: the Cognito sub, or the account
+id in local mode), written by the upsert that runs on every request only when it changes; every
+trip carries `planner_session_id`, the planner draft it was saved from (a UUID, locked with the
+rest of the trip).
 
 Full contract: [`docs/api/core-api.openapi.json`](../../../../docs/api/core-api.openapi.json).
 

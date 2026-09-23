@@ -16,9 +16,9 @@ review, and every PR reaches the human with a written brief, three reviews and a
 | Role | Who | Output |
 |---|---|---|
 | Audit and brief | the most capable model available (the main session) | the brief, the Linear issue, the branch name |
-| Implement | Opus, in its own git worktree | the branch and the PR |
-| Review | three Sonnet reviewers, one lens each | findings with file, line, severity |
-| Fix and ship | Opus, then the main session | fixes pushed, CI green, PR merged |
+| Implement | Opus 5.5 (`claude-opus-5-5`), in its own git worktree | the branch and the PR |
+| Review | three Sonnet 5 (`claude-sonnet-5`) reviewers, one lens each | findings with file, line, severity |
+| Fix and ship | Opus 5.5, then the main session | fixes pushed, CI green, PR merged |
 
 The human owns what the tooling asks a human for: merge approval when the permission
 classifier denies it, `terraform apply`, production checks that need a real sign-in.

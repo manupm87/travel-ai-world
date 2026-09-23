@@ -4,6 +4,66 @@
  */
 
 export interface paths {
+    "/api/v1/admin/trips": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List All Trips
+         * @description Every user's trips, newest first, a page at a time.
+         */
+        get: operations["list_all_trips_api_v1_admin_trips_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/trips/{user_id}/{trip_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Any Trip
+         * @description One trip, whole, whoever owns it.
+         */
+        get: operations["read_any_trip_api_v1_admin_trips__user_id___trip_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List All Users
+         * @description Every account by email, with the `subject` the AI traces name it by.
+         */
+        get: operations["list_all_users_api_v1_admin_users_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/google": {
         parameters: {
             query?: never;
@@ -738,6 +798,67 @@ export interface components {
             /** Title */
             title?: string | null;
         };
+        /** AdminTripPage */
+        AdminTripPage: {
+            /** Items */
+            items: components["schemas"]["AdminTripSummary"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /**
+         * AdminTripSummary
+         * @description A trip as GSI2 projects it: its owner, dates, and the planner session.
+         */
+        AdminTripSummary: {
+            /** City */
+            city: string;
+            /** City Slug */
+            city_slug: string;
+            /** Country Code */
+            country_code: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** End Date */
+            end_date: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Image Url */
+            image_url: string | null;
+            /**
+             * Phase
+             * @enum {string}
+             */
+            phase: "upcoming" | "ongoing" | "past";
+            /** Planner Session Id */
+            planner_session_id: string | null;
+            /** Start Date */
+            start_date: string | null;
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+        };
+        /** AdminUserPage */
+        AdminUserPage: {
+            /** Items */
+            items: components["schemas"]["UserResponse"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
         /**
          * AuthUser
          * @description The profile the frontend keeps next to the access token.
@@ -1225,6 +1346,8 @@ export interface components {
             origin?: string | null;
             /** Pace Preference */
             pace_preference?: string | null;
+            /** Planner Session Id */
+            planner_session_id?: string | null;
             /** Start Date */
             start_date?: string | null;
             /** Title */
@@ -1322,6 +1445,8 @@ export interface components {
              * @enum {string}
              */
             readonly phase: "upcoming" | "ongoing" | "past";
+            /** Planner Session Id */
+            planner_session_id: string | null;
             /** Start Date */
             start_date?: string | null;
             /** Title */
@@ -1361,7 +1486,7 @@ export interface components {
         };
         /**
          * TripUpdate
-         * @description Partial update of TripBase.
+         * @description Partial update of TripWrite.
          */
         TripUpdate: {
             /** Accommodation Type */
@@ -1410,6 +1535,8 @@ export interface components {
             origin?: string | null;
             /** Pace Preference */
             pace_preference?: string | null;
+            /** Planner Session Id */
+            planner_session_id?: string | null;
             /** Start Date */
             start_date?: string | null;
             /** Title */
@@ -1450,6 +1577,8 @@ export interface components {
             /** Picture */
             picture?: string | null;
             role: components["schemas"]["Role"];
+            /** Subject */
+            subject: string | null;
         };
         /** UserRoleUpdate */
         UserRoleUpdate: {
@@ -1491,6 +1620,102 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    list_all_trips_api_v1_admin_trips_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminTripPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_any_trip_api_v1_admin_trips__user_id___trip_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TripResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_all_users_api_v1_admin_users_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUserPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     google_auth_api_v1_auth_google_post: {
         parameters: {
             query?: never;

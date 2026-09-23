@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from core_api.api.v1.endpoints import auth, chat_threads, health, trips, users
+from core_api.api.v1.endpoints import admin, auth, chat_threads, health, trips, users
 from core_api.api.v1.resources import CHILD_RESOURCES, child_router
 from core_api.config import CoreSettings
 
@@ -18,5 +18,6 @@ def build_api_router(settings: CoreSettings) -> APIRouter:
     api_router.include_router(
         chat_threads.router, prefix="/chat-threads", tags=["Chat threads"]
     )
+    api_router.include_router(admin.router, prefix="/admin", tags=["Admin"])
     api_router.include_router(health.router, prefix="/health", tags=["Health"])
     return api_router

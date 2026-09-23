@@ -55,6 +55,50 @@ async def test_an_admin_keeps_its_role(users: DynamoUserRepository, admin: User)
     assert principal_from_token(token, settings).role is Role.ADMIN
 
 
+async def test_admin_flag_promotes_an_existing_account(
+    client: AsyncClient, users: DynamoUserRepository, alice: User
+):
+    token = await devtools.mint_token(users, alice.email, settings, admin=True)
+
+    assert principal_from_token(token, settings).role is Role.ADMIN
+    stored = await users.get(alice.id)
+    assert stored is not None
+    assert stored.role is Role.ADMIN
+    trips = await client.get(
+        "/api/v1/admin/trips", headers={"Authorization": f"Bearer {token}"}
+    )
+    assert trips.status_code == 200, trips.text
+
+
+async def test_admin_flag_creates_an_admin(users: DynamoUserRepository):
+    token = await devtools.mint_token(users, "boss@example.com", settings, admin=True)
+
+    created = await users.get_by_email("boss@example.com")
+    assert created is not None
+    assert created.role is Role.ADMIN
+    assert principal_from_token(token, settings).role is Role.ADMIN
+
+
+async def test_without_the_flag_the_stored_role_stays(
+    users: DynamoUserRepository, admin: User, alice: User
+):
+    """No `--admin` never demotes, and never promotes."""
+    admin_token = await devtools.mint_token(users, admin.email, settings)
+    alice_token = await devtools.mint_token(users, alice.email, settings)
+
+    assert principal_from_token(admin_token, settings).role is Role.ADMIN
+    assert principal_from_token(alice_token, settings).role is Role.USER
+
+
+async def test_the_subject_is_the_account_id(users: DynamoUserRepository, alice: User):
+    """Local tokens name the account by its id: the traces see that subject."""
+    await devtools.mint_token(users, alice.email, settings)
+
+    stored = await users.get(alice.id)
+    assert stored is not None
+    assert stored.subject == str(alice.id)
+
+
 async def test_an_unknown_account_is_created(
     client: AsyncClient, users: DynamoUserRepository
 ):
@@ -104,8 +148,8 @@ async def test_the_command_opens_its_own_table(users: DynamoUserRepository):
 def test_cli_prints_the_token_and_exits_zero(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ):
-    async def fake_mint(email: str, settings: Any) -> str:
-        return f"jwt-for-{email}"
+    async def fake_mint(email: str, settings: Any, *, admin: bool = False) -> str:
+        return f"jwt-for-{email}{'-admin' if admin else ''}"
 
     monkeypatch.setattr(devtools, "_mint_with_own_table", fake_mint)
 
@@ -114,11 +158,15 @@ def test_cli_prints_the_token_and_exits_zero(
     assert out == "jwt-for-you@example.com\n"
     assert err == ""
 
+    assert devtools.main(["token", "you@example.com", "--admin"]) == 0
+    out, _ = capsys.readouterr()
+    assert out == "jwt-for-you@example.com-admin\n"
+
 
 def test_cli_exits_one_with_a_message_when_minting_is_refused(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ):
-    async def fake_mint(email: str, settings: Any) -> str:
+    async def fake_mint(email: str, settings: Any, *, admin: bool = False) -> str:
         raise DomainError(f"Account {email} is inactive")
 
     monkeypatch.setattr(devtools, "_mint_with_own_table", fake_mint)

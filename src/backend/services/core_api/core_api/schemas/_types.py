@@ -67,6 +67,15 @@ CitySlug = Annotated[
 ]
 """City as the corpus names it: "madrid", "berlin", "budapest"."""
 
+SessionId = Annotated[
+    str,
+    BeforeValidator(_as_slug),
+    StringConstraints(
+        pattern=r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    ),
+]
+"""A planner draft's id: a UUID as text, lower-cased (ADR 0024)."""
+
 MessageText = Annotated[str, StringConstraints(min_length=1, max_length=100_000)]
 """One chat turn, kept verbatim."""
 

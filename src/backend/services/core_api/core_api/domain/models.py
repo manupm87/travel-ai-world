@@ -44,6 +44,7 @@ __all__ = [
     "Transportation",
     "Trip",
     "TripPhase",
+    "TripSummary",
     "User",
     "ensure_ordered",
     "phase_of",
@@ -110,6 +111,10 @@ class User(Entity):
     google_id: str | None = None
     name: str | None = None
     picture: str | None = None
+    # The token `sub` this account signs in with (ADR 0024): the Cognito sub
+    # in production, the account id as text in local mode. The AI traces name
+    # users by it, never by their email.
+    subject: str | None = None
     version: int = 0
 
 
@@ -270,6 +275,10 @@ class Trip(TimestampedEntity):
     ai_weather_forecast: str | None = None
     ai_local_tips: list[str] | None = None
 
+    # The planner draft this trip was saved from (a UUID as text, ADR 0024):
+    # it links the trip to the AI turns that made it.
+    planner_session_id: str | None = None
+
     # The rest of the aggregate, stored inside the trip.
     itinerary_days: list[ItineraryDay] = field(default_factory=list)
     accommodations: list[Accommodation] = field(default_factory=list)
@@ -294,6 +303,31 @@ class Trip(TimestampedEntity):
 
     def check_invariants(self) -> None:
         ensure_ordered(self.start_date, self.end_date, "Trip dates")
+
+
+@dataclass(slots=True, kw_only=True)
+class TripSummary:
+    """What the admin list shows of a trip: the fields GSI2 projects (ADR 0024).
+
+    Read from the index, never saved: the trip itself is the `Trip` item.
+    """
+
+    id: uuid.UUID
+    user_id: uuid.UUID
+    title: str
+    city_slug: str
+    city: str
+    country_code: str
+    start_date: date | None = None
+    end_date: date | None = None
+    image_url: str | None = None
+    created_at: datetime
+    updated_at: datetime
+    planner_session_id: str | None = None
+
+    @property
+    def phase(self) -> TripPhase:
+        return phase_of(self.start_date, self.end_date, utc_now().date())
 
 
 # ── Conversations ───────────────────────────────────────────────────────────

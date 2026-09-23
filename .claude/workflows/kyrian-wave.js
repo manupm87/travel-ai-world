@@ -3,9 +3,9 @@ export const meta = {
   description: 'Deliver one Linear issue: Opus implements in a worktree and opens the PR, Sonnet reviews with three lenses, Opus fixes and watches CI',
   whenToUse: 'A feature or fix whose brief (decisions, files, tests, docs) is already written. Args: {issue, branch, briefPath, checks?, base?}. Not for docs-only edits or one-line fixes.',
   phases: [
-    { title: 'Implement', detail: 'one Opus agent, git worktree, opens the PR', model: 'opus' },
-    { title: 'Review', detail: 'three Sonnet reviewers, one lens each', model: 'sonnet' },
-    { title: 'Fix', detail: 'one Opus agent applies confirmed findings and watches CI', model: 'opus' },
+    { title: 'Implement', detail: 'one Opus 5.5 agent, git worktree, opens the PR', model: 'claude-opus-5-5' },
+    { title: 'Review', detail: 'three Sonnet 5 reviewers, one lens each', model: 'claude-sonnet-5' },
+    { title: 'Fix', detail: 'one Opus 5.5 agent applies confirmed findings and watches CI', model: 'claude-opus-5-5' },
   ],
 }
 
@@ -60,7 +60,7 @@ push; open the PR with gh pr create --base ${base} --title "<conventional title>
 following .github/pull_request_template.md>, the body ending with "Closes ${issue}" and the line
 "🤖 Generated with [Claude Code](https://claude.com/claude-code)".
 ${RULES}`,
-  { label: `implement:${issue}`, phase: 'Implement', model: 'opus', isolation: 'worktree', schema: IMPL_SCHEMA },
+  { label: `implement:${issue}`, phase: 'Implement', model: 'claude-opus-5-5', isolation: 'worktree', schema: IMPL_SCHEMA },
 )
 if (!impl || !impl.pr) {
   log(`Implementation did not open a PR (${impl ? impl.blocked : 'agent died'}); stopping here.`)
@@ -107,7 +107,7 @@ in a worktree of your own (git worktree add). Report only what you verified in t
 file and line and says what to change. Severity: blocker = wrong behaviour or a broken rule; should = real
 but not blocking; nit = style.
 ${RULES}`,
-      { label: `review:${lens.key}`, phase: 'Review', model: 'sonnet', schema: FINDINGS_SCHEMA },
+      { label: `review:${lens.key}`, phase: 'Review', model: 'claude-sonnet-5', schema: FINDINGS_SCHEMA },
     ),
   ),
 )).filter(Boolean)
@@ -138,7 +138,7 @@ Apply every finding you can confirm in the code; skip one only with a reason. Re
 Commit, push, then watch CI on the pushed head: gh pr checks ${impl.pr} --watch (up to two rounds of fixes if a
 job fails — read the failing job's log with gh run view <id> --log-failed). Do NOT merge.
 ${RULES}`,
-  { label: `fix:${issue}`, phase: 'Fix', model: 'opus', isolation: 'worktree', schema: FIX_SCHEMA },
+  { label: `fix:${issue}`, phase: 'Fix', model: 'claude-opus-5-5', isolation: 'worktree', schema: FIX_SCHEMA },
 )
 
 return { pr: impl.pr, branch, impl, findings, fix }

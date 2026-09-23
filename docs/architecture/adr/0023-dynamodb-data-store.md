@@ -83,6 +83,10 @@ email item alone gives uniqueness and the lookup the upsert needs.
 
 ### `ai_api`: the interaction log, `<prefix>-interactions`
 
+**Amended by [ADR 0024](0024-turn-traces-and-admin-access.md) (2026-09-23):** the flat item became a
+trace — a summary in the day partition plus the turn's steps, events and context under `TURN#<id>`,
+with a second GSI by session. The table, the TTL, the privacy rule and the admin-only reads stand.
+
 TTL on `expires_at`, no point-in-time recovery.
 
 - `PK = DAY#<YYYY-MM-DD>` (UTC), `SK = <ts µs ISO>#<interaction_id>`.
