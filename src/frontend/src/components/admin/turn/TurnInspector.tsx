@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Layers } from "lucide-react";
+import { BookOpen, ChevronLeft, ChevronRight, Layers } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import type { SessionPosition } from "@/hooks/admin/useSessionTurns";
@@ -9,6 +9,7 @@ import { interpolate } from "@/i18n";
 import type { TurnDetail } from "@/services/admin";
 import { BriefPanel } from "./BriefPanel";
 import { EventTimeline } from "./EventTimeline";
+import { InspectorSection } from "./InspectorParts";
 import { InspectorSheet } from "./InspectorSheet";
 import { marksInto, turnMarks, type Mark } from "./marks";
 import { ModelCalls } from "./ModelCalls";
@@ -161,7 +162,9 @@ export function TurnInspector({
   const events = <EventTimeline turn={turn} marks={marksInto(marks, "events")} />;
   const kb =
     views.length === 0 ? (
-      <p className="text-sm text-text-secondary">{tt.kb.empty}</p>
+      <InspectorSection id="turn-kb-empty" title={tt.kb.title} icon={BookOpen}>
+        <p className="text-sm text-text-secondary">{tt.kb.empty}</p>
+      </InspectorSection>
     ) : (
       views.map((view) => (
         <RetrievalPanel

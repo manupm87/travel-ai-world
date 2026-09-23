@@ -611,6 +611,7 @@ const es: Translations = {
         usedNo: "No usado",
         footnote: "Distancia coseno: cuanto más baja, más cerca. Se usan {used} de {k}.",
         noResults: "Sin resultados",
+        noHit: "Búsqueda vacía",
         empty: "Este turno no buscó nada.",
       },
       sheet: {

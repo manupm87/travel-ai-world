@@ -695,6 +695,8 @@ export interface Translations {
         /** "Cosine distance: lower is closer. {used} of {k} used." */
         footnote: string;
         noResults: string;
+        /** Pill on a search that found nothing (the payload's `no_hit`). */
+        noHit: string;
         empty: string;
       };
       /** The phone's bottom sheet. */

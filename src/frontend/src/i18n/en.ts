@@ -618,6 +618,7 @@ const en: Translations = {
         usedNo: "Not used",
         footnote: "Cosine distance: lower is closer. {used} of {k} used.",
         noResults: "No results",
+        noHit: "Found nothing",
         empty: "This turn searched nothing.",
       },
       sheet: {

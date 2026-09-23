@@ -70,7 +70,7 @@ export function RetrievalPanel({ view, marks = [] }: { view: RetrievalView; mark
       aside={
         <span className="flex min-w-0 flex-wrap items-center justify-end gap-x-2">
           {purpose && <span>{purpose}</span>}
-          {view.noHit && <Pill tone="gold">no_hit</Pill>}
+          {view.noHit && <Pill tone="gold">{kb.noHit}</Pill>}
         </span>
       }
     >

@@ -102,7 +102,7 @@ export function InspectorSheet({
         ref={handle}
         type="button"
         aria-expanded={open}
-        aria-controls={`${base}-body`}
+        aria-controls={open ? `${base}-body` : undefined}
         aria-label={open ? ts.collapse : ts.expand}
         onClick={() => onOpenChange(!open)}
         className="flex w-full shrink-0 flex-col items-stretch gap-2 rounded-t-2xl px-4 pb-3 pt-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/50"
