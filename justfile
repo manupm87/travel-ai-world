@@ -192,12 +192,18 @@ aws-login:
     aws sso login
     aws sts get-caller-identity
 
+# The Cognito username of an account (`google_<sub>` for Google), after its first sign-in:
+# what goes into `admin_usernames` in infra/aws/terraform.tfvars (ADR 0024). Needs just aws-login.
+cognito-username email:
+    aws cognito-idp list-users --user-pool-id "$(cd infra/aws && terraform output -raw cognito_user_pool_id)" --filter "email = \"{{email}}\"" --query 'Users[].Username' --output text
+
 # ── Accounts ─────────────────────────────────────────────────────────────────
 
 # Print a local-mode JWT for an account (created when it is new), to sign in without Google:
-# E2E_TOKEN=$(just dev-token you@example.com). Dev-only: the deployed service never imports it.
-dev-token email:
-    @cd {{core}} && uv run --quiet python -m core_api.devtools token {{email}}
+# E2E_TOKEN=$(just dev-token you@example.com). `just dev-token you@example.com --admin` makes the
+# account an administrator first. Dev-only: the deployed service never imports it.
+dev-token email *flags="":
+    @cd {{core}} && uv run --quiet python -m core_api.devtools token {{email}} {{flags}}
 
 # ── Build & Docker ───────────────────────────────────────────────────────────
 

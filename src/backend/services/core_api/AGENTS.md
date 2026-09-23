@@ -60,6 +60,15 @@ infrastructure/dynamo/  the only adapter: table.py, keys.py, codec.py, repositor
 - **Ownership is the key.** Trips and threads live under `USER#<owner>`: `get_owned_*` reads with
   the caller as owner, so **another user's trip or thread is 404**, not 403. User endpoints keep
   their rules: `PATCH/DELETE /users/{id}` by someone else is 403, admin reads are 403 for non-admins.
+- **Admin reads** (ADR 0024) live in `api/v1/endpoints/admin.py` under `/admin`: every trip
+  (`TripService.list_all` → GSI2, newest first), any trip by owner and id (`get_any`), every
+  account (`UserService.list_page` → GSI1), each by cursor. The router's dependency
+  `audit_admin_read` checks the admin and logs `admin_read subject=… route=… target=…` once.
+- **`User.subject`** is the `sub` of the account's tokens: `upsert_from_identity` writes the
+  identity's subject (Cognito) or the account id (`subject_is_account_id=True`, local sign-in;
+  `devtools` sets it too), only when it changes. The AI traces name users by it, never by email.
+  `google_id` is kept as it was. **`Trip.planner_session_id`** links a trip to the planner
+  turns that made it; writable like any trip field, and locked with them.
 - Pagination: every list endpoint takes `Page` via `Depends(page_params)` (`skip`, `limit ≤ 500`);
   a user's trips and threads come from one `Query` and are sorted and sliced in the service.
 - Partial updates are `PATCH`; `PUT` is not used. `services/__init__.py::apply_changes` sets the
@@ -75,10 +84,17 @@ infrastructure/dynamo/  the only adapter: table.py, keys.py, codec.py, repositor
 |---|---|---|
 | Account | `USER#<user_id>` | `PROFILE` (`GSI1PK=USERS`, `GSI1SK=<email>`: the admin list) |
 | Email uniqueness | `EMAIL#<email, lowercased>` | `EMAIL` → `{user_id}` |
-| Trip (whole aggregate) | `USER#<user_id>` | `TRIP#<trip_id>` |
+| Trip (whole aggregate) | `USER#<user_id>` | `TRIP#<trip_id>` (`GSI2PK=TRIPS`, `GSI2SK=<created_at, µs, UTC>#<trip_id>`: the admin list) |
 | Conversation | `USER#<user_id>` | `THREAD#<thread_id>` |
 | Message | `THREAD#<thread_id>` | `MSG#<created_at, µs, UTC>#<message_id>` |
 
+- **GSI2 projects a summary on AWS** (`INCLUDE`: `id`, `user_id`, `title`, `city_slug`, `city`,
+  `country_code`, dates, `image_url`, timestamps, `planner_session_id`, `version`), which is what
+  `TripSummary` (`domain/models.py`) decodes; locally `ensure_table` projects everything. A field
+  the admin list needs must be added to `non_key_attributes` in `infra/aws/dynamodb.tf` too.
+  Index pages go by cursor (`_index_page`: base64url of `LastEvaluatedKey`; a cursor that is not
+  one this index issued is `BadRequest`). Trips saved before GSI2 carry no `GSI2PK` and are
+  absent from the admin list until they are saved again.
 - **Optimistic concurrency**: profile, trip and thread carry `version`; creates are conditional on
   `attribute_not_exists(PK)`, changes on `version = :expected`. A failed condition is `Conflict`
   (409, "changed by another request, reload and retry"; a taken email: "email already registered").
@@ -103,7 +119,8 @@ infrastructure/dynamo/  the only adapter: table.py, keys.py, codec.py, repositor
 - **Dev-only helpers live in `devtools.py`**: `python -m core_api.devtools token
   <email>` (`just dev-token <email>`) prints the local-mode JWT the sign-in would issue for that
   account (`sub` = its UUID, `email`, `role`, `exp`), **creating it when it is new**, so the
-  Playwright suite and the Playwright MCP sign in without Google. It honours
+  Playwright suite and the Playwright MCP sign in without Google. `--admin`
+  (`just dev-token <email> --admin`) stores `role=admin` first; without it the role is left alone. It honours
   `DYNAMODB_ENDPOINT_URL` like the service. Nothing in the service imports `devtools`
   (`tests/test_import_boundaries.py` checks it). Refuses in Cognito mode.
 
@@ -113,6 +130,7 @@ infrastructure/dynamo/  the only adapter: table.py, keys.py, codec.py, repositor
 just dynamodb-local                # another terminal: moto on :8002 (the devcontainer has DynamoDB Local)
 uv run uvicorn core_api.main:app --reload --port 8000
 uv run python -m core_api.devtools token you@example.com   # local JWT for that account (just dev-token)
+uv run python -m core_api.devtools token you@example.com --admin   # ... as an administrator
 uv run pytest                      # moto in process, no database
 ```
 
