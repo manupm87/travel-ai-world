@@ -57,12 +57,12 @@ src/
 │   └── error.tsx, loading.tsx, not-found.tsx
 ├── components/     # UI by feature: ui/, layout/, landing/, planner/, auth/, common/, admin/
 ├── context/        # Providers: AuthContext, LanguageContext, ThemeContext
-├── hooks/          # admin/ (useAdminStats, useTurns, useTurn, useAdminUsers, useAdminTrips), useTrips, useTrip, useSaveTrip, useTypewriter, useFormatters, useStickToBottom, useAutoResizeTextarea, useScrolled, useClickOutside
+├── hooks/          # admin/ (useAdminStats, useTurns, useTurn, useSessionTurns, useAdminUsers, useAdminTrips), useTrips, useTrip, useSaveTrip, useTypewriter, useFormatters, useStickToBottom, useAutoResizeTextarea, useScrolled, useClickOutside
 ├── i18n/           # types.ts (contract), en.ts, es.ts, index.ts (locales + LANGUAGES), interpolate.ts
 ├── services/       # The only place that talks to the network -> [README](src/services/README.md)
 ├── types/          # Hand-written domain types + generated/ (from OpenAPI, never edited)
 ├── utils/          # Pure helpers (cn, formatting, country flags, localStorage store, safe redirect)
-└── test/           # Vitest setup + renderWithProviders (render.tsx) + typed fixtures (fixtures.ts, fixtures/trip-budapest.ts, fixtures/planner-city.ts, fixtures/admin.ts)
+└── test/           # Vitest setup + renderWithProviders (render.tsx) + typed fixtures (fixtures.ts, fixtures/trip-budapest.ts, fixtures/planner-city.ts, fixtures/admin.ts, fixtures/admin-turn.ts)
 ```
 
 Route groups `(marketing)`, `(app)` and `(admin)` do not appear in URLs; they exist so the header/footer,
@@ -160,7 +160,7 @@ Defined in `globals.css` as CSS custom properties and consumed directly in Tailw
 | `/dashboard/` | ✅ Live | **The signed-in home** (TRA-199, ADR 0020): the ask that starts the next trip over the account's trips, grouped by phase — the only place trips are listed (TRA-201). Sign-in lands here when no `?redirect=` was asked for |
 | `/trip/?id=<uuid>` | ↪️ Redirect | Kept for old links: `/plan/?trip=<uuid>` when the id is a trip id, `/plan/` otherwise (TRA-196) |
 | `/plan/` (`?q=<prompt>`, `?trip=<uuid>`) | ✅ Live | The trip planner (layout A, TRA-144). It **lists no trips** (TRA-201): it holds the one trip it was opened with, the empty pane is a quiet placeholder (`plan.panel.emptyTitle` / `emptyDescription`), and the way to the trips is the header pill, "Your trips" → `/dashboard/` from here and "Open the planner" → `/plan/` from there. `?trip=<uuid>` reopens a saved trip in the planner; a bare `/plan/` is always a new trip, never the tab's last saved one (TRA-223), and a saved, still-plannable trip offers "New trip" in the panel header; and a trip that is happening now or is over is read-only (no composer, no Save, no "Change"), because `core_api` refuses every write on it (ADR 0019). Three columns on a laptop — chat with quick replies and option-card carousels, the brief checklist that becomes the live itinerary, and the map of the selected day (MapLibre GL over OpenFreeMap's keyless tiles, TRA-147/ADR 0016) — and the same three as tabs on a phone. A finished itinerary opens on the **trip overview** (`TripOverview`, TRA-177): the destination's photo and description, a mosaic of the trip's own photos and the list of days, across the two right columns, with no map until a day is picked. Clicking a stop of a day turns the middle column into that activity's page (photo, article, address, phone, site and directions, from `GET /ai/planner/card?id=`) and highlights its pin on the map (TRA-179) (`usePlanner`, client-side; SSE v2 events from `ai_api`'s `/planner`; until TRA-143 lands the page answers from the recorded Budapest session in `src/data/planner-demo/` and shows a demo banner) |
-| `/admin/` (`?range=30`) | ✅ Live | **The admin console** (TRA-222, ADR 0024), for accounts whose `role` is `admin` — anyone else gets a "not allowed" card on every `/admin/` URL, and the services answer 403 regardless. A sidebar (a tab strip on a phone): **Overview** — seven figures, turns per day by status over output tokens per day (hand-drawn SVG), and the breakdowns by model, city and kind, the most used documents and those retrieved but never used, for the last 7 or 30 days; **Turns** (`/admin/turns/?day=&kind=&status=&subject=&city=`) — a day's turns, filters in the URL, "Load more"; **Trips** — every saved trip with its owner; **Users** — every account with its role and token subject. `/admin/turn/?id=` shows one turn as data (summary, context, steps, timeline, "Export JSON") until TRA-228's inspector replaces it; `/admin/trip/` is TRA-229 |
+| `/admin/` (`?range=30`) | ✅ Live | **The admin console** (TRA-222, ADR 0024), for accounts whose `role` is `admin` — anyone else gets a "not allowed" card on every `/admin/` URL, and the services answer 403 regardless. A sidebar (a tab strip on a phone): **Overview** — seven figures, turns per day by status over output tokens per day (hand-drawn SVG), and the breakdowns by model, city and kind, the most used documents and those retrieved but never used, for the last 7 or 30 days; **Turns** (`/admin/turns/?day=&kind=&status=&subject=&city=`) — a day's turns, filters in the URL, "Load more"; **Trips** — every saved trip with its owner; **Users** — every account with its role and token subject. `/admin/turn/?id=` is the **turn inspector** (TRA-228): on the left what the traveller saw with four numbered marks, on the right what they did not — six figures, the trace as a waterfall by phase and step kind, the brief, every model call's output with its validation, the SSE timeline and one city-kb panel per search — with previous / next in the session and "Export JSON"; on a phone the right side is a bottom sheet with four tabs; `/admin/trip/` is TRA-229 |
 | anything else | ✅ | `not-found.tsx`, exported as `404.html` |
 
 ---
@@ -254,7 +254,8 @@ so it needs no backend.
 `page.route` from `src/test/fixtures/admin.ts`, signs in with a fake JWT whose stored profile says
 `role: "admin"` (and mocks `/api/v1/users/me`), and walks the overview, the turns filters and
 "Load more", users, trips, the turn page's export, the "not allowed" state, the 390 px width and
-the keyboard path.
+the keyboard path. `e2e/admin-turn.spec.ts` (TRA-228) mocks one turn and its session from
+`src/test/fixtures/admin-turn.ts` and walks the inspector on a desktop and on a 390 px phone.
 
 `e2e/trips.spec.ts` is the signed-in suite: there is no seed any more, so it writes the two trips
 it needs through the REST API in `beforeAll` (one upcoming, one already over, both carrying the

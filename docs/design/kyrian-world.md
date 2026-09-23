@@ -132,6 +132,28 @@ plot read as a correlation that is not there. Text never wears a series colour; 
 dot beside a word (`Pill`), never colour alone, and every chart has a legend, a tooltip that
 keyboard focus opens too, and an `sr-only` table with the same numbers.
 
+The **turn inspector** (`/admin/turn/?id=`, TRA-228) follows the boards "Chat en modo admin" and
+"Admin en móvil" in structure, with today's tokens rather than their palettes and without the
+mascot. Left, what the traveller saw, with four numbered marks (gold-ringed buttons) that lead to
+what explains them; right, "What is not seen". Its waterfall paints each step by kind, one token
+per kind: **`--color-purple`** a model call, **`--color-success`** a city-kb search,
+**`--color-accent`** an external service, **`--color-text-muted`** a code step; a step that warned
+gets a **`--color-gold`** outline and a failed one a **`--color-error`** outline, next to a warning
+icon so the colour is never alone. The steps are grouped under the five phases, named after packing
+a suitcase:
+
+| Phase id | English | Spanish |
+|---|---|---|
+| `open` | Open the suitcase | Abrir la maleta |
+| `wardrobe` | Look in the wardrobe | Mirar en el armario |
+| `fold` | Fold and fit | Doblar y encajar |
+| `weigh` | Weigh the suitcase | Pesar la maleta |
+| `zip` | Zip it up | Cerrar la cremallera |
+
+Below `lg` the right side is a bottom sheet (collapsed to its title and the action, 85dvh open)
+with four figures and the tabs Trace / city-kb / Model / Events; it scrolls inside itself, never
+the page sideways.
+
 ## Copy
 
 Sentence case, plain verbs, the reader's perspective. A button says what happens ("Plan it",

@@ -127,8 +127,18 @@ TypeScript 5, Tailwind CSS v4.
   an `href`), the `Pill` (a coloured dot and the word, never colour alone), the overview's
   `KpiTiles` (over the pure `overview/kpis.ts`), `RangePicker` and `DailyChart` (hand-drawn SVG over
   the pure `charts/scale.ts`: bars stacked by status over a separate output-tokens panel, focusable
-  days with a tooltip, an `sr-only` table), and the turns filters and table. `/admin/turn/` is a
-  placeholder TRA-228 turns into the inspector; `useTurn` stays. Ids and JSON are `font-mono`
+  days with a tooltip, an `sr-only` table), and the turns filters and table. `/admin/turn/?id=` is
+  the **turn inspector** (TRA-228): `useTurn` loads it, `useSessionTurns` places it in its planner
+  session (previous / next; `null` without a session or on failure), and
+  `components/admin/turn/TurnInspector.tsx` lays it out — from `lg` two columns (`TravellerView`
+  sticky on the left; on the right `TurnChips`, `TraceWaterfall` with `StepPanel` inline,
+  `BriefPanel` beside `ModelCalls`, `EventTimeline`, one `RetrievalPanel` per search), below `lg`
+  the traveller view and `InspectorSheet` (a bottom sheet, tabs Trace / city-kb / Model / Events).
+  The logic is pure and tested beside it: `waterfall.ts` (rows by phase, parent indent, scale,
+  minimum bar width), `modelCalls.ts` (tabs, JSON vs text, validation chips), `retrievals.ts`
+  (filter chips, distance bars, purposes), `traveller.ts` (the ops read back) and `marks.ts` (the
+  numbered marks ① → events, ② → model output, ③ → the step that warned, ④ → the first city-kb
+  panel; a mark exists only when both ends do). Its fixture is `src/test/fixtures/admin-turn.ts`. Ids and JSON are `font-mono`
   (JetBrains Mono, `--font-mono`, loaded in `app/layout.tsx`) — the only monospace in the app.
 - **The landing is the field** (TRA-190): `/` is `components/landing/AskField.tsx` and nothing else
   — the question (the page's only `h1`, and the field's `aria-labelledby`), the field, the button.
@@ -349,7 +359,9 @@ TypeScript 5, Tailwind CSS v4.
 - Tests: `renderWithProviders` from `src/test/render.tsx` and the typed builders in
   `src/test/fixtures.ts` (`src/test/fixtures/trip-budapest.ts` when a test needs a whole
   `TripResponse`, `src/test/fixtures/planner-city.ts` when it needs a `PlannerCity`,
-  `src/test/fixtures/admin.ts` for the admin routes' answers, shared with `e2e/admin.spec.ts`);
+  `src/test/fixtures/admin.ts` for the admin routes' answers, shared with `e2e/admin.spec.ts`,
+  and `src/test/fixtures/admin-turn.ts` for the inspector's rich planner turn, its session and a
+  minimal chat turn, shared with `e2e/admin-turn.spec.ts`);
   assert on roles/names/`data-*` state and on `en.ts` copy, not on class names.
   Do not mock `Card`/`Section`/`Container`/`next/link` or `lucide-react` icon by icon.
 - Playwright, three configs over one `e2e/` folder: `playwright.config.ts` (`just test-e2e`: starts
@@ -373,7 +385,9 @@ TypeScript 5, Tailwind CSS v4.
   all three configs, signs the planner in with a fake unsigned JWT and sends no turn, so it needs no
   backend either. `admin.spec.ts` (TRA-222) runs in all three too: every admin route is mocked with
   `page.route` from `src/test/fixtures/admin.ts`, the stored profile carries `role`, and
-  `/api/v1/users/me` is mocked for the builds that have a core_api to ask.
+  `/api/v1/users/me` is mocked for the builds that have a core_api to ask. `admin-turn.spec.ts` (TRA-228) signs in
+  the same way and walks the inspector at 1440 px (figures, phases, model tabs, marks, a step
+  opened with Enter, previous / next) and at 390 px (the sheet, its four tabs, no sideways scroll).
 
 ## Commands
 
