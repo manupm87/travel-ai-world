@@ -1,0 +1,48 @@
+\section{Equipo y contribución individual}\label{sec:03b-equipo}
+
+El equipo lo forman cuatro personas. La \cref{tab:03b-equipo} resume, \emph{según git y GitHub}
+(PR fusionadas en \code{main} hasta \code{e7916c8}), qué hizo cada una; el rol se deduce de las
+rutas del repositorio que tocó y de los títulos de sus PR, no de un reparto formal previo.
+
+\begin{table}[tb]
+\centering\footnotesize
+\caption{Contribución por miembro según las PR fusionadas (181 en total, 3 de ellas de Dependabot).}\label{tab:03b-equipo}
+\begin{tabularx}{\columnwidth}{@{}>{\raggedright\arraybackslash}p{1.55cm}Y@{}}
+\toprule
+Miembro (PR) & Rol principal, áreas del repositorio e hitos (n.º de PR) \\
+\midrule
+Manuel Pérez (145) & Producto de extremo a extremo y proceso de entrega con agentes.
+\code{src/frontend}, \code{core\_api}, planificador de \code{ai\_api}, \code{city\_corpus},
+migración a DynamoDB, consola de administración (\#193--\#196), \code{infra/aws} v3, CI/CD,
+\code{docs} y ADR. Por prefijo del título: $\approx$27 infraestructura/CI, 22 \emph{frontend},
+21 \code{core\_api}, 20 documentación, 17 corpus, 17 \code{ai\_api}, 8 administración, 13 otras. \\
+\addlinespace
+Alexander De Sousa (19) & Prototipo del planificador (\#17--\#20); \emph{scraper} de Google
+Places y Wikipedia (\#26--\#31, \#68); \emph{devcontainer} inicial (\#35, \#36); Terraform
+inicial de AWS y GCP (\#37); \emph{frontend} HTTPS con S3, CloudFront, Route~53 y ACM (\#83);
+corpus de Madrid (\#172). \\
+\addlinespace
+Joaquín Castro Salas (14) & Andamiaje del \emph{backend} y esquema de datos (\#21--\#25); OAuth de
+Google, chat, CI/CD (\#32); protección del chat y CI del \emph{backend} (\#40, \#41); Bedrock en
+\code{ai\_api} (\#109); hilos de chat (\#111, \#115); infraestructura de S3 Vectors (\#116); RAG
+del chat con S3 Vectors y Titan (\#124); corpus de Berlín (\#171). \\
+\addlinespace
+David Baos (0; 1 rama) & Ciudad de Miami a través del \emph{pipeline} de \code{city\_corpus}
+(TRA-204, rama \code{tra-204-miami-through-the-pipeline}, 21-09-2026): configuración
+\code{cities/miami.toml}, corpus de 1\,249 documentos, manifiesto e informe de \emph{readiness};
+sin PR fusionada en \code{main} en la fecha de corte. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{Cómo se registró la contribución.} Todo cambio sigue la misma cadena: issue en Linear
+(TRA-$n$) $\rightarrow$ rama \code{<tipo>/TRA-<n>-<slug>} $\rightarrow$ PR con autor en GitHub
+$\rightarrow$ fusión. El código generado con agentes lleva en el \emph{commit} la línea
+\code{Co-Authored-By: Claude} (151 de los 324 \emph{commits} de \code{main}); aun así, cada PR la
+abrió, revisó y fusionó una persona, que es su autora a efectos de esta tabla
+(\cref{sec:08-cicd-proceso}).
+
+\paragraph{Limitaciones de la evidencia.} El reparto es desigual (145/19/14/0 PR fusionadas) y el
+recuento de PR o de líneas no mide esfuerzo: no captura el trabajo no versionado (reuniones,
+curación manual de datos, pruebas en producción) ni el peso de cada PR, y deja fuera el trabajo
+que aún no ha llegado a \code{main}, como la ciudad de Miami.

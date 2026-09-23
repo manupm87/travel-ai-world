@@ -1,0 +1,184 @@
+\section{Estudio de mercado y viabilidad}\label{sec:03-mercado}
+
+\subsection{Mercado y tendencias}
+
+El turismo internacional cerró 2025 con 1\,520 millones de llegadas (+4\,\%); Europa recibió
+793 millones \cite{mk:untourism2025}.
+España batió su récord con 96,8 millones de turistas internacionales y 134\,712~M€ de gasto
+\cite{mk:egatur2025}. Las OTA facturaron 94\,000~M\$ en 2024 (+7\,\% anual) y ven
+en la IA conversacional una amenaza \cite{mk:skiftota}. Los ingresos se generan al \emph{reservar};
+\emph{planificar}, el eslabón que cubre Kyrian World, apenas se monetiza por sí mismo.
+
+En España el 40\,\% de los adultos ya ha usado un asistente de IA para preparar un viaje (el
+73\,\% entre los 18 y los 24 años) \cite{mk:yougov2026}; Europa va por detrás (Reino Unido
+22\,\%, Francia 19\,\%, Alemania 15\,\%) \cite{mk:phocuseurope2025}. Falta confianza: solo el 17--20\,\% de los viajeros europeos confía plenamente en una IA
+\cite{mk:phocustrust}, y el 49\,\% de los españoles que no la usan teme recomendaciones
+inexactas o desactualizadas \cite{mk:yougov2026}. En una encuesta patrocinada por Mindtrip a
+103 organizaciones de gestión de destinos (DMO) de EE.\,UU., solo el 22\,\% ofrece un
+planificador con IA en su web \cite{mk:dmoreadiness}.
+
+\subsection{Competencia}
+
+La \cref{tab:03-competidores} enseña que los generadores sin datos propios acaban comprados y
+que Expedia retiró Romie por responder sin inventario ni precios reales \cite{mk:romie}.
+
+\begin{table*}[tb]\centering\footnotesize
+\begin{tabularx}{\textwidth}{@{}p{1.9cm}p{2.4cm}YYY@{}}\toprule
+Nombre & Tipo / propietario & Negocio & Diferenciador & Debilidad o estado \\\midrule
+Layla & \emph{Startup} ($\approx$5~M€) & \emph{Freemium} (9,99~\$/mes), afiliación \cite{mk:laylapricing} & Chat y vídeo; precios en vivo & Comprada por Expedia (07-2026); mantiene su marca \cite{mk:laylaexpedia} \\
+Roam Around & \emph{Startup} (1~M\$) & Gratuito & Sencillez; auge tras ChatGPT & Absorbida por Layla (02-2024); sin datos propios \\
+Mindtrip & \emph{Startup} (19~M\$) & Gratis; comisión; B2B & 11~M de POI; >35 destinos clientes \cite{mk:mindtrip} & Fuerte en EE.\,UU.; poco español \\
+GuideGeek & Matador Network & Marca blanca para DMO & >70 DMO; WhatsApp, Instagram \cite{mk:guidegeek} & Depende de OpenAI; generalista \\
+Wonderplan & \emph{Startup} & Gratis, sin registro & Rapidez; PDF & Casi insensible al perfil \\
+Wanderlog & \emph{Startup} (YC) & \emph{Freemium} & Colaboración y mapas & IA secundaria \\
+ChatGPT & OpenAI & Suscripción; apps de Booking y Expedia (10-2025) \cite{mk:chatgptapps} & Distribución masiva & Sin anclaje; reserva agéntica experimental \\
+Google AI Mode & Alphabet & Publicidad, comisión & Itinerarios (11-2025); datos de Maps \cite{mk:googleaimode} & Solo EE.\,UU.; Google Trips cerró en 2019 \\
+Expedia Romie & Expedia Group & Comisión OTA & Planificación y soporte (2024) & Retirado: sin inventario ni precios reales \cite{mk:romie} \\
+Booking.com & Booking Holdings & Comisión OTA & Chat sobre inventario propio (2023) & Ligado a su inventario; app en ChatGPT \\\bottomrule
+\end{tabularx}
+\caption{Competidores y comparables (septiembre de 2026). Las cifras sin cita proceden del
+estudio de mercado del proyecto (reseñas y prensa sectorial).}
+\label{tab:03-competidores}
+\end{table*}
+
+\textbf{Posicionamiento.} Kyrian World compite en \emph{verificabilidad}, no en distribución ni
+inventario: cada tarjeta remite, con enlace a la fuente, a un documento de un corpus con licencia
+limpia (\cref{sec:05-arquitectura-ia}). Es un anclaje documental (existencia, descripción, fuente),
+no de disponibilidad ni precio: cubrir la carencia de Romie exige integrar inventario (horizonte
+de 12 meses). Asume una ciudad por viaje (\adr{0019}) y pocas ciudades, aunque en castellano. Su
+ventaja es el coste fijo: $\approx$5~€/mes en recursos de Terraform (\adr{0023}) más
+$\approx$8~\$/mes de un WAF creado a mano, unos 12--13~€/mes (estimación; la factura de septiembre
+debe sustituirla), frente a rondas de millones.
+
+\subsection{Monetización}
+
+La \textbf{afiliación} paga por reserva completada (\cref{tab:03-afiliacion}), pero el modelo por sesión de Booking.com solo computa la reserva hecha en el
+navegador inicial \cite{mk:bookingcj}. La \textbf{suscripción} toma como referencia Layla
+Premium, a 9,99~\$/mes o 49,99~\$/año \cite{mk:laylapricing}; se supone un plan de 39~€/año con
+una conversión del 1--2\,\% (\emph{hipótesis}: el contenido del plan \emph{premium} está sin definir). La vía con más recorrido es el \textbf{B2B o
+marca blanca para DMO}, con demanda demostrada por GuideGeek \cite{mk:guidegeek} y Mindtrip
+\cite{mk:mindtrip}: se vendería el \emph{pipeline} \code{/add-city}, a 6\,000--15\,000~€ por
+destino y año (\emph{hipótesis}).
+
+\begin{table}[tb]\centering\footnotesize
+\begin{tabularx}{\columnwidth}{@{}lY@{}}\toprule
+Programa & Comisión de referencia \\\midrule
+Booking.com & 4\,\% de estancias completadas; por sesión \cite{mk:bookingcj} \\
+Expedia Group & Hoteles 3--4\,\%; actividades 4\,\% \cite{mk:expediaaff} \\
+GetYourGuide / Viator & $\approx$8\,\%; \emph{cookie} de 30 días \cite{mk:viator} \\
+Kiwi.com & 3\,\% del billete \cite{mk:kiwi} \\
+Omio & 2--8\,\% según mercado y volumen \cite{mk:omio} \\\bottomrule
+\end{tabularx}
+\caption{Comisiones de afiliación de referencia (consultadas el 23-09-2026).}
+\label{tab:03-afiliacion}
+\end{table}
+
+\subsection{Economía unitaria}
+
+Con unas 12 llamadas al modelo por viaje, $\approx$50\,000 \emph{tokens} de entrada y
+$\approx$8\,000 de salida (\emph{estimación}), el coste variable por viaje es de 0,09~\$ con
+Claude Haiku 4.5, el modelo de producción; 0,18--0,30~\$ con Sonnet (el \emph{endpoint} de la UE
+es un 10\,\% más caro) \cite{mk:anthropicpricing}; 0,07~\$ con Nova Pro \cite{mk:bedrockpricing};
+vectores y \emph{embeddings}, $<$0,001~\$. El escenario usa 0,20~€/viaje para dejar margen a
+reintentos, llamadas de chat y un posible modelo mayor.
+
+El ingreso por afiliación es de 0,37~€ por viaje en el escenario base (0,15--0,76~€), con tasas
+de clic y conversión \emph{supuestas}: el margen queda en $\approx$0,17~€ por viaje, y en el
+escenario pesimista cada viaje pierde dinero. En B2C, el LTV ronda 1,8~€ (\emph{hipótesis}:
+1,8 viajes/año $\times$ 0,17~€ más 1,5\,\% $\times$ 39~€ de \emph{premium}, $\approx$0,9~€/año
+durante dos años). Como CAC se usa de \emph{proxy} el coste por instalación de una app móvil de
+viajes, 4,20~\$ \cite{mk:cac}: LTV/CAC $\approx$0,5, así que el B2C depende de canales orgánicos. En B2B, un
+contrato de 8\,000~€/año durante tres años frente a 2\,000--4\,000~€ de coste de venta pública da
+un LTV/CAC de 6--12 (\emph{hipótesis}).
+
+\begin{table}[tb]\centering\footnotesize
+\begin{tabularx}{\columnwidth}{@{}Yrrr@{}}\toprule
+Concepto (€) & Año 1 & Año 2 & Año 3 \\\midrule
+Viajes planificados & 5\,200 & 40\,000 & 162\,000 \\
+Afiliación (0,37~€/viaje) & 1\,924 & 14\,800 & 59\,940 \\
+\emph{Premium} (1--2\,\% $\times$ 39~€) & 1\,560 & 14\,625 & 70\,200 \\
+B2B (contratos) & 3\,000 (1) & 32\,000 (4) & 108\,000 (12) \\
+\textbf{Ingresos} & \textbf{6\,484} & \textbf{61\,425} & \textbf{238\,140} \\
+\quad peso del B2B & 46\,\% & 52\,\% & 45\,\% \\\midrule
+Coste variable (0,20~€/viaje) & 1\,040 & 8\,000 & 32\,400 \\
+Infra., datos y legal & 1\,980 & 7\,440 & 19\,800 \\
+Marketing y venta B2B & 3\,000 & 28\,000 & 95\,000 \\
+\textbf{Resultado antes de salarios} & \textbf{+464} & \textbf{+17\,985} & \textbf{+90\,940} \\
+Salarios & 0 & 35\,000 & 90\,000 \\
+\textbf{Resultado neto} & \textbf{+464} & \textbf{$-$17\,015} & \textbf{+940} \\\bottomrule
+\end{tabularx}
+\caption{Escenario base a tres años (10-2026 a 09-2029). Hipótesis: 4\,000 / 25\,000 / 90\,000
+usuarios activos con 1,3 / 1,6 / 1,8 viajes al año; B2B a 3\,000~€ (piloto), 8\,000~€ y
+9\,000~€ por contrato; fundador asalariado desde el año 2 y una segunda persona en el año 3.}
+\label{tab:03-escenario}
+\end{table}
+
+En la \cref{tab:03-escenario} el año~1 cuadra solo porque no imputa salario: con un salario
+mínimo imputado daría $\approx-$15\,000~€ (\emph{hipótesis}). Cubrir 35\,000~€ de salario y 5\,000~€ de fijos
+exigiría, solo con afiliación, unos 235\,000 viajes al año, irreal sin adquisición de pago; con
+B2B bastan cinco contratos de $\approx$8\,000~€.
+
+\subsection{Marco legal}
+
+Entre corchetes, el estado de cada obligación. El \textbf{RGPD} exige base jurídica,
+minimización, plazos de conservación de las trazas y cuidado con el texto libre, que puede revelar
+categorías especiales \cite{mk:anthropicpricing}; [\emph{pendiente}: el login menciona una política de privacidad y unos
+términos cuyas páginas no existen]. El \textbf{Reglamento de IA} (UE) 2024/1689 no incluye un
+planificador de viajes en el Anexo~III: le afecta el art.~50 (desde el 02-08-2026): avisar de que
+se habla con una IA y marcar de forma legible por máquina el contenido sintético \cite{mk:aiact50} [\emph{parcial}: el planner se
+titula ``Dile a la IA adónde quieres ir'', sin aviso explícito ni marcado]. La \textbf{Directiva de
+viajes combinados} no aplica mientras Kyrian World solo redirija. Las \textbf{licencias} imponen
+atribución: CC BY-SA 4.0 (Wikipedia, Wikivoyage) obliga a compartir igual las adaptaciones
+publicadas, como el corpus JSONL \cite{ai:wikivoyagelicense}; ODbL exige atribuir a OpenStreetMap \cite{ai:osmcopyright}
+[\emph{parcial}: la tarjeta enlaza la fuente, pero la licencia solo aparece en un \emph{tooltip};
+la introducción de la ciudad sí cita ``Wikivoyage (CC BY-SA 4.0)'']. La API gratuita de
+\textbf{Open-Meteo} es solo no comercial \cite{mk:openmeteo} [\emph{pendiente}: monetizar exige su
+plan comercial u otra fuente].
+
+\textbf{Vender a una DMO pública española.} La licencia hipotética de 6\,000--15\,000~€ encaja en
+un contrato menor de servicios (art.~118 LCSP, $<$15\,000~€) \cite{fx:lcsp}. Exigiría además
+conformidad con el Esquema Nacional de Seguridad \cite{fx:ens}, sin evaluar; accesibilidad según el
+RD~1112/2018 y la EN~301~549 \cite{fx:rd1112,fx:en301549}, declarada pero no auditada
+(\cref{sec:02-producto}); alojamiento en la UE, que la región \code{eu-west-1} cubre para la API
+pero sin acreditación formal; contenido en español, cuando el 98,8\,\% del corpus está en inglés, y
+cobertura de ciudades medianas, donde Bolonia tiene solo 1\,597 documentos. Hoy ninguno está
+acreditado.
+
+\begin{table}[tb]\centering\footnotesize
+\begin{tabularx}{\columnwidth}{@{}YY@{}}\toprule
+\textbf{Fortalezas} & \textbf{Debilidades} \\\midrule
+\begin{itemize}[leftmargin=*,label=--,nosep]
+\item Anclaje citado, licencia limpia
+\item 12--13~€/mes de coste fijo
+\item Alta de ciudad reproducible
+\end{itemize} &
+\begin{itemize}[leftmargin=*,label=--,nosep]
+\item Pocas ciudades; sin reservas
+\item Sin métricas ni ingresos
+\item \emph{Bus factor} 1
+\end{itemize} \\\midrule
+\textbf{Oportunidades} & \textbf{Amenazas} \\\midrule
+\begin{itemize}[leftmargin=*,label=--,nosep]
+\item 78\,\% de DMO sin IA (EE.\,UU.)
+\item Red DTI: 440 destinos
+\item Art.~50; LLM más barato
+\end{itemize} &
+\begin{itemize}[leftmargin=*,label=--,nosep]
+\item Google y ChatGPT gratis
+\item Expedia compra Layla
+\item Comisiones y datos abiertos
+\end{itemize} \\\bottomrule
+\end{tabularx}
+\caption{DAFO de Kyrian World (septiembre de 2026).}
+\label{tab:03-dafo}
+\end{table}
+
+\subsection{Conclusión de viabilidad}
+
+Como B2C financiado con afiliación (\cref{tab:03-dafo}), la viabilidad es marginal: el ingreso
+por viaje es del orden del coste del modelo, el LTV no cubre el CAC y las plataformas regalan la planificación. El nicho recomendado
+es el B2B para oficinas de turismo de ciudades europeas medianas y los 440 destinos de la Red de
+Destinos Turísticos Inteligentes \cite{mk:segittur}, con el viajero hispanohablante como segmento
+secundario. El diferenciador a defender es la \emph{IA verificable con fuentes}, en línea con la
+transparencia del art.~50; la carencia de Romie \cite{mk:romie}, inventario y precios reales, sigue
+sin cubrir.

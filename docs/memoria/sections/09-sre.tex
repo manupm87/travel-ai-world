@@ -1,0 +1,101 @@
+\section{Fiabilidad, observabilidad y costes}\label{sec:09-sre}
+
+Se siguen AWS Well-Architected~\cite{aws:wellarchitected} y la terminología de SLO de
+Google~\cite{aws:srebook}; las ausencias se comprobaron en \code{infra/aws/*.tf} y en CI.
+
+\subsection{Observabilidad: lo que hay y lo que falta}
+
+\textbf{Existe} el sistema de monitorización y registro con seguimiento del rendimiento y
+trazabilidad del flujo de datos que pide el guion, en tres capas. (1)~\emph{Registro}: cada función
+escribe en su grupo de CloudWatch Logs (14~días, sin exportación) texto con pares clave=valor, no
+JSON (\code{travel\_common.http.logging}): la línea de acceso de uvicorn por petición, modelo y
+tokens de Bedrock por respuesta, reintentos y fallos de dependencias, y una línea de auditoría
+\code{admin\_read} (sujeto, ruta, objetivo) por cada lectura administrativa. (2)~\emph{Trazabilidad}:
+la traza de turno (\adr{0024}) guarda por petición en la tabla \code{interactions} (TTL de
+90~días) un resumen y sus pasos (recuperaciones con su top-$k$ y distancias, llamadas al modelo,
+herramientas, eventos SSE) con tokens, coste según una tabla de precios versionada y latencia por
+paso, en vocabulario de OpenTelemetry GenAI, enlazada a usuario, sesión y viaje: se recorre
+petición $\to$ recuperación $\to$ modelo $\to$ eventos $\to$ respuesta. Es \emph{best effort} y se
+escribe antes del \code{[DONE]}, porque Lambda puede congelar el proceso al cerrarse el
+\emph{stream}. (3)~\emph{Rendimiento}: la consola \code{/admin/} agrega por día turnos, errores,
+tokens, coste, latencia p50/p95, primer evento, usuarios y sesiones, e inspecciona cada turno.
+La traza guarda texto libre (mensaje, historial y respuesta) y no se borra al suprimir la cuenta:
+un problema de privacidad (RGPD) pendiente (\cref{sec:10-analisis-critico}). Los \emph{endpoints}
+de salud sirven de \emph{readiness} a Lambda Web Adapter, pero quedan tras el autorizador de
+Cognito.
+
+\textbf{No existe.} Ni alarmas de CloudWatch, SNS, AWS Budgets, dashboards, X-Ray ni colector
+OTel, ni comprobación externa de disponibilidad (imposible sin credenciales), ni SLO ni
+presupuesto de errores, ni \emph{smoke test} contra producción tras desplegar: \code{e2e-stack}
+prueba Compose en CI y \code{deploy.md} solo pide comparar el \emph{digest}. Una caída o un
+pico de gasto pasan inadvertidos hasta que alguien los ve.
+
+\subsection{Dependencias y alta disponibilidad}
+
+\begin{table}[tb]
+\centering\footnotesize
+\caption{Dependencias externas y su efecto en la disponibilidad.}\label{tab:09-dependencias}
+\begin{tabularx}{\columnwidth}{@{}>{\raggedright\arraybackslash}p{1.95cm}YY@{}}
+\toprule
+Dependencia & Modo de fallo & Mitigación actual \\
+\midrule
+Bedrock (Haiku, Titan) & Caen chat, planificador y recuperación & 3 intentos (1 y 2~s) antes del primer \emph{token}; NVIDIA manual (\code{apply}) \\
+DynamoDB \code{core} & Cuentas, viajes y chats inaccesibles & Multi-AZ gestionado; PITR \\
+DynamoDB \code{interactions} & Se pierden trazas & \emph{Best effort}; nunca rompe la respuesta \\
+S3 Vectors & Sin candidatos para el planificador & Ninguna; \code{just index} lo reconstruye \\
+Cognito & Sin sesión; la API lo rechaza todo & Ninguna \\
+Google & Sin nuevos inicios de sesión & Ninguna (único IdP) \\
+Open-Meteo & Sin previsión & \emph{Timeout} de 5~s; normales climáticas del corpus \\
+OpenFreeMap & Mapa sin teselas & Ninguna; el planificador sigue \\
+GitHub / GHCR & No se construye ni despliega & Producción intacta: Lambda lee de ECR \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+La disponibilidad (tabla~\ref{tab:09-dependencias}) descansa en servicios gestionados
+multizona, no en configuración propia. Todo está en \code{eu-west-1}; \code{us-east-1} solo
+aloja el certificado de CloudFront. Sin RPO/RTO escritos; deducidos del diseño, en \code{core} el RPO es casi continuo por PITR (35~días),
+pero el RTO no se ha medido ni ensayado; \code{interactions} no tiene copia; los vectores tienen
+RPO igual al último \code{just index} y RTO de minutos. El resto sale de Git y Terraform,
+salvo el WAF, que se recrearía a mano. No hay \emph{runbook} de DR.
+
+\subsection{Costes}
+
+El coste fijo estimado es de unos 5~€/mes en recursos gestionados por Terraform (\adr{0023};
+tabla~\ref{tab:06-costes}) más \mbox{$\sim$8}~\$/mes del WAF creado a mano: unos 12--13~€/mes en
+total. Es una estimación; la factura de septiembre debe sustituirla. El variable lo domina Bedrock. Con Haiku~4.5 (1/5~\$ por millón de tokens de entrada/salida), un borrador de cuatro días se estima en \mbox{$\sim$0,02}~\$ y un turno de una o
+dos llamadas en 0,002--0,006~\$ (\cref{sec:05-arquitectura-ia}). El coste real queda en cada
+traza, pero no se ha agregado, y los tokens de embeddings no se contabilizan (TRA-232). Mil
+borradores al mes costarían unos 20~\$, más que la infraestructura, y API Gateway no limita el uso
+por cliente: es el principal riesgo de gasto.
+
+\begin{table}[tb]
+\centering\footnotesize
+\caption{Métricas del proyecto (líneas y recuentos, 23-09-2026).}\label{tab:09-metricas}
+\begin{tabularx}{\columnwidth}{@{}Yr@{}}
+\toprule
+Métrica & Valor \\
+\midrule
+Commits desde 10-03-2026 / sept. & 324 / 187 \\
+PR fusionadas / sept. & 181 / 145 \\
+Issues TRA citadas en commits & 107 \\
+Python: backend y tools (274 arch.) & 43\,774 \\
+TS/TSX: frontend (259 arch.) & 34\,623 \\
+Terraform / YAML / Markdown & 2\,560 / 1\,019 / 8\,469 \\
+Tests backend ejecutados & 1\,087 \\
+Tests frontend ejecutados / e2e & 747 / 9 \\
+ADR / \emph{runbooks} / recetas \code{just} & 23 / 7 / 41 \\
+\bottomrule
+\multicolumn{2}{@{}p{\columnwidth}@{}}{\scriptsize Recuentos con \code{git}, \code{gh} y
+\code{wc}, sin código generado ni vendorizado; tests ejecutados con \code{just test} (todos pasan;
+desglose en la \cref{tab:08-pruebas}); los 9 \emph{specs} e2e no se ejecutaron.}
+\end{tabularx}
+\end{table}
+
+\subsection{Propuesta mínima}
+
+Tres medidas casi gratuitas: AWS Budgets con aviso al 80\,\% de 30~€/mes; alarmas SNS sobre
+errores y \emph{throttles} de Lambda y 5xx de API Gateway; y una ruta de salud pública sin datos
+para un comprobador externo. Y dos SLO iniciales: disponibilidad mensual del API del
+99,5\,\% (unas 3,6~h de presupuesto de errores al mes) y p95 del primer evento SSE del
+planificador por debajo de 3~s, que ya mide la traza (\cref{sec:10-analisis-critico}).

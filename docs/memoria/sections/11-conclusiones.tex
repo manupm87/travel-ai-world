@@ -1,0 +1,26 @@
+\section{Conclusiones y trabajo futuro}\label{sec:11-conclusiones}
+
+Kyrian World funciona en producción con un coste fijo estimado de $\approx$12~€/mes
+($\approx$5~€/mes en Terraform más el WAF creado a mano; sin factura real todavía) y anclaje
+estructural de sus tarjetas; su calidad de itinerario, su aceptación por usuarios y su viabilidad
+económica siguen sin medir. Un equipo de cuatro personas, con agentes de IA y un proceso escrito, lo
+llevó a producción en seis meses para cuatro ciudades. El anclaje tiene un alcance preciso: toda
+tarjeta procede de un documento recuperado y los ids no recuperados se descartan, pero la prosa
+libre del modelo (respuestas de chat, el \code{why} de 140 caracteres) puede mencionar lugares no
+verificados. El \emph{spike} de vectores confirmó S3 Vectors, elegido antes por simplicidad
+operativa (\adr{0014}): sin diferencia de calidad apreciable en 32 consultas de una ciudad.
+
+No hay usuarios reales, así que no se sabe si el viajero valora la verificabilidad lo bastante
+como para preferirla a un chat generalista gratuito, y la viabilidad económica descansa en
+hipótesis (\cref{sec:03-mercado}). El trabajo futuro, priorizado, está en la
+\cref{sec:10-analisis-critico}; antes de ponerlo delante de usuarios de pago habría que hacer
+cuatro cosas:
+\begin{enumerate}[nosep]
+\item Acotar el riesgo: límites de uso por usuario, presupuesto y alarmas.
+\item Medir la calidad: un banco de evaluación extremo a extremo en CI que bloquee regresiones.
+\item Cumplir en privacidad: publicar la política y los términos y borrar las trazas al suprimir
+  la cuenta.
+\item Validar con usuarios: valoración por tarjeta y un piloto con una DMO que aporte uso real y
+  un primer ingreso.
+\end{enumerate}
+El vídeo demo opcional que contempla el guion no se incluye en esta entrega.

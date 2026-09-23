@@ -1,0 +1,120 @@
+\section{Análisis crítico y propuestas de evolución}\label{sec:10-analisis-critico}
+
+Esta sección ordena por ámbito las valoraciones repartidas por la memoria y las convierte en
+propuestas priorizadas con una métrica de éxito.
+
+\subsection{Lo que sostiene el proyecto}
+
+Las decisiones de infraestructura se apoyaron en cifras. \adr{0014} eligió S3 Vectors por
+simplicidad operativa y el \emph{spike} TRA-151, confirmatorio, construyó los dos almacenes: con
+32 consultas de una ciudad (4 en español) no hubo diferencia de calidad apreciable, sin intervalos
+de confianza, y el arranque en frío favoreció a S3 Vectors (\cref{sec:05-arquitectura-ia}). Las
+tres versiones de la nube y la retirada de RDS se justificaron con cifras de la cuenta real
+(\adr{0009}, \adr{0023}; \cref{sec:06-nube}), y la política de fotos prefiere no mostrar ninguna
+antes que una equivocada (\adr{0021}, \adr{0022}). El anclaje es estructural: toda tarjeta procede
+de un documento recuperado del corpus, los ids no recuperados se descartan y los precios son
+niveles, nunca importes; la prosa libre del modelo (respuestas de chat, el \code{why} de 140
+caracteres) sí puede mencionar lugares y no está verificada. El asistente que Expedia retiró
+respondía sin inventario ni precios reales~\cite{mk:romie}; Kyrian aporta anclaje documental
+(existencia, descripción, fuente), pero no disponibilidad ni precio, que exigen integrar inventario
+(horizonte de 12 meses; \cref{sec:03-mercado}). Completan la base un coste fijo estimado de unos
+12--13~€/mes (5~€ en Terraform más $\sim$8~\$ del WAF manual; \cref{sec:09-sre}), contratos
+verificados en CI, trazas de turno (\adr{0024}), un corpus con atribución y un proceso trazable de
+issue a PR y a ADR (\cref{sec:08-cicd-proceso}).
+
+\subsection{Lo que se haría distinto}
+
+\paragraph{Producto y experiencia.} El producto se construyó sin validación con usuarios: no hay
+entrevistas, analítica de uso ni valoración por tarjeta. Lo delatan el recorte a una ciudad por
+viaje (\adr{0019}) y ``Mis viajes'', añadido porque el login dejaba al usuario ante un planner
+vacío (\adr{0020}). El viajero no puede corregir a la IA (TRA-146); la tarjeta no enseña la fuente
+ni el fragmento recuperado, que son el diferenciador, y su contenido sale en inglés; el mapa une
+paradas con líneas rectas, sin tiempos (\cref{sec:02-producto}). La accesibilidad está declarada,
+no medida.
+
+\paragraph{Inteligencia artificial.} Tres huecos pesan más que el resto:
+\begin{itemize}
+\item \emph{Sin evaluación extremo a extremo.} TRA-148 no tiene código: los 597 tests de
+  \code{ai\_api} comprueban el orquestador con un LLM guionizado, no si un itinerario es bueno. No
+  hay juez LLM~\cite{cr:zheng2023judge}, ni regresión de \emph{prompts} en CI, ni guardrails: el
+  texto de Wikivoyage, editable por cualquiera, entra en el \emph{prompt} y abre un vector de
+  inyección indirecta~\cite{cr:greshake2023injection}.
+\item \emph{Lo medido no está en producción.} La fusión BM25+RRF subió el MRR de 0,591 a 0,651 en
+  el \emph{spike}, pero las tarjetas se sirven con búsqueda densa sola (\cref{tab:05-calidad}).
+\item \emph{Lo decidido no está implementado.} La política de corpus (TRA-210: $\leq$2\,000
+  documentos por ciudad, cuotas y puntuación de calidad) sigue en papel: Berlín tiene 12\,240
+  documentos, un 53\,\% de restaurantes sin descripción, y Bolonia 3 hoteles con foto de 118
+  (\cref{tab:05-corpus}). Los \emph{gates} cuentan cantidades, no calidad: la introducción
+  vandalizada de Madrid y sus guías de distrito vacías los superaron.
+\end{itemize}
+El corpus está en un 98,8\,\% en inglés para un público hispanohablante, y el cruce de idiomas se
+midió con 4 de las 32 consultas. Hay además deuda de ingeniería: JSON pedido por \emph{prompt} con
+temperatura 0,7 y una llamada de reparación en lugar de \emph{tool use}~\cite{cr:bedrocktooluse};
+un único modelo, sin \emph{failover} automático; una escalera de filtros que reembebe la misma
+consulta, sin caché; y tokens de embeddings sin contabilizar (TRA-232).
+
+\paragraph{Arquitectura de software.} El doble modo de autenticación (HS256 local, RS256 con
+Cognito) se ha vuelto permanente; \code{ai\_api} deja 60~min sin revocación
+(\cref{sec:04-arquitectura-software}). Sin límites de uso por usuario, una cuenta comprometida o
+un bucle del cliente es el mayor riesgo económico real de un sistema de $\sim$12~€/mes. La traza
+se escribe en el camino crítico ($\sim$100~ms) en una tabla sin PITR, guarda texto libre 90~días
+y no se borra con la cuenta. La documentación deriva: \code{code-quality-review.md} y \adr{0013}
+son anteriores a DynamoDB y \code{CLAUDE.md} exige un MCP de Pencil no configurado.
+
+\paragraph{Nube, operación y proceso.} No hay alarmas, presupuesto de AWS, comprobación externa,
+\emph{staging} ni despliegue gradual; el WAF está fuera de Terraform y el estado guarda dos
+secretos (\cref{sec:06-nube,sec:09-sre}): la observabilidad de negocio va por delante de la
+operativa. El \emph{bus factor} es 1, los revisores son modelos con sesgos compartidos y el coste
+en \emph{tokens} no se mide; las 145 PR de septiembre (\cref{tab:09-metricas}) superan la
+capacidad de validar lo entregado.
+
+\subsection{Propuestas priorizadas}
+
+La \cref{tab:10-propuestas} agrupa las propuestas en tres horizontes. Esfuerzo e impacto son
+estimaciones cualitativas; cada fila une la carencia que la justifica con su criterio de éxito.
+
+\begin{table*}[tb]\centering\scriptsize
+\caption{Propuestas priorizadas. Esf.: esfuerzo; Imp.: impacto (B bajo, M medio, A alto); Hor.:
+horizonte en meses. Tras ``$\triangleright$'', la métrica de éxito.}
+\label{tab:10-propuestas}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{7.2cm}lYccc@{}}
+\toprule
+Propuesta & Ámbito & Evidencia / métrica de éxito & Esf. & Imp. & Hor. \\
+\midrule
+\multicolumn{6}{@{}l}{\textbf{\color{kyrian}1 mes: proteger lo que hay}} \\
+AWS Budgets al 80\,\% y alarmas CloudWatch$\to$SNS (5xx, duración, \emph{throttles}, coste de Bedrock)~\cite{cr:budgets} & Plataforma & Hoy un pico de gasto o una caída solo se ven si alguien mira (\cref{sec:09-sre}) $\triangleright$ 0 alertas sin atender en 24~h & B & A & 1 \\
+\emph{Throttling} y \emph{usage plan} en API Gateway~\cite{cr:apigwthrottling}; cuota diaria por usuario; contabilizar embeddings (TRA-232) y agregar el coste por turno & Plataforma & Bedrock sin límite por usuario; coste en trazas nunca agregado $\triangleright$ coste p95 por viaje $\leq$0,05~\$ & B & A & 1 \\
+Ruta de salud pública, comprobador externo y \emph{smoke test} al final de \code{deploy-backend.yml} & Plataforma & Salud tras Cognito; el primer contacto con producción es el despliegue $\triangleright$ disponibilidad $\geq$99,5\,\%; \emph{smoke} verde en cada despliegue & B & M & 1 \\
+Privacidad y términos publicados, borrado de trazas al suprimir la cuenta (RGPD), aviso de IA (art.~50) y atribución CC BY-SA visible en cada tarjeta & Legal & El login enlaza políticas que no existen; trazas 90~días $\triangleright$ test de borrado en CI; 100\,\% de tarjetas con fuente & B & A & 1 \\
+WAF a Terraform; secretos fuera del estado; actualizar \code{code-quality-review.md}, \adr{0013} y la regla de Pencil & Plataforma & WAF manual ($\sim$8~\$/mes); dos secretos en el estado $\triangleright$ \code{plan} sin recursos fuera de Terraform & B & M & 1 \\
+\midrule
+\multicolumn{6}{@{}l}{\textbf{\color{kyrian}3 meses: medir y mejorar la calidad}} \\
+Banco de evaluación en CI (TRA-148): 100 consultas por ciudad, recall/MRR y juez LLM sobre itinerarios, con umbrales que bloquean el \emph{merge} & IA & 597 tests no miden calidad; eval solo de Budapest $\triangleright$ R@10 $\geq$0,75 (30\,\% en español); juez $\geq$4/5 y $\kappa\geq$0,6 frente a 50 itinerarios anotados & M & A & 3 \\
+Mitigar la inyección: contenido recuperado delimitado como datos, filtro de instrucciones al construir el corpus, salida libre sin URL & IA & Wikivoyage editable; intro de Madrid vandalizada $\triangleright$ 0 éxitos en el test adversarial del banco & M & A & 3 \\
+Política de corpus TRA-210 con puntuación de calidad y detector de vandalismo (edad y diff de la revisión) & IA & Berlín 6,1 veces el tope $\triangleright$ $\leq$2\,000 documentos por ciudad & M & A & 3 \\
+Corpus bilingüe (traducción o embeddings evaluados en español): el segmento es hispanohablante & IA & 98,8\,\% en inglés; 4 consultas en español $\triangleright$ R@10 en español a 0,05 del inglés & A & A & 3 \\
+Híbrido BM25+RRF para tarjetas; embeber la consulta una vez y cachear; \emph{reranker}~\cite{cr:bedrockrerank} solo si el banco lo justifica & IA & MRR 0,591$\to$0,651 (\cref{tab:05-calidad}) $\triangleright$ MRR $\geq$0,65 sin perder R@10 & M & M & 3 \\
+\emph{Tool use}~\cite{cr:bedrocktooluse}; temperatura 0--0,3 para JSON; Sonnet para el ranking solo si el banco compensa su coste (2--3$\times$) & IA & JSON por \emph{prompt} y reparación $\triangleright$ 0 llamadas de reparación & M & M & 3 \\
+Pruebas de carga con k6~\cite{fz:k6} o Locust~\cite{fz:locust} contra Compose con LLM simulado y prueba corta real contra Bedrock & Plataforma & Sin pruebas de carga; cuotas de Bedrock sin medir $\triangleright$ usuarios concurrentes antes de \emph{throttling}; p95 primer evento $<$3~s & M & A & 3 \\
+Edición manual y guardado (TRA-146); fuente y fragmento en la tarjeta, en el idioma del usuario; valoración por tarjeta ligada a la traza & UX & El viajero no puede corregir a la IA ni ver la fuente $\triangleright$ $\geq$4/5 de valoración media & A & A & 3 \\
+Auditoría axe~\cite{cr:axe} y Lighthouse en CI & UX & WCAG~2.2 declarado, no medido $\triangleright$ Lighthouse a11y $\geq$95 & B & M & 3 \\
+\emph{Staging} por \emph{workspace} de Terraform y alias de Lambda con \emph{canary}~\cite{cr:codedeploy} & Plataforma & Un solo entorno $\triangleright$ 0 \code{apply} sin \code{plan} probado en \emph{staging} & M & M & 3 \\
+\midrule
+\multicolumn{6}{@{}l}{\textbf{\color{kyrian}12 meses: ampliar producto y negocio}} \\
+Piloto B2B con una DMO en marca blanca, sobre \code{/add-city} & Negocio & LTV/CAC B2B de 6--12 frente a $\approx$0,5 en B2C (\cref{sec:03-mercado}) $\triangleright$ un contrato firmado & A & A & 12 \\
+Viajes multiciudad; rutas y tiempos entre paradas con OSRM~\cite{cr:osrm} o Valhalla~\cite{cr:valhalla}; exportar a PDF/ICS y compartir & UX & \adr{0019}; líneas rectas; sin salida del producto $\triangleright$ tiempo entre paradas en el 100\,\% de los días & A & A & 12 \\
+Agente con herramientas para datos vivos (horarios, precios, disponibilidad): conserva la procedencia y solo muestra un importe con fuente en vivo citada, la excepción a ``nunca un número'' de \adr{0018} & IA & Sin inventario ni precios (el fallo de Romie) $\triangleright$ 100\,\% de importes con fuente & A & A & 12 \\
+Afiliación medida (Booking, GetYourGuide) y plan comercial de Open-Meteo & Negocio & 0,15--0,76~€ por viaje, hipotético; Open-Meteo no comercial~\cite{mk:openmeteo} $\triangleright$ ingreso por viaje medido & M & M & 12 \\
+Revisión humana muestral de PR y coste por ola; retirar o portar \code{infra/gcp}; segunda región solo si un SLO lo exige & Proceso & \emph{Bus factor} 1; \emph{tokens} sin medir $\triangleright$ 10\,\% de PR revisadas por una persona & B & M & 12 \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+\subsection{Hoja de ruta}
+
+El orden sigue un criterio explícito. El primer mes acota el riesgo económico, operativo y legal:
+presupuesto, alarmas, límites de uso y privacidad cuestan horas y cierran las vías por las que el
+proyecto puede hacerse caro o ilegal de golpe. Los tres meses siguientes miden la calidad de la IA
+antes de mejorarla: sin banco de evaluación no se puede saber si la búsqueda híbrida, un
+\emph{reranker} o un modelo mayor mejoran algo. Solo entonces tiene sentido ampliar el producto y
+probar el negocio con un piloto B2B, que además daría los primeros usuarios reales.

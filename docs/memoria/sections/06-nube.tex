@@ -1,0 +1,186 @@
+\section{Arquitectura en la nube}\label{sec:06-nube}
+
+El sistema vive en una cuenta de AWS (\code{eu-west-1}), sin VPC desde el 23 de septiembre de
+2026. Todo está en Terraform (proveedor \code{hashicorp/aws \textasciitilde{}> 6.26}, estado en S3
+con \code{use\_lockfile}) salvo el
+\emph{bootstrap} (bucket de estado, proveedor OIDC y rol de CI, aplicado una vez con estado local) y
+el WAF, creado desde la consola. \Cref{fig:06-aws} muestra la topología \emph{v3}.
+
+\begin{figure*}[tb]
+\centering
+\begin{tikzpicture}[
+  n/.style={draw, rounded corners, fill=kyrianlight, font=\footnotesize, align=center,
+            minimum height=6mm, text width=2.6cm, inner sep=1pt},
+  ext/.style={n, fill=white, dashed},
+  a/.style={-{Stealth}, thick, draw=kyrian},
+  d/.style={-{Stealth}, dashed, draw=gray},
+  l/.style={font=\scriptsize, inner sep=1.5pt},
+  grp/.style={draw=kyrian!60, rounded corners=3pt, inner sep=4pt},
+  gl/.style={font=\scriptsize\bfseries\color{kyrian}, anchor=south west, inner sep=1pt},
+  x=1cm, y=0.74cm]
+  % nodos
+  \node[n, text width=1.7cm, fill=white] (user) at (-0.3,0.4) {Usuario\\(navegador)};
+  \node[n] (cognito) at (6.6,3.3) {Cognito User Pool\\RS256, grupo \code{admin}};
+  \node[n] (google) at (10.3,3.3) {Google\\(único IdP)};
+  \node[n] (cf) at (2.9,0.4) {CloudFront + WAF\\ACM, Route~53};
+  \node[n] (s3) at (2.9,-1.2) {S3 privado (OAC)\\export estático};
+  \node[n] (apigw) at (6.6,0.4) {API Gateway REST\\autorizador Cognito};
+  \node[n] (core) at (10.3,1.2) {Lambda \code{core-api}\\{\scriptsize \emph{buffered}, 1769~MB, 30~s}};
+  \node[n] (ai) at (10.3,-0.5) {Lambda \code{ai-api}\\{\scriptsize SSE, 512~MB, 900~s}};
+  \node[n] (ddbc) at (14.3,2.25) {DynamoDB \code{core}\\PITR, protección};
+  \node[n] (ddbi) at (14.3,1.1) {DynamoDB\\\code{interactions}, TTL};
+  \node[n] (vec) at (14.3,-0.05) {S3 Vectors\\índice \code{city-kb}};
+  \node[n] (bed) at (14.3,-1.25) {Bedrock: Haiku~4.5,\\Nova Lite, Titan V2};
+  \node[ext] (ofm) at (-0.1,-2.8) {OpenFreeMap\\(teselas del mapa)};
+  \node[ext] (om) at (14.3,-2.8) {Open-Meteo\\(previsión)};
+  \node[n, text width=2.3cm] (gha) at (6.6,-2.8) {GitHub Actions\\OIDC, sin claves};
+  \node[n, text width=2.1cm] (ecr) at (10.3,-2.8) {ECR\\(imágenes)};
+  % grupos
+  \begin{scope}[on background layer]
+    \node[grp, fit=(cf)(s3)] (gb) {}; \node[gl] at (gb.north west) {borde};
+    \node[grp, fit=(apigw)(core)(ai)] (gc) {}; \node[gl] at (gc.north west) {cómputo};
+    \node[grp, fit=(ddbc)(bed)] (gd) {}; \node[gl] at (gd.north west) {datos e IA};
+    \node[grp, fit=(google)(cognito)] (gi) {}; \node[gl] at (gi.north west) {identidad};
+    \node[grp, dashed, fit=(ofm)] (ge1) {}; \node[gl] at (ge1.north west) {externos};
+    \node[grp, dashed, fit=(om)] (ge2) {}; \node[gl] at (ge2.north west) {externos};
+    \node[grp, fit=(gha)(ecr)] (gci) {}; \node[gl] at (gci.north west) {entrega};
+  \end{scope}
+  % flujos
+  \draw[a] (user) -- node[l, above]{HTTPS} (cf);
+  \draw[a] (cf) -- node[l, right]{\code{default}} (s3);
+  \draw[a] (cf) -- node[l, above]{\code{/api/*}} (apigw);
+  \draw[a] (apigw.east) -- (core.west);
+  \draw[a] (apigw.east) -- (ai.west);
+  \draw[a] (core.east) -- (ddbc.west);
+  \draw[a] (ai.east) -- (ddbi.west);
+  \draw[a] (ai.east) -- (vec.west);
+  \draw[a] (ai.east) -- (bed.west);
+  \draw[d] (ai.south east) -- (om.north west);
+  \draw[d] (user.north) |- node[l, pos=0.75, above]{inicio de sesión: \code{code}+PKCE} (cognito.west);
+  \draw[d] (cognito) -- (google);
+  \draw[d] (apigw) -- node[l, right, pos=0.35]{valida JWT} (cognito);
+  \draw[d] (user) -- node[l, right]{mapa} (ofm);
+  \draw[a] (gha) -- node[l, below]{\code{crane copy}} (ecr);
+  \draw[a] (ecr) -- node[l, right]{imagen por digest} (ai);
+\end{tikzpicture}
+\caption{AWS v3 en \code{eu-west-1}, sin VPC. API Gateway exige un ID token de Cognito en todo
+método (incluidos los de salud). Ambas funciones reciben su imagen de ECR por digest (solo se dibuja
+la flecha a \code{ai-api}). Discontinuo: identidad y servicios externos. Fuente: \code{infra/aws/*.tf}
+y \code{docs/architecture/aws-architecture.drawio.svg}.}
+\label{fig:06-aws}
+\end{figure*}
+
+\subsection{Topología v3}
+
+\textbf{Borde.} CloudFront sirve el export desde S3 privado (versionado, solo \emph{Origin
+Access Control} con \code{SourceArn}) y reenvía \code{/api/*} sin caché: un único origen, sin
+CORS. Una CloudFront Function traduce
+\code{/x/} a \code{/x/index.html}; \code{/api/*} va sin compresión para que el SSE llegue token a
+token.
+
+\textbf{Cómputo.} API Gateway REST regional tiene dos \emph{proxy}: \code{/api/v1/\{proxy+\}} hacia
+\code{core-api} en modo \emph{buffered} (límite de 29~s, de ahí el \emph{timeout} de 30~s) y
+\code{/api/v1/ai/\{proxy+\}} hacia \code{ai-api} en \code{STREAM} (hasta 15~min). Un
+\code{Dockerfile} construye ambas imágenes; Lambda Web Adapter~\cite{aws:lwa} solo se activa bajo
+Lambda, y el contenedor corre igual en Compose (\cref{sec:07-entorno-desarrollo}). \code{core-api} tiene 1769~MB (una vCPU);
+\code{ai-api}, que casi solo espera al modelo, 512~MB. Sin \emph{provisioned concurrency}.
+
+\textbf{Datos e IA.} DynamoDB \emph{on-demand}: \code{core}
+(\cref{sec:04-arquitectura-software}) e \code{interactions} (\cref{sec:09-sre}). Los
+vectores están en S3 Vectors~\cite{aws:s3vectors} (índice \code{city-kb}, 1024 dimensiones,
+coseno) y los modelos en Bedrock con perfiles de inferencia EU: Claude Haiku~4.5 responde y Titan
+V2 embebe consultas; Nova Lite está declarado para títulos, pero el código no lo invoca
+(\cref{sec:05-arquitectura-ia}).
+
+\textbf{Identidad.} Cognito, solo con Google y sin registro por contraseña
+(\code{allow\_admin\_create\_user\_only}), emite JWT RS256 (\emph{ID} y \emph{access} de 60~min,
+\emph{refresh} de 30~días) con \code{code}+PKCE y cliente público. Terraform lee el JWKS en \code{plan} y lo
+inyecta como variable de entorno: validar un token no sale a la red. Sin VPC no hace falta NAT:
+las Lambdas salen a Internet por la red gestionada de AWS (Open-Meteo, Commons, \code{og:image}),
+y Bedrock, DynamoDB y S3 Vectors se autorizan por rol IAM.
+
+\subsection{Evolución v1\,$\rightarrow$\,v3}
+
+Tres iteraciones en ocho días (15--23 de septiembre; \cref{tab:06-evolucion}) con un
+presupuesto real de 60~€ para dos meses: la v2 costaba \mbox{$\sim$55}~€/mes antes de resolver
+la salida a Internet (NAT \mbox{$\sim$35}~€/mes o cinco \emph{interface endpoints}
+\mbox{$\sim$40}~€/mes). ECS no era requisito: Lambda sustituyó a Fargate a costa de no tener tareas en segundo plano
+ni estado en memoria entre peticiones.
+
+\begin{table}[tb]
+\centering\footnotesize
+\caption{Evolución de la arquitectura AWS.}\label{tab:06-evolucion}
+\begin{tabularx}{\columnwidth}{@{}>{\raggedright\arraybackslash}p{1.45cm}YY@{}}
+\toprule
+Versión & Qué cambió & Por qué \\
+\midrule
+v1 (\adr{0007}) & Fargate + ALB + RDS; SSO local, OIDC en CI & Sin credenciales largas legibles por agentes \\
+v2 (\adr{0008}) & CloudFront origen único; API Gateway con \emph{streaming}; VPC Link + NLB; Bedrock & ALB HTTP bloqueaba Google Sign-In; CORS. NAT y NLB sin aplicar \\
+v3 (\adr{0009}) & Lambda + LWA; Cognito; sin NAT; VPC solo por RDS & 30~€/mes; sin salida (\code{tokeninfo}, NVIDIA) \\
+sin VPC (\adr{0023}) & DynamoDB; RDS y VPC destruidos (TRA-219) & RDS: $\sim$15~€/mes y la VPC \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Costes}
+
+\Cref{tab:06-costes} son estimaciones de los ADR (precios de lista, tráfico de
+demostración~\cite{aws:pricing}): \mbox{$\sim$5}~€/mes en recursos gestionados por Terraform
+(\adr{0023}) más \mbox{$\sim$8}~\$/mes del WAF creado a mano, unos 12--13~€/mes en total. No hay
+factura en esta memoria: la de septiembre debe sustituir la estimación.
+
+\begin{table}[tb]
+\centering\footnotesize
+\caption{Coste mensual estimado (€/mes) antes y después de retirar RDS.}\label{tab:06-costes}
+\begin{tabularx}{\columnwidth}{@{}Yccc@{}}
+\toprule
+Componente & \adr{0009} & \adr{0023} & Escala \\
+\midrule
+Lambda $\times$2 (capa gratuita) & 0 & 0 & sí \\
+API Gateway (3,50~\$/M pet.) & $<$1 & $<$1 & sí \\
+CloudFront, S3, Route~53 & $\sim$1 & $\sim$1 & $>$1~TB \\
+Cognito (10\,000 MAU gratis) & 0 & 0 & $>$10\,000 \\
+RDS \code{db.t4g.micro} + 20~GB & $\sim$15\textsuperscript{a} & 0 & no \\
+DynamoDB (2 tablas) + PITR & --- & $<$1 & sí \\
+ECR, CloudWatch Logs, KMS & $\sim$1 & $\sim$1 & logs \\
+Bedrock (tokens, demo) & 1--3 & 1--3 & sí \\
+\midrule
+\textbf{Total Terraform} & \textbf{$\sim$4 / $\sim$19} & \textbf{$\sim$5} & \\
+WAF (consola, fuera de Terraform) & & $\sim$8~\$ & no \\
+\textbf{Total actual} & & \textbf{$\sim$12--13} & \\
+\bottomrule
+\multicolumn{4}{@{}p{\columnwidth}@{}}{\scriptsize \textsuperscript{a}0~€ el primer año (capa
+gratuita).}
+\end{tabularx}
+\end{table}
+
+\subsection{Seguridad}
+
+Sin credenciales de larga duración (\adr{0007} prohíbe \emph{access keys} en \code{.env},
+\code{tfvars}, repositorio y contenedor): en local, IAM Identity Center (\code{just aws-login}); en
+CI, OIDC con un rol de 1~h que solo confía en el entorno \code{aws}. Roles mínimos: \code{core-api} sin \code{Scan}; \code{ai-api} con sus trazas, un índice de
+vectores de solo lectura y Bedrock limitado a perfiles EU. CI parte
+de \code{PowerUserAccess} con IAM acotado a \code{travel-ai-*}. PITR y
+\emph{deletion protection} cubren \code{core} y el \emph{user pool}; el WAF, tres grupos de
+reglas gestionadas. Contra SSRF, \code{site\_previews.py} solo pide \code{og:image} a hosts con nombre
+público y revalida cada redirección (\cref{sec:05-arquitectura-ia}). Carencias: sin \emph{usage plans} ni \emph{throttling}, cualquier usuario
+autenticado puede generar gasto ilimitado en Bedrock; el estado de Terraform
+contiene dos secretos (clave NVIDIA y secreto OAuth de Google); en local se usa
+\code{AdministratorAccess} (la organización no permitió un \emph{permission set} acotado); no hay
+GuardDuty, Config ni Security Hub.
+
+\subsection{Raíces del dominio y la alternativa GCP}
+
+\adr{0010} importó al estado, con \code{prevent\_destroy}, la zona de Route~53 y el certificado ACM
+(\code{us-east-1}, como exige CloudFront), antes \emph{data sources}: un \code{apply} reconstruye el borde sin exponer
+recursos irreversibles a un \code{destroy}. \code{infra/gcp/} solo pasa \code{terraform validate} en CI y, según su README, no está
+portado a DynamoDB, así que no despliega \code{core\_api}.
+
+\subsection{Valoración}
+
+Cada ADR corrigió al anterior con cifras de la cuenta real y el coste fijo estimado pasó de
+\mbox{$\sim$55}~€ a \mbox{$\sim$12--13}~€/mes (\mbox{$\sim$5}~€ en Terraform más el WAF). Deuda:
+WAF fuera de IaC y del presupuesto; una sola región, sin \emph{staging}; los
+despliegues fijan el digest sin alias ni tráfico ponderado; arranques en frío de 1--3~s sin mitigar; y \code{interactions} no tiene PITR ni protección contra borrado: coherente para un log con TTL,
+pero deja sin copia el único registro de lo que hizo la IA. \code{infra/gcp/} debe retirarse o
+portarse (\cref{sec:10-analisis-critico}).

@@ -1,0 +1,60 @@
+\section{Evaluación de la solución}\label{sec:09b-evaluacion}
+
+La \cref{tab:09b-metricas} reúne lo que hoy se mide del sistema, con su origen y su grado de
+evidencia: \emph{medido} (instrumentado y reproducible), \emph{ejecutado} (pruebas que pasan o
+fallan), \emph{estimado} (cálculo sobre precios de lista) o \emph{en CI} (se ejecuta en cada PR,
+no para esta memoria). Las cifras de recuperación, latencia y coste proceden del spike TRA-151 y
+se detallan en las \cref{tab:05-calidad,tab:05-latencia,tab:05-coste}; aquí no se repiten sus
+alternativas.
+
+\begin{table*}[tb]\centering\footnotesize
+\caption{Métricas técnicas y funcionales. Fechas de 2026. Spike: \code{docs/architecture/vector-store-spike.md}; \code{ai}: \code{src/backend/services/ai\_api}; \code{cc}: \code{src/backend/tools/city\_corpus}.}
+\label{tab:09b-metricas}
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.3cm}>{\raggedright\arraybackslash}p{5.6cm}>{\raggedright\arraybackslash}p{1.9cm}Y@{}}
+\toprule
+Métrica & Valor & Obtención & Origen y límites \\
+\midrule
+\multicolumn{4}{@{}l}{\textit{Técnicas}} \\
+R@5 / R@10 / MRR & 0,688 / 0,812 / 0,591 (S3 Vectors) & medido, 17-09 & Spike: 32 consultas, 52 ids esperados, solo Budapest, 4 en español, sin intervalos de confianza \\
+Acuerdo con coseno exacto & 0,969 del top-10 & medido, 17-09 & Spike; mide el almacén, no la relevancia \\
+Latencia búsqueda (caliente) & p50 64~ms, p95 69~ms (2\,048~MB); frío 91~ms & medido, 17-09 & Spike, 128 consultas desde Lambda en \code{eu-west-1} \\
+Latencia embedding Titan & $\sim$75~ms; búsqueda total p50 137~ms & medido, 17-09 & Spike; despreciable frente al LLM \\
+Coste de recuperación & $\sim$2,5~USD por millón de consultas; indexar Budapest, 0,012~USD & estimado / medido & Spike; precios de \code{us-east-1} \\
+Coste LLM turno / borrador & 0,002--0,006~USD / $\sim$0,02~USD (4 días) & estimado & Tokens según el código y precios de Haiku~4.5 (\cref{tab:05-llamadas}) \\
+Tests backend & 37 / 199 / 597 / 254 (\code{common}, \code{core}, \code{ai}, \code{cc}), en verde & ejecutado, 23-09 & \code{just test}; LLM guionizado, DynamoDB con moto (\cref{tab:08-pruebas}) \\
+Tests frontend & 747 (Vitest), en verde & ejecutado, 23-09 & \code{just test-frontend} \\
+E2E & 9 \emph{specs} de Playwright & en CI & \code{src/frontend/e2e}; no ejecutados para esta memoria \\
+Lint y contratos & ruff, pyright, eslint; \emph{drift} de OpenAPI y tipos & en CI & \code{.github/workflows/pr.yml}; bloquean el \emph{merge} \\
+\midrule
+\multicolumn{4}{@{}l}{\textit{Funcionales}} \\
+Gate de \emph{readiness} & 11 umbrales; pasan Berlín, Budapest y Madrid; Bolonia no (3 hoteles con foto de 10) & ejecutado, 22-09 & \code{cc/config/readiness.py}; \code{data/<ciudad>/report.json} \\
+Sesión con modelo real & 7 turnos; falla si una actividad no tiene foto o una tarjeta lleva precio & manual & \code{just planner-smoke}; Nemotron y recuperador por palabras, no Bedrock; sin registro de resultados \\
+Flujos de usuario (e2e) & brief $\rightarrow$ 3 días con hotel $\rightarrow$ cambio de franja; reabrir por URL; renombrar y borrar viajes; consola admin; móvil; HTML prerenderizado & en CI & \code{planner}, \code{trips}, \code{admin*}, \code{mobile}, \code{prerender}, \code{smoke}; LLM sustituido por una sesión grabada \\
+Modo demo & sesión grabada de Budapest, con aviso, si falta la ruta del planner & en CI & \code{planner.spec.ts} \\
+Validación de itinerarios & avisos por día: saltos $>$3,5~km, ritmo, cerrados, precios & en cada turno & Función pura en \code{ai}; tests unitarios \\
+Consola \code{/admin} & latencia p50/p95, p50 del primer evento, tokens, coste, usados/recuperados & medido (prod.) & Trazas de \adr{0024}; sin análisis publicado ni tokens de embeddings (TRA-232) \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+\paragraph{Lectura.} La evidencia es sólida en lo estructural (1\,087 tests backend y 747
+frontend en verde, contratos y lint que bloquean el \emph{merge}, un gate que impide indexar una
+ciudad incompleta) y débil en lo que el usuario percibe. La recuperación se midió una vez, en una
+ciudad y con 32 consultas: sirvió para decidir el almacén, no para certificar la calidad. Los
+costes por turno son estimaciones sobre el código; la consola ya registra el coste real, pero sin
+agregar por viaje ni publicar.
+
+\paragraph{Lo que no está evaluado.} La calidad del itinerario extremo a extremo (coherencia,
+distancias, interés), sin juez LLM ni humano; el comportamiento con usuarios reales, que no los
+hay; la carga y las cuotas de Bedrock; la seguridad más allá del análisis estático (inyección de
+\emph{prompt}, sin DAST ni \emph{pentest}); la accesibilidad, sin auditoría; y el español, con un
+corpus 98,8\,\% en inglés y solo 4 consultas de cruce. El análisis y las propuestas están en la
+\cref{sec:10-analisis-critico}.
+
+\paragraph{Criterios de aceptación propuestos.} Coherentes con la \cref{tab:10-propuestas}, se
+propone que bloqueen el \emph{merge} o el despliegue: R@10~$\geq$~0,75 en un banco de 100
+consultas por ciudad con un 30\,\% en español; una nota media del juez LLM~$\geq$~4/5 sobre
+itinerarios, validada con $\kappa\geq$~0,6 frente a 50 itinerarios anotados; p95 del primer
+evento~$<$~3~s, lo que exige añadir ese percentil a la consola (hoy solo da el p50); y coste p95
+por viaje~$\leq$~0,05~USD, una vez contabilizados los embeddings.

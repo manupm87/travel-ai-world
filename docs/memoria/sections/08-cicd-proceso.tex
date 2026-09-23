@@ -1,0 +1,168 @@
+\section{CI/CD y proceso de entrega}\label{sec:08-cicd-proceso}
+
+Cada cambio empieza en un issue de Linear y llega a producción por dos caminos
+(\cref{fig:08-flujo}): el frontend se despliega al fusionar; el backend, a mano.
+
+\begin{figure*}[tb]
+\centering
+\begin{tikzpicture}[
+  n/.style={draw, rounded corners, fill=kyrianlight, font=\footnotesize, align=center,
+            minimum height=8mm, text width=2.6cm, inner sep=2pt},
+  h/.style={n, fill=accent!15},
+  a/.style={-{Stealth}, semithick},
+  l/.style={font=\scriptsize, fill=white, inner sep=1pt}]
+% fila 1: la ola de agentes
+\node[n] (iss) at (0,0)     {Issue Linear\\\code{TRA-<n>}, aceptación};
+\node[n] (bri) at (3.55,0)  {\textbf{Brief}\\sesión principal\\(modelo más capaz)};
+\node[n] (imp) at (7.1,0)   {\textbf{Implementar}\\Opus, \emph{worktree}\\rama \code{<tipo>/TRA-<n>-...}};
+\node[n] (rev) at (10.65,0) {\textbf{Revisar} 3$\times$Sonnet\\corrección $\cdot$ contratos\\y tests $\cdot$ UX/a11y};
+\node[n] (fix) at (14.2,0)  {\textbf{Corregir}\\Opus: \emph{findings},\\\code{gh pr checks --watch}};
+\draw[a] (iss) -- (bri); \draw[a] (bri) -- (imp);
+\draw[a] (imp) -- node[l,above=1pt]{PR} (rev); \draw[a] (rev) -- node[l,above=1pt]{JSON} (fix);
+% fila 2: CI de PR y merge
+\node[n, text width=9.7cm] (pr) at (10.65,-1.75) {\code{pr.yml} (\emph{jobs} filtrados por ruta): lint (ruff, pyright, eslint) $\cdot$
+  tests por paquete $\cdot$ \code{docker-build} sin publicar $\cdot$ \emph{drift} de contratos $\cdot$
+  e2e del \emph{stack} $\cdot$ \code{terraform validate} $\cdot$ \code{docs-check}};
+\node[h] (mer) at (0,-1.75) {\textbf{Merge} \emph{squash}\\a \code{main} (humano\\o sesión principal)};
+\draw[a] (imp.south) -- node[l,right]{abre} (imp.south|-pr.north);
+\draw[a] (fix.south) -- node[l,right]{\emph{push}} (fix.south|-pr.north);
+\draw[a] (pr.west) -- node[l,above=1pt]{verde} (mer.east);
+% fila 3: backend
+\node[n] (img) at (0,-3.5)    {\code{backend-images.yml}\\build y \emph{push} a GHCR};
+\node[h, text width=6.4cm] (dep) at (5.325,-3.5) {\code{deploy-backend.yml} (\code{workflow\_dispatch}): OIDC $\to$
+  \code{crane copy} GHCR$\to$ECR $\to$ \emph{digest} $\to$ \code{plan}; \code{apply} solo con \code{apply=true}};
+\node[n] (lam) at (10.65,-3.5) {2 Lambda\\(imagen por \emph{digest})};
+% fila 4: frontend
+\node[n] (fro) at (0,-5)      {\code{deploy.yml}\\\emph{export} de Next.js};
+\node[n, text width=6.4cm] (s3) at (5.325,-5) {OIDC $\to$ \code{s3 sync --delete} $\to$ invalidación de CloudFront \code{/*}};
+\draw[a] (mer) -- node[l,right]{\code{src/backend/**}} (img);
+\draw[a] (img) -- (dep); \draw[a] (dep) -- (lam);
+\draw[a] (mer.west) -- ++(-0.2,0) |- (fro.west);
+\draw[a] (fro) -- node[l,above=1pt]{\code{src/frontend/**}} (s3);
+\node[font=\scriptsize, align=left, anchor=west, text width=5.6cm] at (9.3,-5)
+  {\textcolor{accent}{\rule{2mm}{2mm}} decisión humana explícita\\(\emph{merge} si el clasificador lo\\deniega; \code{terraform apply}).};
+\end{tikzpicture}
+\caption{Del issue a producción: ola de agentes (fila superior), CI de la PR, imágenes y despliegue
+del backend (manual) y del frontend (automático al fusionar).}
+\label{fig:08-flujo}
+\end{figure*}
+
+\subsection{Integración continua}
+\code{pr.yml} corre en cada PR contra \code{main}. Un \emph{job} inicial evalúa con
+\code{dorny/paths-filter} diez filtros de ruta (uno por paquete, más \code{stack}, \code{infra} y
+\code{docs}) y cada \emph{job} depende del suyo: un cambio de documentación no ejecuta pytest ni
+Playwright. La \cref{tab:08-pruebas} resume los niveles de prueba: \code{contracts-check}
+regenera el OpenAPI y los tipos TypeScript y falla si difieren de lo comprometido, y
+\code{e2e-stack} ejecuta Playwright sobre el \emph{stack} de Compose
+(\cref{sec:07-entorno-desarrollo}) con una sesión generada en \code{core\_api}. CI construye además
+cada imagen, sin \code{provenance} ni \code{sbom}, para comprobar el Lambda Web Adapter sin
+publicarla. Terraform solo pasa \code{fmt} y \code{validate}: ninguna PR ejecuta un \code{plan}.
+
+\begin{table}[tb]
+\centering\footnotesize
+\caption{Plan de pruebas. Casos ejecutados con \code{just test} el 23-09-2026, todos en verde
+(\code{travel\_common} 37, \code{core\_api} 199, \code{ai\_api} 597, \code{city\_corpus} 254;
+muchos tests están parametrizados). L: local.}
+\label{tab:08-pruebas}
+\begin{tabularx}{\columnwidth}{@{}l>{\raggedright\arraybackslash}p{2.15cm}lY@{}}
+\toprule
+Nivel & Herramienta & Dónde & Casos / cobertura \\
+\midrule
+Unitario & pytest; Vitest & L, CI & 1\,087 backend; 747 frontend \\
+Integración & pytest, moto, LLM guionizado & L, CI & incluidos en los 1\,087 \\
+Contrato & \code{contracts-check} & CI & \emph{drift} OpenAPI y tipos \\
+E2E & Playwright (\emph{export}, Compose) & CI & 9 \emph{specs}, no ejecutados aquí \\
+Modelo real & \code{planner-smoke} (NVIDIA) & L & manual; no contra Bedrock \\
+Seguridad & reglas \code{S} de ruff & L, CI & estático; sin DAST ni \emph{pentest} \\
+Carga, a11y & --- & --- & \textbf{no existen} (a11y: solo revisor UX) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Despliegue}
+Al fusionar, \code{backend-images.yml} publica \code{core-api} y \code{ai-api} en GHCR,
+etiquetadas con el SHA completo. \code{deploy-backend.yml} solo se lanza a mano, en el entorno \code{aws}
+de GitHub, que guarda los dos únicos secretos reales (clave de NVIDIA y secreto del cliente de
+Google); entra en AWS por OIDC~\cite{ci:gh-oidc}, sin claves, copia las imágenes a ECR con
+\code{crane copy}~\cite{ci:crane} y pasa el \emph{digest} a Terraform. Se descartó
+\code{docker buildx imagetools create} porque envuelve la imagen en un índice OCI que Lambda
+rechaza, y \code{crane} no necesita \emph{daemon} (TRA-133); el \emph{digest}, a diferencia de una
+etiqueta mutable, obliga a Lambda a redesplegar. El \code{apply} es manual (\code{apply=false} por
+defecto): solo hay un entorno, sin \emph{staging}, y un secreto ausente llega a Terraform como
+cadena vacía y borra la configuración viva (lo advierte el propio \emph{workflow}), así que el
+\emph{runbook} exige revisar antes un \code{plan} que solo cambie los dos \code{image\_uri}. El
+frontend (\code{deploy.yml}) no tiene esa puerta: cada \emph{push} a \code{main} que toca
+\code{src/frontend/**} se sincroniza con S3 e invalida CloudFront.
+
+Dependabot abre cada semana PRs agrupadas y retiene, con el motivo escrito, tres versiones
+mayores (TRA-195).
+
+\paragraph{Entregables: imágenes Docker y scripts de despliegue.} Un único
+\code{src/backend/Dockerfile} multietapa produce las dos imágenes con el \emph{build arg}
+\code{SERVICE}: \code{uv sync --frozen} instala solo ese servicio y \code{travel\_common}, y la etapa
+final (\code{python:3.12-slim}, usuario sin privilegios, \code{HEALTHCHECK}) lleva el Lambda Web
+Adapter como extensión, activa solo bajo Lambda; fuera, \code{docker/entrypoint.sh} arranca uvicorn.
+La misma imagen corre así en Compose y en Lambda. \code{docker-compose.yml} define \code{proxy}
+(nginx, \code{docker/nginx.conf}), \code{core\_api}, \code{ai\_api} y DynamoDB Local. El frontend no
+tiene imagen: es un \emph{export} estático, sin proceso servidor, que sirven nginx o S3+CloudFront.
+Se arranca con \code{just setup}, \code{docker-up} y \code{stack-up}, y se despliega con los
+\emph{workflows} y \code{terraform apply} (\emph{runbooks} \code{deploy.md} y \code{release.md}).
+
+\subsection{Entrega con agentes}
+Según \code{AGENTS.md}, se entrega con agentes salvo documentación y correcciones de una línea,
+en cuatro roles. (1)~La sesión principal, con el
+modelo más capaz, audita el código, decide y escribe un \emph{brief} de secciones fijas
+(decisiones que no se reabren, tests, documentación, reglas); resultado y lista de aceptación se
+copian al issue, el registro permanente. (2)~\code{/deliver-issue} lanza
+\code{.claude/workflows/kyrian-wave.js}: un agente Opus~5.5 implementa en su \emph{git worktree},
+ejecuta los \emph{checks} y abre la PR con \code{Closes TRA-<n>}. (3)~Tres revisores Sonnet~5 en
+paralelo, uno por lente (corrección y estado; contratos, reglas y tests reales; UX, textos y
+accesibilidad a 390~px en los dos idiomas), devuelven \emph{findings} JSON con fichero, línea y
+severidad (\code{blocker}, \code{should}, \code{nit}). (4)~Otro Opus aplica los que confirma,
+justifica los que omite y vigila CI con hasta dos rondas de corrección; tiene prohibido fusionar.
+Fusiona la sesión principal o, si el clasificador de permisos lo deniega, el humano, que además
+ejecuta siempre el \code{terraform apply}.
+
+Lo sostienen un \code{AGENTS.md} jerárquico, fuente única para
+cualquier herramienta (Claude Code~\cite{ci:claudecode}, Codex, Gemini); diez comandos
+\emph{slash}; un \emph{hook}
+\code{PreToolUse} que deniega ramas fuera de \code{<tipo>/TRA-<n>-<slug>}, con los prefijos de
+Conventional Commits~\cite{ci:conventional}; los MCP de Linear y Playwright; 23 ADR al estilo de
+Nygard~\cite{ci:nygard}, nunca borradas, solo sustituidas; 7 \emph{runbooks}, y reglas no negociables.
+
+\begin{table}[tb]
+\centering\footnotesize
+\caption{Hitos del proyecto (\code{git log}, 2026).}
+\label{tab:08-hitos}
+\begin{tabularx}{\columnwidth}{@{}lY@{}}
+\toprule
+Fecha & Hito \\
+\midrule
+10/18-03 & Primer \emph{commit} (landing); primer issue citado (TRA-28) \\
+jun--ago & 6 \emph{commits} en tres meses \\
+07-09 & Separación en \code{core\_api}/\code{ai\_api} (\adr{0001}) \\
+15/16-09 & AWS v3 con Lambda y Cognito (\adr{0009}); \code{crane} (TRA-133) \\
+18-09 & \emph{Spike} de vectores (medido 17-09, PR \#118); planificador \code{/plan/} \\
+19-09 & Bolonia, primera ciudad con \code{/add-city} \\
+20-09 & Mapa por día; cambio de marca a Kyrian World \\
+22/23-09 & DynamoDB sustituye a RDS; VPC retirada (\adr{0023}) \\
+23-09 & Trazas de turno y consola \code{/admin} (\adr{0024}) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{Cifras.} Contadas con \code{git} y \code{gh} el 23-09-2026: 324 \emph{commits}, 181 PR
+fusionadas y 107 claves \code{TRA-<n>} distintas. Septiembre concentra 145 PR (80\,\%) y 187
+\emph{commits} (58\,\%), frente a 36 PR entre marzo y agosto. El salto coincide con la adopción
+de la entrega con agentes, pero también con la construcción del planificador
+(\cref{tab:08-hitos}); los datos no permiten atribuirlo a una causa. Miden volumen, no valor (faltan
+\emph{reverts}, proporción \code{fix}/\code{feat} y CI fallida).
+
+\paragraph{Valoración crítica.} A favor: toda rama, PR y \emph{commit} se traza hasta un issue y,
+si procede, una ADR; el \emph{drift} de contratos se detecta en CI y no en producción; y las tres
+lentes evitan que un agente valide su propio trabajo. En contra, con igual peso: \emph{bus factor}
+1 (145 de las 181 PR son de la misma persona, la única que fusiona); revisión sin humano, con tres
+revisores del mismo modelo y sesgos correlacionados, sin segunda revisión tras la corrección (solo
+CI) ni QA manual sistemático; un coste en \emph{tokens} por ola sin medir; deriva documental; y
+ningún \emph{smoke test} contra AWS tras desplegar, ni \code{plan} en la PR ni \emph{staging}: el
+primer contacto con producción es el despliegue mismo.

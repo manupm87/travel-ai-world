@@ -1,0 +1,59 @@
+\section{Entorno de desarrollo}\label{sec:07-entorno-desarrollo}
+
+Como desarrollan a la vez una persona y varios agentes con \emph{shell}, el \emph{devcontainer}~\cite{ci:devcontainers} (base Ubuntu de Microsoft) instala las versiones de CI: Python~3.12 con
+\code{uv}, Node.js~24, \code{just}, Terraform~1.16 (\emph{build arg}), AWS CLI~v2,
+\code{crane}~0.22.1, \code{gh}, \code{ripgrep}/\code{jq}, Claude Code y, opcionales, Codex,
+Gemini y Copilot CLI. \code{post-create.sh} copia un perfil SSO de ejemplo y ejecuta
+\code{just setup} (cuatro \code{.env}, \code{uv sync}, \code{npm install}) y Chromium de
+Playwright. Compose añade DynamoDB Local y volúmenes que conservan \code{.venv}, \code{node\_modules}, la configuración de los agentes
+y \code{\textasciitilde/.aws}. AWS se usa por IAM Identity Center (\code{just aws-login}),
+sin claves de larga duración en disco que un agente pudiera leer (\adr{0007}). Se descartaron Docker-in-Docker, SAM y CDK; el \emph{stack} de Compose se lanza
+desde el \emph{host} porque monta rutas relativas a su sistema de ficheros.
+
+Las 41 recetas del \code{justfile} (\cref{tab:07-just}) son la única interfaz para personas,
+agentes y los \emph{jobs} de \code{pr.yml}. Con \code{dynamodb-local} (moto, \code{:8002}),
+tests y desarrollo no necesitan Docker. \code{stack-up} sirve \emph{export}, APIs y DynamoDB Local en un origen
+(\code{:8080}) tras un nginx que reproduce CloudFront (SSE sin \emph{buffering}, \code{/api/} a \code{core\_api}, índices y \code{404.html}); lo ejecuta el \emph{job}
+\code{e2e-stack} (\cref{tab:07-paridad}).
+
+\begin{table}[tb]
+\centering\footnotesize
+\caption{Recetas de \code{just} agrupadas por uso (selección de las 41).}
+\label{tab:07-just}
+\begin{tabularx}{\columnwidth}{@{}lY@{}}
+\toprule
+Grupo & Recetas \\
+\midrule
+Desarrollo & \code{setup}, \code{dev-\{core,ai,frontend\}}, \code{dynamodb-local} \\
+Calidad & \code{lint}, \code{test\{,-core,-ai,-common,-corpus,-frontend\}}, \code{test-e2e\{,-static,-stack\}}, \code{docs-check}, \code{contracts\{,-check\}} \\
+Corpus & \code{corpus-discover}, \code{corpus}, \code{corpus-report}, \code{index} \\
+\emph{Stack} y nube & \code{docker-up}, \code{build-stack}, \code{stack-up}, \code{aws-login}, \code{infra-\{validate,fmt-check\}}, \code{release} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[tb]
+\centering\footnotesize
+\caption{Paridad entre el entorno local y AWS.}
+\label{tab:07-paridad}
+\begin{tabularx}{\columnwidth}{@{}lYl@{}}
+\toprule
+Aspecto & Local frente a AWS & Paridad \\
+\midrule
+Cómputo & misma imagen; uvicorn / Lambda Web Adapter & alta \\
+Origen & nginx \code{:8080} / CloudFront & alta \\
+Datos & DynamoDB Local o moto / DynamoDB & alta \\
+LLM & NVIDIA NIM con clave / Bedrock por rol IAM & media \\
+Auth & \code{AUTH\_MODE=local} (JWT HS256 por CLI) / Cognito RS256 & media \\
+Vectores & sin emulador: índice real de S3 Vectors, requiere SSO & baja \\
+WAF & sin equivalente local & nula \\
+WebGL & SwiftShader sin interfaz; quitar \code{WAYLAND\_DISPLAY} (TRA-180) & aviso \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{Valoración.} Un agente recién arrancado ejecuta las comprobaciones de CI sin más
+instrucciones, y cada PR prueba el \emph{export} como lo sirve CloudFront. La paridad cae donde
+hay un servicio gestionado sin emulador: el RAG local depende de AWS real y no funciona sin conexión, y el WAF solo se comprueba
+en producción. El \emph{stack} completo no corre dentro del devcontainer, que arrastra herramientas sin
+uso (el \emph{plugin} de Session Manager de la etapa Fargate).

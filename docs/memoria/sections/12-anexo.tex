@@ -1,0 +1,70 @@
+\appendix
+\section{Glosario y referencia de decisiones}\label{sec:12-anexo}
+{\footnotesize
+\paragraph{Glosario.}
+\begin{description}[font=\normalfont\bfseries,leftmargin=0pt,itemsep=0pt]
+\item[ADR] \emph{Architecture Decision Record}: documento numerado con contexto, decisión y consecuencias; no se borra, se sustituye.
+\item[Base de datos vectorial] almacén que indexa \emph{embeddings} y devuelve los más cercanos a una consulta (aquí, S3 Vectors).
+\item[Brief] especificación escrita antes del código: resultado, decisiones cerradas, ficheros, pruebas y aceptación.
+\item[Cold start] arranque en frío: latencia extra de la primera invocación de una Lambda recién creada.
+\item[DMO] \emph{Destination Management Organisation}: organismo público o mixto que promociona un destino.
+\item[Embedding] vector numérico que representa el significado de un texto; textos parecidos quedan cerca.
+\item[Gate de readiness] comprobación automática que decide si el corpus de una ciudad está completo para publicarse.
+\item[Grounding] anclaje: toda tarjeta o lugar propuesto por el modelo debe existir en el corpus recuperado.
+\item[IaC] infraestructura como código: los recursos de AWS se declaran en Terraform y se versionan en Git.
+\item[MRR] \emph{Mean Reciprocal Rank}: media de $1/p$, con $p$ la posición del primer resultado correcto.
+\item[OIDC] OpenID Connect: federación con la que GitHub Actions obtiene credenciales temporales de AWS sin claves.
+\item[RAG] generación aumentada por recuperación: el modelo responde con documentos recuperados en el \emph{prompt}.
+\item[Recall@$k$] fracción de consultas con al menos un documento esperado entre los $k$ primeros.
+\item[RRF / BM25] BM25: ranking léxico por términos; RRF: fusión de rankings por suma de $1/(k+p)$.
+\item[SSE] \emph{Server-Sent Events}: flujo HTTP unidireccional de eventos del servidor al navegador.
+\item[Tabla única] diseño de DynamoDB con todas las entidades en una tabla, distinguidas por claves compuestas.
+\item[Turno / traza] turno: una petición del usuario y su respuesta; traza: su registro con pasos, tokens, coste y latencia.
+\item[Worktree] copia de trabajo adicional de Git sobre otra rama, aislada de la principal.
+\end{description}
+
+\par\medskip\noindent\begin{minipage}{\columnwidth}\textbf{Decisiones de arquitectura} (\code{docs/architecture/adr/}; la 0012 no existe). A: aceptada; S: sustituida; P: en parte.
+\par\smallskip
+\begin{tabularx}{\columnwidth}{@{}lYl@{}}
+\toprule
+ADR & Decisión & Estado \\
+\midrule
+0001 & Backend en \code{core\_api} y \code{ai\_api} & A \\
+0002 & JWT sin estado; reenvío del token & S por 0009 \\
+0003 & Frontend con dos URL base & A \\
+0004 & \code{src/}, \code{infra/}, \code{docs/} & A \\
+0005 & \code{Trip} raíz de agregado & A (S-P 0019) \\
+0006 & Modelo de vista en el frontend & A (S-P 0019) \\
+0007 & AWS; SSO local, OIDC en CI & A \\
+0008 & AWS v2: CloudFront, API GW, Fargate & S por 0009 \\
+0009 & AWS v3: Lambda, Cognito, 30~€/mes & A (datos: 0023) \\
+0010 & Zona DNS y certificado en Terraform & A \\
+0011 & Viajes reales, carga en cliente & A (S-P 0019) \\
+0013 & Conversaciones en \code{core\_api} & A \\
+0014 & Vectores en S3 Vectors & A \\
+0015 & Planificador SSE v2 sin estado & A \\
+0016 & Mapa MapLibre + OpenFreeMap & A \\
+0017 & Intro y foto de ciudad en el manifiesto & A \\
+0018 & Respuestas de chat con tarjetas & A \\
+0019 & Los viajes viven en el planificador & A (enm. 0020) \\
+0020 & Inicio con sesión: página de viajes & A \\
+0021 & Vista previa del sitio del local & A \\
+0022 & Foto de hotel resuelta al construir & A \\
+0023 & DynamoDB sustituye a RDS & A (enm. 0024) \\
+0024 & Trazas de turno y acceso admin & A \\
+\bottomrule
+\end{tabularx}\end{minipage}
+
+\paragraph{Issues citadas.}
+TRA-28 despliegue en GitHub Pages (\code{.nojekyll});
+TRA-133 imágenes a ECR con \code{crane};
+TRA-146 borrador del planificador como viaje;
+TRA-148 banco de evaluación de Budapest;
+TRA-151 \emph{spike} Qdrant frente a S3 Vectors;
+TRA-180 WebGL en el devcontainer;
+TRA-187 planificador en el \emph{viewport} móvil;
+TRA-195 dependencias, tres mayores retenidas;
+TRA-210 corpus curado con cuotas y fotos;
+TRA-219 retirada de RDS en dos \code{apply};
+TRA-204 Miami a través del pipeline; TRA-232 tokens de \emph{embeddings} en la traza.
+\par}

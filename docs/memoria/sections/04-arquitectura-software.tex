@@ -1,0 +1,166 @@
+\section{Arquitectura de software}\label{sec:04-arquitectura-software}
+
+Un frontend Next.js exportado como sitio estático y dos servicios FastAPI \cite{sw:fastapi} que
+solo comparten la forma de verificar el token (\cref{fig:04-contenedores}). El pipeline de IA se
+trata en \cref{sec:05-arquitectura-ia} y el despliegue en \cref{sec:06-nube}.
+
+\begin{figure*}[tb]
+\centering
+\begin{tikzpicture}[
+  box/.style={draw, rounded corners, fill=kyrianlight, font=\small, align=center, minimum height=8mm, text width=#1},
+  box/.default=2.9cm,
+  store/.style={draw, rounded corners, fill=white, font=\small, align=center, minimum height=8mm, text width=3.3cm, line width=0.8pt, draw=kyrian},
+  arr/.style={-{Stealth}, thick},
+  lbl/.style={font=\footnotesize, align=center, fill=white, inner sep=1pt}]
+\node[box=2.2cm] (nav) at (0,0) {Navegador\\{\footnotesize Next.js estático}};
+\node[box=2.7cm] (px) at (4.3,0) {CloudFront (AWS)\\ nginx (Compose)};
+\node[box=3.0cm, fill=kyrian!18] (core) at (8.3,1.35) {\code{core\_api}\\{\footnotesize capas · auth · viajes · chat}};
+\node[box=3.0cm, fill=accent!15] (ai) at (8.3,-1.35) {\code{ai\_api}\\{\footnotesize puertos y adaptadores · SSE}};
+\node[box=2.7cm] (idp) at (4.3,2.45) {Cognito + Google IdP\\{\footnotesize local: Google \code{tokeninfo}}};
+\node[store] (ddb) at (13.5,1.95) {DynamoDB \code{<prefix>-core}\\{\footnotesize tabla única (\adr{0023})}};
+\node[store] (llm) at (13.5,0.35) {LLM\\{\footnotesize Bedrock (nube) · NVIDIA (local)}};
+\node[store] (vec) at (13.5,-1.05) {S3 Vectors\\{\footnotesize + embeddings Titan V2}};
+\node[store] (itx) at (13.5,-2.45) {DynamoDB \code{<prefix>-interactions}\\{\footnotesize trazas (\adr{0024})}};
+\draw[arr] (nav) -- node[lbl, above=1pt] {\code{/} y \code{/api/*}} (px);
+\draw[arr] (px.north east) -- node[lbl, above left=-1pt] {\code{/api/*}} (core.west);
+\draw[arr] (px.south east) -- node[lbl, below left=-1pt] {\code{/api/v1/ai/*}} (ai.west);
+\draw[arr] (nav.north) |- node[lbl, pos=0.75, above] {código + PKCE} (idp.west);
+\draw[arr, dashed] (core.north) |- node[lbl, pos=0.75, above] {solo modo local} (idp.east);
+\draw[arr] (core.east) -- (ddb.west);
+\draw[arr] (ai.east) -- (llm.west);
+\draw[arr] (ai.east) -- node[lbl, pos=0.55] {IAM} (vec.west);
+\draw[arr] (ai.east) -- (itx.west);
+\draw[arr, very thick, draw=accent] (ai.north) -- node[lbl, right=2pt, text width=3.6cm, align=left] {HTTP con el \emph{bearer} del\\ usuario; sentido único\\ \code{ai\_api} $\rightarrow$ \code{core\_api}} (core.south);
+\end{tikzpicture}
+\caption{Contenedores y flujos. \code{core\_api} funciona con \code{ai\_api} caído; ambos
+verifican el JWT por su cuenta (HS256 local o RS256 con el JWKS de Cognito) y cada almacén tiene
+un único servicio propietario.}
+\label{fig:04-contenedores}
+\end{figure*}
+
+\subsection{Dos servicios, una frontera y un núcleo compartido}
+
+\adr{0001} dividió el FastAPI inicial (unas 3\,150 líneas) porque el RAG traía dependencias
+pesadas, \emph{streaming} largo y otro perfil de escalado, y el único acoplamiento era
+\code{get\_current\_user} leyendo la base de datos. La frontera se verifica:
+\code{ai\_api} y \code{core\_api} no se importan entre sí, y
+\code{tests/test\_import\_boundaries.py} comprueba además que solo \code{infrastructure/dynamo/}
+importa boto3. Lo compartido vive en \code{travel\_common}: \code{Principal}, ajustes, errores de
+dominio, verificación de tokens, \emph{app factory} y \emph{fakes}. Todo forma un \emph{workspace} uv con un único \code{uv.lock}, ruff con reglas ampliadas
+(\code{E4/E7/E9/F}, \code{I}, \code{UP}, \code{B}, \code{SIM}, \code{N}, \code{RUF},
+\code{ASYNC}, \code{S}; el \emph{scraper} conserva \code{E/F}) y pyright \emph{standard}.
+
+\subsection{Capas frente a puertos y adaptadores}
+
+Un CRUD usa capas; un servicio de integración, puertos \cite{sw:hexagonal}.
+\code{core\_api} sigue \code{api} $\rightarrow$ \code{services} $\rightarrow$ \code{domain}, con
+\code{infrastructure/dynamo/} como único adaptador y casos de uso sin FastAPI ni boto3.
+\code{ai\_api} define en \code{domain/ports.py} protocolos (\code{LLMProvider}, \code{Embedder},
+\code{Retriever}, \code{TraceLog}, \dots) que implementa \code{infrastructure/}; cambiar de
+proveedor LLM toca solo esa capa y \code{api/deps.py}.
+
+\code{Trip} es el agregado raíz (\adr{0005}): embebe días (con actividades y comidas),
+alojamientos y transportes, y se lee y guarda entero. Los hijos cuelgan de
+\code{/trips/\{trip\_id\}/\dots}, autorizados una vez, y \code{child\_router()} genera 25 de las
+49 rutas; así se cerró una brecha real (se podían leer hijos ajenos) y
+desaparecieron unas 600 líneas copiadas. \adr{0019} fijó un viaje por ciudad y una fase
+(\code{upcoming}, \code{ongoing}, \code{past}) derivada de las fechas, nunca almacenada;
+\code{ensure\_editable()} rechaza con 409 \code{TRIP\_LOCKED} las escrituras en viajes en curso o
+pasados, y tras cada \code{PATCH} se reejecutan las invariantes de la entidad. Perfil, viaje y conversación llevan \code{version}: las escrituras son condicionales y
+una carrera perdida es 409 \code{CONFLICT} (bloqueo optimista). Los servicios lanzan solo errores
+de dominio, que un único manejador traduce a \code{\{message, error\_code, extras\}}; ningún
+\emph{endpoint} usa \code{HTTPException}. La
+identidad es un \code{Principal} (\code{subject}, \code{email}, \code{role}), ampliado en
+\code{core\_api} con el UUID de la cuenta.
+
+\subsection{Identidad y confianza entre servicios}
+
+\code{AUTH\_MODE} elige el emisor: en \code{local}, \code{core\_api} verifica el token de Google
+con \code{tokeninfo} y emite un JWT HS256 \cite{sw:rfc7519} propio; en \code{cognito}
+(desplegado), un \emph{user pool} con Google como IdP emite RS256 verificado \emph{offline} contra
+el JWKS \cite{sw:rfc7517}. \adr{0009} cambió el emisor de \adr{0002} (JWT con secreto compartido)
+pero mantuvo la regla: \code{ai\_api} reenvía a \code{core\_api} el
+\emph{bearer} del usuario, con sus mismos permisos y sin secreto entre servicios. \code{core\_api}
+comprueba la cuenta en cada petición y corta al instante a un usuario desactivado; \code{ai\_api}
+no, y ese usuario sigue usando la IA hasta que expira el token (60~min), riesgo aceptado en
+\adr{0002}.
+
+\subsection{Tabla única en DynamoDB}
+
+\adr{0023} retiró el RDS PostgreSQL de \adr{0009}: costaba unos 15~€/mes, la
+mitad del presupuesto de 30~€/mes; era la única razón de la VPC; y los accesos eran de
+clave-valor, sin \code{join}, \code{group\_by} ni \code{ilike}, y el viaje siempre entero. La tabla
+única \cite{sw:singletable} (\cref{tab:04-dynamo}) resuelve cada patrón con una \code{Query}
+y cuesta menos de 1~€/mes estimado. Costes reconocidos en el ADR: la integridad pasa a la
+aplicación (ítem \code{EMAIL\#} en la misma transacción, borrados en cascada a mano), no hay
+migraciones (un campo ausente toma el valor por defecto de la \emph{dataclass}), las preguntas
+\emph{ad hoc} exigen código o exportación, y ``otro usuario'' pasa de 403 a 404 porque la clave
+incluye al propietario. \code{ai\_api} escribe en \code{<prefix>-interactions} (\adr{0024}):
+cada turno es una traza con resumen (\code{DAY\#}), contexto y pasos (\code{TURN\#}), dos GSI (por
+usuario y por sesión del planificador) y TTL de 90 días (\cref{sec:05-arquitectura-ia}). La traza
+guarda el mensaje del usuario, el historial (hasta 8~KB) y la respuesta durante esos 90 días,
+visibles para el grupo \code{admin}: un dato personal en texto libre (\cref{sec:10-analisis-critico}).
+
+\begin{table}[tb]
+\centering\footnotesize
+\caption{Ítems de la tabla \code{<prefix>-core} (\adr{0023}).}
+\label{tab:04-dynamo}
+\begin{tabularx}{\columnwidth}{@{}lllY@{}}
+\toprule
+Ítem & \code{PK} & \code{SK} & Índice / nota \\
+\midrule
+Cuenta & \code{USER\#<id>} & \code{PROFILE} & GSI1 \code{USERS}/email \\
+Email & \code{EMAIL\#<email>} & \code{EMAIL} & unicidad, misma transacción \\
+Viaje & \code{USER\#<id>} & \code{TRIP\#<id>} & agregado entero; GSI2 \code{TRIPS} (admin) \\
+Hilo & \code{USER\#<id>} & \code{THREAD\#<id>} & sin sus mensajes \\
+Mensaje & \code{THREAD\#<id>} & \code{MSG\#<ts>\#<id>} & \emph{append-only}, orden por µs \\
+\midrule
+\multicolumn{4}{@{}p{\dimexpr\columnwidth}@{}}{Patrones: perfil (\code{PROFILE}); viajes o
+hilos (\code{begins\_with(SK)}); hilo en orden (\code{MSG\#}); administración por GSI1/GSI2.} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Contratos tipados}
+
+Pydantic \cite{sw:pydantic} es la fuente de verdad: \code{just contracts} exporta
+\code{docs/api/*.openapi.json} y regenera los tipos TypeScript; CI falla ante cualquier
+diferencia. El planificador emite eventos SSE tipados (\adr{0015}): una unión discriminada en
+\code{type} (\code{text}, \code{brief}, \code{options}, \code{itinerary\_patch}, \code{error},
+\code{done}) cuyas operaciones de itinerario son otra unión en \code{op}. Ningún campo es opcional
+en el cable (lo desconocido viaja como \code{null}), así que el TypeScript no tiene \code{?}. Sin
+\code{response\_model} en el \emph{streaming}, \code{ai\_api/openapi.py} inyecta los modelos. El orquestador es sin estado: cada petición lleva brief, itinerario y
+transcripción, y los ids \code{slot:<day>:<part>} se interpretan sin sesión.
+
+\begin{table}[tb]
+\centering\footnotesize
+\caption{Tamaño y pruebas por paquete: líneas contadas en el commit \code{e7916c8}; tests ejecutados con \code{just test} el 23-09-2026, todos en verde.}
+\label{tab:04-tamano}
+\begin{tabularx}{\columnwidth}{@{}Yrrrr@{}}
+\toprule
+Paquete & LOC prod. & LOC tests & Tests & Rutas \\
+\midrule
+\code{travel\_common} & 829 & 414 & 37 & --- \\
+\code{core\_api} & 3\,709 & 3\,111 & 199 & 49 \\
+\code{ai\_api} & 10\,691 & 9\,119 & 597 & 10 \\
+\midrule
+Total & 15\,229 & 12\,644 & 833 & 59 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Las pruebas (\cref{tab:04-tamano}; los casos ejecutados superan a las funciones por la
+parametrización) no necesitan infraestructura (moto en proceso, proveedores falsos, emisor
+Cognito de prueba); los PR que tocan \emph{prompts} exigen además una prueba manual con el modelo real.
+
+\subsection{Valoración}
+
+Hay deuda. El doble modo de autenticación es ya permanente: duplica pruebas y configuración, y
+\code{AUTH\_MODE}, \code{SECRET\_KEY} y \code{COGNITO\_*} deben coincidir a mano en dos
+\code{.env} sin test que lo compruebe. La revocación de 60~min en \code{ai\_api} y la falta de
+límites de uso exponen seguridad y coste. En producción solo hay un proveedor LLM,
+Bedrock, sin conmutación, aunque el puerto \code{LLMProvider} lo permitiría. La documentación está desfasada: \code{docs/architecture/code-quality-review.md} describe la arquitectura SQLAlchemy
+anterior a \adr{0023} sin equivalente para DynamoDB, \adr{0013} no se marcó como sustituido en
+su almacenamiento y quedan directorios vacíos (\code{db/}, \code{models/},
+\code{repositories/}, \code{seed/}) de la capa anterior. \Cref{sec:10-analisis-critico}
+prioriza las propuestas.

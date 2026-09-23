@@ -1,0 +1,89 @@
+% Memoria técnica de Kyrian World — compilar con: tectonic main.tex (o latexmk -xelatex)
+\documentclass[10pt,a4paper,twocolumn]{article}
+\usepackage{fontspec}
+\setmainfont{texgyrepagella}[Extension=.otf,UprightFont=*-regular,BoldFont=*-bold,ItalicFont=*-italic,BoldItalicFont=*-bolditalic]
+\setsansfont{texgyreheros}[Extension=.otf,UprightFont=*-regular,BoldFont=*-bold,ItalicFont=*-italic,BoldItalicFont=*-bolditalic]
+\setmonofont{texgyrecursor}[Scale=0.85,Extension=.otf,UprightFont=*-regular,BoldFont=*-bold,ItalicFont=*-italic,BoldItalicFont=*-bolditalic]
+\usepackage[spanish,es-tabla,es-noquoting]{babel}
+\usepackage[a4paper,margin=18mm,columnsep=7mm]{geometry}
+\usepackage{microtype}
+\usepackage{booktabs,tabularx,array,multirow,colortbl,xcolor}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,calc,backgrounds}
+\usepackage{caption}
+\captionsetup{font=small,labelfont=bf}
+\usepackage{enumitem}
+\setlist{nosep,leftmargin=*}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xurl}
+\usepackage[spanish,capitalise,noabbrev]{cleveref}
+\crefname{figure}{figura}{figuras}\Crefname{figure}{Figura}{Figuras}
+\crefname{table}{tabla}{tablas}\Crefname{table}{Tabla}{Tablas}
+\crefname{section}{sección}{secciones}\Crefname{section}{Sección}{Secciones}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{abstract}
+\usepackage{stfloats}
+
+\definecolor{kyrian}{HTML}{1F4E5F}
+\definecolor{kyrianlight}{HTML}{E8F0F3}
+\definecolor{accent}{HTML}{C2571A}
+\titleformat{\section}{\large\bfseries\color{kyrian}}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.6em}{}
+\titlespacing*{\section}{0pt}{1.4ex plus .5ex}{0.8ex}
+\titlespacing*{\subsection}{0pt}{1.0ex plus .3ex}{0.4ex}
+\pagestyle{fancy}\fancyhf{}
+\fancyhead[L]{\small\textsc{Kyrian World} --- Memoria técnica}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\adr}[1]{ADR~#1}
+\setlength{\parskip}{0.2ex}
+\setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\dbltextfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\floatsep}{6pt plus 2pt minus 2pt}
+\setlength{\intextsep}{6pt plus 2pt minus 2pt}
+\setlength{\abovecaptionskip}{4pt}
+\setlength{\belowcaptionskip}{0pt}
+\setlength{\bibsep}{1pt}
+
+\title{\vspace{-1.2em}\textbf{Kyrian World: un planificador de viajes con IA generativa y recuperación aumentada}\\[0.3em]
+\large Proyecto Júpiter --- Trabajo de Fin de Máster\\
+\normalsize Máster en Inteligencia Artificial, Cloud Computing y DevOps\\[0.2em]
+\normalsize Memoria técnica y de negocio: caso de uso, arquitectura, solución de IA, DevOps, evaluación y trabajo futuro}
+\author{Manuel Pérez \and Alexander De Sousa \and Joaquín Castro Salas \and David Baos\\[0.2em] \small Versión 1.1, borrador para revisión --- 23 de septiembre de 2026 --- repositorio: \code{github.com/manupm87/travel-ai-world}}
+\date{}
+
+\begin{document}
+\twocolumn[
+\begin{@twocolumnfalse}
+\maketitle
+\vspace{-1.5em}
+\renewcommand{\abstractname}{Resumen ejecutivo}\begin{abstract}
+\noindent\input{sections/00-resumen}
+\end{abstract}
+\vspace{1em}
+\end{@twocolumnfalse}
+]
+
+\input{sections/01-introduccion}
+\input{sections/02-producto}
+\input{sections/03-mercado}
+\input{sections/03b-equipo}
+\input{sections/04-arquitectura-software}
+\input{sections/05-arquitectura-ia}
+\input{sections/06-nube}
+\input{sections/07-entorno-desarrollo}
+\input{sections/08-cicd-proceso}
+\input{sections/09-sre}
+\input{sections/09b-evaluacion}
+\input{sections/10-analisis-critico}
+\input{sections/11-conclusiones}
+
+{\scriptsize\bibliographystyle{unsrtnat}
+\bibliography{referencias}}
+\input{sections/12-anexo}
+\end{document}

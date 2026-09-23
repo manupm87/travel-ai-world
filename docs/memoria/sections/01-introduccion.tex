@@ -1,0 +1,61 @@
+\section{Introducción}\label{sec:01-introduccion}
+
+Kyrian World es el Trabajo de Fin de Máster (Proyecto Júpiter) de un equipo de cuatro personas,
+iniciado el 10-03-2026 con un objetivo concreto: comprobar si un planificador de viajes con IA
+generativa puede ofrecer recomendaciones \emph{verificables}, cada una anclada en un documento
+real, con un coste de operación de unos pocos euros al mes. Hasta el 23-09-2026 acumula 324
+\emph{commits} y 181 PR fusionadas, está desplegado en AWS (\code{kyrian-world.com}) y se ha
+desarrollado en buena parte con agentes de programación guiados por un proceso escrito
+(\emph{brief}, implementación, revisión y corrección), con cada cambio trazable hasta un issue y,
+cuando procede, hasta una ADR.
+
+\paragraph{Objetivos y alcance.} Explicar las decisiones de producto, arquitectura y plataforma
+con su contexto y alternativas; valorar la viabilidad en su mercado; y cerrar con un análisis
+crítico y propuestas priorizadas. Se describe el sistema en el \emph{commit} \code{e7916c8}.
+Quedan fuera la alternativa en GCP, que no se despliega, y cualquier medida con usuarios reales,
+que no existen todavía.
+
+\paragraph{Metodología.} Los hechos proceden del repositorio: código, 23 ADR, \emph{runbooks}, el
+documento del \emph{spike} de vectores y el historial de \code{git} y de GitHub. Cada cifra indica
+si es \emph{medida} (el \emph{spike}; los tests, ejecutados con \code{just test} el 23-09-2026),
+\emph{estimada} (costes de los ADR, economía unitaria) o \emph{contada} (líneas, PR, documentos
+del corpus); lo no medido se declara. El estudio de mercado usa fuentes públicas citadas y marca
+sus proyecciones como hipótesis. La \cref{tab:01-guion} relaciona cada apartado y requisito
+técnico del guion con la sección que lo cubre.
+
+\begin{table}[tb]
+\centering\footnotesize
+\caption{Correspondencia con el guion del Proyecto Júpiter.}\label{tab:01-guion}
+\begin{tabularx}{\columnwidth}{@{}Yll@{}}
+\toprule
+Apartado o requisito del guion & Dónde & Estado \\
+\midrule
+a) Introducción y resumen ejecutivo & Resumen, \cref{sec:01-introduccion} & cubierto \\
+b) Caso de negocio y mercado & \cref{sec:02-producto,sec:03-mercado} & cubierto \\
+c) Contribución individual & \cref{sec:03b-equipo} & cubierto \\
+d) Arquitectura técnica & \cref{sec:04-arquitectura-software,sec:06-nube} & cubierto \\
+e) Diseño de la solución de IA & \cref{sec:05-arquitectura-ia} & cubierto \\
+f) Integración con DevOps & \cref{sec:07-entorno-desarrollo,sec:08-cicd-proceso} & cubierto \\
+g) Uso de modelos preentrenados & \cref{sec:05-arquitectura-ia} & cubierto \\
+h) Evaluación de la solución & \cref{sec:09b-evaluacion} & parcial \\
+i) Conclusiones y trabajo futuro & \cref{sec:10-analisis-critico,sec:11-conclusiones} & cubierto \\
+\midrule
+IA generativa & \cref{sec:05-arquitectura-ia} & cubierto \\
+Base de datos vectorial & \cref{sec:05-arquitectura-ia} & cubierto \\
+MVP funcional & \cref{sec:02-producto,sec:06-nube} & cubierto \\
+API de modelo fundacional & \cref{sec:05-arquitectura-ia} & cubierto \\
+Pipeline CI/CD & \cref{sec:08-cicd-proceso} & cubierto \\
+Monitorización y trazabilidad & \cref{sec:09-sre} & parcial \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{Estructura.} Las \cref{sec:02-producto,sec:03-mercado} presentan el producto, el
+mercado y la viabilidad, y la \cref{sec:03b-equipo}, el equipo y la contribución de cada miembro.
+Las \cref{sec:04-arquitectura-software,sec:05-arquitectura-ia,sec:06-nube} describen las
+arquitecturas de software, de IA y de nube; las
+\cref{sec:07-entorno-desarrollo,sec:08-cicd-proceso,sec:09-sre} tratan el entorno de desarrollo,
+la entrega continua con agentes y la fiabilidad y los costes, y la \cref{sec:09b-evaluacion}, la
+evaluación. La \cref{sec:10-analisis-critico} reúne la crítica y las propuestas, la
+\cref{sec:11-conclusiones} concluye y el anexo (\cref{sec:12-anexo}) recoge un glosario y la tabla
+de ADR.

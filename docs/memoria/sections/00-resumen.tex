@@ -1,0 +1,13 @@
+Kyrian World es un planificador de viajes conversacional, Trabajo de Fin de Máster de un equipo de
+cuatro personas apoyado en agentes de IA, que construye itinerarios de una
+ciudad a partir de un corpus abierto con licencia limpia (Wikivoyage, Wikipedia, OpenStreetMap)
+mediante generación aumentada por recuperación. El MVP está desplegado en AWS en
+\code{https://kyrian-world.com}. La memoria plantea: ¿puede un RAG con anclaje
+estructural dar itinerarios verificables por poco más de 10~€/mes de coste fijo? En coste, sí; la
+calidad del itinerario y la aceptación por usuarios no están medidas. Toda tarjeta procede de un
+documento recuperado y los ids no recuperados se descartan; la prosa libre del modelo no está
+verificada. El coste fijo estimado es de 12--13~€/mes ($\approx$5~€ en Terraform más un WAF
+creado a mano; sin factura real todavía). S3 Vectors se eligió frente a Qdrant por simplicidad
+operativa y un \emph{spike} lo confirmó. La viabilidad B2C es marginal; se recomienda el B2B para
+oficinas de turismo. La deuda principal es la falta de evaluación extremo a extremo, de alarmas y
+de límites de uso.

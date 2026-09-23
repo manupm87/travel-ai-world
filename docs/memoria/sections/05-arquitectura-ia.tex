@@ -1,0 +1,302 @@
+\section{Arquitectura de la IA}\label{sec:05-arquitectura-ia}
+
+El sistema es un RAG~\cite{ai:lewis2020rag} con una restricción que lo condiciona todo:
+\emph{toda tarjeta procede de un documento recuperado del corpus} y los ids no recuperados se
+descartan. Lugares, fotos, horarios y precios salen de un corpus por ciudad construido fuera de
+línea desde fuentes abiertas y comprometido en git; el LLM interpreta la petición, elige entre ids
+recuperados y redacta frases cortas. Esa prosa libre (respuestas de chat, el \code{why} de 140
+caracteres) sí puede mencionar lugares y no está verificada. El turno
+(\cref{fig:05-pipeline}) corre en la Lambda de \code{ai\_api} (512~MB, 900~s, streaming;
+\cref{sec:06-nube}).
+
+\begin{figure*}[tb]\centering
+\begin{tikzpicture}[
+  n/.style={draw, rounded corners, fill=kyrianlight, font=\footnotesize, align=center,
+            minimum height=8mm, inner sep=2pt},
+  a/.style={-{Stealth}, thick, kyrian},
+  lab/.style={font=\footnotesize\itshape, text=kyrian},
+  node distance=2.6mm]
+% Fila superior: fuera de línea
+\node[n, text width=3.15cm] (src) {\textbf{Fuentes abiertas}\\ Wikivoyage, Wikipedia\\ OSM, Wikidata, Meteo\\ tours, fotos};
+\node[n, text width=2.9cm, right=of src] (cc) {\textbf{\code{city\_corpus}}\\ TOML de ciudad;\\ fuentes, OSM, fotos,\\ distritos, tours, clima};
+\node[n, text width=1.7cm, right=of cc] (gate) {\textbf{Gate de}\\ \textbf{readiness}\\ + manifest\\ \code{cities.json}};
+\node[n, text width=1.9cm, right=of gate] (jsonl) {\textbf{JSONL}\\ comprometido\\ en git\\ (25\,516 docs)};
+\node[n, text width=1.55cm, right=of jsonl] (idx) {\code{just index}\\ \code{<ciudad>}};
+\node[n, text width=1.6cm, right=of idx] (titan) {\textbf{Titan V2}\\ 1024 dim,\\ normalizado};
+\node[n, text width=1.85cm, right=of titan, fill=accent!15] (s3) {\textbf{S3 Vectors}\\ índice \code{city-kb}\\ coseno};
+\foreach \x/\y in {src/cc, cc/gate, gate/jsonl, jsonl/idx, idx/titan, titan/s3} \draw[a] (\x) -- (\y);
+% Fila inferior: en línea
+\node[n, text width=1.6cm, below=10mm of src.south west, anchor=north west] (req) {Petición\\ \code{PlannerTurn}\\ (estado en\\ el cliente)};
+\node[n, text width=1.5cm, right=of req] (brief) {Brief\\ (LLM JSON)};
+\node[n, text width=1.8cm, right=of brief, fill=accent!15] (ret) {Recuperación\\ con filtros\\ (escalera)};
+\node[n, text width=1.9cm, right=of ret] (rank) {Ranking por el\\ LLM entre ids\\ recuperados};
+\node[n, text width=1.6cm, right=of rank] (cards) {Tarjetas\\ hidratadas\\ del corpus};
+\node[n, text width=2.1cm, right=of cards] (patch) {\code{itinerary\_}\\ \code{patch} validado\\ (reglas fijas)};
+\node[n, text width=1.4cm, right=of patch] (sse) {SSE v2\\ al\\ navegador};
+\node[n, text width=1.7cm, right=of sse] (trace) {Traza en\\ DynamoDB\\ (\adr{0024})};
+\foreach \x/\y in {req/brief, brief/ret, ret/rank, rank/cards, cards/patch, patch/sse} \draw[a] (\x) -- (\y);
+\draw[a, dashed] (patch.south) -- ++(0,-2.5mm) -| (trace.south);
+\coordinate (mid) at ($(src.south)!0.5!(req.north)$);
+\draw[a, dashed, accent] (s3.south) -- (s3.south |- mid) -| node[lab, pos=0.3, below] {\code{QueryVectors} / \code{GetVectors} (solo lectura)} (ret.north);
+\node[lab, anchor=south west] at ($(src.north west)+(0,0.5mm)$) {Fuera de línea: portátil del operador (SSO)};
+\node[lab, anchor=north west] at ($(req.south west)+(0,-4mm)$) {En línea: Lambda \code{ai\_api} (Haiku~4.5 en Bedrock, \code{eu-west-1})};
+\end{tikzpicture}
+\caption{Pipeline de IA. Arriba, construcción reproducible: el JSONL comprometido es la fuente de verdad y el índice se regenera con un comando. Abajo, un turno del planner.}
+\label{fig:05-pipeline}
+\end{figure*}
+
+\subsection{El corpus por ciudad}
+
+\paragraph{Fuentes y licencias.} Solo entran licencias compatibles (no Google Places,
+TripAdvisor ni Booking): Wikivoyage en/es y Wikipedia, CC~BY-SA~4.0~\cite{ai:wikivoyagelicense};
+OpenStreetMap (ODbL~\cite{ai:osmcopyright}) para hoteles, restaurantes, bares y distritos;
+Wikidata (CC0) y Commons (sin ficheros NC, ND ni de uso legítimo) para enriquecer, y
+Open-Meteo (CC~BY~4.0) para doce normales. Si \code{source}, \code{source\_url} y
+\code{license} no casan, la construcción falla. Única excepción: fotos de la web del propio
+hotel, con el dominio como crédito (\adr{0022}). Cada línea de \code{documents.jsonl} lleva \code{doc\_id} estable, distrito, \code{category},
+\code{kind} (\code{listing}/\code{prose}), texto, coordenadas, horario, \code{price\_tier} y atribución. Los \emph{listings} son atómicos; la prosa se trocea por
+encabezado en $\leq$500 tokens con un párrafo de solape.
+
+\begin{table}[tb]\centering\footnotesize
+\caption{Corpus actual (conteo propio de \code{documents.jsonl}; fecha de construcción, 2026). Hoteles: \code{sleep} con foto / total tras el filtrado de \adr{0022}; \cref{sec:02-producto} da los localizados antes de filtrar.}
+\label{tab:05-corpus}
+\begin{tabularx}{\columnwidth}{lrlrY}
+\toprule
+Ciudad & Docs & en / es & Hoteles & Fecha \\
+\midrule
+Berlín   & 12\,240 & 12\,187 / 53 & 341/378 & 22-09 \\
+Budapest & 6\,105  & 5\,993 / 112 & 212/229 & 22-09 \\
+Madrid   & 5\,574  & 5\,501 / 73  & 267/272 & 22-09 \\
+Bolonia  & 1\,597  & 1\,532 / 59  & 3/118   & 19-09 \\
+\midrule
+Total    & 25\,516 & 98,8\,\% en  &         & \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{Ciudades, gate y manifest.} Una ciudad es un \code{cities/<slug>.toml} (borrador de
+\code{just corpus-discover}) más su corpus (\cref{tab:05-corpus}); el planner no conoce ninguna
+por su nombre. El \emph{gate} de \emph{readiness} define un corpus terminado: $\geq$150 lugares
+de visita y $\geq$100 de comida localizados, $\geq$10 hoteles con foto, $\geq$5 distritos con
+guía de barrio, 50\,\% de monumentos con foto, 12 normales y $\geq$3 tours. Los tours
+son la única entrada manual (\code{curated/<slug>/tours.toml}), redactada desde la web del
+operador, nunca de agregadores. El manifest \code{cities.json}
+(\adr{0017}) publica alias, centro, introducción y portada: añadir una ciudad no toca Terraform. Los hoteles sin foto, cerca de la mitad (sobre todo por webs caídas), salen del
+corpus (\adr{0022}). Bolonia (3/118) se construyó antes: hoy no superaría el gate de 10 hoteles
+con foto y sigue publicada (los filtra el planner), riesgo aceptado y pendiente de reconstrucción. Cada tarjeta toma la imagen del
+corpus, de Commons cercano, la \code{og:image} del local o un marcador (\adr{0021}). El tope de
+2\,000 documentos por ciudad (TRA-210) \textbf{no está implementado}: Berlín lo supera 6,1 veces,
+con un 53\,\% de restaurantes de OSM sin descripción.
+
+\subsection{Embeddings y almacén vectorial}
+
+Documentos y consultas se embeben con Titan Text Embeddings V2~\cite{ai:titanv2}
+(1024 dimensiones, normalizado, sin asimetría consulta/documento), multilingüe: una pregunta en
+español encuentra prosa inglesa. El almacén es Amazon S3 Vectors~\cite{ai:s3vectors}
+(\adr{0014}): un índice \code{city-kb} (\code{float32}, 1024, coseno) creado por Terraform y
+compartido, con \code{city} como metadato filtrable y clave \code{uuid5(doc\_id)} porque 1\,357
+ids llevan acentos. Los metadatos filtrables (\code{category}, \code{district}, \code{price\_tier},
+\code{lat}, \code{lon}\dots) ocupan como mucho 185~B de 2~KB. Se acepta búsqueda
+\textbf{solo densa} y \textbf{sin filtro geográfico} (un radio son cuatro comparaciones sobre
+\code{lat}/\code{lon}); la fusión BM25~\cite{ai:robertson2009bm25} +
+RRF~\cite{ai:cormack2009rrf} ($k=60$) solo existe en el banco del spike.
+
+\subsection{El spike TRA-151: Qdrant en Lambda frente a S3 Vectors}
+
+\adr{0014} eligió S3 Vectors por simplicidad operativa, antes de medir; el spike
+(\code{docs/architecture/vector-store-spike.md}, 17-09-2026) fue confirmatorio. Comparó las dos opciones viables tras
+descartar \code{pgvector} en RDS (inalcanzable desde una Lambda sin VPC),
+Qdrant Cloud gratuito (se suspende tras una semana
+inactivo) y Qdrant en Fargate (16~€/mes expuesto, 30~€/mes privado: el doble, y ya el presupuesto íntegro de \adr{0009}). A es el
+binario de Qdrant~\cite{ai:qdrant} tras Lambda Web Adapter, con la colección horneada en la imagen
+y desempaquetada en \code{/tmp} en cada arranque en frío; B, S3 Vectors.
+
+\paragraph{Método.} Ambos se llenaron con los mismos vectores de los 6\,082 documentos de
+Budapest de entonces, con el coseno exhaustivo como referencia, 32 consultas y 52 \code{doc\_id}
+esperados (4 en español sobre documentos en inglés). La latencia se midió desde una Lambda sin
+VPC en \code{eu-west-1}, como \code{ai\_api}: 128 consultas en caliente por candidato y memoria y
+arranques en frío forzados.
+
+\begin{table}[tb]\centering\footnotesize
+\caption{Calidad medida (32 consultas). Agr.: fracción del top-10 exhaustivo que devuelve el almacén.}
+\label{tab:05-calidad}
+\begin{tabularx}{\columnwidth}{Yrrrr}
+\toprule
+Estrategia & R@5 & R@10 & MRR & Agr. \\
+\midrule
+Coseno exhaustivo & 0,688 & 0,812 & 0,591 & --- \\
+B: S3 Vectors & \textbf{0,688} & \textbf{0,812} & 0,591 & \textbf{0,969} \\
+A: Qdrant en Lambda & 0,672 & 0,797 & 0,591 & 0,963 \\
+Solo BM25 & 0,578 & 0,646 & 0,505 & 0,353 \\
+Exhaustivo + BM25 (RRF) & 0,693 & 0,760 & \textbf{0,651} & 0,644 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[tb]\centering\footnotesize
+\caption{Latencia medida (ms). \emph{search}: el almacén; \emph{total}: con Titan, de p50 72--75~ms en todos los grupos.}
+\label{tab:05-latencia}
+\setlength{\tabcolsep}{3.4pt}
+\begin{tabularx}{\columnwidth}{Yrrrrrr}
+\toprule
+ & & \multicolumn{3}{c}{Caliente} & \multicolumn{2}{c}{Frío} \\
+\cmidrule(lr){3-5}\cmidrule(lr){6-7}
+Cand. & MB & search p50 & p95 & total p50 & search & total \\
+\midrule
+A & 2048 & 21,5 & 27,1 & 93,5 & 1\,959 & 2\,054 \\
+A & 1024 & 22,5 & 29,3 & 97,7 & 1\,717 & 1\,824 \\
+B & 2048 & 64,2 & 69,1 & 136,9 & 91 & 189 \\
+B & 1024 & 66,5 & 152,3 & 140,1 & 288 & 387 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[tb]\centering\footnotesize
+\caption{Coste mensual estimado por volumen (precios de lista de \code{us-east-1}, no de \code{eu-west-1}; Titan añade a ambos $\sim$0,002~USD por 100\,000 consultas).}
+\label{tab:05-coste}
+\begin{tabularx}{\columnwidth}{Yrr}
+\toprule
+Consultas/mes & A: Qdrant Lambda & B: S3 Vectors \\
+\midrule
+1\,000   & $\sim$0,07~USD & $\sim$0,005~USD \\
+10\,000  & $\sim$0,08~USD & $\sim$0,03~USD \\
+100\,000 & $\sim$0,09~USD & $\sim$0,25~USD \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{Resultados.} En calidad (\cref{tab:05-calidad}) no hay diferencia apreciable: un
+documento en una consulta, con 32 consultas de una sola ciudad (4 en español) y sin intervalos de
+confianza. La fusión híbrida sube el MRR de 0,591 a 0,651 y baja R@10 de 0,812 a 0,760. En caliente (\cref{tab:05-latencia}) Qdrant es tres veces más rápido, pero el
+embedding domina y todo es despreciable frente a un LLM; en frío, el caso habitual con tráfico de
+demostración, el orden se invierte. El coste (\cref{tab:05-coste}) es ruido frente a los 30~€/mes del presupuesto.
+
+\paragraph{Decisión.} Se mantuvo S3 Vectors porque \emph{deciden las operaciones} y el arranque en frío: B es un índice
+y un comando (6\,082 vectores en 14~s); A, una imagen de 125~MB y una colección que se reconstruye
+con cada cambio del corpus y que tres veces se publicó vacía informando de éxito. Las tarjetas, que son el producto, se sirven con búsqueda densa sola: no
+activar BM25 + RRF es una deuda asumida sobre lo medido, a cambio de no mantener un índice BM25 en
+proceso por ciudad y de no perder R@10.
+
+\subsection{Modelos preentrenados: por qué no hay entrenamiento ni ajuste fino}\label{sec:05-modelos}
+
+No se entrena ni se ajusta ningún modelo: se consumen modelos fundacionales preentrenados por
+API. En producción, Claude Haiku~4.5 de Anthropic en Amazon Bedrock (perfil europeo
+\code{eu.anthropic.claude-haiku-4-5-20251001-v1:0}, API Converse~\cite{ai:converse}, 4\,096
+tokens de salida) hace todo el trabajo generativo, y Titan Text Embeddings V2
+(\code{amazon.titan-embed-text-v2:0}), los embeddings. En local, el mismo puerto habla con
+\code{nvidia/nemotron-3-super-120b-a12b} por la API alojada de NVIDIA, compatible con OpenAI.
+\code{eu.amazon.nova-lite-v1:0} está configurado para títulos, pero ningún código lo usa.
+
+Se prefirió RAG con ingeniería de \emph{prompts} al ajuste fino porque el conocimiento que
+importa es factual, local y cambiante (hoteles, horarios, fotos, tours): se actualiza
+reconstruyendo un JSONL y reindexando por céntimos, y solo la recuperación permite exigir que
+cada tarjeta cite su documento y su licencia (CC~BY-SA y ODbL piden atribución, que unos pesos
+diluirían). Tampoco hay datos etiquetados de itinerarios buenos y malos ni usuarios que los
+generen, y ajustar exigiría cómputo, un banco de evaluación que aún no existe
+(\cref{sec:09b-evaluacion}) y repetirlo con cada modelo base: desproporcionado para cuatro personas
+y 30~€/mes.
+
+Lo que se ajusta en la práctica son los \emph{prompts} (plantillas en \code{prompts.py}, con su
+\emph{hash} en la traza), la escalera de filtros y los 8 candidatos por franja
+(\code{PLANNER\_CANDIDATES}), la validación determinista y la temperatura: un único
+\code{CHAT\_TEMPERATURE} de 0,7, injustificado para las salidas JSON (brief, \code{classify},
+ranking), donde procede 0--0,3. El JSON se pide por \emph{prompt} (esquema Pydantic en el
+\code{system}), sin \emph{tool use}; si no valida hay \emph{una} llamada de reparación y, si
+vuelve a fallar, el turno se degrada (mejores candidatos, títulos ``Día~N'') sin romperse. Un
+ajuste fino, o un modelo pequeño propio, solo se plantearía para tareas acotadas y verificables
+(extraer el brief, clasificar el mensaje) cuando las trazas (\adr{0024}) reúnan miles de turnos
+reales etiquetables y el candidato supere a Haiku en el banco de evaluación con menos latencia y
+coste.
+
+\subsection{Orquestador PlanTrip}
+
+\begin{figure}[tb]\centering
+\begin{tikzpicture}[
+  n/.style={draw, rounded corners, fill=kyrianlight, font=\footnotesize, align=center,
+            minimum height=7mm, text width=3.4cm, inner sep=2pt},
+  a/.style={-{Stealth}, thick, kyrian},
+  t/.style={font=\scriptsize, text=accent},
+  node distance=3.5mm]
+\node[n] (b) {1. Brief: \code{extract\_brief}};
+\node[n, below=of b] (nb) {3. Barrios: \code{rank\_neighbourhoods}\\ 3 tarjetas \code{nb}};
+\node[n, below=of nb] (h) {4. Hoteles: \code{pick\_hotels}\\ grupo \code{hotels:<distrito>}};
+\node[n, below=of h, fill=accent!15] (d) {5. Borrador: \code{skeleton} +\\ N $\times$ \code{day\_picks} + validación};
+\node[n, below=of d] (c) {6. \code{classify}: opciones,\\ cambiar estancia o chat};
+\node[n, right=11mm of b, text width=1.8cm] (q) {2. \code{ask\_missing}\\ (stream)};
+\draw[a] (b) -- node[t, right] {brief completo} (nb);
+\draw[a] (nb) -- node[t, right] {\code{select} barrio} (h);
+\draw[a] (h) -- node[t, right] {\code{select} hotel} (d);
+\draw[a] (d) -- node[t, right] {mensaje} (c);
+\draw[{Stealth}-{Stealth}, thick, kyrian] (b) -- node[t, above] {falta} (q);
+\draw[a] (c.west) -- ++(-3mm,0) |- node[t, pos=0.25, left] {\code{slot:d:p}} (d.west);
+\end{tikzpicture}
+\caption{Fases de PlanTrip. Sin estado en servidor: la fase se deduce del brief, del \emph{snapshot} y del \code{group\_id} de la acción.}
+\label{fig:05-plantrip}
+\end{figure}
+
+\paragraph{Orquestador.} \code{PlanTrip} (\adr{0015}, \cref{fig:05-plantrip}) es \textbf{sin
+estado}: cada \code{PlannerTurn} trae historial, brief e itinerario (solo ids), el
+\code{group\_id} acuñado por el servidor codifica qué significa una selección y las tarjetas se
+rehidratan del almacén, nunca del cliente.
+
+\paragraph{Grounding estricto.} Cada candidato llega como una línea
+\code{id | nombre | categoría | distrito | tier | foto | resumen}; el modelo solo puede usar esos
+ids, con un \code{why} de menos de 140 caracteres sin precios. Los ids ajenos se
+\textbf{descartan} (contados en la traza) y los huecos se rellenan con los mejores candidatos.
+La tarjeta sale entera de metadatos, los precios son \emph{tiers} (€ a €€€) y \code{strip\_prices}
+borra todo importe con moneda del texto del modelo. Cada
+franja lanza cuatro búsquedas paralelas con una escalera de filtros (distritos del día y tier
+$\rightarrow$ ciudad y tier $\rightarrow$ ciudad), deduplica por título y antepone las que tienen
+foto.
+
+\paragraph{Validación determinista.} Una función pura avisa, por día, de actividades consecutivas
+a más de 3,5~km, exceso sobre el ritmo (3, 4 o 6 actividades), lugares cerrados según su horario
+y precios no verificados. El tiempo sale de Open-Meteo o de la normal del
+corpus; los vuelos, de un enlace sin precio.
+
+\begin{table}[tb]\centering\footnotesize
+\caption{Llamadas LLM por turno (según el código, sin reparaciones); cada búsqueda añade una a Titan y una \code{QueryVectors}.}
+\label{tab:05-llamadas}
+\begin{tabularx}{\columnwidth}{Yl}
+\toprule
+Turno & Llamadas \\
+\midrule
+Primer mensaje incompleto & 2 \\
+Brief completo $\rightarrow$ barrios & 2 \\
+Barrio elegido $\rightarrow$ hoteles & 1 \\
+Hotel elegido $\rightarrow$ borrador de N días & \textbf{1 + N} ($\leq$8) \\
+``Elige por mí'' con brief completo & 3 + N \\
+Alternativas de una franja & 1 \\
+Mensaje libre tras la estancia & 2 \\
+Elegir o quitar una actividad & 0 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{Coste.} Los días del borrador se generan en secuencia (\cref{tab:05-llamadas}) para
+que el viaje tome forma en pantalla. A 1 y 5~USD por millón de tokens de entrada y salida
+(Haiku~4.5) se \emph{estima} un borrador equilibrado de cuatro días en $\sim$0,02~USD
+($\sim$11\,500 tokens de entrada, $\sim$2\,000 de salida) y un turno de una o dos llamadas en
+0,002--0,006~USD. La traza (\adr{0024}) registra tokens, coste y latencia por turno y la consola
+muestra p50/p95 (\cref{sec:09b-evaluacion}).
+
+\paragraph{Observabilidad.} La traza de cada turno (\adr{0024}, \cref{sec:09-sre}) guarda
+modelo, \emph{hash} del \emph{prompt}, tokens, coste, latencia, \emph{spans} y contadores
+propios de la IA (reparaciones, ids descartados, precios eliminados); de la identidad, solo el
+\emph{subject}. Los tokens de embeddings aún no se contabilizan (TRA-232).
+
+\subsection{Valoración}
+
+Las métricas y pruebas se recogen en la \cref{sec:09b-evaluacion}. Cada tarjeta queda anclada a un documento recuperado; la prosa libre no. Debilidades. \emph{Inyección de prompt}: el texto recuperado (Wikivoyage editable,
+OSM) entra en el prompt sin delimitarse como datos y las \code{og:image} son de terceros; la
+introducción española de Madrid llegó vandalizada al manifest. La
+única mitigación está en la red: \code{site\_previews.py}
+solo pide URL http(s) de hosts con nombre público (sin IP literales, \code{localhost} ni
+\code{.local}/\code{.internal}) y revalida cada redirección contra SSRF. \emph{Capacidad}: el
+límite real lo marcan las cuotas de Bedrock (no medidas), la concurrencia de Lambda y los 29~s de API
+Gateway en modo \emph{buffered}; no hay pruebas de carga. Un solo proveedor y región: pasar a
+NVIDIA exige un \code{apply} manual y el ciclo de vida del modelo lo fija el proveedor. Además, un
+corpus 98,8\,\% en inglés ante usuarios hispanohablantes; la
+escalera reembebe la consulta en cada escalón, sin caché; y no hay reranker ni guardrails más
+allá de \code{strip\_prices} (\cref{sec:10-analisis-critico}).
+

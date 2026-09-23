@@ -1,0 +1,140 @@
+\section{El producto}\label{sec:02-producto}
+
+Kyrian World (\code{kyrian-world.com}) es un planificador de viajes conversacional que construye
+en tiempo real un itinerario día a día que se puede guardar y reabrir. El usuario objetivo, inferido del alcance (no hay estudio de usuarios), es el viajero
+individual en \emph{una sola ciudad} (\adr{0019}). A diferencia de un chat genérico, cada
+recomendación es una tarjeta anclada en un documento del corpus (Wikivoyage, Wikipedia,
+OpenStreetMap), con foto y atribución (\cref{sec:05-arquitectura-ia}).
+
+En el recorrido (\cref{fig:02-flujo,tab:02-rutas}), el login (Google en local, Cognito con
+PKCE en producción) conserva el destino \code{/plan/?q=} y \code{?trip=<uuid>} reconstruye el
+borrador. Sin \code{ai\_api}, un \emph{modo demo} avisado reproduce una sesión de Budapest; la
+consola \code{admin} es de solo lectura (\adr{0024}).
+
+\begin{figure}[tb]\centering
+\begin{tikzpicture}[
+  n/.style={draw, rounded corners, fill=kyrianlight, font=\small, align=center,
+            minimum height=8mm, text width=2.9cm},
+  s/.style={n, fill=white, dashed, text width=2.5cm},
+  a/.style={-{Stealth}}, l/.style={font=\footnotesize, align=center},
+  node distance=5mm and 10mm]
+\node[n] (land) {Portada \code{/}\\ campo de pregunta};
+\node[n, below=of land] (login) {Inicio de sesión\\ Google / Cognito};
+\node[n, below=of login] (home) {Mis viajes\\ \code{/dashboard/}};
+\node[n, below=of home] (plan) {Planner \code{/plan/}\\ chat $\cdot$ viaje $\cdot$ mapa};
+\node[n, below=of plan] (trip) {Viaje guardado\\ \code{?trip=<uuid>}};
+\node[s, right=of login] (admin) {Consola admin\\ \code{/admin/} (rol)};
+\node[s, right=of plan] (demo) {Modo demo\\ sesión grabada};
+\node[s, right=of trip] (lock) {En curso o pasado:\\ solo lectura};
+\draw[a] (land) -- node[l, left]{sin sesión} (login);
+\draw[a] (login) -- (home);
+\draw[a] (home) -- node[l, left]{nuevo / abrir} (plan);
+\draw[a] (plan) -- node[l, left]{guardar} (trip);
+\draw[a] (login) -- node[l, above]{admin} (admin);
+\draw[a, dashed] (demo) -- node[l, above]{sin API} (plan);
+\draw[a] (trip) -- node[l, above]{fase} (lock);
+\draw[a] (land.west) -- ++(-3mm,0) |- node[l, pos=0.25, left]{con\\sesión} (plan.west);
+\end{tikzpicture}
+\caption{Recorrido del usuario. En trazo discontinuo, superficies laterales al flujo principal.}
+\label{fig:02-flujo}
+\end{figure}
+
+\begin{table}[tb]\centering\footnotesize
+\begin{tabularx}{\columnwidth}{@{}lY@{}}\toprule
+Ruta & Función \\\midrule
+\code{/} & Portada: un único campo de pregunta \\
+\code{/auth/callback/} & Retorno del login gestionado de Cognito \\
+\code{/dashboard/} & Mis viajes: campo de pregunta y viajes por fase \\
+\code{/plan/} & Planner (\code{?q=} o \code{?trip=}): chat, viaje y mapa \\
+\code{/trip/?id=} & Redirección heredada a \code{/plan/?trip=} \\
+\code{/admin/} & Consola: KPIs por día, modelo y ciudad \\
+\code{/admin/…} & \code{turns/}+\code{turn/} (inspector), \code{trips/}+\code{trip/}, \code{users/} (rol y \code{subject}) \\
+otra & 404 exportado como \code{404.html} \\\bottomrule
+\end{tabularx}
+\caption{Páginas del export estático. Los identificadores van en la \emph{query string} porque
+un export estático no conoce en compilación los ids de los usuarios (\adr{0011}).}
+\label{tab:02-rutas}
+\end{table}
+
+\subsection{El planner}
+
+En escritorio, tres columnas (chat $\approx$30\,\%, viaje $\approx$40\,\%, mapa $\approx$30\,\%);
+en móvil, pestañas. Un \emph{brief} (ciudad, fechas, origen, presupuesto, intereses), completado con
+preguntas cortas y chips, da paso a carruseles de tarjetas: barrios, hoteles por nivel de precio (\code{€} a
+\code{€€€}; nunca un número) y actividades por franja (mañana, tarde, atardecer, noche), con
+foto acreditada, enlace a la fuente y ``Cambiar'' para ver alternativas. Los lugares
+citados en prosa llegan ``sin colocar'' y el viajero elige día y franja: el sistema nunca mueve
+su mañana sin pedirlo (\adr{0018}).
+
+El panel central muestra la ruta (enlace a Google Flights, sin precio), la estancia, una tira
+de días con previsión (Open-Meteo~\cite{fe:openmeteo} a corto plazo, normales climáticas del
+corpus más allá) y una vista general de la ciudad. El mapa (MapLibre GL~\cite{fe:maplibre}, teselas de
+OpenFreeMap~\cite{fe:openfreemap}) numera las paradas del día unidas por líneas rectas, sin
+cálculo de rutas.
+
+Guardar crea un \code{Trip} en \code{core\_api}. \emph{Contexto}: el modelo
+previo era multidestino con estado almacenado. \emph{Decisión} (\adr{0019}): una ciudad por viaje
+y fase (próximo, en curso, pasado) derivada de las fechas en cada respuesta; un viaje en curso o
+pasado es de solo lectura (409 \code{TRIP\_LOCKED}, sin campo de texto). \emph{Consecuencia}: la
+fase no puede desincronizarse, pero la migración borró los viajes multidestino y la fase se
+calcula en UTC. \emph{Valoración}: recorte legítimo para un producto mínimo, pero excluye interrail y rutas
+multiciudad. \adr{0020} creó ``Mis viajes'' días después porque el login dejaba un planner
+vacío: la entrada no se validó antes.
+
+\subsection{Identidad, móvil y accesibilidad}
+
+La identidad (\code{docs/design/kyrian-world.md}) parte de que ``el campo es lo memorable'':
+sin rejilla de funciones ni testimonios, solo un fondo de ``aurora'' (\code{aria-hidden}), tema
+oscuro, variables CSS, Outfit y Plus Jakarta Sans. La consola, a propósito, es densa y usa
+gráficos SVG hechos a mano.
+
+Inglés y español cambian sin recarga; tipos y un test exigen las mismas claves. En móvil (TRA-187), \code{100dvh} evita que la barra del navegador tape el campo, cada panel
+desplaza por separado y los controles miden 16\,px en punteros táctiles (sin zoom de iOS),
+comprobado por E2E a 390$\times$844.
+Según WCAG~2.2~\cite{fe:wcag22}: contraste $\geq$4,5:1 calculado token a token
+(el dorado del tema claro bajó a \code{\#8A5400}, 5,8:1, tras descartar dos tonos), un único
+contrato de diálogo (foco atrapado, Escape lo devuelve), \code{prefers-reduced-motion} global y
+tablas \code{sr-only} tras los gráficos de la consola. Sin auditoría automatizada (axe,
+Lighthouse) en CI, el cumplimiento está declarado, no medido.
+
+\subsection{Fotos: mejor ninguna que la equivocada}
+
+\emph{Contexto}: tiene foto el 80--84\,\% de los documentos de monumentos y visitas, pero solo el
+0--2\,\% de restaurantes y el 6--12\,\% de hoteles, y el recurso previo mostraba la foto de
+\emph{otro} local. Google Places Photos y TripAdvisor se descartaron por sus términos.
+\emph{Decisión} (\adr{0021}): cascada imagen del corpus $\to$ Wikimedia Commons $\to$
+\code{og:image} del sitio del propio local (no persistida, con listas de bloqueo) $\to$ foto de un monumento solo para barrios $\to$ marcador neutro. Para hoteles,
+\adr{0022} resuelve la foto al construir el corpus (sitio propio, Facebook, Commons por nombre,
+mayor imagen de la portada) y \emph{un hotel sin foto sale del corpus}: con foto localizada,
+Budapest pasó de 36 a 206 de 415, Berlín 338/649 y Madrid 279/527 (antes del filtrado; la \cref{tab:05-corpus} da los que quedan tras él). \emph{Valoración}: confianza antes que inventario, a costa de casi la mitad de los hoteles,
+de enlaces directos que pueden romperse hasta la siguiente reconstrucción y de una capa curada a
+mano (cadenas) sin verificación automática.
+
+\paragraph{Stack.} Export estático de Next.js~16~\cite{fe:nextjs} en S3 y CloudFront
+(\cref{sec:06-nube}). El lint impone que \code{fetch} y los tipos generados desde OpenAPI solo
+vivan en \code{src/services/}, donde un mapeador los convierte en modelos de vista (\adr{0006});
+el estado del planner es un reductor puro probado sin React (\cref{tab:02-stack}).
+
+\begin{table}[tb]\centering\footnotesize
+\begin{tabularx}{\columnwidth}{@{}lY@{}}\toprule
+Elemento & Valor \\\midrule
+Framework & Next.js 16.3, React 19.3, TypeScript 5.9 estricto \\
+Estilos, mapa & Tailwind v4 sin \code{tailwind.config.js}; MapLibre GL 6.10 \\
+Pruebas & Vitest 5, Testing Library, Playwright 1.63 (3 configuraciones) \\
+\code{.ts}/\code{.tsx} & 259 ficheros (83 de test); 34\,623 líneas (22\,333 sin tests) \\
+Tipos generados & 2 ficheros aparte, 4\,664 líneas (\code{core-api.ts}, \code{ai-api.ts}) \\
+Tests unitarios & 747 casos en 83 ficheros, todos pasan (Vitest, 23-09-2026) \\
+Specs E2E & 9 ficheros, 1\,917 líneas (no ejecutados para esta memoria) \\\bottomrule
+\end{tabularx}
+\caption{Stack y tamaño del frontend (\code{package.json}, recuento y ejecución en \code{src/frontend}).}
+\label{tab:02-stack}
+\end{table}
+
+\paragraph{Valoración.} El producto resuelve un caso acotado (una ciudad, un viajero, hasta
+una semana). Las tarjetas no se reordenan, no hay horarios ni notas, y guardar reescribe una
+instantánea completa (TRA-146). No hay colaboración, reservas, precios reales, PDF ni aplicación
+instalable. El mapa depende de un servicio gratuito sin SLA y el emparejamiento de lugares en la prosa es heurístico. Faltan mejoras obvias: enseñar en la
+tarjeta el fragmento recuperado, que es el diferenciador (hoy solo el enlace a la fuente, con la
+licencia en un \emph{tooltip}); tarjetas en el idioma del usuario (hoy en inglés); tiempos de
+desplazamiento entre paradas, y una valoración por tarjeta ligada a las trazas
+(\cref{sec:10-analisis-critico}).
