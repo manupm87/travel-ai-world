@@ -11,7 +11,8 @@ domain/         Message, ChatRole, Document, RetrievalFilters, GenerationParams,
                 DayWeather, RouteSuggestion
                 + Protocols: LLMProvider (stream + complete), Embedder, Retriever (search + fetch), WeatherForecast,
                 TripGateway, ConversationGateway, TraceLog
-                tracing.py: TurnTrace, Span, RetrievedDoc, EventMark, TurnContext (ADR 0024)
+                tracing.py: TurnTrace, Span, RetrievedDoc, EventMark, TurnContext (ADR 0024) and the read models
+                TurnSummary, TurnDetail, TurnFilters, TurnPage (TRA-221)
 application/    use cases (StreamChat, RecordConversation, PlanTrip, CardDetailLookup) and their pure helpers:
                 structured.py (complete_json: JSON out of `LLMProvider.complete`, one repair retry), cards.py
                 (OptionCard — and the fuller CardDetail — from a Document), validate.py (distance, load, closed,
@@ -25,9 +26,9 @@ infrastructure/ adapters: nvidia_provider.py, bedrock_provider.py, bedrock_embed
                 its `GROUP_DOMAINS` — the hotel groups a brand domain may redirect to — is a copy
                 of the corpus tool's `config/hotel_groups.py`, kept in step by hand, TRA-211),
                 sse.py, retry.py, core_api_client.py
-api/            deps.py (per-request wiring; process resources come from app.state), v1/endpoints/{chat,planner,health}.py
+api/            deps.py (per-request wiring; process resources come from app.state), v1/endpoints/{chat,planner,admin,health}.py
 schemas/        chat.py (request), planner.py (PlannerTurn request, PlannerCity, CardDetail), planner_events.py
-                (SSE v2 events, ADR 0015)
+                (SSE v2 events, ADR 0015), admin.py (trace pages, detail and stats responses)
 openapi.py      puts the planner's stream models into the OpenAPI document (no route declares them)
 main.py         lifespan builds the provider and the retriever once (providers.build_*) and closes them
 indexing.py     CLI that fills the vector index from a corpus JSONL (just index); never runs in a request
@@ -46,6 +47,17 @@ testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, Ke
   every fetch through `_fetch`), whose results are recorded; the ids a pick keeps go through
   `tracer.note_picks` / `mark_used`; `tracer.phase(...)` is set before each phase's steps. A trace
   write never fails a turn. Never put the email in a trace; the subject is enough.
+- **Admin reads (TRA-221).** `api/v1/endpoints/admin.py` under `/api/v1/ai/admin`: `GET /turns`
+  (`session` → `list_session`, else `day` → `list_day`, else `subject` → `list_subject`; filters
+  `kind`, `status`, `subject`, `trip_id`, `city`; opaque `cursor`), `GET /turns/{turn_id}`,
+  `GET /sessions/{session_id}`, `GET /stats?start&end` (≤ 31 days, `application/trace_stats.py`,
+  pure; the metric definitions are in its docstring and the README). The router depends on
+  `audit_admin_read` → `require_admin` (`Forbidden` unless `principal.is_admin`), which logs
+  `admin_read subject=… route=… target=…` before any read. The reads are `TraceLog` methods
+  (`list_day`, `list_subject`, `list_session`, `get`, `iter_range`), implemented by
+  `DynamoTraceLog`, `NullTraceLog` (finds nothing) and `testing.InMemoryTraceLog`
+  (`testing.make_trace(**overrides)` builds a trace for tests). New fields on `TurnTrace` go to
+  `TurnSummary` and `schemas/admin.py` too, then `just contracts`.
 - Auth is **stateless**: `principal_from_token(token, settings)`; no user lookup. `AUTH_MODE` picks
   the issuer (local HS256 with `SECRET_KEY`, or the Cognito pool's RS256 ID tokens against
   `COGNITO_JWKS`); `tests/test_cognito_mode.py` covers the second with `CognitoTestIssuer`.

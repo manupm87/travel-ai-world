@@ -190,6 +190,8 @@ sequenceDiagram
 
 The turn's trace (its model calls, retrievals with their top-k, tools, the SSE timeline) is
 written to `<prefix>-interactions` before `[DONE]`, keyed by the page's `session_id` (ADR 0024).
+An administrator reads it back through `GET /api/v1/ai/admin/{turns,turns/<id>,sessions/<id>,stats}`
+(403 for anyone else, one `admin_read` audit line per read), straight from that table.
 
 A card the page holds is an id, so opening one asks the service for it again: `GET
 /api/v1/ai/planner/card?id=<doc id>` answers a `CardDetail` — the card's own fields plus the
