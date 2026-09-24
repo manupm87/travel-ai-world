@@ -133,6 +133,21 @@ export interface Translations {
         budget: string;
       };
       lost: { title: string; safe: string; retry: string };
+      /** The open suitcase while the turn packs (TRA-242). */
+      suitcase: {
+        label: string;
+        list: string;
+        wardrobe: string;
+        options: string;
+        /** "Day {day}" */
+        day: string;
+        weight: string;
+        unweighed: string;
+        withinLimits: string;
+        overweight: string;
+        showSteps: string;
+        hideSteps: string;
+      };
       /** The stickers a warning puts on a day. */
       stickers: {
         overloaded_day: string;

@@ -13,7 +13,13 @@ import {
 } from "@/data/planner-demo/session";
 import { EMPTY_ITINERARY, applyItineraryOps, toItinerarySnapshot } from "@/hooks/plannerReducer";
 import type { PlannerEvent, PlannerTurn } from "@/types/planner";
-import { demoEventsFor, slotFromMessage, streamDemoTurn, toDeltas } from "./plannerDemo";
+import {
+  demoEventsFor,
+  slotFromMessage,
+  streamDemoTurn,
+  toDeltas,
+  withProgress,
+} from "./plannerDemo";
 
 const ITINERARY = toItinerarySnapshot(applyItineraryOps(EMPTY_ITINERARY, FIRST_ITINERARY_OPS));
 
@@ -302,5 +308,53 @@ describe("streamDemoTurn", () => {
       if (out.length === 2) controller.abort();
     }
     expect(out).toHaveLength(2);
+  });
+});
+
+describe("withProgress (TRA-242)", () => {
+  const steps = (events: PlannerEvent[]) =>
+    [
+      ...new Set(
+        events.flatMap((e) => (e.type === "progress" ? [e.step] : []))
+      ),
+    ];
+
+  it("splits the draft into a patch per day, folded before the first and weighed after the last", () => {
+    const packed = withProgress(TURNS.hotel);
+    const kinds = packed.map((e) =>
+      e.type === "progress" ? `progress:${e.step}` : e.type
+    );
+    const firstFold = kinds.indexOf("progress:fold");
+    const weigh = kinds.indexOf("progress:weigh");
+    const patches = packed.filter((e) => e.type === "itinerary_patch");
+    expect(patches.length).toBeGreaterThan(3);
+    expect(firstFold).toBeGreaterThan(-1);
+    expect(weigh).toBeGreaterThan(firstFold);
+    expect(kinds.slice(firstFold, weigh).filter((k) => k === "itinerary_patch").length).toBeGreaterThan(1);
+  });
+
+  it("packs the opening turn: open, then the list just before the brief", () => {
+    const events = withProgress(demoEventsFor(turn({ message: USER_MESSAGES.opening })));
+    expect(events[0]).toMatchObject({ type: "progress", step: "open" });
+    const listAt = events.findIndex((e) => e.type === "progress" && e.step === "list");
+    expect(events[listAt + 1]?.type).toBe("brief");
+  });
+
+  it("never goes back, and every recorded event and op is still there", () => {
+    for (const recorded of Object.values(TURNS)) {
+      const packed = withProgress(recorded);
+      const order = steps(packed);
+      const positions = order.map((step) =>
+        ["open", "list", "wardrobe", "fold", "weigh", "zip"].indexOf(step)
+      );
+      expect([...positions].sort((a, b) => a - b)).toEqual(positions);
+      const opsOf = (events: readonly PlannerEvent[]) =>
+        events.flatMap((e) => (e.type === "itinerary_patch" ? e.ops : []));
+      const rest = (events: readonly PlannerEvent[]) =>
+        events.filter((e) => e.type !== "progress" && e.type !== "itinerary_patch");
+      expect(rest(packed)).toEqual(rest(recorded));
+      expect(opsOf(packed)).toHaveLength(opsOf(recorded).length);
+      expect(new Set(opsOf(packed))).toEqual(new Set(opsOf(recorded)));
+    }
   });
 });

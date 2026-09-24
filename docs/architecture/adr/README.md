@@ -17,7 +17,7 @@ One file per decision, numbered, never deleted (superseded ones get a new status
 | [0011](0011-real-trips-seed-and-client-side-loading.md) | Real trips: backend-seeded demo data per account, client-side loading, `/trip/?id=`, Compose mirrors CloudFront | Accepted (superseded in part by 0019) |
 | [0013](0013-chat-conversations-in-core-api.md) | Chat conversations are stored by `core_api` and written by `ai_api` over HTTP | Accepted |
 | [0014](0014-vector-store-s3-vectors.md) | The vector store is Amazon S3 Vectors, filled from the committed corpus | Accepted |
-| [0015](0015-planner-sse-v2-stateless-orchestration.md) | The planner streams typed events (SSE v2) from a stateless orchestrator in `ai_api` | Accepted |
+| [0015](0015-planner-sse-v2-stateless-orchestration.md) | The planner streams typed events (SSE v2) from a stateless orchestrator in `ai_api` | Accepted (amended by 0025) |
 | [0016](0016-planner-map-openfreemap-maplibre.md) | The planner's map is MapLibre GL over OpenFreeMap's hosted tiles | Accepted |
 | [0017](0017-city-intro-and-hero-in-the-cities-manifest.md) | A city's intro (derived from the corpus) and hero photo (curated) travel in the cities manifest | Accepted |
 | [0018](0018-chat-answers-carry-cards-client-names-the-slot.md) | A chat answer's places become cards; the client names the slot | Accepted |
@@ -27,6 +27,7 @@ One file per decision, numbered, never deleted (superseded ones get a new status
 | [0022](0022-hotel-photos-resolved-at-build-time.md) | Every hotel has a photo: resolved at build time, or it leaves the corpus | Accepted |
 | [0023](0023-dynamodb-data-store.md) | DynamoDB is the data store: one table for `core_api`, one interaction log for `ai_api`, RDS retired | Accepted (amended by 0024) |
 | [0024](0024-turn-traces-and-admin-access.md) | A turn is a trace with steps; admins are the Cognito group, filled from Terraform | Accepted |
+| [0025](0025-planner-progress-event.md) | The planner streams its progress: a `progress` event per packing step | Accepted |
 
 ## Inputs
 

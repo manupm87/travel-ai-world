@@ -18,6 +18,7 @@ import logging
 import re
 import unicodedata
 from collections.abc import AsyncIterator, Callable, Iterable, Mapping, Sequence
+from contextlib import suppress
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 from typing import Literal, cast
@@ -30,6 +31,7 @@ from travel_common.exceptions import DomainError
 from ai_api.application.cards import card_from_document, cards_for, title_of
 from ai_api.application.language import Language, detect_language
 from ai_api.application.photos import PhotoTally, ensure_photos
+from ai_api.application.progress import PackingProgress
 from ai_api.application.structured import complete_json
 from ai_api.application.tracing import (
     NullTracer,
@@ -55,6 +57,7 @@ from ai_api.domain.ports import (
     SitePreviewFinder,
     WeatherForecast,
 )
+from ai_api.domain.tracing import Phase
 from ai_api.infrastructure.static_flight_search import route_for
 from ai_api.prompts import (
     ASK_MISSING_PROMPT,
@@ -263,6 +266,17 @@ class Turn:
     corpus_photos: dict[str, asyncio.Task[Photo | None]] = field(default_factory=dict)
     # The request's trace (ADR 0024); records nothing outside a request.
     tracer: TurnTracer = field(default_factory=NullTracer)
+    # Told of every phase that is announced: the page's progress (TRA-242).
+    on_phase: Callable[[Phase, int | None], None] | None = None
+
+    def phase(
+        self, name: Phase, *, announce: bool = True, days: int | None = None
+    ) -> None:
+        """The steps from here on belong to `name`, in the trace and — unless
+        `announce` is false — on the page, as packing the suitcase."""
+        self.tracer.phase(name)
+        if announce and self.on_phase is not None:
+            self.on_phase(name, days)
 
     def use(self, document: Document) -> None:
         self.used_ids.add(document.id)
@@ -545,6 +559,21 @@ def _date_of(brief: TripBrief, day: int) -> date | None:
     return brief.start_date + timedelta(days=day - 1)
 
 
+@dataclass(frozen=True, slots=True)
+class _Finished:
+    """The turn's task is over: `error` is what it raised, if anything."""
+
+    error: Exception | None
+
+
+def _city_name(brief: TripBrief, cities: Sequence[City]) -> str | None:
+    """The destination as the progress names it: the covered city, else as typed."""
+    city = resolve_city(brief.destination, cities)
+    if city is not None:
+        return city.name
+    return (brief.destination or "").strip() or None
+
+
 # ─── The use case ────────────────────────────────────────────────────────────
 
 
@@ -593,12 +622,64 @@ class PlanTrip:
         else:
             events = self._on_message(turn)
         try:
-            async for event in events:
+            async for event in self._with_progress(turn, events):
                 yield event
         finally:
             city = resolve_city(turn.brief.destination, self._cities)
             tracer.city = city.slug if city is not None else tracer.city
             tracer.language = turn.language
+
+    async def _with_progress(
+        self, turn: Turn, events: AsyncIterator[PlannerEvent]
+    ) -> AsyncIterator[PlannerEvent]:
+        """The turn's events with its progress between them (TRA-242).
+
+        A phase starts inside the turn's own code, often right before a model
+        call that takes seconds; its `progress` must reach the page then, not
+        after. So the turn runs as a task feeding a queue, a phase puts its
+        event on the same queue the moment it starts, and this reads the
+        queue in order. Closing the stream cancels the task.
+        """
+        queue: asyncio.Queue[PlannerEvent | _Finished] = asyncio.Queue()
+        packing = PackingProgress(
+            turn.language,
+            turn.brief,
+            lambda brief: _city_name(brief, self._cities),
+        )
+
+        def announce(step: Phase, days: int | None) -> None:
+            event = packing.phase(step, days=days)
+            if event is not None:
+                queue.put_nowait(event)
+
+        turn.on_phase = announce
+        announce("open", None)
+
+        async def run() -> None:
+            try:
+                async for event in events:
+                    for out in packing.around(event):
+                        queue.put_nowait(out)
+            except Exception as exc:  # re-raised on the reading side
+                queue.put_nowait(_Finished(exc))
+            else:
+                queue.put_nowait(_Finished(None))
+
+        task = asyncio.create_task(run())
+        try:
+            while True:
+                item = await queue.get()
+                if isinstance(item, _Finished):
+                    if item.error is not None:
+                        raise item.error
+                    return
+                yield item
+        finally:
+            turn.on_phase = None
+            if not task.done():
+                task.cancel()
+                with suppress(asyncio.CancelledError):
+                    await task
 
     # ── Messages ─────────────────────────────────────────────────────────
 
@@ -728,7 +809,7 @@ class PlanTrip:
             *turn.history(6),
             Message("user", turn.message or "(the user updated the checklist)"),
         ]
-        turn.tracer.phase("zip")
+        turn.phase("zip")
         async for delta in traced_llm_stream(
             self._provider,
             messages,
@@ -744,7 +825,7 @@ class PlanTrip:
         query = " ".join(
             ["neighbourhood to stay", *turn.brief.interests, turn.brief.pace or ""]
         )
-        turn.tracer.phase("wardrobe")
+        turn.phase("wardrobe")
         found = await self._search(
             turn,
             query,
@@ -776,7 +857,7 @@ class PlanTrip:
             count=OPTIONS_COUNT,
             language=LANGUAGE_NAMES[turn.language],
         )
-        turn.tracer.phase("fold")
+        turn.phase("fold")
         picks = await self._pick(
             turn,
             prompt,
@@ -785,7 +866,7 @@ class PlanTrip:
             name="rank_neighbourhoods",
             template=RANK_NEIGHBOURHOODS_PROMPT,
         )
-        turn.tracer.phase("weigh")
+        turn.phase("weigh")
         return await self._with_photos(
             turn,
             [card_from_document(known[p.id], self._clean(turn, p.why)) for p in picks],
@@ -861,7 +942,7 @@ class PlanTrip:
         if not cards:
             yield text(planner_text(turn.language, "no_neighbourhoods"))
             return
-        turn.tracer.phase("zip")
+        turn.phase("zip")
         yield text(planner_text(turn.language, "neighbourhoods"))
         yield options(
             "nb",
@@ -885,7 +966,7 @@ class PlanTrip:
             ((), None),
         ]
         found: list[Document] = []
-        turn.tracer.phase("wardrobe")
+        turn.phase("wardrobe")
         for step, (districts, tier_max) in enumerate(attempts):
             found = await self._search(
                 turn,
@@ -932,7 +1013,7 @@ class PlanTrip:
             count=OPTIONS_COUNT,
             language=LANGUAGE_NAMES[turn.language],
         )
-        turn.tracer.phase("fold")
+        turn.phase("fold")
         picks = await self._pick(
             turn,
             prompt,
@@ -941,13 +1022,13 @@ class PlanTrip:
             name="pick_hotels",
             template=PICK_HOTELS_PROMPT,
         )
-        turn.tracer.phase("weigh")
+        turn.phase("weigh")
         cards = await self._with_photos(
             turn,
             [card_from_document(known[p.id], self._clean(turn, p.why)) for p in picks],
         )
         label = area or self._city(turn).name
-        turn.tracer.phase("zip")
+        turn.phase("zip")
         yield text(planner_text(turn.language, "hotels", district=label))
         yield options(
             f"hotels:{label}",
@@ -995,7 +1076,7 @@ class PlanTrip:
         plan = PART_PLAN[pace]
 
         tracer = turn.tracer
-        tracer.phase("open")
+        turn.phase("open")
         with tracer.sync_span("tool", "flights", service="flights") as span:
             route_ops = self._route_ops(brief)
             link = getattr(route_ops[0], "deep_link", None) if route_ops else None
@@ -1007,7 +1088,7 @@ class PlanTrip:
         if route_ops:
             yield patch(*route_ops)
 
-        tracer.phase("wardrobe")
+        turn.phase("wardrobe")
         weather, skeleton = await asyncio.gather(
             self._weather_by_day(turn, stay, days), self._skeleton(turn, stay, days)
         )
@@ -1019,9 +1100,11 @@ class PlanTrip:
             # The title goes out before the searches and the pick, so the page
             # shows the day taking shape and the stream never sits silent long.
             yield patch(set_day_title(day, sketch.title))
-            tracer.phase("fold")
+            # The trace has a fold and a weigh per day; the page is told the
+            # fold once, as the first day starts, and the weigh with the last.
+            turn.phase("fold", announce=day == 1, days=days)
             picks = await self._day_picks(turn, sketch, days, plan)
-            tracer.phase("weigh")
+            turn.phase("weigh", announce=day == days)
             ops: list[Op] = []
             placed: list[Placed] = []
             price_seen = False
@@ -1077,7 +1160,7 @@ class PlanTrip:
             if ops:
                 yield patch(*ops)
 
-        tracer.phase("zip")
+        turn.phase("zip")
         yield text(planner_text(turn.language, "draft_done", days=days))
 
     def _route_ops(self, brief: TripBrief) -> list[Op]:
@@ -1379,9 +1462,9 @@ class PlanTrip:
         if slot is None:
             yield text(planner_text(turn.language, "stale_group"))
             return
-        turn.tracer.phase("weigh")
+        turn.phase("weigh")
         cards = await self._with_photos(turn, cards_for(picked, {}))
-        turn.tracer.phase("zip")
+        turn.phase("zip")
         yield patch(*(put_activity(slot, card) for card in cards))
         yield text(
             planner_text(
@@ -1453,9 +1536,9 @@ class PlanTrip:
             categories, tier = SIGHT_CATEGORIES, None
         request = query or turn.message or " ".join(turn.brief.interests)
         await self._seed_used_titles(turn)
-        turn.tracer.phase("wardrobe")
+        turn.phase("wardrobe")
         pinned = await self._named_places(turn, turn.message or request)
-        turn.tracer.phase("fold")
+        turn.phase("fold")
         where = f"{slot.day}:{part or 'any'}" if slot is not None else "any"
         candidates = await self._candidates(
             turn, request, categories, (), tier, purpose=f"candidates:{where}"
@@ -1489,7 +1572,7 @@ class PlanTrip:
         )
         picks = _pin_picks(pinned, picks, OPTIONS_COUNT)
         turn.tracer.mark_used(p.id for p in picks)
-        turn.tracer.phase("weigh")
+        turn.phase("weigh")
         cards = await self._with_photos(
             turn,
             [card_from_document(known[p.id], self._clean(turn, p.why)) for p in picks],
@@ -1503,7 +1586,7 @@ class PlanTrip:
             )
             group_id = f"slot:{slot.day}:{part or 'morning'}"
             placed = Slot(day=slot.day, part=part or "morning")
-        turn.tracer.phase("zip")
+        turn.phase("zip")
         yield text(prompt_text)
         yield options(group_id, kind, prompt_text, cards, slot=placed)
 
@@ -1518,7 +1601,7 @@ class PlanTrip:
                 ),
             ),
         ]
-        turn.tracer.phase("wardrobe")
+        turn.phase("wardrobe")
         try:
             passages = await self._search(
                 turn,
@@ -1542,7 +1625,7 @@ class PlanTrip:
         messages.extend(turn.history())
         messages.append(Message("user", turn.message))
         answer: list[str] = []
-        turn.tracer.phase("zip")
+        turn.phase("zip")
         async for delta in traced_llm_stream(
             self._provider,
             messages,

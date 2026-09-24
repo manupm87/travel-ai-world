@@ -113,8 +113,19 @@ export function ChatColumn({
       break;
     }
   }
+  // On a turn that is choosing rather than drafting, the suitcase shows the
+  // newest question's options (TRA-242).
+  const newestGroup = state.groups[state.pendingGroupIds[state.pendingGroupIds.length - 1] ?? ""];
+  const optionTitles = newestGroup ? newestGroup.cards.map((card) => card.title) : [];
   const packingStatus = packing && (
-    <PackingStatus packing={packing} streaming={isStreaming} key={`packing-${state.turn}`}>
+    <PackingStatus
+      packing={packing}
+      streaming={isStreaming}
+      brief={state.brief}
+      itinerary={state.itinerary}
+      optionTitles={optionTitles}
+      key={`packing-${state.turn}`}
+    >
       {packing.step === "zip" && packing.folded && hasItinerary(state.itinerary) && (
         <BoardingPass brief={state.brief} itinerary={state.itinerary} />
       )}

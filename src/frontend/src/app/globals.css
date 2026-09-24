@@ -281,6 +281,13 @@
   100% { opacity: 0; transform: translateX(-46px); }
 }
 
+/* A tile dropping into its compartment of the suitcase (TRA-242). */
+@keyframes kiri-drop {
+  0% { opacity: 0; transform: translateY(-16px); }
+  70% { opacity: 1; transform: translateY(2px); }
+  100% { opacity: 1; transform: none; }
+}
+
 @keyframes kiri-pop {
   0% { opacity: 0; transform: scale(0.3); }
   45% { opacity: 1; transform: scale(1.25); }
@@ -306,6 +313,7 @@
   --animate-kiri-puff: kiri-puff 0.7s ease-out infinite;
   --animate-kiri-streak: kiri-streak 0.5s linear infinite;
   --animate-kiri-pop: kiri-pop 0.55s ease-out forwards;
+  --animate-kiri-drop: kiri-drop 0.45s ease-out both;
 }
 
 @layer components {
@@ -326,6 +334,51 @@
     -webkit-mask-composite: xor;
     mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     mask-composite: exclude;
+  }
+
+  /* The suitcase Kiri packs (TRA-242): the canvas's "Hacer la maleta", upright
+     for the chat column — the lid above, hinged on its lower edge, the base
+     below. The lid's inside and outside are two faces of one card that turns
+     over when the suitcase closes. */
+  .suitcase {
+    perspective: 1600px;
+  }
+  .suitcase-shell {
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    background: var(--color-bg-surface);
+    border: 2px solid var(--glass-border);
+  }
+  .suitcase-lining {
+    position: absolute;
+    inset: 8px;
+    border-radius: 12px;
+    background-color: var(--color-bg-secondary);
+    background-image: repeating-linear-gradient(45deg, var(--color-border) 0 1px, transparent 1px 9px);
+    padding: 9px;
+  }
+  .suitcase-lid {
+    transform-style: preserve-3d;
+    transform-origin: 50% 100%;
+    transition: transform 1.25s cubic-bezier(0.55, 0, 0.25, 1);
+  }
+  .suitcase-face {
+    position: absolute;
+    inset: 0;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+  .suitcase-outer {
+    transform: rotateX(180deg);
+  }
+  .suitcase-ext {
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    background-color: var(--kiri-clay);
+    border: 3px solid var(--kiri-outline);
+    background-image: repeating-linear-gradient(90deg, transparent 0 44px, var(--kiri-dark) 44px 47px);
   }
 
   /* The planner's chat column (TRA-238): the same three lights, laid along a

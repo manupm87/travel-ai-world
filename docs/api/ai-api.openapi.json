@@ -1148,6 +1148,7 @@
             "error": "#/components/schemas/ErrorEvent",
             "itinerary_patch": "#/components/schemas/ItineraryPatchEvent",
             "options": "#/components/schemas/OptionsEvent",
+            "progress": "#/components/schemas/ProgressEvent",
             "text": "#/components/schemas/TextEvent"
           },
           "propertyName": "type"
@@ -1170,6 +1171,9 @@
           },
           {
             "$ref": "#/components/schemas/DoneEvent"
+          },
+          {
+            "$ref": "#/components/schemas/ProgressEvent"
           }
         ]
       },
@@ -1291,6 +1295,47 @@
           "session_id"
         ],
         "title": "PlannerTurn",
+        "type": "object"
+      },
+      "ProgressEvent": {
+        "description": "The step the turn has reached, sent as it starts (TRA-242, ADR 0025).\n\nSteps only move forward; the same step may come again when `sources`\ngrows. `detail` is one sentence in the traveller's language; `sources`\nare the corpora the turn has drawn on so far (\"Wikivoyage\", \"Open-Meteo\").",
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "step": {
+            "enum": [
+              "open",
+              "list",
+              "wardrobe",
+              "fold",
+              "weigh",
+              "zip"
+            ],
+            "title": "Step",
+            "type": "string"
+          },
+          "type": {
+            "const": "progress",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "step",
+          "detail",
+          "sources"
+        ],
+        "title": "ProgressEvent",
         "type": "object"
       },
       "PutActivityOp": {

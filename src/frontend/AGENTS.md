@@ -365,8 +365,16 @@ TypeScript 5, Tailwind CSS v4.
   the tab's own saved id drops the draft too, and `OpenTripNotice` offers "New trip" beside the
   link home; `useTrips.remove` drops it when the deleted trip is the tab's. The panel's header
   offers "New trip" (`onNewTrip`) while a saved, unlocked trip is open.
-  **Kiri's answer is packing a suitcase** (TRA-239), told from the events that already arrive —
-  there is no progress event. `plannerReducer` keeps `packing` (`PACKING_STEPS`: open → list →
+  **Kiri's answer is packing a suitcase** (TRA-239, TRA-242). ai_api sends a `progress` event per
+  step (ADR 0025: `step`, `detail`, `sources`), which `parsePlannerEvents` validates and the
+  reducer takes as the truth once one arrives (`packing.live`, `detail`, `sources`); without it
+  (an older backend) the steps are told from the other events. The demo player adds them the way
+  the server would (`services/plannerDemo.ts` `withProgress`, splitting the recorded draft into a
+  patch per day). While streaming, `PackingStatus` shows the canvas's open `Suitcase` — the lid's
+  pockets "The list" (the brief) and "From the wardrobe" (the sources), the base's day
+  compartments filling with their stops (or the options being considered), the weight meter —
+  and on the end of the stream the lid turns over and shuts (1.3 s) before the boarding pass.
+  The derivation and the rest: `plannerReducer` keeps `packing` (`PACKING_STEPS`: open → list →
   wardrobe → fold → weigh → zip; `turn_started` opens it, `brief` makes the list, `options` is the
   wardrobe, an `itinerary_patch` folds, a `warn` op weighs and sets `warned`, `turn_finished` zips,
   a failure sets `failed`; never persisted, never backwards). `ChatColumn` puts `PackingStatus`

@@ -202,6 +202,16 @@ PLANNER_TEXTS: dict[str, dict[str, str]] = {
         "warn_overloaded_day": "Day {day} has {count} activities for a {pace} pace",
         "warn_closed": "{title} looks closed on {weekday}",
         "warn_unverified_price": "Prices are not verified; check the venue.",
+        # Packing the suitcase (TRA-242): one line per step, as it starts.
+        "progress_open": "Reading what you asked.",
+        "progress_open_city": "Reading what you asked: {city}.",
+        "progress_list": "Noting the destination, the dates, who travels and what you're after.",
+        "progress_wardrobe": "Looking through the guides.",
+        "progress_wardrobe_city": "Looking through the guides for {city}.",
+        "progress_fold": "Choosing what fits and putting it in order.",
+        "progress_fold_days": "Sharing the stops out over {days} days, close to each other.",
+        "progress_weigh": "Checking distances, opening hours and prices.",
+        "progress_zip": "Everything fits. Zipping it up.",
     },
     "es": {
         "not_covered": (
@@ -233,6 +243,15 @@ PLANNER_TEXTS: dict[str, dict[str, str]] = {
         "warn_overloaded_day": "El día {day} tiene {count} actividades para un ritmo {pace}",
         "warn_closed": "{title} parece cerrado el {weekday}",
         "warn_unverified_price": "Los precios no están verificados; consulta el local.",
+        "progress_open": "Leo lo que pides.",
+        "progress_open_city": "Leo lo que pides: {city}.",
+        "progress_list": "Apunto el destino, las fechas, quién viaja y lo que buscas.",
+        "progress_wardrobe": "Busco en las guías.",
+        "progress_wardrobe_city": "Saco lo que hay de {city} en las guías.",
+        "progress_fold": "Elijo lo que encaja y lo ordeno.",
+        "progress_fold_days": "Reparto las paradas en {days} días, cerca unas de otras.",
+        "progress_weigh": "Reviso distancias, horarios y precios.",
+        "progress_zip": "Todo cabe. Cierro la maleta.",
     },
 }
 

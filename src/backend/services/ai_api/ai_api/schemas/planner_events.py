@@ -39,6 +39,19 @@ OptionKind = Literal[
 SelectionMode = Literal["single", "multi"]
 WarnCode = Literal["too_far", "closed", "overloaded_day", "unverified_price"]
 
+PackingStep = Literal["open", "list", "wardrobe", "fold", "weigh", "zip"]
+"""What the turn is doing, told as packing a suitcase (TRA-242, ADR 0025): the
+trace's five phases (ADR 0024) plus `list`, the brief being written down."""
+
+PACKING_STEPS: tuple[PackingStep, ...] = (
+    "open",
+    "list",
+    "wardrobe",
+    "fold",
+    "weigh",
+    "zip",
+)
+
 MAX_WHY_CHARS = 140
 """The one model-written field of a card is kept short."""
 
@@ -223,13 +236,28 @@ class DoneEvent(BaseModel):
     type: Literal["done"]
 
 
+class ProgressEvent(BaseModel):
+    """The step the turn has reached, sent as it starts (TRA-242, ADR 0025).
+
+    Steps only move forward; the same step may come again when `sources`
+    grows. `detail` is one sentence in the traveller's language; `sources`
+    are the corpora the turn has drawn on so far ("Wikivoyage", "Open-Meteo").
+    """
+
+    type: Literal["progress"]
+    step: PackingStep
+    detail: str
+    sources: list[str]
+
+
 PlannerEvent = Annotated[
     TextEvent
     | BriefEvent
     | OptionsEvent
     | ItineraryPatchEvent
     | ErrorEvent
-    | DoneEvent,
+    | DoneEvent
+    | ProgressEvent,
     Field(discriminator="type"),
 ]
 
@@ -240,6 +268,7 @@ EVENT_MODELS: tuple[type[BaseModel], ...] = (
     ItineraryPatchEvent,
     ErrorEvent,
     DoneEvent,
+    ProgressEvent,
 )
 
 
@@ -284,6 +313,12 @@ def error_event(error: str, error_code: str) -> ErrorEvent:
 
 def done() -> DoneEvent:
     return DoneEvent(type="done")
+
+
+def progress(step: PackingStep, detail: str, sources: list[str]) -> ProgressEvent:
+    return ProgressEvent(
+        type="progress", step=step, detail=detail, sources=list(sources)
+    )
 
 
 def set_stay(card: OptionCard) -> SetStayOp:

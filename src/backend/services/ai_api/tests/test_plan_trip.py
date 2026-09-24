@@ -6,6 +6,7 @@ a script, so each test pins one turn of the state machine: what was
 retrieved, what the model was shown, and which events came out.
 """
 
+import asyncio
 import json
 import re
 from collections.abc import AsyncIterator, Sequence
@@ -26,6 +27,7 @@ from ai_api.schemas.planner_events import (
     ItineraryPatchEvent,
     OptionsEvent,
     PlannerEvent,
+    ProgressEvent,
     TextEvent,
     TripBrief,
 )
@@ -1646,3 +1648,109 @@ async def test_neighbourhoods_are_pictured_by_their_page_or_a_sight_of_theirs():
     assert budavar.image_credit and not budavar.image_credit.startswith("Illustrative")
     assert all(c.image_url for c in group.cards)
     assert page in finder.page_lookups
+
+
+# ─── Packing the suitcase: progress (TRA-242) ────────────────────────────────
+
+
+def _progress(events: Sequence[PlannerEvent]) -> list[ProgressEvent]:
+    return only(events, ProgressEvent)
+
+
+async def test_a_draft_packs_the_suitcase_step_by_step_and_never_goes_back():
+    forecast = FakeWeather(
+        [DayWeather(date(2026, 10, 20), "Sunny", 18.0, 9.0, "Open-Meteo")]
+    )
+    use_case, _, _ = planner(
+        [
+            skeleton(5),
+            day_picks(morning=[{"id": PARLIAMENT, "why": "Start with the landmark."}]),
+        ],
+        weather=forecast,
+    )
+
+    events = await run(
+        use_case(
+            turn(
+                action={
+                    "type": "select",
+                    "group_id": "hotels:Belváros",
+                    "card_ids": [ASTORIA],
+                    "slot": None,
+                },
+                brief=brief(),
+            )
+        )
+    )
+
+    progress = _progress(events)
+    steps = list(dict.fromkeys(e.step for e in progress))
+    assert steps == ["open", "wardrobe", "fold", "weigh", "zip"]
+    # The page is told first, before anything else is on the stream.
+    assert events[0] == progress[0]
+    # One fold for the whole draft, however many days, and it says how many.
+    folds = [e for e in progress if e.step == "fold"]
+    assert "5 days" in folds[0].detail
+    # The weigh is told once the last day is being weighed, after every pick.
+    position = {id(e): i for i, e in enumerate(events)}
+    first_weigh = next(position[id(e)] for e in progress if e.step == "weigh")
+    picks_at = [
+        i
+        for i, e in enumerate(events)
+        if isinstance(e, ItineraryPatchEvent)
+        and any(op.op == "set_day_title" for op in e.ops)
+    ]
+    assert first_weigh > max(picks_at)
+    # What the suitcase drew on grows as the cards and the forecast arrive.
+    assert "Open-Meteo" in progress[-1].sources
+    assert any(s.startswith("Wiki") for s in progress[-1].sources)
+
+
+async def test_progress_speaks_the_travellers_language():
+    use_case, _, _ = planner([json.dumps({"destination": "Budapest"})])
+
+    events = await run(use_case(turn("Quiero ir a Budapest cuatro días en octubre")))
+
+    progress = _progress(events)
+    assert progress[0].detail == "Leo lo que pides."
+    listed = next(e for e in progress if e.step == "list")
+    assert listed.detail.startswith("Apunto el destino")
+    # `list` goes out just before the brief it announces.
+    assert events[events.index(listed) + 1].type == "brief"
+
+
+async def test_progress_reaches_the_page_while_the_model_is_still_thinking():
+    use_case, provider, _ = planner()
+    release = asyncio.Event()
+    asked = asyncio.Event()
+    replies = [json.dumps({"destination": "Budapest", "origin": "Madrid"})]
+
+    async def slow_complete(*_args: object, **_kwargs: object) -> str:
+        asked.set()
+        await release.wait()
+        return replies.pop(0)
+
+    provider.complete = slow_complete  # type: ignore[method-assign]
+    stream = use_case(turn("Budapest from Madrid"))
+
+    first = await stream.__anext__()
+    assert isinstance(first, ProgressEvent) and first.step == "open"
+    await asyncio.wait_for(asked.wait(), timeout=1)
+    # The model has not answered; the stream already said where it is.
+    release.set()
+    rest = [event async for event in stream]
+    assert any(isinstance(e, ProgressEvent) and e.step == "list" for e in rest)
+
+
+async def test_closing_the_stream_early_stops_the_turn():
+    use_case, provider, _ = planner()
+    release = asyncio.Event()
+
+    async def never(*_args: object, **_kwargs: object) -> str:
+        await release.wait()
+        return "{}"
+
+    provider.complete = never  # type: ignore[method-assign]
+    stream = use_case(turn("Budapest"))
+    await stream.__anext__()
+    await stream.aclose()  # must not hang on the blocked model call

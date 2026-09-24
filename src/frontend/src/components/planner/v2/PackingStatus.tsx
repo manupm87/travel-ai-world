@@ -5,8 +5,22 @@ import { Briefcase, Check, ChevronDown, AlertTriangle } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { interpolate } from "@/i18n";
 import { Kiri, type KiriState } from "@/components/kiri/Kiri";
-import { PACKING_STEPS, type PackingState, type PackingStep } from "@/hooks/plannerReducer";
+import {
+  PACKING_STEPS,
+  type ItineraryDraft,
+  type PackingState,
+  type PackingStep,
+} from "@/hooks/plannerReducer";
+import type { TripBrief } from "@/types/planner";
 import { cn } from "@/utils/cn";
+import { Suitcase } from "./Suitcase";
+
+/** How long the lid takes to turn over and shut (`.suitcase-lid`). */
+const CLOSING_MS = 1300;
+
+function prefersReducedMotion(): boolean {
+  return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
+}
 
 /** Kiri's face for each step on its way. */
 const KIRI_FOR: Record<PackingStep, KiriState> = {
@@ -90,26 +104,41 @@ export interface PackingStatusProps {
   packing: PackingState;
   /** The turn is still on its way. */
   streaming: boolean;
+  /** What the suitcase is filled with: the brief, the days, the options. */
+  brief: TripBrief;
+  itinerary: ItineraryDraft;
+  optionTitles?: string[];
   /** What the closed suitcase turned into: the boarding pass, when there is a trip. */
   children?: ReactNode;
 }
 
 /**
- * Kiri's answer as packing a suitcase (TRA-239). While the turn streams: the
- * step it has reached, what that step is doing, the time on the clock and a
- * bar of six. When it ends: "Suitcase closed in 9 s" (and "with a warning"
- * when one arrived), whatever the suitcase became — the boarding pass — and
- * "See how I packed", which opens the six steps. The steps are told from the
- * events that already arrive (`plannerReducer`'s `packing`), and the clock is
- * the browser's own, started when this turn's status mounted.
+ * Kiri's answer as packing a suitcase (TRA-239, TRA-242). While the turn
+ * streams: the step it has reached and its sentence (ai_api's, from the
+ * `progress` event), the clock, and the open `Suitcase` filling up — the list,
+ * the sources, the days — with the weight meter under it and the six steps a
+ * press away. When it ends the lid shuts, and then: "Suitcase closed in 9 s"
+ * (", with a warning"), what it became — the boarding pass — and "See how I
+ * packed". The clock is the browser's own, started when this turn's status
+ * mounted.
  */
-export function PackingStatus({ packing, streaming, children }: PackingStatusProps) {
+export function PackingStatus({
+  packing,
+  streaming,
+  brief,
+  itinerary,
+  optionTitles = [],
+  children,
+}: PackingStatusProps) {
   const { t } = useLanguage();
   const p = t.plan.packing;
   const listId = useId();
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [now, setNow] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
+  const [stepsOpen, setStepsOpen] = useState(false);
+  // The lid shutting, between the end of the stream and the boarding pass.
+  const [shut, setShut] = useState(false);
 
   // The clock starts with the turn and stops with it.
   useEffect(() => {
@@ -127,44 +156,89 @@ export function PackingStatus({ packing, streaming, children }: PackingStatusPro
   }, [streaming]);
   useEffect(() => {
     if (streaming) return;
-    const id = window.setTimeout(() => setNow(Date.now()), 0);
-    return () => window.clearTimeout(id);
+    const stop = window.setTimeout(() => setNow(Date.now()), 0);
+    const close = window.setTimeout(() => setShut(true), prefersReducedMotion() ? 0 : CLOSING_MS);
+    return () => {
+      window.clearTimeout(stop);
+      window.clearTimeout(close);
+    };
   }, [streaming]);
 
   const elapsed = startedAt !== null && now !== null ? now - startedAt : 0;
   const at = PACKING_STEPS.indexOf(packing.step);
 
-  if (streaming) {
+  if (streaming || !shut) {
+    const heavy = packing.warned;
+    const weighed = at >= PACKING_STEPS.indexOf("weigh");
     return (
-      <div className="flex animate-fade-up flex-col gap-2" data-packing={packing.step}>
-        <KiriTag state={KIRI_FOR[packing.step]} />
-        <div
-          role="status"
-          className="flex flex-col gap-2.5 rounded-2xl border border-glass-border bg-glass-bg px-4 py-3 backdrop-blur-xl"
-        >
-          <div className="flex items-center gap-2">
-            <span aria-hidden="true" className="h-2 w-2 animate-pulse rounded-full bg-accent" />
-            <span className="flex-1 text-[14px] font-semibold text-text-primary">
-              {p.steps[packing.step]}…
+      <div
+        className="flex animate-fade-up flex-col gap-2"
+        data-packing={streaming ? packing.step : "closing"}
+      >
+        <KiriTag state={streaming ? KIRI_FOR[packing.step] : "happy"} />
+        <div className="flex flex-col gap-3 rounded-2xl border border-glass-border bg-glass-bg px-3.5 py-3 backdrop-blur-xl">
+          <div role="status" className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <span aria-hidden="true" className="h-2 w-2 animate-pulse rounded-full bg-accent" />
+              <span className="flex-1 text-[14px] font-semibold text-text-primary">
+                {streaming ? `${p.steps[packing.step]}…` : p.closed}
+              </span>
+              <span className="text-[12px] tabular-nums text-text-muted" aria-hidden="true">
+                {clock(elapsed)}
+              </span>
+              <span className="sr-only">
+                {interpolate(p.elapsed, { seconds: Math.floor(elapsed / 1000) })}
+              </span>
+            </div>
+            <p className="text-[13px] leading-snug text-text-secondary">
+              {packing.detail || p.details[packing.step]}
+            </p>
+          </div>
+
+          <Suitcase
+            packing={packing}
+            brief={brief}
+            itinerary={itinerary}
+            optionTitles={optionTitles}
+            closed={!streaming}
+          />
+
+          <div className="flex items-center gap-2.5 text-[12.5px]" aria-hidden="true">
+            <span className="text-text-secondary">{p.suitcase.weight}</span>
+            <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-accent-soft">
+              <span
+                className={cn(
+                  "block h-full rounded-full transition-[width] duration-1000 ease-out",
+                  heavy ? "bg-sticker-overweight" : "bg-accent"
+                )}
+                style={{ width: weighed ? (heavy ? "92%" : "62%") : "0%" }}
+              />
             </span>
-            <span className="text-[12px] tabular-nums text-text-muted" aria-hidden="true">
-              {clock(elapsed)}
-            </span>
-            <span className="sr-only">
-              {interpolate(p.elapsed, { seconds: Math.floor(elapsed / 1000) })}
+            <span className="min-w-[7.5rem] text-right text-text-muted">
+              {!weighed
+                ? p.suitcase.unweighed
+                : heavy
+                  ? p.suitcase.overweight
+                  : p.suitcase.withinLimits}
             </span>
           </div>
-          <p className="text-[13px] text-text-secondary">{p.details[packing.step]}</p>
-          <div aria-hidden="true" className="grid grid-cols-6 gap-1">
-            {PACKING_STEPS.map((step, index) => (
-              <span
-                key={step}
-                className={cn(
-                  "h-1.5 rounded-full transition-colors duration-500",
-                  index < at ? "bg-accent" : index === at ? "animate-pulse bg-accent/60" : "bg-bg-surface"
-                )}
-              />
-            ))}
+
+          <button
+            type="button"
+            onClick={() => setStepsOpen((was) => !was)}
+            aria-expanded={stepsOpen}
+            aria-controls={listId}
+            className="inline-flex items-center gap-1 self-start rounded-md text-[12.5px] text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+          >
+            {stepsOpen ? p.suitcase.hideSteps : p.suitcase.showSteps}
+            <ChevronDown
+              size={14}
+              aria-hidden="true"
+              className={cn("transition-transform", stepsOpen && "rotate-180")}
+            />
+          </button>
+          <div id={listId} hidden={!stepsOpen} className="border-t border-glass-border pt-3">
+            {stepsOpen && <StepList packing={packing} />}
           </div>
         </div>
       </div>

@@ -23,6 +23,19 @@ describe("parsePlannerEvents", () => {
     expect(events).toEqual([{ type: "text", delta: "Hola" }]);
   });
 
+  it("parses a progress event, and drops a step it does not know (TRA-242)", () => {
+    const good = { type: "progress", step: "wardrobe", detail: "Looking.", sources: ["Wikivoyage", 3] };
+    const bad = { type: "progress", step: "teleport", detail: "?", sources: [] };
+    const { events } = parsePlannerEvents(
+      `data: ${JSON.stringify(good)}
+data: ${JSON.stringify(bad)}
+`
+    );
+    expect(events).toEqual([
+      { type: "progress", step: "wardrobe", detail: "Looking.", sources: ["Wikivoyage"] },
+    ]);
+  });
+
   it("parses a typed brief event", () => {
     const payload = {
       type: "brief",

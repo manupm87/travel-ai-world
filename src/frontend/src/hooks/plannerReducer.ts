@@ -76,11 +76,13 @@ export interface PlannerDraft {
 }
 
 /**
- * "Packing the suitcase" (TRA-239): how far the turn on its way has got, told
- * from the events that already arrive — no progress event exists. The order
- * is the order the planner works in: the ask opens the suitcase, the brief
- * makes the list, options are looking in the wardrobe, itinerary ops fold
- * and fit, a warning weighs it, and the end of the stream zips it up.
+ * "Packing the suitcase" (TRA-239, TRA-242): how far the turn on its way has
+ * got. ai_api says so with a `progress` event per step (ADR 0025), which also
+ * carries the step's sentence and the sources drawn on; a backend without it
+ * (and the recorded demo) is read from the other events instead: the ask
+ * opens the suitcase, the brief makes the list, options are looking in the
+ * wardrobe, itinerary ops fold and fit, a warning weighs it, and the end of
+ * the stream zips it up. Either way the step only moves forward.
  */
 export const PACKING_STEPS = ["open", "list", "wardrobe", "fold", "weigh", "zip"] as const;
 export type PackingStep = (typeof PACKING_STEPS)[number];
@@ -94,6 +96,15 @@ export interface PackingState {
   warned: boolean;
   /** The turn ended in an error: the luggage is lost. */
   failed: boolean;
+  /** The server's sentence for the step, or `null` without `progress` events. */
+  detail: string | null;
+  /** What the turn has drawn on so far ("Wikivoyage", "Open-Meteo"). */
+  sources: string[];
+  /**
+   * ai_api has sent a `progress` event this turn: from then on the steps are
+   * its word alone, and the other events no longer move them.
+   */
+  live: boolean;
 }
 
 export interface PlannerState extends PlannerDraft {
@@ -360,13 +371,28 @@ function packedTo(packing: PackingState | null, step: PackingStep): PackingState
 /** What one event says about the packing. */
 function packEvent(packing: PackingState | null, event: PlannerEvent): PackingState | null {
   switch (event.type) {
+    case "progress": {
+      const next = packedTo(packing, event.step);
+      if (!next) return next;
+      // The server's word for the step it is on: a step already passed keeps
+      // the sentence of the one after it.
+      const current = next.step === event.step;
+      return {
+        ...next,
+        live: true,
+        detail: current ? event.detail : next.detail,
+        sources: event.sources.length > 0 ? event.sources : next.sources,
+      };
+    }
     case "brief":
-      return packedTo(packing, "list");
+      return packing?.live ? packing : packedTo(packing, "list");
     case "options":
-      return packedTo(packing, "wardrobe");
+      return packing?.live ? packing : packedTo(packing, "wardrobe");
     case "itinerary_patch": {
       const warned = event.ops.some((op) => op.op === "warn");
-      const next = packedTo(packing, warned ? "weigh" : "fold");
+      const days = event.ops.some((op) => op.op === "put_activity" || op.op === "set_day_title");
+      const step = warned ? "weigh" : days ? "fold" : null;
+      const next = packing?.live || step === null ? packing : packedTo(packing, step);
       return next && { ...next, folded: true, warned: next.warned || warned };
     }
     case "error":
@@ -452,7 +478,15 @@ export function plannerReducer(state: PlannerState, action: PlannerAction): Plan
         status: "streaming",
         error: null,
         turn: state.turn + 1,
-        packing: { step: "open", folded: false, warned: false, failed: false },
+        packing: {
+          step: "open",
+          folded: false,
+          warned: false,
+          failed: false,
+          detail: null,
+          sources: [],
+          live: false,
+        },
       };
     }
     case "event":

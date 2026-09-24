@@ -132,12 +132,21 @@ testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, Ke
   `data: {"error", "error_code"}`, `data: [DONE]`); the frontend's `services/chat.ts` depends on it. Upstream bodies and unexpected
   exceptions never reach the client: `sse.py` sends the domain message or a generic one and logs the rest.
 - **The planner's stream is typed (SSE v2, ADR 0015):** `schemas/planner_events.py` is a discriminated
-  union on `type` (`text`, `brief`, `options`, `itinerary_patch`, `error`, `done`), ops on `op`, flat fields,
+  union on `type` (`text`, `brief`, `options`, `itinerary_patch`, `error`, `done`, `progress`), ops on `op`, flat fields,
   **no field optional on the wire** (unknown → `null`; no defaults on the models, so the generated TypeScript
   has no `?`). Build events with the constructors at the bottom of that module (`text()`, `patch()`, ...),
   frame them with `sse.sse_events`. A streamed body has no response model, so `openapi.py` wraps
   `app.openapi()` and adds `PlannerEvent`, `ItineraryOp`, `PlannerTurn` and their models to
   `components.schemas`: any new event or op only needs to join the union, then `just contracts`.
+- **The planner tells its progress (TRA-242, ADR 0025).** A phase is set with `turn.phase(name)`
+  (never `tracer.phase` directly inside `PlanTrip`): it marks the trace and, unless
+  `announce=False`, tells `PackingProgress` (`application/progress.py`), whose `progress` event
+  `PlanTrip._with_progress` puts on the stream at once — the turn runs as a task feeding a queue,
+  so the event reaches the page while the step's model call is still running. Steps only move
+  forward (`open, list, wardrobe, fold, weigh, zip`; `list` is sent just before the `brief`), the
+  sentences are `progress_*` in `prompts.py`, and `sources` grow with the cards and the forecast
+  that go out. A new phase call site is a `turn.phase(...)`; a step the page should not see twice
+  (the draft's per-day fold/weigh) passes `announce=False`.
 - **Conversations live in `core_api`** (ADR 0013), never here: `ai_api` stays stateless and has no
   database. `RecordConversation` wraps the answer stream and, once the answer is complete, appends
   the question and the answer (sources, model, tokens, latency from `ChatTrace`) through

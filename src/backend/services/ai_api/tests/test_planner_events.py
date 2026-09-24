@@ -254,6 +254,13 @@ def test_openapi_document_carries_the_stream_models():
         "itinerary_patch",
         "error",
         "done",
+        "progress",
+    }
+    assert set(schemas["ProgressEvent"]["required"]) == {
+        "type",
+        "step",
+        "detail",
+        "sources",
     }
     assert schemas["ItineraryOp"]["discriminator"]["propertyName"] == "op"
     # Every wire field is required, so the generated TypeScript has no `?`.

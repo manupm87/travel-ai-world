@@ -876,7 +876,15 @@ describe("plannerReducer — packing", () => {
 
   it("opens the suitcase when a turn leaves", () => {
     expect(initialPlannerState().packing).toBeNull();
-    expect(start.packing).toEqual({ step: "open", folded: false, warned: false, failed: false });
+    expect(start.packing).toEqual({
+      step: "open",
+      folded: false,
+      warned: false,
+      failed: false,
+      detail: null,
+      sources: [],
+      live: false,
+    });
   });
 
   it("follows the events forward, never back: list, wardrobe, fold", () => {
@@ -910,7 +918,7 @@ describe("plannerReducer — packing", () => {
     expect(state.packing).toMatchObject({ step: "weigh", warned: true });
 
     state = plannerReducer(state, { type: "turn_finished" });
-    expect(state.packing).toEqual({ step: "zip", folded: true, warned: true, failed: false });
+    expect(state.packing).toMatchObject({ step: "zip", folded: true, warned: true, failed: false });
   });
 
   it("loses the luggage when the turn fails, and leaves it lost when the stream closes", () => {
@@ -924,6 +932,38 @@ describe("plannerReducer — packing", () => {
     const closed = plannerReducer(errored, { type: "turn_finished" });
     expect(closed.packing).toMatchObject({ failed: true });
     expect(closed.packing?.step).not.toBe("zip");
+  });
+
+  it("takes the server's progress when it comes: the step, its sentence and the sources", () => {
+    const progress = (step: "wardrobe" | "list" | "fold", detail: string, sources: string[] = []) =>
+      ({ type: "event", event: { type: "progress", step, detail, sources } }) as const;
+    let state = plannerReducer(start, progress("wardrobe", "Looking through the guides for Budapest."));
+    expect(state.packing).toMatchObject({
+      step: "wardrobe",
+      detail: "Looking through the guides for Budapest.",
+    });
+
+    // A step already passed never takes the suitcase back, nor its sentence.
+    state = plannerReducer(state, progress("list", "Noting the destination."));
+    expect(state.packing).toMatchObject({ step: "wardrobe", detail: "Looking through the guides for Budapest." });
+
+    // The same step again brings the sources found since.
+    state = plannerReducer(state, progress("wardrobe", "Looking through the guides for Budapest.", ["Wikivoyage"]));
+    expect(state.packing?.sources).toEqual(["Wikivoyage"]);
+    state = plannerReducer(state, progress("fold", "Sharing the stops out over 4 days."));
+    expect(state.packing).toMatchObject({ step: "fold", sources: ["Wikivoyage"] });
+  });
+
+  it("once the server tells the progress, the other events no longer move it", () => {
+    const live = plannerReducer(start, {
+      type: "event",
+      event: { type: "progress", step: "open", detail: "Reading.", sources: [] },
+    });
+    const patched = plannerReducer(live, {
+      type: "event",
+      event: { type: "itinerary_patch", ops: [{ op: "set_day_title", day: 1, title: "Pest" }] },
+    });
+    expect(patched.packing).toMatchObject({ step: "open", folded: true, live: true });
   });
 
   it("prepares a retry: the failed turn's message and error go, the rest stays", () => {

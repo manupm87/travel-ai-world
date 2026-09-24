@@ -634,7 +634,7 @@ export interface components {
             /** Timezone */
             timezone: string;
         };
-        PlannerEvent: components["schemas"]["TextEvent"] | components["schemas"]["BriefEvent"] | components["schemas"]["OptionsEvent"] | components["schemas"]["ItineraryPatchEvent"] | components["schemas"]["ErrorEvent"] | components["schemas"]["DoneEvent"];
+        PlannerEvent: components["schemas"]["TextEvent"] | components["schemas"]["BriefEvent"] | components["schemas"]["OptionsEvent"] | components["schemas"]["ItineraryPatchEvent"] | components["schemas"]["ErrorEvent"] | components["schemas"]["DoneEvent"] | components["schemas"]["ProgressEvent"];
         /**
          * PlannerTurn
          * @description One turn: a message, a structured action, or both.
@@ -666,6 +666,30 @@ export interface components {
              * @description The Trip this draft was saved as, once it was (else null)
              */
             trip_id: string | null;
+        };
+        /**
+         * ProgressEvent
+         * @description The step the turn has reached, sent as it starts (TRA-242, ADR 0025).
+         *
+         *     Steps only move forward; the same step may come again when `sources`
+         *     grows. `detail` is one sentence in the traveller's language; `sources`
+         *     are the corpora the turn has drawn on so far ("Wikivoyage", "Open-Meteo").
+         */
+        ProgressEvent: {
+            /** Detail */
+            detail: string;
+            /** Sources */
+            sources: string[];
+            /**
+             * Step
+             * @enum {string}
+             */
+            step: "open" | "list" | "wardrobe" | "fold" | "weigh" | "zip";
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "progress";
         };
         /** PutActivityOp */
         PutActivityOp: {

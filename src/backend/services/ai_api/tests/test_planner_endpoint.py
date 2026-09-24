@@ -258,7 +258,16 @@ async def test_streams_typed_events_and_ends_with_done(
 
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("text/event-stream")
-    events = events_of(response.text)
+    streamed = events_of(response.text)
+    # The progress goes between the other events (TRA-242): checked on its own.
+    progress = [e for e in streamed if isinstance(e, dict) and e["type"] == "progress"]
+    assert [e["step"] for e in progress] == ["open", "list", "zip"]
+    assert progress[0] == streamed[0]
+    assert progress[1]["detail"]
+    assert all(e["sources"] == [] for e in progress)
+    events = [
+        e for e in streamed if not (isinstance(e, dict) and e["type"] == "progress")
+    ]
     assert events[0] == {
         "type": "brief",
         "brief": {

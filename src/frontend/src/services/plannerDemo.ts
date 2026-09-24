@@ -330,7 +330,7 @@ export async function* streamDemoTurn(
 ): AsyncGenerator<PlannerEvent, void, unknown> {
   const wait = fast ? async () => {} : (ms: number) => sleep(ms, signal);
   await wait(FIRST_TOKEN_DELAY_MS);
-  for (const event of demoEventsFor(turn)) {
+  for (const event of withProgress(demoEventsFor(turn))) {
     if (signal?.aborted) return;
     if (event.type === "text") {
       for (const delta of toDeltas(event.delta)) {
@@ -344,4 +344,136 @@ export async function* streamDemoTurn(
     if (signal?.aborted) return;
     yield event;
   }
+}
+
+// ─── Packing the suitcase (TRA-242) ─────────────────────────────────────────
+
+type Step = Extract<PlannerEvent, { type: "progress" }>["step"];
+
+const STEPS: readonly Step[] = ["open", "list", "wardrobe", "fold", "weigh", "zip"];
+
+/** ai_api's English sentences (`prompts.py`, `progress_*`): the demo is in English. */
+function sentence(step: Step, city: string | null, days: number | null): string {
+  switch (step) {
+    case "open":
+      return city ? `Reading what you asked: ${city}.` : "Reading what you asked.";
+    case "list":
+      return "Noting the destination, the dates, who travels and what you're after.";
+    case "wardrobe":
+      return city ? `Looking through the guides for ${city}.` : "Looking through the guides.";
+    case "fold":
+      return days
+        ? `Sharing the stops out over ${days} days, close to each other.`
+        : "Choosing what fits and putting it in order.";
+    case "weigh":
+      return "Checking distances, opening hours and prices.";
+    case "zip":
+      return "Everything fits. Zipping it up.";
+  }
+}
+
+function sourcesOf(event: PlannerEvent): string[] {
+  if (event.type === "options") return event.cards.map((card) => card.source);
+  if (event.type !== "itinerary_patch") return [];
+  return event.ops.flatMap((op) =>
+    op.op === "set_stay" || op.op === "put_activity"
+      ? [op.card.source]
+      : op.op === "set_weather"
+        ? [op.source]
+        : []
+  );
+}
+
+type Patch = Extract<PlannerEvent, { type: "itinerary_patch" }>;
+
+/** The day an op belongs to, or `null` for the stay, the route and a trip-wide warning. */
+function dayOf(op: ItineraryOp): number | null {
+  switch (op.op) {
+    case "set_day_title":
+      return op.day;
+    case "put_activity":
+    case "remove_activity":
+      return op.slot.day;
+    default:
+      return null;
+  }
+}
+
+/**
+ * The recorded draft is one patch holding every day; ai_api streams one per
+ * day, the forecast and the warnings after them. The demo splits it the same
+ * way, so the suitcase fills day by day: the stay and the route first, then
+ * each day, then the weighing.
+ */
+function splitPatch(event: Patch): Patch[] {
+  const head = event.ops.filter((op) => dayOf(op) === null && op.op !== "set_weather" && op.op !== "warn");
+  const tail = event.ops.filter((op) => op.op === "set_weather" || op.op === "warn");
+  const days = [...new Set(event.ops.map(dayOf).filter((day): day is number => day !== null))];
+  const parts = [
+    head,
+    ...days.map((day) => event.ops.filter((op) => dayOf(op) === day)),
+    tail,
+  ].filter((ops) => ops.length > 0);
+  return parts.length > 1 ? parts.map((ops) => ({ type: "itinerary_patch", ops })) : [event];
+}
+
+/**
+ * The recorded session has no `progress` events (it predates them), so the demo
+ * adds them the way `PackingProgress` in ai_api does (ADR 0025): `open` first,
+ * `list` before the brief, `wardrobe` before options, `fold` with the first
+ * day, `weigh` with the warnings and the forecast, `zip` before the closing
+ * words — forward only, and the same step again whenever a new source turns
+ * up. A patch holding several days is split into one per day first. Pure.
+ */
+export function withProgress(recorded: readonly PlannerEvent[]): PlannerEvent[] {
+  const events: PlannerEvent[] = recorded.flatMap((event): PlannerEvent[] =>
+    event.type === "itinerary_patch" ? splitPatch(event as Patch) : [event]
+  );
+  const lastStructured = events.reduce(
+    (last, event, index) => (event.type !== "text" && event.type !== "done" ? index : last),
+    -1
+  );
+  const days = new Set<number>();
+  for (const event of events) {
+    if (event.type !== "itinerary_patch") continue;
+    for (const op of event.ops) if (op.op === "set_day_title") days.add(op.day);
+  }
+
+  const out: PlannerEvent[] = [];
+  const sources: string[] = [];
+  let city: string | null = null;
+  let step: Step | null = null;
+  let detail = "";
+
+  const reach = (next: Step) => {
+    if (step !== null && STEPS.indexOf(next) <= STEPS.indexOf(step)) return;
+    step = next;
+    detail = sentence(next, city, next === "fold" && days.size > 0 ? days.size : null);
+    out.push({ type: "progress", step, detail, sources: [...sources] });
+  };
+
+  reach("open");
+  events.forEach((event, index) => {
+    if (event.type === "brief") {
+      city = event.brief.destination;
+      reach("list");
+    } else if (event.type === "options") {
+      reach("wardrobe");
+    } else if (event.type === "itinerary_patch") {
+      if (event.ops.some((op) => op.op === "set_day_title" || op.op === "put_activity")) {
+        reach("wardrobe");
+        reach("fold");
+      }
+      if (event.ops.some((op) => op.op === "warn" || op.op === "set_weather")) reach("weigh");
+    } else if (event.type === "text" && index > lastStructured) {
+      reach("zip");
+    }
+    out.push(event);
+    const fresh = [...new Set(sourcesOf(event))].filter((s) => s && !sources.includes(s));
+    if (fresh.length > 0 && step !== null) {
+      sources.push(...fresh);
+      out.push({ type: "progress", step, detail, sources: [...sources] });
+    }
+  });
+  return out;
 }

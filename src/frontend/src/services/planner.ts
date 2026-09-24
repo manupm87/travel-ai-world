@@ -27,6 +27,9 @@ import {
 import { ApiError, isAiAvailable, request, requestRaw } from "./http";
 import { streamDemoTurn } from "./plannerDemo";
 
+/** The packing steps a `progress` event may name, in order. */
+const PROGRESS_STEPS = ["open", "list", "wardrobe", "fold", "weigh", "zip"] as const;
+
 export interface ParsedPlannerEvents {
   events: PlannerEvent[];
   /** Trailing partial line, to be prepended to the next chunk. */
@@ -221,6 +224,20 @@ export function toPlannerEvent(parsed: unknown): PlannerEvent | null {
       };
     case "done":
       return { type: "done" };
+    case "progress": {
+      // Packing the suitcase (TRA-242, ADR 0025): a step this build does not
+      // know is dropped rather than guessed at.
+      const step = PROGRESS_STEPS.find((known) => known === parsed.step);
+      if (!step) return null;
+      return {
+        type: "progress",
+        step,
+        detail: typeof parsed.detail === "string" ? parsed.detail : "",
+        sources: Array.isArray(parsed.sources)
+          ? parsed.sources.filter((s): s is string => typeof s === "string" && s !== "")
+          : [],
+      };
+    }
     default:
       return null; // an event type this build does not know: ignore
   }
