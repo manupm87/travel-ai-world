@@ -76,7 +76,7 @@ export function StayCard({
               aria-hidden="true"
               className={cn(
                 "flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold transition",
-                selected ? "bg-gold text-white" : "bg-accent-soft text-text-primary"
+                selected ? "bg-gold text-on-action" : "bg-accent-soft text-text-primary"
               )}
             >
               {stopGlyph(stop)}

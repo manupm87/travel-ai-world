@@ -330,7 +330,7 @@ export function QuickReplies({
         type="button"
         onClick={confirm}
         disabled={disabled || !ready}
-        className="self-end rounded-lg bg-accent px-4 py-2 text-[13px] font-medium text-white transition hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-40"
+        className="self-end rounded-lg bg-action px-4 py-2 text-[13px] font-medium text-on-action transition hover:bg-action-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-40"
       >
         {q.confirm}
       </button>

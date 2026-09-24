@@ -112,7 +112,7 @@ export function SlotPicker({
             className={cn(
               "rounded-lg border px-2 py-1 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40",
               value === chosenDay
-                ? "border-accent bg-accent text-white"
+                ? "border-accent bg-action text-on-action"
                 : "border-border-soft text-text-secondary hover:border-accent/50 hover:text-text-primary"
             )}
           >
@@ -145,7 +145,7 @@ export function SlotPicker({
         <button
           type="button"
           onClick={() => onPick({ day: chosenDay, part: chosenPart })}
-          className="rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-white transition hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+          className="rounded-lg bg-action px-3 py-1.5 text-xs font-medium text-on-action transition hover:bg-action-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
         >
           {sp.confirm}
         </button>

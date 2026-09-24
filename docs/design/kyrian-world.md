@@ -12,59 +12,79 @@ field and nothing else — a question, the box you answer it in, and the button 
 planner (`components/landing/AskField.tsx`). Its placeholder types the example asks out one after
 another, which is what pays for having no example chips, no feature grid and no testimonials. Everything around it —
 the wordmark, the sign-in, the footer — stays quiet. The background is the only thing that moves on
-its own: a dusk horizon, ink at the top, indigo and violet lights drifting through it, a warm amber
-band where the sky meets the ground.
+its own: a slate sky, blue-grey with three soft lights in it — sage top-left, mist blue top-right,
+lavender on the horizon — over a faint grid of dots. The one warm thing on the page is **Kiri**, the
+pixel-art suitcase who packs the trip with the traveller (below).
 
 ## Palette
 
-Dark is the default. Light is the same sky at dawn.
+"Pizarra" (slate), from the final sketch on the design canvas (TRA-234/235). Dark is the default;
+light is "Pizarra clara", the same slate washed out.
 
 | Token | Dark | Light | What it is |
 |---|---|---|---|
-| `--color-bg-primary` | `#07070E` | `#F7F6FB` | Ink / paper: the page itself |
-| `--color-bg-secondary` | `#10102A` | `#EFEDF8` | Dusk: the second surface |
-| `--color-bg-card` | `#15152E` | `#FFFFFF` | Opaque cards |
-| `--color-text-primary` | `#F3F1FF` | `#12122A` | Body and headings |
-| `--color-text-secondary` | `#9A9ABF` | `#4A4A6A` | Supporting text (≥ 4.5:1 on the page) |
-| `--color-accent` | `#4F6EF7` | `#4F6EF7` | Indigo: the action, kept from the planner |
-| `--color-purple` | `#8B5CF6` | `#7C3AED` | Violet: the second light |
-| `--color-gold` | `#F5A623` | `#8A5400` | Amber: the horizon, and warm accents |
-| `--aurora-1/2/3` | — | a third of the opacity | The three lights of the background layer |
-| `--glass-bg` / `--glass-border` | translucent dusk | translucent paper | Surfaces the aurora shows through |
-| `--shadow-field-glow` | indigo, soft, low | the same, weaker | The lift under the field and the primary action |
+| `--color-bg-primary` | `#0C0F13` | `#F4F6F8` | The page itself |
+| `--color-bg-secondary` | `#11151A` | `#ECEFF3` | Panels and sheets |
+| `--color-bg-card` | `#161B21` | `#FFFFFF` | Opaque cards |
+| `--color-bg-surface` | `#1D232A` | `#E3E8EE` | Bubbles, fields, photo placeholders |
+| `--color-text-primary` | `#E6EAEF` | `#121821` | Headings and body — **and the action** (15.9:1 / 16.5:1) |
+| `--color-text-secondary` | `#98A2AE` | `#4B5663` | Supporting text and metadata (7.4:1 / 6.9:1) |
+| `--color-accent` | `#8FB3A6` | `#47705F` | Sage: links, destinations, Kiri on the map, selection (8.4:1 / 5.2:1) |
+| `--color-action` / `--color-on-action` | text / page | ink / page | The primary action: the text colour as a fill |
+| `--color-warning` (= `--color-gold`) | `#D6B48C` | `#8A5A2B` | Warnings only (9.8:1 / 5.4:1) |
+| `--color-purple` | `#A497C8` | `#62558F` | Lavender, the third light (charts in the admin) |
+| `--aurora-1/2/3` | sage, mist `#7D97C4`, lavender at 22 / 20 / 15 % | fainter | The three lights of the background |
+| `--aurora-dots` | 4.5 % | 5.5 % | The dotted paper under them, one dot every 22 px |
+| `--glass-bg` / `--glass-border` | translucent card | translucent white | Surfaces the sky shows through |
+| `--color-sticker-*` | fragile `#D9B98F`, overweight `#D08C73`, book ahead `#9DBDB0` | same | Kiri's warning stickers, with `--color-sticker-ink` text |
+| `--kiri-*` | clay `#C8876E`, light `#DDA58F`, dark `#9C6250`, outline `#24160F`, cream `#E9DED3` … | same | Kiri, the only warm colour in the interface |
 
-Use the tokens (`bg-bg-card`, `text-text-secondary`, `border-glass-border`, `shadow-field-glow`),
-never a palette literal like `text-red-400` or a raw `rgba(79,110,247,…)`.
+**The action is not a colour.** A primary button is `bg-action text-on-action` — white on the slate,
+ink on the light one — and `hover:bg-action-hover`. Sage is never a button fill with white text on
+it (it does not clear 4.5:1); it is for links, what is selected and where you are going.
 
-Amber is two different values on purpose: on ink it can stay bright (`#F5A623`), on paper it has to
-go down to `#8A5400` to clear 4.5:1 as text (5.8:1 on `#F7F6FB`; `#D97706` is 2.4:1 and `#B26A00`
-3.9:1, both too light). Where amber is only a glow, a band of the aurora or a background, use the
-`--aurora-3` / opacity forms rather than the text token.
+Use the tokens (`bg-bg-card`, `text-text-secondary`, `border-glass-border`, `bg-action`), never a
+palette literal like `text-red-400` or a raw hex in a component.
 
 ## Type
 
-Outfit for headings, Plus Jakarta Sans for body — both already loaded in `app/layout.tsx`.
+Outfit for headings (300–500), Plus Jakarta Sans for text and controls, and **Pixelify Sans only for
+what Kiri says** — her name tag and her one-liners (`font-pixel`, `--font-pixel`), never for the
+model's answer, which stays in the body font. All three are loaded in `app/layout.tsx`.
 
 - Headings: weight 300–400, tracking `-0.03em`, **sentence case**. Large and light beats bold and
   small; the global `h1…h6` rule already sets weight and tracking.
 - Body: 15–17 px, line length under 80 characters.
 - No ALL-CAPS tracked labels above headings, no "WORD — fragment" eyebrows, no monospace for small
   data labels, no numbered `01 / 02 / 03` markers unless the content really is a sequence.
-- The wordmark is "Kyrian World" in Outfit 500, sentence case, beside the orbit mark
-  (`components/layout/Logo.tsx`). It is never translated.
+- The wordmark is "Kyrian World" in Outfit 500, sentence case, beside **the K of the route**
+  (`components/layout/Logo.tsx`): a solid stem and leg in the text colour, the arm drawn as a dotted
+  route that reaches a sage dot. It is never translated.
+
+## Kiri
+
+A suitcase that has already been everywhere: she packs the trip with the traveller and keeps a
+sticker from every one. `components/kiri/Kiri.tsx` draws her from `frames.ts` — 16 × 18 pixel art
+(16 × 26 with the handle out), transcribed from the canvas, always at a **whole** scale (1 = 16 px,
+2 = the chat, 4 = a phone) with `shape-rendering: crispEdges`. One state per moment of the trip:
+`idle` (waiting on the landing), `blink`, `look` (the field took focus), `thinking` (typing, making
+the list), `searching` (looking in the wardrobe), `dragging` (rolling in), `handle` (braking,
+setting off to the planner), `happy` (suitcase closed, boarding pass), `lost` (lost luggage),
+`asleep` (trips that are over), `stickers` (your trips). She is decoration (`aria-hidden`) unless
+given a `label`.
 
 ## Motion
 
 One orchestrated moment per page; everything else answers something the reader did.
 
-- **The aurora** (`components/layout/Aurora.tsx`) drifts on 28 s and 40 s loops. It is
+- **The sky** (`components/layout/Aurora.tsx`) drifts on 28 s and 40 s loops. It is
   `fixed inset-0 -z-10`, `pointer-events-none` and `aria-hidden`, so it never shifts the layout,
   never takes a click and never reaches a screen reader. Transform and opacity only.
 - **Entrances** stay under 600 ms and happen once, on load. Per-section fade-ups as you scroll are
   the generated-page default: don't.
 - **Answers to an action** — a sheet sliding in, a card collapsing after a confirm, a button
   becoming a spinner — are welcome, because they show what changed. A focused field wears the
-  conic ring (indigo → violet → amber) turning slowly around its border: the `.conic-ring` class
+  conic ring (sage → mist → lavender) turning slowly around its border: the `.conic-ring` class
   in `globals.css` — one gradient masked down to the 1 px of itself that shows, so the glass
   underneath keeps letting the aurora through — with `animate-ring-spin` over the registered
   `--angle`. Idle, it is a quiet 1 px `--glass-border`.

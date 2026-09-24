@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import React from "react";
 import { ThemeProvider, useTheme } from "./ThemeContext";
@@ -40,6 +40,58 @@ describe("ThemeContext", () => {
 
     act(() => result.current.setTheme("dark"));
     expect(result.current.theme).toBe("dark");
+  });
+
+  describe("following the system", () => {
+    let listeners: Array<() => void> = [];
+    let dark = false;
+
+    beforeEach(() => {
+      listeners = [];
+      dark = false;
+      vi.stubGlobal(
+        "matchMedia",
+        vi.fn(() => ({
+          get matches() {
+            return dark;
+          },
+          addEventListener: (_: string, fn: () => void) => listeners.push(fn),
+          removeEventListener: (_: string, fn: () => void) => {
+            listeners = listeners.filter((l) => l !== fn);
+          },
+        }))
+      );
+    });
+
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it("paints what the system prefers and changes with it", () => {
+      localStorage.setItem("theme", "system");
+      const { result } = renderHook(() => useTheme(), { wrapper });
+      expect(result.current.preference).toBe("system");
+      expect(result.current.theme).toBe("light");
+      expect(document.documentElement.getAttribute("data-theme")).toBe("light");
+
+      act(() => {
+        dark = true;
+        for (const listener of listeners) listener();
+      });
+      expect(result.current.theme).toBe("dark");
+      expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
+    });
+
+    it("is a choice that can be set and left", () => {
+      const { result } = renderHook(() => useTheme(), { wrapper });
+      act(() => result.current.setTheme("system"));
+      expect(localStorage.getItem("theme")).toBe("system");
+      expect(result.current.theme).toBe("light");
+
+      act(() => result.current.setTheme("dark"));
+      expect(result.current.preference).toBe("dark");
+      expect(result.current.theme).toBe("dark");
+    });
   });
 
   it("throws when used outside the provider", () => {

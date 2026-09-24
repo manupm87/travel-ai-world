@@ -100,7 +100,7 @@ export function PromptComposer({
             onClick={onSubmit}
             disabled={!canSubmit}
             aria-label={p.send}
-            className="flex shrink-0 items-center gap-2 rounded-lg bg-accent px-3.5 py-2 text-[13px] font-medium text-white transition hover:bg-accent-hover focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex shrink-0 items-center gap-2 rounded-lg bg-action px-3.5 py-2 text-[13px] font-medium text-on-action transition hover:bg-action-hover focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40"
           >
             {isStreaming ? (
               <Loader2 size={14} className="animate-spin" aria-hidden="true" />

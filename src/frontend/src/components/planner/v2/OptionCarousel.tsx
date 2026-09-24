@@ -168,7 +168,7 @@ export function OptionCarousel({
                 : onSelect(group.group_id, checked)
             }
             disabled={disabled || hasSelection || checked.length === 0}
-            className="self-start rounded-lg bg-accent px-3.5 py-2 text-[13px] font-medium text-white transition hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-40"
+            className="self-start rounded-lg bg-action px-3.5 py-2 text-[13px] font-medium text-on-action transition hover:bg-action-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {interpolate(p.card.addCount, { count: checked.length })}
           </button>

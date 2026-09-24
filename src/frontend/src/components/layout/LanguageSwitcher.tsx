@@ -38,11 +38,11 @@ export function LanguageSwitcher({ variant = "dropdown" }: LanguageSwitcherProps
               className={cn(
                 "relative flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-medium transition-all duration-500 cursor-pointer overflow-hidden",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50",
-                active ? "text-white" : "text-text-secondary hover:text-text-primary"
+                active ? "text-on-action" : "text-text-secondary hover:text-text-primary"
               )}
             >
               {active && (
-                <span className="absolute inset-0 bg-accent shadow-accent-glow z-0" aria-hidden="true" />
+                <span className="absolute inset-0 bg-action z-0" aria-hidden="true" />
               )}
               <span className="relative z-10 text-base" aria-hidden="true">{flag}</span>
               <span className="relative z-10 uppercase">{code}</span>

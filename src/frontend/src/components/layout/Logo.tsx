@@ -7,11 +7,11 @@ interface LogoProps {
 }
 
 /**
- * The mark: a world seen from far enough away to be a dot, with an orbit
- * tilted around it. The planet takes the text colour, the orbit the accent,
- * so the pair works on either theme without a second asset. Exported on its
- * own for the surfaces that show the brand without linking home — the
- * sign-in dialog (TRA-193).
+ * The mark: the K of the route (TRA-235). A solid stem and leg in the text
+ * colour, and the arm drawn as a dotted route that reaches its destination —
+ * a sage dot. Two colours from the theme, so it works on either without a
+ * second asset. Exported on its own for the surfaces that show the brand
+ * without linking home — the sign-in dialog.
  */
 export function Mark({ size = 28 }: { size?: number }) {
   return (
@@ -21,28 +21,18 @@ export function Mark({ size = 28 }: { size?: number }) {
       height={size}
       fill="none"
       aria-hidden="true"
-      className="flex-shrink-0"
+      className="flex-shrink-0 overflow-visible"
     >
-      {/* The orbit passes behind the world, then in front of it: the front arc
-          is drawn last, over the disc, which is what makes it read as an orbit
-          rather than a ring around a dot. */}
-      <ellipse
-        cx="16"
-        cy="16"
-        rx="13"
-        ry="4"
-        stroke="var(--color-accent)"
-        strokeWidth="1.4"
-        transform="rotate(-22 16 16)"
-      />
-      <circle cx="16" cy="16" r="6" fill="currentColor" />
+      <path d="M9 5.5v21" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" />
       <path
-        d="M3 16 A13 4 0 0 1 29 16"
+        d="M11.5 16.2C15 14.6 18.4 11.8 21.2 8.4"
         stroke="var(--color-accent)"
-        strokeWidth="1.4"
+        strokeWidth="2.6"
         strokeLinecap="round"
-        transform="rotate(-22 16 16)"
+        strokeDasharray="0.01 4.3"
       />
+      <circle cx="24.3" cy="5.6" r="3.2" fill="var(--color-accent)" />
+      <path d="M14.2 14.6 24 26.5" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" />
     </svg>
   );
 }

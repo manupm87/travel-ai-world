@@ -87,10 +87,16 @@ TypeScript 5, Tailwind CSS v4.
 - **Two base URLs**: `NEXT_PUBLIC_API_URL` (core) and optional `NEXT_PUBLIC_AI_API_URL` (defaults to
   core, for single-origin deployments). Static builds set neither; features degrade gracefully via
   `isApiAvailable()` / `isAiAvailable()`.
-- Styling: CSS custom properties from `src/app/globals.css` (`--color-bg-primary`, `--color-accent`,
+- Styling: CSS custom properties from `src/app/globals.css` (`--color-bg-primary`, `--color-accent`
+  (sage: links and selection), `--color-action`/`--color-on-action` (the primary action is the text
+  colour as a fill: `bg-action text-on-action`, never `bg-accent text-white`),
   `--color-error/success/warning`, `--header-h`, `--shadow-accent-glow`, `--shadow-field-glow`,
-  `--glass-bg`/`--glass-border` — also `bg-glass-bg`/`border-glass-border` — and the three
-  `--aurora-*` lights); no `tailwind.config.js`.
+  `--glass-bg`/`--glass-border` — also `bg-glass-bg`/`border-glass-border` — the three
+  `--aurora-*` lights and `--aurora-dots`, the `--color-sticker-*` and the `--kiri-*` colours);
+  no `tailwind.config.js`. Fonts: `font-heading` (Outfit), `font-sans` (Plus Jakarta Sans),
+  `font-pixel` (Pixelify Sans, only what Kiri says), `font-mono` (admin only). Kiri is
+  `components/kiri/Kiri.tsx` (TRA-235). `ThemeContext` takes `"light" | "dark" | "system"`
+  (`preference`); `theme` is always the resolved `light | dark`.
   Use the tokens (`text-error`, `pt-(--header-h)`, `shadow-accent-glow`), not palette literals like
   `text-red-400` or `rgba(79,110,247,…)`. Compose classes with `cn()` (`src/utils/cn.ts`) so a
   consumer's `p-8` reliably overrides a primitive's `p-6`. **What the tokens are for — palette,

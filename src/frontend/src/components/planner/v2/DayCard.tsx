@@ -210,7 +210,7 @@ export function DayCard({
                                 className={cn(
                                   "flex h-6 w-6 shrink-0 items-center justify-center self-center rounded-full text-[11px] font-medium transition",
                                   selected
-                                    ? "bg-accent text-white"
+                                    ? "bg-action text-on-action"
                                     : "bg-accent-soft text-text-primary"
                                 )}
                               >

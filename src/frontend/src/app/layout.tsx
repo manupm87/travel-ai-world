@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { JetBrains_Mono, Outfit, Plus_Jakarta_Sans } from "next/font/google";
+import { JetBrains_Mono, Outfit, Pixelify_Sans, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { AuthProvider } from "@/context/AuthContext";
@@ -18,6 +18,14 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   display: "swap",
   variable: "--font-sans",
   weight: ["300", "400", "500", "600"],
+});
+
+/** Only what Kiri says — her name tag and her one-liners (TRA-235). */
+const pixelifySans = Pixelify_Sans({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-pixel",
+  weight: ["400", "500"],
 });
 
 /** Ids, hashes and JSON in the admin console (TRA-222): the only monospace in the app. */
@@ -71,7 +79,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${outfit.variable} ${plusJakartaSans.variable} ${jetBrainsMono.variable}`}>
+    <html lang="en" className={`${outfit.variable} ${plusJakartaSans.variable} ${pixelifySans.variable} ${jetBrainsMono.variable}`}>
       <body className="font-sans">
         <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "PLACEHOLDER_CLIENT_ID"}>
           <AuthProvider>

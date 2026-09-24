@@ -68,7 +68,7 @@ const CITY_ZOOM = 12;
  * carry a Tailwind class: the token is read from the document, and this is what
  * it holds for the environments where no stylesheet has applied yet (jsdom).
  */
-const ACCENT_FALLBACK = "#4F6EF7";
+const ACCENT_FALLBACK = "#8FB3A6";
 
 export interface TripMapCanvasProps {
   /** The pins of the selected day, in order (`toMapStops`). */
@@ -111,12 +111,12 @@ function markerElement(stop: MapStop, label: string): [HTMLElement, HTMLButtonEl
   button.setAttribute("aria-label", label);
   button.textContent = stopGlyph(stop);
   button.className = [
-    "flex h-7 w-7 cursor-pointer items-center justify-center rounded-full",
-    "border-2 border-bg-card text-xs font-semibold text-white shadow-accent-glow",
+    "flex h-7 w-7 cursor-pointer items-center justify-center",
+    "border-2 border-bg-card text-xs font-semibold text-on-action shadow-field-glow",
     "transition-transform duration-150 motion-reduce:transition-none",
     "hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60",
     "data-[selected=true]:scale-125 data-[dimmed=true]:opacity-40",
-    stop.kind === "stay" ? "bg-gold" : "bg-accent",
+    stop.kind === "stay" ? "rounded-md bg-accent" : "rounded-full bg-action",
   ].join(" ");
   root.append(button);
   return [root, button];

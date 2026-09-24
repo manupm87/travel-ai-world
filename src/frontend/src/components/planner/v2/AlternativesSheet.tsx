@@ -176,7 +176,7 @@ export function AlternativesSheet({
             <button
               type="submit"
               disabled={disabled || guidance.trim().length === 0}
-              className="shrink-0 rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-white transition hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-50"
+              className="shrink-0 rounded-lg bg-action px-3 py-1.5 text-xs font-medium text-on-action transition hover:bg-action-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {a.guideSubmit}
             </button>

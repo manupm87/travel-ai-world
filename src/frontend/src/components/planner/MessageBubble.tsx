@@ -47,7 +47,7 @@ export function MessageBubble({ message, isPending = false, errorText }: Message
         className={cn(
           "max-w-[80%] rounded-xl px-3.5 py-2.5 text-sm leading-relaxed",
           isUser
-            ? "bg-accent text-white rounded-br-sm"
+            ? "bg-action text-on-action rounded-br-sm"
             : "bg-bg-surface text-text-primary border border-border rounded-bl-sm",
           errorText && "text-error"
         )}

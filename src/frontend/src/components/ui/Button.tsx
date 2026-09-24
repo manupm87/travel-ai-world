@@ -29,10 +29,10 @@ const SIZES = {
 } as const;
 
 const VARIANTS = {
-  primary: "bg-accent hover:bg-accent-hover text-white shadow-field-glow",
+  primary: "bg-action hover:bg-action-hover text-on-action shadow-field-glow",
   secondary: "bg-bg-secondary hover:opacity-80 border border-border-soft text-text-primary",
   ghost: "bg-transparent hover:bg-bg-secondary text-text-secondary hover:text-text-primary",
-  white: "bg-white hover:bg-white/90 text-accent font-medium shadow-xl",
+  white: "bg-action hover:bg-action-hover text-on-action font-medium shadow-xl",
   glass:
     "bg-glass-bg backdrop-blur-xl border border-glass-border text-text-primary hover:border-accent-border",
 } as const;
@@ -44,7 +44,7 @@ const VARIANTS = {
  * otherwise a `<button>`. `className` is merged with `cn`, so a consumer's
  * padding or radius overrides the size preset instead of competing with it.
  *
- * @param variant - `primary` is the accent action, `glass` the translucent one
+ * @param variant - `primary` is the action (the text colour as a fill), `glass` the translucent one
  *   that lets the aurora through, plus `secondary`, `ghost` and `white`.
  * @param size - Size variation (`sm`, `md`, `lg`).
  * @param as - Override the underlying HTML element/component.

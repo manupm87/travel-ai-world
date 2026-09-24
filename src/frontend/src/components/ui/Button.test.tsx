@@ -8,7 +8,7 @@ describe('Button', () => {
     render(<Button>Click me</Button>)
     const button = screen.getByRole('button', { name: /click me/i })
     expect(button).toBeInTheDocument()
-    expect(button.className).toContain('bg-accent')
+    expect(button.className).toContain('bg-action')
   })
 
   it('renders correctly as a link when href is provided', () => {
@@ -26,7 +26,7 @@ describe('Button', () => {
     expect(screen.getByRole('button')).toHaveClass('bg-transparent')
     
     rerender(<Button variant="white">White</Button>)
-    expect(screen.getByRole('button')).toHaveClass('bg-white')
+    expect(screen.getByRole('button')).toHaveClass('bg-action')
   })
 
   it('applies the correct size classes', () => {

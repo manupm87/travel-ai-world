@@ -173,7 +173,7 @@ export function DayStrip({
             aria-hidden="true"
             className={cn(
               "flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition",
-              selectedDay === null ? "bg-accent text-white" : "bg-accent-soft text-text-primary"
+              selectedDay === null ? "bg-action text-on-action" : "bg-accent-soft text-text-primary"
             )}
           >
             <LayoutGrid size={14} />
@@ -209,7 +209,7 @@ export function DayStrip({
                 aria-hidden="true"
                 className={cn(
                   "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-medium",
-                  active ? "bg-accent text-white" : "bg-accent-soft text-text-primary"
+                  active ? "bg-action text-on-action" : "bg-accent-soft text-text-primary"
                 )}
               >
                 {day.day}

@@ -1,84 +1,117 @@
 @import "tailwindcss";
 
 /* ---------------------------------------------------------------------------
-   Kyrian World palette (docs/design/kyrian-world.md)
-   Dark is the default: "dusk horizon" — ink at the top, indigo and violet
-   lights drifting across it, a warm amber band where the sky meets the ground.
-   Light is the same sky at dawn: paper, ink text, the same two lights at a
-   third of the opacity.
+   Kyrian World palette: "Pizarra" (docs/design/kyrian-world.md, TRA-235)
+   Dark is the default: blue-grey slate with a soft gradient behind it — sage
+   top-left, mist blue top-right, lavender on the horizon. Light is "Pizarra
+   clara": the same slate washed out, ink text, the same lights fainter.
+   The action is the text colour (white on dark, ink on light), never a hue:
+   `bg-action text-on-action`. Sage (`accent`) is for links, destinations and
+   Kiri on the map; `warning` is only for warnings. Kiri's clay is the one warm
+   colour in the interface.
    --------------------------------------------------------------------------- */
 
 :root {
   /* Dark by default, and said out loud: the browser draws its own chrome —
      the date picker, the select's list, the scrollbars, the caret — from
-     `color-scheme`, so without this line those read light on the dusk sky
-     (TRA-192 left the note, TRA-193 keeps the promise). */
+     `color-scheme`, so without this line those read light on the slate. */
   color-scheme: dark;
-  --color-bg-primary: #07070E;
-  --color-bg-secondary: #10102A;
-  --color-bg-card: #15152E;
-  --color-accent: #4F6EF7;
-  --color-accent-soft: rgba(79, 110, 247, 0.15);
-  --color-accent-border: rgba(79, 110, 247, 0.3);
-  --color-text-primary: #F3F1FF;
-  --color-text-secondary: #9A9ABF;
-  --color-text-muted: rgba(243, 241, 255, 0.55);
-  --color-border: rgba(243, 241, 255, 0.08);
-  --color-border-soft: rgba(243, 241, 255, 0.14);
-  --color-gold: #F5A623;
-  --color-accent-hover: #3B5BDB;
-  --color-bg-surface: #1B1B38;
-  --color-border-card: #26264A;
-  --color-status-planning: #F78E4F;
-  --color-status-finished: #9A9ABF;
-  --color-purple: #8B5CF6;
-  --color-error: #F87171;
-  --color-success: #22C55E;
-  --color-warning: #F59E0B;
+  --color-bg-primary: #0C0F13;
+  --color-bg-secondary: #11151A;
+  --color-bg-card: #161B21;
+  --color-bg-surface: #1D232A;
+  --color-text-primary: #E6EAEF;
+  --color-text-secondary: #98A2AE;
+  --color-text-muted: rgba(230, 234, 239, 0.55);
+  --color-border: rgba(230, 234, 239, 0.08);
+  --color-border-soft: rgba(230, 234, 239, 0.14);
+  --color-border-card: #252C34;
+  /* Sage: links, destinations, selection. */
+  --color-accent: #8FB3A6;
+  --color-accent-hover: #A5C4B8;
+  --color-accent-soft: rgba(143, 179, 166, 0.14);
+  --color-accent-border: rgba(143, 179, 166, 0.32);
+  /* The action: the text colour as a fill, the page colour on it. */
+  --color-action: #E6EAEF;
+  --color-action-hover: #FFFFFF;
+  --color-on-action: #0C0F13;
+  --color-gold: #D6B48C;
+  --color-purple: #A497C8;
+  --color-status-planning: #D6B48C;
+  --color-status-finished: #98A2AE;
+  --color-error: #E58F83;
+  --color-success: #8FB3A6;
+  --color-warning: #D6B48C;
+  /* Stickers (warnings Kiri sticks on a day) and Kiri herself. */
+  --color-sticker-fragile: #D9B98F;
+  --color-sticker-overweight: #D08C73;
+  --color-sticker-book: #9DBDB0;
+  --color-sticker-ink: #24160F;
+  --kiri-clay: #C8876E;
+  --kiri-light: #DDA58F;
+  --kiri-dark: #9C6250;
+  --kiri-outline: #24160F;
+  --kiri-eye: #180E0A;
+  --kiri-white: #F7F3EE;
+  --kiri-cheek: #E3A097;
+  --kiri-cream: #E9DED3;
+  --kiri-tag: #8FB3A6;
+  --kiri-handle: #B5B5B0;
+  --kiri-tear: #9CC3D0;
+  --kiri-mark: #8893A0;
+  --kiri-sticker-1: #8FA89B;
+  --kiri-sticker-2: #F7F3EE;
+  --kiri-sticker-3: #6B7F99;
   /* Fixed header height: the offset every page and sticky element uses. */
   --header-h: 72px;
-  --shadow-accent-glow: 0 0 20px rgba(79, 110, 247, 0.4);
-  /* The three lights of the aurora layer (components/layout/Aurora.tsx). */
-  --aurora-1: rgba(79, 110, 247, 0.5);
-  --aurora-2: rgba(139, 92, 246, 0.42);
-  --aurora-3: rgba(245, 166, 35, 0.3);
-  /* Translucent surfaces, so the aurora keeps showing through the chrome. */
-  --glass-bg: rgba(21, 21, 46, 0.55);
-  --glass-border: rgba(243, 241, 255, 0.12);
+  --shadow-accent-glow: 0 0 18px rgba(143, 179, 166, 0.28);
+  /* The three lights of the gradient layer (components/layout/Aurora.tsx). */
+  --aurora-1: rgba(143, 179, 166, 0.22);
+  --aurora-2: rgba(125, 151, 196, 0.2);
+  --aurora-3: rgba(164, 151, 200, 0.15);
+  --aurora-dots: rgba(226, 232, 240, 0.045);
+  /* Translucent surfaces, so the gradient keeps showing through the chrome. */
+  --glass-bg: rgba(22, 27, 33, 0.72);
+  --glass-border: rgba(230, 234, 239, 0.1);
   /* The lift under the field you type into and under the primary action. */
-  --shadow-field-glow: 0 24px 70px -24px rgba(79, 110, 247, 0.55);
+  --shadow-field-glow: 0 24px 60px -28px rgba(0, 0, 0, 0.7);
 }
 
 [data-theme="light"] {
   color-scheme: light;
-  --color-bg-primary: #F7F6FB;
-  --color-bg-secondary: #EFEDF8;
+  --color-bg-primary: #F4F6F8;
+  --color-bg-secondary: #ECEFF3;
   --color-bg-card: #FFFFFF;
-  --color-accent: #4F6EF7;
-  --color-accent-soft: rgba(79, 110, 247, 0.1);
-  --color-accent-border: rgba(79, 110, 247, 0.2);
-  --color-text-primary: #12122A;
-  --color-text-secondary: #4A4A6A;
-  --color-text-muted: rgba(18, 18, 42, 0.55);
-  --color-border: rgba(18, 18, 42, 0.08);
-  --color-border-soft: rgba(18, 18, 42, 0.12);
-  --color-gold: #8A5400;
-  --color-accent-hover: #3B5BDB;
-  --color-bg-surface: #EFEDF8;
-  --color-border-card: #E4E1F2;
-  --color-status-planning: #C2410C;
-  --color-status-finished: #4A4A6A;
-  --color-purple: #7C3AED;
-  --color-error: #DC2626;
-  --color-success: #16A34A;
-  --color-warning: #B45309;
-  --shadow-accent-glow: 0 0 20px rgba(79, 110, 247, 0.3);
-  --aurora-1: rgba(79, 110, 247, 0.18);
-  --aurora-2: rgba(139, 92, 246, 0.14);
-  --aurora-3: rgba(245, 166, 35, 0.16);
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(18, 18, 42, 0.1);
-  --shadow-field-glow: 0 24px 60px -28px rgba(79, 110, 247, 0.4);
+  --color-bg-surface: #E3E8EE;
+  --color-text-primary: #121821;
+  --color-text-secondary: #4B5663;
+  --color-text-muted: rgba(18, 24, 33, 0.58);
+  --color-border: rgba(18, 24, 33, 0.08);
+  --color-border-soft: rgba(18, 24, 33, 0.13);
+  --color-border-card: #DDE3EA;
+  --color-accent: #47705F;
+  --color-accent-hover: #365A4B;
+  --color-accent-soft: rgba(71, 112, 95, 0.1);
+  --color-accent-border: rgba(71, 112, 95, 0.28);
+  --color-action: #121821;
+  --color-action-hover: #26303C;
+  --color-on-action: #F4F6F8;
+  --color-gold: #8A5A2B;
+  --color-purple: #62558F;
+  --color-status-planning: #8A5A2B;
+  --color-status-finished: #4B5663;
+  --color-error: #B3402F;
+  --color-success: #47705F;
+  --color-warning: #8A5A2B;
+  --kiri-mark: #7A8593;
+  --shadow-accent-glow: 0 0 16px rgba(71, 112, 95, 0.2);
+  --aurora-1: rgba(143, 179, 166, 0.2);
+  --aurora-2: rgba(125, 151, 196, 0.16);
+  --aurora-3: rgba(164, 151, 200, 0.12);
+  --aurora-dots: rgba(15, 23, 32, 0.055);
+  --glass-bg: rgba(255, 255, 255, 0.78);
+  --glass-border: rgba(18, 24, 33, 0.09);
+  --shadow-field-glow: 0 24px 60px -30px rgba(18, 24, 33, 0.28);
 }
 
 @theme inline {
@@ -88,6 +121,9 @@
   --color-accent: var(--color-accent);
   --color-accent-soft: var(--color-accent-soft);
   --color-accent-border: var(--color-accent-border);
+  --color-action: var(--color-action);
+  --color-action-hover: var(--color-action-hover);
+  --color-on-action: var(--color-on-action);
   --color-text-primary: var(--color-text-primary);
   --color-text-secondary: var(--color-text-secondary);
   --color-text-muted: var(--color-text-muted);
@@ -103,6 +139,11 @@
   --color-error: var(--color-error);
   --color-success: var(--color-success);
   --color-warning: var(--color-warning);
+  --color-sticker-fragile: var(--color-sticker-fragile);
+  --color-sticker-overweight: var(--color-sticker-overweight);
+  --color-sticker-book: var(--color-sticker-book);
+  --color-sticker-ink: var(--color-sticker-ink);
+  --color-kiri-clay: var(--kiri-clay);
   /* `bg-glass-bg` / `border-glass-border`: the translucent surface utilities. */
   --color-glass-bg: var(--glass-bg);
   --color-glass-border: var(--glass-border);
@@ -110,6 +151,8 @@
   --shadow-field-glow: var(--shadow-field-glow);
   --font-sans: var(--font-sans), system-ui, sans-serif;
   --font-heading: var(--font-heading), system-ui, sans-serif;
+  /* Only what Kiri says: her name tag and her one-liners (TRA-235). */
+  --font-pixel: var(--font-pixel), ui-monospace, monospace;
   /* Ids, hashes and JSON in the admin console (TRA-222); nowhere else. */
   --font-mono: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
 }
@@ -207,8 +250,6 @@
   --animate-ring-spin: ring-spin 6s linear infinite;
 }
 
-/* Film grain over the aurora. The data URI lives here, with the texture it
-   makes, instead of in a component's class list. */
 @layer components {
   /* The ring that turns around a focused field (TRA-190): one conic gradient,
      masked down to the 1 px of itself that shows, so the translucent surface
@@ -219,8 +260,8 @@
     background-image: conic-gradient(
       from var(--angle),
       var(--color-accent),
+      #7D97C4,
       var(--color-purple),
-      var(--color-gold),
       var(--color-accent)
     );
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
@@ -229,8 +270,10 @@
     mask-composite: exclude;
   }
 
-  .aurora-grain {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)' opacity='0.55'/%3E%3C/svg%3E");
+  /* The dotted paper under the slate sky (TRA-235): one dot every 22 px. */
+  .aurora-dots {
+    background-image: radial-gradient(var(--aurora-dots) 1px, transparent 1.3px);
+    background-size: 22px 22px;
   }
 }
 

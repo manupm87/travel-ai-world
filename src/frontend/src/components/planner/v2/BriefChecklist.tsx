@@ -112,7 +112,7 @@ export function BriefChecklist({ brief, missing, disabled = false, onGenerate }:
                 className={cn(
                   "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border",
                   isDone
-                    ? "animate-scale-in border-accent bg-accent text-white"
+                    ? "animate-scale-in border-accent bg-action text-on-action"
                     : "border-border-soft text-transparent"
                 )}
               >
