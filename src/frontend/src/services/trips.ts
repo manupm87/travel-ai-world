@@ -541,6 +541,13 @@ export interface SaveDraftAsTripOptions extends WriteOptions {
   title: string;
   /** Rewrite this trip instead of creating one: the second "Save trip". */
   tripId?: string | null;
+  /**
+   * The new trip's id, the moment core_api has stored it (TRA-244). The rest
+   * of the snapshot is several writes more, and any of them can fail: the
+   * caller keeps the id so that trying again rewrites this trip instead of
+   * leaving it half-written and creating another one.
+   */
+  onCreated?: (id: string) => void;
 }
 
 /** Drops everything hanging off a trip, so the snapshot can be written again. */
@@ -580,7 +587,7 @@ export async function saveDraftAsTrip(
   itinerary: ItineraryDraft,
   brief: TripBrief,
   city: PlannerCity,
-  { title, tripId = null, signal }: SaveDraftAsTripOptions
+  { title, tripId = null, signal, onCreated }: SaveDraftAsTripOptions
 ): Promise<Trip> {
   const body = tripBodyOf(itinerary, brief, city, title);
 
@@ -591,6 +598,7 @@ export async function saveDraftAsTrip(
     await clearChildren(existing, signal);
   } else {
     id = (await createTrip(body, { signal })).id;
+    onCreated?.(id);
   }
 
   for (const day of itinerary.days) {

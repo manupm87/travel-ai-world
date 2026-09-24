@@ -398,6 +398,15 @@
   }
 }
 
+/* A pane that scrolls without drawing a bar (TRA-244): the planner's chat, its
+   trip panel and its sheets. Wheel, touch and keyboard scroll as before. */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
   font-weight: 400;

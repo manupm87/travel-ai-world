@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { Button } from "@/components/ui/Button";
+import { createPortal } from "react-dom";
+import { HEADER_SLOT_ID } from "@/components/layout/Header";
 import { useLanguage } from "@/context/LanguageContext";
 import { interpolate } from "@/i18n";
 import {
@@ -12,6 +13,7 @@ import {
   type OptionGroupState,
   type PlannerState,
 } from "@/hooks/plannerReducer";
+import { useBriefValues } from "@/hooks/useBriefValues";
 import { useCardDetail } from "@/hooks/useCardDetail";
 import type { AskAlternativesOptions } from "@/hooks/usePlanner";
 import type { UseSaveTripResult } from "@/hooks/useSaveTrip";
@@ -26,9 +28,8 @@ import type { LockedPhase } from "./LockedNotice";
 import { OpenTripNotice, type OpenTripState } from "./OpenTripNotice";
 import { stayStopId, stopId, type MapStop } from "./mapStops";
 import { RouteStrip } from "./RouteStrip";
-import { SaveTripButton } from "./SaveTripButton";
-import { ShareButton } from "./ShareButton";
 import { StayCard } from "./StayCard";
+import { TripHeader } from "./TripHeader";
 import { TripOverview } from "./TripOverview";
 import { dateForDay, daysBetween } from "@/utils/tripDates";
 import { WarningBadge } from "./WarningBadge";
@@ -146,10 +147,19 @@ export function TripPanel({
   const { t } = useLanguage();
   const [changing, setChanging] = useState<Slot | null>(null);
   const dayPanelId = useId();
-  const hintId = useId();
   const scrollerRef = useRef<HTMLDivElement>(null);
   const p = t.plan.panel;
   const { brief, itinerary } = state;
+  const briefValues = useBriefValues(brief);
+
+  // The app header's slot, where the trip bar goes on a desktop (TRA-244). It
+  // is rendered by the layout, before the page, so it is there on mount.
+  const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    const found = document.getElementById(HEADER_SLOT_ID);
+    const id = window.setTimeout(() => setHeaderSlot(found), 0);
+    return () => window.clearTimeout(id);
+  }, []);
 
   // Picking a pin on the map brings what it selected into view: the stay's
   // card, which stays on screen, or the activity's page, which replaced the
@@ -279,7 +289,7 @@ export function TripPanel({
 
   if (openTrip) {
     return (
-      <div className="flex h-full flex-col gap-4 overflow-y-auto overscroll-y-contain p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+      <div className="flex h-full flex-col gap-4 scrollbar-none overflow-y-auto overscroll-y-contain p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <OpenTripNotice state={openTrip} onNewTrip={onNewTrip} />
       </div>
     );
@@ -291,7 +301,7 @@ export function TripPanel({
     // checklist takes its place as soon as the conversation starts.
     const started = state.messages.length > 0;
     return (
-      <div className="flex h-full flex-col gap-4 overflow-y-auto overscroll-y-contain p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+      <div className="flex h-full flex-col gap-4 scrollbar-none overflow-y-auto overscroll-y-contain p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
         {started ? (
           <BriefChecklist
             brief={brief}
@@ -328,73 +338,49 @@ export function TripPanel({
     itinerary.route ? (routeLegs(itinerary.route) === 1 ? p.legOne : interpolate(p.legs, { count: 2 })) : null,
   ].filter((entry): entry is string => !!entry);
 
+  const barSummary = [briefValues.dates?.split(" · ")[0] ?? null, briefValues.travellers]
+    .filter((entry): entry is string => !!entry)
+    .join(", ");
+
   const globalWarnings = itinerary.warnings.filter((warning) => warning.slot === null);
+
+  // The day after the one on screen, which the day card offers at its foot.
+  const nextDay =
+    shownDay === null ? null : (itinerary.days.find((d) => d.day === shownDay.day + 1) ?? null);
 
   const stayStop = mapStops.find((stop) => stop.kind === "stay") ?? null;
 
   return (
     <div
       ref={scrollerRef}
-      className="flex h-full flex-col gap-4 overflow-y-auto overscroll-y-contain p-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
+      className="flex h-full flex-col gap-4 scrollbar-none overflow-y-auto overscroll-y-contain p-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
     >
-      <header className="flex animate-fade-up flex-col gap-3 sm:flex-row sm:items-start">
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <span className="text-xs text-text-secondary">
-            {lockedPhase ? t.plan.trips.phase[lockedPhase] : p.draft}
-          </span>
-          <h2 className="text-xl font-medium leading-tight text-text-primary lg:text-2xl">{heading}</h2>
-          <p className="text-xs text-text-secondary">{counters.join(" · ")}</p>
-        </div>
-        <div className="flex shrink-0 flex-wrap items-center gap-2 sm:ml-auto">
-          {save.tripId !== null && <ShareButton tripId={save.tripId} />}
-          {!lockedPhase && (
-            <>
-              {/* "New trip" leaves the saved trip and "Start over" stays on it:
-                  the first sits with "Save trip" (both are about the trip), the
-                  second stands apart behind a rule, and each carries a short
-                  description, so the two are never mistaken for synonyms. */}
-              <div className="flex flex-wrap items-center gap-2">
-                <SaveTripButton
-                  status={save.status}
-                  tripId={save.tripId}
-                  canSave={save.canSave}
-                  onSave={save.save}
-                />
-                {save.tripId !== null && onNewTrip && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={onNewTrip}
-                    title={p.newTripHint}
-                    aria-describedby={`${hintId}-new`}
-                    className="px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
-                  >
-                    {t.plan.trips.newTrip}
-                  </Button>
-                )}
-              </div>
-              <div className="flex items-center gap-2 border-l border-border pl-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onReset}
-                  title={p.resetHint}
-                  aria-describedby={`${hintId}-reset`}
-                  className="px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
-                >
-                  {p.reset}
-                </Button>
-              </div>
-              <span id={`${hintId}-new`} className="sr-only">
-                {p.newTripHint}
-              </span>
-              <span id={`${hintId}-reset`} className="sr-only">
-                {p.resetHint}
-              </span>
-            </>
-          )}
-        </div>
-      </header>
+      {/* The trip's name and its actions: in the app header on a desktop,
+          as the canvas has it, and on top of the pane below that. */}
+      <TripHeader
+        variant="panel"
+        className="lg:hidden"
+        heading={heading}
+        summary={counters.join(" · ")}
+        lockedPhase={lockedPhase}
+        save={save}
+        onNewTrip={onNewTrip}
+        onReset={onReset}
+      />
+      {headerSlot &&
+        createPortal(
+          <TripHeader
+            variant="bar"
+            className="hidden lg:flex"
+            heading={heading}
+            summary={barSummary}
+            lockedPhase={lockedPhase}
+            save={save}
+            onNewTrip={onNewTrip}
+            onReset={onReset}
+          />,
+          headerSlot
+        )}
 
       {globalWarnings.length > 0 && (
         <div className="flex flex-col gap-2">
@@ -404,9 +390,10 @@ export function TripPanel({
         </div>
       )}
 
-      {itinerary.route && <RouteStrip route={itinerary.route} />}
+      {/* The route leads the overview; a day starts with the day. */}
+      {currentDay === null && itinerary.route && <RouteStrip route={itinerary.route} />}
 
-      {itinerary.stay && (
+      {currentDay === null && itinerary.stay && (
         <StayCard
           stay={itinerary.stay}
           nights={brief.nights}
@@ -414,19 +401,21 @@ export function TripPanel({
           selectedStopId={selectedStopId}
           // Nothing to select on the overview: no day is on screen, so no map
           // and no activity page to open. The card is plain text and "Change".
-          onSelectStop={currentDay === null ? undefined : onSelectStop}
           onChange={lockedPhase ? undefined : () => setChanging(STAY_SLOT)}
         />
       )}
 
       {itinerary.days.length > 0 && (
-        <DayStrip
-          days={itinerary.days}
-          startDate={brief.start_date}
-          selectedDay={currentDay}
-          panelId={dayPanelId}
-          onSelect={onSelectDay}
-        />
+        // The tabs stay in reach while a long day scrolls under them.
+        <div className="sticky -top-4 z-10 -mx-4 -mt-4 bg-bg-secondary/90 px-4 pt-4 pb-1 backdrop-blur-md">
+          <DayStrip
+            days={itinerary.days}
+            startDate={brief.start_date}
+            selectedDay={currentDay}
+            panelId={dayPanelId}
+            onSelect={onSelectDay}
+          />
+        </div>
       )}
 
       <div id={dayPanelId} role="tabpanel" aria-label={panelLabel}>
@@ -464,6 +453,14 @@ export function TripPanel({
             static
             onChange={lockedPhase ? undefined : (slot) => setChanging(slot)}
             onRemove={lockedPhase ? undefined : onRemove}
+            next={
+              nextDay && {
+                day: nextDay.day,
+                title: nextDay.title ?? null,
+                date: dateForDay(brief.start_date, nextDay.day),
+              }
+            }
+            onNext={nextDay ? () => onSelectDay(nextDay.day) : undefined}
           />
         ) : (
           /* No day selected: the whole trip, across this column and the one
@@ -476,6 +473,20 @@ export function TripPanel({
           />
         )}
       </div>
+
+      {/* Where the night is spent, one line under the day (the overview has
+          the whole card). */}
+      {currentDay !== null && itinerary.stay && (
+        <StayCard
+          compact
+          stay={itinerary.stay}
+          nights={brief.nights}
+          stop={stayStop}
+          selectedStopId={selectedStopId}
+          onSelectStop={onSelectStop}
+          onChange={lockedPhase ? undefined : () => setChanging(STAY_SLOT)}
+        />
+      )}
 
       <p className="pb-2 text-xs text-text-secondary">{p.priceNote}</p>
 

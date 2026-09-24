@@ -199,7 +199,7 @@ export function ChatColumn({
         onScroll={onScroll}
         role="log"
         aria-live="polite"
-        className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-y-contain px-1"
+        className="flex min-h-0 flex-1 flex-col gap-4 scrollbar-none overflow-y-auto overscroll-y-contain px-1"
       >
         {packingStatus && turnStart === -1 && packingStatus}
         {messages.map((message, index) => (

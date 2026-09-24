@@ -5,7 +5,12 @@ import { Check, MapPin } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { interpolate } from "@/i18n";
 import { useBriefValues } from "@/hooks/useBriefValues";
-import { PACKING_STEPS, type ItineraryDraft, type PackingState } from "@/hooks/plannerReducer";
+import {
+  PACKING_STEPS,
+  type ItineraryDraft,
+  type PackingState,
+  type PackingStep,
+} from "@/hooks/plannerReducer";
 import { KiriFace } from "@/components/kiri/Kiri";
 import { DAY_PARTS, type TripBrief } from "@/types/planner";
 import { cn } from "@/utils/cn";
@@ -19,6 +24,10 @@ const TILES_WIDE = 5;
 const OPEN_AFTER_MS = 300;
 
 export interface SuitcaseProps {
+  /** How far the replay has got: what is in the suitcase so far (TRA-244). */
+  stage: PackingStep;
+  /** Every stop's drop, one after the other. */
+  tileMs?: number;
   packing: PackingState;
   brief: TripBrief;
   itinerary: ItineraryDraft;
@@ -28,8 +37,8 @@ export interface SuitcaseProps {
   closed: boolean;
 }
 
-function reached(packing: PackingState, step: PackingState["step"]): boolean {
-  return PACKING_STEPS.indexOf(packing.step) >= PACKING_STEPS.indexOf(step);
+function reached(stage: PackingStep, step: PackingStep): boolean {
+  return PACKING_STEPS.indexOf(stage) >= PACKING_STEPS.indexOf(step);
 }
 
 /**
@@ -42,7 +51,15 @@ function reached(packing: PackingState, step: PackingState["step"]): boolean {
  * showing Kiri's face, the destination's tag and, if something weighed too
  * much, a sticker. Decoration: what it shows is on the page in words too.
  */
-export function Suitcase({ packing, brief, itinerary, optionTitles, closed }: SuitcaseProps) {
+export function Suitcase({
+  stage,
+  tileMs = 100,
+  packing,
+  brief,
+  itinerary,
+  optionTitles,
+  closed,
+}: SuitcaseProps) {
   const { t } = useLanguage();
   const s = t.plan.packing.suitcase;
   const values = useBriefValues(brief);
@@ -53,13 +70,13 @@ export function Suitcase({ packing, brief, itinerary, optionTitles, closed }: Su
     return () => window.clearTimeout(id);
   }, []);
 
-  const listed = reached(packing, "list")
+  const listed = reached(stage, "list")
     ? [values.destination, values.dates, values.travellers, values.interests].filter(
         (value): value is string => value !== null
       )
     : [];
-  const sources = reached(packing, "wardrobe") ? packing.sources : [];
-  const packed = reached(packing, "fold");
+  const sources = reached(stage, "wardrobe") ? packing.sources : [];
+  const packed = reached(stage, "fold");
 
   const days = itinerary.days.slice(0, COMPARTMENTS).map((day) => ({
     key: `day-${day.day}`,
@@ -80,7 +97,7 @@ export function Suitcase({ packing, brief, itinerary, optionTitles, closed }: Su
     <div
       aria-hidden="true"
       data-suitcase={closed || !opened ? "closed" : "open"}
-      className="suitcase relative flex flex-col"
+      className="suitcase relative isolate flex flex-col overflow-hidden rounded-[18px]"
     >
       {/* The lid: its inside while open, its outside once it turns over. */}
       <div
@@ -164,7 +181,7 @@ export function Suitcase({ packing, brief, itinerary, optionTitles, closed }: Su
                     {packed &&
                       compartment.titles.slice(0, wide ? TILES_WIDE : TILES).map((title) => {
                         const at = delay;
-                        delay += 100;
+                        delay += tileMs;
                         return (
                           <span
                             key={title}

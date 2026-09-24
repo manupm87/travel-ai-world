@@ -64,7 +64,7 @@ describe("DayCard", () => {
     });
     expect(within(evening).getByText(p.emptySlot)).toBeInTheDocument();
     expect(
-      within(evening).getByRole("button", { name: `${p.change}: ${en.plan.parts.evening}` })
+      within(evening).getByRole("button", { name: `${p.addStop}: ${en.plan.parts.evening}` })
     ).toBeInTheDocument();
   });
 

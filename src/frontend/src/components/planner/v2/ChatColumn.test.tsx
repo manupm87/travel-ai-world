@@ -1,6 +1,6 @@
 import type { ComponentProps } from "react";
 import { describe, expect, it, vi } from "vitest";
-import { fireEvent, renderWithProviders, screen } from "@/test/render";
+import { act, fireEvent, renderWithProviders, screen } from "@/test/render";
 import en from "@/i18n/en";
 import { interpolate } from "@/i18n";
 import {
@@ -158,7 +158,7 @@ describe("ChatColumn — Kiri's answer (TRA-239)", () => {
   it("packs the suitcase under the message that started the turn, while it streams", () => {
     renderColumn({
       status: "streaming",
-      packing: { step: "wardrobe", folded: false, warned: false, failed: false, detail: null, sources: [], live: false },
+      packing: { step: "wardrobe", folded: false, warned: false, failed: false, detail: null, sources: [], live: false, daysBefore: 0 },
       messages: [
         { id: "m1", kind: "text", role: "user", content: "5 days in Budapest" },
         { id: "m2", kind: "text", role: "assistant", content: "" },
@@ -169,35 +169,7 @@ describe("ChatColumn — Kiri's answer (TRA-239)", () => {
     expect(status).toHaveTextContent(p.packing.details.wardrobe);
   });
 
-  it("closes the suitcase into a boarding pass once the trip has days, and tells how it packed", async () => {
-    renderColumn({
-      status: "idle",
-      packing: { step: "zip", folded: true, warned: true, failed: false, detail: null, sources: [], live: false },
-      brief: { ...EMPTY_BRIEF, destination: "Budapest", origin: "Madrid", adults: 2 },
-      itinerary: applyItineraryOps(EMPTY_ITINERARY, FIRST_ITINERARY_OPS),
-      missing: [],
-    });
-    // The lid shuts first; the boarding pass is what it closes into.
-    expect(document.querySelector('[data-packing="closing"]')).not.toBeNull();
-    expect(
-      await screen.findByRole("region", { name: p.packing.boarding.title }, { timeout: 3000 })
-    ).toHaveTextContent("Budapest");
-    expect(screen.getByText(p.packing.closed)).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("button", { name: p.packing.howIPacked }));
-    const steps = Array.from(document.querySelectorAll("li[data-step]"));
-    expect(steps.map((item) => item.getAttribute("data-step"))).toEqual([
-      "open",
-      "list",
-      "wardrobe",
-      "fold",
-      "weigh",
-      "zip",
-    ]);
-  });
-
-  it("fills the open suitcase with the list, the sources and each day's stops", () => {
-    const itinerary = applyItineraryOps(EMPTY_ITINERARY, FIRST_ITINERARY_OPS);
+  it("keeps the suitcase for the end: a compact status while the turn streams (TRA-244)", () => {
     renderColumn({
       status: "streaming",
       packing: {
@@ -206,25 +178,90 @@ describe("ChatColumn — Kiri's answer (TRA-239)", () => {
         warned: false,
         failed: false,
         detail: "Sharing the stops out over 3 days, close to each other.",
-        sources: ["Wikivoyage", "Open-Meteo"],
+        sources: ["Wikivoyage"],
         live: true,
+        daysBefore: 0,
       },
       brief: { ...EMPTY_BRIEF, destination: "Budapest", adults: 2 },
-      itinerary,
+      itinerary: applyItineraryOps(EMPTY_ITINERARY, FIRST_ITINERARY_OPS),
       messages: [
         { id: "m1", kind: "text", role: "user", content: "3 days in Budapest" },
         { id: "m2", kind: "text", role: "assistant", content: "" },
       ],
     });
-    // The server's sentence is what the status says.
     expect(screen.getByRole("status")).toHaveTextContent("over 3 days");
-    const suitcase = document.querySelector("[data-suitcase]");
-    expect(suitcase).toHaveTextContent(p.packing.suitcase.list);
-    expect(suitcase).toHaveTextContent("Budapest");
-    expect(suitcase).toHaveTextContent("Open-Meteo");
-    const firstStop = itinerary.days[0]?.slots.morning[0]?.title ?? "";
-    expect(suitcase).toHaveTextContent(firstStop);
-    expect(suitcase).toHaveTextContent(interpolate(p.packing.suitcase.day, { day: 1 }));
+    expect(document.querySelector("[data-suitcase]")).toBeNull();
+  });
+
+  it("plays the whole suitcase once the trip is packed, then turns it into the boarding pass", () => {
+    vi.useFakeTimers();
+    try {
+      const itinerary = applyItineraryOps(EMPTY_ITINERARY, FIRST_ITINERARY_OPS);
+      renderColumn({
+        status: "idle",
+        packing: {
+          step: "zip",
+          folded: true,
+          warned: true,
+          failed: false,
+          detail: null,
+          sources: ["Wikivoyage", "Open-Meteo"],
+          live: true,
+          daysBefore: 0,
+        },
+        brief: { ...EMPTY_BRIEF, destination: "Budapest", origin: "Madrid", adults: 2 },
+        itinerary,
+        missing: [],
+      });
+      // From the first render: the suitcase, not a flash of the pass.
+      expect(document.querySelector('[data-packing="replay"]')).not.toBeNull();
+      expect(screen.queryByRole("region", { name: p.packing.boarding.title })).toBeNull();
+
+      act(() => vi.advanceTimersByTime(2500));
+      const suitcase = document.querySelector("[data-suitcase]");
+      expect(suitcase).toHaveTextContent(p.packing.suitcase.list);
+      expect(suitcase).toHaveTextContent("Open-Meteo");
+      expect(suitcase).toHaveTextContent(itinerary.days[0]?.slots.morning[0]?.title ?? "");
+
+      act(() => vi.advanceTimersByTime(10_000));
+      expect(screen.getByRole("region", { name: p.packing.boarding.title })).toHaveTextContent(
+        "Budapest"
+      );
+      expect(screen.getByText(p.packing.closed)).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole("button", { name: p.packing.howIPacked }));
+      const steps = Array.from(document.querySelectorAll("li[data-step]"));
+      expect(steps.map((item) => item.getAttribute("data-step"))).toEqual([
+        "open",
+        "list",
+        "wardrobe",
+        "fold",
+        "weigh",
+        "zip",
+      ]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("closes a turn that only changed the trip quietly, without the suitcase", () => {
+    renderColumn({
+      status: "idle",
+      packing: {
+        step: "zip",
+        folded: true,
+        warned: false,
+        failed: false,
+        detail: null,
+        sources: [],
+        live: true,
+        daysBefore: 3,
+      },
+      itinerary: applyItineraryOps(EMPTY_ITINERARY, FIRST_ITINERARY_OPS),
+      missing: [],
+    });
+    expect(screen.getByText(p.packing.closed)).toBeInTheDocument();
+    expect(document.querySelector("[data-suitcase]")).toBeNull();
   });
 
   it("writes what is missing on a luggage tag over the quick replies", () => {
@@ -243,7 +280,7 @@ describe("ChatColumn — Kiri's answer (TRA-239)", () => {
       status: "idle",
       brief: { ...EMPTY_BRIEF },
       missing: ["destination", "dates"],
-      packing: { step: "zip", folded: false, warned: false, failed: false, detail: null, sources: [], live: true },
+      packing: { step: "zip", folded: false, warned: false, failed: false, detail: null, sources: [], live: true, daysBefore: 0 },
       messages: [
         { id: "m1", kind: "text", role: "user", content: "Four days in Lisbon" },
         { id: "m2", kind: "text", role: "assistant", content: "For now I can plan Budapest." },

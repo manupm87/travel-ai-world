@@ -265,6 +265,8 @@ export interface Translations {
       save: string;
       /** Why the button is disabled: a demo session saves nothing. */
       saveHint: string;
+      /** A trip that starts today or earlier cannot be saved (TRA-244). */
+      savePastDates: string;
       /** While the trip is being written. */
       saving: string;
       saved: string;
@@ -301,6 +303,8 @@ export interface Translations {
       stay: string;
       stayOne: string;
       stayNoNights: string;
+      /** The stay as one row over the day (TRA-244): "Sleeping in {place}" */
+      sleepingIn: string;
       change: string;
       remove: string;
       /** "Day {day}" */
@@ -308,6 +312,8 @@ export interface Translations {
       showDay: string;
       hideDay: string;
       emptySlot: string;
+      /** An empty part of the day, in the timeline: its way to find something (TRA-244). */
+      addStop: string;
       priceNote: string;
       weatherSource: string;
       warnings: Record<WarnCode, string>;

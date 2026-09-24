@@ -10,7 +10,7 @@ import asyncio
 import json
 import re
 from collections.abc import AsyncIterator, Sequence
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 import pytest
@@ -1778,3 +1778,38 @@ async def test_a_complete_brief_zips_with_everything_in():
         e.detail != "Something is missing before I can close it: I'll ask."
         for e in zips
     )
+
+
+async def test_dates_already_past_move_to_next_year():
+    """TRA-244: a trip that starts today or earlier could never be saved."""
+    past = TODAY.replace(day=1) if TODAY.day > 1 else TODAY
+    use_case, _, _ = planner(
+        [
+            json.dumps(
+                {
+                    "destination": "Budapest",
+                    "start_date": past.isoformat(),
+                    "end_date": (past + timedelta(days=2)).isoformat(),
+                }
+            )
+        ]
+    )
+
+    events = await run(use_case(turn("Budapest, first days of this month")))
+
+    [event] = only(events, BriefEvent)
+    assert event.brief.start_date == past.replace(year=past.year + 1)
+    assert event.brief.end_date == (past + timedelta(days=2)).replace(
+        year=past.year + 1
+    )
+    assert event.brief.nights == 2
+
+
+async def test_dates_ahead_are_kept():
+    ahead = TODAY + timedelta(days=30)
+    use_case, _, _ = planner(
+        [json.dumps({"destination": "Budapest", "start_date": ahead.isoformat()})]
+    )
+    events = await run(use_case(turn("Budapest next month")))
+    [event] = only(events, BriefEvent)
+    assert event.brief.start_date == ahead

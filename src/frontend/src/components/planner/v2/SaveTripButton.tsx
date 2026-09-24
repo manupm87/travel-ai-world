@@ -11,6 +11,8 @@ export interface SaveTripButtonProps {
   tripId: string | null;
   /** False in demo mode, signed out, or with nothing planned yet. */
   canSave: boolean;
+  /** Why it cannot save although there is a trip: its dates have passed (TRA-244). */
+  blocked?: "past-dates" | null;
   onSave: () => void;
 }
 
@@ -20,7 +22,13 @@ export interface SaveTripButtonProps {
  * once it is, or what to do about a failure. The work is `useSaveTrip`;
  * this renders its four states and nothing else.
  */
-export function SaveTripButton({ status, tripId, canSave, onSave }: SaveTripButtonProps) {
+export function SaveTripButton({
+  status,
+  tripId,
+  canSave,
+  blocked = null,
+  onSave,
+}: SaveTripButtonProps) {
   const { t } = useLanguage();
   const p = t.plan.panel;
 
@@ -34,7 +42,7 @@ export function SaveTripButton({ status, tripId, canSave, onSave }: SaveTripButt
       disabled={disabled}
       aria-disabled={disabled || undefined}
       aria-busy={busy || undefined}
-      title={canSave ? undefined : p.saveHint}
+      title={canSave ? undefined : blocked ? p.savePastDates : p.saveHint}
       className="px-4 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-50"
     >
       {busy && (
@@ -47,6 +55,16 @@ export function SaveTripButton({ status, tripId, canSave, onSave }: SaveTripButt
     </Button>
   );
 
+  if (blocked) {
+    return (
+      <span className="flex items-center gap-2">
+        {button(p.save, { disabled: true })}
+        <span role="status" className="text-xs text-warning">
+          {p.savePastDates}
+        </span>
+      </span>
+    );
+  }
   if (!canSave) return button(p.save, { disabled: true });
   if (status === "saving") return button(p.saving, { busy: true, disabled: true });
 

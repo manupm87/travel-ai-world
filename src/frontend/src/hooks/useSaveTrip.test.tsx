@@ -132,6 +132,32 @@ describe("useSaveTrip", () => {
     await waitFor(() => expect(result.current.status).toBe("saved"));
   });
 
+  it("keeps the trip it created even when a later write fails, so a retry updates it (TRA-244)", async () => {
+    saveDraftAsTripMock.mockImplementationOnce(async (_itinerary, _brief, _city, options) => {
+      options.onCreated?.("t-half");
+      throw new Error("a day was refused");
+    });
+    saveDraftAsTripMock.mockResolvedValueOnce(makeTrip({ id: "t-half" }));
+
+    const { result } = renderHook(() => useSaveTrip(planned(), options()), { wrapper });
+
+    act(() => result.current.save());
+    await waitFor(() => expect(result.current.status).toBe("error"));
+    expect(result.current.tripId).toBe("t-half");
+    expect(writeSavedTripId).toHaveBeenCalledWith("t-half");
+
+    act(() => result.current.save());
+    await waitFor(() => expect(result.current.status).toBe("saved"));
+    expect(saveDraftAsTripMock.mock.calls[1]?.[3]).toMatchObject({ tripId: "t-half" });
+  });
+
+  it("refuses to save a trip whose dates have passed, and says why", () => {
+    const past = planned({ brief: { ...planned().brief, start_date: "2020-01-01", end_date: "2020-01-03" } });
+    const { result } = renderHook(() => useSaveTrip(past, options()), { wrapper });
+    expect(result.current.canSave).toBe(false);
+    expect(result.current.blocked).toBe("past-dates");
+  });
+
   it("clears the session on a rejected token and says nothing else", async () => {
     saveDraftAsTripMock.mockRejectedValue(new UnauthorizedError("expired"));
 

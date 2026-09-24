@@ -97,6 +97,12 @@ def test_new_sources_are_told_once_as_they_turn_up():
     )  # type: ignore[union-attr]
 
 
+def test_a_one_day_trip_is_not_spread_over_1_days():
+    fold = packing().phase("fold", days=1)
+    assert fold is not None
+    assert fold.detail == "Fitting the stops into the day, close to each other."
+
+
 def test_text_passes_through_untouched():
     p = packing()
     p.phase("zip")

@@ -147,6 +147,10 @@ testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, Ke
   sentences are `progress_*` in `prompts.py`, and `sources` grow with the cards and the forecast
   that go out. A new phase call site is a `turn.phase(...)`; a step the page should not see twice
   (the draft's per-day fold/weigh) passes `announce=False`.
+- **A trip's dates are always ahead (TRA-244).** `_extract_brief` returns `_ahead(brief, today)`:
+  dates on or before today ("1 to 3 September" asked in late September) move forward a year at a
+  time, both ends together. core_api creates a trip whose dates have passed already locked
+  (ADR 0019) and refuses its days, so a planned trip must start tomorrow at the earliest.
 - **Conversations live in `core_api`** (ADR 0013), never here: `ai_api` stays stateless and has no
   database. `RecordConversation` wraps the answer stream and, once the answer is complete, appends
   the question and the answer (sources, model, tokens, latency from `ChatTrace`) through

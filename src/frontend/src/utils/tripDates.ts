@@ -38,3 +38,25 @@ export function daysBetween(start: string | null, end: string | null): number | 
   if (from === null || to === null || to < from) return null;
   return Math.round((to - from) / MS_PER_DAY) + 1;
 }
+
+const pad = (n: number) => String(n).padStart(2, "0");
+
+/** A day in the reader's own calendar, as the `YYYY-MM-DD` a brief carries. */
+function isoOf(day: Date): string {
+  return `${day.getFullYear()}-${pad(day.getMonth() + 1)}-${pad(day.getDate())}`;
+}
+
+/** Today, in the reader's calendar. */
+export function todayIso(): string {
+  return isoOf(new Date());
+}
+
+/**
+ * The first day a trip can start (TRA-244): tomorrow. A trip that starts
+ * today is already ongoing, which core_api locks (ADR 0019).
+ */
+export function tomorrowIso(): string {
+  const day = new Date();
+  day.setDate(day.getDate() + 1);
+  return isoOf(day);
+}

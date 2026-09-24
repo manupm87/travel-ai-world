@@ -6,6 +6,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { interpolate } from "@/i18n";
 import type { BriefField, PriceTier, TripBrief } from "@/types/planner";
 import { cn } from "@/utils/cn";
+import { tomorrowIso } from "@/utils/tripDates";
 
 export interface QuickRepliesProps {
   brief: TripBrief;
@@ -236,6 +237,8 @@ export function QuickReplies({
                 id={`${ids}-from`}
                 type="date"
                 value={startDate}
+                // A trip starts tomorrow at the earliest (TRA-244).
+                min={tomorrowIso()}
                 onChange={(e) => setStartDate(e.target.value)}
                 disabled={disabled}
                 className={fieldClass}
@@ -249,7 +252,7 @@ export function QuickReplies({
                 id={`${ids}-to`}
                 type="date"
                 value={endDate}
-                min={startDate || undefined}
+                min={startDate || tomorrowIso()}
                 onChange={(e) => setEndDate(e.target.value)}
                 disabled={disabled}
                 className={fieldClass}

@@ -9,7 +9,7 @@ import { readSavedTripId, writeSavedTripId } from "@/services/plannerDraft";
 import { clearSession } from "@/services/session";
 import { saveDraftAsTrip } from "@/services/trips";
 import type { PlannerCity } from "@/types/planner";
-import { daysBetween } from "@/utils/tripDates";
+import { daysBetween, todayIso } from "@/utils/tripDates";
 import { hasItinerary, type ItineraryDraft, type PlannerState } from "./plannerReducer";
 
 export type SaveTripStatus = "idle" | "saving" | "saved" | "error";
@@ -40,6 +40,11 @@ export interface UseSaveTripResult {
   tripId: string | null;
   /** Whether "Save trip" does anything: something to save, and somewhere to save it. */
   canSave: boolean;
+  /**
+   * Why a trip that could otherwise be saved cannot (TRA-244): its dates
+   * start today or earlier, and core_api locks such a trip (ADR 0019).
+   */
+  blocked: "past-dates" | null;
   /** Writes the draft. Safe to call again after a failure, or after a change. */
   save: () => void;
 }
@@ -97,8 +102,18 @@ export function useSaveTrip(
   const [savedItinerary, setSavedItinerary] = useState<ItineraryDraft | null>(null);
   if (status === "saved" && savedItinerary !== itinerary) setStatus("idle");
 
+  // A trip that starts today or earlier is ongoing or over: core_api would
+  // store it and then refuse every day written into it (ADR 0019).
+  const pastDates = brief.start_date !== null && brief.start_date <= todayIso();
+  const blocked = pastDates ? ("past-dates" as const) : null;
+
   const canSave =
-    enabled && isAuthenticated && isApiAvailable() && city !== null && hasItinerary(itinerary);
+    enabled &&
+    isAuthenticated &&
+    isApiAvailable() &&
+    city !== null &&
+    hasItinerary(itinerary) &&
+    !pastDates;
 
   const save = useCallback(() => {
     if (!canSave || !city || status === "saving") return;
@@ -113,7 +128,18 @@ export function useSaveTrip(
     controllerRef.current = controller;
     setStatus("saving");
 
-    saveDraftAsTrip(itinerary, brief, city, { title, tripId, signal: controller.signal })
+    saveDraftAsTrip(itinerary, brief, city, {
+      title,
+      tripId,
+      signal: controller.signal,
+      // Kept at once: a failure further on is retried as an update of this
+      // trip, never as a second one (TRA-244).
+      onCreated: (id) => {
+        if (controller.signal.aborted) return;
+        writeSavedTripId(id);
+        setTripId(id);
+      },
+    })
       .then((trip) => {
         if (controller.signal.aborted) return;
         writeSavedTripId(trip.id);
@@ -133,5 +159,5 @@ export function useSaveTrip(
       });
   }, [brief, canSave, city, itinerary, status, t, tripId]);
 
-  return { status, tripId, canSave, save };
+  return { status, tripId, canSave, blocked, save };
 }

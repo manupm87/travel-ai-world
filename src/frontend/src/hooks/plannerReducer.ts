@@ -105,6 +105,12 @@ export interface PackingState {
    * its word alone, and the other events no longer move them.
    */
   live: boolean;
+  /**
+   * How many days the trip had when the turn left (TRA-244): a turn that
+   * started with none and ends with some is the one that packed the trip, and
+   * the only one whose suitcase is played in full.
+   */
+  daysBefore: number;
 }
 
 export interface PlannerState extends PlannerDraft {
@@ -486,6 +492,7 @@ export function plannerReducer(state: PlannerState, action: PlannerAction): Plan
           detail: null,
           sources: [],
           live: false,
+          daysBefore: state.itinerary.days.length,
         },
       };
     }

@@ -183,7 +183,7 @@ export function AlternativesSheet({
           </form>
         )}
 
-        <div className="flex flex-1 flex-col gap-3 overflow-y-auto overscroll-y-contain px-4 py-4">
+        <div className="flex flex-1 flex-col gap-3 scrollbar-none overflow-y-auto overscroll-y-contain px-4 py-4">
           {group
             ? cards.map((card) => (
                 <OptionCard

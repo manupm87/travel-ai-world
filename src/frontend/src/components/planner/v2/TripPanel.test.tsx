@@ -58,6 +58,7 @@ function renderPanel(
     status: "idle",
     tripId: null,
     canSave: true,
+    blocked: null,
     save: onSave,
     ...save,
   };
@@ -209,7 +210,14 @@ describe("TripPanel", () => {
 
   it("renders the draft trip: heading, counters, route, stay and days", () => {
     renderPanel();
+
+    // The route leads the overview; a day starts with the day (TRA-244).
+    const flights = screen.getAllByRole("link", { name: p.searchFlights });
+    expect(flights[0]).toHaveAttribute("href", DEEP_LINK);
+    expect(flights[0]).toHaveAttribute("rel", expect.stringContaining("noopener"));
+
     openDay(1);
+    expect(screen.queryByRole("link", { name: p.searchFlights })).toBeNull();
 
     expect(
       screen.getByRole("heading", {
@@ -220,11 +228,6 @@ describe("TripPanel", () => {
     expect(screen.getByText(p.draft)).toBeInTheDocument();
     expect(openRow(HOTELS.rum.title)).toBeInTheDocument();
     expect(screen.getByText(p.priceNote)).toBeInTheDocument();
-
-    const flights = screen.getAllByRole("link", { name: p.searchFlights });
-    expect(flights[0]).toHaveAttribute("href", DEEP_LINK);
-    expect(flights[0]).toHaveAttribute("rel", expect.stringContaining("noopener"));
-
   });
 
   it("saves the draft from the header", () => {

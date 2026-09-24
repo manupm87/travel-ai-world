@@ -362,6 +362,7 @@ function sentence(step: Step, city: string | null, days: number | null, missing:
     case "wardrobe":
       return city ? `Looking through the guides for ${city}.` : "Looking through the guides.";
     case "fold":
+      if (days === 1) return "Fitting the stops into the day, close to each other.";
       return days
         ? `Sharing the stops out over ${days} days, close to each other.`
         : "Choosing what fits and putting it in order.";

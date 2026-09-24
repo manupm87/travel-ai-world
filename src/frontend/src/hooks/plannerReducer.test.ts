@@ -884,6 +884,7 @@ describe("plannerReducer — packing", () => {
       detail: null,
       sources: [],
       live: false,
+      daysBefore: 0,
     });
   });
 
@@ -963,7 +964,7 @@ describe("plannerReducer — packing", () => {
       type: "event",
       event: { type: "itinerary_patch", ops: [{ op: "set_day_title", day: 1, title: "Pest" }] },
     });
-    expect(patched.packing).toMatchObject({ step: "open", folded: true, live: true });
+    expect(patched.packing).toMatchObject({ step: "open", folded: true, live: true, daysBefore: 0 });
   });
 
   it("prepares a retry: the failed turn's message and error go, the rest stays", () => {

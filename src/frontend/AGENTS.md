@@ -341,7 +341,12 @@ TypeScript 5, Tailwind CSS v4.
   every config, no backend) holds the whole contract. **"Save trip" writes the draft** (TRA-191):
   `SaveTripButton` renders `useSaveTrip`'s four states in the panel's header — the press, the
   spinner, "Saved" with the way into `/trip/?id=`, or what to do about a failure; a recorded demo
-  session, which belongs to nobody, keeps the button out of service and says so in its title. The page knows no city by name (TRA-168):
+  session, which belongs to nobody, keeps the button out of service and says so in its title.
+  The first write's id is kept at once (`saveDraftAsTrip`'s `onCreated`), so a retry after a
+  failed child write updates that trip instead of creating another; dates of today or earlier
+  block the save with a line saying why (`blocked: "past-dates"`: core_api would create the trip
+  already locked and refuse its days), and the quick replies' date pickers start tomorrow
+  (TRA-244). The page knows no city by name (TRA-168):
   `services/planner.ts::listCities` reads `GET /ai/planner/cities`, `hooks/usePlannerCities` loads it
   once, and `ChatColumn` turns it into one "Plan a trip to {city}" starter chip per city
   (`SuggestionChips`, only while the transcript is empty) and the destination hint of `QuickReplies`;
@@ -370,10 +375,13 @@ TypeScript 5, Tailwind CSS v4.
   reducer takes as the truth once one arrives (`packing.live`, `detail`, `sources`); without it
   (an older backend) the steps are told from the other events. The demo player adds them the way
   the server would (`services/plannerDemo.ts` `withProgress`, splitting the recorded draft into a
-  patch per day). While streaming, `PackingStatus` shows the canvas's open `Suitcase` — the lid's
-  pockets "The list" (the brief) and "From the wardrobe" (the sources), the base's day
-  compartments filling with their stops (or the options being considered), the weight meter —
-  and on the end of the stream the lid turns over and shuts (1.3 s) before the boarding pass.
+  patch per day). While streaming, `PackingStatus` is one compact card (the step, its sentence,
+  the clock, a bar of six, the steps a press away); the suitcase waits for the end (TRA-244).
+  When the turn packed the trip — it started with no days (`packing.daysBefore`) and folded some —
+  the canvas's `Suitcase` plays once, at its own pace (`REPLAY`, one stop every `TILE_MS`): the
+  lid's pockets "The list" (the brief) and "From the wardrobe" (the sources), the base's day
+  compartments filling stop by stop, the weight meter, the lid shutting (1.3 s), then the
+  boarding pass. Every other turn closes quietly, and reduced motion skips the replay.
   The derivation and the rest: `plannerReducer` keeps `packing` (`PACKING_STEPS`: open → list →
   wardrobe → fold → weigh → zip; `turn_started` opens it, `brief` makes the list, `options` is the
   wardrobe, an `itinerary_patch` folds, a `warn` op weighs and sets `warned`, `turn_finished` zips,
@@ -389,6 +397,14 @@ TypeScript 5, Tailwind CSS v4.
   taken out of the transcript (`retry_prepared`) so it is not written twice; no retry on an
   `unauthorized` failure. Warnings are stickers (`WarningBadge`): overloaded day "Overweight",
   far and closed "fragile", unverified price "book ahead" colours.
+  **The trip pane follows the canvas's planner** (TRA-244): on a desktop the trip's name, dates,
+  travellers and actions (`TripHeader` `bar`) are portaled into the app header's slot
+  (`Header.tsx` `HEADER_SLOT_ID`, an empty spacer on every other page); below `lg` the same
+  header (`panel`) sits on top of the pane, title on its own line. The day strip is sticky; a day
+  is `DayCard`'s timeline (time, numbered stop, place and hours, a dotted line, "Change" and
+  "Remove"; an empty part is "+ Add a stop"; the next day one press away at its foot) and the
+  stay under it as one line (`StayCard compact`, "Sleeping in {district}"); the route and the
+  full stay card lead the overview only. Scrollers hide their bars (`scrollbar-none`).
   **Assistant text is Markdown** (TRA-183): every assistant bubble goes through
   `components/planner/MarkdownContent.tsx` (`react-markdown` + `remark-gfm`, a short tag
   allow-list — headings become bold paragraphs, links open in a new tab in `text-accent` — styling

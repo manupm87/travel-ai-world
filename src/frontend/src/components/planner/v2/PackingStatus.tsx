@@ -11,7 +11,7 @@ import {
   type PackingState,
   type PackingStep,
 } from "@/hooks/plannerReducer";
-import type { TripBrief } from "@/types/planner";
+import { DAY_PARTS, type TripBrief } from "@/types/planner";
 import { cn } from "@/utils/cn";
 import { Suitcase } from "./Suitcase";
 
@@ -113,14 +113,36 @@ export interface PackingStatusProps {
 }
 
 /**
- * Kiri's answer as packing a suitcase (TRA-239, TRA-242). While the turn
- * streams: the step it has reached and its sentence (ai_api's, from the
- * `progress` event), the clock, and the open `Suitcase` filling up — the list,
- * the sources, the days — with the weight meter under it and the six steps a
- * press away. When it ends the lid shuts, and then: "Suitcase closed in 9 s"
- * (", with a warning"), what it became — the boarding pass — and "See how I
- * packed". The clock is the browser's own, started when this turn's status
- * mounted.
+ * The replay's timeline (TRA-244), in ms from its start: the lid opens, the
+ * list is written, the wardrobe gives up its sources, the days fill one stop
+ * after another, the suitcase is weighed and shut. Only the fold's length
+ * depends on the trip: every stop takes `TILE_MS`.
+ */
+const REPLAY = { list: 700, wardrobe: 1400, fold: 2100 } as const;
+const TILE_MS = 110;
+const WEIGH_AFTER_TILES_MS = 500;
+const CLOSE_AFTER_WEIGH_MS = 1100;
+
+/** The stops the base shows (`Suitcase`: four compartments, two tiles each). */
+function tilesOf(itinerary: ItineraryDraft): number {
+  return itinerary.days
+    .slice(0, 4)
+    .reduce((total, day) => total + Math.min(2, DAY_PARTS.reduce((n, part) => n + day.slots[part].length, 0)), 0);
+}
+
+type Replay = PackingStep | "closing" | "done";
+
+/**
+ * Kiri's answer as packing a suitcase (TRA-239, TRA-242, TRA-244).
+ *
+ * While the turn streams it is one compact card, as the canvas's planner
+ * draws it: the step and its sentence (ai_api's `progress`), the clock, a bar
+ * of six and the steps a press away. When the turn has packed the trip — it
+ * started with no days and ended with some — the whole suitcase is played once,
+ * in order, at its own pace: it opens, the list is written, the sources come
+ * out of the wardrobe, each day's stops drop in one by one, it is weighed and
+ * it shuts, and then it is the boarding pass. Any other turn closes quietly:
+ * "Suitcase closed in 3 s". Under reduced motion the replay is skipped.
  */
 export function PackingStatus({
   packing,
@@ -136,9 +158,9 @@ export function PackingStatus({
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [now, setNow] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
-  const [stepsOpen, setStepsOpen] = useState(false);
-  // The lid shutting, between the end of the stream and the boarding pass.
-  const [shut, setShut] = useState(false);
+  const [replay, setReplay] = useState<Replay | null>(null);
+
+  const drafted = packing.daysBefore === 0 && itinerary.days.length > 0 && packing.folded;
 
   // The clock starts with the turn and stops with it.
   useEffect(() => {
@@ -154,91 +176,133 @@ export function PackingStatus({
     const id = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(id);
   }, [streaming]);
+
+  // The end of the stream: stop the clock and, for the turn that packed the
+  // trip, play the suitcase once.
   useEffect(() => {
     if (streaming) return;
-    const stop = window.setTimeout(() => setNow(Date.now()), 0);
-    const close = window.setTimeout(() => setShut(true), prefersReducedMotion() ? 0 : CLOSING_MS);
-    return () => {
-      window.clearTimeout(stop);
-      window.clearTimeout(close);
-    };
+    const timers = [window.setTimeout(() => setNow(Date.now()), 0)];
+    if (drafted && !prefersReducedMotion()) {
+      const weighAt = REPLAY.fold + tilesOf(itinerary) * TILE_MS + WEIGH_AFTER_TILES_MS;
+      const steps: Array<[number, Replay]> = [
+        [0, "open"],
+        [REPLAY.list, "list"],
+        [REPLAY.wardrobe, "wardrobe"],
+        [REPLAY.fold, "fold"],
+        [weighAt, "weigh"],
+        [weighAt + CLOSE_AFTER_WEIGH_MS, "closing"],
+        [weighAt + CLOSE_AFTER_WEIGH_MS + CLOSING_MS, "done"],
+      ];
+      for (const [at, stage] of steps) timers.push(window.setTimeout(() => setReplay(stage), at));
+    }
+    return () => timers.forEach((id) => window.clearTimeout(id));
+    // The replay is decided once, when the stream ends.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [streaming]);
 
   const elapsed = startedAt !== null && now !== null ? now - startedAt : 0;
   const at = PACKING_STEPS.indexOf(packing.step);
 
-  if (streaming || !shut) {
-    const heavy = packing.warned;
-    const weighed = at >= PACKING_STEPS.indexOf("weigh");
-    return (
-      <div
-        className="flex animate-fade-up flex-col gap-2"
-        data-packing={streaming ? packing.step : "closing"}
+  const stepsToggle = (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen((was) => !was)}
+        aria-expanded={open}
+        aria-controls={listId}
+        className="inline-flex items-center gap-1 self-start rounded-md text-[13px] text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
       >
-        <KiriTag state={streaming ? KIRI_FOR[packing.step] : "happy"} />
-        <div className="flex flex-col gap-3 rounded-2xl border border-glass-border bg-glass-bg px-3.5 py-3 backdrop-blur-xl">
+        {streaming ? (open ? p.suitcase.hideSteps : p.suitcase.showSteps) : p.howIPacked}
+        <ChevronDown
+          size={14}
+          aria-hidden="true"
+          className={cn("transition-transform", open && "rotate-180")}
+        />
+      </button>
+      <div id={listId} hidden={!open} className="pt-1">
+        {open && <StepList packing={packing} />}
+      </div>
+    </>
+  );
+
+  if (streaming) {
+    return (
+      <div className="flex animate-fade-up flex-col gap-2" data-packing={packing.step}>
+        <KiriTag state={KIRI_FOR[packing.step]} />
+        <div className="flex flex-col gap-2.5 rounded-2xl border border-glass-border bg-glass-bg px-3.5 py-3 backdrop-blur-xl">
           <div role="status" className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
               <span aria-hidden="true" className="h-2 w-2 animate-pulse rounded-full bg-accent" />
-              <span className="flex-1 text-[14px] font-semibold text-text-primary">
-                {streaming ? `${p.steps[packing.step]}…` : p.closed}
+              <span className="flex-1 text-sm font-semibold text-text-primary">
+                {`${p.steps[packing.step]}…`}
               </span>
-              <span className="text-[13px] tabular-nums text-text-muted" aria-hidden="true">
+              <span className="text-xs tabular-nums text-text-muted" aria-hidden="true">
                 {clock(elapsed)}
               </span>
               <span className="sr-only">
                 {interpolate(p.elapsed, { seconds: Math.floor(elapsed / 1000) })}
               </span>
             </div>
-            <p className="text-sm leading-snug text-text-secondary">
+            <p className="text-[13px] leading-snug text-text-secondary">
               {packing.detail || p.details[packing.step]}
             </p>
           </div>
+          <div aria-hidden="true" className="grid grid-cols-6 gap-1">
+            {PACKING_STEPS.map((step, index) => (
+              <span
+                key={step}
+                className={cn(
+                  "h-1.5 rounded-full transition-colors duration-500",
+                  index < at ? "bg-accent" : index === at ? "animate-pulse bg-accent/60" : "bg-bg-surface"
+                )}
+              />
+            ))}
+          </div>
+          {stepsToggle}
+        </div>
+      </div>
+    );
+  }
 
+  // From the render the stream ends in, so the boarding pass never flashes
+  // before the suitcase that turns into it.
+  const replaying = drafted && replay !== "done" && !prefersReducedMotion();
+  if (replaying) {
+    const current: Replay = replay ?? "open";
+    const stage: PackingStep = current === "closing" ? "zip" : (current as PackingStep);
+    const weighed = PACKING_STEPS.indexOf(stage) >= PACKING_STEPS.indexOf("weigh");
+    const heavy = packing.warned;
+    return (
+      <div className="flex flex-col gap-2" data-packing="replay" data-replay={current}>
+        <KiriTag state={current === "closing" ? "happy" : KIRI_FOR[stage]} />
+        <div className="flex flex-col gap-3 rounded-2xl border border-glass-border bg-glass-bg px-3.5 py-3 backdrop-blur-xl">
+          <p className="flex items-center gap-2 text-sm font-semibold text-text-primary">
+            <span aria-hidden="true" className="h-2 w-2 rounded-full bg-accent" />
+            {current === "closing" ? p.closed : `${p.steps[stage]}…`}
+          </p>
           <Suitcase
+            stage={stage}
             packing={packing}
             brief={brief}
             itinerary={itinerary}
             optionTitles={optionTitles}
-            closed={!streaming}
+            closed={current === "closing"}
+            tileMs={TILE_MS}
           />
-
           <div className="flex items-center gap-2.5 text-[13px]" aria-hidden="true">
             <span className="text-text-secondary">{p.suitcase.weight}</span>
             <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-accent-soft">
               <span
                 className={cn(
-                  "block h-full rounded-full transition-[width] duration-1000 ease-out",
+                  "block h-full rounded-full transition-[width] duration-700 ease-out",
                   heavy ? "bg-sticker-overweight" : "bg-accent"
                 )}
                 style={{ width: weighed ? (heavy ? "92%" : "62%") : "0%" }}
               />
             </span>
             <span className="min-w-[7.5rem] text-right text-text-muted">
-              {!weighed
-                ? p.suitcase.unweighed
-                : heavy
-                  ? p.suitcase.overweight
-                  : p.suitcase.withinLimits}
+              {!weighed ? p.suitcase.unweighed : heavy ? p.suitcase.overweight : p.suitcase.withinLimits}
             </span>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setStepsOpen((was) => !was)}
-            aria-expanded={stepsOpen}
-            aria-controls={listId}
-            className="inline-flex items-center gap-1 self-start rounded-md text-[13px] text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
-          >
-            {stepsOpen ? p.suitcase.hideSteps : p.suitcase.showSteps}
-            <ChevronDown
-              size={14}
-              aria-hidden="true"
-              className={cn("transition-transform", stepsOpen && "rotate-180")}
-            />
-          </button>
-          <div id={listId} hidden={!stepsOpen} className="border-t border-glass-border pt-3">
-            {stepsOpen && <StepList packing={packing} />}
           </div>
         </div>
       </div>
@@ -250,7 +314,7 @@ export function PackingStatus({
   return (
     <div className="flex animate-fade-up flex-col gap-2" data-packing="zip">
       <KiriTag state="happy" />
-      <p className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[14px]">
+      <p className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm">
         <Briefcase size={15} aria-hidden="true" className="text-accent" />
         <span className="font-semibold text-text-primary">{p.closed}</span>
         {startedAt !== null && (
@@ -261,23 +325,7 @@ export function PackingStatus({
         )}
       </p>
       {children}
-      <button
-        type="button"
-        onClick={() => setOpen((was) => !was)}
-        aria-expanded={open}
-        aria-controls={listId}
-        className="inline-flex items-center gap-1 self-start rounded-md text-[13px] text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
-      >
-        {p.howIPacked}
-        <ChevronDown
-          size={14}
-          aria-hidden="true"
-          className={cn("transition-transform", open && "rotate-180")}
-        />
-      </button>
-      <div id={listId} hidden={!open} className="pt-1">
-        {open && <StepList packing={packing} />}
-      </div>
+      {stepsToggle}
     </div>
   );
 }

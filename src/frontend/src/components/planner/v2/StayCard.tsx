@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink, Sparkles } from "lucide-react";
+import { BedDouble, ExternalLink, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { useLanguage } from "@/context/LanguageContext";
 import { interpolate } from "@/i18n";
@@ -20,6 +20,12 @@ export interface StayCardProps {
   onSelectStop?: (id: string | null) => void;
   /** Without it the card offers no way to change the stay: a locked trip. */
   onChange?: () => void;
+  /**
+   * One row over the day, as the canvas's planner draws it (TRA-244):
+   * "Sleeping in Belváros — 2 nights, €€", no photo; the full card is the
+   * overview's.
+   */
+  compact?: boolean;
 }
 
 /**
@@ -34,6 +40,7 @@ export function StayCard({
   selectedStopId = null,
   onSelectStop,
   onChange,
+  compact = false,
 }: StayCardProps) {
   const { t } = useLanguage();
   const p = t.plan.panel;
@@ -46,6 +53,78 @@ export function StayCard({
       ? null
       : t.plan.priceTiers[String(stay.price_tier) as "1" | "2" | "3"],
   ].filter((part): part is string => !!part);
+
+  const nightsLabel =
+    nights === null ? p.stayNoNights : nights === 1 ? p.stayOne : interpolate(p.stay, { nights });
+
+  if (compact) {
+    const row = (
+      <>
+        <span
+          aria-hidden="true"
+          className={cn(
+            "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-semibold",
+            selected ? "bg-action text-on-action" : "bg-accent text-on-action"
+          )}
+        >
+          <BedDouble size={16} />
+        </span>
+        <span className="flex min-w-0 flex-1 flex-col">
+          <span className="truncate text-sm font-semibold text-text-primary">
+            {interpolate(p.sleepingIn, { place: stay.district ?? stay.title })}
+          </span>
+          <span className="truncate text-[13px] text-text-secondary">
+            {[
+              stay.title,
+              nights === null
+                ? null
+                : nights === 1
+                  ? t.plan.checklist.nightOne
+                  : interpolate(t.plan.checklist.nights, { nights }),
+              ...meta.slice(1),
+            ]
+              .filter(Boolean)
+              .join(", ")}
+          </span>
+        </span>
+      </>
+    );
+    return (
+      <div
+        data-stop-row={id}
+        data-selected={selected}
+        className={cn(
+          "flex items-center gap-2 rounded-xl border border-glass-border bg-bg-surface/60 px-3 py-2.5",
+          selected && "border-accent-border"
+        )}
+      >
+        {onSelectStop ? (
+          <button
+            type="button"
+            onClick={() => onSelectStop(selected ? null : id)}
+            aria-pressed={selected}
+            aria-label={interpolate(t.plan.detail.open, { title: stay.title })}
+            data-stop-index={stop ? stopGlyph(stop) : undefined}
+            className="flex min-w-0 flex-1 items-center gap-3 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+          >
+            {row}
+          </button>
+        ) : (
+          <div className="flex min-w-0 flex-1 items-center gap-3">{row}</div>
+        )}
+        {onChange && (
+          <button
+            type="button"
+            onClick={onChange}
+            aria-label={`${p.change}: ${stay.title}`}
+            className="shrink-0 rounded-lg px-2.5 py-1 text-xs text-text-secondary transition hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+          >
+            {p.change}
+          </button>
+        )}
+      </div>
+    );
+  }
 
   // Everything above the footer is the button; the source link and "Change"
   // are links and buttons of their own, so they cannot be nested inside it.
@@ -82,11 +161,7 @@ export function StayCard({
               {stopGlyph(stop)}
             </span>
           )}
-          {nights === null
-            ? p.stayNoNights
-            : nights === 1
-              ? p.stayOne
-              : interpolate(p.stay, { nights })}
+          {nightsLabel}
         </span>
         <span className="text-[15px] font-medium leading-tight text-text-primary">
           {stay.title}

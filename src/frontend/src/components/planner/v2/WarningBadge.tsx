@@ -34,7 +34,9 @@ export function WarningBadge({ warning }: { warning: ItineraryWarning }) {
       role="status"
       data-warning={warning.code}
       className={cn(
-        "inline-flex max-w-full -rotate-1 animate-scale-in items-center gap-2.5 self-start rounded-xl py-1.5 pr-3.5 pl-1.5 text-sticker-ink shadow-[0_0_0_2.5px_#EFEDE7,0_10px_18px_-10px_rgba(0,0,0,0.7)]",
+        // The sticker's white edge is a border, inside the box: an outer ring
+        // and a tilt were cut off by the card's own edges (TRA-244).
+        "inline-flex max-w-full animate-scale-in items-center gap-2.5 self-start rounded-xl border-2 border-[#EFEDE7] py-1.5 pr-3.5 pl-1.5 text-sticker-ink shadow-[0_8px_16px_-10px_rgba(0,0,0,0.7)]",
         tone
       )}
     >
@@ -44,7 +46,7 @@ export function WarningBadge({ warning }: { warning: ItineraryWarning }) {
       >
         <Icon size={14} />
       </span>
-      <span className="flex min-w-0 flex-col text-[13px] leading-tight">
+      <span className="flex min-w-0 flex-col text-[13px] leading-snug [overflow-wrap:anywhere]">
         <span className="font-bold">{t.plan.packing.stickers[warning.code]}</span>
         <span className="opacity-80">{text}</span>
       </span>

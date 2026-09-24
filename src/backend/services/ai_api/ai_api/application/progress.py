@@ -101,6 +101,8 @@ class PackingProgress:
         city = self._city_name(self._brief)
         if step in ("open", "wardrobe") and city:
             return planner_text(self._language, f"progress_{step}_city", city=city)
+        if step == "fold" and days == 1:
+            return planner_text(self._language, "progress_fold_day")
         if step == "fold" and days:
             return planner_text(self._language, "progress_fold_days", days=days)
         if step == "zip" and self._brief.missing():

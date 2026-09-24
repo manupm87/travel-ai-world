@@ -160,7 +160,7 @@ export function PlannerLayout({ banner = null, chat, panel, map }: PlannerLayout
                 <span aria-hidden="true" className="h-1 w-10 rounded-full bg-text-muted/60" />
               </button>
             )}
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain pb-[env(safe-area-inset-bottom)] lg:rounded-3xl lg:pb-0">
+            <div className="min-h-0 flex-1 scrollbar-none overflow-y-auto overscroll-y-contain pb-[env(safe-area-inset-bottom)] lg:rounded-3xl lg:pb-0">
               {panel}
             </div>
           </div>

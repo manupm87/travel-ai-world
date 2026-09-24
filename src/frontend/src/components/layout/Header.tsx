@@ -18,6 +18,13 @@ import { MobileDrawer, MOBILE_DRAWER_ID } from "./MobileDrawer";
 import { ThemeToggle } from "./ThemeToggle";
 import { UserMenu } from "./UserMenu";
 
+/**
+ * Where a page may put a line of its own between the wordmark and the actions:
+ * the planner's trip bar on a desktop (TRA-244, `TripHeader`). Empty, it is the
+ * spacer that pushes the actions to the right.
+ */
+export const HEADER_SLOT_ID = "planner-header-slot";
+
 /** The signed-in home, where the account's trips are listed. */
 const HOME = "/dashboard/";
 
@@ -71,7 +78,7 @@ export default function Header() {
         <Container className="px-5 md:px-10 h-(--header-h) flex items-center justify-between gap-4">
           <Logo />
 
-          <div className="flex-1" />
+          <div id={HEADER_SLOT_ID} className="flex min-w-0 flex-1 items-center" />
 
           <div className="flex items-center gap-2">
             {isAuthenticated && isAdmin && (

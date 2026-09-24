@@ -545,6 +545,28 @@ def _merge_brief(brief: TripBrief, update: BriefUpdate) -> TripBrief:
     return TripBrief.model_validate(values)
 
 
+def _next_year(day: date) -> date:
+    try:
+        return day.replace(year=day.year + 1)
+    except ValueError:  # 29 February
+        return day + timedelta(days=365)
+
+
+def _ahead(brief: TripBrief, today: date) -> TripBrief:
+    """Dates that are still ahead (TRA-244): a trip that starts today or earlier
+    is ongoing or over, which core_api locks (ADR 0019) — the planner could
+    draft it, but the traveller could never save it. "1 to 3 September" said on
+    24 September means next year's, so a start on or before today moves a
+    year on, and the end with it, the nights unchanged."""
+    start, end = brief.start_date, brief.end_date
+    if start is None or start > today:
+        return brief
+    while start <= today:
+        start = _next_year(start)
+        end = _next_year(end) if end is not None else None
+    return brief.model_copy(update={"start_date": start, "end_date": end})
+
+
 def _day_count(brief: TripBrief, cap: int) -> int:
     if brief.start_date and brief.end_date and brief.end_date >= brief.start_date:
         return min(cap, (brief.end_date - brief.start_date).days + 1)
@@ -770,7 +792,7 @@ class PlanTrip:
 
     async def _extract_brief(self, turn: Turn) -> TripBrief:
         if not turn.message:
-            return turn.brief
+            return _ahead(turn.brief, self._today())
         messages = [
             Message("system", self._persona(turn)),
             Message(
@@ -794,8 +816,8 @@ class PlanTrip:
             )
         except DomainError as exc:
             logger.warning("Brief kept as the client sent it: %s", exc.message)
-            return turn.brief
-        return _merge_brief(turn.brief, update)
+            return _ahead(turn.brief, self._today())
+        return _ahead(_merge_brief(turn.brief, update), self._today())
 
     async def _ask_missing(self, turn: Turn) -> AsyncIterator[PlannerEvent]:
         missing = turn.brief.missing()
