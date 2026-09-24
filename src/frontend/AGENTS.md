@@ -237,13 +237,15 @@ TypeScript 5, Tailwind CSS v4.
   ids (ADR 0011). Links to a trip are `/plan/?trip=${encodeURIComponent(id)}`.
 - The planner is `/plan/` (`app/(app)/plan/`, optionally `?q=<prompt>` from the landing's
   `AskField` or `?trip=<uuid>` for a saved trip), the same static-shell + client-page pattern: `PlannerClientPage.tsx` wires
-  `usePlanner` to `components/planner/v2/` (layout A from the TRA-136 mockups: `PlannerLayout`
-  with three desktop columns — chat ≈ 30 %, trip panel ≈ 40 %, map ≈ 30 % — and the same three as
-  mobile tabs, `ChatColumn` with `QuickReplies`, `OptionCarousel` and `OptionCard`, `TripPanel`
+  `usePlanner` to `components/planner/v2/` (the canvas's "Planificador", TRA-238: `PlannerLayout`
+  in two zones — the chat on the left (340–420 px, `.planner-sky`) and the trip on the right, where
+  the map is the background and the panel floats over its left side as a card; on a phone the same
+  two are tabs, Chat and Trip, and in Trip the map fills the pane with the panel as a sheet over its
+  lower part whose handle grows it to 92 % and back — `ChatColumn` with `QuickReplies`, `OptionCarousel` and `OptionCard`, `TripPanel`
   with `BriefChecklist`, `RouteStrip`, `StayCard`, `DayStrip`, `TripOverview`, `DayCard`,
   `WarningBadge` and the
-  `AlternativesSheet` behind every "Change", `ActivityDetail` over the day, `TripMap` in the
-  third column). The **"Change" sheet asks twice over** (TRA-184): it auto-asks on opening
+  `AlternativesSheet` behind every "Change", `ActivityDetail` over the day, `TripMap` behind
+  the trip, `ShareButton` — "Share" copies `/plan/?trip=<id>` once the trip is saved). The **"Change" sheet asks twice over** (TRA-184): it auto-asks on opening
   (TRA-160), a box above the list searches for what the traveller types instead ("a thermal bath")
   and "More options" pages. Both go through `usePlanner.askAlternatives(slot, { guidance, more })`,
   which writes the ask in the reader's language (`alternatives.askMessage` /
@@ -259,10 +261,9 @@ TypeScript 5, Tailwind CSS v4.
   and no day is selected, `TripPanel` renders `TripOverview` in the day `tabpanel` — the city's
   photo and its `intro` in the reader's language with an `en` fallback (`PlannerCity`, TRA-182,
   credited to Wikivoyage), a mosaic of up to six of the itinerary's own photos, and the simplified
-  list of days, each row opening its day. There is no whole-trip map: `PlannerLayout`'s `map` slot
-  is `ReactNode | null` and the overview passes `null`, so the trip pane spans both columns
-  (`lg:grid-cols-[minmax(0,3fr)_minmax(0,7fr)]`) and the mobile tablist offers Chat and Trip alone
-  (an active Map tab falls back to Trip while rendering). Below the overview the
+  list of days, each row opening its day. The map stays behind the overview too (TRA-238), named
+  "Map of the trip" and centred on the city with no day's pins; `PlannerLayout`'s `map` slot is
+  still `ReactNode | null`, and `null` gives the panel the whole pane. Below the overview the
   itinerary is browsed **one day at a time** (TRA-176): `DayStrip` is a horizontal tablist of a
   leading "Whole trip" chip and one chip per day (date, forecast, how many experiences; arrows,
   Home/End, the selected chip kept in sight by
@@ -277,12 +278,17 @@ TypeScript 5, Tailwind CSS v4.
   also gives the map its `centre`. Day dates come from `src/utils/tripDates.ts`.
   The **map** (TRA-147, ADR 0016) is MapLibre GL over OpenFreeMap's keyless tiles: `mapStops.ts`
   is pure (`toMapStops(itinerary, selectedDay)` → the stay as an unnumbered "H" pin then the day's
-  located cards numbered in slot order, `[]` for the overview's `null`, plus `boundsOf`/`lineOf`),
+  located cards numbered in slot order, `[]` for the overview's `null`, plus `boundsOf`/`lineOf`,
+  and `toOptionMarks(groups, pendingGroupIds)` — the newest unanswered question's located places,
+  drawn as dashed rings labelled "Option: …", decoration that takes no click),
   `TripMap.tsx` is the region and
   the empty state and pulls `TripMapCanvas.tsx` in through `next/dynamic` with `ssr: false`
   (MapLibre needs `window`, and this keeps it out of every other route's bundle), and the canvas
   owns the instance: HTML markers, a straight `LineString` through the day (no routing — travel
-  times stay in `RouteStrip`), `fitBounds` per day and `setStyle` per theme. The canvas also tells
+  times stay in `RouteStrip`, drawn dashed in the text colour), `fitBounds` per day — padded for the
+  panel over the map (`fitPadding`: its width above `lg`, the sheet's share of the height below)
+  and fitted again on the map's `resize`, since on a phone it is born in a hidden tab — and
+  `setStyle` per theme. The canvas also tells
   MapLibre where its worker is (`setWorkerUrl` → `/maplibre/maplibre-gl-worker.js`, TRA-181):
   `scripts/copy-maplibre-worker.mjs` copies the worker and `maplibre-gl-shared` from
   `node_modules` into the gitignored `public/maplibre/` before `next dev`/`next build`

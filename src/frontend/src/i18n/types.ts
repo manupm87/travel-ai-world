@@ -97,7 +97,12 @@ export interface Translations {
   plan: {
     title: string;
     subtitle: string;
-    tabs: { chat: string; trip: string; map: string };
+    tabs: { chat: string; trip: string };
+    /** The phone's day sheet over the map (TRA-238): its handle's two names. */
+    sheet: { expand: string; collapse: string };
+    /** "Share" copies the trip's link; the button says so for a moment. */
+    share: string;
+    shareCopied: string;
     composerPlaceholder: string;
     /** "Chosen: {titles}" chip in the transcript. */
     chosen: string;
@@ -285,6 +290,10 @@ export interface Translations {
     map: {
       /** Accessible name of the map region: "Map of day {day}" */
       region: string;
+      /** The same on the whole-trip overview, which maps no day (TRA-238). */
+      regionTrip: string;
+      /** A dashed mark for an option Kiri proposes: "Option: {title}" */
+      option: string;
       /** While the client-only map chunk loads. */
       loading: string;
       /** No card of the selected day carries coordinates yet. */

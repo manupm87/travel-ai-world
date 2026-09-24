@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChatColumn } from "@/components/planner/v2/ChatColumn";
 import { DemoBanner } from "@/components/planner/v2/DemoBanner";
-import { toMapStops } from "@/components/planner/v2/mapStops";
+import { toMapStops, toOptionMarks } from "@/components/planner/v2/mapStops";
 import { PlannerLayout } from "@/components/planner/v2/PlannerLayout";
 import { TripMap } from "@/components/planner/v2/TripMap";
 import { TripPanel } from "@/components/planner/v2/TripPanel";
@@ -161,6 +161,12 @@ export default function PlannerClientPage() {
     () => toMapStops(state.itinerary, selectedDay),
     [state.itinerary, selectedDay],
   );
+  // What Kiri is proposing and has not been answered yet, marked on the same
+  // map as dashed rings (TRA-238), so the options can be compared by place.
+  const optionMarks = useMemo(
+    () => toOptionMarks(state.groups, state.pendingGroupIds),
+    [state.groups, state.pendingGroupIds],
+  );
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
   // A pin belongs to the day it was picked on, so the next day — and the
   // overview, which has no map at all — starts with none. Adjusted while
@@ -259,18 +265,17 @@ export default function PlannerClientPage() {
           save={save}
         />
       }
-      // The overview spans this column and the trip's: there is no whole-trip
-      // map (TRA-177), so the slot is empty until a day is picked.
+      // The map is always behind the trip (TRA-238): the selected day's pins,
+      // or on the overview the city alone — `toMapStops` gives it no pins.
       map={
-        selectedDay === null ? null : (
-          <TripMap
-            stops={mapStops}
-            selectedDay={selectedDay}
-            centre={centre}
-            selectedStopId={selectedStopId}
-            onSelectStop={setSelectedStopId}
-          />
-        )
+        <TripMap
+          stops={mapStops}
+          selectedDay={selectedDay}
+          centre={centre}
+          selectedStopId={selectedStopId}
+          onSelectStop={setSelectedStopId}
+          options={optionMarks}
+        />
       }
     />
   );

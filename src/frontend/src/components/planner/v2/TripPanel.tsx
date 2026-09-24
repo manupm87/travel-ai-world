@@ -27,6 +27,7 @@ import { OpenTripNotice, type OpenTripState } from "./OpenTripNotice";
 import { stayStopId, stopId, type MapStop } from "./mapStops";
 import { RouteStrip } from "./RouteStrip";
 import { SaveTripButton } from "./SaveTripButton";
+import { ShareButton } from "./ShareButton";
 import { StayCard } from "./StayCard";
 import { TripOverview } from "./TripOverview";
 import { dateForDay, daysBetween } from "@/utils/tripDates";
@@ -345,6 +346,7 @@ export function TripPanel({
           <p className="text-xs text-text-secondary">{counters.join(" · ")}</p>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2 sm:ml-auto">
+          {save.tripId !== null && <ShareButton tripId={save.tripId} />}
           {!lockedPhase && (
             <>
               {/* "New trip" leaves the saved trip and "Start over" stays on it:

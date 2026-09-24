@@ -67,7 +67,10 @@ const es: Translations = {
   plan: {
     title: "Planificar un viaje",
     subtitle: "Habla, elige entre las tarjetas y mira cómo el itinerario toma forma a la derecha.",
-    tabs: { chat: "Chat", trip: "Viaje", map: "Mapa" },
+    tabs: { chat: "Chat", trip: "Viaje" },
+    sheet: { expand: "Ver más del viaje", collapse: "Ver más del mapa" },
+    share: "Compartir",
+    shareCopied: "Enlace copiado",
     composerPlaceholder: "Pide un cambio o busca algo…",
     chosen: "Elegido: {titles}",
     suggestions: [
@@ -234,6 +237,8 @@ const es: Translations = {
     },
     map: {
       region: "Mapa del día {day}",
+      regionTrip: "Mapa del viaje",
+      option: "Opción: {title}",
       loading: "Cargando el mapa…",
       empty: "Ninguna parada de este día tiene ubicación todavía.",
       marker: "{index}. {title}",

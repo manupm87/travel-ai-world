@@ -36,6 +36,12 @@ function scrollBehavior(): ScrollBehavior {
   return reduced ? "auto" : "smooth";
 }
 
+/** The canvas's day pills (TRA-238): the chosen one filled with the action. */
+const PILL =
+  "flex h-9 shrink-0 snap-start items-center gap-1.5 rounded-full border px-3.5 text-[13px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40";
+const PILL_ON = "border-transparent bg-action text-on-action";
+const PILL_OFF = "border-glass-border bg-glass-bg text-text-primary hover:border-accent-border";
+
 /**
  * The itinerary browsed day by day: a horizontal tablist over what the panel
  * shows below it — a leading "Whole trip" chip for the overview (TRA-177),
@@ -132,7 +138,7 @@ export function DayStrip({
       type="button"
       onClick={() => scrollByChip(direction)}
       aria-label={direction === -1 ? t.plan.carousel.previous : t.plan.carousel.next}
-      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-border-soft text-text-secondary transition hover:border-accent/50 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-glass-border text-text-secondary transition hover:border-accent/50 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
     >
       {direction === -1 ? (
         <ChevronLeft size={14} aria-hidden="true" />
@@ -162,25 +168,10 @@ export function DayStrip({
           tabIndex={selectedDay === null ? 0 : -1}
           data-day="all"
           onClick={() => onSelect(null)}
-          className={cn(
-            "flex shrink-0 snap-start items-center gap-2 rounded-xl border px-3 py-2 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40",
-            selectedDay === null
-              ? "border-accent bg-accent-soft"
-              : "border-border bg-bg-surface hover:border-accent/40"
-          )}
+          className={cn(PILL, selectedDay === null ? PILL_ON : PILL_OFF)}
         >
-          <span
-            aria-hidden="true"
-            className={cn(
-              "flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition",
-              selectedDay === null ? "bg-action text-on-action" : "bg-accent-soft text-text-primary"
-            )}
-          >
-            <LayoutGrid size={14} />
-          </span>
-          <span className="whitespace-nowrap text-[13px] font-medium leading-tight text-text-primary">
-            {p.wholeTrip}
-          </span>
+          <LayoutGrid size={14} aria-hidden="true" />
+          <span className="whitespace-nowrap">{p.wholeTrip}</span>
         </button>
 
         {days.map((day) => {
@@ -198,39 +189,21 @@ export function DayStrip({
               tabIndex={active ? 0 : -1}
               data-day={day.day}
               onClick={() => onSelect(day.day)}
-              className={cn(
-                "flex shrink-0 snap-start items-center gap-2 rounded-xl border px-3 py-2 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40",
-                active
-                  ? "border-accent bg-accent-soft"
-                  : "border-border bg-bg-surface hover:border-accent/40"
-              )}
+              className={cn(PILL, active ? PILL_ON : PILL_OFF)}
             >
-              <span
-                aria-hidden="true"
-                className={cn(
-                  "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-medium",
-                  active ? "bg-action text-on-action" : "bg-accent-soft text-text-primary"
-                )}
-              >
-                {day.day}
-              </span>
-              <span className="flex min-w-0 flex-col gap-0.5">
-                <span className="whitespace-nowrap text-[13px] font-medium leading-tight text-text-primary">
-                  {interpolate(p.day, { day: day.day })}
+              <span className="whitespace-nowrap">{interpolate(p.day, { day: day.day })}</span>
+              {date && (
+                <span className={cn("whitespace-nowrap text-[12px] font-normal", active ? "opacity-70" : "text-text-muted")}>
+                  {formatDate(date, DATE_OPTIONS)}
                 </span>
-                <span className="flex items-center gap-x-1.5 whitespace-nowrap text-[11px] text-text-secondary">
-                  {date && <span>{formatDate(date, DATE_OPTIONS)}</span>}
-                  {day.weather !== null && day.weather.t_max !== null && (
-                    <>
-                      {date && <span aria-hidden="true">·</span>}
-                      <span>{`${day.weather.t_max} °C`}</span>
-                    </>
-                  )}
-                  <span aria-hidden="true">·</span>
-                  <span>
-                    {count === 1 ? p.experienceOne : interpolate(p.experiences, { count })}
-                  </span>
+              )}
+              {day.weather !== null && day.weather.t_max !== null && (
+                <span className={cn("whitespace-nowrap text-[12px] font-normal", active ? "opacity-70" : "text-text-muted")}>
+                  {`${day.weather.t_max} °C`}
                 </span>
+              )}
+              <span className="sr-only">
+                {count === 1 ? p.experienceOne : interpolate(p.experiences, { count })}
               </span>
             </button>
           );

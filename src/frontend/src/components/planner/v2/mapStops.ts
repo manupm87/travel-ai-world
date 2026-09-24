@@ -1,4 +1,4 @@
-import type { ItineraryDraft } from "@/hooks/plannerReducer";
+import type { ItineraryDraft, OptionGroupState } from "@/hooks/plannerReducer";
 import { DAY_PARTS, type DayPart, type Slot } from "@/types/planner";
 
 /** The stay has no day of its own; this is the pseudo-slot `TripPanel` uses. */
@@ -106,6 +106,49 @@ export function toMapStops(
   }
 
   return stops;
+}
+
+/**
+ * One of the options Kiri is proposing, drawn on the map as a dashed mark
+ * beside the day's pins (TRA-238): not a stop yet, only a place to compare.
+ */
+export interface OptionMark {
+  /** `option:<groupId>:<cardId>`. */
+  id: string;
+  title: string;
+  lat: number;
+  lon: number;
+}
+
+/** Kinds of group whose cards are places worth marking on a city map. */
+const MARKABLE = new Set<OptionGroupState["kind"]>([
+  "neighbourhood",
+  "hotel",
+  "experience",
+  "restaurant",
+]);
+
+/**
+ * The options of the question still waiting for an answer — the newest one —
+ * that have coordinates and were not waved away. Pure, like `toMapStops`.
+ */
+export function toOptionMarks(
+  groups: Record<string, OptionGroupState>,
+  pendingGroupIds: string[]
+): OptionMark[] {
+  for (let i = pendingGroupIds.length - 1; i >= 0; i -= 1) {
+    const group = groups[pendingGroupIds[i] ?? ""];
+    if (!group || !MARKABLE.has(group.kind)) continue;
+    const marks = group.cards
+      .filter((card) => !group.dismissedIds.includes(card.id))
+      .flatMap((card) =>
+        card.lat === null || card.lon === null
+          ? []
+          : [{ id: `option:${group.group_id}:${card.id}`, title: card.title, lat: card.lat, lon: card.lon }]
+      );
+    if (marks.length > 0) return marks;
+  }
+  return [];
 }
 
 /**

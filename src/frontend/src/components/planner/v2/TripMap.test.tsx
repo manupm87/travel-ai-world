@@ -136,6 +136,10 @@ const maplibre = vi.hoisted(() => {
       this.eases.push(options);
       return this;
     }
+    /** The element the map draws in; the fit pads for the panel over it. */
+    getContainer() {
+      return document.createElement("div");
+    }
     /** The zoom a city-wide day sits at; the component never zooms out from it. */
     getZoom() {
       return 12;
@@ -483,6 +487,22 @@ describe("TripMap", () => {
       name: interpolate(en.plan.map.region, { day: 2 }),
     });
     expect(within(region).getByText(en.plan.map.empty)).toBeInTheDocument();
+    expect(await screen.findByTestId("trip-map-canvas")).toBeInTheDocument();
+  });
+
+  it("stays behind the whole-trip overview, named after the trip and with nothing to explain", async () => {
+    renderWithProviders(
+      <TripMap
+        stops={[]}
+        selectedDay={null}
+        centre={BUDAPEST}
+        selectedStopId={null}
+        onSelectStop={vi.fn()}
+      />
+    );
+
+    const region = screen.getByRole("region", { name: en.plan.map.regionTrip });
+    expect(within(region).queryByText(en.plan.map.empty)).not.toBeInTheDocument();
     expect(await screen.findByTestId("trip-map-canvas")).toBeInTheDocument();
   });
 

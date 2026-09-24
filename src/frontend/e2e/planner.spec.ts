@@ -154,8 +154,8 @@ test.describe("Planner page — /plan/", () => {
     const flights = page.getByRole("link", { name: "Search flights" }).first();
     await expect(flights).toHaveAttribute("href", /google\.com\/travel\/flights/);
     await expect(flights).toHaveAttribute("rel", /noopener/);
-    // A finished itinerary opens on the trip overview (TRA-177): the whole
-    // trip across both right columns, so there is no day map yet.
+    // A finished itinerary opens on the trip overview (TRA-177): no day is
+    // mapped yet — the map behind the trip shows the city alone (TRA-238).
     const days = page.getByRole("tablist", { name: "Days" });
     await expect(days.getByRole("tab", { name: /\bDay 3\b/ })).toBeVisible();
     const dayList = page.getByRole("list", { name: "Days of the trip" });
@@ -262,8 +262,8 @@ test.describe("Planner page — /plan/", () => {
     await expect(page.getByRole("button", { name: "Change: Rudas Baths" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Change: Gellért Baths" })).toHaveCount(0);
 
-    // 7. Three columns on a laptop, tabs on a phone; the page itself never
-    //    scrolls sideways at any of the three widths.
+    // 7. The chat beside the map on a laptop, two tabs on a phone; the page
+    //    itself never scrolls sideways at any of the three widths.
     const overflow = () =>
       page.evaluate(
         () => document.documentElement.scrollWidth - document.documentElement.clientWidth
@@ -279,11 +279,11 @@ test.describe("Planner page — /plan/", () => {
     const paneTabs = page.getByRole("tablist", { name: "Plan a trip" });
     await paneTabs.getByRole("tab", { name: "Trip" }).click();
     await expect(days.getByRole("tab", { name: /\bDay 2\b/ })).toBeVisible();
-    // A day is open, so the phone has its Map tab…
-    await expect(paneTabs.getByRole("tab", { name: "Map" })).toBeVisible();
-    // …and the overview, which spans both right columns, does not.
+    // The map is behind the trip, in the same tab: there is no third one (TRA-238).
+    await expect(page.getByRole("region", { name: "Map of day 2" })).toBeVisible();
+    await expect(paneTabs.getByRole("tab")).toHaveCount(2);
     await days.getByRole("tab", { name: "Whole trip" }).click();
-    await expect(paneTabs.getByRole("tab", { name: "Map" })).toHaveCount(0);
+    await expect(page.getByRole("region", { name: "Map of the trip" })).toBeVisible();
     expect(await overflow()).toBeLessThanOrEqual(1);
   });
 
@@ -307,9 +307,8 @@ test.describe("Planner page — /plan/", () => {
     await expect(placeholder).toBeVisible();
     await expect(composer(page)).toBeHidden();
 
-    // No itinerary, so no day and no map: the Map tab arrives with the first
-    // day the traveller opens from the overview (TRA-177).
-    await expect(tabs.getByRole("tab", { name: "Map" })).toHaveCount(0);
+    // Two tabs, whatever the trip holds: the map lives behind the trip (TRA-238).
+    await expect(tabs.getByRole("tab")).toHaveCount(2);
   });
 
   test("without the planner route, the recorded session answers with a demo banner", async ({

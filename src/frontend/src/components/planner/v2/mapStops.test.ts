@@ -9,7 +9,8 @@ import {
   RESTAURANTS,
 } from "@/data/planner-demo/session";
 import type { ItineraryOp, OptionCard } from "@/types/planner";
-import { boundsOf, lineOf, stayStopId, stopId, toMapStops } from "./mapStops";
+import type { OptionGroupState } from "@/hooks/plannerReducer";
+import { boundsOf, lineOf, stayStopId, stopId, toMapStops, toOptionMarks } from "./mapStops";
 
 const itinerary = applyItineraryOps(EMPTY_ITINERARY, FIRST_ITINERARY_OPS);
 
@@ -120,5 +121,36 @@ describe("lineOf", () => {
   it("draws nothing with fewer than two stops", () => {
     expect(lineOf([])).toBeNull();
     expect(lineOf(toMapStops(itinerary, 9))).toBeNull();
+  });
+});
+
+describe("toOptionMarks", () => {
+  const group = (id: string, kind: OptionGroupState["kind"], cards: OptionCard[]): OptionGroupState => ({
+    group_id: id,
+    kind,
+    prompt: "Pick one",
+    selection: "single",
+    slot: null,
+    cards,
+    selectedIds: [],
+    dismissedIds: [],
+  });
+  const baths = Object.values(BATHS);
+
+  it("marks the newest question still waiting, card by card, where it has coordinates", () => {
+    const groups = {
+      old: group("old", "hotel", Object.values(HOTELS)),
+      new: group("new", "experience", [...baths, unlocated(baths[0] as OptionCard)]),
+    };
+    const marks = toOptionMarks(groups, ["old", "new"]);
+    expect(marks.map((mark) => mark.title)).toEqual(baths.map((card) => card.title));
+    expect(marks[0]?.id).toBe(`option:new:${baths[0]?.id}`);
+  });
+
+  it("leaves out the cards waved away, and questions that are not places", () => {
+    const waved = { ...group("g", "experience", baths), dismissedIds: [baths[0]?.id ?? ""] };
+    expect(toOptionMarks({ g: waved }, ["g"])).toHaveLength(baths.length - 1);
+    expect(toOptionMarks({ f: group("f", "flight", baths) }, ["f"])).toEqual([]);
+    expect(toOptionMarks({}, [])).toEqual([]);
   });
 });

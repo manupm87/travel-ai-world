@@ -12,7 +12,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { useLanguage } from "@/context/LanguageContext";
 import { useTheme } from "@/context/ThemeContext";
 import { interpolate } from "@/i18n";
-import { boundsOf, lineOf, stopGlyph, type MapStop } from "./mapStops";
+import { boundsOf, lineOf, stopGlyph, type MapStop, type OptionMark } from "./mapStops";
 
 /**
  * OpenFreeMap's hosted OpenMapTiles styles (ADR 0016): no key, no quota, OSM
@@ -56,6 +56,21 @@ const LINE_LAYER = "trip-day-line";
 
 /** Room for the markers and for the attribution when the day is fitted. */
 const FIT_PADDING = { top: 48, right: 32, bottom: 40, left: 32 };
+
+/**
+ * The trip floats over the map (TRA-238): a card on the left above `lg`, a
+ * sheet over the lower part below it. The fit keeps the day's pins in the
+ * part of the map that is not under it.
+ */
+const PANEL_WIDTH_PX = 460 + 16;
+const SHEET_SHARE = 0.58;
+
+function fitPadding(container: HTMLElement | null) {
+  const wide = window.matchMedia?.("(min-width: 1024px)").matches === true;
+  if (wide) return { ...FIT_PADDING, left: FIT_PADDING.left + PANEL_WIDTH_PX };
+  const height = container?.clientHeight ?? 0;
+  return { ...FIT_PADDING, bottom: FIT_PADDING.bottom + Math.round(height * SHEET_SHARE) };
+}
 /** A day with a single stop must not end up at street level. */
 const MAX_FIT_ZOOM = 15;
 /** Close enough to read the streets around the stop that was opened. */
@@ -64,11 +79,12 @@ const SELECTED_ZOOM = 15;
 const CITY_ZOOM = 12;
 
 /**
- * The value of `--color-accent`. The line is painted on a canvas, so it cannot
+ * The value of `--color-text-primary`: the day's route is drawn in the text
+ * colour, dashed (TRA-238). The line is painted on a canvas, so it cannot
  * carry a Tailwind class: the token is read from the document, and this is what
  * it holds for the environments where no stylesheet has applied yet (jsdom).
  */
-const ACCENT_FALLBACK = "#8FB3A6";
+const LINE_FALLBACK = "#E6EAEF";
 
 export interface TripMapCanvasProps {
   /** The pins of the selected day, in order (`toMapStops`). */
@@ -77,18 +93,40 @@ export interface TripMapCanvasProps {
   centre: [number, number] | null;
   selectedStopId: string | null;
   onSelectStop: (id: string | null) => void;
+  /** The options Kiri is proposing, as dashed marks (TRA-238); none by default. */
+  options?: OptionMark[];
+}
+
+/**
+ * An option's mark: a dashed ring and its name beside it. Decoration for the
+ * eye — the option itself is a card in the chat, where it is chosen — so it
+ * takes no click and no focus, and its label is plain text.
+ */
+function optionElement(label: string): HTMLElement {
+  const root = document.createElement("div");
+  root.dataset.mapOption = "true";
+  root.className = "pointer-events-none flex items-center gap-2";
+  const ring = document.createElement("span");
+  ring.className =
+    "block h-6 w-6 rounded-full border-2 border-dashed border-text-primary/80 bg-bg-primary/30";
+  const text = document.createElement("span");
+  text.className =
+    "whitespace-nowrap rounded-full border border-glass-border bg-glass-bg px-2 py-0.5 text-[11px] font-medium text-text-secondary backdrop-blur-md";
+  text.textContent = label;
+  root.append(ring, text);
+  return root;
 }
 
 function reducedMotion(): boolean {
   return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
 }
 
-function accentColour(): string {
+function lineColour(): string {
   const value = window
     .getComputedStyle(document.documentElement)
-    .getPropertyValue("--color-accent")
+    .getPropertyValue("--color-text-primary")
     .trim();
-  return value || ACCENT_FALLBACK;
+  return value || LINE_FALLBACK;
 }
 
 /**
@@ -144,7 +182,7 @@ function drawLine(map: MapLibreMap, stops: MapStop[]): void {
       source: LINE_SOURCE,
       layout: { "line-cap": "round", "line-join": "round" },
       paint: {
-        "line-color": accentColour(),
+        "line-color": lineColour(),
         "line-width": 3,
         "line-opacity": 0.7,
         "line-dasharray": [2, 1.5],
@@ -166,7 +204,7 @@ function fitDay(map: MapLibreMap, stops: MapStop[], centre: [number, number] | n
   const bounds = boundsOf(stops);
   if (bounds) {
     map.fitBounds(bounds, {
-      padding: FIT_PADDING,
+      padding: fitPadding(map.getContainer()),
       maxZoom: MAX_FIT_ZOOM,
       animate: !reducedMotion(),
     });
@@ -174,6 +212,7 @@ function fitDay(map: MapLibreMap, stops: MapStop[], centre: [number, number] | n
     map.easeTo({
       center: [centre[1], centre[0]],
       zoom: CITY_ZOOM,
+      padding: fitPadding(map.getContainer()),
       animate: !reducedMotion(),
     });
   }
@@ -196,11 +235,14 @@ export function TripMapCanvas({
   centre,
   selectedStopId,
   onSelectStop,
+  options = [],
 }: TripMapCanvasProps) {
   const { t } = useLanguage();
   const { theme } = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
+  /** Per option on the map: its dashed mark. */
+  const optionMarkersRef = useRef(new Map<string, Marker>());
   /** Per stop: the marker MapLibre positions and the button inside it. */
   const markersRef = useRef(new Map<string, { marker: Marker; button: HTMLButtonElement }>());
   /** MapLibre needs WebGL 2 and throws without it; the page must not go down. */
@@ -212,6 +254,7 @@ export function TripMapCanvas({
   const onSelectRef = useRef(onSelectStop);
   const labelsRef = useRef(t.plan.map);
   const stopsRef = useRef(stops);
+  const centreRef = useRef(centre);
   /** The theme the current style was built for; `setStyle` follows it. */
   const styleThemeRef = useRef(theme);
   /** The stop the viewport was last moved for: only a change moves it again. */
@@ -228,6 +271,7 @@ export function TripMapCanvas({
     onSelectRef.current = onSelectStop;
     labelsRef.current = t.plan.map;
     stopsRef.current = stops;
+    centreRef.current = centre;
   });
 
   // ── The map itself: created once, removed on unmount ──────────────────────
@@ -268,10 +312,22 @@ export function TripMapCanvas({
     map.addControl(new NavigationControl({ showCompass: false }), "top-right");
     mapRef.current = map;
 
+    // The map is often born in a pane that is not on screen yet — the phone's
+    // Trip tab (TRA-238) — so its first fit is made at no size at all. When
+    // the container gets its real size, the day is fitted again, unless an
+    // open activity owns the viewport.
+    map.on("resize", () => {
+      if (selectedRef.current !== null) return;
+      fitDay(map, stopsRef.current, centreRef.current);
+    });
+
     const markers = markersRef.current;
+    const optionMarkers = optionMarkersRef.current;
     return () => {
       for (const { marker } of markers.values()) marker.remove();
       markers.clear();
+      for (const marker of optionMarkers.values()) marker.remove();
+      optionMarkers.clear();
       map.remove();
       mapRef.current = null;
     };
@@ -359,6 +415,29 @@ export function TripMapCanvas({
     if (!stops.some((stop) => stop.id === selectedStopId)) fitDay(map, stops, centre);
   }, [stops, centre, t, selectedStopId]);
 
+  // ── The options Kiri proposes: dashed marks, added and dropped by id ──────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const marks = optionMarkersRef.current;
+    const wanted = new Map(options.map((option) => [option.id, option]));
+    for (const [id, marker] of marks) {
+      if (wanted.has(id)) continue;
+      marker.remove();
+      marks.delete(id);
+    }
+    for (const option of options) {
+      if (marks.has(option.id)) continue;
+      const label = interpolate(t.plan.map.option, { title: option.title });
+      marks.set(
+        option.id,
+        new Marker({ element: optionElement(label), anchor: "left", offset: [-12, 0] })
+          .setLngLat([option.lon, option.lat])
+          .addTo(map)
+      );
+    }
+  }, [options, t]);
+
   // ── The selection: the marker grows, the rest of the day steps back ───────
   useEffect(() => {
     // The pins are read back from the DOM rather than from `markersRef`: the
@@ -385,6 +464,7 @@ export function TripMapCanvas({
     if (!map || previous === selectedStopId || !open) return;
     map.easeTo({
       center: [open.lon, open.lat],
+      padding: fitPadding(map.getContainer()),
       zoom: Math.max(map.getZoom(), SELECTED_ZOOM),
       animate: !reducedMotion(),
     });
