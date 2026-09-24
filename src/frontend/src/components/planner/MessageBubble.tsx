@@ -31,7 +31,7 @@ export function MessageBubble({
   if (isUser) {
     return (
       <div className="flex animate-fade-up justify-end">
-        <div className="max-w-[85%] rounded-[18px_18px_4px_18px] bg-bg-surface px-4 py-2.5 text-[14.5px] leading-normal text-text-primary">
+        <div className="max-w-[85%] rounded-[18px_18px_4px_18px] bg-bg-surface px-4 py-2.5 text-[15px] leading-normal text-text-primary">
           <span className="whitespace-pre-wrap">{message.content}</span>
         </div>
       </div>
@@ -49,7 +49,7 @@ export function MessageBubble({
     <div className="flex animate-fade-up flex-col gap-2">
       {showTag && <KiriTag />}
       <div
-        className={cn("text-[14.5px] leading-relaxed text-text-primary", errorText && "text-error")}
+        className={cn("text-[15px] leading-relaxed text-text-primary", errorText && "text-error")}
         role={errorText ? "alert" : undefined}
       >
         {body}

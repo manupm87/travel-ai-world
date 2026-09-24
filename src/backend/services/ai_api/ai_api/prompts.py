@@ -212,6 +212,7 @@ PLANNER_TEXTS: dict[str, dict[str, str]] = {
         "progress_fold_days": "Sharing the stops out over {days} days, close to each other.",
         "progress_weigh": "Checking distances, opening hours and prices.",
         "progress_zip": "Everything fits. Zipping it up.",
+        "progress_zip_missing": "Something is missing before I can close it: I'll ask.",
     },
     "es": {
         "not_covered": (
@@ -252,6 +253,7 @@ PLANNER_TEXTS: dict[str, dict[str, str]] = {
         "progress_fold_days": "Reparto las paradas en {days} días, cerca unas de otras.",
         "progress_weigh": "Reviso distancias, horarios y precios.",
         "progress_zip": "Todo cabe. Cierro la maleta.",
+        "progress_zip_missing": "Me falta algo antes de cerrarla: te pregunto.",
     },
 }
 

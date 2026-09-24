@@ -29,7 +29,7 @@ export function LostLuggage({ errorText, onRetry }: LostLuggageProps) {
         <Kiri state="lost" scale={2} />
         <div className="flex min-w-0 flex-col gap-1">
           <p className="text-[14px] font-semibold text-text-primary">{p.title}</p>
-          <p className="text-[13px] leading-snug text-text-secondary">
+          <p className="text-sm leading-snug text-text-secondary">
             {errorText} {p.safe}
           </p>
         </div>

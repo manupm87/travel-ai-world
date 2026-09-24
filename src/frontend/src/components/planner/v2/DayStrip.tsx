@@ -38,7 +38,7 @@ function scrollBehavior(): ScrollBehavior {
 
 /** The canvas's day pills (TRA-238): the chosen one filled with the action. */
 const PILL =
-  "flex h-9 shrink-0 snap-start items-center gap-1.5 rounded-full border px-3.5 text-[13px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40";
+  "flex h-9 shrink-0 snap-start items-center gap-1.5 rounded-full border px-3.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40";
 const PILL_ON = "border-transparent bg-action text-on-action";
 const PILL_OFF = "border-glass-border bg-glass-bg text-text-primary hover:border-accent-border";
 
@@ -193,12 +193,12 @@ export function DayStrip({
             >
               <span className="whitespace-nowrap">{interpolate(p.day, { day: day.day })}</span>
               {date && (
-                <span className={cn("whitespace-nowrap text-[12px] font-normal", active ? "opacity-70" : "text-text-muted")}>
+                <span className={cn("whitespace-nowrap text-[13px] font-normal", active ? "opacity-70" : "text-text-muted")}>
                   {formatDate(date, DATE_OPTIONS)}
                 </span>
               )}
               {day.weather !== null && day.weather.t_max !== null && (
-                <span className={cn("whitespace-nowrap text-[12px] font-normal", active ? "opacity-70" : "text-text-muted")}>
+                <span className={cn("whitespace-nowrap text-[13px] font-normal", active ? "opacity-70" : "text-text-muted")}>
                   {`${day.weather.t_max} °C`}
                 </span>
               )}

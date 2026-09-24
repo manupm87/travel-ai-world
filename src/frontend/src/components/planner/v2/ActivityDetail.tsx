@@ -169,7 +169,7 @@ export function ActivityDetail({
               />
             </div>
             {view.image_credit && (
-              <figcaption className="px-4 text-[10px] text-text-muted">
+              <figcaption className="px-4 text-xs text-text-muted">
                 {interpolate(t.plan.card.imageCredit, { credit: view.image_credit })}
               </figcaption>
             )}
@@ -185,7 +185,7 @@ export function ActivityDetail({
               {chips.map((chip) => (
                 <li
                   key={chip}
-                  className="rounded-full border border-border-soft px-2.5 py-0.5 text-[11px] text-text-secondary"
+                  className="rounded-full border border-border-soft px-2.5 py-0.5 text-xs text-text-secondary"
                 >
                   {chip}
                 </li>
@@ -234,7 +234,7 @@ export function ActivityDetail({
             <dl className="flex flex-col gap-1.5 text-sm">
               {facts.map((fact) => (
                 <div key={fact.key} className="flex flex-wrap items-baseline gap-x-2">
-                  <dt className="text-[10px] font-medium uppercase tracking-wider text-text-secondary">
+                  <dt className="text-xs font-medium uppercase tracking-wider text-text-secondary">
                     {fact.label}
                   </dt>
                   <dd className="min-w-0 flex-1 break-words text-text-primary">
@@ -276,13 +276,13 @@ export function ActivityDetail({
                 target="_blank"
                 rel="noopener noreferrer"
                 title={view.license || undefined}
-                className="inline-flex items-center gap-1 rounded-full border border-border-soft px-2 py-0.5 text-[10px] uppercase tracking-wider text-text-secondary transition hover:border-accent/40 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                className="inline-flex items-center gap-1 rounded-full border border-border-soft px-2 py-0.5 text-xs uppercase tracking-wider text-text-secondary transition hover:border-accent/40 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
               >
                 {interpolate(t.plan.card.source, { source: view.source })}
                 <ExternalLink size={10} aria-hidden="true" />
               </a>
             )}
-            {view.license && <span className="text-[10px] text-text-muted">{view.license}</span>}
+            {view.license && <span className="text-xs text-text-muted">{view.license}</span>}
 
             <span className="ml-auto flex items-center gap-1.5">
               {onChange && (

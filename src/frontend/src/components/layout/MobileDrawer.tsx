@@ -57,7 +57,7 @@ function SuitcaseCard({ onNavigate }: { onNavigate: () => void }) {
       <Kiri state="stickers" scale={3} />
       <span className="flex min-w-0 flex-col">
         <span className="text-[15px] font-semibold text-text-primary">{t.nav.suitcase}</span>
-        <span className="text-[13px] text-text-secondary">{count}</span>
+        <span className="text-sm text-text-secondary">{count}</span>
       </span>
     </Link>
   );
@@ -163,10 +163,10 @@ export function MobileDrawer({ open, onClose, onLogin }: MobileDrawerProps) {
 
         <div className="my-5 border-t border-glass-border" />
 
-        <p className="mb-2 pl-1 text-[13px] text-text-secondary">{t.nav.language}</p>
+        <p className="mb-2 pl-1 text-sm text-text-secondary">{t.nav.language}</p>
         <LanguageSwitcher variant="segmented" />
 
-        <p className="mt-5 mb-2 pl-1 text-[13px] text-text-secondary">{t.theme.label}</p>
+        <p className="mt-5 mb-2 pl-1 text-sm text-text-secondary">{t.theme.label}</p>
         <ThemeToggle variant="segmented" />
 
         {isAuthenticated && (

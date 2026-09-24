@@ -21,7 +21,7 @@ export default function Footer() {
 
   return (
     <footer className="bg-transparent">
-      <Container className="flex min-h-16 flex-col items-center justify-center gap-1 px-5 py-4 text-[12.5px] text-text-muted sm:flex-row sm:justify-between sm:gap-5 md:px-10">
+      <Container className="flex min-h-16 flex-col items-center justify-center gap-1 px-5 py-4 text-[13px] text-text-muted sm:flex-row sm:justify-between sm:gap-5 md:px-10">
         <p suppressHydrationWarning>{interpolate(t.footer.copyright, { year })}</p>
         <p className="hidden text-center sm:block">{t.footer.sources}</p>
       </Container>

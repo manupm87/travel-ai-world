@@ -15,7 +15,7 @@ export interface SuggestionChipsProps {
 }
 
 const chipClass =
-  "shrink-0 whitespace-nowrap rounded-full border border-border-soft bg-transparent px-3.5 py-1.5 text-[13px] text-text-secondary transition hover:border-accent/40 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-50";
+  "shrink-0 whitespace-nowrap rounded-full border border-border-soft bg-transparent px-3.5 py-1.5 text-sm text-text-secondary transition hover:border-accent/40 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-50";
 
 /**
  * Shortcut requests under the composer ("Make it cheaper", ...), preceded by

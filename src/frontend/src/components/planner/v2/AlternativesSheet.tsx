@@ -135,7 +135,7 @@ export function AlternativesSheet({
       >
         <div className="flex items-start gap-3 border-b border-border px-4 py-3">
           <div className="flex min-w-0 flex-1 flex-col">
-            <span className="text-[10px] font-medium uppercase tracking-wider text-text-secondary">
+            <span className="text-xs font-medium uppercase tracking-wider text-text-secondary">
               {a.title}
             </span>
             <h2 id={titleId} className="text-base font-medium text-text-primary">

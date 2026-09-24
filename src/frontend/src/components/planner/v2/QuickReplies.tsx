@@ -282,7 +282,7 @@ export function QuickReplies({
                   disabled={disabled}
                   onClick={() => toggleInterest(option.id)}
                   className={cn(
-                    "rounded-full border px-3 py-1.5 text-[13px] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-50",
+                    "rounded-full border px-3 py-1.5 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-50",
                     checked
                       ? "border-accent bg-accent/15 text-text-primary"
                       : "border-border-soft text-text-secondary hover:border-accent/40 hover:text-text-primary"
@@ -312,7 +312,7 @@ export function QuickReplies({
                   disabled={disabled}
                   onClick={() => setBudget(tier)}
                   className={cn(
-                    "flex-1 rounded-lg border px-3 py-2 text-[13px] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-50",
+                    "flex-1 rounded-lg border px-3 py-2 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-50",
                     checked
                       ? "border-accent bg-accent/15 text-text-primary"
                       : "border-border-soft text-text-secondary hover:border-accent/40 hover:text-text-primary"
@@ -330,7 +330,7 @@ export function QuickReplies({
         type="button"
         onClick={confirm}
         disabled={disabled || !ready}
-        className="self-end rounded-lg bg-action px-4 py-2 text-[13px] font-medium text-on-action transition hover:bg-action-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-40"
+        className="self-end rounded-lg bg-action px-4 py-2 text-sm font-medium text-on-action transition hover:bg-action-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-40"
       >
         {q.confirm}
       </button>

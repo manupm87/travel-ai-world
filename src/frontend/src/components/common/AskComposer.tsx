@@ -203,7 +203,7 @@ export function AskComposer({
                 hint ? "justify-between border-t border-glass-border pt-3" : "justify-end"
               )}
             >
-              {hint && <p className="min-w-0 text-[13px] text-text-muted">{hint}</p>}
+              {hint && <p className="min-w-0 text-sm text-text-muted">{hint}</p>}
               <Button
                 type="submit"
                 size="sm"

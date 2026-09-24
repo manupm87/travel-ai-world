@@ -58,6 +58,9 @@ model's answer, which stays in the body font. All three are loaded in `app/layou
 - Headings: weight 300–400, tracking `-0.03em`, **sentence case**. Large and light beats bold and
   small; the global `h1…h6` rule already sets weight and tracking.
 - Body: 15–17 px, line length under 80 characters.
+- **Nothing on the traveller's side is under 12 px** (TRA-243): metadata and captions 12–13 px,
+  secondary text 14 px, the chat 15 px. Small monitors read the canvas's 10–11 px as a blur. The
+  admin console keeps its density.
 - No ALL-CAPS tracked labels above headings, no "WORD — fragment" eyebrows, no monospace for small
   data labels, no numbered `01 / 02 / 03` markers unless the content really is a sequence.
 - The wordmark is "Kyrian World" in Outfit 500, sentence case, beside **the K of the route**

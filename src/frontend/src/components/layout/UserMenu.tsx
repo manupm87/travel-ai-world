@@ -111,14 +111,14 @@ export function UserMenu({ onLogin, onAfterAction }: UserMenuProps) {
           className="absolute top-full right-0 mt-2 w-48 bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl shadow-2xl py-2 animate-scale-in origin-top-right"
         >
           <div className="px-4 py-2 border-b border-border mb-1">
-            <p className="text-[12px] font-semibold text-text-primary truncate">{user.name}</p>
-            <p className="text-[10px] text-text-secondary truncate">{user.email}</p>
+            <p className="text-[13px] font-semibold text-text-primary truncate">{user.name}</p>
+            <p className="text-xs text-text-secondary truncate">{user.email}</p>
           </div>
           <Link
             href="/dashboard/"
             role="menuitem"
             onClick={close}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-[12px] font-medium text-text-secondary hover:text-text-primary hover:bg-accent-soft transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-medium text-text-secondary hover:text-text-primary hover:bg-accent-soft transition-colors"
           >
             <Map size={14} aria-hidden="true" />
             {t.nav.trips}
@@ -127,7 +127,7 @@ export function UserMenu({ onLogin, onAfterAction }: UserMenuProps) {
             type="button"
             role="menuitem"
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-[12px] font-medium text-text-secondary hover:text-error hover:bg-error/5 transition-colors cursor-pointer"
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-medium text-text-secondary hover:text-error hover:bg-error/5 transition-colors cursor-pointer"
           >
             <LogOut size={14} aria-hidden="true" />
             {t.auth.logout}

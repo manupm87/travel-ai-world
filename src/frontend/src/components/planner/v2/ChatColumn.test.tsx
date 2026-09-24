@@ -238,6 +238,25 @@ describe("ChatColumn — Kiri's answer (TRA-239)", () => {
     expect(tag.querySelector('[data-field="travellers"]')).not.toHaveTextContent(p.packing.tag.toDecide);
   });
 
+  it("asks with the tag even when the destination is outside the corpus (TRA-243)", () => {
+    renderColumn({
+      status: "idle",
+      brief: { ...EMPTY_BRIEF },
+      missing: ["destination", "dates"],
+      packing: { step: "zip", folded: false, warned: false, failed: false, detail: null, sources: [], live: true },
+      messages: [
+        { id: "m1", kind: "text", role: "user", content: "Four days in Lisbon" },
+        { id: "m2", kind: "text", role: "assistant", content: "For now I can plan Budapest." },
+      ],
+    });
+    const tag = screen.getByRole("region", { name: p.packing.tag.title });
+    expect(tag).toHaveTextContent(p.packing.tag.toDecide);
+    // Nothing was packed: the suitcase does not close, Kiri just asks.
+    expect(screen.queryByText(p.packing.closed)).not.toBeInTheDocument();
+    expect(document.querySelector("[data-packing]")).toBeNull();
+    expect(screen.getByText(p.packing.kiri)).toBeInTheDocument();
+  });
+
   it("reports a failed turn as lost luggage, and retries it", () => {
     const onRetry = vi.fn();
     renderColumn({ status: "error", error: "generic" }, p.errors.generic, { onRetry });

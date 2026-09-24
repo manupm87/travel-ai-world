@@ -741,18 +741,21 @@ class PlanTrip:
             turn.brief = brief
         else:
             brief = await self._extract_brief(turn)
+        not_covered: str | None = None
         if brief.destination and resolve_city(brief.destination, self._cities) is None:
-            yield text(
-                planner_text(
-                    turn.language,
-                    "not_covered",
-                    cities=join_names([c.name for c in self._cities], turn.language),
-                    destination=brief.destination,
-                )
+            not_covered = planner_text(
+                turn.language,
+                "not_covered",
+                cities=join_names([c.name for c in self._cities], turn.language),
+                destination=brief.destination,
             )
             brief = brief.model_copy(update={"destination": None})
         turn.brief = brief
+        # The list is written down first, then Kiri says why the destination is
+        # not on it (TRA-243): the page packs in the same order either way.
         yield brief_event(brief)
+        if not_covered is not None:
+            yield text(not_covered)
         if brief.missing():
             async for event in self._ask_missing(turn):
                 yield event

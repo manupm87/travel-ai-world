@@ -91,7 +91,7 @@ export function DayCard({
         {day.day}
       </span>
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="text-[10px] font-medium uppercase tracking-wider text-text-secondary">
+        <span className="text-xs font-medium uppercase tracking-wider text-text-secondary">
           {dayLabel}
         </span>
         {day.title && (
@@ -164,7 +164,7 @@ export function DayCard({
               const partWarnings = warningsFor(part);
               return (
                 <section key={part} aria-label={`${dayLabel} · ${partLabel}`} className="flex flex-col gap-2">
-                  <h4 className="text-[10px] font-medium uppercase tracking-wider text-text-secondary">
+                  <h4 className="text-xs font-medium uppercase tracking-wider text-text-secondary">
                     {partLabel}
                   </h4>
 
@@ -208,7 +208,7 @@ export function DayCard({
                               <span
                                 aria-hidden="true"
                                 className={cn(
-                                  "flex h-6 w-6 shrink-0 items-center justify-center self-center rounded-full text-[11px] font-medium transition",
+                                  "flex h-6 w-6 shrink-0 items-center justify-center self-center rounded-full text-xs font-medium transition",
                                   selected
                                     ? "bg-action text-on-action"
                                     : "bg-accent-soft text-text-primary"
@@ -281,7 +281,7 @@ export function DayCard({
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   title={card.license || undefined}
-                                  className="inline-flex w-fit items-center gap-1 rounded-full border border-border-soft px-2 py-0.5 text-[10px] uppercase tracking-wider text-text-secondary transition hover:border-accent/40 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                                  className="inline-flex w-fit items-center gap-1 rounded-full border border-border-soft px-2 py-0.5 text-xs uppercase tracking-wider text-text-secondary transition hover:border-accent/40 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                                 >
                                   {interpolate(t.plan.card.source, { source: card.source })}
                                   <ExternalLink size={10} aria-hidden="true" />

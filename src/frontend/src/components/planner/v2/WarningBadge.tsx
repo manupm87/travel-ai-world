@@ -44,7 +44,7 @@ export function WarningBadge({ warning }: { warning: ItineraryWarning }) {
       >
         <Icon size={14} />
       </span>
-      <span className="flex min-w-0 flex-col text-[12px] leading-tight">
+      <span className="flex min-w-0 flex-col text-[13px] leading-tight">
         <span className="font-bold">{t.plan.packing.stickers[warning.code]}</span>
         <span className="opacity-80">{text}</span>
       </span>

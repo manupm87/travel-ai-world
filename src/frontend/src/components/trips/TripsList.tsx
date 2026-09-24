@@ -50,7 +50,7 @@ function SuitcaseCard({ trips }: { trips: TripSummary[] }) {
           {cities.map((city, index) => (
             <li
               key={city}
-              className="inline-flex h-7 items-center gap-1.5 rounded-full border border-glass-border px-2.5 text-[13px] text-text-secondary"
+              className="inline-flex h-7 items-center gap-1.5 rounded-full border border-glass-border px-2.5 text-sm text-text-secondary"
             >
               <span
                 aria-hidden="true"

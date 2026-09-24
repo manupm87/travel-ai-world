@@ -178,7 +178,7 @@ export default function TripCard({
           </h4>
 
           {showCity && <p className="text-sm text-text-secondary">{trip.city}</p>}
-          {meta && <p className="text-[13px] text-text-secondary">{meta}</p>}
+          {meta && <p className="text-sm text-text-secondary">{meta}</p>}
         </div>
       </article>
 

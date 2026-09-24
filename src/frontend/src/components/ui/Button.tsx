@@ -23,7 +23,7 @@ const BASE = cn(
 );
 
 const SIZES = {
-  sm: "px-5 py-2 text-[13px]",
+  sm: "px-5 py-2 text-sm",
   md: "px-9 py-4 text-base",
   lg: "px-12 py-5 text-lg",
 } as const;

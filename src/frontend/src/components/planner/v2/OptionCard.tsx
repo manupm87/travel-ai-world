@@ -144,19 +144,19 @@ export function OptionCard({
         {hasImage && creditText && (
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute inset-x-0 bottom-0 truncate bg-bg-primary/75 px-2 py-1 text-[10px] leading-tight text-text-secondary opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100 motion-reduce:transition-none"
+            className="pointer-events-none absolute inset-x-0 bottom-0 truncate bg-bg-primary/75 px-2 py-1 text-xs leading-tight text-text-secondary opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100 motion-reduce:transition-none"
           >
             {creditText}
           </span>
         )}
         {selected && (
-          <span className="absolute left-2 top-2 inline-flex animate-scale-in items-center gap-1 rounded-full bg-action px-2 py-0.5 text-[11px] font-medium text-on-action">
+          <span className="absolute left-2 top-2 inline-flex animate-scale-in items-center gap-1 rounded-full bg-action px-2 py-0.5 text-xs font-medium text-on-action">
             <Check size={12} aria-hidden="true" />
             {p.card.chosen}
           </span>
         )}
         {current && (
-          <span className="absolute left-2 top-2 rounded-full bg-bg-primary/80 px-2 py-0.5 text-[11px] font-medium text-text-primary">
+          <span className="absolute left-2 top-2 rounded-full bg-bg-primary/80 px-2 py-0.5 text-xs font-medium text-text-primary">
             {p.alternatives.current}
           </span>
         )}
@@ -200,7 +200,7 @@ export function OptionCard({
             target="_blank"
             rel="noopener noreferrer"
             title={card.license || undefined}
-            className="inline-flex w-fit items-center gap-1 rounded-full border border-border-soft px-2 py-0.5 text-[10px] uppercase tracking-wider text-text-secondary transition hover:border-accent/40 hover:text-text-primary"
+            className="inline-flex w-fit items-center gap-1 rounded-full border border-border-soft px-2 py-0.5 text-xs uppercase tracking-wider text-text-secondary transition hover:border-accent/40 hover:text-text-primary"
           >
             {interpolate(p.card.source, { source: card.source })}
             <ExternalLink size={10} aria-hidden="true" />
@@ -216,7 +216,7 @@ export function OptionCard({
               disabled={disabled || current}
               onClick={() => onChoose()}
               className={cn(
-                "inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-[13px] font-medium transition disabled:cursor-not-allowed disabled:opacity-50",
+                "inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50",
                 selected
                   ? "border-accent bg-action text-on-action"
                   : "border-border-soft bg-transparent text-text-primary hover:border-accent/50"
@@ -233,7 +233,7 @@ export function OptionCard({
               aria-expanded={canPick ? picking : undefined}
               onClick={canPick ? () => setPicking((open) => !open) : () => onChoose()}
               className={cn(
-                "inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-[13px] font-medium transition disabled:cursor-not-allowed",
+                "inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed",
                 selected || current
                   ? "border border-border-soft bg-transparent text-text-secondary disabled:opacity-100"
                   : "bg-action text-on-action hover:bg-accent-hover disabled:opacity-50"

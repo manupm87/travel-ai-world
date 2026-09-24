@@ -353,7 +353,7 @@ type Step = Extract<PlannerEvent, { type: "progress" }>["step"];
 const STEPS: readonly Step[] = ["open", "list", "wardrobe", "fold", "weigh", "zip"];
 
 /** ai_api's English sentences (`prompts.py`, `progress_*`): the demo is in English. */
-function sentence(step: Step, city: string | null, days: number | null): string {
+function sentence(step: Step, city: string | null, days: number | null, missing: boolean): string {
   switch (step) {
     case "open":
       return city ? `Reading what you asked: ${city}.` : "Reading what you asked.";
@@ -368,7 +368,9 @@ function sentence(step: Step, city: string | null, days: number | null): string 
     case "weigh":
       return "Checking distances, opening hours and prices.";
     case "zip":
-      return "Everything fits. Zipping it up.";
+      return missing
+        ? "Something is missing before I can close it: I'll ask."
+        : "Everything fits. Zipping it up.";
   }
 }
 
@@ -442,13 +444,14 @@ export function withProgress(recorded: readonly PlannerEvent[]): PlannerEvent[] 
   const out: PlannerEvent[] = [];
   const sources: string[] = [];
   let city: string | null = null;
+  let missing = false;
   let step: Step | null = null;
   let detail = "";
 
   const reach = (next: Step) => {
     if (step !== null && STEPS.indexOf(next) <= STEPS.indexOf(step)) return;
     step = next;
-    detail = sentence(next, city, next === "fold" && days.size > 0 ? days.size : null);
+    detail = sentence(next, city, next === "fold" && days.size > 0 ? days.size : null, missing);
     out.push({ type: "progress", step, detail, sources: [...sources] });
   };
 
@@ -456,6 +459,7 @@ export function withProgress(recorded: readonly PlannerEvent[]): PlannerEvent[] 
   events.forEach((event, index) => {
     if (event.type === "brief") {
       city = event.brief.destination;
+      missing = event.missing.length > 0;
       reach("list");
     } else if (event.type === "options") {
       reach("wardrobe");

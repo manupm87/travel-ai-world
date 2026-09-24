@@ -111,7 +111,7 @@ function optionElement(label: string): HTMLElement {
     "block h-6 w-6 rounded-full border-2 border-dashed border-text-primary/80 bg-bg-primary/30";
   const text = document.createElement("span");
   text.className =
-    "whitespace-nowrap rounded-full border border-glass-border bg-glass-bg px-2 py-0.5 text-[11px] font-medium text-text-secondary backdrop-blur-md";
+    "whitespace-nowrap rounded-full border border-glass-border bg-glass-bg px-2 py-0.5 text-xs font-medium text-text-secondary backdrop-blur-md";
   text.textContent = label;
   root.append(ring, text);
   return root;
@@ -485,7 +485,7 @@ export function TripMapCanvas({
     <div
       ref={containerRef}
       data-testid="trip-map-canvas"
-      className="h-full w-full [&_.maplibregl-ctrl-attrib]:text-[10px]"
+      className="h-full w-full [&_.maplibregl-ctrl-attrib]:text-xs"
     />
   );
 }

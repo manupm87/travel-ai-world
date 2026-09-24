@@ -1754,3 +1754,27 @@ async def test_closing_the_stream_early_stops_the_turn():
     stream = use_case(turn("Budapest"))
     await stream.__anext__()
     await stream.aclose()  # must not hang on the blocked model call
+
+
+async def test_a_city_outside_the_corpus_is_listed_first_and_then_explained():
+    """TRA-243: the page packs in the same order whatever the city."""
+    use_case, _, _ = planner([json.dumps({"destination": "Lisboa"})])
+
+    events = await run(use_case(turn("Quiero ir a Lisboa cuatro días")))
+
+    kinds = [e.type for e in events]
+    brief_at = kinds.index("brief")
+    assert kinds[brief_at - 1] == "progress"  # the list, just before
+    assert "Lisboa" in events[brief_at + 1].delta  # type: ignore[union-attr]
+    zip_ = next(e for e in _progress(events) if e.step == "zip")
+    assert zip_.detail == "Me falta algo antes de cerrarla: te pregunto."
+
+
+async def test_a_complete_brief_zips_with_everything_in():
+    use_case, _, _ = planner()
+    events = await run(use_case(turn("Change nothing", brief=brief())))
+    zips = [e for e in _progress(events) if e.step == "zip"]
+    assert all(
+        e.detail != "Something is missing before I can close it: I'll ask."
+        for e in zips
+    )

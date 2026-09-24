@@ -109,7 +109,7 @@ export function OptionCarousel({
       className="flex animate-fade-in flex-col gap-2"
     >
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-[13px] font-medium text-text-primary">{group.prompt}</h3>
+        <h3 className="text-sm font-medium text-text-primary">{group.prompt}</h3>
         <div className="flex shrink-0 gap-1">
           <button
             type="button"
@@ -168,7 +168,7 @@ export function OptionCarousel({
                 : onSelect(group.group_id, checked)
             }
             disabled={disabled || hasSelection || checked.length === 0}
-            className="self-start rounded-lg bg-action px-3.5 py-2 text-[13px] font-medium text-on-action transition hover:bg-action-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-40"
+            className="self-start rounded-lg bg-action px-3.5 py-2 text-sm font-medium text-on-action transition hover:bg-action-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {interpolate(p.card.addCount, { count: checked.length })}
           </button>

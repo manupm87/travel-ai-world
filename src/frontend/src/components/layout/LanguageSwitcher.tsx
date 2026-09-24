@@ -65,7 +65,7 @@ export function LanguageSwitcher({ variant = "dropdown" }: LanguageSwitcherProps
         aria-label={t.nav.selectLanguage}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex h-10 items-center gap-1.5 rounded-full border border-glass-border bg-glass-bg px-3 text-[13px] font-medium text-text-secondary backdrop-blur-xl transition-colors hover:text-text-primary cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+        className="flex h-10 items-center gap-1.5 rounded-full border border-glass-border bg-glass-bg px-3 text-sm font-medium text-text-secondary backdrop-blur-xl transition-colors hover:text-text-primary cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
       >
         <Globe size={16} aria-hidden="true" />
         <span className="uppercase">{language}</span>
@@ -96,7 +96,7 @@ export function LanguageSwitcher({ variant = "dropdown" }: LanguageSwitcherProps
                   setOpen(false);
                 }}
                 className={cn(
-                  "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-colors cursor-pointer hover:bg-bg-surface",
+                  "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors cursor-pointer hover:bg-bg-surface",
                   active ? "text-text-primary" : "text-text-secondary hover:text-text-primary"
                 )}
               >

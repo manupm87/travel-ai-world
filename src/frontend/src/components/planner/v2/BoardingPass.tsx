@@ -59,10 +59,10 @@ export function BoardingPass({ brief, itinerary }: BoardingPassProps) {
   return (
     <section
       aria-label={p.title}
-      className="relative flex overflow-hidden rounded-2xl border border-glass-border bg-bg-card"
+      className="@container relative flex overflow-hidden rounded-2xl border border-glass-border bg-bg-card"
     >
       <div className="flex min-w-0 flex-1 flex-col gap-2.5 px-4 py-3.5">
-        <span className="text-[11.5px] text-text-muted">{p.title}</span>
+        <span className="text-xs text-text-muted">{p.title}</span>
         <p className="flex flex-wrap items-center gap-x-2.5 font-heading text-[22px] leading-tight text-text-primary">
           {brief.origin && (
             <>
@@ -73,11 +73,11 @@ export function BoardingPass({ brief, itinerary }: BoardingPassProps) {
           <span>{brief.destination}</span>
         </p>
         {fields.length > 0 && (
-          <dl className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-4">
+          <dl className="grid grid-cols-2 gap-x-4 gap-y-2 @lg:grid-cols-4">
             {fields.map((field) => (
               <div key={field.label} className="flex min-w-0 flex-col">
-                <dt className="text-[11px] text-text-muted">{field.label}</dt>
-                <dd className="truncate text-[13.5px] font-semibold text-text-primary">{field.value}</dd>
+                <dt className="text-xs text-text-muted">{field.label}</dt>
+                <dd className="truncate text-sm font-semibold text-text-primary">{field.value}</dd>
               </div>
             ))}
           </dl>
@@ -92,7 +92,7 @@ export function BoardingPass({ brief, itinerary }: BoardingPassProps) {
         <span className="absolute -top-2 -left-2 h-4 w-4 rounded-full bg-bg-primary" />
         <span className="absolute -bottom-2 -left-2 h-4 w-4 rounded-full bg-bg-primary" />
         <Kiri state="happy" scale={2} />
-        <span className="font-pixel text-[11px] text-text-secondary">
+        <span className="font-pixel text-xs text-text-secondary">
           {interpolate(p.gate, { day: 1 })}
         </span>
         <span className="flex h-6 items-stretch gap-[2px]">

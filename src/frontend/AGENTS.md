@@ -382,8 +382,9 @@ TypeScript 5, Tailwind CSS v4.
   and a bar of six; when done "Suitcase closed in N s" (", with a warning"), the `BoardingPass`
   (brief + itinerary, only when the turn folded something into a trip) and "See how I packed". The
   traveller's messages are bubbles on the right; Kiri's answers are plain text under her name tag
-  (`KiriTag`, Pixelify). A brief with a destination and something missing shows a `LuggageTag`
-  ("To decide" dashed) over the quick replies; a failed turn is `LostLuggage` (`role="alert"`)
+  (`KiriTag`, Pixelify). A turn that ends asking shows a `LuggageTag` ("To decide" dashed,
+  the destination too when ai_api cleared one outside the corpus, TRA-243) over the quick replies,
+  and its suitcase does not close — nothing was packed; a failed turn is `LostLuggage` (`role="alert"`)
   whose "Retry" is `usePlanner.retry()` — the failed turn sent again as it was, its message first
   taken out of the transcript (`retry_prepared`) so it is not written twice; no retry on an
   `unauthorized` failure. Warnings are stickers (`WarningBadge`): overloaded day "Overweight",

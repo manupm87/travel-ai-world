@@ -44,7 +44,7 @@ export function KiriTag({ state = "idle" }: { state?: KiriState }) {
   return (
     <span className="flex items-center gap-2">
       <Kiri state={state} scale={2} />
-      <span className="font-pixel text-[13px] text-text-secondary">{t.plan.packing.kiri}</span>
+      <span className="font-pixel text-sm text-text-secondary">{t.plan.packing.kiri}</span>
     </span>
   );
 }
@@ -84,14 +84,14 @@ function StepList({ packing }: { packing: PackingState }) {
               ) : done ? (
                 <Check size={13} />
               ) : (
-                <span className="text-[11px] font-semibold">{index + 1}</span>
+                <span className="text-xs font-semibold">{index + 1}</span>
               )}
             </span>
             <span className="flex min-w-0 flex-col pt-1">
-              <span className={cn("text-[13.5px] font-semibold", heavy && "text-warning")}>
+              <span className={cn("text-sm font-semibold", heavy && "text-warning")}>
                 {p.steps[step]}
               </span>
-              <span className="text-[13px] leading-snug text-text-secondary">{p.details[step]}</span>
+              <span className="text-sm leading-snug text-text-secondary">{p.details[step]}</span>
             </span>
           </li>
         );
@@ -183,14 +183,14 @@ export function PackingStatus({
               <span className="flex-1 text-[14px] font-semibold text-text-primary">
                 {streaming ? `${p.steps[packing.step]}…` : p.closed}
               </span>
-              <span className="text-[12px] tabular-nums text-text-muted" aria-hidden="true">
+              <span className="text-[13px] tabular-nums text-text-muted" aria-hidden="true">
                 {clock(elapsed)}
               </span>
               <span className="sr-only">
                 {interpolate(p.elapsed, { seconds: Math.floor(elapsed / 1000) })}
               </span>
             </div>
-            <p className="text-[13px] leading-snug text-text-secondary">
+            <p className="text-sm leading-snug text-text-secondary">
               {packing.detail || p.details[packing.step]}
             </p>
           </div>
@@ -203,7 +203,7 @@ export function PackingStatus({
             closed={!streaming}
           />
 
-          <div className="flex items-center gap-2.5 text-[12.5px]" aria-hidden="true">
+          <div className="flex items-center gap-2.5 text-[13px]" aria-hidden="true">
             <span className="text-text-secondary">{p.suitcase.weight}</span>
             <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-accent-soft">
               <span
@@ -228,7 +228,7 @@ export function PackingStatus({
             onClick={() => setStepsOpen((was) => !was)}
             aria-expanded={stepsOpen}
             aria-controls={listId}
-            className="inline-flex items-center gap-1 self-start rounded-md text-[12.5px] text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+            className="inline-flex items-center gap-1 self-start rounded-md text-[13px] text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
           >
             {stepsOpen ? p.suitcase.hideSteps : p.suitcase.showSteps}
             <ChevronDown
@@ -254,7 +254,7 @@ export function PackingStatus({
         <Briefcase size={15} aria-hidden="true" className="text-accent" />
         <span className="font-semibold text-text-primary">{p.closed}</span>
         {startedAt !== null && (
-          <span className="text-[12px] text-text-muted">
+          <span className="text-[13px] text-text-muted">
             {interpolate(p.closedIn, { seconds })}
             {packing.warned && `, ${p.withWarning}`}
           </span>
@@ -266,7 +266,7 @@ export function PackingStatus({
         onClick={() => setOpen((was) => !was)}
         aria-expanded={open}
         aria-controls={listId}
-        className="inline-flex items-center gap-1 self-start rounded-md text-[12.5px] text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+        className="inline-flex items-center gap-1 self-start rounded-md text-[13px] text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
       >
         {p.howIPacked}
         <ChevronDown

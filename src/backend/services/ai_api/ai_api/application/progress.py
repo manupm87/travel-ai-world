@@ -103,4 +103,7 @@ class PackingProgress:
             return planner_text(self._language, f"progress_{step}_city", city=city)
         if step == "fold" and days:
             return planner_text(self._language, "progress_fold_days", days=days)
+        if step == "zip" and self._brief.missing():
+            # The turn ends on a question: nothing was packed (TRA-243).
+            return planner_text(self._language, "progress_zip_missing")
         return planner_text(self._language, f"progress_{step}")

@@ -97,14 +97,19 @@ export function ChatColumn({
   const showError = !!errorText && !holding;
   const showQuickReplies =
     !isStreaming && !hasItinerary(state.itinerary) && !lockedPhase && !holding;
-  // Kiri's luggage tag over the quick replies, once there is a destination to
-  // write on it and something still to ask (TRA-239).
-  const showTag =
-    showQuickReplies && messages.length > 0 && state.missing.length > 0 && !!state.brief.destination;
+  // Kiri's luggage tag over the quick replies whenever a turn ends asking
+  // (TRA-239) — a destination outside the corpus included, which ai_api
+  // clears, so the tag then says "To decide" on its title too (TRA-243).
+  const showTag = showQuickReplies && messages.length > 0 && state.missing.length > 0;
 
   // Packing the suitcase (TRA-239) belongs to the last turn: it sits under what
-  // started it — the traveller's message or the chip of what they chose.
-  const packing = !holding && state.packing && !state.packing.failed ? state.packing : null;
+  // started it — the traveller's message or the chip of what they chose. A
+  // turn that ended asking packed nothing, so once it is over its suitcase
+  // gives way to the luggage tag instead of closing (TRA-243).
+  const packing =
+    !holding && state.packing && !state.packing.failed && !(showTag && !state.packing.folded)
+      ? state.packing
+      : null;
   let turnStart = -1;
   for (let i = lastIndex; i >= 0; i -= 1) {
     const message = messages[i];

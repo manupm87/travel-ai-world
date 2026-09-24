@@ -91,11 +91,11 @@ export function Suitcase({ packing, brief, itinerary, optionTitles, closed }: Su
           <span className="suitcase-shell" />
           <div className="suitcase-lining grid grid-cols-2 gap-2">
             <div className="flex min-w-0 flex-col gap-0.5 overflow-hidden rounded-[10px] border-[1.5px] border-dashed border-glass-border px-2.5 py-2">
-              <span className="text-[11px] text-text-muted">{s.list}</span>
+              <span className="text-xs text-text-muted">{s.list}</span>
               {listed.map((value, index) => (
                 <span
                   key={value}
-                  className="flex animate-fade-up items-center gap-1.5 truncate text-[12px] text-text-primary"
+                  className="flex animate-fade-up items-center gap-1.5 truncate text-[13px] text-text-primary"
                   style={{ animationDelay: `${index * 120}ms` }}
                 >
                   <Check size={12} className="shrink-0 text-accent" />
@@ -104,12 +104,12 @@ export function Suitcase({ packing, brief, itinerary, optionTitles, closed }: Su
               ))}
             </div>
             <div className="flex min-w-0 flex-col gap-1 overflow-hidden rounded-[10px] border-[1.5px] border-dashed border-glass-border px-2.5 py-2">
-              <span className="text-[11px] text-text-muted">{s.wardrobe}</span>
+              <span className="text-xs text-text-muted">{s.wardrobe}</span>
               <span className="flex flex-wrap gap-1">
                 {sources.map((source, index) => (
                   <span
                     key={source}
-                    className="inline-flex h-5 animate-fade-up items-center rounded-md bg-bg-surface px-1.5 text-[10.5px] text-text-secondary"
+                    className="inline-flex h-5 animate-fade-up items-center rounded-md bg-bg-surface px-1.5 text-xs text-text-secondary"
                     style={{ animationDelay: `${index * 120}ms` }}
                   >
                     {source}
@@ -124,13 +124,13 @@ export function Suitcase({ packing, brief, itinerary, optionTitles, closed }: Su
           <div className="suitcase-ext flex items-center justify-center">
             <KiriFace scale={6} />
             {brief.destination && (
-              <span className="absolute top-3 right-4 flex rotate-6 items-center gap-1.5 rounded-md bg-[#EFEDE7] px-2.5 py-1 text-[12px] font-semibold text-sticker-ink shadow-[0_6px_12px_-6px_rgba(0,0,0,0.6)]">
+              <span className="absolute top-3 right-4 flex rotate-6 items-center gap-1.5 rounded-md bg-[#EFEDE7] px-2.5 py-1 text-[13px] font-semibold text-sticker-ink shadow-[0_6px_12px_-6px_rgba(0,0,0,0.6)]">
                 <span className="h-2 w-2 rounded-full border-2 border-[#6E8F83]" />
                 {brief.destination}
               </span>
             )}
             {packing.warned && (
-              <span className="absolute bottom-3 left-4 -rotate-6 rounded-lg bg-sticker-overweight px-2.5 py-1 text-[11px] font-bold text-sticker-ink shadow-[0_0_0_2px_#EFEDE7]">
+              <span className="absolute bottom-3 left-4 -rotate-6 rounded-lg bg-sticker-overweight px-2.5 py-1 text-xs font-bold text-sticker-ink shadow-[0_0_0_2px_#EFEDE7]">
                 {t.plan.packing.stickers.overloaded_day}
               </span>
             )}
@@ -155,7 +155,7 @@ export function Suitcase({ packing, brief, itinerary, optionTitles, closed }: Su
               >
                 {compartment && (
                   <>
-                    <span className="flex items-center justify-between text-[11px] text-text-muted">
+                    <span className="flex items-center justify-between text-xs text-text-muted">
                       <span className="truncate">{compartment.label}</span>
                       {packed && compartment.titles.length > 0 && (
                         <span>{compartment.titles.length}</span>
@@ -168,7 +168,7 @@ export function Suitcase({ packing, brief, itinerary, optionTitles, closed }: Su
                         return (
                           <span
                             key={title}
-                            className="flex h-6 shrink-0 animate-kiri-drop items-center gap-1.5 overflow-hidden rounded-md border border-glass-border bg-bg-surface px-1.5 text-[11.5px] text-text-primary"
+                            className="flex h-6 shrink-0 animate-kiri-drop items-center gap-1.5 overflow-hidden rounded-md border border-glass-border bg-bg-surface px-1.5 text-xs text-text-primary"
                             style={{ animationDelay: `${at}ms` }}
                           >
                             <MapPin size={11} className="shrink-0 text-accent" />

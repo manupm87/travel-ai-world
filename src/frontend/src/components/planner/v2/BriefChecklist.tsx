@@ -91,7 +91,7 @@ export function BriefChecklist({ brief, missing, disabled = false, onGenerate }:
                 <Check size={12} aria-hidden="true" />
               </span>
               <span className="flex flex-col">
-                <span className="text-[13px] text-text-secondary">{c.fields[field]}</span>
+                <span className="text-sm text-text-secondary">{c.fields[field]}</span>
                 <span
                   className={cn(
                     "text-sm",

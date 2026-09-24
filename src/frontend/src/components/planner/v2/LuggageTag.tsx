@@ -32,7 +32,7 @@ export function LuggageTag({ brief, missing }: LuggageTagProps) {
       <p className="flex flex-wrap items-center gap-x-2 text-[14px]">
         <ListChecks size={15} aria-hidden="true" className="text-accent" />
         <span className="font-semibold text-text-primary">{p.heading}</span>
-        <span className="text-[12px] text-text-muted">
+        <span className="text-[13px] text-text-muted">
           {missing.length === 1 ? p.missingOne : interpolate(p.missing, { count: missing.length })}
         </span>
       </p>
@@ -46,9 +46,13 @@ export function LuggageTag({ brief, missing }: LuggageTagProps) {
           aria-hidden="true"
           className="absolute top-1/2 left-4 h-2.5 w-2.5 -translate-y-1/2 rounded-full border-2 border-text-secondary"
         />
-        <span className="text-[11.5px] text-text-muted">{p.title}</span>
+        <span className="text-xs text-text-muted">{p.title}</span>
         <p className="font-heading text-[22px] leading-tight text-text-primary">
-          {values.destination ?? p.toDecide}
+          {values.destination ?? (
+            <span className="rounded-lg border border-dashed border-text-muted px-2 text-[18px]">
+              {p.toDecide}
+            </span>
+          )}
         </p>
         <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-2">
           {TAG_FIELDS.map((field) => {
@@ -56,10 +60,10 @@ export function LuggageTag({ brief, missing }: LuggageTagProps) {
             const open = value === null || missing.includes(field);
             return (
               <div key={field} className="flex min-w-0 flex-col" data-field={field}>
-                <dt className="text-[11px] text-text-muted">{labels[field]}</dt>
+                <dt className="text-xs text-text-muted">{labels[field]}</dt>
                 <dd
                   className={cn(
-                    "self-start truncate text-[13.5px] font-semibold text-text-primary",
+                    "self-start truncate text-sm font-semibold text-text-primary",
                     open && "rounded-md border border-dashed border-text-muted px-1.5"
                   )}
                 >
