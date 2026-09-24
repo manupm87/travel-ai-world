@@ -51,7 +51,7 @@ export default function NotFound() {
   return (
     <div className="flex min-h-dvh flex-col font-sans">
       <Aurora />
-      <Header variant="landing" />
+      <Header />
 
       <main className="flex flex-1 items-center justify-center px-4 py-(--header-h) sm:px-6">
         <div className="w-full max-w-[34rem] animate-fade-up text-center">

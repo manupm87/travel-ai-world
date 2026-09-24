@@ -1,17 +1,23 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { Check, ChevronDown, Globe } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
-import { LANGUAGES, getLanguageMeta } from "@/i18n";
+import { LANGUAGES } from "@/i18n";
 import { useClickOutside } from "@/hooks/useClickOutside";
 import { cn } from "@/utils/cn";
 
 interface LanguageSwitcherProps {
-  /** `dropdown` is the header menu; `segmented` the mobile drawer's pill group. */
+  /** `dropdown` is the header's pill; `segmented` the phone menu's full-width choice. */
   variant?: "dropdown" | "segmented";
 }
 
+/**
+ * The reader's language (TRA-236). In the header, a glass pill — a globe and
+ * the two-letter code — that opens a short menu; in the phone menu, the
+ * languages side by side by their own names, the chosen one filled with the
+ * action colour.
+ */
 export function LanguageSwitcher({ variant = "dropdown" }: LanguageSwitcherProps) {
   const { t, language, setLanguage } = useLanguage();
   const [open, setOpen] = useState(false);
@@ -24,36 +30,32 @@ export function LanguageSwitcher({ variant = "dropdown" }: LanguageSwitcherProps
       <div
         role="group"
         aria-label={t.nav.selectLanguage}
-        className="flex items-center gap-1 bg-glass-bg border border-glass-border backdrop-blur-xl rounded-2xl p-1 w-fit relative overflow-hidden"
+        className="grid w-full grid-flow-col auto-cols-fr gap-1 rounded-2xl bg-bg-surface/60 p-1"
       >
-        {LANGUAGES.map(({ code, flag, nativeName }) => {
+        {LANGUAGES.map(({ code, nativeName }) => {
           const active = language === code;
           return (
             <button
               key={code}
               type="button"
+              lang={code}
               onClick={() => setLanguage(code)}
               aria-pressed={active}
-              aria-label={nativeName}
               className={cn(
-                "relative flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-medium transition-all duration-500 cursor-pointer overflow-hidden",
+                "h-11 rounded-xl text-[15px] font-medium transition-colors cursor-pointer",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50",
-                active ? "text-on-action" : "text-text-secondary hover:text-text-primary"
+                active
+                  ? "bg-action text-on-action"
+                  : "text-text-secondary hover:text-text-primary"
               )}
             >
-              {active && (
-                <span className="absolute inset-0 bg-action z-0" aria-hidden="true" />
-              )}
-              <span className="relative z-10 text-base" aria-hidden="true">{flag}</span>
-              <span className="relative z-10 uppercase">{code}</span>
+              {nativeName}
             </button>
           );
         })}
       </div>
     );
   }
-
-  const current = getLanguageMeta(language);
 
   return (
     <div ref={rootRef} className="relative">
@@ -63,12 +65,12 @@ export function LanguageSwitcher({ variant = "dropdown" }: LanguageSwitcherProps
         aria-label={t.nav.selectLanguage}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border-soft bg-bg-secondary hover:bg-bg-surface transition-all text-[11px] font-medium text-text-primary cursor-pointer"
+        className="flex h-10 items-center gap-1.5 rounded-full border border-glass-border bg-glass-bg px-3 text-[13px] font-medium text-text-secondary backdrop-blur-xl transition-colors hover:text-text-primary cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
       >
-        <span aria-hidden="true">{current.flag}</span>
-        <span className="uppercase tracking-wider">{language}</span>
+        <Globe size={16} aria-hidden="true" />
+        <span className="uppercase">{language}</span>
         <ChevronDown
-          size={12}
+          size={14}
           aria-hidden="true"
           className={cn("transition-transform duration-300", open && "rotate-180")}
         />
@@ -78,29 +80,32 @@ export function LanguageSwitcher({ variant = "dropdown" }: LanguageSwitcherProps
         <div
           role="menu"
           aria-label={t.nav.selectLanguage}
-          className="absolute top-full right-0 mt-2 w-32 bg-bg-primary/95 backdrop-blur-md border border-border rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300"
+          className="absolute top-full right-0 z-10 mt-2 w-40 origin-top-right animate-scale-in overflow-hidden rounded-2xl border border-glass-border bg-glass-bg p-1 shadow-2xl backdrop-blur-xl"
         >
-          {LANGUAGES.map(({ code, flag, nativeName }) => (
-            <button
-              key={code}
-              type="button"
-              role="menuitemradio"
-              aria-checked={language === code}
-              onClick={() => {
-                setLanguage(code);
-                setOpen(false);
-              }}
-              className={cn(
-                "w-full flex items-center gap-3 px-4 py-3 text-[11px] font-medium transition-colors hover:bg-bg-secondary cursor-pointer",
-                language === code
-                  ? "text-accent bg-accent/5"
-                  : "text-text-secondary hover:text-text-primary"
-              )}
-            >
-              <span aria-hidden="true">{flag}</span>
-              <span className="uppercase tracking-widest">{nativeName}</span>
-            </button>
-          ))}
+          {LANGUAGES.map(({ code, flag, nativeName }) => {
+            const active = language === code;
+            return (
+              <button
+                key={code}
+                type="button"
+                role="menuitemradio"
+                aria-checked={active}
+                lang={code}
+                onClick={() => {
+                  setLanguage(code);
+                  setOpen(false);
+                }}
+                className={cn(
+                  "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-colors cursor-pointer hover:bg-bg-surface",
+                  active ? "text-text-primary" : "text-text-secondary hover:text-text-primary"
+                )}
+              >
+                <span aria-hidden="true">{flag}</span>
+                <span className="flex-1 text-left">{nativeName}</span>
+                {active && <Check size={14} aria-hidden="true" className="text-accent" />}
+              </button>
+            );
+          })}
         </div>
       )}
     </div>

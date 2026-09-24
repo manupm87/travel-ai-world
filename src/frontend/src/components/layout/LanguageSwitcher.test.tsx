@@ -24,7 +24,7 @@ describe("LanguageSwitcher", () => {
     renderWithProviders(<LanguageSwitcher />);
     const trigger = screen.getByRole("button", { name: en.nav.selectLanguage });
     expect(trigger).toHaveAttribute("aria-expanded", "false");
-    expect(trigger).toHaveTextContent("🇬🇧");
+    expect(trigger).toHaveTextContent("en");
 
     fireEvent.click(trigger);
     expect(trigger).toHaveAttribute("aria-expanded", "true");
@@ -33,7 +33,7 @@ describe("LanguageSwitcher", () => {
 
     expect(document.documentElement.lang).toBe("es");
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Seleccionar idioma" })).toHaveTextContent("🇪🇸");
+    expect(screen.getByRole("button", { name: "Seleccionar idioma" })).toHaveTextContent("es");
   });
 
   it("closes the dropdown on an outside click", () => {

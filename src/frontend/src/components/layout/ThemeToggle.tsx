@@ -1,42 +1,68 @@
 "use client";
 
-import { Moon, Sun } from "lucide-react";
+import { Monitor, Moon, Sun } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
-import { useTheme } from "@/context/ThemeContext";
+import { useTheme, type ThemePreference } from "@/context/ThemeContext";
+import { cn } from "@/utils/cn";
 
 interface ThemeToggleProps {
-  /** `icon` is the compact header button; `labeled` adds the target mode's name. */
-  variant?: "icon" | "labeled";
+  /**
+   * `icon` is the header's round button, which flips between dark and light;
+   * `segmented` the phone menu's three choices — dark, light, or whatever the
+   * system says (TRA-236).
+   */
+  variant?: "icon" | "segmented";
 }
 
 export function ThemeToggle({ variant = "icon" }: ThemeToggleProps) {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, preference, toggleTheme, setTheme } = useTheme();
   const { t } = useLanguage();
-  const Icon = theme === "dark" ? Sun : Moon;
-  const targetLabel = theme === "dark" ? t.theme.light : t.theme.dark;
 
-  if (variant === "labeled") {
+  if (variant === "segmented") {
+    const choices: Array<{ value: ThemePreference; label: string; Icon?: typeof Moon }> = [
+      { value: "dark", label: t.theme.darkShort, Icon: Moon },
+      { value: "light", label: t.theme.lightShort, Icon: Sun },
+      { value: "system", label: t.theme.system, Icon: Monitor },
+    ];
     return (
-      <button
-        type="button"
-        onClick={toggleTheme}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border-soft bg-bg-secondary text-xs text-text-primary cursor-pointer"
+      <div
+        role="group"
+        aria-label={t.theme.label}
+        className="grid w-full grid-cols-3 gap-1 rounded-2xl bg-bg-surface/60 p-1"
       >
-        <Icon size={14} aria-hidden="true" />
-        {targetLabel}
-      </button>
+        {choices.map(({ value, label, Icon }) => {
+          const active = preference === value;
+          return (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setTheme(value)}
+              aria-pressed={active}
+              className={cn(
+                "flex h-11 items-center justify-center gap-2 rounded-xl text-[15px] font-medium transition-colors cursor-pointer",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50",
+                active ? "bg-action text-on-action" : "text-text-secondary hover:text-text-primary"
+              )}
+            >
+              {Icon && <Icon size={15} aria-hidden="true" />}
+              {label}
+            </button>
+          );
+        })}
+      </div>
     );
   }
 
+  const Icon = theme === "dark" ? Moon : Sun;
   return (
     <button
       type="button"
       onClick={toggleTheme}
       title={t.theme.toggle}
       aria-label={t.theme.toggle}
-      className="flex items-center justify-center w-9 h-9 rounded-xl border border-border-soft bg-bg-secondary hover:bg-bg-surface transition-all text-text-primary cursor-pointer"
+      className="flex h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-glass-bg text-text-secondary backdrop-blur-xl transition-colors hover:text-text-primary cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
     >
-      <Icon size={18} aria-hidden="true" />
+      <Icon size={16} aria-hidden="true" />
     </button>
   );
 }

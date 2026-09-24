@@ -25,6 +25,20 @@ export interface Translations {
     menu: string;
     /** The way into the admin console, shown to administrators only. */
     admin: string;
+    /** The phone menu's way to the planner, empty (TRA-236). */
+    planTrip: string;
+    /** The phone menu's heading over the language choice. */
+    language: string;
+    /** The phone menu's card: Kiri with a sticker per trip. */
+    suitcase: string;
+    /** "{trips} trips, {stickers} stickers" */
+    suitcaseCount: string;
+    /** The same with one trip and one sticker. */
+    suitcaseCountOne: string;
+    /** The phone menu's account row. */
+    account: string;
+    /** The header's language button: "Language: {language}" */
+    languageCurrent: string;
   };
   common: {
     loading: string;
@@ -45,6 +59,19 @@ export interface Translations {
     send: string;
     /** The same button while the planner opens. */
     sending: string;
+    /** Under the field, the cities there are: "For now: {cities}" (TRA-236). */
+    cities: string;
+    /** The cities while the list is unknown (signed out, no backend). */
+    citiesFallback: string;
+    /** What Kiri says while she waits, listens, notes and sets off. */
+    kiri: {
+      ready: string;
+      listening: string;
+      noting: string;
+      off: string;
+    };
+    /** Replays Kiri's entrance. */
+    replay: string;
   };
   /** The composer shared by the planner page (`PromptComposer`). */
   planner: {
@@ -365,6 +392,8 @@ export interface Translations {
   footer: {
     /** "© {year} Kyrian World" — the year is interpolated at render time. */
     copyright: string;
+    /** Where the guides and the maps come from. */
+    sources: string;
   };
   auth: {
     login: string;
@@ -758,5 +787,11 @@ export interface Translations {
     toggle: string;
     light: string;
     dark: string;
+    /** The menu's heading over the three choices (TRA-236). */
+    label: string;
+    /** The three choices, short. */
+    darkShort: string;
+    lightShort: string;
+    system: string;
   };
 }

@@ -15,7 +15,6 @@ vi.mock("@/context/AuthContext", () => ({
 
 const logout = vi.fn();
 const onLogin = vi.fn();
-const onAfterAction = vi.fn();
 
 const setAuth = (authenticated: boolean) =>
   vi.mocked(useAuth).mockReturnValue({
@@ -37,47 +36,15 @@ describe("UserMenu", () => {
     vi.clearAllMocks();
   });
 
-  it("offers to log in when signed out (both variants)", () => {
+  it("offers to log in when signed out", () => {
     setAuth(false);
-    const { unmount } = renderWithProviders(<UserMenu onLogin={onLogin} />);
+    renderWithProviders(<UserMenu onLogin={onLogin} />);
     fireEvent.click(screen.getByRole("button", { name: en.auth.login }));
     expect(onLogin).toHaveBeenCalledTimes(1);
-    unmount();
-
-    renderWithProviders(
-      <UserMenu variant="inline" onLogin={onLogin} onAfterAction={onAfterAction} />
-    );
-    fireEvent.click(screen.getByRole("button", { name: en.auth.login }));
-    expect(onLogin).toHaveBeenCalledTimes(2);
-    expect(onAfterAction).toHaveBeenCalledTimes(1);
   });
 
-  it("shows the profile and logs out inline", () => {
+  it("sends \"Your trips\" to the signed-in home", () => {
     setAuth(true);
-    renderWithProviders(
-      <UserMenu variant="inline" onLogin={onLogin} onAfterAction={onAfterAction} />
-    );
-
-    expect(screen.getByText("Ada Lovelace")).toBeInTheDocument();
-    expect(screen.getByAltText("Ada Lovelace")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: en.auth.logout }));
-
-    expect(logout).toHaveBeenCalledTimes(1);
-    expect(onAfterAction).toHaveBeenCalledTimes(1);
-    expect(mockPush).toHaveBeenCalledWith("/");
-  });
-
-  it("sends \"Your trips\" to the signed-in home, in both variants", () => {
-    setAuth(true);
-    const { unmount } = renderWithProviders(
-      <UserMenu variant="inline" onLogin={onLogin} onAfterAction={onAfterAction} />
-    );
-    expect(screen.getByRole("link", { name: en.nav.trips })).toHaveAttribute(
-      "href",
-      "/dashboard"
-    );
-    unmount();
-
     renderWithProviders(<UserMenu onLogin={onLogin} />);
     fireEvent.click(screen.getByRole("button", { name: en.nav.userMenu }));
     expect(screen.getByRole("menuitem", { name: en.nav.trips })).toHaveAttribute(

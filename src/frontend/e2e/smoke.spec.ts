@@ -10,17 +10,18 @@ import { test, expect, type Page } from "@playwright/test";
 
 const visibleHeader = (page: Page) => page.locator("header").filter({ visible: true });
 
-// The group's accessible name is translated, so it changes with the language.
-const LANGUAGE_GROUP_NAME = /Select language|Seleccionar idioma/;
+// The button's accessible name is translated, so it changes with the language.
+const LANGUAGE_BUTTON_NAME = /Select language|Seleccionar idioma/;
 
-/** Language and theme live in the footer's single line, not in the header. */
-const languageGroup = (page: Page) =>
-  page.getByRole("contentinfo").getByRole("group", { name: LANGUAGE_GROUP_NAME });
+/** Language and theme live in the header, beside the way in (TRA-236). */
+const languageButton = (page: Page) =>
+  visibleHeader(page).getByRole("button", { name: LANGUAGE_BUTTON_NAME });
 
 const askField = (page: Page) => page.getByRole("textbox", { name: /Where to\?|A dónde/ });
 
 async function chooseLanguage(page: Page, name: RegExp) {
-  await languageGroup(page).getByRole("button", { name }).click();
+  await languageButton(page).click();
+  await page.getByRole("menuitemradio", { name }).click();
 }
 
 test.describe("Landing page — /", () => {
@@ -65,9 +66,12 @@ test.describe("Landing page — /", () => {
   });
 
   test("language switcher shows English by default", async ({ page }) => {
-    await expect(
-      languageGroup(page).getByRole("button", { name: /English/ })
-    ).toHaveAttribute("aria-pressed", "true");
+    await expect(languageButton(page)).toHaveText(/en/i);
+    await languageButton(page).click();
+    await expect(page.getByRole("menuitemradio", { name: /English/ })).toHaveAttribute(
+      "aria-checked",
+      "true"
+    );
   });
 
   test("switching language translates the question and the action", async ({ page }) => {
@@ -75,19 +79,17 @@ test.describe("Landing page — /", () => {
 
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("¿A dónde vamos?");
     await expect(page.getByRole("button", { name: "Planear" })).toBeVisible();
-    await expect(
-      languageGroup(page).getByRole("button", { name: /Español/ })
-    ).toHaveAttribute("aria-pressed", "true");
+    await expect(languageButton(page)).toHaveText(/es/i);
 
     await chooseLanguage(page, /English/);
     await expect(page.getByRole("button", { name: "Plan it" })).toBeVisible();
   });
 
-  test("the theme toggle turns the dusk sky to dawn and back", async ({ page }) => {
+  test("the theme toggle turns the slate to its light version and back", async ({ page }) => {
     const root = page.locator("html");
     await expect(root).toHaveAttribute("data-theme", "dark");
 
-    const toggle = page.getByRole("contentinfo").getByRole("button", {
+    const toggle = visibleHeader(page).getByRole("button", {
       name: /Toggle theme|Cambiar tema/,
     });
     await toggle.click();

@@ -14,7 +14,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex min-h-dvh flex-col">
       <Aurora />
-      <Header variant="landing" />
+      <Header />
       <main className="flex flex-1 flex-col">{children}</main>
       <Footer />
     </div>

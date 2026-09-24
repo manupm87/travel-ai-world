@@ -15,7 +15,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-dvh flex flex-col font-sans">
       <AppAurora />
-      <Header variant="app" />
+      <Header />
       <main className="flex flex-col flex-1 pt-(--header-h)">
         <ProtectedRoute>{children}</ProtectedRoute>
       </main>

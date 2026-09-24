@@ -88,3 +88,8 @@ export function formatPercent(x: number, locale = "en-US"): string {
     maximumFractionDigits: 1,
   }).format(x);
 }
+
+/** "Budapest, Bologna and Berlin": a list joined the locale's way. */
+export function formatList(items: string[], locale: string): string {
+  return new Intl.ListFormat(locale, { style: "long", type: "conjunction" }).format(items);
+}

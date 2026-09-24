@@ -11,7 +11,7 @@ import Header from "@/components/layout/Header";
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-dvh flex flex-col font-sans bg-bg-primary">
-      <Header variant="app" />
+      <Header />
       <main className="flex flex-col flex-1 pt-(--header-h)">
         <ProtectedRoute>
           <AdminGate>{children}</AdminGate>

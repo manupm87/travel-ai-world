@@ -3,18 +3,15 @@
 import { useLanguage } from "@/context/LanguageContext";
 import { interpolate } from "@/i18n/interpolate";
 import { Container } from "@/components/ui/Container";
-import { LanguageSwitcher } from "./LanguageSwitcher";
-import { Logo } from "./Logo";
-import { ThemeToggle } from "./ThemeToggle";
 
 /**
- * Global footer: one line under the page — the wordmark, the copyright, and
- * the two controls that belong to the reader rather than to the trip
- * (language and theme). Nothing else: the site has no other destinations.
+ * Global footer: one quiet line under the page — the copyright on the left,
+ * and on the right where the guides and the maps come from (TRA-236). The
+ * reader's own controls, language and theme, live in the header now, so the
+ * footer carries nothing to press.
  *
- * It paints nothing of its own. A band with a background and a top border cut
- * the aurora's amber horizon off in a straight line just above it (TRA-193);
- * transparent, the sky runs all the way down past the line of text.
+ * It paints nothing of its own: transparent, the sky runs all the way down
+ * past the line of text instead of being cut off by a band.
  */
 export default function Footer() {
   const { t } = useLanguage();
@@ -23,18 +20,10 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-transparent py-6">
-      <Container className="px-6 md:px-8 flex flex-col sm:flex-row items-center justify-between gap-5">
-        <div className="flex items-center gap-5">
-          <Logo />
-          <p className="text-text-secondary text-xs" suppressHydrationWarning>
-            {interpolate(t.footer.copyright, { year })}
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <LanguageSwitcher variant="segmented" />
-          <ThemeToggle />
-        </div>
+    <footer className="bg-transparent">
+      <Container className="flex min-h-16 flex-col items-center justify-center gap-1 px-5 py-4 text-[12.5px] text-text-muted sm:flex-row sm:justify-between sm:gap-5 md:px-10">
+        <p suppressHydrationWarning>{interpolate(t.footer.copyright, { year })}</p>
+        <p className="hidden text-center sm:block">{t.footer.sources}</p>
       </Container>
     </footer>
   );

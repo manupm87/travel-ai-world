@@ -12,6 +12,13 @@ const en: Translations = {
     userMenu: "Account menu",
     menu: "Menu",
     admin: "Admin",
+    planTrip: "Plan a trip",
+    language: "Language",
+    suitcase: "Your suitcase",
+    suitcaseCount: "{trips} trips, {stickers} stickers",
+    suitcaseCountOne: "1 trip, 1 sticker",
+    account: "Your account",
+    languageCurrent: "Language: {language}",
   },
   common: {
     loading: "Loading...",
@@ -39,6 +46,15 @@ const en: Translations = {
     send: "Plan it",
     /** The same button while the planner opens, and the spinner's name. */
     sending: "Opening the planner",
+    cities: "For now: {cities}",
+    citiesFallback: "Budapest, Bologna and Berlin",
+    kiri: {
+      ready: "Ready. You say where.",
+      listening: "I'm listening…",
+      noting: "Noting it down.",
+      off: "Let's go!",
+    },
+    replay: "Replay the entrance",
   },
   planner: {
     title: "Tell the AI where you want to go",
@@ -319,6 +335,7 @@ const en: Translations = {
   },
   footer: {
     copyright: "© {year} Kyrian World",
+    sources: "Guides from Wikivoyage and Wikipedia. Maps from OpenStreetMap.",
   },
   auth: {
     login: "Sign in",
@@ -669,7 +686,11 @@ const en: Translations = {
   theme: {
     toggle: "Toggle theme",
     light: "Light mode",
-    dark: "Dark mode"
+    dark: "Dark mode",
+    label: "Theme",
+    darkShort: "Dark",
+    lightShort: "Light",
+    system: "System",
   }
 };
 

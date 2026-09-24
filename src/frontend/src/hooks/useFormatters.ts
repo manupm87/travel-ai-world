@@ -6,6 +6,7 @@ import {
   formatCurrency,
   formatDate,
   formatDuration,
+  formatList,
   formatMs,
   formatNumber,
   formatPercent,
@@ -35,6 +36,8 @@ export function useFormatters() {
       formatUsd: (n: number) => formatUsd(n, locale),
       /** A 0–1 ratio as a percentage, at most one decimal. */
       formatPercent: (x: number) => formatPercent(x, locale),
+      /** "Budapest, Bologna and Berlin", joined the locale's way. */
+      formatList: (items: string[]) => formatList(items, locale),
       /** The local time of a timestamp, `HH:mm:ss`. */
       formatTime: (iso: string) => formatTime(iso, locale),
     }),

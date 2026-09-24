@@ -5,6 +5,10 @@ import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { LoginModal } from "@/components/auth/LoginModal";
 import { AskComposer } from "@/components/common/AskComposer";
+import { interpolate } from "@/i18n/interpolate";
+import { useFormatters } from "@/hooks/useFormatters";
+import { usePlannerCities } from "@/hooks/usePlannerCities";
+import { KiriStage } from "./KiriStage";
 import { safeRedirectTarget } from "@/utils/safeRedirect";
 
 const HEADING_ID = "ask-headline";
@@ -25,7 +29,30 @@ export function plannerHref(ask: string): string {
 }
 
 /**
- * The landing page: one question, one field, one action.
+ * "For now: Budapest, Bologna and Berlin" — the cities `ai_api` covers. The
+ * list needs a session, so it is asked for only once there is one; until then,
+ * and whenever it cannot be had, the line says the copy's own three.
+ */
+function CitiesHint({ live }: { live: boolean }) {
+  const { t } = useLanguage();
+  if (!live) return <>{interpolate(t.landing.cities, { cities: t.landing.citiesFallback })}</>;
+  return <LiveCities />;
+}
+
+function LiveCities() {
+  const { t } = useLanguage();
+  const { formatList } = useFormatters();
+  const { cities, status } = usePlannerCities();
+  const names =
+    status === "ready" && cities.length > 0
+      ? formatList(cities.map((city) => city.name))
+      : t.landing.citiesFallback;
+  return <>{interpolate(t.landing.cities, { cities: names })}</>;
+}
+
+/**
+ * The landing page: one question, one field, one action — and Kiri, who rolls
+ * in under the field and waits for the traveller to say where (TRA-236).
  *
  * Everything the site asks of a first-time reader is here — a sentence about
  * the trip they already have in mind. The field itself is `AskComposer`, the
@@ -61,6 +88,12 @@ export function AskField() {
       ? safeRedirectTarget(new URLSearchParams(search).get("redirect"))
       : null;
 
+  // What Kiri reacts to: the field's focus, whether anything is typed, and
+  // the ask leaving for the planner.
+  const [focused, setFocused] = useState(false);
+  const [typed, setTyped] = useState(false);
+  const [leaving, setLeaving] = useState(false);
+
   const loginOpen = login ? login.open : sentHere !== null;
   const loginRedirect = login?.redirect ?? sentHere;
 
@@ -71,21 +104,34 @@ export function AskField() {
    */
   const submit = (ask: string): string | null => {
     const href = plannerHref(ask);
-    if (isAuthenticated) return href;
+    if (isAuthenticated) {
+      setLeaving(true);
+      return href;
+    }
     setLogin({ open: true, redirect: href });
     return null;
   };
 
   return (
-    <section className="flex flex-1 items-center justify-center px-4 py-(--header-h) sm:px-6">
-      <AskComposer onSubmit={submit} labelledBy={HEADING_ID}>
-        <h1
-          id={HEADING_ID}
-          className="mb-7 text-center text-[clamp(2.5rem,9vw,4rem)] leading-[1.05] font-light text-text-primary"
+    <section className="flex flex-1 flex-col overflow-x-clip pt-(--header-h)">
+      <div className="flex flex-1 items-center justify-center px-4 py-10 sm:px-6">
+        <AskComposer
+          onSubmit={submit}
+          labelledBy={HEADING_ID}
+          hint={<CitiesHint live={isAuthenticated} />}
+          onFocusChange={setFocused}
+          onAskChange={(ask) => setTyped(ask.trim().length > 0)}
         >
-          {t.landing.headline}
-        </h1>
-      </AskComposer>
+          <h1
+            id={HEADING_ID}
+            className="mb-7 text-center text-[clamp(2.5rem,9vw,4.125rem)] leading-[1.05] font-light text-text-primary sm:mb-8"
+          >
+            {t.landing.headline}
+          </h1>
+        </AskComposer>
+      </div>
+
+      <KiriStage listening={focused} noting={focused && typed} leaving={leaving} />
 
       <Suspense fallback={null}>
         <LoginModal

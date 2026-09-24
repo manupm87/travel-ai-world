@@ -82,11 +82,12 @@ test.describe("Landing page on a phone — /", () => {
     expect(box?.width).toBeGreaterThan(VIEWPORT.width * 0.7);
   });
 
-  test("the header offers the CTA and the menu, and the menu covers the screen", async ({
+  test("the header is the wordmark and the menu, and the menu covers the screen", async ({
     page,
   }) => {
     const header = page.locator("header").filter({ visible: true });
-    await expect(header.getByRole("button", { name: /Sign in/i })).toBeVisible();
+    // On a phone the way in lives in the menu, beside the language and the theme (TRA-236).
+    await expect(header.getByRole("button", { name: /Sign in/i })).toBeHidden();
 
     const menuButton = header.getByRole("button", { name: "Open menu" });
     await expect(menuButton).toBeVisible();
@@ -100,6 +101,7 @@ test.describe("Landing page on a phone — /", () => {
     // viewport, so the assertion is "covers it", not "is exactly it".
     expect(drawerBox?.width).toBeGreaterThan(VIEWPORT.width - 1);
     expect(drawerBox?.height).toBeGreaterThan(VIEWPORT.height - 1);
+    await expect(drawer.getByRole("button", { name: /Sign in/i })).toBeVisible();
   });
 });
 

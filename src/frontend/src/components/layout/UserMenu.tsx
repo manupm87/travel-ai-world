@@ -12,11 +12,9 @@ import type { User } from "@/types/user";
 import { cn } from "@/utils/cn";
 
 interface UserMenuProps {
-  /** `dropdown` is the header avatar menu; `inline` the mobile drawer block. */
-  variant?: "dropdown" | "inline";
   /** Opens the login modal (owned by the header). */
   onLogin: () => void;
-  /** Called after login/logout is triggered, e.g. to close the drawer. */
+  /** Called after login/logout is triggered. */
   onAfterAction?: () => void;
 }
 
@@ -49,6 +47,7 @@ function Avatar({ user, size }: { user: User; size: number }) {
 }
 
 /**
+ * The header's account menu (the phone menu has its own account row, TRA-236).
  * Signed-out: a login trigger. Signed-in: the profile, the way to the account's
  * trips and a logout action.
  *
@@ -57,7 +56,7 @@ function Avatar({ user, size }: { user: User; size: number }) {
  * Logging out clears the session and leaves protected pages by going home;
  * that navigation is deliberately here, not in the auth context.
  */
-export function UserMenu({ variant = "dropdown", onLogin, onAfterAction }: UserMenuProps) {
+export function UserMenu({ onLogin, onAfterAction }: UserMenuProps) {
   const { user, isAuthenticated, logout } = useAuth();
   const { t } = useLanguage();
   const router = useRouter();
@@ -79,17 +78,6 @@ export function UserMenu({ variant = "dropdown", onLogin, onAfterAction }: UserM
   };
 
   if (!isAuthenticated || !user) {
-    if (variant === "inline") {
-      return (
-        <button
-          type="button"
-          onClick={handleLogin}
-          className="text-2xl font-medium text-text-primary hover:text-accent transition-colors cursor-pointer"
-        >
-          {t.auth.login}
-        </button>
-      );
-    }
     return (
       <button
         type="button"
@@ -100,36 +88,6 @@ export function UserMenu({ variant = "dropdown", onLogin, onAfterAction }: UserM
       >
         <LogIn size={18} aria-hidden="true" />
       </button>
-    );
-  }
-
-  if (variant === "inline") {
-    return (
-      <div className="flex flex-col gap-6">
-        <div className="flex items-center gap-4">
-          <Avatar user={user} size={48} />
-          <div>
-            <p className="text-text-primary font-medium">{user.name}</p>
-            <p className="text-text-secondary text-sm">{user.email}</p>
-          </div>
-        </div>
-        <Link
-          href="/dashboard/"
-          onClick={onAfterAction}
-          className="flex items-center gap-3 text-xl font-medium text-text-primary hover:text-accent transition-colors"
-        >
-          <Map size={24} aria-hidden="true" />
-          {t.nav.trips}
-        </Link>
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="flex items-center gap-3 text-xl font-medium text-text-primary hover:text-accent transition-colors cursor-pointer"
-        >
-          <LogOut size={24} aria-hidden="true" />
-          {t.auth.logout}
-        </button>
-      </div>
     );
   }
 

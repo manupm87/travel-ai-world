@@ -17,6 +17,21 @@ vi.mock("@/context/AuthContext", () => ({
   useAuth: vi.fn(),
 }));
 
+// The phone menu shows Kiri's suitcase, which reads the account's trips.
+vi.mock("@/hooks/useTrips", () => ({
+  useTrips: () => ({
+    trips: [
+      { id: "a", title: "A", city: "Budapest", countryCode: "HU", startDate: "2026-10-12", endDate: "2026-10-15", phase: "upcoming", imageUrl: "" },
+      { id: "b", title: "B", city: "Bologna", countryCode: "IT", startDate: "2026-10-16", endDate: "2026-10-19", phase: "upcoming", imageUrl: "" },
+    ],
+    status: "ready",
+    error: null,
+    reload: vi.fn(),
+    remove: vi.fn(),
+    rename: vi.fn(),
+  }),
+}));
+
 vi.mock("@react-oauth/google", () => ({
   GoogleLogin: () => <div data-testid="google-login" />,
 }));
@@ -64,21 +79,42 @@ describe("Header", () => {
   });
 
   it("carries no links but the wordmark: the landing is one field", () => {
-    renderWithProviders(<Header variant="landing" />);
+    renderWithProviders(<Header />);
     expect(screen.getAllByRole("link")).toHaveLength(1);
     expect(screen.queryByRole("navigation")).not.toBeInTheDocument();
   });
 
-  it("carries theme and language on the signed-in shell, which has no footer", () => {
-    // The marketing pages put both controls in the footer; `(app)` routes have
-    // none, so the bar is the only place a desktop reader can reach them.
-    const { unmount } = renderWithProviders(<Header variant="landing" />);
-    expect(screen.queryByRole("button", { name: en.theme.toggle })).not.toBeInTheDocument();
-    unmount();
-
-    renderWithProviders(<Header variant="app" />);
+  it("carries the reader's own controls, language and theme, on every page", () => {
+    renderWithProviders(<Header />);
     expect(screen.getByRole("button", { name: en.theme.toggle })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: en.nav.selectLanguage })).toBeInTheDocument();
+  });
+
+  it("puts the places, the language, the theme and the account in the phone menu", () => {
+    signedIn();
+    renderWithProviders(<Header />);
+    fireEvent.click(screen.getByRole("button", { name: en.nav.openMenu }));
+    const drawer = screen.getByRole("dialog", { name: en.nav.menu });
+
+    expect(within(drawer).getByRole("link", { name: en.nav.trips }).getAttribute("href")).toMatch(/^\/dashboard\/?$/);
+    expect(within(drawer).getByRole("link", { name: en.nav.planTrip }).getAttribute("href")).toMatch(/^\/plan\/?$/);
+    expect(within(drawer).getByRole("group", { name: en.theme.label })).toBeInTheDocument();
+    expect(within(drawer).getByText("2 trips, 2 stickers")).toBeInTheDocument();
+
+    fireEvent.click(within(drawer).getByRole("button", { name: en.theme.system }));
+    expect(within(drawer).getByRole("button", { name: en.theme.system })).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.click(within(drawer).getByRole("button", { name: en.auth.logout }));
+    expect(logout).toHaveBeenCalledTimes(1);
+    expect(mockPush).toHaveBeenCalledWith("/");
+  });
+
+  it("signs in from the phone menu when signed out", () => {
+    renderWithProviders(<Header />);
+    fireEvent.click(screen.getByRole("button", { name: en.nav.openMenu }));
+    const drawer = screen.getByRole("dialog", { name: en.nav.menu });
+    fireEvent.click(within(drawer).getByRole("button", { name: en.auth.login }));
+    expect(screen.getByRole("heading", { name: en.auth.title })).toBeInTheDocument();
   });
 
   it("offers to sign in when signed out and the trips when signed in", () => {
@@ -100,7 +136,7 @@ describe("Header", () => {
     signedIn();
 
     pathname = "/dashboard";
-    const { unmount } = renderWithProviders(<Header variant="app" />);
+    const { unmount } = renderWithProviders(<Header />);
     const toPlanner = screen.getByRole("link", { name: en.nav.openPlanner });
     expect(toPlanner.getAttribute("href")).toMatch(/^\/plan\/?$/);
     expect(toPlanner).toHaveTextContent(en.nav.plannerShort);
@@ -109,7 +145,7 @@ describe("Header", () => {
 
     // The planner is where it matters most: it lists no trips of its own.
     pathname = "/plan";
-    renderWithProviders(<Header variant="app" />);
+    renderWithProviders(<Header />);
     const toTrips = screen.getByRole("link", { name: en.nav.trips });
     expect(toTrips.getAttribute("href")).toMatch(/^\/dashboard\/?$/);
     expect(toTrips).toHaveTextContent(en.nav.tripsShort);
@@ -118,7 +154,7 @@ describe("Header", () => {
 
   it("shows the Admin link to administrators only, in the bar and in the drawer", () => {
     signedIn();
-    const { unmount } = renderWithProviders(<Header variant="app" />);
+    const { unmount } = renderWithProviders(<Header />);
     expect(screen.queryByRole("link", { name: en.nav.admin })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: en.nav.openMenu }));
     expect(
@@ -127,7 +163,7 @@ describe("Header", () => {
     unmount();
 
     vi.mocked(useAuth).mockReturnValue({ ...vi.mocked(useAuth)(), isAdmin: true });
-    renderWithProviders(<Header variant="app" />);
+    renderWithProviders(<Header />);
     expect(screen.getByRole("link", { name: en.nav.admin }).getAttribute("href")).toMatch(/^\/admin\/?$/);
     fireEvent.click(screen.getByRole("button", { name: en.nav.openMenu }));
     expect(

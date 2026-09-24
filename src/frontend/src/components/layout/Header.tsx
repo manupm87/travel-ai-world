@@ -18,10 +18,6 @@ import { MobileDrawer, MOBILE_DRAWER_ID } from "./MobileDrawer";
 import { ThemeToggle } from "./ThemeToggle";
 import { UserMenu } from "./UserMenu";
 
-interface HeaderProps {
-  variant?: "landing" | "app";
-}
-
 /** The signed-in home, where the account's trips are listed. */
 const HOME = "/dashboard/";
 
@@ -40,23 +36,17 @@ function pill(pathname: string | null, t: Translations) {
 /**
  * Global navigation.
  *
- * Quiet by design: the wordmark, one action, and — once signed in — the
- * account menu. There are no links: the landing is one field and there is
- * nowhere else to go. The one action is always the other place (TRA-201):
- * the trips on the home, the planner everywhere else — which is how a
- * traveller leaves a planner that no longer lists a single trip.
- * On the marketing pages language and theme live in the footer,
- * so the top of the page holds nothing that competes with what you came to
- * type. The signed-in shell (`app/(app)/layout.tsx`) has no footer, so there
- * the two controls stay in the bar on desktop and in the drawer on small
- * viewports — they are the reader's own and must be reachable everywhere.
- * Scrolling turns the bar to glass instead of hiding the aurora behind an
- * opaque block.
- *
- * @param variant - `app` carries language and theme in the bar, because
- *   the signed-in shell has no footer to put them in; `landing` does not.
+ * Quiet by design: the wordmark on the left; on the right the language pill,
+ * the theme button, one action and — once signed in — the account menu, the
+ * same on every page (TRA-236). There are no links: the landing is one field
+ * and there is nowhere else to go. The one action is always the other place
+ * (TRA-201): the trips on the home, the planner everywhere else — which is how
+ * a traveller leaves a planner that no longer lists a single trip.
+ * On a phone the bar is the wordmark and the menu button, and everything else
+ * lives in the menu (`MobileDrawer`). Scrolling turns the bar to glass instead
+ * of hiding the sky behind an opaque block.
  */
-export default function Header({ variant = "landing" }: HeaderProps) {
+export default function Header() {
   const { t } = useLanguage();
   const { isAuthenticated, isAdmin } = useAuth();
   const pathname = usePathname();
@@ -78,12 +68,12 @@ export default function Header({ variant = "landing" }: HeaderProps) {
             : "bg-transparent"
         )}
       >
-        <Container className="px-6 md:px-8 h-(--header-h) flex items-center justify-between gap-4">
+        <Container className="px-5 md:px-10 h-(--header-h) flex items-center justify-between gap-4">
           <Logo />
 
           <div className="flex-1" />
 
-          <div className="flex items-center gap-3 md:gap-4">
+          <div className="flex items-center gap-2">
             {isAuthenticated && isAdmin && (
               /* Only an administrator ever sees the way in (TRA-222); on a
                  phone it lives in the drawer. */
@@ -95,12 +85,10 @@ export default function Header({ variant = "landing" }: HeaderProps) {
                 {t.nav.admin}
               </Link>
             )}
-            {variant === "app" && (
-              <span className="hidden md:flex items-center gap-3">
-                <LanguageSwitcher />
-                <ThemeToggle />
-              </span>
-            )}
+            <span className="hidden md:flex items-center gap-2">
+              <LanguageSwitcher />
+              <ThemeToggle />
+            </span>
 
             {isAuthenticated ? (
               /* Next to the burger on a 390 px screen "Open the planner"
@@ -110,19 +98,23 @@ export default function Header({ variant = "landing" }: HeaderProps) {
                 href={action.href}
                 size="sm"
                 aria-label={action.label}
-                className="whitespace-nowrap"
+                className="ml-1.5 hidden h-10 whitespace-nowrap rounded-full px-[18px] py-0 text-sm font-semibold shadow-none sm:inline-flex"
               >
                 <span className="sm:hidden">{action.short}</span>
                 <span className="hidden sm:inline">{action.label}</span>
               </Button>
             ) : (
-              <Button size="sm" onClick={openLogin} className="whitespace-nowrap">
+              <Button
+                size="sm"
+                onClick={openLogin}
+                className="ml-1.5 hidden h-10 whitespace-nowrap rounded-full px-[18px] py-0 text-sm font-semibold shadow-none sm:inline-flex"
+              >
                 {t.auth.login}
               </Button>
             )}
 
             {isAuthenticated && (
-              <span className="hidden md:block">
+              <span className="hidden md:block ml-1">
                 <UserMenu onLogin={openLogin} />
               </span>
             )}
@@ -134,9 +126,9 @@ export default function Header({ variant = "landing" }: HeaderProps) {
               aria-haspopup="dialog"
               aria-expanded={drawerOpen}
               aria-controls={MOBILE_DRAWER_ID}
-              className="md:hidden p-2 text-text-primary hover:bg-bg-surface rounded-lg transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+              className="md:hidden h-11 w-11 text-text-primary hover:bg-bg-surface rounded-full transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
             >
-              <Menu size={24} aria-hidden="true" />
+              <Menu size={22} aria-hidden="true" />
             </button>
           </div>
         </Container>

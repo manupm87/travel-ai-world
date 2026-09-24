@@ -11,7 +11,10 @@ One sentence gets the trip started, so **the field is the memorable thing**: the
 field and nothing else — a question, the box you answer it in, and the button that opens the
 planner (`components/landing/AskField.tsx`). Its placeholder types the example asks out one after
 another, which is what pays for having no example chips, no feature grid and no testimonials. Everything around it —
-the wordmark, the sign-in, the footer — stays quiet. The background is the only thing that moves on
+the wordmark, the language and theme, the sign-in, the footer's credit — stays quiet. Under the
+field Kiri rolls in along a dotted floor, brakes and waits for the traveller to say where; she
+looks up when the field takes the focus, thinks while they type and rolls off to the planner when
+they send it. That entrance is the page's one orchestrated moment. The background is the only thing that moves on
 its own: a slate sky, blue-grey with three soft lights in it — sage top-left, mist blue top-right,
 lavender on the horizon — over a faint grid of dots. The one warm thing on the page is **Kiri**, the
 pixel-art suitcase who packs the trip with the traveller (below).

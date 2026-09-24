@@ -153,7 +153,18 @@ TypeScript 5, Tailwind CSS v4.
   `TurnsTable`). Nothing on that page writes, and nothing may be added that does. Ids and JSON are `font-mono`
   (JetBrains Mono, `--font-mono`, loaded in `app/layout.tsx`) — the only monospace in the app.
 - **The landing is the field** (TRA-190): `/` is `components/landing/AskField.tsx` and nothing else
-  — the question (the page's only `h1`, and the field's `aria-labelledby`), the field, the button.
+  — the question (the page's only `h1`, and the field's `aria-labelledby`), the field, the button,
+  and under them Kiri (`components/landing/KiriStage.tsx`, TRA-236): she rolls in along a dotted
+  floor, brakes, clicks her handle down and waits; she looks up when the field has the focus
+  (`AskComposer`'s `onFocusChange`), thinks while something is typed (`onAskChange`) and rolls off
+  when a signed-in ask is sent. All of it is `aria-hidden` decoration; "Replay the entrance" is the
+  one control. The line under the field ("For now: Budapest, Bologna and Berlin", `hint`) is the
+  cities from `usePlannerCities` once there is a session, and the copy's own list before that.
+  Header (TRA-236): wordmark; language pill, theme button, the one action and the account menu on
+  every page; on a phone only the wordmark and the menu, a sheet from the right
+  (`MobileDrawer`: the trips, "Plan a trip", language and theme as segmented choices —
+  dark / light / system —, Kiri's suitcase with a sticker per city, the account and sign-out).
+  The footer is the copyright and the sources' credit, nothing to press.
   The field itself is `components/common/AskComposer.tsx` (TRA-199), shared with the signed-in home:
   the textarea, the typewriter placeholder, the auto-resize, Enter sends / Shift+Enter breaks the
   line, the send button's "Sending…" state, the conic focus ring and the fade on the way out. Its

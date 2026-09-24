@@ -12,6 +12,13 @@ const es: Translations = {
     userMenu: "Menú de cuenta",
     menu: "Menú",
     admin: "Administración",
+    planTrip: "Planificar un viaje",
+    language: "Idioma",
+    suitcase: "Tu maleta",
+    suitcaseCount: "{trips} viajes, {stickers} pegatinas",
+    suitcaseCountOne: "1 viaje, 1 pegatina",
+    account: "Tu cuenta",
+    languageCurrent: "Idioma: {language}",
   },
   common: {
     loading: "Cargando...",
@@ -32,6 +39,15 @@ const es: Translations = {
     ],
     send: "Planear",
     sending: "Abriendo el planificador",
+    cities: "De momento: {cities}",
+    citiesFallback: "Budapest, Bolonia y Berlín",
+    kiri: {
+      ready: "Lista. Tú dirás a dónde.",
+      listening: "Te escucho…",
+      noting: "Me lo apunto.",
+      off: "¡Vámonos!",
+    },
+    replay: "Repetir la entrada",
   },
   planner: {
     title: "Dile a la IA adónde quieres ir",
@@ -312,10 +328,11 @@ const es: Translations = {
   },
   footer: {
     copyright: "© {year} Kyrian World",
+    sources: "Guías de Wikivoyage y Wikipedia. Mapas de OpenStreetMap.",
   },
   auth: {
     login: "Iniciar sesión",
-    logout: "Cerrar Sesión",
+    logout: "Cerrar sesión",
     title: "Inicia sesión para planear",
     subtitle: "Tus viajes se guardan en tu cuenta.",
     terms: "Al continuar, aceptas nuestros Términos de Uso y nuestra Política de Privacidad.",
@@ -662,7 +679,11 @@ const es: Translations = {
   theme: {
     toggle: "Cambiar tema",
     light: "Modo claro",
-    dark: "Modo oscuro"
+    dark: "Modo oscuro",
+    label: "Tema",
+    darkShort: "Oscuro",
+    lightShort: "Claro",
+    system: "Sistema",
   }
 };
 

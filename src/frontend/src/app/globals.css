@@ -237,6 +237,56 @@
   100% { transform: translate3d(3%, -3%, 0) scale(1); opacity: 0.9; }
 }
 
+/* Kiri's moves (TRA-236): rolling in with the handle out, braking, settling
+   when the handle clicks down, tilting to set off, and the dust she raises.
+   Transform and opacity only; under reduced motion they collapse to their end
+   frame like everything else. */
+@keyframes kiri-roll {
+  0%, 100% { transform: rotate(9deg) translateY(0); }
+  50% { transform: rotate(9deg) translateY(-3px); }
+}
+
+@keyframes kiri-brake {
+  0% { transform: rotate(9deg); }
+  35% { transform: rotate(-8deg); }
+  65% { transform: rotate(3deg); }
+  100% { transform: rotate(0); }
+}
+
+@keyframes kiri-settle {
+  0% { transform: scale(1, 1); }
+  35% { transform: scale(1.07, 0.9); }
+  70% { transform: scale(0.98, 1.03); }
+  100% { transform: scale(1, 1); }
+}
+
+@keyframes kiri-tilt {
+  from { transform: rotate(0); }
+  to { transform: rotate(9deg); }
+}
+
+@keyframes kiri-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes kiri-puff {
+  0% { opacity: 0.8; transform: translate(0, 0) scale(0.6); }
+  100% { opacity: 0; transform: translate(-40px, -14px) scale(1.5); }
+}
+
+@keyframes kiri-streak {
+  0% { opacity: 0; transform: translateX(0); }
+  30% { opacity: 0.7; }
+  100% { opacity: 0; transform: translateX(-46px); }
+}
+
+@keyframes kiri-pop {
+  0% { opacity: 0; transform: scale(0.3); }
+  45% { opacity: 1; transform: scale(1.25); }
+  100% { opacity: 0; transform: scale(1); }
+}
+
 @theme {
   --animate-fade-in: fade-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
   --animate-fade-up: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -248,6 +298,14 @@
   --animate-aurora-drift: aurora-drift 28s ease-in-out infinite alternate;
   --animate-aurora-drift-slow: aurora-breathe 40s ease-in-out infinite alternate;
   --animate-ring-spin: ring-spin 6s linear infinite;
+  --animate-kiri-roll: kiri-roll 0.26s linear infinite;
+  --animate-kiri-brake: kiri-brake 0.62s ease-out forwards;
+  --animate-kiri-settle: kiri-settle 0.42s ease-out forwards;
+  --animate-kiri-tilt: kiri-tilt 0.3s ease-out forwards;
+  --animate-kiri-bob: kiri-bob 2.6s ease-in-out infinite;
+  --animate-kiri-puff: kiri-puff 0.7s ease-out infinite;
+  --animate-kiri-streak: kiri-streak 0.5s linear infinite;
+  --animate-kiri-pop: kiri-pop 0.55s ease-out forwards;
 }
 
 @layer components {
