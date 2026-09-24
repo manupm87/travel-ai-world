@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { RotateCcw } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { Kiri, type KiriState } from "@/components/kiri/Kiri";
 import { cn } from "@/utils/cn";
@@ -48,20 +47,18 @@ export interface KiriStageProps {
  * The landing's one orchestrated moment (TRA-236): Kiri rolls in along a
  * dotted floor under the field, brakes, clicks her handle down and waits,
  * blinking. She looks up when the field takes the focus, thinks while the
- * traveller types, and rolls off when the ask is sent. "Replay the entrance"
- * runs it again.
+ * traveller types, and rolls off when the ask is sent.
  *
- * Decoration from end to end — Kiri and what she says are `aria-hidden`; the
- * replay button is the only thing here a keyboard reaches. Under reduced
+ * Decoration from end to end — Kiri and what she says are `aria-hidden`, and
+ * nothing here takes the keyboard. Under reduced
  * motion she is simply standing there.
  */
 export function KiriStage({ listening, noting, leaving }: KiriStageProps) {
   const { t } = useLanguage();
   const [phase, setPhase] = useState<Phase>("out");
   const [blink, setBlink] = useState(false);
-  const [run, setRun] = useState(0);
 
-  // The entrance. `run` restarts it.
+  // The entrance, once per visit.
   useEffect(() => {
     if (prefersReducedMotion()) {
       const id = window.setTimeout(() => setPhase("waiting"), 0);
@@ -76,7 +73,7 @@ export function KiriStage({ listening, noting, leaving }: KiriStageProps) {
     ];
     const timers = steps.map(([at, next]) => window.setTimeout(() => setPhase(next), at));
     return () => timers.forEach((id) => window.clearTimeout(id));
-  }, [run]);
+  }, []);
 
   // The exit.
   useEffect(() => {
@@ -179,18 +176,6 @@ export function KiriStage({ listening, noting, leaving }: KiriStageProps) {
         )}
       </div>
 
-      <button
-        type="button"
-        onClick={() => setRun((n) => n + 1)}
-        aria-label={t.landing.replay}
-        title={t.landing.replay}
-        className="absolute right-4 bottom-4 inline-flex h-9 w-9 items-center justify-center gap-2 rounded-full border border-glass-border bg-glass-bg text-[12.5px] text-text-secondary backdrop-blur-xl transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 sm:right-10 sm:w-auto sm:px-3.5"
-      >
-        <RotateCcw size={14} aria-hidden="true" />
-        <span aria-hidden="true" className="hidden sm:inline">
-          {t.landing.replay}
-        </span>
-      </button>
     </div>
   );
 }

@@ -157,8 +157,7 @@ TypeScript 5, Tailwind CSS v4.
   and under them Kiri (`components/landing/KiriStage.tsx`, TRA-236): she rolls in along a dotted
   floor, brakes, clicks her handle down and waits; she looks up when the field has the focus
   (`AskComposer`'s `onFocusChange`), thinks while something is typed (`onAskChange`) and rolls off
-  when a signed-in ask is sent. All of it is `aria-hidden` decoration; "Replay the entrance" is the
-  one control. The line under the field ("For now: Budapest, Bologna and Berlin", `hint`) is the
+  when a signed-in ask is sent. All of it is `aria-hidden` decoration with nothing to press (no replay). The line under the field ("For now: Budapest, Bologna and Berlin", `hint`) is the
   cities from `usePlannerCities` once there is a session, and the copy's own list before that.
   Header (TRA-236): wordmark; language pill, theme button, the one action and the account menu on
   every page; on a phone only the wordmark and the menu, a sheet from the right
@@ -366,6 +365,21 @@ TypeScript 5, Tailwind CSS v4.
   the tab's own saved id drops the draft too, and `OpenTripNotice` offers "New trip" beside the
   link home; `useTrips.remove` drops it when the deleted trip is the tab's. The panel's header
   offers "New trip" (`onNewTrip`) while a saved, unlocked trip is open.
+  **Kiri's answer is packing a suitcase** (TRA-239), told from the events that already arrive —
+  there is no progress event. `plannerReducer` keeps `packing` (`PACKING_STEPS`: open → list →
+  wardrobe → fold → weigh → zip; `turn_started` opens it, `brief` makes the list, `options` is the
+  wardrobe, an `itinerary_patch` folds, a `warn` op weighs and sets `warned`, `turn_finished` zips,
+  a failure sets `failed`; never persisted, never backwards). `ChatColumn` puts `PackingStatus`
+  under the message that started the turn: while streaming the step, its line, a client-side clock
+  and a bar of six; when done "Suitcase closed in N s" (", with a warning"), the `BoardingPass`
+  (brief + itinerary, only when the turn folded something into a trip) and "See how I packed". The
+  traveller's messages are bubbles on the right; Kiri's answers are plain text under her name tag
+  (`KiriTag`, Pixelify). A brief with a destination and something missing shows a `LuggageTag`
+  ("To decide" dashed) over the quick replies; a failed turn is `LostLuggage` (`role="alert"`)
+  whose "Retry" is `usePlanner.retry()` — the failed turn sent again as it was, its message first
+  taken out of the transcript (`retry_prepared`) so it is not written twice; no retry on an
+  `unauthorized` failure. Warnings are stickers (`WarningBadge`): overloaded day "Overweight",
+  far and closed "fragile", unverified price "book ahead" colours.
   **Assistant text is Markdown** (TRA-183): every assistant bubble goes through
   `components/planner/MarkdownContent.tsx` (`react-markdown` + `remark-gfm`, a short tag
   allow-list — headings become bold paragraphs, links open in a new tab in `text-accent` — styling

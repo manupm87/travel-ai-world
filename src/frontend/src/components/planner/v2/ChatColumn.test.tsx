@@ -9,7 +9,9 @@ import {
   type PlannerMessage,
   type PlannerState,
 } from "@/hooks/plannerReducer";
-import { GROUP_IDS, NEIGHBOURHOODS } from "@/data/planner-demo/session";
+import { FIRST_ITINERARY_OPS, GROUP_IDS, NEIGHBOURHOODS } from "@/data/planner-demo/session";
+import { EMPTY_BRIEF } from "@/types/planner";
+import { applyItineraryOps, EMPTY_ITINERARY } from "@/hooks/plannerReducer";
 import { ChatColumn } from "./ChatColumn";
 
 const p = en.plan;
@@ -149,5 +151,72 @@ describe("ChatColumn — while the URL's trip is not in the planner (TRA-223)", 
     renderColumn({}, null, { holding: false });
 
     expect(screen.getByText("5 days in Budapest")).toBeInTheDocument();
+  });
+});
+
+describe("ChatColumn — Kiri's answer (TRA-239)", () => {
+  it("packs the suitcase under the message that started the turn, while it streams", () => {
+    renderColumn({
+      status: "streaming",
+      packing: { step: "wardrobe", folded: false, warned: false, failed: false },
+      messages: [
+        { id: "m1", kind: "text", role: "user", content: "5 days in Budapest" },
+        { id: "m2", kind: "text", role: "assistant", content: "" },
+      ],
+    });
+    const status = screen.getByRole("status");
+    expect(status).toHaveTextContent(p.packing.steps.wardrobe);
+    expect(status).toHaveTextContent(p.packing.details.wardrobe);
+  });
+
+  it("closes the suitcase into a boarding pass once the trip has days, and tells how it packed", () => {
+    renderColumn({
+      status: "idle",
+      packing: { step: "zip", folded: true, warned: true, failed: false },
+      brief: { ...EMPTY_BRIEF, destination: "Budapest", origin: "Madrid", adults: 2 },
+      itinerary: applyItineraryOps(EMPTY_ITINERARY, FIRST_ITINERARY_OPS),
+      missing: [],
+    });
+    expect(screen.getByText(p.packing.closed)).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: p.packing.boarding.title })).toHaveTextContent("Budapest");
+
+    fireEvent.click(screen.getByRole("button", { name: p.packing.howIPacked }));
+    const steps = Array.from(document.querySelectorAll("li[data-step]"));
+    expect(steps.map((item) => item.getAttribute("data-step"))).toEqual([
+      "open",
+      "list",
+      "wardrobe",
+      "fold",
+      "weigh",
+      "zip",
+    ]);
+  });
+
+  it("writes what is missing on a luggage tag over the quick replies", () => {
+    renderColumn({
+      brief: { ...EMPTY_BRIEF, destination: "Bologna", adults: 2 },
+      missing: ["dates", "origin"],
+    });
+    const tag = screen.getByRole("region", { name: p.packing.tag.title });
+    expect(tag).toHaveTextContent("Bologna");
+    expect(tag.querySelector('[data-field="dates"]')).toHaveTextContent(p.packing.tag.toDecide);
+    expect(tag.querySelector('[data-field="travellers"]')).not.toHaveTextContent(p.packing.tag.toDecide);
+  });
+
+  it("reports a failed turn as lost luggage, and retries it", () => {
+    const onRetry = vi.fn();
+    renderColumn({ status: "error", error: "generic" }, p.errors.generic, { onRetry });
+    const alert = screen.getByRole("alert");
+    expect(alert).toHaveTextContent(p.packing.lost.title);
+    expect(alert).toHaveTextContent(p.packing.lost.safe);
+    fireEvent.click(screen.getByRole("button", { name: p.packing.lost.retry }));
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it("offers no retry when the session is what failed", () => {
+    renderColumn({ status: "error", error: "unauthorized" }, p.errors.unauthorized, {
+      onRetry: vi.fn(),
+    });
+    expect(screen.queryByRole("button", { name: p.packing.lost.retry })).not.toBeInTheDocument();
   });
 });

@@ -868,3 +868,68 @@ describe("initialPlannerState", () => {
     expect(state.pendingGroupIds).toEqual([]);
   });
 });
+
+// ─── Packing the suitcase (TRA-239) ─────────────────────────────────────────
+
+describe("plannerReducer — packing", () => {
+  const start = plannerReducer(initialPlannerState(), { type: "turn_started", message: "Budapest" });
+
+  it("opens the suitcase when a turn leaves", () => {
+    expect(initialPlannerState().packing).toBeNull();
+    expect(start.packing).toEqual({ step: "open", folded: false, warned: false, failed: false });
+  });
+
+  it("follows the events forward, never back: list, wardrobe, fold", () => {
+    let state = plannerReducer(start, {
+      type: "event",
+      event: { type: "brief", brief: EMPTY_BRIEF, missing: [...BRIEF_FIELDS] },
+    });
+    expect(state.packing?.step).toBe("list");
+
+    state = plannerReducer(state, {
+      type: "event",
+      event: { type: "itinerary_patch", ops: [{ op: "set_day_title", day: 1, title: "Pest" }] },
+    });
+    expect(state.packing?.step).toBe("fold");
+
+    state = plannerReducer(state, {
+      type: "event",
+      event: { type: "brief", brief: EMPTY_BRIEF, missing: [...BRIEF_FIELDS] },
+    });
+    expect(state.packing?.step).toBe("fold");
+  });
+
+  it("weighs the suitcase when a warning arrives, and zips it when the stream ends", () => {
+    const warn: ItineraryOp = {
+      op: "warn",
+      slot: null,
+      code: "overloaded_day",
+      message: "Day 2 is heavy",
+    } as ItineraryOp;
+    let state = plannerReducer(start, { type: "event", event: { type: "itinerary_patch", ops: [warn] } });
+    expect(state.packing).toMatchObject({ step: "weigh", warned: true });
+
+    state = plannerReducer(state, { type: "turn_finished" });
+    expect(state.packing).toEqual({ step: "zip", folded: true, warned: true, failed: false });
+  });
+
+  it("loses the luggage when the turn fails, and leaves it lost when the stream closes", () => {
+    const failed = plannerReducer(start, { type: "turn_failed", error: "generic" });
+    expect(failed.packing).toMatchObject({ step: "open", failed: true });
+
+    const errored = plannerReducer(start, {
+      type: "event",
+      event: { type: "error", error_code: "INTERNAL", message: "boom" },
+    } as never);
+    const closed = plannerReducer(errored, { type: "turn_finished" });
+    expect(closed.packing).toMatchObject({ failed: true });
+    expect(closed.packing?.step).not.toBe("zip");
+  });
+
+  it("prepares a retry: the failed turn's message and error go, the rest stays", () => {
+    const failed = plannerReducer(start, { type: "turn_failed", error: "generic" });
+    const prepared = plannerReducer(failed, { type: "retry_prepared" });
+    expect(prepared.messages).toEqual([]);
+    expect(prepared).toMatchObject({ status: "idle", error: null, packing: null });
+  });
+});

@@ -445,6 +445,43 @@ describe("usePlanner — failures", () => {
   });
 });
 
+describe("usePlanner — retry (TRA-239)", () => {
+  it("sends the failed turn again, as it was, without a second copy of its message", async () => {
+    streamPlannerTurnMock.mockImplementationOnce(async function* () {
+      throw new Error("boom");
+    });
+    const { result } = renderHook(() => usePlanner(), { wrapper });
+
+    act(() => {
+      result.current.sendMessage("Four days in Budapest");
+    });
+    await waitFor(() => expect(result.current.state.status).toBe("error"));
+
+    act(() => {
+      result.current.retry();
+    });
+    await waitFor(() => expect(result.current.state.status).toBe("idle"));
+
+    expect(streamPlannerTurnMock).toHaveBeenCalledTimes(2);
+    const second = streamPlannerTurnMock.mock.calls[1]?.[0] as { message: string; history: unknown[] };
+    expect(second.message).toBe("Four days in Budapest");
+    expect(second.history).toEqual([]);
+    const users = result.current.state.messages.filter(
+      (message) => message.kind === "text" && message.role === "user"
+    );
+    expect(users).toHaveLength(1);
+    expect(result.current.state.packing?.step).toBe("zip");
+  });
+
+  it("does nothing before any turn was sent", () => {
+    const { result } = renderHook(() => usePlanner(), { wrapper });
+    act(() => {
+      result.current.retry();
+    });
+    expect(streamPlannerTurnMock).not.toHaveBeenCalled();
+  });
+});
+
 describe("usePlanner — draft persistence", () => {
   it("writes the draft after state changes, with only the draft's own keys", async () => {
     const { result } = renderHook(() => usePlanner(), { wrapper });

@@ -99,6 +99,17 @@ One orchestrated moment per page; everything else answers something the reader d
 - CSS first. `motion/react` is allowed only for exit animations (`AnimatePresence`). No GSAP, no
   three.js, no Lottie.
 
+## Kiri's answer
+
+A planner turn is packing a suitcase, and says so: open the suitcase, make the list, look in the
+wardrobe, fold and fit, weigh it, zip it up. While it streams, Kiri's face changes with the step
+and a bar of six fills; when it ends the suitcase is closed "in 9 s" and becomes a boarding pass —
+from where to where, the dates, the travellers, the days and the stops, and on the stub Kiri and
+"Gate: day 1". A question Kiri still has is a luggage tag with "To decide" dashed where the answer
+goes. A warning is a sticker stuck on at a slight angle, in the sticker colours. A failure is lost
+luggage, with Kiri lost and one way on: retry. Only Kiri's own words — her name tag, the gate —
+are in Pixelify; the model's answer is plain body text, and the traveller's message a bubble.
+
 ## Trips in the planner
 
 A saved trip is a planner draft that was written down, so it is read and changed where it was

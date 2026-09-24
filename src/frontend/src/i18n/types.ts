@@ -70,8 +70,6 @@ export interface Translations {
       noting: string;
       off: string;
     };
-    /** Replays Kiri's entrance. */
-    replay: string;
   };
   /** The composer shared by the planner page (`PromptComposer`). */
   planner: {
@@ -103,6 +101,46 @@ export interface Translations {
     /** "Share" copies the trip's link; the button says so for a moment. */
     share: string;
     shareCopied: string;
+    /** Kiri's answer, told as packing a suitcase (TRA-239). */
+    packing: {
+      /** Kiri's name tag over her answers. */
+      kiri: string;
+      steps: { open: string; list: string; wardrobe: string; fold: string; weigh: string; zip: string };
+      /** One line under the step on its way, what it is doing. */
+      details: { open: string; list: string; wardrobe: string; fold: string; weigh: string; zip: string };
+      /** How long the turn has been on its way, for screen readers: "{seconds} seconds" */
+      elapsed: string;
+      closed: string;
+      /** "in {seconds} s" */
+      closedIn: string;
+      withWarning: string;
+      howIPacked: string;
+      boarding: {
+        title: string;
+        dates: string;
+        travellers: string;
+        days: string;
+        stops: string;
+        /** "Gate: day 1" */
+        gate: string;
+      };
+      tag: {
+        title: string;
+        heading: string;
+        missing: string;
+        missingOne: string;
+        toDecide: string;
+        budget: string;
+      };
+      lost: { title: string; safe: string; retry: string };
+      /** The stickers a warning puts on a day. */
+      stickers: {
+        overloaded_day: string;
+        too_far: string;
+        closed: string;
+        unverified_price: string;
+      };
+    };
     composerPlaceholder: string;
     /** "Chosen: {titles}" chip in the transcript. */
     chosen: string;

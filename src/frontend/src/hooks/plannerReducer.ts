@@ -75,8 +75,31 @@ export interface PlannerDraft {
   shortlist: string[];
 }
 
+/**
+ * "Packing the suitcase" (TRA-239): how far the turn on its way has got, told
+ * from the events that already arrive — no progress event exists. The order
+ * is the order the planner works in: the ask opens the suitcase, the brief
+ * makes the list, options are looking in the wardrobe, itinerary ops fold
+ * and fit, a warning weighs it, and the end of the stream zips it up.
+ */
+export const PACKING_STEPS = ["open", "list", "wardrobe", "fold", "weigh", "zip"] as const;
+export type PackingStep = (typeof PACKING_STEPS)[number];
+
+export interface PackingState {
+  /** The furthest step reached; `zip` once the turn has ended well. */
+  step: PackingStep;
+  /** An itinerary patch arrived: something was folded into the trip. */
+  folded: boolean;
+  /** A `warn` op arrived: the suitcase was weighed and found heavy. */
+  warned: boolean;
+  /** The turn ended in an error: the luggage is lost. */
+  failed: boolean;
+}
+
 export interface PlannerState extends PlannerDraft {
   status: PlannerStatus;
+  /** The last turn's packing, or `null` before any turn of this page. */
+  packing: PackingState | null;
   error: PlannerErrorKind | null;
   /** Option groups shown and not yet answered. */
   pendingGroupIds: string[];
@@ -95,6 +118,7 @@ export function initialPlannerState(draft: PlannerDraft | null = null): PlannerS
     itinerary: draft?.itinerary ?? EMPTY_ITINERARY,
     shortlist: draft?.shortlist ?? [],
     status: "idle",
+    packing: null,
     error: null,
     pendingGroupIds: draft ? Object.values(draft.groups).filter((g) => g.selectedIds.length === 0).map((g) => g.group_id) : [],
     turn: 0,
@@ -132,6 +156,11 @@ export type PlannerAction =
    * everything, transcript included, because it *is* the whole state now.
    */
   | { type: "hydrated"; draft: PlannerDraft }
+  /**
+   * "Retry" after a failed turn (TRA-239): the failed turn's own message
+   * leaves the transcript, since the retried turn writes it again.
+   */
+  | { type: "retry_prepared" }
   | { type: "reset" };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -321,7 +350,39 @@ function dropEmptyTail(messages: PlannerMessage[]): PlannerMessage[] {
 
 // ─── Reducer ──────────────────────────────────────────────────────────────────
 
+/** Moves the packing forward to `step`, never back. */
+function packedTo(packing: PackingState | null, step: PackingStep): PackingState | null {
+  if (!packing) return packing;
+  const at = PACKING_STEPS.indexOf(packing.step);
+  return PACKING_STEPS.indexOf(step) > at ? { ...packing, step } : packing;
+}
+
+/** What one event says about the packing. */
+function packEvent(packing: PackingState | null, event: PlannerEvent): PackingState | null {
+  switch (event.type) {
+    case "brief":
+      return packedTo(packing, "list");
+    case "options":
+      return packedTo(packing, "wardrobe");
+    case "itinerary_patch": {
+      const warned = event.ops.some((op) => op.op === "warn");
+      const next = packedTo(packing, warned ? "weigh" : "fold");
+      return next && { ...next, folded: true, warned: next.warned || warned };
+    }
+    case "error":
+      return packing ? { ...packing, failed: true } : packing;
+    default:
+      return packing;
+  }
+}
+
 function applyEvent(state: PlannerState, event: PlannerEvent): PlannerState {
+  const packed = packEvent(state.packing, event);
+  const next = applyEventToDraft(state, event);
+  return packed === state.packing ? next : { ...next, packing: packed };
+}
+
+function applyEventToDraft(state: PlannerState, event: PlannerEvent): PlannerState {
   switch (event.type) {
     case "text": {
       const last = state.messages[state.messages.length - 1];
@@ -385,7 +446,14 @@ export function plannerReducer(state: PlannerState, action: PlannerAction): Plan
       let messages = dropEmptyTail(state.messages);
       if (action.message) messages = appendText(messages, "user", action.message);
       messages = appendText(messages, "assistant", "");
-      return { ...state, messages, status: "streaming", error: null, turn: state.turn + 1 };
+      return {
+        ...state,
+        messages,
+        status: "streaming",
+        error: null,
+        turn: state.turn + 1,
+        packing: { step: "open", folded: false, warned: false, failed: false },
+      };
     }
     case "event":
       return applyEvent(state, action.event);
@@ -394,9 +462,31 @@ export function plannerReducer(state: PlannerState, action: PlannerAction): Plan
         ...state,
         messages: dropEmptyTail(state.messages),
         status: state.status === "error" ? "error" : "idle",
+        packing:
+          state.status === "error" || !state.packing
+            ? state.packing
+            : { ...state.packing, step: "zip" },
       };
     case "turn_failed":
-      return { ...state, messages: dropEmptyTail(state.messages), status: "error", error: action.error };
+      return {
+        ...state,
+        messages: dropEmptyTail(state.messages),
+        status: "error",
+        error: action.error,
+        packing: state.packing ? { ...state.packing, failed: true } : state.packing,
+      };
+    case "retry_prepared": {
+      const messages = dropEmptyTail(state.messages);
+      const last = messages[messages.length - 1];
+      return {
+        ...state,
+        messages:
+          last?.kind === "text" && last.role === "user" ? messages.slice(0, -1) : messages,
+        status: "idle",
+        error: null,
+        packing: null,
+      };
+    }
     case "brief_patched": {
       const brief = { ...state.brief, ...action.patch };
       return { ...state, brief, missing: computeMissing(brief) };

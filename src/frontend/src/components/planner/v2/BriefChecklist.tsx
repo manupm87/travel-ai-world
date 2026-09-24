@@ -4,7 +4,7 @@ import { Check } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { useLanguage } from "@/context/LanguageContext";
-import { useFormatters } from "@/hooks/useFormatters";
+import { useBriefValues } from "@/hooks/useBriefValues";
 import { interpolate } from "@/i18n";
 import { BRIEF_FIELDS, type BriefField, type TripBrief } from "@/types/planner";
 import { cn } from "@/utils/cn";
@@ -27,41 +27,13 @@ const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
  */
 export function BriefChecklist({ brief, missing, disabled = false, onGenerate }: BriefChecklistProps) {
   const { t } = useLanguage();
-  const { formatDate } = useFormatters();
   const c = t.plan.checklist;
 
   const total = BRIEF_FIELDS.length;
   const done = total - missing.length;
   const canGenerate = missing.length === 0 && !disabled;
 
-  const dateValue = (): string | null => {
-    if (!brief.start_date || !brief.end_date) return null;
-    const options: Intl.DateTimeFormatOptions = { day: "numeric", month: "short", timeZone: "UTC" };
-    const range = `${formatDate(brief.start_date, options)} – ${formatDate(brief.end_date, options)}`;
-    return brief.nights === null
-      ? range
-      : `${range} · ${brief.nights === 1 ? c.nightOne : interpolate(c.nights, { nights: brief.nights })}`;
-  };
-
-  const travellersValue = (): string | null => {
-    if (brief.adults === null) return null;
-    return brief.children
-      ? interpolate(c.adultsAndChildren, { adults: brief.adults, children: brief.children })
-      : interpolate(c.adults, { adults: brief.adults });
-  };
-
-  const values: Record<BriefField, string | null> = {
-    destination: brief.destination,
-    origin: brief.origin,
-    dates: dateValue(),
-    travellers: travellersValue(),
-    interests:
-      brief.interests.length > 0
-        ? brief.interests
-            .map((id) => t.plan.quickReplies.interestOptions.find((o) => o.id === id)?.label ?? id)
-            .join(", ")
-        : null,
-  };
+  const values = useBriefValues(brief);
 
   return (
     <Card className="flex flex-col gap-5">

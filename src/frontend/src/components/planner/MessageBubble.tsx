@@ -1,6 +1,6 @@
-import { Bot, User } from "lucide-react";
 import type { ChatMessage } from "@/services/chat";
 import { cn } from "@/utils/cn";
+import { KiriTag } from "./v2/PackingStatus";
 import { MarkdownContent } from "./MarkdownContent";
 import { TypingDots } from "./TypingDots";
 
@@ -10,47 +10,46 @@ interface MessageBubbleProps {
   isPending?: boolean;
   /** Translated failure text to show instead of an answer. */
   errorText?: string | null;
+  /** Kiri's name tag over an answer that opens a turn (TRA-239). */
+  showTag?: boolean;
 }
 
-export function MessageBubble({ message, isPending = false, errorText }: MessageBubbleProps) {
+/**
+ * One message of the planner's transcript (TRA-239). What the traveller typed
+ * is a bubble on the right, shown exactly as typed; what Kiri answers is plain
+ * text on the page, Markdown rendered (`**bold**`, `- item`), under her name
+ * tag when it opens a turn.
+ */
+export function MessageBubble({
+  message,
+  isPending = false,
+  errorText,
+  showTag = false,
+}: MessageBubbleProps) {
   const isUser = message.role === "user";
-  /**
-   * The assistant writes Markdown (`**bold**`, `- item`), so its bubble is
-   * rendered; what the traveller typed is shown exactly as typed.
-   */
+
+  if (isUser) {
+    return (
+      <div className="flex animate-fade-up justify-end">
+        <div className="max-w-[85%] rounded-[18px_18px_4px_18px] bg-bg-surface px-4 py-2.5 text-[14.5px] leading-normal text-text-primary">
+          <span className="whitespace-pre-wrap">{message.content}</span>
+        </div>
+      </div>
+    );
+  }
+
   const body = message.content ? (
-    isUser ? (
-      <span className="whitespace-pre-wrap">{message.content}</span>
-    ) : (
-      <MarkdownContent content={message.content} />
-    )
+    <MarkdownContent content={message.content} />
   ) : (
     errorText || (isPending && <TypingDots />)
   );
+  if (!body) return null;
 
   return (
-    <div className={cn("flex animate-fade-up gap-2.5", isUser ? "flex-row-reverse" : "flex-row")}>
+    <div className="flex animate-fade-up flex-col gap-2">
+      {showTag && <KiriTag />}
       <div
-        className={cn(
-          "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg",
-          isUser ? "bg-accent/20" : "bg-purple/20"
-        )}
-        aria-hidden="true"
-      >
-        {isUser ? (
-          <User size={14} className="text-accent" />
-        ) : (
-          <Bot size={14} className="text-purple" />
-        )}
-      </div>
-      <div
-        className={cn(
-          "max-w-[80%] rounded-xl px-3.5 py-2.5 text-sm leading-relaxed",
-          isUser
-            ? "bg-action text-on-action rounded-br-sm"
-            : "bg-bg-surface text-text-primary border border-border rounded-bl-sm",
-          errorText && "text-error"
-        )}
+        className={cn("text-[14.5px] leading-relaxed text-text-primary", errorText && "text-error")}
         role={errorText ? "alert" : undefined}
       >
         {body}

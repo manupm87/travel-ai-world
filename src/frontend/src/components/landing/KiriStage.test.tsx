@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, fireEvent, renderWithProviders, screen } from "@/test/render";
+import { act, renderWithProviders, screen } from "@/test/render";
 import { KiriStage } from "./KiriStage";
 import en from "@/i18n/en";
 
@@ -51,12 +51,10 @@ describe("KiriStage", () => {
     expect(phase()).toBe("leaving");
   });
 
-  it("replays the entrance, and keeps Kiri out of the accessibility tree", () => {
+  it("keeps Kiri out of the accessibility tree, and offers nothing to press", () => {
     renderWithProviders(<KiriStage listening={false} noting={false} leaving={false} />);
     act(() => vi.advanceTimersByTime(4100));
-    fireEvent.click(screen.getByRole("button", { name: en.landing.replay }));
-    act(() => vi.advanceTimersByTime(10));
-    expect(phase()).toBe("out");
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 });

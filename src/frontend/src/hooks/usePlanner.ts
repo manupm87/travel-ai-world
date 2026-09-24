@@ -144,9 +144,13 @@ export function usePlanner() {
    * The reducer is pure, so the state the request is built from is computed
    * here rather than read back from React after a render.
    */
+  /** The last turn sent, so a failed one can be sent again as it was. */
+  const lastTurnRef = useRef<TurnInput | null>(null);
+
   const runTurn = useCallback(
     async (action: PlannerAction, turn: TurnInput) => {
       abort();
+      lastTurnRef.current = turn;
       const before = stateRef.current;
       const started = plannerReducer(before, action);
       // `sendMessage`'s action is the `turn_started` itself: apply it once.
@@ -319,6 +323,20 @@ export function usePlanner() {
     [abort]
   );
 
+  /**
+   * "Retry" (TRA-239): the turn that failed, sent again exactly as it was.
+   * Its message leaves the transcript first, because the retried turn puts it
+   * back; a turn that carried no message (a selection) simply goes again.
+   */
+  const retry = useCallback(() => {
+    const turn = lastTurnRef.current;
+    if (!turn) return;
+    const prepared = plannerReducer(stateRef.current, { type: "retry_prepared" });
+    stateRef.current = prepared;
+    dispatch({ type: "retry_prepared" });
+    void runTurn({ type: "turn_started", message: turn.message }, turn);
+  }, [runTurn]);
+
   /** "Start over": an empty planner, a new session, and no trip to update any more. */
   const startNew = useCallback(() => {
     abort();
@@ -339,6 +357,7 @@ export function usePlanner() {
     toggleShortlist,
     hydrate,
     startNew,
+    retry,
     abort,
   };
 }

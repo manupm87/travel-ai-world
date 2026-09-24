@@ -8,8 +8,12 @@ import { useStickToBottom } from "@/hooks/useStickToBottom";
 import type { PlannerCity, Slot, TripBrief } from "@/types/planner";
 import { MessageBubble } from "../MessageBubble";
 import { PromptComposer, TEXTAREA_MAX_PX } from "../PromptComposer";
+import { BoardingPass } from "./BoardingPass";
 import { LockedNotice, type LockedPhase } from "./LockedNotice";
+import { LostLuggage } from "./LostLuggage";
+import { LuggageTag } from "./LuggageTag";
 import { OptionCarousel } from "./OptionCarousel";
+import { PackingStatus } from "./PackingStatus";
 import { QuickReplies } from "./QuickReplies";
 import { SelectionChip } from "./SelectionChip";
 import { SuggestionChips } from "./SuggestionChips";
@@ -36,6 +40,8 @@ export interface ChatColumnProps {
   lockedPhase?: LockedPhase | null;
   /** From the notice: leave this trip where it is and start another. */
   onNewTrip?: () => void;
+  /** "Retry" on lost luggage: the failed turn, sent again (TRA-239). */
+  onRetry?: () => void;
   /**
    * The URL names a trip that is not in the planner yet: loading, not found
    * or failed (TRA-223). The transcript in state may be another trip's — a
@@ -43,10 +49,6 @@ export interface ChatColumnProps {
    * turn until the trip panel has something to show.
    */
   holding?: boolean;
-}
-
-function isEmptyAssistant(message: PlannerMessage | undefined): boolean {
-  return message?.kind === "text" && message.role === "assistant" && message.content === "";
 }
 
 /**
@@ -67,6 +69,7 @@ export function ChatColumn({
   onToggleShortlist,
   lockedPhase = null,
   onNewTrip,
+  onRetry,
   holding = false,
 }: ChatColumnProps) {
   const { t } = useLanguage();
@@ -90,11 +93,47 @@ export function ChatColumn({
   };
 
   const lastIndex = messages.length - 1;
-  const lastIsEmptyAssistant = isEmptyAssistant(messages[lastIndex]);
-  /** The error never hides: without an empty bubble to fill, add one. */
-  const showExtraError = !!errorText && !lastIsEmptyAssistant && !holding;
+  /** The error never hides: it is lost luggage at the foot of the log. */
+  const showError = !!errorText && !holding;
   const showQuickReplies =
     !isStreaming && !hasItinerary(state.itinerary) && !lockedPhase && !holding;
+  // Kiri's luggage tag over the quick replies, once there is a destination to
+  // write on it and something still to ask (TRA-239).
+  const showTag =
+    showQuickReplies && messages.length > 0 && state.missing.length > 0 && !!state.brief.destination;
+
+  // Packing the suitcase (TRA-239) belongs to the last turn: it sits under what
+  // started it — the traveller's message or the chip of what they chose.
+  const packing = !holding && state.packing && !state.packing.failed ? state.packing : null;
+  let turnStart = -1;
+  for (let i = lastIndex; i >= 0; i -= 1) {
+    const message = messages[i];
+    if (message?.kind === "selection" || (message?.kind === "text" && message.role === "user")) {
+      turnStart = i;
+      break;
+    }
+  }
+  const packingStatus = packing && (
+    <PackingStatus packing={packing} streaming={isStreaming} key={`packing-${state.turn}`}>
+      {packing.step === "zip" && packing.folded && hasItinerary(state.itinerary) && (
+        <BoardingPass brief={state.brief} itinerary={state.itinerary} />
+      )}
+    </PackingStatus>
+  );
+
+  // Kiri's name tag opens each of her turns; the last one's is on its packing.
+  const tagged = new Set<number>();
+  let opened = true;
+  messages.forEach((message, index) => {
+    if (message.kind === "selection" || (message.kind === "text" && message.role === "user")) {
+      opened = false;
+      return;
+    }
+    if (message.kind === "text" && message.role === "assistant" && !opened) {
+      opened = true;
+      if (!(packing && index > turnStart)) tagged.add(index);
+    }
+  });
 
   const renderEntry = (message: PlannerMessage, index: number) => {
     switch (message.kind) {
@@ -104,8 +143,9 @@ export function ChatColumn({
         return (
           <MessageBubble
             message={{ role: message.role, content: message.content }}
-            isPending={isLastAssistant && !message.content && isStreaming}
-            errorText={isLastAssistant && !message.content ? errorText : null}
+            // While Kiri packs, the packing is what says she is working.
+            isPending={isLastAssistant && !message.content && isStreaming && !packing}
+            showTag={tagged.has(index)}
           />
         );
       }
@@ -145,13 +185,22 @@ export function ChatColumn({
         aria-live="polite"
         className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-y-contain px-1"
       >
+        {packingStatus && turnStart === -1 && packingStatus}
         {messages.map((message, index) => (
-          <Fragment key={message.id}>{renderEntry(message, index)}</Fragment>
+          <Fragment key={message.id}>
+            {renderEntry(message, index)}
+            {index === turnStart && packingStatus}
+          </Fragment>
         ))}
 
-        {showExtraError && (
-          <MessageBubble message={{ role: "assistant", content: "" }} errorText={errorText} />
+        {showError && (
+          <LostLuggage
+            errorText={errorText}
+            onRetry={state.error === "generic" ? onRetry : undefined}
+          />
         )}
+
+        {showTag && <LuggageTag brief={state.brief} missing={state.missing} />}
 
         {showQuickReplies && (
           <QuickReplies
