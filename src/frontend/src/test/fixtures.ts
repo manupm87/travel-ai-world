@@ -139,6 +139,8 @@ export function makeTripSummary(overrides: Partial<TripSummary> = {}): TripSumma
     endDate: "2026-10-25",
     phase: "upcoming",
     imageUrl: "/images/budapest.jpg",
+    days: 3,
+    stops: 9,
     ...overrides,
   };
 }

@@ -68,6 +68,8 @@ const en: Translations = {
   dashboard: {
     /** Quiet and forward-looking: the reader already has an account and, often, trips. */
     headline: "Where next?",
+    suitcase: "Your suitcase carries {count} stickers",
+    suitcaseOne: "Your suitcase carries 1 sticker",
   },
   plan: {
     title: "Plan a trip",
@@ -277,7 +279,7 @@ const en: Translations = {
       groups: {
         ongoing: "Happening now",
         upcoming: "Coming up",
-        past: "Past journeys",
+        past: "Already been",
       },
       phase: {
         ongoing: "On now",
@@ -295,6 +297,10 @@ const en: Translations = {
         menu: "Options for {title}",
         rename: "Rename trip",
         delete: "Delete trip",
+        days: "{count} days",
+        daysOne: "1 day",
+        stops: "{count} stops",
+        stopsOne: "1 stop",
       },
       rename: {
         title: "Rename trip",

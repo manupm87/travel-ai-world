@@ -61,6 +61,8 @@ const es: Translations = {
   dashboard: {
     /** Tranquila y hacia delante: quien lee ya tiene cuenta y, a menudo, viajes. */
     headline: "¿Adónde vamos ahora?",
+    suitcase: "Tu maleta lleva {count} pegatinas",
+    suitcaseOne: "Tu maleta lleva 1 pegatina",
   },
   plan: {
     title: "Planificar un viaje",
@@ -269,8 +271,8 @@ const es: Translations = {
       newTrip: "Nuevo viaje",
       groups: {
         ongoing: "Ahora mismo",
-        upcoming: "Próximamente",
-        past: "Viajes pasados",
+        upcoming: "Próximos",
+        past: "Ya pasados",
       },
       phase: {
         ongoing: "En curso",
@@ -288,6 +290,10 @@ const es: Translations = {
         menu: "Opciones de {title}",
         rename: "Cambiar el nombre",
         delete: "Eliminar viaje",
+        days: "{count} días",
+        daysOne: "1 día",
+        stops: "{count} paradas",
+        stopsOne: "1 parada",
       },
       rename: {
         title: "Cambiar el nombre del viaje",

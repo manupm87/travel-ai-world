@@ -2,6 +2,9 @@
 
 import { Fragment, useEffect, useRef, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
+import { interpolate } from "@/i18n/interpolate";
+import { Kiri } from "@/components/kiri/Kiri";
+import { stickerCities } from "@/utils/suitcase";
 import { useTrips } from "@/hooks/useTrips";
 import TripCard from "@/components/ui/TripCard";
 import { TRIP_PHASES } from "@/types/trip";
@@ -18,6 +21,50 @@ const STAGGER_MS = 40;
 
 /** Enough to fill the section while the trips are on their way. */
 const PLACEHOLDERS = [0, 1, 2];
+
+/** The sticker colours, one after another, so neighbouring chips differ. */
+const STICKER_DOTS = [
+  "var(--color-sticker-book)",
+  "var(--color-sticker-fragile)",
+  "var(--color-sticker-overweight)",
+];
+
+/**
+ * "Your suitcase carries 3 stickers" (TRA-237): Kiri wearing a sticker for
+ * every city the account has a trip in, and those cities as chips.
+ */
+function SuitcaseCard({ trips }: { trips: TripSummary[] }) {
+  const { t } = useLanguage();
+  const cities = stickerCities(trips);
+  const title =
+    cities.length === 1
+      ? t.dashboard.suitcaseOne
+      : interpolate(t.dashboard.suitcase, { count: cities.length });
+
+  return (
+    <div className="col-span-full flex items-center gap-4 rounded-2xl border border-glass-border bg-glass-bg px-4 py-3.5 backdrop-blur-xl">
+      <Kiri state="stickers" scale={3} />
+      <div className="flex min-w-0 flex-col gap-2">
+        <p className="text-[15px] font-semibold text-text-primary">{title}</p>
+        <ul className="flex flex-wrap gap-1.5">
+          {cities.map((city, index) => (
+            <li
+              key={city}
+              className="inline-flex h-7 items-center gap-1.5 rounded-full border border-glass-border px-2.5 text-[13px] text-text-secondary"
+            >
+              <span
+                aria-hidden="true"
+                className="h-2 w-2 rounded-full"
+                style={{ background: STICKER_DOTS[index % STICKER_DOTS.length] }}
+              />
+              {city}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
 
 /**
  * The account's trips, on the signed-in home.
@@ -132,14 +179,10 @@ export function TripsList() {
           desktop, one down a phone. A group is a line across it, not a
           section of its own. */}
       <div className="grid grid-cols-[repeat(auto-fill,minmax(17rem,1fr))] gap-3">
-        {groups.map((group, index) => (
+        <SuitcaseCard trips={trips} />
+        {groups.map((group) => (
           <Fragment key={group.phase}>
-            <h3
-              className={cn(
-                "col-span-full flex items-center gap-4 text-sm font-medium text-text-secondary",
-                index > 0 && "pt-3"
-              )}
-            >
+            <h3 className="col-span-full flex items-center gap-4 pt-3 text-sm font-medium text-text-secondary">
               {l.groups[group.phase]}
               <span aria-hidden="true" className="h-px flex-1 bg-border" />
             </h3>

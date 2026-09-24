@@ -262,6 +262,12 @@ export function toTripSummary(dto: TripResponse): TripSummary {
     endDate: text(dto.end_date),
     phase: dto.phase,
     imageUrl: text(dto.image_url),
+    // A list answer that leaves the children out reads as nothing planned yet.
+    days: (dto.itinerary_days ?? []).length,
+    stops: (dto.itinerary_days ?? []).reduce(
+      (total, day) => total + day.activities.length + day.meals.length,
+      0
+    ),
   };
 }
 

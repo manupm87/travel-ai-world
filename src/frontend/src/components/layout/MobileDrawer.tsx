@@ -10,6 +10,7 @@ import { interpolate } from "@/i18n/interpolate";
 import { useDialog } from "@/hooks/useDialog";
 import { useTrips } from "@/hooks/useTrips";
 import { Kiri } from "@/components/kiri/Kiri";
+import { stickerCities } from "@/utils/suitcase";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/utils/cn";
 import { LanguageSwitcher } from "./LanguageSwitcher";
@@ -41,7 +42,7 @@ function SuitcaseCard({ onNavigate }: { onNavigate: () => void }) {
   const { trips, status } = useTrips();
   if (status !== "ready" || trips.length === 0) return null;
 
-  const stickers = new Set(trips.map((trip) => trip.city)).size;
+  const stickers = stickerCities(trips).length;
   const count =
     trips.length === 1 && stickers === 1
       ? t.nav.suitcaseCountOne

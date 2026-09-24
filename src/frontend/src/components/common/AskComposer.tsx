@@ -43,6 +43,11 @@ export interface AskComposerProps {
   onFocusChange?: (focused: boolean) => void;
   /** What is typed, as it is typed (Kiri notes it down). */
   onAskChange?: (ask: string) => void;
+  /**
+   * `full` is the landing's field — room to write, the action below it;
+   * `compact` the home's one line with a round send button inside (TRA-237).
+   */
+  variant?: "full" | "compact";
   className?: string;
 }
 
@@ -73,6 +78,7 @@ export function AskComposer({
   hint,
   onFocusChange,
   onAskChange,
+  variant = "full",
   className,
 }: AskComposerProps) {
   const { t } = useLanguage();
@@ -119,6 +125,9 @@ export function AskComposer({
     submit();
   };
 
+  const compact = variant === "compact";
+  const sendLabel = leaving ? t.landing.sending : t.landing.send;
+
   return (
     <div
       data-leaving={leaving}
@@ -137,7 +146,14 @@ export function AskComposer({
           className="conic-ring pointer-events-none absolute -inset-px rounded-[20px] opacity-0 transition-opacity duration-300 group-focus-within:animate-ring-spin group-focus-within:opacity-100"
         />
 
-        <div className="relative flex flex-col gap-3 rounded-[19px] border border-glass-border bg-glass-bg px-4 pt-4 pb-3.5 shadow-field-glow backdrop-blur-xl transition-colors group-focus-within:border-transparent sm:px-5 sm:pt-5">
+        <div
+          className={cn(
+            "relative flex rounded-[19px] border border-glass-border bg-glass-bg shadow-field-glow backdrop-blur-xl transition-colors group-focus-within:border-transparent",
+            compact
+              ? "items-end gap-2 py-1.5 pr-1.5 pl-4 sm:pl-5"
+              : "flex-col gap-3 px-4 pt-4 pb-3.5 sm:px-5 sm:pt-5"
+          )}
+        >
           <textarea
             ref={fieldRef}
             value={ask}
@@ -155,31 +171,55 @@ export function AskComposer({
             aria-labelledby={labelledBy}
             aria-label={labelledBy ? undefined : label}
             placeholder={placeholder}
-            className="block min-h-[3.75rem] w-full resize-none bg-transparent text-[17px] leading-normal text-text-primary placeholder:text-text-muted focus:outline-none sm:text-lg"
+            className={cn(
+              "block w-full resize-none bg-transparent leading-normal text-text-primary placeholder:text-text-muted focus:outline-none",
+              compact
+                ? // One line: a long example ends in an ellipsis instead of wrapping under the fold.
+                  "min-h-11 py-2.5 text-[17px] placeholder-shown:overflow-hidden placeholder:overflow-hidden placeholder:text-ellipsis placeholder:whitespace-nowrap"
+                : "min-h-[3.75rem] text-[17px] sm:text-lg"
+            )}
             style={{ maxHeight: `${TEXTAREA_MAX_PX}px` }}
           />
-          <div
-            className={cn(
-              "flex items-center gap-4",
-              hint ? "justify-between border-t border-glass-border pt-3" : "justify-end"
-            )}
-          >
-            {hint && <p className="min-w-0 text-[13px] text-text-muted">{hint}</p>}
+          {compact ? (
             <Button
               type="submit"
               size="sm"
               disabled={!canSubmit}
               aria-busy={leaving}
-              className="h-[42px] shrink-0 gap-2 rounded-xl px-[18px] py-0 text-[15px] font-semibold shadow-none disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label={sendLabel}
+              title={sendLabel}
+              className="h-11 w-11 shrink-0 rounded-xl p-0 shadow-none disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {leaving ? t.landing.sending : t.landing.send}
               {leaving ? (
-                <Loader2 size={16} className="animate-spin" aria-hidden="true" />
+                <Loader2 size={17} className="animate-spin" aria-hidden="true" />
               ) : (
-                <Send size={16} aria-hidden="true" />
+                <Send size={17} aria-hidden="true" />
               )}
             </Button>
-          </div>
+          ) : (
+            <div
+              className={cn(
+                "flex items-center gap-4",
+                hint ? "justify-between border-t border-glass-border pt-3" : "justify-end"
+              )}
+            >
+              {hint && <p className="min-w-0 text-[13px] text-text-muted">{hint}</p>}
+              <Button
+                type="submit"
+                size="sm"
+                disabled={!canSubmit}
+                aria-busy={leaving}
+                className="h-[42px] shrink-0 gap-2 rounded-xl px-[18px] py-0 text-[15px] font-semibold shadow-none disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {sendLabel}
+                {leaving ? (
+                  <Loader2 size={16} className="animate-spin" aria-hidden="true" />
+                ) : (
+                  <Send size={16} aria-hidden="true" />
+                )}
+              </Button>
+            </div>
+          )}
         </div>
       </form>
     </div>

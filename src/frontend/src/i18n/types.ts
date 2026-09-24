@@ -88,6 +88,9 @@ export interface Translations {
   dashboard: {
     /** The page's `h1`, which also names the field under it. */
     headline: string;
+    /** Kiri's card over the trips (TRA-237): "Your suitcase carries {count} stickers" */
+    suitcase: string;
+    suitcaseOne: string;
   };
 
   /** The planner page (`/plan/`): chat + option cards + live itinerary (TRA-144). */
@@ -344,6 +347,11 @@ export interface Translations {
         /** Renaming is only offered on a trip that can still be changed. */
         rename: string;
         delete: string;
+        /** "{count} days" / "1 day" and "{count} stops" / "1 stop" (TRA-237). */
+        days: string;
+        daysOne: string;
+        stops: string;
+        stopsOne: string;
       };
       rename: {
         title: string;

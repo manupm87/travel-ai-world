@@ -38,6 +38,27 @@ describe("TripsList", () => {
     rename.mockResolvedValue(undefined);
   });
 
+  it("opens with Kiri's suitcase: one sticker per city", () => {
+    hook({
+      trips: [
+        upcoming,
+        makeTripSummary({ id: "b", city: "Bologna", title: "Bologna, all about food" }),
+        makeTripSummary({ id: "again", city: "Budapest", title: "Budapest again" }),
+      ],
+    });
+    renderWithProviders(<TripsList />);
+
+    expect(screen.getByText(interpolate(en.dashboard.suitcase, { count: 2 }))).toBeInTheDocument();
+    const chips = screen.getAllByRole("listitem").map((item) => item.textContent);
+    expect(chips).toEqual(["Budapest", "Bologna"]);
+  });
+
+  it("says how long each trip is and how many stops it has", () => {
+    hook({ trips: [makeTripSummary({ days: 4, stops: 11 })] });
+    renderWithProviders(<TripsList />);
+    expect(screen.getByText(/4 days, 11 stops$/)).toBeInTheDocument();
+  });
+
   it("groups the trips by phase, in the order they matter in", () => {
     hook({ trips: [past, upcoming, ongoing] });
     renderWithProviders(<TripsList />);

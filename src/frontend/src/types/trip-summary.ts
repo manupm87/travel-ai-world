@@ -15,4 +15,8 @@ export interface TripSummary {
   endDate: string;
   phase: TripPhase;
   imageUrl: string;
+  /** How many days were planned (TRA-237): 0 for a trip saved before any. */
+  days: number;
+  /** Every activity and meal across those days: the card's "11 stops". */
+  stops: number;
 }

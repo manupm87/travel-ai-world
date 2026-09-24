@@ -33,18 +33,18 @@ export default function TripsHome() {
   const l = t.plan.trips;
 
   return (
-    <Container className="px-4 py-12 sm:px-6 sm:py-16 lg:px-16">
-      <AskComposer onSubmit={plannerHref} labelledBy={HEADING_ID}>
+    <Container className="px-4 py-8 sm:px-6 sm:py-16 lg:px-16">
+      <AskComposer onSubmit={plannerHref} labelledBy={HEADING_ID} variant="compact">
         <h1
           id={HEADING_ID}
-          className="mb-7 text-center text-[clamp(2rem,7vw,3.25rem)] leading-[1.05] font-light text-text-primary"
+          className="mb-5 text-left text-[clamp(2rem,7vw,3.25rem)] leading-[1.05] font-light text-text-primary sm:mb-7 sm:text-center"
         >
           {t.dashboard.headline}
         </h1>
       </AskComposer>
 
       <section
-        className="mt-14 animate-fade-up sm:mt-20"
+        className="mt-10 animate-fade-up sm:mt-16"
         style={{ animationDelay: `${TRIPS_DELAY_MS}ms` }}
       >
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">

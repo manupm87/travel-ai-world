@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { ImageIcon, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { interpolate } from "@/i18n";
 import { useClickOutside } from "@/hooks/useClickOutside";
@@ -28,8 +28,8 @@ interface TripCardProps {
 
 /** Only a trip that is happening or has happened says so; "coming up" is the norm. */
 const PILL: Partial<Record<TripPhase, string>> = {
-  ongoing: "bg-gold/20 text-gold",
-  past: "bg-glass-bg text-text-secondary",
+  ongoing: "border-gold/40 bg-gold/15 text-gold",
+  past: "border-glass-border bg-glass-bg text-text-primary",
 };
 
 /** Day and month; the year rides on the end of the range, said once. */
@@ -108,6 +108,17 @@ export default function TripCard({
         })
       : null;
 
+  // "12 – 15 Oct 2026. 4 days, 11 stops": the counts only when there are some.
+  const counts = [
+    trip.days > 0 &&
+      (trip.days === 1 ? c.daysOne : interpolate(c.days, { count: trip.days })),
+    trip.stops > 0 &&
+      (trip.stops === 1 ? c.stopsOne : interpolate(c.stops, { count: trip.stops })),
+  ].filter(Boolean);
+  const meta = [dates, counts.join(", ")].filter(Boolean).join(". ");
+  // The city is said by the title almost always; when it is not, it gets a line.
+  const showCity = trip.city && !trip.title.toLowerCase().includes(trip.city.toLowerCase());
+
   const pill = PILL[trip.phase];
   const hasMenu = onDelete !== undefined;
 
@@ -116,7 +127,7 @@ export default function TripCard({
       <article
         data-phase={trip.phase}
         className={cn(
-          "relative isolate flex h-[160px] flex-col justify-end overflow-hidden rounded-2xl border bg-bg-card transition-[border-color,box-shadow] duration-300",
+          "relative isolate flex h-[132px] flex-col justify-between overflow-hidden rounded-[20px] border bg-bg-card transition-[border-color,box-shadow] duration-300 sm:h-[160px]",
           current ? "border-accent-border shadow-field-glow" : "border-glass-border"
         )}
       >
@@ -137,22 +148,25 @@ export default function TripCard({
         {/* The page's own background, brought back up over the photo. */}
         <span
           aria-hidden="true"
-          className="absolute inset-0 -z-10 bg-gradient-to-t from-bg-primary from-30% via-bg-primary/85 via-60% to-bg-primary/15"
+          className="absolute inset-0 -z-10 bg-gradient-to-t from-bg-primary from-25% via-bg-primary/80 via-60% to-bg-primary/10"
         />
 
-        <div className="flex flex-col gap-1 p-4">
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            {pill && (
-              <span
-                className={cn("rounded-full px-2.5 py-0.5 text-xs font-medium backdrop-blur-sm", pill)}
-              >
-                {t.plan.trips.phase[trip.phase]}
-              </span>
-            )}
-            {dates && <span className="text-xs text-text-secondary">{dates}</span>}
-          </div>
+        <div className={cn("flex items-start px-4 pt-4", hasMenu ? "pr-14" : "pr-4")}>
+          {!trip.imageUrl && <ImageIcon size={18} aria-hidden="true" className="text-text-muted" />}
+          {pill && (
+            <span
+              className={cn(
+                "ml-auto rounded-full border px-2.5 py-0.5 text-xs font-medium backdrop-blur-sm",
+                pill
+              )}
+            >
+              {t.plan.trips.phase[trip.phase]}
+            </span>
+          )}
+        </div>
 
-          <h4 className="text-lg leading-snug font-medium text-text-primary">
+        <div className="flex flex-col gap-0.5 px-4 pb-4">
+          <h4 className="font-heading text-[22px] leading-tight font-normal tracking-[-0.02em] text-text-primary sm:text-2xl">
             <Link
               href={`/plan/?trip=${encodeURIComponent(trip.id)}`}
               aria-current={current ? "page" : undefined}
@@ -163,7 +177,8 @@ export default function TripCard({
             </Link>
           </h4>
 
-          {trip.city && <p className="text-sm text-text-secondary">{trip.city}</p>}
+          {showCity && <p className="text-sm text-text-secondary">{trip.city}</p>}
+          {meta && <p className="text-[13px] text-text-secondary">{meta}</p>}
         </div>
       </article>
 

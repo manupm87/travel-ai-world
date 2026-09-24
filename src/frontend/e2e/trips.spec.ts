@@ -66,7 +66,7 @@ const isoDay = (offset: number): string =>
 const GROUP = {
   ongoing: "Happening now",
   upcoming: "Coming up",
-  past: "Past journeys",
+  past: "Already been",
 } as const;
 
 interface NewTrip {

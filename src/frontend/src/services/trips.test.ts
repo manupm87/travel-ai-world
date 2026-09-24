@@ -130,7 +130,19 @@ describe("toTripSummary", () => {
       endDate: "2026-10-25",
       phase: "upcoming",
       imageUrl: HOTELS.rum.image_url,
+      days: budapest.itinerary_days.length,
+      stops: budapest.itinerary_days.reduce(
+        (total, day) => total + day.activities.length + day.meals.length,
+        0
+      ),
     });
+  });
+
+  it("counts the days and every activity and meal in them", () => {
+    const summary = toTripSummary(budapest);
+    expect(summary.days).toBeGreaterThan(0);
+    expect(summary.stops).toBeGreaterThanOrEqual(summary.days);
+    expect(toTripSummary({ ...budapest, itinerary_days: [] })).toMatchObject({ days: 0, stops: 0 });
   });
 });
 
@@ -169,6 +181,8 @@ describe("listTrips", () => {
         endDate: "",
         phase: "upcoming",
         imageUrl: "",
+        days: 0,
+        stops: 0,
       },
     ]);
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];

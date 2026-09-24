@@ -193,6 +193,13 @@ TypeScript 5, Tailwind CSS v4.
   on `/dashboard/`, "Your trips" (`nav.tripsShort` below `sm`) everywhere else. The list's own
   headings are `h3` per group and `h4` per card, so it sits under whatever heading the surface
   gives it.
+  Since TRA-237 the home is the sketch's "Tus viajes": the ask is `AskComposer variant="compact"`
+  (one line, a round send button, the example ending in an ellipsis), and the list opens with
+  Kiri's suitcase — "Your suitcase carries N stickers", one chip per city (`utils/suitcase.ts`
+  `stickerCities`, which the phone menu counts too). `TripSummary` carries `days` and `stops`
+  (every activity and meal), counted by `toTripSummary` from the `itinerary_days` the list already
+  returns, so a card says "Oct 12 – Oct 15, 2026. 4 days, 11 stops"; the title is large, the city
+  gets its own line only when the title does not name it.
   `components/ui/TripCard.tsx` is the cover photo with a scrim of `--color-bg-primary` brought back
   up over it (so the copy clears 4.5:1 on either theme whatever the photo is), a stretched link on
   the title to `/plan/?trip=<id>` (`after:absolute after:inset-0`) and one `⋯` button above it: a
