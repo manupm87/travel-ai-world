@@ -5,7 +5,7 @@ import type { ItineraryDraft } from "./plannerReducer";
 
 /**
  * Which day of the itinerary the planner is showing, or `null` for the trip
- * overview — the whole trip across the two right columns (TRA-177), which is
+ * overview — the whole trip, over a map that shows the city alone (TRA-177), which is
  * where an itinerary always opens. It belongs to the page
  * (`PlannerClientPage`) because both the panel — `DayStrip` and what it shows
  * below, the overview or one day — and the map slot follow it; it is not

@@ -58,7 +58,8 @@ type TurnInput = Omit<
  * - `askAlternatives` writes the "Change" sheet's ask: the slot, the free text
  *   the traveller typed, and the cards that ask already showed, so a second
  *   page never repeats the first (TRA-184).
- * - The draft is written to `sessionStorage` after every change and restored
+ * - The draft is written to `sessionStorage` between turns (not while one
+ *   streams) and restored
  *   on mount, through `services/plannerDraft.ts` only, with its planner
  *   session id: every turn sends it as `session_id` (with the saved trip's id
  *   as `trip_id`), so the backend's traces of one draft read together.
@@ -146,14 +147,14 @@ export function usePlanner() {
     };
   }, [abort]);
 
+  /** The last turn sent, so a failed one can be sent again as it was. */
+  const lastTurnRef = useRef<TurnInput | null>(null);
+
   /**
    * Applies `action` locally and immediately sends the turn it implies.
    * The reducer is pure, so the state the request is built from is computed
    * here rather than read back from React after a render.
    */
-  /** The last turn sent, so a failed one can be sent again as it was. */
-  const lastTurnRef = useRef<TurnInput | null>(null);
-
   const runTurn = useCallback(
     async (action: PlannerAction, turn: TurnInput) => {
       abort();

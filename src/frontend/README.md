@@ -103,16 +103,20 @@ That's it — the compiler flags a missing locale or `LANGUAGES` entry, and no c
 
 ## Authentication
 
-The app uses **Google OAuth 2.0** for frontend authentication. User state is managed via React Context and persisted in `localStorage`.
+Sign-in is Google, two ways. **Deployed** (`NEXT_PUBLIC_COGNITO_*` set): the Cognito managed login
+with code + PKCE (`src/services/cognito.ts`, no SDK), back through `/auth/callback/`, with the
+refresh token kept by `session.ts`. **Locally** (`AUTH_MODE=local`): the Google button and
+`core_api`'s `POST /auth/google`, described below. Either way the session lives in `localStorage`
+and React reads it through `AuthContext`.
 
-### How it works
+### How it works (local mode)
 
 1. `src/services/session.ts` is the only owner of the persisted session: it writes and clears
    `localStorage.travel_ai_token` / `localStorage.travel_ai_user` together and exposes
    `subscribe`/`getSnapshot` for `useSyncExternalStore`. `http.ts` reads the token through it.
 2. `src/services/auth.ts` exports `loginWithGoogle(credential)`, which decides the mode:
    - **API mode** (`NEXT_PUBLIC_API_URL` set): `core_api` verifies the Google credential and issues our own JWT.
-   - **Static mode** (no API URL, e.g. GitHub Pages): the Google ID token is decoded client-side (`jwt-decode`) for profile display only.
+   - **Static mode** (no API URL): the Google ID token is decoded client-side (`jwt-decode`) for profile display only.
    It rejects on an invalid credential in both modes and leaves storage untouched.
 3. `src/context/AuthContext.tsx` is a thin React binding: `user`, `isAuthenticated`, `isLoading`
    (until hydration), `login` and `logout`. It never navigates; the header's user menu goes home after `logout()`.
@@ -140,15 +144,10 @@ The app uses **Google OAuth 2.0** for frontend authentication. User state is man
 
 ## Design Tokens
 
-Defined in `globals.css` as CSS custom properties and consumed directly in Tailwind classes:
-
-| Token | Value | Usage |
-|---|---|---|
-| `--color-bg-primary` | `#0A0A12` | Main page background |
-| `--color-bg-secondary` | `#0E0E1A` | Section alternating background |
-| `--color-bg-card` | `#13132A` | Card / panel backgrounds |
-| `--color-accent` | `#4F6EF7` | Primary blue accent, CTAs |
-| `--color-text-secondary` | `#8888AA` | Muted text, labels |
+Defined in `src/app/globals.css` as CSS custom properties (dark by default, `[data-theme="light"]`
+for the light theme) and consumed directly in Tailwind classes. The values and what each one is
+for are in the design reference, [`docs/design/kyrian-world.md`](../../docs/design/kyrian-world.md#palette);
+this file does not repeat them, so they cannot drift.
 
 ---
 
@@ -159,7 +158,7 @@ Defined in `globals.css` as CSS custom properties and consumed directly in Tailw
 | `/` | ✅ Live | The landing is the field (TRA-190): the question, one text field whose placeholder types example asks, and the action that opens `/plan/?q=…` — signed in straight away, behind the sign-in dialog otherwise. Arriving with `?redirect=` (the route guard) opens that dialog at once |
 | `/dashboard/` | ✅ Live | **The signed-in home** (TRA-199, ADR 0020): the ask that starts the next trip over the account's trips, grouped by phase — the only place trips are listed (TRA-201). Sign-in lands here when no `?redirect=` was asked for |
 | `/trip/?id=<uuid>` | ↪️ Redirect | Kept for old links: `/plan/?trip=<uuid>` when the id is a trip id, `/plan/` otherwise (TRA-196) |
-| `/plan/` (`?q=<prompt>`, `?trip=<uuid>`) | ✅ Live | The trip planner (layout A, TRA-144). It **lists no trips** (TRA-201): it holds the one trip it was opened with, the empty pane is a quiet placeholder (`plan.panel.emptyTitle` / `emptyDescription`), and the way to the trips is the header pill, "Your trips" → `/dashboard/` from here and "Open the planner" → `/plan/` from there. `?trip=<uuid>` reopens a saved trip in the planner; a bare `/plan/` is always a new trip, never the tab's last saved one (TRA-223), and a saved, still-plannable trip offers "New trip" in the panel header; and a trip that is happening now or is over is read-only (no composer, no Save, no "Change"), because `core_api` refuses every write on it (ADR 0019). Three columns on a laptop — chat with quick replies and option-card carousels, the brief checklist that becomes the live itinerary, and the map of the selected day (MapLibre GL over OpenFreeMap's keyless tiles, TRA-147/ADR 0016) — and the same three as tabs on a phone. A finished itinerary opens on the **trip overview** (`TripOverview`, TRA-177): the destination's photo and description, a mosaic of the trip's own photos and the list of days, across the two right columns, with no map until a day is picked. Clicking a stop of a day turns the middle column into that activity's page (photo, article, address, phone, site and directions, from `GET /ai/planner/card?id=`) and highlights its pin on the map (TRA-179) (`usePlanner`, client-side; SSE v2 events from `ai_api`'s `/planner`; until TRA-143 lands the page answers from the recorded Budapest session in `src/data/planner-demo/` and shows a demo banner) |
+| `/plan/` (`?q=<prompt>`, `?trip=<uuid>`) | ✅ Live | The trip planner (layout A, TRA-144). It **lists no trips** (TRA-201): it holds the one trip it was opened with, the empty pane is a quiet placeholder (`plan.panel.emptyTitle` / `emptyDescription`), and the way to the trips is the header pill, "Your trips" → `/dashboard/` from here and "Open the planner" → `/plan/` from there. `?trip=<uuid>` reopens a saved trip in the planner; a bare `/plan/` is always a new trip, never the tab's last saved one (TRA-223), and a saved, still-plannable trip offers "New trip" in the panel header; and a trip that is happening now or is over is read-only (no composer, no Save, no "Change"), because `core_api` refuses every write on it (ADR 0019). Two zones on a laptop (TRA-238) — the chat, with quick replies and option-card carousels, and the trip floating over the map (MapLibre GL over OpenFreeMap's keyless tiles, TRA-147/ADR 0016) — and two tabs, Chat and Trip, on a phone. A finished itinerary opens on the **trip overview** (`TripOverview`, TRA-177): the destination's photo and description, a mosaic of the trip's own photos and the list of days. Clicking a stop opens that activity's page (photo, article, address, phone, site and directions, from `GET /ai/planner/card?id=`) and highlights its pin on the map (TRA-179). `usePlanner` streams the SSE v2 events of `ai_api`'s `/planner`; with no AI URL, or when that route answers 404/405, the page plays the recorded Budapest session in `src/data/planner-demo/` and shows a demo banner |
 | `/admin/` (`?range=30`) | ✅ Live | **The admin console** (TRA-222, ADR 0024), for accounts whose `role` is `admin` — anyone else gets a "not allowed" card on every `/admin/` URL, and the services answer 403 regardless. A sidebar (a tab strip on a phone): **Overview** — seven figures, turns per day by status over output tokens per day (hand-drawn SVG), and the breakdowns by model, city and kind, the most used documents and those retrieved but never used, for the last 7 or 30 days; **Turns** (`/admin/turns/?day=&kind=&status=&subject=&city=`) — a day's turns, filters in the URL, "Load more"; **Trips** — every saved trip with its owner; **Users** — every account with its role and token subject. `/admin/turn/?id=` is the **turn inspector** (TRA-228): on the left what the traveller saw with four numbered marks, on the right what they did not — six figures, the trace as a waterfall by phase and step kind, the brief, every model call's output with its validation, the SSE timeline and one city-kb panel per search — with previous / next in the session and "Export JSON"; on a phone the right side is a bottom sheet with four tabs; `/admin/trip/?user=&id=` (TRA-229) opens any saved trip **read only**: owner, city, dates, phase and ids, the planner's own overview with a day's cards, and the turns of the planner session that made it, each linking to the turn |
 | anything else | ✅ | `not-found.tsx`, exported as `404.html` |
 
@@ -177,8 +176,8 @@ as `route/index.html`; a CloudFront Function maps `/route/` to that key. See the
 | Setting | Value | Why |
 |---|---|---|
 | `output` | `'export'` | Generates plain HTML/CSS/JS — no Node.js server needed |
-| `trailingSlash` | `true` | GH Pages serves `path/index.html`, not `path.html` |
-| `basePath` | `/travel-ai-world` (prod only) | Project pages live at `/<repo-name>/` on GH Pages |
+| `trailingSlash` | `true` | CloudFront's index function and nginx `try_files` serve `path/index.html`, not `path.html` |
+| `basePath` | `""` (the site is served from the domain root) | `NEXT_PUBLIC_BASE_PATH` is only set by CI's PR build, a GitHub Pages leftover |
 | `images.unoptimized` | `true` | Image optimisation requires a server; disabled for static export |
 
 ### Per-user data on a static export: the planner
@@ -240,7 +239,7 @@ copy from `src/i18n/en.ts`, rather than on Tailwind class names.
 Powered by **Playwright**, with three configs over the one `e2e/` folder:
 
 ```bash
-npm run test:e2e           # playwright.config.ts: starts `next dev` on :3000, the landing-page smoke suite
+npm run test:e2e           # playwright.config.ts: starts `next dev` on :3000, every spec but prerender
 npm run test:e2e:static    # playwright.static.config.ts: `next build` served on :3100, adds prerender.spec.ts
 npm run test:e2e:stack     # playwright.stack.config.ts: the Compose stack already running on :8080, every spec
 ```

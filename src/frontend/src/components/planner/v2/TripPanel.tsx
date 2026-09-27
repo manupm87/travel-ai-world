@@ -117,7 +117,7 @@ function openedStop(
  * The planner's middle column: the brief checklist until an itinerary exists,
  * then the draft trip (route, stay, the day strip and, below it, the trip
  * overview or the one day the strip has selected) and the alternatives sheet
- * the "Change" buttons open. The map is the column beside it (`TripMap`); what
+ * the "Change" buttons open. The map is behind it (`TripMap`, TRA-238); what
  * they share is `mapStops`, which gives every card here the number of its pin
  * there — and which is empty while the overview is on screen, because there is
  * no day to map. The panel owns nothing but the sheet: every mutation, the
@@ -463,8 +463,8 @@ export function TripPanel({
             onNext={nextDay ? () => onSelectDay(nextDay.day) : undefined}
           />
         ) : (
-          /* No day selected: the whole trip, across this column and the one
-             the map would have taken (TRA-177). */
+          /* No day selected: the whole trip (TRA-177), over a map that shows
+             the city alone. */
           <TripOverview
             itinerary={itinerary}
             brief={brief}

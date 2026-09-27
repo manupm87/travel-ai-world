@@ -7,7 +7,7 @@ import { Kiri } from "@/components/kiri/Kiri";
 import { stickerCities } from "@/utils/suitcase";
 import { useTrips } from "@/hooks/useTrips";
 import TripCard from "@/components/ui/TripCard";
-import { TRIP_PHASES } from "@/types/trip";
+import { TRIP_PHASES, isEditable } from "@/types/trip";
 import type { TripSummary } from "@/types/trip-summary";
 import { cn } from "@/utils/cn";
 import { ConfirmDelete } from "./ConfirmDelete";
@@ -200,7 +200,7 @@ export function TripsList() {
                 >
                   <TripCard
                     trip={trip}
-                    onRename={trip.phase === "upcoming" ? () => setRenaming(trip) : undefined}
+                    onRename={isEditable(trip.phase) ? () => setRenaming(trip) : undefined}
                     onDelete={() => setDeleting(trip)}
                     className="animate-fade-up"
                     style={{ animationDelay: `${delay}ms` }}

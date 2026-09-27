@@ -5,8 +5,8 @@ import baseConfig from "./playwright.config";
  * Playwright config for the Compose stack as deployed (`just stack-up`): the
  * static export and the API on one origin, http://localhost:8080.
  *
- * Nothing is started here: the stack is already up, seeded (`just seed`), and
- * the signed-in specs read the session from `E2E_TOKEN` / `E2E_EMAIL`
+ * Nothing is started or seeded here: the stack is already up, the specs create
+ * the trips they need, and the signed-in ones read the session from `E2E_TOKEN` / `E2E_EMAIL`
  * (`just dev-token <email>`). Every spec runs, including the prerender checks:
  * nginx serves the same files `test:e2e:static` serves with `serve`.
  *

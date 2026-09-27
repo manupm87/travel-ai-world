@@ -7,7 +7,7 @@
  * - NEXT_PUBLIC_AI_API_URL  → ai_api (chat). Defaults to the core URL, so a
  *   single-origin deployment (reverse proxy) only sets the first variable.
  *
- * When neither is set (static GitHub Pages build) backend features are
+ * When neither is set (a static-only build) backend features are
  * gracefully disabled.
  */
 

@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { TURNS, toSseBody } from "@/data/planner-demo/session";
 import type { OptionCard, PlannerEvent, PlannerTurn } from "@/types/planner";
@@ -149,8 +150,10 @@ data: ${JSON.stringify(bad)}
 
   describe("recorded fixture", () => {
     it("parses the full session recording and stops at [DONE]", () => {
+      // fileURLToPath, not `URL.pathname`: the latter is `/C:/...` (and
+      // percent-encoded) on Windows, which no file API can open.
       const fixturePath = path.join(
-        path.dirname(new URL(import.meta.url).pathname),
+        path.dirname(fileURLToPath(import.meta.url)),
         "../test/fixtures/planner-budapest.sse"
       );
       const raw = readFileSync(fixturePath, "utf8");

@@ -85,7 +85,8 @@
   --color-bg-surface: #E3E8EE;
   --color-text-primary: #121821;
   --color-text-secondary: #4B5663;
-  --color-text-muted: rgba(18, 24, 33, 0.58);
+  /* 0.62 keeps muted text at 4.6:1 or more on every light surface (4.5:1 floor, kyrian-world.md). */
+  --color-text-muted: rgba(18, 24, 33, 0.62);
   --color-border: rgba(18, 24, 33, 0.08);
   --color-border-soft: rgba(18, 24, 33, 0.13);
   --color-border-card: #DDE3EA;

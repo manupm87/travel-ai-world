@@ -4,7 +4,7 @@
  * Two modes, decided here and nowhere else:
  * - API mode (`NEXT_PUBLIC_API_URL` set): core_api verifies the credential and
  *   issues our own JWT, which becomes the stored token.
- * - Static mode (no API URL, e.g. GitHub Pages): the Google ID token is
+ * - Static mode (no API URL): the Google ID token is
  *   decoded client-side for profile display only, and stored as the token.
  *
  * The deployed app signs in through Cognito instead (`services/cognito.ts`);

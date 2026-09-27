@@ -20,7 +20,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       // Redirect to home, remembering where to come back to. The query string
-      // is part of the destination: the trip viewer's id lives there.
+      // is part of the destination: the planner's `?trip=` lives there.
       router.push(`/?redirect=${encodeURIComponent(pathname + window.location.search)}`);
     }
   }, [isAuthenticated, isLoading, router, pathname]);

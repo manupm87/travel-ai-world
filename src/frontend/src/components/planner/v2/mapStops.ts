@@ -58,8 +58,8 @@ export function stopGlyph(stop: MapStop): string {
  * Pure, so `TripMap` and `DayCard` can both derive their view from the same
  * call in `PlannerClientPage` instead of each walking the itinerary.
  *
- * `selectedDay: null` is the trip overview (TRA-177): no day is on screen, the
- * map column is not there at all, so there is nothing to pin — not even the
+ * `selectedDay: null` is the trip overview (TRA-177): no day is on screen and the
+ * map behind the trip shows the city alone (TRA-238), so there is nothing to pin — not even the
  * stay, whose card is plain text while the overview is what the panel shows.
  */
 export function toMapStops(

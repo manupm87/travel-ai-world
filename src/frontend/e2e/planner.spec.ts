@@ -50,6 +50,22 @@ function signIn(page: Page, token: string) {
   );
 }
 
+/**
+ * The recording plans 2026-10-23 to 2026-10-25. Once a trip has started,
+ * core_api locks it and the page refuses to save it (ADR 0019, TRA-244), so
+ * the mock moves the recording a month ahead of each run and the form is
+ * filled with the same days: the suite never expires.
+ */
+const RECORDED_DATES = { start: "2026-10-23", end: "2026-10-25" } as const;
+const DAY_MS = 86_400_000;
+const isoDay = (offset: number): string =>
+  new Date(Date.now() + offset * DAY_MS).toISOString().slice(0, 10);
+const TRIP_DATES = { start: isoDay(30), end: isoDay(32) } as const;
+const ahead = (body: string): string =>
+  body
+    .replaceAll(RECORDED_DATES.start, TRIP_DATES.start)
+    .replaceAll(RECORDED_DATES.end, TRIP_DATES.end);
+
 /** Answers `/api/v1/ai/planner` from the recorded session, like ai_api would. */
 async function mockPlanner(page: Page) {
   await page.route("**/api/v1/ai/planner", async (route) => {
@@ -57,7 +73,7 @@ async function mockPlanner(page: Page) {
     await route.fulfill({
       status: 200,
       headers: { "content-type": "text/event-stream" },
-      body: toSseBody(TURNS[turnFor(turn)]),
+      body: ahead(toSseBody(TURNS[turnFor(turn)])),
     });
   });
 }
@@ -101,8 +117,8 @@ const card = (page: Page, title: string) => page.getByRole("article", { name: ti
 async function buildItinerary(page: Page) {
   await send(page, USER_MESSAGES.opening);
   const refine = page.getByRole("region", { name: "Let's refine a bit:" });
-  await refine.getByLabel("From", { exact: true }).fill("2026-10-23");
-  await refine.getByLabel("To", { exact: true }).fill("2026-10-25");
+  await refine.getByLabel("From", { exact: true }).fill(TRIP_DATES.start);
+  await refine.getByLabel("To", { exact: true }).fill(TRIP_DATES.end);
   await refine.getByRole("button", { name: "Confirm" }).click();
   await card(page, "Belváros").getByRole("button", { name: "Choose" }).click();
   await card(page, "Hotel Rum Budapest").getByRole("button", { name: "Choose" }).click();
@@ -131,8 +147,8 @@ test.describe("Planner page — /plan/", () => {
 
     // 2. Quick reply for the dates: the brief is complete, the neighbourhoods arrive.
     const refine = page.getByRole("region", { name: "Let's refine a bit:" });
-    await refine.getByLabel("From", { exact: true }).fill("2026-10-23");
-    await refine.getByLabel("To", { exact: true }).fill("2026-10-25");
+    await refine.getByLabel("From", { exact: true }).fill(TRIP_DATES.start);
+    await refine.getByLabel("To", { exact: true }).fill(TRIP_DATES.end);
     await refine.getByRole("button", { name: "Confirm" }).click();
     await expect(page.getByText("5 of 5 details ready")).toBeVisible();
     const neighbourhoods = page.getByRole("region", {
@@ -330,8 +346,8 @@ test.describe("Planner page — /plan/", () => {
     await expect(page.getByText("Which dates suit you best?")).toBeVisible({ timeout: 15_000 });
 
     const refine = page.getByRole("region", { name: "Let's refine a bit:" });
-    await refine.getByLabel("From", { exact: true }).fill("2026-10-23");
-    await refine.getByLabel("To", { exact: true }).fill("2026-10-25");
+    await refine.getByLabel("From", { exact: true }).fill(TRIP_DATES.start);
+    await refine.getByLabel("To", { exact: true }).fill(TRIP_DATES.end);
     await refine.getByRole("button", { name: "Confirm" }).click();
     await card(page, "Belváros").getByRole("button", { name: "Choose" }).click({ timeout: 15_000 });
     await card(page, "Hotel Rum Budapest").getByRole("button", { name: "Choose" }).click({ timeout: 15_000 });

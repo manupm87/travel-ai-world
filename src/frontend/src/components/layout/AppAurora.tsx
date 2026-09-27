@@ -11,9 +11,9 @@ const PLANNER = "/plan";
  *
  * The home (`/dashboard/`) and the route kept for old trip links are reading
  * surfaces and sit on the same dusk horizon as the landing, so the layer
- * belongs to the layout rather than to each page (TRA-193). The planner is a three-column workspace that fills
+ * belongs to the layout rather than to each page (TRA-193). The planner is a two-zone workspace that fills
  * the viewport and paints its own panes: a drifting sky behind a map and a
- * transcript is weather in the wrong room, and its columns cover it anyway.
+ * transcript is weather in the wrong room, and its panes cover it anyway.
  */
 export function AppAurora() {
   const pathname = usePathname();

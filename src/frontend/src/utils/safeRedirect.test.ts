@@ -1,28 +1,33 @@
 import { describe, it, expect } from "vitest";
-import { safeRedirectPath } from "./safeRedirect";
+import { safeRedirectTarget } from "./safeRedirect";
 
-describe("safeRedirectPath", () => {
-  it("accepts same-origin paths, decoding them first", () => {
-    expect(safeRedirectPath("/dashboard")).toBe("/dashboard");
-    expect(safeRedirectPath("%2Ftrip%2Fjapan%3Ftab%3D1")).toBe("/trip/japan?tab=1");
+describe("safeRedirectTarget", () => {
+  it("accepts same-origin paths and returns them unchanged", () => {
+    expect(safeRedirectTarget("/dashboard")).toBe("/dashboard");
+    expect(safeRedirectTarget("/trip/japan?tab=1")).toBe("/trip/japan?tab=1");
+    // Its own query stays encoded: a second decode would split the ask.
+    expect(safeRedirectTarget("/plan/?q=a%26b")).toBe("/plan/?q=a%26b");
   });
 
   it("rejects empty values", () => {
-    expect(safeRedirectPath(null)).toBeNull();
-    expect(safeRedirectPath(undefined)).toBeNull();
-    expect(safeRedirectPath("")).toBeNull();
+    expect(safeRedirectTarget(null)).toBeNull();
+    expect(safeRedirectTarget(undefined)).toBeNull();
+    expect(safeRedirectTarget("")).toBeNull();
   });
 
   it("rejects absolute URLs and protocol-relative paths", () => {
-    expect(safeRedirectPath("https://evil.example")).toBeNull();
-    expect(safeRedirectPath("//evil.example/x")).toBeNull();
-    expect(safeRedirectPath("%2F%2Fevil.example")).toBeNull();
-    expect(safeRedirectPath("/\\evil.example")).toBeNull();
-    expect(safeRedirectPath("javascript:alert(1)")).toBeNull();
-    expect(safeRedirectPath("dashboard")).toBeNull();
+    expect(safeRedirectTarget("https://evil.example")).toBeNull();
+    expect(safeRedirectTarget("//evil.example/x")).toBeNull();
+    expect(safeRedirectTarget("/\\evil.example")).toBeNull();
+    expect(safeRedirectTarget("javascript:alert(1)")).toBeNull();
+    expect(safeRedirectTarget("dashboard")).toBeNull();
   });
 
-  it("rejects values that fail to decode", () => {
-    expect(safeRedirectPath("%E0%A4%A")).toBeNull();
+  it("rejects paths the URL parser turns into another origin", () => {
+    // Tabs and newlines are dropped and `\` reads as `/`: all are `//evil.example`.
+    expect(safeRedirectTarget("/\t/evil.example/login")).toBeNull();
+    expect(safeRedirectTarget("/\n/evil.example/login")).toBeNull();
+    expect(safeRedirectTarget("/\r/evil.example/login")).toBeNull();
+    expect(safeRedirectTarget("/\t\\evil.example/login")).toBeNull();
   });
 });

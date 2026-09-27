@@ -10,7 +10,6 @@
     "dev": "next dev",
     "prebuild": "node scripts/copy-maplibre-worker.mjs",
     "build": "next build",
-    "start": "next start",
     "lint": "eslint",
     "pretest:e2e": "node scripts/copy-maplibre-worker.mjs",
     "test:e2e": "playwright test",

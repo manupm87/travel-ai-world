@@ -13,7 +13,7 @@ TypeScript 5, Tailwind CSS v4.
   token refresh before authenticated calls), `session.ts` (the only owner of the `localStorage`
   session: token, profile, refresh token), `cognito.ts` (the deployed sign-in: managed login with
   code + PKCE, `/auth/callback/`, refresh, logout — no SDK), `auth.ts` (the local Google flow
-  through core_api), `chat.ts` (ai_api), `trips.ts` (`listTrips` reads the planner's list of trips from
+  through core_api), `chat.ts` (ai_api), `trips.ts` (`listTrips` reads the trips home's list from
   `GET /api/v1/trips/`; `getTrip` reads the one it reopens from `GET /api/v1/trips/{id}` and
   resolves `null` on 404 and on 403, so someone else's id looks exactly like a missing one; owns
   `toTrip`, the only place that turns a `TripResponse` into the `Trip` view model — ADR 0006),
@@ -113,7 +113,7 @@ TypeScript 5, Tailwind CSS v4.
 - **Lint enforces the boundaries** (`eslint.config.mjs`): no `fetch` outside `src/services/`, no
   `@/types/generated/*` outside `src/services/` and `src/types/`, imports first, `console` is a
   warning. `tsconfig` has `noUncheckedIndexedAccess`:
-  key lookups on i18n ids (`TripStatus`, a `DayPart`) instead of indexing parallel arrays.
+  key lookups on i18n ids (`TripPhase`, a `DayPart`) instead of indexing parallel arrays.
 - Files: components `PascalCase.tsx`, utilities and hooks `camelCase.ts`, locales `<code>.ts`.
 - Routes live in groups: `app/(marketing)/` (public; layout = the aurora, Header and Footer in a
   `min-h-dvh` column whose `main` takes what the footer leaves, includes `auth/callback/`, where
@@ -141,7 +141,7 @@ TypeScript 5, Tailwind CSS v4.
   `BriefPanel` beside `ModelCalls`, `EventTimeline`, one `RetrievalPanel` per search), below `lg`
   the traveller view and `InspectorSheet` (a bottom sheet, tabs Trace / city-kb / Model / Events).
   The logic is pure and tested beside it: `waterfall.ts` (rows by phase, parent indent, scale,
-  minimum bar width), `modelCalls.ts` (tabs, JSON vs text, validation chips), `retrievals.ts`
+  minimum bar width), `calls.ts` (tabs, JSON vs text, validation chips), `retrievals.ts`
   (filter chips, distance bars, purposes), `traveller.ts` (the ops read back) and `marks.ts` (the
   numbered marks ① → events, ② → model output, ③ → the step that warned, ④ → the first city-kb
   panel; a mark exists only when both ends do). Its fixture is `src/test/fixtures/admin-turn.ts`. `/admin/trip/?user=&id=`
@@ -216,7 +216,7 @@ TypeScript 5, Tailwind CSS v4.
   `tabIndex={-1}`), Tab and Shift+Tab cycle inside it, Escape asks to close and the focus goes back
   to whatever opened it; `lockScroll` freezes the page behind a dialog tall enough to scroll.
   `onEscape: null` refuses Escape, which is what an action already in flight needs (`ConfirmDelete`
-  while the DELETE is on its way). `LoginModal`, `TripEditSheet` and `ConfirmDelete` all use it —
+  while the DELETE is on its way). `LoginModal`, `RenameTripDialog`, `ConfirmDelete` and `MobileDrawer` all use it —
   a new modal uses it too rather than writing a fourth trap. All three sit on the same surface,
   `bg-glass-bg backdrop-blur-xl border-glass-border` over the aurora, never an opaque card. The
   sign-in dialog adds its own `h2` ("Sign in to plan") as the label, the orbit `Mark` from
@@ -319,9 +319,8 @@ TypeScript 5, Tailwind CSS v4.
   module-level cache per tab). Merge it with `mergeCardDetail` (the card keeps its `why` and its
   photo); `unavailable` shows the card alone and says nothing, which is what demo mode always does.
   The wire contract
-  (SSE v2, TRA-142) is mirrored by hand in `src/types/planner.ts` until `ai_api` exports it through
-  `just contracts`; when it does, replace the declarations by re-exports of the generated types and
-  keep the helpers. A price is only ever a tier (`€`/`€€`/`€€€`), never a number. The recorded
+  (SSE v2, TRA-142) is generated: change `ai_api/schemas/planner_events.py` / `planner.py` and run
+  `just contracts`; `src/types/planner.ts` only re-exports `components["schemas"]` and adds helpers. A price is only ever a tier (`€`/`€€`/`€€€`), never a number. The recorded
   Budapest session lives in `src/data/planner-demo/session.ts` (real corpus ids, Wikimedia Commons
   photos with credits) and ships: `services/plannerDemo.ts` plays it as a synthetic backend
   whenever `streamPlannerTurn` finds no ai_api URL or a 404/405 on `/planner` (TRA-158), the hook
@@ -387,10 +386,12 @@ TypeScript 5, Tailwind CSS v4.
   wardrobe, an `itinerary_patch` folds, a `warn` op weighs and sets `warned`, `turn_finished` zips,
   a failure sets `failed`; never persisted, never backwards). `ChatColumn` puts `PackingStatus`
   under the message that started the turn: while streaming the step, its line, a client-side clock
-  and a bar of six; when done "Suitcase closed in N s" (", with a warning"), the `BoardingPass`
+  and a bar of six; when done "Suitcase closed in N s" for a turn that drafted the trip, "Added to
+  the suitcase" for the others (TRA-250), (", with a warning"), the `BoardingPass`
   (brief + itinerary, only when the turn folded something into a trip) and "See how I packed". The
   traveller's messages are bubbles on the right; Kiri's answers are plain text under her name tag
-  (`KiriTag`, Pixelify). A turn that ends asking shows a `LuggageTag` ("To decide" dashed,
+  (`KiriTag`, Pixelify). A turn that ends asking, with at most `TAG_MAX_MISSING` (2) fields left
+  (TRA-251), shows a `LuggageTag` ("To decide" dashed,
   the destination too when ai_api cleared one outside the corpus, TRA-243) over the quick replies,
   and its suitcase does not close — nothing was packed; a failed turn is `LostLuggage` (`role="alert"`)
   whose "Retry" is `usePlanner.retry()` — the failed turn sent again as it was, its message first
@@ -428,9 +429,8 @@ TypeScript 5, Tailwind CSS v4.
   label above a heading anywhere in `src/`. A section says what it holds in its own heading; small
   type is sentence case. What is left of ALL-CAPS in the planner's cards (`DayCard`, `StayCard`,
   `OptionCard`, `ActivityDetail`, `AlternativesSheet`) is card micro-metadata, not eyebrows, and is
-  deliberately untouched. The trip viewer's sections sit on `transparent` `Section`s and glass
-  `Card`s so the aurora runs under the whole page; `Section`'s `primary`/`secondary` backgrounds
-  are unused and a new surface should not reach for them.
+  deliberately untouched. `Section`'s `primary`/`secondary` backgrounds are unused and a new
+  surface should not reach for them.
 - Tests: `renderWithProviders` from `src/test/render.tsx` and the typed builders in
   `src/test/fixtures.ts` (`src/test/fixtures/trip-budapest.ts` when a test needs a whole
   `TripResponse`, `src/test/fixtures/planner-city.ts` when it needs a `PlannerCity`,
@@ -440,8 +440,8 @@ TypeScript 5, Tailwind CSS v4.
   assert on roles/names/`data-*` state and on `en.ts` copy, not on class names.
   Do not mock `Card`/`Section`/`Container`/`next/link` or `lucide-react` icon by icon.
 - Playwright, three configs over one `e2e/` folder: `playwright.config.ts` (`just test-e2e`: starts
-  `next dev` on :3000, the landing-page smoke suite, for the daily loop), `playwright.static.config.ts`
-  (`just test-e2e-static`: `next build` served on :3100, adds `prerender.spec.ts`; CI's `frontend`
+  `next dev` on :3000, every spec but `prerender.spec.ts`, for the daily loop), `playwright.static.config.ts`
+  (`just test-e2e-static`: `next build` served on :3100, every spec; CI's `frontend`
   job) and `playwright.stack.config.ts` (`just test-e2e-stack`: the running Compose stack on :8080,
   nothing started, every spec; CI's `e2e-stack` job). `trips.spec.ts` is the signed-in suite: there is no
   seed any more, so it creates the trips it needs through the REST API in `beforeAll` and deletes

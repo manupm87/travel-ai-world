@@ -16,7 +16,7 @@ import type { PlannerDraft } from "@/hooks/plannerReducer";
 export const PLANNER_DRAFT_KEY = "travel_ai_planner_draft";
 
 /** Bumped whenever the persisted shape changes; older drafts are dropped. */
-const DRAFT_VERSION = 2;
+export const DRAFT_VERSION = 2;
 
 interface StoredDraft {
   version: number;

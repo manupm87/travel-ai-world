@@ -51,15 +51,15 @@ export interface ChatColumnProps {
   holding?: boolean;
 }
 
+/** The most brief fields the luggage tag lists; with more it is not shown (TRA-251). */
+const TAG_MAX_MISSING = 2;
+
 /**
  * The planner page's left column: the transcript (bubbles, "Chosen" chips and
  * option carousels), the structured quick replies when the brief is still
  * incomplete, the shortcut suggestions and the composer. It renders state and
  * reports intent; `usePlanner` owns every transition.
  */
-/** The most brief fields the luggage tag lists; with more it is not shown (TRA-251). */
-const TAG_MAX_MISSING = 2;
-
 export function ChatColumn({
   state,
   errorText,

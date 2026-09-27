@@ -56,7 +56,7 @@ function toApiError(err: unknown): ApiError {
 
 /**
  * The account's trips, loaded in the browser with the session token and
- * listed by the planner (TRA-196).
+ * listed on the trips home, `/dashboard/` (ADR 0020).
  *
  * - Fetches on mount once the session is known (`isAuthenticated`), and again
  *   on `reload()`; every request is aborted when the component unmounts or a

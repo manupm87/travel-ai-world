@@ -1,6 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { TOKEN_STORAGE_KEY, USER_STORAGE_KEY } from "../src/services/session";
-import { PLANNER_DRAFT_KEY } from "../src/services/plannerDraft";
+import { DRAFT_VERSION, PLANNER_DRAFT_KEY } from "../src/services/plannerDraft";
 
 /**
  * `/plan/` without `?trip=` is a new trip (TRA-223). Before it, the tab's
@@ -33,8 +33,11 @@ function fakeToken(sub: string, email: string): string {
 function seedTab(page: Page) {
   const email = process.env.E2E_EMAIL ?? "planner-new-trip@example.com";
   const token = process.env.E2E_TOKEN ?? fakeToken("planner-new-trip-e2e", email);
+  // A draft the page would restore (current version): only TRA-223's rule
+  // may drop it, so the "old message is gone" checks below mean something.
   const draft = {
-    version: 1,
+    version: DRAFT_VERSION,
+    sessionId: "planner-new-trip-e2e-session",
     draft: {
       messages: [{ id: "m1", kind: "text", role: "user", content: OLD_MESSAGE }],
       groups: {},

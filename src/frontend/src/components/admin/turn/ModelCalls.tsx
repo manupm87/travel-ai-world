@@ -10,7 +10,7 @@ import type { TurnDetail } from "@/services/admin";
 import { cn } from "@/utils/cn";
 import { InspectorSection, JsonView } from "./InspectorParts";
 import { SECTION_IDS, type Mark } from "./marks";
-import { modelCalls, type ModelCallTab, type ValidationChip } from "./modelCalls";
+import { modelCalls, type ModelCallTab, type ValidationChip } from "./calls";
 
 /**
  * Every model call's output (TRA-228): one tab per `llm` step, the output as

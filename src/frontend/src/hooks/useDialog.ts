@@ -32,7 +32,7 @@ export interface UseDialogOptions {
  * Tab and Shift+Tab cycle inside it, Escape asks to close, and on close the
  * focus returns to whatever opened it — the ⋯ button, the field's action, the
  * header's sign-in. It is one hook rather than three copies so that the
- * sign-in dialog, the edit sheet and the delete confirmation behave the same
+ * sign-in dialog, the rename dialog and the delete confirmation behave the same
  * under the keyboard (TRA-193).
  *
  * @returns the ref to put on the dialog element.

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CHAT_TURN, INSPECTOR_TURN } from "@/test/fixtures/admin-turn";
-import { dayFromName, modelCalls, parseOutput, validationChips } from "./modelCalls";
+import { dayFromName, modelCalls, parseOutput, validationChips } from "./calls";
 import type { Span } from "./types";
 
 function llm(payload: Record<string, unknown>, name = "day_picks:2"): Span {

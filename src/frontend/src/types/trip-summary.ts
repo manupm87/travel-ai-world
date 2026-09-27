@@ -1,7 +1,7 @@
 import type { TripPhase } from "@/types/trip";
 
 /**
- * One trip as the planner's trips list shows it: a photograph, a title, where
+ * One trip as the trips home lists it: a photograph, a title, where
  * and when, and which of the three phases it is in. Everything else waits
  * until the trip is opened (`/plan/?trip=<id>`).
  */

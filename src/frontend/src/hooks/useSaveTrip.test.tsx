@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { LanguageProvider } from "@/context/LanguageContext";
@@ -76,10 +76,17 @@ const auth = (isAuthenticated: boolean) =>
 
 describe("useSaveTrip", () => {
   beforeEach(() => {
+    // The recorded brief starts on 2026-10-23, and a trip that has started
+    // cannot be saved: pin "today" before it so these tests do not expire.
+    vi.useFakeTimers({ toFake: ["Date"], now: new Date("2026-10-01T12:00:00Z") });
     vi.clearAllMocks();
     vi.mocked(readSavedTripId).mockReturnValue(null);
     apiAvailable = true;
     auth(true);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("writes the draft with the trip's title in the reader's language", async () => {

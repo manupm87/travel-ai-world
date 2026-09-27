@@ -9,8 +9,8 @@
  * still be changed.
  *
  * Every DTO comes from core_api, fetched in the browser with the session
- * token: the planner lists the signed-in user's trips (`listTrips`,
- * `GET /api/v1/trips/`) and opens one (`getTrip`, `GET /api/v1/trips/{id}`).
+ * token: the trips home lists the signed-in user's trips (`listTrips`,
+ * `GET /api/v1/trips/`) and the planner opens one (`getTrip`, `GET /api/v1/trips/{id}`).
  * The pages are static shells; nothing about a trip is known at build time
  * (ADR 0011).
  *

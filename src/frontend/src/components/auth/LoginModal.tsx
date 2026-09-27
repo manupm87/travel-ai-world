@@ -9,7 +9,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { Mark } from "@/components/layout/Logo";
 import { Button } from "@/components/ui/Button";
 import { useDialog } from "@/hooks/useDialog";
-import { safeRedirectPath, safeRedirectTarget } from "@/utils/safeRedirect";
+import { safeRedirectTarget } from "@/utils/safeRedirect";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -61,8 +61,9 @@ export function LoginModal({ isOpen, onClose, redirect: asked }: LoginModalProps
 
   if (!isOpen) return null;
 
+  // `searchParams.get` has decoded the value once, as the router expects it.
   const redirect =
-    safeRedirectTarget(asked) ?? safeRedirectPath(searchParams.get("redirect"));
+    safeRedirectTarget(asked) ?? safeRedirectTarget(searchParams.get("redirect"));
 
   const handleCredential = async (credential: string) => {
     setError(null);

@@ -56,8 +56,8 @@ function photosOf(itinerary: ItineraryDraft): Photo[] {
  * The whole trip at a glance (TRA-177): the destination's photo, what the
  * corpus says about it, a mosaic of the places the itinerary picked and the
  * simplified list of days. It is what the planner shows whenever an itinerary
- * exists and no day is selected, across the trip and map columns — there is no
- * whole-trip map, so the map column is simply not there while it is on screen.
+ * exists and no day is selected; the map stays behind the trip, centred on the
+ * city with no day's pins (TRA-238).
  *
  * A day's row opens that day, which is where the per-day view (`DayCard` and
  * the map beside it) takes over.

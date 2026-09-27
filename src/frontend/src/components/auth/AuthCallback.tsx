@@ -7,6 +7,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
+import { safeRedirectTarget } from "@/utils/safeRedirect";
 
 /**
  * Finishes a Cognito sign-in: exchanges the code in the query for a session
@@ -31,7 +32,8 @@ export function AuthCallback() {
     if (started.current) return;
     started.current = true;
     completeLogin(searchParams)
-      .then((redirect) => router.replace(redirect ?? "/dashboard/"))
+      // Checked again on the way out: the pending login sat in storage.
+      .then((redirect) => router.replace(safeRedirectTarget(redirect) ?? "/dashboard/"))
       .catch(() => setFailed(true));
   }, [completeLogin, router, searchParams]);
 

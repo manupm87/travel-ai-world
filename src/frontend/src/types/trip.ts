@@ -32,8 +32,11 @@ export type TripPhase = TripResponse["phase"];
  */
 export const TRIP_PHASES = ["ongoing", "upcoming", "past"] as const satisfies readonly TripPhase[];
 
-/** Only an upcoming trip can still be changed; the other two are read-only. */
-export function isEditable(phase: TripPhase): boolean {
+/**
+ * Only an upcoming trip can still be changed; the other two are read-only.
+ * A type guard, so `!isEditable(phase)` leaves `phase` as the locked phases.
+ */
+export function isEditable(phase: TripPhase): phase is "upcoming" {
   return phase === "upcoming";
 }
 

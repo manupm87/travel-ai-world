@@ -18,6 +18,7 @@ import { useSelectedDay } from "@/hooks/useSelectedDay";
 import { clearPlannerDraft, readSavedTripId } from "@/services/plannerDraft";
 import { tripToDraft } from "@/services/tripDraft";
 import type { Slot } from "@/types/planner";
+import { isEditable } from "@/types/trip";
 
 /**
  * The planner page's client side (`/plan/`): layout A from the mockups. The
@@ -121,7 +122,7 @@ export default function PlannerClientPage() {
 
   // Only an upcoming trip can still be planned; the other two are read.
   // core_api refuses every write on them, so the page offers none.
-  const lockedPhase = trip && trip.phase !== "upcoming" ? trip.phase : null;
+  const lockedPhase = trip && !isEditable(trip.phase) ? trip.phase : null;
 
   // "Save trip". The recorded session answers for everyone and belongs to
   // nobody, so a demo turn takes the button out of service (TRA-191).
@@ -174,7 +175,7 @@ export default function PlannerClientPage() {
   );
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
   // A pin belongs to the day it was picked on, so the next day — and the
-  // overview, which has no map at all — starts with none. Adjusted while
+  // overview, whose map shows no pins — starts with none. Adjusted while
   // rendering, as `useSelectedDay` adjusts the day: React re-runs this
   // component before touching the DOM, so neither the panel nor the map ever
   // paints a ring around a card the new day does not have.

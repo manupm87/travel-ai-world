@@ -4,8 +4,8 @@ import { defineConfig, devices } from "@playwright/test";
  * Playwright config for Kyrian World — frontend E2E smoke tests.
  *
  * Runs against the local dev server by default (http://localhost:3000).
- * To test the live GitHub Pages site, override baseURL:
- *   PLAYWRIGHT_BASE_URL=https://manupm87.github.io/travel-ai-world npx playwright test
+ * To test another deployment, override baseURL:
+ *   PLAYWRIGHT_BASE_URL=https://<domain> npx playwright test
  */
 const baseURL =
   process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
