@@ -1,9 +1,8 @@
 """The entities `core_api` keeps, as plain dataclasses (ADR 0023).
 
-They mirror the former ORM tables field for field, so the response schemas
-populate from them with `from_attributes=True`. Ids are UUIDs (`User.id` as
-well: it was an integer on PostgreSQL), timestamps are aware UTC datetimes
-set by the application, money is `Decimal`.
+The response schemas populate from them with `from_attributes=True`. Ids
+are UUIDs, timestamps are aware UTC datetimes set by the application, money
+is `Decimal`.
 
 Two aggregates own everything else:
 

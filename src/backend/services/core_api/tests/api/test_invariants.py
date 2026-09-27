@@ -8,6 +8,23 @@ from tests.conftest import day_offset, headers_for, trip_body
 
 TRIPS_URL = "/api/v1/trips/"
 
+# Trip fields a client must never get stored, on POST or on PATCH.
+BAD_TRIP_FIELDS = [
+    {"travelers_adults": -1},
+    {"budget_total": "-5"},
+    {"budget_currency": "EURO"},
+    {"title": "   "},
+    {"title": "x" * 256},
+    {"title": None},
+    {"country_code": "HUNGARY"},
+    {"city_slug": "Budapest City"},
+    {"budget_tier": 4},
+]
+BAD_TRIP_FIELD_IDS = [
+    "negative-travelers", "negative-money", "bad-currency", "blank-title",
+    "long-title", "null-title", "bad-country", "bad-slug", "bad-budget-tier",
+]  # fmt: skip
+
 
 async def _trip(client: AsyncClient, headers, **fields) -> dict:
     response = await client.post(TRIPS_URL, json=trip_body(**fields), headers=headers)
@@ -77,26 +94,34 @@ async def test_child_date_ranges_are_ordered(
 
 @pytest.mark.parametrize(
     "fields",
-    [
-        {"travelers_adults": -1},
-        {"budget_total": "-5"},
-        {"budget_currency": "EURO"},
-        {"title": "   "},
-        {"country_code": "HUNGARY"},
-        {"city_slug": "Budapest City"},
-        {"budget_tier": 4},
-    ],
-    ids=[
-        "negative-travelers", "negative-money", "bad-currency", "blank-title",
-        "bad-country", "bad-slug", "bad-budget-tier",
-    ],
-)  # fmt: skip
+    BAD_TRIP_FIELDS,
+    ids=BAD_TRIP_FIELD_IDS,
+)
 async def test_trip_field_formats(client: AsyncClient, alice: User, fields: dict):
     response = await client.post(
         TRIPS_URL, json=trip_body(**fields), headers=headers_for(alice)
     )
 
     assert response.status_code == 422
+
+
+@pytest.mark.parametrize("fields", BAD_TRIP_FIELDS, ids=BAD_TRIP_FIELD_IDS)
+async def test_patch_refuses_what_post_refuses(
+    client: AsyncClient, alice: User, fields: dict
+):
+    """A value PATCH let through would be saved, then fail the response model on
+    every read: the owner's whole trip list would answer 500."""
+    headers = headers_for(alice)
+    trip = await _trip(client, headers)
+
+    response = await client.patch(
+        f"{TRIPS_URL}{trip['id']}", json=fields, headers=headers
+    )
+    assert response.status_code == 422
+
+    listed = await client.get(TRIPS_URL, headers=headers)
+    assert listed.status_code == 200
+    assert listed.json()[0]["title"] == trip["title"], "nothing was persisted"
 
 
 async def test_trip_normalises_currency_tips_and_city(client: AsyncClient, alice: User):
@@ -185,4 +210,3 @@ async def test_enums_are_accepted_and_echoed(client: AsyncClient, alice: User):
 
     assert transport.status_code == 201
     assert transport.json()["type"] == "flight"
-    assert "created_at" in transport.json() or True  # timestamps are internal

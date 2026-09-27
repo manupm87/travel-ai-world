@@ -30,10 +30,11 @@ def main(check: bool = False) -> int:
         target = OUT_DIR / f"{name}.openapi.json"
         rendered = json.dumps(app.openapi(), indent=2, sort_keys=True) + "\n"
         if check:
-            if not target.exists() or target.read_text() != rendered:
+            if not target.exists() or target.read_text(encoding="utf-8") != rendered:
                 drifted.append(str(target.relative_to(REPO_ROOT)))
         else:
-            target.write_text(rendered)
+            # LF everywhere: the platform default is CRLF on Windows.
+            target.write_text(rendered, encoding="utf-8", newline="\n")
             print(f"wrote {target.relative_to(REPO_ROOT)}")
     if drifted:
         print("OpenAPI documents are out of date:", *drifted, sep="\n  ")

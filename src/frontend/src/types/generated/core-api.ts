@@ -650,7 +650,7 @@ export interface components {
             /** Lng */
             lng?: number | null;
             /** Name */
-            name?: string | null;
+            name?: string;
             /** Price Per Night */
             price_per_night?: number | string | null;
             /** Rating */
@@ -762,7 +762,7 @@ export interface components {
          */
         ActivityUpdate: {
             /** Booking Required */
-            booking_required?: boolean | null;
+            booking_required?: boolean;
             /** Booking Url */
             booking_url?: string | null;
             /** Card */
@@ -796,7 +796,7 @@ export interface components {
             /** Time */
             time?: string | null;
             /** Title */
-            title?: string | null;
+            title?: string;
         };
         /** AdminTripPage */
         AdminTripPage: {
@@ -1067,7 +1067,7 @@ export interface components {
             /** Date */
             date?: string | null;
             /** Day Number */
-            day_number?: number | null;
+            day_number?: number;
             /** Description */
             description?: string | null;
             /** Estimated Cost */
@@ -1182,7 +1182,7 @@ export interface components {
             /** Rating */
             rating?: number | null;
             /** Restaurant Name */
-            restaurant_name?: string | null;
+            restaurant_name?: string;
             /** Source Ref */
             source_ref?: string | null;
             /** Time */
@@ -1512,13 +1512,13 @@ export interface components {
             /** Budget Transportation */
             budget_transportation?: number | string | null;
             /** City */
-            city?: string | null;
+            city?: string;
             /** City Slug */
-            city_slug?: string | null;
+            city_slug?: string;
             /** Country */
-            country?: string | null;
+            country?: string;
             /** Country Code */
-            country_code?: string | null;
+            country_code?: string;
             /** Description */
             description?: string | null;
             /** Duration Days */
@@ -1540,15 +1540,15 @@ export interface components {
             /** Start Date */
             start_date?: string | null;
             /** Title */
-            title?: string | null;
+            title?: string;
             /** Travel Style */
             travel_style?: string[] | null;
             /** Travelers Adults */
-            travelers_adults?: number | null;
+            travelers_adults?: number;
             /** Travelers Children */
-            travelers_children?: number | null;
+            travelers_children?: number;
             /** Travelers Infants */
-            travelers_infants?: number | null;
+            travelers_infants?: number;
         };
         /** UserResponse */
         UserResponse: {
@@ -1586,7 +1586,7 @@ export interface components {
         };
         /**
          * UserUpdate
-         * @description All fields are optional — supports partial PUT/PATCH updates.
+         * @description All fields are optional: a partial update (PATCH).
          */
         UserUpdate: {
             /** Email */

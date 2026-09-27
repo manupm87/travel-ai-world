@@ -69,11 +69,14 @@ infrastructure/dynamo/  the only adapter: table.py, keys.py, codec.py, repositor
   `devtools` sets it too), only when it changes. The AI traces name users by it, never by email.
   `google_id` is kept as it was. **`Trip.planner_session_id`** links a trip to the planner
   turns that made it; writable like any trip field, and locked with them.
-- Pagination: every list endpoint takes `Page` via `Depends(page_params)` (`skip`, `limit ≤ 500`);
+- Pagination: every list endpoint of the caller's own data takes `Page` via `Depends(page_params)` (`skip`, `limit ≤ 500`); the admin lists go by `cursor` instead;
   a user's trips and threads come from one `Query` and are sorted and sliced in the service.
 - Partial updates are `PATCH`; `PUT` is not used. `services/__init__.py::apply_changes` sets the
   fields the client sent, re-runs `check_invariants` and moves `updated_at`: PATCH cannot break
-  what POST enforces, and a rejected change is never saved.
+  what POST enforces, and a rejected change is never saved. `partial()` keeps each field's type
+  (`null` only where the base allows it) and its constraints, so a PATCH body is validated like a
+  POST body (`tests/api/test_invariants.py::test_patch_refuses_what_post_refuses`): a value saved
+  past the schema would fail the response model on every later read.
 - **Entity rules live on the entity** (`domain/models.py`): `check_invariants()` raises
   `travel_common.exceptions.*`. Single-field formats (`TimeOfDay`, `CountryCode`, `Money`, ...) are the
   `Annotated` types in `schemas/_types.py`; closed vocabularies are `domain/enums.py`.

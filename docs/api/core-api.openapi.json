@@ -577,15 +577,10 @@
             "title": "Lng"
           },
           "name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Name"
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
           },
           "price_per_night": {
             "anyOf": [
@@ -1088,15 +1083,8 @@
         "description": "Partial update of ActivityBase.",
         "properties": {
           "booking_required": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Booking Required"
+            "title": "Booking Required",
+            "type": "boolean"
           },
           "booking_url": {
             "anyOf": [
@@ -1287,15 +1275,10 @@
             "title": "Time"
           },
           "title": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Title"
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
           }
         },
         "title": "ActivityUpdate",
@@ -2091,15 +2074,9 @@
             "title": "Date"
           },
           "day_number": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Day Number"
+            "minimum": 1.0,
+            "title": "Day Number",
+            "type": "integer"
           },
           "description": {
             "anyOf": [
@@ -2650,15 +2627,10 @@
             "title": "Rating"
           },
           "restaurant_name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Restaurant Name"
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Restaurant Name",
+            "type": "string"
           },
           "source_ref": {
             "anyOf": [
@@ -4103,48 +4075,25 @@
             "title": "Budget Transportation"
           },
           "city": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "City"
+            "maxLength": 150,
+            "minLength": 1,
+            "title": "City",
+            "type": "string"
           },
           "city_slug": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "City Slug"
+            "maxLength": 100,
+            "title": "City Slug",
+            "type": "string"
           },
           "country": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Country"
+            "maxLength": 150,
+            "minLength": 1,
+            "title": "Country",
+            "type": "string"
           },
           "country_code": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Country Code"
+            "title": "Country Code",
+            "type": "string"
           },
           "description": {
             "anyOf": [
@@ -4266,15 +4215,10 @@
             "title": "Start Date"
           },
           "title": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Title"
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
           },
           "travel_style": {
             "anyOf": [
@@ -4291,37 +4235,19 @@
             "title": "Travel Style"
           },
           "travelers_adults": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Travelers Adults"
+            "minimum": 0.0,
+            "title": "Travelers Adults",
+            "type": "integer"
           },
           "travelers_children": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Travelers Children"
+            "minimum": 0.0,
+            "title": "Travelers Children",
+            "type": "integer"
           },
           "travelers_infants": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Travelers Infants"
+            "minimum": 0.0,
+            "title": "Travelers Infants",
+            "type": "integer"
           }
         },
         "title": "TripUpdate",
@@ -4408,7 +4334,7 @@
         "type": "object"
       },
       "UserUpdate": {
-        "description": "All fields are optional \u2014 supports partial PUT/PATCH updates.",
+        "description": "All fields are optional: a partial update (PATCH).",
         "properties": {
           "email": {
             "anyOf": [

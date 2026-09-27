@@ -122,7 +122,8 @@ def decode_cursor(cursor: str | None, index_keys: tuple[str, str]) -> Item | Non
     try:
         padded = cursor + "=" * (-len(cursor) % 4)
         start = json.loads(base64.urlsafe_b64decode(padded.encode()))
-    except (binascii.Error, ValueError, UnicodeDecodeError) as exc:
+    # RecursionError: JSON nested deeper than the parser goes is not a cursor.
+    except (binascii.Error, ValueError, UnicodeDecodeError, RecursionError) as exc:
         raise BadRequest("Invalid cursor") from exc
     if (
         not isinstance(start, dict)

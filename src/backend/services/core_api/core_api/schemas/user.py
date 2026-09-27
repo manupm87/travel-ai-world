@@ -10,7 +10,7 @@ class UserBase(BaseModel):
 
 
 class UserUpdate(BaseModel):
-    """All fields are optional — supports partial PUT/PATCH updates."""
+    """All fields are optional: a partial update (PATCH)."""
 
     email: EmailStr | None = None
     is_active: bool | None = None

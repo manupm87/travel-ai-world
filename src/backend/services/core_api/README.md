@@ -112,7 +112,7 @@ core_api/
 │                      auth_service.py (Authenticate: both modes; SignIn: local issuer)
 ├── api/deps.py        get_table → repositories → services; get_current_user → AccountPrincipal;
 │                      get_owned_trip / get_owned_itinerary_day / get_owned_chat_thread; get_sign_in
-├── api/v1/endpoints/  thin controllers for auth (local mode only), users, trips, chat_threads, health
+├── api/v1/endpoints/  thin controllers for auth (local mode only), users, trips, chat_threads, admin, health
 ├── api/v1/resources.py  CHILD_RESOURCES + child_router(): the nested CRUD collections
 ├── auth/google.py     IdentityVerifier port + GoogleTokenInfoVerifier adapter (local mode)
 ├── auth/principal.py  AccountPrincipal = Principal + the account's UUID

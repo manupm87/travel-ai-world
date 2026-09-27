@@ -4,8 +4,8 @@
 and `travel_common.dynamodb.to_item` types them; `decode` reads
 `from_item`'s plain values back into the dataclass, driven by its type
 hints: ISO strings become `date`/`datetime`/`UUID`, numbers become the
-`int`, `float` or `Decimal` the field declares (money is quantised to cents,
-as the `NUMERIC(…, 2)` columns were).
+`int`, `float` or `Decimal` the field declares (money is quantised to
+cents).
 
 Opaque JSON (a planner `card`, a message's `sources`) is stored as a JSON
 string: DynamoDB would drop its `null`s and turn its floats into `Decimal`s,

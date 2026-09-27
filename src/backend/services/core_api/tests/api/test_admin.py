@@ -1,5 +1,6 @@
 """Admin reads (ADR 0024): every trip and account, for administrators only."""
 
+import base64
 import logging
 
 import pytest
@@ -101,11 +102,17 @@ async def test_a_bad_cursor_or_limit_is_refused(client: AsyncClient, admin: User
     garbage = await client.get(
         f"{ADMIN_URL}/trips", params={"cursor": "not-a-cursor"}, headers=headers
     )
+    # Valid base64url of JSON nested deeper than the parser recurses.
+    nested = base64.urlsafe_b64encode(b"[" * 3000).decode().rstrip("=")
+    too_deep = await client.get(
+        f"{ADMIN_URL}/trips", params={"cursor": nested}, headers=headers
+    )
     too_big = await client.get(
         f"{ADMIN_URL}/trips", params={"limit": 201}, headers=headers
     )
 
     assert garbage.status_code == 400
+    assert too_deep.status_code == 400
     assert too_big.status_code == 422
 
 
