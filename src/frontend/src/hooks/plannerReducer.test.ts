@@ -263,6 +263,16 @@ describe("toHistory", () => {
 
 // ─── plannerReducer ─────────────────────────────────────────────────────────
 
+/** A later question, so the hotels' group is no longer the newest key. */
+const NEIGHBOURHOOD_GROUP: Omit<OptionGroupState, "selectedIds" | "dismissedIds"> = {
+  group_id: GROUP_IDS.neighbourhoods,
+  kind: "neighbourhood",
+  prompt: "Where to stay?",
+  slot: null,
+  selection: "single",
+  cards: [NEIGHBOURHOODS.belvaros],
+};
+
 function hotelGroupState(): PlannerState {
   return plannerReducer(initialPlannerState(), {
     type: "event",
@@ -369,7 +379,6 @@ describe("plannerReducer — options event", () => {
 
   it("appends the next page to a group already on screen, without a second bubble", () => {
     let state = hotelGroupState();
-    state = plannerReducer(state, { type: "selected", groupId: GROUP_IDS.hotels, cardIds: [HOTELS.rum.id], slot: null });
     state = plannerReducer(state, { type: "dismissed", groupId: GROUP_IDS.hotels, cardId: HOTELS.mercure.id });
     const messagesBefore = state.messages.length;
 
@@ -396,10 +405,86 @@ describe("plannerReducer — options event", () => {
     ]);
     expect(group.prompt).toBe("Three more");
     // What the traveller did with the first page survives the second.
-    expect(group.selectedIds).toEqual([HOTELS.rum.id]);
     expect(group.dismissedIds).toEqual([HOTELS.mercure.id]);
     expect(state.messages).toHaveLength(messagesBefore);
     expect(state.pendingGroupIds).toEqual([GROUP_IDS.hotels]);
+  });
+
+  it("asks a stay again as a new question once one was chosen: fresh and at the foot (TRA-247)", () => {
+    let state = hotelGroupState();
+    state = plannerReducer(state, { type: "selected", groupId: GROUP_IDS.hotels, cardIds: [HOTELS.rum.id], slot: null });
+    state = plannerReducer(state, {
+      type: "event",
+      event: { type: "options", ...NEIGHBOURHOOD_GROUP },
+    });
+    state = plannerReducer(state, { type: "turn_started", message: "something cheaper" });
+    state = plannerReducer(state, { type: "event", event: { type: "text", delta: "Cheaper ones:" } });
+
+    state = plannerReducer(state, {
+      type: "event",
+      event: {
+        type: "options",
+        group_id: GROUP_IDS.hotels,
+        kind: "hotel",
+        prompt: "Cheaper ones",
+        slot: null,
+        selection: "single",
+        cards: [HOTELS.cheaper, HOTELS.mercure],
+      },
+    });
+
+    const group = state.groups[GROUP_IDS.hotels]!;
+    expect(group.cards.map((c) => c.id)).toEqual([HOTELS.cheaper.id, HOTELS.mercure.id]);
+    expect(group.selectedIds).toEqual([]);
+    expect(group.dismissedIds).toEqual([]);
+    // One bubble for the group, now under the sentence that asked for it.
+    const bubbles = state.messages.filter((m) => m.kind === "options" && m.groupId === GROUP_IDS.hotels);
+    expect(bubbles).toHaveLength(1);
+    expect(state.messages.at(-1)).toEqual({ id: expect.any(String), kind: "options", groupId: GROUP_IDS.hotels });
+    expect(new Set(state.messages.map((m) => m.id)).size).toBe(state.messages.length);
+    // The stay sheet reads the latest hotel group: this one moved last.
+    expect(Object.keys(state.groups).at(-1)).toBe(GROUP_IDS.hotels);
+    expect(state.pendingGroupIds.at(-1)).toBe(GROUP_IDS.hotels);
+    // The stay chosen earlier stays until another is picked.
+    expect(state.itinerary.stay).toEqual(HOTELS.rum);
+  });
+
+  it("keeps appending to a slot's group that already has a pick (the Change sheet's More)", () => {
+    const slotted: OptionGroupState = {
+      group_id: "slot:2:afternoon",
+      kind: "experience",
+      prompt: "Alternatives",
+      slot: { day: 2, part: "afternoon" },
+      selection: "single",
+      cards: [BATHS.szechenyi],
+      selectedIds: [BATHS.szechenyi.id],
+      dismissedIds: [],
+    };
+    let state: PlannerState = {
+      ...initialPlannerState(),
+      groups: { [slotted.group_id]: slotted },
+      messages: [{ id: "m1", kind: "options", groupId: slotted.group_id }],
+    };
+
+    state = plannerReducer(state, {
+      type: "event",
+      event: {
+        type: "options",
+        group_id: slotted.group_id,
+        kind: "experience",
+        prompt: "More",
+        slot: slotted.slot,
+        selection: "single",
+        cards: [BATHS.gellert],
+      },
+    });
+
+    expect(state.groups[slotted.group_id]?.cards.map((c) => c.id)).toEqual([
+      BATHS.szechenyi.id,
+      BATHS.gellert.id,
+    ]);
+    expect(state.groups[slotted.group_id]?.selectedIds).toEqual([BATHS.szechenyi.id]);
+    expect(state.messages).toHaveLength(1);
   });
 });
 

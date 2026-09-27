@@ -345,8 +345,14 @@ export function toHistory(messages: PlannerMessage[], limit = 20): ChatMessage[]
     .map(({ role, content }) => ({ role, content }));
 }
 
+/** One past the highest id, so an id is never reused once a bubble moves (TRA-247). */
 function nextId(messages: PlannerMessage[]): string {
-  return `m${messages.length + 1}`;
+  let highest = 0;
+  for (const message of messages) {
+    const n = Number(message.id.slice(1));
+    if (Number.isFinite(n) && n > highest) highest = n;
+  }
+  return `m${Math.max(highest, messages.length) + 1}`;
 }
 
 function appendText(
@@ -435,6 +441,24 @@ function applyEventToDraft(state: PlannerState, event: PlannerEvent): PlannerSta
         group.group_id,
       ];
       const known = state.groups[group.group_id];
+      if (known && known.slot === null && known.selectedIds.length > 0) {
+        // A stay or a neighbourhood asked for again once one was chosen — a
+        // step back (TRA-247): a new question, not a next page. The answered
+        // carousel would keep every card locked, so the group starts over and
+        // moves, key and bubble, to the foot of the transcript, where the
+        // sentence that asked it has just been written.
+        const { [group.group_id]: _answered, ...others } = state.groups;
+        void _answered;
+        const kept = messages.filter(
+          (m) => !(m.kind === "options" && m.groupId === group.group_id)
+        );
+        return {
+          ...state,
+          groups: { ...others, [group.group_id]: { ...group, selectedIds: [], dismissedIds: [] } },
+          messages: [...kept, { id: nextId(kept), kind: "options", groupId: group.group_id }],
+          pendingGroupIds,
+        };
+      }
       if (known) {
         // "More options" (TRA-184): the next page joins the carousel already on
         // screen — new cards only, and no second bubble in the transcript.

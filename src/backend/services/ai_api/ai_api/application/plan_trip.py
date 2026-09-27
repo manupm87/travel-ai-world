@@ -250,6 +250,8 @@ class Intent(BaseModel):
     part: DayPart | None = None
     query: str | None = None
     cheaper: bool = False
+    # Another neighbourhood rather than another hotel in this one (TRA-247).
+    area: bool = False
 
 
 # ─── Turn context ────────────────────────────────────────────────────────────
@@ -742,19 +744,33 @@ class PlanTrip:
             async for event in self._find_options(turn, kind, slot, intent.query):
                 yield event
         elif intent.intent == "change_stay":
-            async for event in self._hotel_options(turn, None, cheaper=intent.cheaper):
+            async for event in self._change_stay(turn, intent, district=None):
                 yield event
         else:
             async for event in self._chat(turn):
                 yield event
+
+    async def _change_stay(
+        self, turn: Turn, intent: Intent, *, district: str | None
+    ) -> AsyncIterator[PlannerEvent]:
+        """A step back to the stay (TRA-247): the neighbourhoods again when the
+        traveller wants another area, else other hotels in the one they chose
+        (`district`, or the current stay's)."""
+        if intent.area:
+            async for event in self._neighbourhood_options(turn):
+                yield event
+            return
+        async for event in self._hotel_options(turn, district, cheaper=intent.cheaper):
+            yield event
 
     async def _before_stay(self, turn: Turn) -> AsyncIterator[PlannerEvent]:
         """Brief first; then neighbourhoods, or the whole draft on request.
 
         Once the neighbourhoods have been offered (the transcript holds the
         sentence that introduced them) and the message changes nothing in the
-        brief, the user is talking, not answering the checklist: answer as chat
-        instead of offering the same carousel again.
+        brief, the user is talking, not answering the checklist. It may be a
+        step back — another neighbourhood, other hotels (TRA-247) — which
+        offers that carousel again; anything else is answered as chat.
         """
         offered = _neighbourhoods_offered(turn)
         if (
@@ -764,7 +780,14 @@ class PlanTrip:
         ):
             brief = await self._extract_brief(turn)
             if brief == turn.brief:
-                async for event in self._chat(turn):
+                intent = await self._classify(turn)
+                if intent.intent == "change_stay":
+                    events = self._change_stay(
+                        turn, intent, district=_hotels_offered_in(turn)
+                    )
+                else:
+                    events = self._chat(turn)
+                async for event in events:
                     yield event
                 return
             turn.brief = brief
@@ -1907,6 +1930,21 @@ def _neighbourhoods_offered(turn: Turn) -> bool:
         m.role == "assistant" and any(m.content.startswith(i) for i in intros)
         for m in turn.request.history
     )
+
+
+def _hotels_offered_in(turn: Turn) -> str | None:
+    """The district the latest hotel carousel was for, read back from the
+    sentence that introduced it: the server keeps no state, and the page's
+    transcript is where the neighbourhood the traveller chose is written."""
+    for message in reversed(turn.request.history):
+        if message.role != "assistant":
+            continue
+        for texts in PLANNER_TEXTS.values():
+            head, _, tail = texts["hotels"].partition("{district}")
+            if message.content.startswith(head) and message.content.endswith(tail):
+                district = message.content[len(head) : len(message.content) - len(tail)]
+                return district.strip() or None
+    return None
 
 
 def _itinerary_summary(turn: Turn) -> str:

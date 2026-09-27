@@ -25,8 +25,10 @@ import type { Slot } from "@/types/planner";
  * the chat column and the trip panel to it and translates error kinds and
  * the canned messages (generate, the stay's "Change") into copy.
  *
- * `?q=<prompt>` (from the landing's `PlannerCard`) is sent as the first turn
- * once, and only when there is no conversation to resume in this tab.
+ * `?q=<prompt>` (the home's ask) is a new trip whose first turn it is
+ * (TRA-247): the tab's draft goes, saved or not, the prompt is sent once and
+ * then leaves the URL, so a reload or a back-and-forward resumes the
+ * conversation instead of asking the same thing again over it.
  *
  * `?trip=<uuid>` opens a saved trip in it (TRA-196): the trip is loaded,
  * rebuilt into a draft by `services/tripDraft.ts` and handed to
@@ -48,16 +50,18 @@ export default function PlannerClientPage() {
   const params = useSearchParams();
   const query = params.get("q");
   const tripParam = params.get("trip");
-  // A bare `/plan/` is a new trip (TRA-223). When the tab still holds the
-  // draft of a saved trip, the draft and its id are dropped here, once per
+  // A bare `/plan/` is a new trip (TRA-223), and so is a `?q=` (TRA-247). When
+  // the tab still holds the draft of a saved trip — or of any trip, when a new
+  // question arrives — the draft and its id are dropped here, once per
   // mount and before the hooks below read them: `usePlanner` restores the
   // draft in its reducer's initializer and `useSaveTrip` reads the id in its
   // state's, so clearing any later would flash the old conversation and let
   // the redirect effect further down send the page back to `?trip=`. A lazy
   // `useState` initializer is the one place that runs first and only once. A
-  // draft that was never saved has no id and is restored, as before.
+  // draft that was never saved has no id and is restored on a bare `/plan/`.
   useState(() => {
-    if (tripParam === null && readSavedTripId() !== null) clearPlannerDraft();
+    if (tripParam !== null) return null;
+    if (query?.trim() || readSavedTripId() !== null) clearPlannerDraft();
     return null;
   });
   const {
@@ -202,7 +206,9 @@ export default function PlannerClientPage() {
     if (sentQuery.current || !query?.trim() || hasMessages || !languageResolved) return;
     sentQuery.current = true;
     sendMessage(query);
-  }, [query, hasMessages, sendMessage, languageResolved]);
+    // Asked once: the draft now holds it, and a reload must resume that draft.
+    router.replace("/plan/");
+  }, [query, hasMessages, sendMessage, languageResolved, router]);
 
   const errorText = state.error ? t.plan.errors[state.error] : null;
 

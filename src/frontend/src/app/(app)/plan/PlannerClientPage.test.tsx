@@ -148,6 +148,20 @@ describe("PlannerClientPage — /plan/ without ?trip= (TRA-223)", () => {
     expect(tripRedirects()).toEqual([]);
   });
 
+  it("answers a new `?q=` even while an unsaved draft is in the tab (TRA-247)", async () => {
+    storeDraft(null);
+
+    open("q=Three%20days%20in%20Bologna");
+
+    await waitFor(() => expect(streamPlannerTurn).toHaveBeenCalledTimes(1));
+    const [turn] = vi.mocked(streamPlannerTurn).mock.calls[0]!;
+    expect(turn.message).toBe("Three days in Bologna");
+    expect(turn.history ?? []).toHaveLength(0);
+    expect(screen.queryByText(OLD_MESSAGE)).toBeNull();
+    // Sent once, the ask leaves the URL: a reload resumes this conversation.
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/plan/"));
+  });
+
   it("restores a draft that was never saved", () => {
     storeDraft(null);
 

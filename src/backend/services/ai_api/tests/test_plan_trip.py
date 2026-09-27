@@ -1401,7 +1401,8 @@ async def test_an_ask_naming_no_place_is_answered_by_the_model_alone():
 
 async def test_a_question_after_the_neighbourhoods_were_offered_is_answered_not_repeated():
     use_case, provider, _ = planner(
-        [json.dumps({})], deltas=("Belváros ", "is quieter.")
+        [json.dumps({}), json.dumps({"intent": "chat"})],
+        deltas=("Belváros ", "is quieter."),
     )
 
     events = await run(
@@ -1422,8 +1423,91 @@ async def test_a_question_after_the_neighbourhoods_were_offered_is_answered_not_
 
     assert not only(events, OptionsEvent) and not only(events, BriefEvent)
     assert joined_text(events) == "Belváros is quieter."
-    # One extraction (unchanged brief), then the streamed answer: no ranking call.
-    assert len(provider.completions) == 1 and len(provider.calls) == 1
+    # The extraction (unchanged brief) and the intent, then the streamed
+    # answer: no ranking call.
+    assert len(provider.completions) == 2 and len(provider.calls) == 1
+
+
+NEIGHBOURHOODS_OFFERED = (
+    "assistant",
+    "These neighbourhoods fit your trip. Where would you like to stay?",
+)
+
+
+async def test_another_neighbourhood_before_the_stay_offers_them_again():
+    """A step back from the hotels to the neighbourhoods (TRA-247)."""
+    use_case, _, _ = planner(
+        [
+            json.dumps({}),
+            json.dumps({"intent": "change_stay", "area": True}),
+            picks(BELVAROS),
+        ]
+    )
+
+    events = await run(
+        use_case(
+            turn(
+                "prefiero otro barrio",
+                brief=brief(),
+                history=[
+                    NEIGHBOURHOODS_OFFERED,
+                    ("assistant", "These places to stay are in or near Belváros:"),
+                ],
+            )
+        )
+    )
+
+    [group] = only(events, OptionsEvent)
+    assert group.group_id == "nb" and group.kind == "neighbourhood"
+
+
+async def test_cheaper_hotels_before_the_stay_stay_in_the_chosen_neighbourhood():
+    use_case, _, retriever = planner(
+        [
+            json.dumps({}),
+            json.dumps({"intent": "change_stay", "cheaper": True}),
+            picks(),
+        ]
+    )
+
+    events = await run(
+        use_case(
+            turn(
+                "algo más barato",
+                brief=brief(budget_tier=2),
+                history=[
+                    NEIGHBOURHOODS_OFFERED,
+                    ("assistant", "Estos alojamientos están en Belváros o muy cerca:"),
+                ],
+            )
+        )
+    )
+
+    [group] = only(events, OptionsEvent)
+    assert group.kind == "hotel"
+    first = retriever.searches[0][2]
+    assert first is not None and first.districts == ("Belváros",)
+    assert first.price_tier_max == 1
+
+
+async def test_another_neighbourhood_after_the_draft_offers_them_again():
+    use_case, _, _ = planner(
+        [json.dumps({"intent": "change_stay", "area": True}), picks(BELVAROS)]
+    )
+
+    events = await run(
+        use_case(
+            turn(
+                "I'd rather stay in another neighbourhood",
+                brief=brief(),
+                stay=ASTORIA,
+                days=[{"morning": [PARLIAMENT]}],
+            )
+        )
+    )
+
+    [group] = only(events, OptionsEvent)
+    assert group.group_id == "nb" and group.kind == "neighbourhood"
 
 
 async def test_a_change_of_brief_after_the_offer_ranks_neighbourhoods_again():
