@@ -98,7 +98,7 @@ resource "aws_cognito_user_group" "admin" {
   description  = "Application administrators (Principal.role = admin)."
 }
 
-# Who is in it (ADR 0024): `admin_usernames`, code-reviewed in terraform.tfvars.
+# Who is in it (ADR 0024): `admin_usernames`, code-reviewed in admins.auto.tfvars.
 # The ID token then carries `cognito:groups`; no service reads a list.
 resource "aws_cognito_user_in_group" "admin" {
   for_each     = toset(var.admin_usernames)

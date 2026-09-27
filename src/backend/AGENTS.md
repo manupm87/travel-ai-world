@@ -19,8 +19,9 @@ src/backend/
 │   ├── core_api/           api → services → domain (entities + ports) ← infrastructure/dynamo (one table)
 │   └── ai_api/             ports & adapters: domain → application → infrastructure → api
 └── tools/
-    ├── scraper/            scripts, `package = false`: linted and locked here, never in an image
-    └── city_corpus/        RAG corpus builder (Wikivoyage/Wikipedia → JSONL), same model; see its AGENTS.md
+    ├── scraper/            legacy Madrid scripts, `package = false`: linted and locked here, never in an image
+    ├── city_corpus/        RAG corpus builder (Wikivoyage/Wikipedia → JSONL), same model; see its AGENTS.md
+    └── vector_store_bench/ TRA-151 spike (Qdrant vs S3 Vectors), frozen; see its AGENTS.md
 ```
 
 ## Commands (from `src/backend/`, or via `just` from the repo root)
@@ -28,7 +29,7 @@ src/backend/
 ```bash
 uv sync --all-packages                   # whole workspace (incl. tools/) into src/backend/.venv
 uv run ruff check . ../../scripts && uv run ruff format --check . ../../scripts
-uv run pyright                           # libs/ and services/, standard mode (CI runs it in `just lint-backend`)
+uv run pyright                           # libs/, services/, city_corpus, vector_store_bench; standard mode (CI: `just lint-backend`)
 cd services/core_api && uv run pytest    # moto, in process; no database server
 cd services/ai_api   && uv run pytest    # no external deps
 cd libs/travel_common && uv run pytest
@@ -41,8 +42,8 @@ uv run python scripts/export_openapi.py  # → docs/api/*.openapi.json (then `np
   domain exceptions, token verification (`security.py` dispatches on `AUTH_MODE`: local HS256 or
   `cognito.py`'s RS256/JWKS), bearer extraction, the FastAPI app factory and error handlers, plus
   `testing.py` (`CognitoTestIssuer`, `mock_dynamodb`) for every package's tests.
-  If a thing is used by one service, it belongs to that service. Never add database or httpx-based
-  clients to `travel_common`.
+  If a thing is used by one service, it belongs to that service. The one data client here is
+  `dynamodb.py` (ADR 0023, below); never add another client, httpx-based or not, to `travel_common`.
 - **DynamoDB** (ADR 0023): `travel_common.dynamodb` is the one way to reach it — `dynamodb_client`
   (cached per endpoint/region), `call` (runs a blocking boto3 method in a thread from async code),
   `TableSpec` + `ensure_table` (creates a table only where an endpoint override is set: local,

@@ -10,8 +10,9 @@ and before GitHub Actions can deploy without stored credentials
 | IAM OIDC provider | `token.actions.githubusercontent.com` | `aws-actions/configure-aws-credentials` |
 | IAM role `travel-ai-github-deploy` | trust: `repo:manupm87/travel-ai-world:environment:aws` | `deploy-backend.yml` |
 
-The role has `PowerUserAccess` plus IAM on roles named `travel-ai-*` (the ECS task and
-execution roles), nothing else. This root keeps **local state** (`terraform.tfstate`, ignored by
+The role has `PowerUserAccess` plus IAM on roles named `travel-ai-*` (meant for the two Lambda
+execution roles; the pattern also matches this role itself, see the audit of 2026-09-27),
+nothing else. This root keeps **local state** (`terraform.tfstate`, ignored by
 git; it holds no secrets). Do not add anything else here: it is not applied by CI.
 
 ```bash

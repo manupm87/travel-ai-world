@@ -192,8 +192,8 @@ aws-login:
     aws sso login
     aws sts get-caller-identity
 
-# The Cognito username of an account (`google_<sub>` for Google), after its first sign-in:
-# what goes into `admin_usernames` in infra/aws/terraform.tfvars (ADR 0024). Needs just aws-login.
+# The Cognito username of an account (`Google_<sub>` for Google), after its first sign-in:
+# what goes into `admin_usernames` in infra/aws/admins.auto.tfvars (ADR 0024). Needs just aws-login.
 cognito-username email:
     aws cognito-idp list-users --user-pool-id "$(cd infra/aws && terraform output -raw cognito_user_pool_id)" --filter "email = \"{{email}}\"" --query 'Users[].Username' --output text
 

@@ -165,9 +165,9 @@ build in under a minute from the cached dependency layer, so it uses no registry
 
 ## Troubleshooting
 
-- `core_api` restarts in a loop → migrations failed; `just docker-logs core_api`.
+- `core_api` restarts in a loop → it cannot reach DynamoDB Local or create its table; `just docker-logs core_api`.
 - A Lambda function never becomes ready → the readiness path answered non-2xx; check the function
   logs for the adapter's line and the app's startup errors (`SECRET_KEY`/`COGNITO_*`, database).
 - Chat answers arrive all at once → a proxy is buffering; nginx config sets `proxy_buffering off`
   and the app sends `X-Accel-Buffering: no`.
-- `ai_api` answers 503 on `/api/v1/ai/health/provider` → `NVIDIA_API_KEY` missing.
+- `ai_api` answers 503 on `/api/v1/ai/health/provider` → the active provider is not configured (`NVIDIA_API_KEY`, or `BEDROCK_CHAT_MODEL` with `LLM_PROVIDER=bedrock`).

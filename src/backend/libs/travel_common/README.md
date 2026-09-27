@@ -1,7 +1,8 @@
 # travel_common
 
 The shared kernel of the backend: the few things every service needs and that must mean the same
-thing everywhere. Nothing here talks to a database or an external API.
+thing everywhere. Nothing here owns data: `dynamodb.py` is the one way both services reach
+DynamoDB (ADR 0023), and the tables are each service's own.
 
 | Module | Provides |
 |---|---|
@@ -10,7 +11,8 @@ thing everywhere. Nothing here talks to a database or an external API.
 | `exceptions.py` | Domain errors (`EntityNotFound`, `Forbidden`, `Unauthorized`, `ProviderUnavailable`, ...) with no HTTP knowledge |
 | `security.py` | `verify_token` / `principal_from_token` (dispatch on `AUTH_MODE`), `create_access_token` and `decode_access_token` for the local HS256 issuer — settings passed explicitly |
 | `cognito.py` | `verify_cognito_token`: RS256 against `COGNITO_JWKS`, issuer, audience and `token_use=id` checks; `admin` group → `Role.ADMIN` |
-| `testing.py` | `CognitoTestIssuer`: an RSA key pair, its JWKS and signed ID tokens, so any package's tests can prove they accept the pool's tokens and reject forged ones |
+| `dynamodb.py` | `DynamoSettings` (`DYNAMODB_ENDPOINT_URL`, `AWS_REGION`), `dynamodb_client` (cached per endpoint and region), `call` (a blocking boto3 method in a thread), `TableSpec` + `ensure_table` (only where an endpoint override is set), `to_item` / `from_item` |
+| `testing.py` | `CognitoTestIssuer`: an RSA key pair, its JWKS and signed ID tokens, so any package's tests can prove they accept the pool's tokens and reject forged ones; `mock_dynamodb()`: moto in process, no container |
 | `http/auth.py` | `extract_bearer_token` dependency |
 | `http/error_handlers.py` | Maps domain errors to `{"detail": {"message", "error_code", "extras"}}` |
 | `http/app_factory.py` | `create_app(settings, routers, lifespan=...)`: logging + CORS + error handlers + versioned prefix; process resources live on `app.state` |

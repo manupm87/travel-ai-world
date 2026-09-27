@@ -1,8 +1,12 @@
 # City scraper
 
-Data ingestion scripts that turn a city into JSON files ready to be embedded for retrieval
-(the future `Retriever` port of `ai_api`). Madrid is the configured city; another city is a
-matter of changing the coordinates and the Wikipedia pages in `config/`.
+> **Legacy.** Nothing reads this tool's output: the planner's knowledge base is
+> [`tools/city_corpus`](../city_corpus/README.md) (ADR 0014), which forbids Google Places content
+> for licence reasons. Kept as it was; whether to retire it is an open decision (audit 2026-09-27).
+
+Data ingestion scripts that turned a city into JSON files meant for retrieval, before
+`city_corpus` existed. Madrid is the configured city; another city is a matter of changing the
+coordinates and the Wikipedia pages in `config/`.
 
 Sources:
 
@@ -38,7 +42,7 @@ which would otherwise duplicate records. The point-of-interest and documentary s
 there are already their final outputs.
 
 The script writes one JSON object per line to `data/documents_madrid.jsonl`. Each object follows the
-retrieval contract used by the future `ai_api` `Retriever` port:
+retrieval contract planned at the time (the `ai_api` indexer reads `city_corpus`'s schema instead):
 
 ```json
 {

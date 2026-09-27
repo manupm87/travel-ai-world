@@ -1,6 +1,6 @@
 # 0008 — AWS architecture v2: CloudFront single origin, API Gateway REST with streaming, private Fargate
 
-**Status:** Superseded by [0009](0009-lambda-cognito-budget.md) for compute, network and secrets (budget); CloudFront, API Gateway REST streaming, pgvector and Bedrock carry over
+**Status:** Superseded by [0009](0009-lambda-cognito-budget.md) for compute, network and secrets (budget); CloudFront, API Gateway REST streaming and Bedrock carry over; pgvector was replaced by S3 Vectors ([ADR 0014](0014-vector-store-s3-vectors.md))
 **Date:** 2026-09-15
 
 ## Context

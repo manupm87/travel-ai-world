@@ -1,5 +1,10 @@
 # Revisión de calidad de código y arquitectura
 
+> **Histórico.** Esta revisión describe el código del 2026-09-07, anterior a DynamoDB (RDS,
+> SQLAlchemy y Alembic se retiraron en TRA-219, [ADR 0023](adr/0023-dynamodb-data-store.md)), al
+> planificador y a la consola de administración: no es el estado actual. La revisión vigente es
+> [code-quality-review-2026-09-27.md](code-quality-review-2026-09-27.md).
+
 **Fecha:** 2026-09-07 (revisión) · **Estado de ejecución:** ver la sección 8 al final.
 **Alcance:** `src/backend` (travel_common, core_api, ai_api, tools/scraper), `src/frontend`, `infra/`, `.github/`, `justfile`, `scripts/`, `docs/`.
 **Objetivo:** proponer mejoras concretas para que el código y la arquitectura sean más SOLID, DRY y limpios.

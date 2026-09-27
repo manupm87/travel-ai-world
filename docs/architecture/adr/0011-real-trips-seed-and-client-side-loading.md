@@ -1,7 +1,8 @@
 # 0011 — Real trips: backend-seeded demo data, client-side loading, `/trip/?id=`, dev mirrors prod
 
 > **Superseded in part by [ADR 0019](0019-trips-live-in-the-planner.md):** the demo seed is
-> retired and trips live in the planner. `/dashboard/` and `/trip/?id=` are redirects now;
+> retired and trips live in the planner. `/trip/?id=` is a redirect now, and `/dashboard/` is
+> the signed-in home again ([ADR 0020](0020-signed-in-home-is-the-trips-page.md));
 > `just dev-token` creates the account the seed used to create.
 
 **Status:** Accepted

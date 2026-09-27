@@ -62,11 +62,12 @@ minutes, a warm one seconds and produces byte-identical files. `--offline` (as
 `.cache/<host>/` refreshes one source, and `.cache/sites/` the venues' own pages.
 
 Most of that time is the **photo stage** (ADR 0022): every hotel with coordinates and no picture
-is looked up through the preview of its own site, then its Facebook page, then Wikimedia Commons
-by name, then the largest picture on its homepage. Two things to expect from it, both by design:
+is looked up through a curated entry, the preview of its own site, its Facebook page, Wikimedia
+Commons by name, its Wikidata item found by name, then the largest picture on its homepage
+(`sources/photos.py`, `SOURCES`). Two things to expect from it, both by design:
 
-- **Hotels leave the corpus.** One that none of the four sources pictures is dropped — roughly a
-  third of them, almost all with a dead or parked website. A stay is the one card the traveller
+- **Hotels leave the corpus.** One that none of the six sources pictures is dropped — about half
+  of them, almost all with a dead or parked website. A stay is the one card the traveller
   is asked to commit to, so the planner offers no stay it cannot show. The report's **Hotels**
   section names what went and where the rest of the photos came from.
 - **It runs long and mostly waits.** Run it in the background and watch the log

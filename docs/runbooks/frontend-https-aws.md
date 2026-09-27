@@ -1,5 +1,10 @@
 # Runbook — Frontend Manual en AWS (S3 + CloudFront + Route 53)
 
+> **Histórico (15-09-2026).** Terraform gestiona hoy todo esto (`infra/aws/frontend.tf`,
+> [ADR 0010](../architecture/adr/0010-domain-roots-in-terraform.md)) y el despliegue es
+> [deploy.md](deploy.md). No sigas el Paso 5: las páginas de error SPA se sustituyeron porque
+> convertían los 403/404 de la API en HTML.
+
 Este documento detalla el despliegue manual del frontend estático de Kyrian World en AWS, realizado el 15 de septiembre de 2026. Para la versión automatizada con Terraform, ver [`infra/aws/frontend.tf`](../../infra/aws/frontend.tf).
 
 ## Arquitectura resultante
@@ -112,7 +117,7 @@ CloudFront genera automáticamente la política. Verificar que existe en S3:
      "Resource": "arn:aws:s3:::kyrian-world.com/*",
      "Condition": {
        "ArnLike": {
-         "AWS:SourceArn": "arn:aws:cloudfront::745600963688:distribution/E1XBRW2S81XUZ2"
+         "AWS:SourceArn": "arn:aws:cloudfront::<ACCOUNT_ID>:distribution/<DISTRIBUTION_ID>"
        }
      }
    }

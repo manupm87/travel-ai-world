@@ -8,6 +8,7 @@
   migrations: it creates its table at start against a local endpoint
 - A Google OAuth client ID (the local flow keeps `AUTH_MODE=local`; the deployed Cognito flow is
   described in [`infra/aws/README.md`](../../infra/aws/README.md#sign-in-cognito)); an NVIDIA API key for the chat
+- For the planner: an AWS SSO session (`just aws-login`), see [below](#the-planner-needs-the-corpus)
 
 ## First run
 
@@ -19,7 +20,7 @@ Then edit the three env files it created:
 
 | File | Must set |
 |---|---|
-| `src/backend/services/core_api/.env` | `SECRET_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` |
+| `src/backend/services/core_api/.env` | `SECRET_KEY`, `GOOGLE_CLIENT_ID` (`GOOGLE_CLIENT_SECRET` is not read by any code) |
 | `src/backend/services/ai_api/.env` | `SECRET_KEY` (**same value**), `NVIDIA_API_KEY` |
 | `src/frontend/.env.local` | `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, `NEXT_PUBLIC_API_URL=http://localhost:8000`, `NEXT_PUBLIC_AI_API_URL=http://localhost:8001` |
 
@@ -46,11 +47,15 @@ just dynamodb-local  # moto server; tables and items vanish when it stops
 Leave `DYNAMODB_ENDPOINT_URL` empty only on AWS. Tests need none of this: they use
 `travel_common.testing.mock_dynamodb()` (moto in-process).
 
-## Chat grounded in the corpus (optional)
+## The planner needs the corpus
 
-The chat answers from the model alone unless `RETRIEVAL_ENABLED=true` in
-`src/backend/services/ai_api/.env`. Retrieval has no local emulator: it reads the deployed S3 Vectors
-index and embeds the question with Titan on Bedrock, so it needs an AWS session.
+With the default `RETRIEVAL_ENABLED=false`, `POST /api/v1/ai/planner` and `/planner/card` answer
+**503** (every card is a corpus document) and the chat answers from the model alone. Retrieval has
+no local emulator: it reads the deployed S3 Vectors index and embeds the question with Titan on
+Bedrock, so it needs an AWS session and `RETRIEVAL_ENABLED=true` in
+`src/backend/services/ai_api/.env`. Without AWS, either leave `NEXT_PUBLIC_AI_API_URL` empty (the AI
+calls then go to `core_api`, which answers 404, and the page plays its recorded demo session) or
+run `just planner-smoke <city>` for a backend-only session over the committed corpus.
 
 ```bash
 just aws-login                        # AWS_PROFILE in the environment, as for Bedrock
@@ -102,8 +107,8 @@ Three Playwright configs share `src/frontend/e2e/`:
 
 | Recipe | Serves | Runs | Where |
 |---|---|---|---|
-| `just test-e2e` | `next dev` on :3000 (started for you) | `smoke.spec.ts`, the landing page | the daily loop |
-| `just test-e2e-static` | `next build` on :3100 (started for you) | smoke + `prerender.spec.ts` | CI's `frontend` job |
+| `just test-e2e` | `next dev` on :3000 (started for you, or reused if something already listens there) | every spec but `prerender.spec.ts`; the signed-in ones skip without `E2E_TOKEN` | the daily loop |
+| `just test-e2e-static` | `next build` on :3100 (started for you) | every spec, `prerender.spec.ts` included; the signed-in ones skip without `E2E_TOKEN` | CI's `frontend` job |
 | `just test-e2e-stack` | the Compose stack on :8080 (already up) | everything, incl. the signed-in `trips.spec.ts` and `planner.spec.ts` (the planner page over the recorded Budapest session, `/ai/planner` mocked in the browser) | CI's `e2e-stack` job |
 
 The signed-in suite needs a token and creates the trips it works on through the API; without

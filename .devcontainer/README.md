@@ -56,10 +56,10 @@ else (no Docker daemon, no SAM/CDK):
 
 | Tool | Why | Pinned in |
 |---|---|---|
-| `aws` (CLI v2) | `sts`, `ecr`, `ecs`, `logs`, SSO login | latest at build |
+| `aws` (CLI v2) | `sts`, `ecr`, `lambda`, `logs`, `cognito-idp`, `s3vectors`, SSO login | latest at build |
 | `terraform` | `infra/aws/` (`just infra-fmt`, `just infra-validate aws`, plan/apply) | `TERRAFORM_VERSION` build arg |
 | `crane` | copy the GHCR images into ECR without a Docker daemon | `CRANE_VERSION` build arg |
-| `session-manager-plugin` | `aws ecs execute-command` into a running Fargate task | latest at build |
+| `session-manager-plugin` | unused since the move to Lambda (ADR 0009); a candidate for removal | latest at build |
 
 **Authentication is IAM Identity Center (SSO), never access keys.** The compose file sets
 `AWS_PROFILE=travel-ai-world`; `post-create.sh` seeds `~/.aws/config` from

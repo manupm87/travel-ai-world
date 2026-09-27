@@ -7,7 +7,7 @@
 # package name is the same with dashes. Only that service and the workspace
 # libraries it depends on end up in the image.
 #
-# The same image runs in Docker Compose, on ECS and on AWS Lambda: the AWS
+# The same image runs in Docker Compose and on AWS Lambda: the AWS
 # Lambda Web Adapter (ADR 0009) ships as a Lambda extension in
 # /opt/extensions and only activates when the Lambda runtime API is present;
 # everywhere else uvicorn simply listens on :8000.

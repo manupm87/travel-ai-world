@@ -1,6 +1,6 @@
 # 0023 — DynamoDB is the data store: one table for `core_api`, one interaction log for `ai_api`, RDS retired
 
-**Status:** Accepted
+**Status:** Accepted (amended by [0024](0024-turn-traces-and-admin-access.md))
 **Date:** 2026-09-22
 
 ## Context
@@ -135,6 +135,9 @@ TTL on `expires_at`, no point-in-time recovery.
   the trip's key.
 - **Supersedes** the data part of ADR 0009 (RDS, the `ai` database with `pgvector`, the
   `migrate` command, `core_api` inside the VPC). The rest of ADR 0009 stands.
-- **2026-09-22:** RDS, the VPC and the copy command removed (TRA-219).
+- **2026-09-23:** RDS, the VPC and the copy command removed (TRA-219, in two applies:
+  [infra/aws/README.md](../../../infra/aws/README.md#retiring-rds-tra-219-done-2026-09-23)). The
+  final snapshot was deleted rather than kept 30 days: every row lives in DynamoDB, which has
+  point-in-time recovery.
 
 Delivery: epics TRA-212 (TRA-214 to TRA-219) and TRA-213 (TRA-220 to TRA-222).

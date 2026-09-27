@@ -1,6 +1,6 @@
 # 0015 — The planner streams typed events (SSE v2) from a stateless orchestrator in `ai_api`
 
-**Status:** Accepted
+**Status:** Accepted (amended by [0025](0025-planner-progress-event.md))
 **Date:** 2026-09-18
 
 ## Context

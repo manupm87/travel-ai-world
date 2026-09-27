@@ -1,7 +1,7 @@
 """Domain errors.
 
 Services raise these; they carry no HTTP knowledge. The API layer maps them
-to status codes and the structured JSON body in `core/error_handlers.py`.
+to status codes and the structured JSON body in `http/error_handlers.py`.
 """
 
 from typing import Any

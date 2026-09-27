@@ -1,8 +1,8 @@
 """Identity of the caller, independent of how it was established.
 
 A verified token yields `Claims`; endpoints only ever see a `Principal`
-built from them, never an ORM row. `core_api` extends `Principal` with the
-account id it resolves from the database; a stateless service uses it as is.
+built from them, never a stored account. `core_api` extends `Principal` with
+the account id it resolves from its table; a stateless service uses it as is.
 """
 
 from dataclasses import dataclass

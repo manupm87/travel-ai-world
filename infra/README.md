@@ -1,9 +1,10 @@
 # Infrastructure
 
-Terraform for the two backend services, one folder per cloud. The clouds are **alternatives**:
-pick one, apply only its folder. Nothing is created until you run `terraform apply`.
-**AWS is the cloud we deploy to** ([ADR 0007](../docs/architecture/adr/0007-aws-cloud-and-auth.md));
-`gcp/` stays as a maintained-by-CI, not deployed, alternative.
+Terraform for the two backend services, one folder per cloud. Nothing is created until you run
+`terraform apply`. **AWS is the only cloud that runs the current services**
+([ADR 0007](../docs/architecture/adr/0007-aws-cloud-and-auth.md)); `gcp/` still validates in CI
+but targets the retired Postgres `core_api` (Cloud SQL, no DynamoDB, no retrieval): see
+[`gcp/README.md`](gcp/README.md) before applying it.
 
 | Folder | Shape | Public origin(s) | Frontend variables |
 |---|---|---|---|

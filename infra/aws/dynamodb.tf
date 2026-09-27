@@ -1,5 +1,5 @@
 # DynamoDB is the data store (ADR 0023). One table per owning service:
-# core_api's single table here; ai_api's interaction log joins it in TRA-220.
+# core_api's single table here; ai_api's interaction log is in traces.tf.
 # On-demand billing: demo traffic costs cents, and nothing is provisioned idle.
 
 # ── core_api: users, trips (whole aggregates), conversations, messages ──────
@@ -47,8 +47,8 @@ resource "aws_dynamodb_table" "core" {
     projection_type = "ALL"
   }
 
-  # Trips written before GSI2 existed backfill on the next save only: the
-  # index is sparse, and old trips appear in it once their owner edits them.
+  # The index is sparse: a trip written before GSI2 existed appears in it once it
+  # is saved again, or after `just backfill-trip-index` (core_api/ops.py).
   global_secondary_index {
     name            = "GSI2"
     hash_key        = "GSI2PK"

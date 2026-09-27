@@ -178,7 +178,7 @@ variable "cognito_dev_origins" {
 }
 
 variable "admin_usernames" {
-  description = "Cognito usernames to put in the `admin` group (Principal.role = admin). A federated account's username is `google_<sub>` and exists only after its first sign-in: `just cognito-username <email>` prints it."
+  description = "Cognito usernames to put in the `admin` group (Principal.role = admin). A federated account's username is `Google_<sub>` (capital G) and exists only after its first sign-in; the list lives in admins.auto.tfvars: `just cognito-username <email>` prints it."
   type        = list(string)
   default     = []
 }

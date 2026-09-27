@@ -1,6 +1,6 @@
 # 0013 — Chat conversations are stored by `core_api` and written by `ai_api` over HTTP
 
-**Status:** Accepted
+**Status:** Accepted (storage superseded by [0023](0023-dynamodb-data-store.md): thread and message items in `core_api`'s table, another user's thread is 404)
 **Date:** 2026-09-17
 
 Drafted with the tables and endpoints (TRA-153, first PR); accepted with the recording in `ai_api`

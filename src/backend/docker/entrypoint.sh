@@ -1,7 +1,7 @@
 #!/bin/sh
 # Shared entrypoint for both images, everywhere they run:
 #
-#   entrypoint.sh                 serve on :8000 (Compose, ECS, Lambda through the Web Adapter)
+#   entrypoint.sh                 serve on :8000 (Compose, Lambda through the Web Adapter)
 #
 # There is nothing to run before serving: core_api keeps its data in DynamoDB
 # (ADR 0023), whose table Terraform owns on AWS and the service creates itself

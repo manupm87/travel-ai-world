@@ -56,7 +56,9 @@ in TRA-219.
   Domain models own their invariants (`check_invariants()`); profile, trip and thread writes are
   conditional on a `version`, and a lost race is 409 `CONFLICT`.
 - `ai_api` is **ports and adapters**: `domain` (types + Protocols) ← `application` (use cases) ←
-  `infrastructure` (NVIDIA, SSE, core_api client) ← `api` (wiring). Swapping the LLM provider or
+  `infrastructure` (NVIDIA and Bedrock providers, Titan embedder, S3 Vectors retriever, trace log,
+  Open-Meteo, Commons photos, site previews, SSE, core_api client) ← `api` (wiring). Swapping the
+  LLM provider or
   adding a retriever touches only `infrastructure/` and `api/deps.py`.
 
 Two styles on purpose: a CRUD service is best served by layers; an integration-heavy service by
@@ -160,13 +162,15 @@ filled out of band by `just index` from the corpus committed under `tools/city_c
 
 Wire format is fixed by `ai_api/infrastructure/sse.py` and consumed by `src/frontend/src/services/chat.ts`.
 Conversations are stored by `core_api` ([ADR 0013](adr/0013-chat-conversations-in-core-api.md)):
-`ai_api` keeps no state and reaches no database.
+`ai_api` never reaches `core_api`'s table: its only storage is its own trace table,
+`<prefix>-interactions` ([ADR 0024](adr/0024-turn-traces-and-admin-access.md)).
 
 ## Planner
 
 The planner page (`/plan/`) talks to `POST /api/v1/ai/planner`, the typed successor of the chat
 stream: SSE v2 ([ADR 0015](adr/0015-planner-sse-v2-stateless-orchestration.md)), one JSON event per
-`data:` line (`text`, `brief`, `options`, `itinerary_patch`, `error`) then `[DONE]`, with the models
+`data:` line (`text`, `brief`, `options`, `itinerary_patch`, `progress` ([ADR 0025](adr/0025-planner-progress-event.md)),
+`error`, `done`) then `[DONE]`, with the models
 generated for both sides by `just contracts`.
 
 ```mermaid
@@ -210,10 +214,11 @@ session is the test double for the page.
 
 ## Service-to-service calls
 
-When `ai_api` must persist something (a generated itinerary), it calls `core_api` **as the user**:
+When `ai_api` persists something (the chat's conversation; the planner's itinerary is saved by the
+browser), it calls `core_api` **as the user**:
 it forwards the same bearer token, so `core_api` applies the same permissions it applies to the
 browser. No service secret exists today; add an `INTERNAL_API_KEY` + `/internal/*` router only when
-a job must act without a user (RAG ingestion).
+a job must act without a user.
 
 ## Contracts
 
@@ -227,7 +232,7 @@ regenerates `src/frontend/src/types/generated/*.ts`; CI fails on drift.
 | Local `just dev-*` | `:8000` core, `:8001` ai | `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_AI_API_URL` |
 | Docker Compose (`just stack-up`) | nginx `:8080`: the export at `/`, the APIs at `/api/*` (same origin, like AWS) | `NEXT_PUBLIC_API_URL=http://localhost:8080` only, set by the recipe |
 | AWS v3 (CloudFront → S3 + API Gateway → Lambda, `infra/aws/`) | one CloudFront domain | `NEXT_PUBLIC_API_URL=https://<domain>` (same origin) + `NEXT_PUBLIC_COGNITO_*` |
-| GCP (two Cloud Run) | two URLs | both variables |
+| GCP (two Cloud Run; not ported to DynamoDB, see `infra/gcp/README.md`) | two URLs | both variables |
 
 See [ADR 0003](adr/0003-frontend-two-base-urls.md) and the [deploy runbook](../runbooks/deploy.md).
 
@@ -249,7 +254,7 @@ that reads it is TRA-152; the [vector store spike](vector-store-spike.md) (TRA-1
 against it and kept S3 Vectors.
 
 Since [ADR 0023](adr/0023-dynamodb-data-store.md), `core_api` stores its data in the DynamoDB
-table `travel-ai-core` (on-demand, `PK`/`SK` + `GSI1`, point-in-time recovery, deletion
+table `travel-ai-core` (on-demand, `PK`/`SK` + `GSI1` + `GSI2`, point-in-time recovery, deletion
 protection). Like `ai_api`, the function runs outside any VPC and reaches the table over
 DynamoDB's public HTTPS endpoint, authorised by its IAM role. There is no VPC in the account's
 shape any more: RDS, the private subnets and the gateway endpoint were removed in TRA-219. CloudFront

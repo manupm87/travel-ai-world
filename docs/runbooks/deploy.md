@@ -34,9 +34,8 @@ two-step decision:
    had no database password since TRA-219.
    Whenever one of these values changes (a rotation), update the secret **and** the local
    tfvars together. Before any `apply=true`, run with `apply=false` and require the plan to show
-   only the two Lambda `image_uri` changes. The one exception is the apply that retires RDS and
-   the VPC ([infra/aws/README.md](../../infra/aws/README.md#retiring-rds-tra-219)), whose plan
-   also destroys them.
+   only the two Lambda `image_uri` changes, plus the Terraform changes merged since the last
+   apply.
 
 Frontend variables per shape:
 
@@ -77,7 +76,7 @@ Nothing reaches AWS from a merge alone except the frontend. After `main` changes
 [ADR 0023](../architecture/adr/0023-dynamodb-data-store.md)). The accounts, trips and
 conversations that were on RDS moved once, on 2026-09-22, with a one-off `copy-from-postgres`
 command (TRA-218). TRA-219 then removed RDS, the VPC and that command; how the infrastructure
-was retired is in [infra/aws/README.md](../../infra/aws/README.md#retiring-rds-tra-219).
+was retired is in [infra/aws/README.md](../../infra/aws/README.md#retiring-rds-tra-219-done-2026-09-23).
 After the TRA-227 deploy (the admin index, GSI2), the trips saved before it are stamped once with
 `just backfill-trip-index` (TRA-230, idempotent; see the
 [AWS README](../../infra/aws/README.md#making-someone-an-administrator)).

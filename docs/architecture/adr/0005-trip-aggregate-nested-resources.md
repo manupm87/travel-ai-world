@@ -3,6 +3,8 @@
 > **Superseded in part by [ADR 0019](0019-trips-live-in-the-planner.md):** a trip is one
 > city, carried on the trip itself. The `destinations` collection described below no longer
 > exists, and writes to a trip that is ongoing or past are refused with `TripLocked`.
+> **And by [ADR 0023](0023-dynamodb-data-store.md):** the trip is one DynamoDB item, and another
+> user's trip answers **404**, not 403.
 
 **Status:** Accepted
 **Date:** 2026-09-07
