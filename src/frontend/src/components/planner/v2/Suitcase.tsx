@@ -22,6 +22,13 @@ const TILES = 2;
 const TILES_WIDE = 5;
 /** How long the lid waits before it swings open, as on the canvas. */
 const OPEN_AFTER_MS = 300;
+/**
+ * The lid and the base are the same height, so the shut lid covers the base
+ * exactly, and tall enough for two stops a day and the whole list (TRA-250).
+ */
+const HALF = "h-[208px]";
+/** Shut: turned over its lower hinge towards the viewer, onto the base. */
+const SHUT = "rotateX(-180deg)";
 
 export interface SuitcaseProps {
   /** How far the replay has got: what is in the suitcase so far (TRA-244). */
@@ -101,8 +108,8 @@ export function Suitcase({
     >
       {/* The lid: its inside while open, its outside once it turns over. */}
       <div
-        className="suitcase-lid relative z-10 h-[150px]"
-        style={{ transform: closed || !opened ? "rotateX(180deg)" : "rotateX(0deg)" }}
+        className={cn("suitcase-lid relative z-10", HALF)}
+        style={{ transform: closed || !opened ? SHUT : "rotateX(0deg)" }}
       >
         <div className="suitcase-face">
           <span className="suitcase-shell" />
@@ -112,11 +119,11 @@ export function Suitcase({
               {listed.map((value, index) => (
                 <span
                   key={value}
-                  className="flex animate-fade-up items-center gap-1.5 truncate text-[13px] text-text-primary"
+                  className="flex animate-fade-up items-start gap-1.5 text-[13px] leading-tight text-text-primary"
                   style={{ animationDelay: `${index * 120}ms` }}
                 >
-                  <Check size={12} className="shrink-0 text-accent" />
-                  <span className="truncate">{value}</span>
+                  <Check size={12} className="mt-0.5 shrink-0 text-accent" />
+                  <span className="min-w-0 break-words">{value}</span>
                 </span>
               ))}
             </div>
@@ -156,7 +163,7 @@ export function Suitcase({
       </div>
 
       {/* The base: one compartment per day. */}
-      <div className="relative h-[176px]">
+      <div className={cn("relative", HALF)}>
         <span className="suitcase-shell" />
         <div
           className={cn(

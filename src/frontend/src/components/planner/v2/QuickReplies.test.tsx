@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, renderWithProviders, screen } from "@/test/render";
 import en from "@/i18n/en";
+import es from "@/i18n/es";
 import { EMPTY_BRIEF, type BriefField, type TripBrief } from "@/types/planner";
 import { QuickReplies } from "./QuickReplies";
 
@@ -27,6 +28,31 @@ describe("QuickReplies", () => {
   it("renders nothing once the brief is complete", () => {
     const { container } = renderQuickReplies([]);
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it("asks one traveller what they fancy with «te», a party with «os» (TRA-250)", () => {
+    localStorage.setItem("travel_ai_language", "es");
+    const qs = es.plan.quickReplies;
+
+    const alone = renderQuickReplies(["interests"], { adults: 1, children: 0 });
+    expect(screen.getByText(qs.interestsSolo)).toBeInTheDocument();
+    expect(qs.interestsSolo).toBe("Qué te apetece");
+    alone.unmount();
+
+    renderQuickReplies(["interests"], { adults: 1, children: 1 });
+    expect(screen.getByText(qs.interests)).toBeInTheDocument();
+    expect(qs.interests).toBe("Qué os apetece");
+  });
+
+  it("follows the travellers on screen: down to one, it asks with «te»", () => {
+    localStorage.setItem("travel_ai_language", "es");
+    const qs = es.plan.quickReplies;
+    renderQuickReplies(["travellers", "interests"], { adults: 2, children: 0 });
+    expect(screen.getByText(qs.interests)).toBeInTheDocument();
+
+    fireEvent.click(screen.getAllByRole("button", { name: qs.decrease })[0]!);
+
+    expect(screen.getByText(qs.interestsSolo)).toBeInTheDocument();
   });
 
   it("waits for both dates before it lets the answer through", () => {

@@ -110,7 +110,10 @@ export interface Translations {
       details: { open: string; list: string; wardrobe: string; fold: string; weigh: string; zip: string };
       /** How long the turn has been on its way, for screen readers: "{seconds} seconds" */
       elapsed: string;
+      /** The turn that packed the whole trip: "Suitcase closed". */
       closed: string;
+      /** Any other turn: what it did went into the suitcase, still open. */
+      added: string;
       /** "in {seconds} s" */
       closedIn: string;
       withWarning: string;
@@ -179,7 +182,10 @@ export interface Translations {
       increase: string;
       decrease: string;
       budget: string;
+      /** Asked of a party of two or more ("Qué os apetece"). */
       interests: string;
+      /** Asked of someone travelling alone ("Qué te apetece"). */
+      interestsSolo: string;
       interestOptions: { id: string; label: string }[];
       /** The message sent with the answers, e.g. "Dates: {from} to {to}". */
       summary: {

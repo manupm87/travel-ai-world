@@ -219,6 +219,8 @@ describe("ChatColumn — Kiri's answer (TRA-239)", () => {
 
       act(() => vi.advanceTimersByTime(2500));
       const suitcase = document.querySelector("[data-suitcase]");
+      // Open while it is being packed; it will shut towards the viewer (TRA-250).
+      expect(suitcase?.querySelector<HTMLElement>(".suitcase-lid")?.style.transform).toBe("rotateX(0deg)");
       expect(suitcase).toHaveTextContent(p.packing.suitcase.list);
       expect(suitcase).toHaveTextContent("Open-Meteo");
       expect(suitcase).toHaveTextContent(itinerary.days[0]?.slots.morning[0]?.title ?? "");
@@ -244,7 +246,7 @@ describe("ChatColumn — Kiri's answer (TRA-239)", () => {
     }
   });
 
-  it("closes a turn that only changed the trip quietly, without the suitcase", () => {
+  it("ends a turn that only changed the trip as added to the suitcase, not closed (TRA-250)", () => {
     renderColumn({
       status: "idle",
       packing: {
@@ -260,7 +262,8 @@ describe("ChatColumn — Kiri's answer (TRA-239)", () => {
       itinerary: applyItineraryOps(EMPTY_ITINERARY, FIRST_ITINERARY_OPS),
       missing: [],
     });
-    expect(screen.getByText(p.packing.closed)).toBeInTheDocument();
+    expect(screen.getByText(p.packing.added)).toBeInTheDocument();
+    expect(screen.queryByText(p.packing.closed)).not.toBeInTheDocument();
     expect(document.querySelector("[data-suitcase]")).toBeNull();
   });
 

@@ -272,7 +272,8 @@ export function QuickReplies({
 
       {shows("interests") && (
         <div className="flex flex-col gap-2">
-          <span className={labelClass}>{q.interests}</span>
+          {/* "os" for a party, "te" for one traveller: the count on screen, or the brief's. */}
+          <span className={labelClass}>{adults + children > 1 ? q.interests : q.interestsSolo}</span>
           <div className="flex flex-wrap gap-2">
             {q.interestOptions.map((option) => {
               const checked = interests.includes(option.id);

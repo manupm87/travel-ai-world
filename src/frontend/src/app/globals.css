@@ -339,7 +339,8 @@
   /* The suitcase Kiri packs (TRA-242): the canvas's "Hacer la maleta", upright
      for the chat column — the lid above, hinged on its lower edge, the base
      below. The lid's inside and outside are two faces of one card that turns
-     over when the suitcase closes. */
+     over when the suitcase closes — towards the viewer and down onto the base,
+     never behind it (`rotateX(-180deg)` in `Suitcase.tsx`, TRA-250). */
   .suitcase {
     perspective: 1600px;
   }

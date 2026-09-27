@@ -97,6 +97,7 @@ const en: Translations = {
       },
       elapsed: "{seconds} seconds",
       closed: "Suitcase closed",
+      added: "Added to the suitcase",
       closedIn: "in {seconds} s",
       withWarning: "with a warning",
       howIPacked: "See how I packed",
@@ -166,6 +167,7 @@ const en: Translations = {
       decrease: "Remove one",
       budget: "Budget",
       interests: "What are you into?",
+      interestsSolo: "What are you into?",
       interestOptions: [
         { id: "food", label: "Food" },
         { id: "thermal_baths", label: "Thermal baths" },

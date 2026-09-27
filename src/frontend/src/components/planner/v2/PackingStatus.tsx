@@ -141,8 +141,10 @@ type Replay = PackingStep | "closing" | "done";
  * started with no days and ended with some — the whole suitcase is played once,
  * in order, at its own pace: it opens, the list is written, the sources come
  * out of the wardrobe, each day's stops drop in one by one, it is weighed and
- * it shuts, and then it is the boarding pass. Any other turn closes quietly:
- * "Suitcase closed in 3 s". Under reduced motion the replay is skipped.
+ * it shuts, and then it is the boarding pass. Any other turn closes quietly
+ * and leaves the suitcase open — "Added to the suitcase in 3 s": only the turn
+ * that packed the whole trip says it is closed. Under reduced motion the
+ * replay is skipped.
  */
 export function PackingStatus({
   packing,
@@ -316,7 +318,7 @@ export function PackingStatus({
       <KiriTag state="happy" />
       <p className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm">
         <Briefcase size={15} aria-hidden="true" className="text-accent" />
-        <span className="font-semibold text-text-primary">{p.closed}</span>
+        <span className="font-semibold text-text-primary">{drafted ? p.closed : p.added}</span>
         {startedAt !== null && (
           <span className="text-[13px] text-text-muted">
             {interpolate(p.closedIn, { seconds })}

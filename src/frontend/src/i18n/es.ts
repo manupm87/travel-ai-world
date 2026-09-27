@@ -90,6 +90,7 @@ const es: Translations = {
       },
       elapsed: "{seconds} segundos",
       closed: "Maleta cerrada",
+      added: "Añadido a la maleta",
       closedIn: "en {seconds} s",
       withWarning: "con un aviso",
       howIPacked: "Ver cómo hice la maleta",
@@ -159,6 +160,7 @@ const es: Translations = {
       decrease: "Quitar uno",
       budget: "Presupuesto",
       interests: "Qué os apetece",
+      interestsSolo: "Qué te apetece",
       interestOptions: [
         { id: "food", label: "Gastronomía" },
         { id: "thermal_baths", label: "Balnearios" },
