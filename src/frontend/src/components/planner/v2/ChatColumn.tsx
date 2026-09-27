@@ -57,6 +57,9 @@ export interface ChatColumnProps {
  * incomplete, the shortcut suggestions and the composer. It renders state and
  * reports intent; `usePlanner` owns every transition.
  */
+/** The most brief fields the luggage tag lists; with more it is not shown (TRA-251). */
+const TAG_MAX_MISSING = 2;
+
 export function ChatColumn({
   state,
   errorText,
@@ -97,17 +100,21 @@ export function ChatColumn({
   const showError = !!errorText && !holding;
   const showQuickReplies =
     !isStreaming && !hasItinerary(state.itinerary) && !lockedPhase && !holding;
-  // Kiri's luggage tag over the quick replies whenever a turn ends asking
-  // (TRA-239) — a destination outside the corpus included, which ai_api
-  // clears, so the tag then says "To decide" on its title too (TRA-243).
-  const showTag = showQuickReplies && messages.length > 0 && state.missing.length > 0;
+  // A turn that ended asking for the brief: the quick replies are the answer.
+  const asking = showQuickReplies && messages.length > 0 && state.missing.length > 0;
+  // Kiri's luggage tag over the quick replies closes the brief (TRA-239): only
+  // once a field or two are left (TRA-251). With more, the replies below and
+  // the pane's checklist already ask for them. A destination outside the corpus
+  // counts as missing too, so the tag then says "To decide" on its title
+  // (TRA-243).
+  const showTag = asking && state.missing.length <= TAG_MAX_MISSING;
 
   // Packing the suitcase (TRA-239) belongs to the last turn: it sits under what
   // started it — the traveller's message or the chip of what they chose. A
   // turn that ended asking packed nothing, so once it is over its suitcase
-  // gives way to the luggage tag instead of closing (TRA-243).
+  // goes, tag or no tag, instead of closing (TRA-243, TRA-251).
   const packing =
-    !holding && state.packing && !state.packing.failed && !(showTag && !state.packing.folded)
+    !holding && state.packing && !state.packing.failed && !(asking && !state.packing.folded)
       ? state.packing
       : null;
   let turnStart = -1;

@@ -278,6 +278,25 @@ describe("ChatColumn — Kiri's answer (TRA-239)", () => {
     expect(tag.querySelector('[data-field="travellers"]')).not.toHaveTextContent(p.packing.tag.toDecide);
   });
 
+  it("shows no tag while most of the brief is still to come, only the question (TRA-251)", () => {
+    renderColumn({
+      status: "idle",
+      brief: { ...EMPTY_BRIEF },
+      missing: ["destination", "origin", "dates", "travellers", "interests"],
+      packing: { step: "zip", folded: false, warned: false, failed: false, detail: null, sources: [], live: true, daysBefore: 0 },
+      messages: [
+        { id: "m1", kind: "text", role: "user", content: "Hola" },
+        { id: "m2", kind: "text", role: "assistant", content: "¿A cuál es el destino que te gustaría explorar?" },
+      ],
+    });
+    expect(screen.queryByRole("region", { name: p.packing.tag.title })).toBeNull();
+    // Nothing was packed either: no suitcase, closed or added.
+    expect(document.querySelector("[data-packing]")).toBeNull();
+    expect(screen.queryByText(p.packing.added)).not.toBeInTheDocument();
+    // The quick replies still ask.
+    expect(screen.getByRole("button", { name: p.quickReplies.confirm })).toBeInTheDocument();
+  });
+
   it("asks with the tag even when the destination is outside the corpus (TRA-243)", () => {
     renderColumn({
       status: "idle",
