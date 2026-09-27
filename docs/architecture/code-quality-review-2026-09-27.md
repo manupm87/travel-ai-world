@@ -13,8 +13,8 @@ evidencia `fichero:línea`: core_api + travel_common (CORE), plataforma de ai_ap
 (INF) y documentación (DOC). (3) Todo lo que aquí se da por confirmado se comprobó en el código; lo
 que se arregló lleva un test que **falla sin el arreglo** (verificado deshaciendo el cambio).
 
-**Estado.** Entregado en cuatro PR, una por área y con ficheros disjuntos: #211 (TRA-252),
-#212 (TRA-253), #213 (TRA-254) y la de este informe (TRA-255). El §6 detalla qué lleva cada una.
+**Estado.** Entregado en cuatro PR, una por área y con ficheros disjuntos: TRA-252 (#211),
+TRA-253 (#212), TRA-254 (#213) y la de este informe (TRA-255). El §6 detalla qué lleva cada una.
 
 La revisión anterior ([code-quality-review.md](code-quality-review.md), 2026-09-07) es histórica:
 describe el código de la época de Postgres.
