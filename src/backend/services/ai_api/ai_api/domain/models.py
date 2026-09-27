@@ -133,7 +133,8 @@ class City:
 
 @dataclass(frozen=True, slots=True)
 class Photo:
-    """A licence-clean picture of a place, with the credit its licence asks for."""
+    """A picture of a place and the credit it carries: a Commons author and
+    licence, or the bare domain of the site whose preview it is (ADR 0021)."""
 
     url: str
     credit: str

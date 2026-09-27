@@ -15,6 +15,7 @@ from ai_api.schemas.planner_events import (
     error_event,
     options,
     patch,
+    progress,
     put_activity,
     set_day_title,
     text,
@@ -112,6 +113,28 @@ async def test_a_done_turn_is_recorded_before_done_is_yielded():
         {"group_id": "nb", "kind": "neighbourhood", "card_ids": ["a", "b"]}
     ]
     assert trace.context.ops[1]["card"] == {"id": "a", "title": "A"}
+
+
+async def test_progress_events_are_stamped_as_progress():
+    """A `progress` event (ADR 0025) is its own mark, never a second `done`."""
+    log = InMemoryTraceLog()
+    events = stream(
+        progress("open", "Opening the suitcase", []),
+        progress("list", "Writing the list", ["Wikivoyage"]),
+        text("Hola"),
+        done(),
+    )
+
+    await collect(RecordTrace(log)(tracer(), events), [])
+
+    [trace] = log.traces
+    assert trace.events == {"progress": 2, "text": 1, "done": 1}
+    assert [(m.type, m.summary) for m in trace.timeline] == [
+        ("progress", "open"),
+        ("progress", "list"),
+        ("text", ""),
+        ("done", "end"),
+    ]
 
 
 async def test_a_stream_that_just_ends_is_recorded_ok():

@@ -15,6 +15,7 @@ from pathlib import Path
 
 import pytest
 from ai_api.application.plan_trip import (
+    GENERATE_WORDS,
     PlanTrip,
     _alternatives_slot,
     city_key,
@@ -664,6 +665,39 @@ async def test_generate_in_the_message_chooses_the_stay_itself():
     assert stay.card.category == "sleep" and stay.card.district == "Belváros"
     assert ops_of(events, "put_activity")
     assert not only(events, OptionsEvent)
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        "Just generate the trip",
+        "Generate the trip",  # the page's button (en.ts)
+        "Genera el viaje",  # the page's button (es.ts)
+        "¿Puedes generar el viaje?",
+        "Choose for me",
+        "You decide",
+        "Elige tú el hotel",
+        "Sorpréndeme",
+    ],
+)
+def test_asking_for_the_whole_trip_is_read_as_generate(message: str):
+    assert GENERATE_WORDS.search(message)
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        "Is Erzsebetvaros generally quiet at night?",
+        "In general, which one is best?",
+        "I cannot decide, which is quieter?",
+        "No me decido, ¿cuál eliges tú?",
+        "Decidedly not the loud one",
+    ],
+)
+def test_a_question_is_not_a_request_to_draft_the_whole_trip(message: str):
+    """A word that merely starts like one of the phrases drafted the whole trip
+    (about ten model calls) instead of answering."""
+    assert not GENERATE_WORDS.search(message)
 
 
 async def test_changing_the_hotel_after_the_draft_keeps_the_days():

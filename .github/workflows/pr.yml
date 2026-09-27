@@ -45,19 +45,25 @@ jobs:
               - 'src/backend/pyproject.toml'
               - 'src/backend/uv.lock'
               - '.github/**'
+            # Each package's tests also read a file the other one owns (the
+            # copies kept in step by hand): a change to either side runs them.
             ai:
               - 'src/backend/services/ai_api/**'
               - 'src/backend/libs/**'
+              - 'src/backend/tools/city_corpus/data/cities.json'
               - 'src/backend/pyproject.toml'
               - 'src/backend/uv.lock'
               - '.github/**'
             corpus:
               - 'src/backend/tools/city_corpus/**'
+              - 'src/backend/services/ai_api/ai_api/infrastructure/commons_photos.py'
+              - 'src/backend/services/ai_api/ai_api/infrastructure/site_previews.py'
               - 'src/backend/pyproject.toml'
               - 'src/backend/uv.lock'
               - '.github/**'
             bench:
               - 'src/backend/tools/vector_store_bench/**'
+              - 'src/backend/tools/city_corpus/data/budapest/documents.jsonl'
               - 'src/backend/pyproject.toml'
               - 'src/backend/uv.lock'
               - '.github/**'

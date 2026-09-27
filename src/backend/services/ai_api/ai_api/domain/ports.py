@@ -5,7 +5,7 @@ Adapters in `infrastructure/` implement these; tests substitute fakes.
 
 from collections.abc import AsyncIterator, Sequence
 from datetime import date
-from typing import Any, Protocol
+from typing import Protocol
 
 from ai_api.domain.models import (
     ChatTurn,
@@ -129,14 +129,6 @@ class SitePreviewFinder(Protocol):
         """The link preview (`og:image` and its kin) of the venue's own site,
         credited with the site's bare domain."""
         ...
-
-
-class TripGateway(Protocol):
-    """The slice of core_api the AI service needs, acting as the caller."""
-
-    async def create_trip(
-        self, bearer_token: str, trip: dict[str, Any]
-    ) -> dict[str, Any]: ...
 
 
 class ConversationGateway(Protocol):

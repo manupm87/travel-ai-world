@@ -18,7 +18,7 @@ uv run uvicorn ai_api.main:app --reload --port 8001    # http://localhost:8001/a
 | Method | Path | Auth | Notes |
 |---|---|---|---|
 | `POST` | `/chat` | Bearer | SSE stream: `data: {"content"}` ×n, `data: {"thread_id"}` when the exchange was recorded, `data: {"error", "error_code"}` on failure, `data: [DONE]` |
-| `POST` | `/planner` | Bearer | The trip planner (ADR 0015): body `PlannerTurn` (message or `select`/`remove` action + brief + itinerary snapshot + transcript + `exclude_card_ids` + the page's `language`, which Kiri answers in unless the traveller's latest messages clearly read as the other one, TRA-246); SSE v2 stream of typed events (`text`, `brief`, `options`, `itinerary_patch`, `error`) then `[DONE]`; 503 without `RETRIEVAL_ENABLED`. Every card carries a photo, and a stay carries a photo of itself: a `sleep` document without an `image_url` is never offered (the corpus resolves one for every hotel it keeps, [ADR 0022](../../../../docs/architecture/adr/0022-hotel-photos-resolved-at-build-time.md)) |
+| `POST` | `/planner` | Bearer | The trip planner (ADR 0015): body `PlannerTurn` (message or `select`/`remove` action + brief + itinerary snapshot + transcript + `exclude_card_ids` + the page's `language`, which Kiri answers in unless the traveller's latest messages clearly read as the other one, TRA-246); SSE v2 stream of typed events (`text`, `brief`, `options`, `itinerary_patch`, `progress` (ADR 0025), `error`, `done`) then `[DONE]`; 503 without `RETRIEVAL_ENABLED`. Every card carries a photo, and a stay carries a photo of itself: a `sleep` document without an `image_url` is never offered (the corpus resolves one for every hotel it keeps, [ADR 0022](../../../../docs/architecture/adr/0022-hotel-photos-resolved-at-build-time.md)) |
 | `GET` | `/planner/cities` | Bearer | The cities the planner covers, from the manifest shipped with the service: `[{slug, name, centre: [lat, lon], timezone, intro, image_url, image_credit}]`. The page offers them as destinations and introduces the chosen one: `intro` is the city's description per language (`{en: {text, source_url}}`, from its Wikivoyage lead, CC BY-SA 4.0), `image_url` its photo on Commons and `image_credit` the line to print beside it (both `null` for a city whose TOML has no `[hero]`) |
 | `GET` | `/planner/card?id=` | Bearer | One card in full (`CardDetail`): the `OptionCard` fields plus `description` (the corpus document's text, trimmed at a sentence boundary), `address`, `phone`, `website`, `heading_path`. The id is a corpus document id (slashes and colons, hence a query parameter); 404 when the index does not hold it, 503 without `RETRIEVAL_ENABLED`. Additive over `OptionCard` but not a replacement for one: `why` comes back empty (the model writes it per turn) and `image_url`/`image_credit` are the corpus's own (for a hotel, the photo and the credit line the build resolved, ADR 0022), a Commons lookup's or the venue's site preview (ADR 0021), `null` when none of the three has a photo — where the streamed card carries a fallback picture. A client holding the card merges the detail onto it (keeping that card's `why`, and its photo with its credit when the detail brings none) |
 | `GET` | `/admin/turns` | Admin | Turns by `session` (oldest first), else `day` (`YYYY-MM-DD`), else `subject` (both newest first); filters `kind`, `status`, `subject`, `trip_id`, `city`; `cursor`, `limit` (1–200, 50). 400 without `day`, `subject` or `session`. See [Admin reads](#admin-reads-tra-221) |
@@ -34,7 +34,7 @@ cannot send one). `thread_id` is optional: without it the answer starts a new co
 stream ends with the id to send back next time.
 
 The planner's body (`schemas/planner.py`) has no optional field: every turn carries `message`,
-`action`, `history`, `brief`, `itinerary`, `exclude_card_ids` and `trip_id`, `null` or empty when
+`action`, `history`, `brief`, `itinerary`, `exclude_card_ids`, `trip_id`, `session_id` and `language`, `null` or empty when
 there is nothing to say. Two of them drive the "Change" sheet (TRA-184). The page's own ask names
 the slot and, after a colon, what the traveller wants instead:
 `Alternatives for day 2 · afternoon: a thermal bath`
@@ -78,7 +78,7 @@ ai_api/
 ├── prompts.py      CHAT_SYSTEM_PROMPT, RAG_CONTEXT_PROMPT, format_context(), the planner prompts and its fixed en/es sentences
 ├── openapi.py      registers the planner's stream models in the OpenAPI document (no route declares them)
 ├── indexing.py     python -m ai_api.indexing <documents.jsonl>: fills the vector index (just index)
-├── domain/         models.py (Message, Document, RetrievalFilters, GenerationParams, Usage, ChatTrace, ChatTurn, DayWeather, RouteSuggestion) · ports.py (LLMProvider, Embedder, Retriever, WeatherForecast, TripGateway, ConversationGateway)
+├── domain/         models.py (Message, Document, RetrievalFilters, GenerationParams, Usage, ChatTrace, ChatTurn, DayWeather, RouteSuggestion) · ports.py (LLMProvider, Embedder, Retriever, WeatherForecast, PhotoFinder, SitePreviewFinder, ConversationGateway, TraceLog) · tracing.py (the turn trace, ADR 0024)
 ├── application/    stream_chat.py, record_conversation.py, plan_trip.py, card_detail.py — the use cases, depend only on ports · structured.py (JSON out of a completion) · cards.py · photos.py · validate.py · language.py
 ├── infrastructure/ nvidia_provider.py · bedrock_provider.py · bedrock_embedder.py · bedrock.py (client config and retry rules both Bedrock adapters share) · s3vectors.py (client, keys, metadata split) · s3vectors_retriever.py · providers.py (settings → adapters) · open_meteo.py · static_flight_search.py (+ data/airports.json) · cities.py (+ data/cities.json, the cities manifest the corpus tool writes) · commons_photos.py · site_previews.py (the image a venue publishes on its own site, ADR 0021; the corpus does the same for hotels at build time, ADR 0022) · sse.py · retry.py · core_api_client.py
 ├── api/            deps.py (wiring) · v1/endpoints/chat.py, planner.py, admin.py (trace reads, admins only), health.py
@@ -98,13 +98,13 @@ third one is a new class in `infrastructure/` implementing `LLMProvider`, added 
 boto3. There is no API key: the Lambda's IAM role (Terraform, `infra/aws/lambda.tf`) or your SSO
 session (`just aws-login`, `AWS_PROFILE`) signs the requests. `BEDROCK_CHAT_MODEL` and
 `BEDROCK_TITLE_MODEL` are cross-region inference profiles (`eu.` prefix: Claude Haiku 4.5 for
-answers, Amazon Nova Lite for short jobs such as conversation titles), so requests stay inside the
+answers; Nova Lite in `BEDROCK_TITLE_MODEL` is configured and granted but no feature calls it yet), so requests stay inside the
 EU; `BEDROCK_REGION` is where the profile lives. Anthropic models need the one-time use-case form in
 the Bedrock console before the first call (an `AccessDeniedException` in the logs means it is
 missing). Only `CHAT_TEMPERATURE` is sent (Claude 4.5+ refuses `top_p` alongside it); retries follow
 the same `RetryPolicy` as NVIDIA and happen only before the first delta.
-`BedrockProvider.complete()` returns one non-streamed answer, optionally from another model
-(`model=`), for the title generator. The final stream event's token usage is logged
+`BedrockProvider.complete()` returns one non-streamed answer (the planner's structured calls);
+its `model=` override is unused. The final stream event's token usage is logged
 (`Bedrock usage ...`) so costs can be reconciled with Cost Explorer.
 
 ## Retrieval (`RETRIEVAL_ENABLED`)
@@ -157,9 +157,10 @@ about 0.01 USD.
 
 ## Recorded conversations
 
-Every answered exchange is kept in `core_api` (tables `chat_threads` and `chat_messages`,
-[ADR 0013](../../../../docs/architecture/adr/0013-chat-conversations-in-core-api.md)): `ai_api` has
-no database, so it posts them over HTTP with the caller's own token. The answer carries what it was
+Every answered exchange is kept by `core_api` as thread and message items in its DynamoDB table
+([ADR 0013](../../../../docs/architecture/adr/0013-chat-conversations-in-core-api.md), ADR 0023):
+`ai_api` never reads that table (its only storage is its trace table, ADR 0024), so it posts them
+over HTTP with the caller's own token. The answer carries what it was
 built on (the retrieved documents), the model, the token counts and how long it took, which is what
 makes a test conversation reviewable afterwards.
 

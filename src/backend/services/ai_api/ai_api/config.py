@@ -55,9 +55,9 @@ class AISettings(CommonSettings, DynamoSettings):
 
     # Retrieval (ADR 0014). The chat grounds its answers in a corpus of city
     # documents kept in an Amazon S3 Vectors index, searched with the same
-    # credentials Bedrock uses. Off by default and off in the cloud until an
-    # index holds a corpus: with the flag down the chat answers from the
-    # model's own knowledge, exactly as it did before.
+    # credentials Bedrock uses. Off by default locally, on when deployed
+    # (Terraform `retrieval_enabled`); with the flag down the chat answers from
+    # the model's own knowledge and the planner answers 503.
     RETRIEVAL_ENABLED: bool = False
     RETRIEVAL_LIMIT: int = 6
     VECTOR_BUCKET: str = "travel-ai-vectors"

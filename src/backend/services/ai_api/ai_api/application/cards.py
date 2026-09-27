@@ -109,8 +109,9 @@ def detail_from_document(document: Document, why: str = "") -> CardDetail:
     reads them — which is *not* what the browser was streamed: `image_url`
     and `image_credit` are `None` for every document the corpus has no photo
     of (most restaurants, bars, hotels and tours), where the streamed card
-    carries a Wikimedia Commons photo, a same-category corpus photo or the
-    placeholder from `application/photos`; and `why` is empty unless the
+    carries a Wikimedia Commons photo, its site's preview, a neighbourhood's
+    borrowed district photo or the placeholder from `application/photos`
+    (ADR 0021); and `why` is empty unless the
     caller passes the sentence the model wrote for that turn.
 
     So a client that already holds the card must merge the detail onto it

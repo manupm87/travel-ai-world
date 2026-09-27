@@ -3284,7 +3284,7 @@
     },
     "/api/v1/ai/planner": {
       "post": {
-        "description": "Stream the planner's answer to one turn for the authenticated user.\n\nThe service keeps no state: the turn carries the brief, the itinerary\nsnapshot and the transcript. Events are discriminated on `type` (`text`,\n`brief`, `options`, `itinerary_patch`, `error`, `done`); the stream ends\nwith `data: [DONE]`. Needs retrieval (`RETRIEVAL_ENABLED`): every card is\na corpus document, so without a store the endpoint answers 503. The\nturn's trace is written to the interactions table before `[DONE]`\n(ADR 0024).",
+        "description": "Stream the planner's answer to one turn for the authenticated user.\n\nThe service keeps no state: the turn carries the brief, the itinerary\nsnapshot and the transcript. Events are discriminated on `type` (`text`,\n`brief`, `options`, `itinerary_patch`, `progress`, `error`, `done`); the\nstream ends with `data: [DONE]`. Needs retrieval (`RETRIEVAL_ENABLED`):\nevery card is a corpus document, so without a store the endpoint answers\n503. The turn's trace is written to the interactions table before\n`[DONE]` (ADR 0024).",
         "operationId": "planner_api_v1_ai_planner_post",
         "requestBody": {
           "content": {

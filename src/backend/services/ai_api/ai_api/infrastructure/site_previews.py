@@ -17,6 +17,7 @@ falls back.
 import ipaddress
 import logging
 import re
+import socket
 import time
 from collections.abc import Callable
 from html.parser import HTMLParser
@@ -181,18 +182,31 @@ class SitePreviews:
                 return None
             final_url, body, encoding = page
             candidate = best_candidate(body.decode(encoding, errors="replace"))
-        except (httpx.HTTPError, UnicodeError, ValueError, LookupError) as exc:
+        # `InvalidURL` is not an `HTTPError`: a URL httpx cannot even build.
+        except (
+            httpx.HTTPError,
+            httpx.InvalidURL,
+            UnicodeError,
+            ValueError,
+            LookupError,
+        ) as exc:
             logger.warning("Site preview lookup failed for %r: %s", site_url, exc)
             return None
         if candidate is None:
             return None
         image = absolute_image(final_url, candidate)
-        if image is None or LOGO_PATH.search(urlsplit(image).path):
+        # The page names the image, so the image's host goes through the same
+        # refusals as the site's before the `HEAD`, as in the corpus twin.
+        if (
+            image is None
+            or not fetchable(image)
+            or LOGO_PATH.search(urlsplit(image).path)
+        ):
             return None
         try:
             if not await self._is_a_picture(image):
                 return None
-        except httpx.HTTPError as exc:
+        except (httpx.HTTPError, httpx.InvalidURL) as exc:
             logger.warning("Site preview image check failed for %r: %s", image, exc)
             return None
         return Photo(url=image, credit=credit_for(final_url))
@@ -288,6 +302,14 @@ def fetchable(site_url: str) -> bool:
     try:
         ipaddress.ip_address(host)
     except ValueError:
+        pass
+    else:
+        return False
+    # The resolver also reads `127.1`, `0x7f.1` or `2130706433` as an address,
+    # spellings `ip_address` refuses: they are IP literals all the same.
+    try:
+        socket.inet_aton(host)
+    except OSError:
         pass
     else:
         return False

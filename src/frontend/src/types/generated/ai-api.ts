@@ -175,11 +175,11 @@ export interface paths {
          *
          *     The service keeps no state: the turn carries the brief, the itinerary
          *     snapshot and the transcript. Events are discriminated on `type` (`text`,
-         *     `brief`, `options`, `itinerary_patch`, `error`, `done`); the stream ends
-         *     with `data: [DONE]`. Needs retrieval (`RETRIEVAL_ENABLED`): every card is
-         *     a corpus document, so without a store the endpoint answers 503. The
-         *     turn's trace is written to the interactions table before `[DONE]`
-         *     (ADR 0024).
+         *     `brief`, `options`, `itinerary_patch`, `progress`, `error`, `done`); the
+         *     stream ends with `data: [DONE]`. Needs retrieval (`RETRIEVAL_ENABLED`):
+         *     every card is a corpus document, so without a store the endpoint answers
+         *     503. The turn's trace is written to the interactions table before
+         *     `[DONE]` (ADR 0024).
          */
         post: operations["planner_api_v1_ai_planner_post"];
         delete?: never;

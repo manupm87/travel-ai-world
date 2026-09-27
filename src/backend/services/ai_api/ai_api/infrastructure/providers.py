@@ -31,7 +31,7 @@ def build_llm_provider(settings: AISettings) -> ChatProvider:
 def build_retriever(settings: AISettings) -> S3VectorsRetriever | None:
     """The vector store the chat searches, or None when retrieval is off.
 
-    Off is the default, and the deployed value until an index holds a corpus:
+    Off is the local default (on when deployed, Terraform `retrieval_enabled`):
     the chat then answers from the model's own knowledge and reaches no store.
     """
     if not settings.RETRIEVAL_ENABLED:

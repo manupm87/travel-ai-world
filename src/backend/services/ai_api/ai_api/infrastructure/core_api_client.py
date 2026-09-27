@@ -1,5 +1,4 @@
-"""TripGateway and ConversationGateway adapter: talk to core_api over HTTP as
-the calling user.
+"""ConversationGateway adapter: talk to core_api over HTTP as the calling user.
 
 The user's own bearer token is forwarded, so core_api applies exactly the
 permissions it would apply to the browser. No service-to-service secret.
@@ -47,11 +46,6 @@ class CoreApiClient:
     ) -> None:
         self._base = f"{base_url.rstrip('/')}{api_prefix}"
         self._client_factory = client_factory
-
-    async def create_trip(
-        self, bearer_token: str, trip: dict[str, Any]
-    ) -> dict[str, Any]:
-        return await self._post(bearer_token, "/trips/", trip)
 
     async def start_thread(self, bearer_token: str) -> str:
         thread = await self._post(bearer_token, "/chat-threads/", {})

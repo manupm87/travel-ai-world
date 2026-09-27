@@ -37,7 +37,6 @@ from ai_api.domain.tracing import (
     PREVIEW_CHARS,
     EventMark,
     Kind,
-    Level,
     Phase,
     RetrievedDoc,
     Span,
@@ -565,29 +564,6 @@ async def traced_llm_stream(
             span.payload["output_truncated"] = cut
 
 
-async def traced_complete(
-    provider: LLMProvider,
-    messages: Sequence[Message],
-    *,
-    name: str,
-    tracer: TurnTracer | None = None,
-    template: str | None = None,
-    usage: Usage | None = None,
-) -> str:
-    """`provider.complete` inside an `llm` span (a whole answer, not streamed)."""
-    tracer = tracer or current_tracer()
-    usage = usage if usage is not None else Usage()
-    payload = llm_payload(
-        tracer, provider, messages, operation="chat", template=template
-    )
-    async with tracer.span("llm", name, **payload) as span:
-        span.payload["attempts"] = 1
-        answer = await provider.complete(messages, usage=usage)
-        fill_usage(span, usage)
-        span.payload["output"], span.payload["output_truncated"] = tracer.clip(answer)
-        return answer
-
-
 # ─── Small helpers ──────────────────────────────────────────────────────────
 
 
@@ -633,7 +609,3 @@ def _compact_op(op: dict[str, Any]) -> dict[str, Any]:
     if isinstance(card, dict):
         compact["card"] = {"id": card.get("id"), "title": card.get("title")}
     return compact
-
-
-def level_for(warned: bool) -> Level:
-    return "warning" if warned else "default"

@@ -203,6 +203,11 @@ async def test_the_body_is_not_read_past_the_limit() -> None:
         "https://user:pass@samm.example/",
         "http://192.168.0.10/",
         "https://[2001:db8::1]/",
+        # Shorthand spellings the resolver reads as addresses (the Lambda
+        # runtime API listens on 127.0.0.1:9001).
+        "http://127.1:9001/2018-06-01/runtime/invocation/next",
+        "http://0x7f.1/",
+        "http://10.1/",
         "http://localhost:8000/",
         "http://intranet",
         "http://printer.local/",
@@ -229,6 +234,25 @@ async def test_a_redirect_to_a_host_that_may_not_be_fetched_stops_there() -> Non
 
     assert await _previews(handler).preview(SITE) is None
     assert [str(r.url) for r in seen] == [SITE]
+
+
+async def test_an_image_on_a_host_that_may_not_be_fetched_gets_no_head() -> None:
+    """The page names its image: a third party's page may point it anywhere."""
+    handler, seen = _serving(
+        _html('<meta property="og:image" content="https://10.0.0.5:8443/photo.jpg">')
+    )
+
+    assert await _previews(handler).preview(SITE) is None
+    assert [r.method for r in seen] == ["GET"]
+
+
+async def test_an_image_url_httpx_cannot_build_is_none_not_an_error() -> None:
+    """`httpx.InvalidURL` is not an `HTTPError`; the port promises never to raise."""
+    handler, _ = _serving(
+        _html('<meta property="og:image" content="https://bad\x7fhost.com/a.jpg">')
+    )
+
+    assert await _previews(handler).preview(SITE) is None
 
 
 async def test_more_hops_than_allowed_is_none() -> None:

@@ -29,8 +29,8 @@ async def test_forwards_the_callers_token_and_returns_the_body():
         seen["url"] = str(request.url)
         return httpx.Response(201, json={"id": 7})
 
-    assert await _client(handler).create_trip("tok", {"name": "x"}) == {"id": 7}
-    assert seen == {"auth": "Bearer tok", "url": "http://core/api/v1/trips/"}
+    assert await _client(handler).start_thread("tok") == "7"
+    assert seen == {"auth": "Bearer tok", "url": "http://core/api/v1/chat-threads/"}
 
 
 @pytest.mark.parametrize(
@@ -42,7 +42,7 @@ async def test_core_api_errors_are_reraised_as_domain_errors(status, error):
         return httpx.Response(status, json={"detail": "from core"})
 
     with pytest.raises(error, match="from core"):
-        await _client(handler).create_trip("tok", {})
+        await _client(handler).start_thread("tok")
 
 
 async def test_unexpected_status_and_network_errors_are_provider_unavailable():
@@ -53,9 +53,9 @@ async def test_unexpected_status_and_network_errors_are_provider_unavailable():
         raise httpx.ConnectError("down")
 
     with pytest.raises(ProviderUnavailable):
-        await _client(bad_gateway).create_trip("tok", {})
+        await _client(bad_gateway).start_thread("tok")
     with pytest.raises(ProviderUnavailable):
-        await _client(unreachable).create_trip("tok", {})
+        await _client(unreachable).start_thread("tok")
 
 
 async def test_conversations_start_a_thread_and_append_turns_as_the_caller():

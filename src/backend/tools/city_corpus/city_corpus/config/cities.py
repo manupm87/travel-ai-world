@@ -156,7 +156,9 @@ def _inside_the_tool(where: str, key: str, data: dict[str, Any]) -> str | None:
     if value is None:
         return None
     path = Path(str(value))
-    if path.is_absolute() or ".." in path.parts:
+    # `anchor`, not `is_absolute()`: on Windows `/etc/f.toml` is not absolute
+    # (no drive), yet joined to the tool folder it replaces the whole path.
+    if path.anchor or ".." in path.parts:
         raise CityConfigError(f"{where} {key}: must be a path inside the tool folder")
     return str(value)
 

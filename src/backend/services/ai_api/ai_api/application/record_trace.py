@@ -30,6 +30,7 @@ from ai_api.schemas.planner_events import (
     ItineraryPatchEvent,
     OptionsEvent,
     PlannerEvent,
+    ProgressEvent,
     TextEvent,
 )
 
@@ -148,10 +149,14 @@ def _stamp_planner(tracer: TurnTracer, event: PlannerEvent) -> None:
             for name, n in counts.items()
         )
         tracer.event("itinerary_patch", summary, size)
+    elif isinstance(event, ProgressEvent):
+        tracer.event("progress", event.step, size)
     elif isinstance(event, ErrorEvent):
         tracer.event("error", event.error_code, size)
-    else:
+    elif isinstance(event, DoneEvent):
         tracer.event("done", "end", size)
+    else:  # an event added to the union later: stamped as itself, never as `done`
+        tracer.event(event.type, "", size)
 
 
 def _stamp_chat(tracer: TurnTracer, event: str | ThreadSaved) -> None:

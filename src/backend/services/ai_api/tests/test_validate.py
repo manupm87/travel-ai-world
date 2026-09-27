@@ -289,6 +289,15 @@ class TestStripPrices:
             ("20 usd", "(price not shown)"),
             ("gbp 10", "(price not shown)"),
             ("10 gbp", "(price not shown)"),
+            # Spelled-out currencies are whole words: no "(price not shown)os".
+            (
+                "Entrada de 12 euros por persona",
+                "Entrada de (price not shown) por persona",
+            ),
+            ("desde 1 euro", "desde (price not shown)"),
+            ("Tickets from 20 dollars", "Tickets from (price not shown)"),
+            ("15 dólares", "(price not shown)"),
+            ("5 000 Ft entry", "(price not shown) entry"),
         ],
     )
     def test_strips_amounts_with_a_currency(self, text: str, expected: str) -> None:
@@ -312,6 +321,8 @@ class TestStripPrices:
             "The tower is 96 ft high",
             "for the win",
             "forintxyz nonsense word",
+            "12 europeans",
+            "Eurostar from London",
         ],
     )
     def test_never_strips_bare_numbers(self, text: str) -> None:

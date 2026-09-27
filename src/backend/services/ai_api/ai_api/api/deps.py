@@ -26,7 +26,6 @@ from ai_api.domain.ports import (
     Retriever,
     SitePreviewFinder,
     TraceLog,
-    TripGateway,
     WeatherForecast,
 )
 from ai_api.domain.tracing import Kind
@@ -138,10 +137,6 @@ def get_card_detail(
     if retriever is None:
         raise ProviderUnavailable("Card details need retrieval (RETRIEVAL_ENABLED)")
     return CardDetailLookup(retriever, photos=photos, previews=previews, cities=cities)
-
-
-def get_trip_gateway(settings: AISettings = Depends(get_settings)) -> TripGateway:
-    return CoreApiClient(settings.CORE_API_URL, settings.API_V1_STR)
 
 
 def get_conversation_gateway(

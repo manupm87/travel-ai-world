@@ -135,16 +135,20 @@ NAMED_LIMIT = 10
 NAMED_COUNT = 3
 """Most places one ask may name and see offered first (TRA-186)."""
 
-# Activities per part of the day, by pace. The draft is complete on its own
-# (decision 8): every part listed here gets filled when the corpus allows.
+# Activities per part of the day, by pace. The draft is complete on its own:
+# every part listed here gets filled when the corpus allows.
 PART_PLAN: dict[Pace, dict[DayPart, int]] = {
     "relaxed": {"morning": 1, "afternoon": 1, "evening": 1},
     "balanced": {"morning": 1, "afternoon": 1, "evening": 1, "night": 1},
     "intense": {"morning": 2, "afternoon": 2, "evening": 1, "night": 1},
 }
 
+# Whole phrases only (the closing `\b`): "generally", "in general" or "I cannot
+# decide" are questions to answer, not a request to draft the whole trip. The
+# page's button sends "Generate the trip" / "Genera el viaje".
 GENERATE_WORDS = re.compile(
-    r"\b(generate|generar|genera|choose for me|elige|decide|sorpr[eé]nd)",
+    r"\b(?:generate|generar|genera|choose for me|you decide|decide for me"
+    r"|decide t[uú]|elige t[uú]|elige por m[ií]|sorpr[eé]nde(?:me|nos))\b",
     re.IGNORECASE,
 )
 ALTERNATIVES_ASK = re.compile(
@@ -267,7 +271,7 @@ class Turn:
     stay_id: str | None
     used_ids: set[str] = field(default_factory=set)
     used_titles: list[frozenset[str]] = field(default_factory=list)
-    # A corpus photo per category (or district), searched once per turn even
+    # A neighbourhood's borrowed corpus photo, by district, searched once per turn even
     # when several cards ask at the same time (they await the same task).
     corpus_photos: dict[str, asyncio.Task[Photo | None]] = field(default_factory=dict)
     # The request's trace (ADR 0024); records nothing outside a request.

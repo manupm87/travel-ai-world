@@ -52,6 +52,7 @@ import ipaddress
 import logging
 import math
 import re
+import socket
 import unicodedata
 from collections import defaultdict
 from collections.abc import Callable, Mapping, Sequence
@@ -1246,6 +1247,14 @@ def fetchable(site_url: str) -> bool:
     try:
         ipaddress.ip_address(host)
     except ValueError:
+        pass
+    else:
+        return False
+    # The resolver also reads `127.1`, `0x7f.1` or `2130706433` as an address,
+    # spellings `ip_address` refuses: they are IP literals all the same.
+    try:
+        socket.inet_aton(host)
+    except OSError:
         pass
     else:
         return False

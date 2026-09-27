@@ -6,6 +6,7 @@ exercises them. Every handler records its requests, which is how "the second run
 makes no request" is asserted.
 """
 
+import ast
 import datetime as dt
 import json
 from collections.abc import Callable
@@ -676,6 +677,74 @@ def test_the_twin_in_ai_api_is_kept_word_for_word() -> None:
         ]
 
     assert block(tool) == block(service)
+
+
+# The site rules `ai_api/infrastructure/site_previews.py` repeats at request
+# time. `absolute_image` is left out: the tool's copy also unescapes HTML
+# entities, a known difference (audit 2026-09-27, TOOL-8).
+SITE_RULES = (
+    "PRIVATE_SUFFIXES",
+    "DENIED_HOSTS",
+    "SECOND_LEVEL",
+    "JUNK_PATH",
+    "LOGO_PATH",
+    "META_RANKS",
+    "IMAGE_SRC_RANK",
+    "SECURE_URL",
+    "fetchable",
+    "registrable_domain",
+    "same_site",
+    "credit_for",
+    "_PreviewParser",
+    "best_candidate",
+)
+
+
+def _definitions(source: str) -> dict[str, ast.AST]:
+    """Top-level functions, classes and constants by name, docstrings dropped
+    (each copy explains itself in its own words)."""
+    found: dict[str, ast.AST] = {}
+    for node in ast.parse(source).body:
+        if isinstance(node, ast.FunctionDef | ast.ClassDef):
+            name = node.name
+        elif isinstance(node, ast.Assign | ast.AnnAssign):
+            target = node.targets[0] if isinstance(node, ast.Assign) else node.target
+            if not isinstance(target, ast.Name):
+                continue
+            name = target.id
+        else:
+            continue
+        for inner in ast.walk(node):
+            if (
+                isinstance(inner, ast.FunctionDef | ast.ClassDef)
+                and inner.body
+                and isinstance(inner.body[0], ast.Expr)
+                and isinstance(inner.body[0].value, ast.Constant)
+                and isinstance(inner.body[0].value.value, str)
+            ):
+                inner.body = inner.body[1:] or [ast.Pass()]
+        found[name] = node
+    return found
+
+
+def test_the_site_rules_in_ai_api_are_kept_in_step() -> None:
+    """The site preview a hotel gets at build time and the one a card gets at
+    request time follow the same rules; the copies may not drift."""
+    twin = (
+        Path(photos.__file__).parents[4]
+        / "services/ai_api/ai_api/infrastructure/site_previews.py"
+    )
+    if not twin.exists():  # the tool alone, without the services tree
+        pytest.skip("ai_api is not checked out beside the tool")
+    tool = _definitions(Path(photos.__file__).read_text(encoding="utf-8"))
+    service = _definitions(twin.read_text(encoding="utf-8"))
+
+    for name in SITE_RULES:
+        assert ast.unparse(tool[name]) == ast.unparse(service[name]), name
+    group_domains = service["GROUP_DOMAINS"]
+    assert isinstance(group_domains, ast.Assign | ast.AnnAssign)
+    assert group_domains.value is not None
+    assert ast.literal_eval(group_domains.value) == hotel_groups.GROUP_DOMAINS
 
 
 # ─── A picture two hotels claim is neither one's ─────────────────────────────

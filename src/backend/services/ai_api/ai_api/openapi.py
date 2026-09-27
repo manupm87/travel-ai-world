@@ -5,8 +5,8 @@ types and `just contracts` would not generate them for the frontend. This
 wraps `app.openapi()` and adds them to `components.schemas`, in serialization
 mode (what the server writes), under the names the frontend imports:
 `PlannerEvent` and `ItineraryOp` for the two unions, and one entry per model.
-The request, `PlannerTurn`, is added in validation mode (what the server
-reads) so the frontend can type it before the endpoint exists.
+The request, `PlannerTurn`, is declared by the route itself; its entry here
+(validation mode, what the server reads) only keeps it if that ever changes.
 """
 
 from typing import Any, Literal

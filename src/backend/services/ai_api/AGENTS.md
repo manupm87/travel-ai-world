@@ -10,13 +10,14 @@ imports `core_api`.
 domain/         Message, ChatRole, Document, RetrievalFilters, GenerationParams, Usage, ChatTrace, ChatTurn, ThreadSaved,
                 DayWeather, RouteSuggestion
                 + Protocols: LLMProvider (stream + complete), Embedder, Retriever (search + fetch), WeatherForecast,
-                TripGateway, ConversationGateway, TraceLog
+                PhotoFinder, SitePreviewFinder, ConversationGateway, TraceLog
                 tracing.py: TurnTrace, Span, RetrievedDoc, EventMark, TurnContext (ADR 0024) and the read models
                 TurnSummary, TurnDetail, TurnFilters, TurnPage (TRA-221)
 application/    use cases (StreamChat, RecordConversation, PlanTrip, CardDetailLookup) and their pure helpers:
                 structured.py (complete_json: JSON out of `LLMProvider.complete`, one repair retry), cards.py
                 (OptionCard — and the fuller CardDetail — from a Document), validate.py (distance, load, closed,
-                prices), language.py. Depend only on domain ports.
+                prices), language.py. Depend on domain ports and on `schemas/` (the use cases emit the
+                wire events, ADR 0015); `plan_trip.py` also imports the pure `static_flight_search.route_for`.
 infrastructure/ adapters: nvidia_provider.py, bedrock_provider.py, bedrock_embedder.py, bedrock.py (shared by both
                 Bedrock adapters), s3vectors.py + s3vectors_retriever.py, providers.py (settings → adapters),
                 open_meteo.py (forecast), static_flight_search.py + data/airports.json (route deep links),
@@ -91,7 +92,8 @@ testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, Ke
   `source_url`) and `image_url`/`image_credit` (ADR 0017) — and `load_cities` tolerates an older
   manifest that has neither.
 - The corpus contract is mirrored in `indexing.CorpusDocument`, never imported from `city_corpus`.
-- Persisting planner results goes through `TripGateway` with the caller's token.
+- The planner saves nothing: the browser saves the trip through core_api (`saveDraftAsTrip`,
+  ADR 0019). What ai_api writes to core_api is the chat's conversation (`ConversationGateway`).
 - **The planner (`POST /api/v1/ai/planner`, ADR 0015)** is `application/plan_trip.py`: stateless, driven by the
   request (brief + itinerary snapshot + transcript + message or `select`/`remove` action). Group ids carry their
   meaning (`nb`, `hotels:<district>`, `slot:<day>:<part>`) so a selection is read back without a session. The
@@ -139,7 +141,8 @@ testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, Ke
   `app.openapi()` and adds `PlannerEvent`, `ItineraryOp`, `PlannerTurn` and their models to
   `components.schemas`: any new event or op only needs to join the union, then `just contracts`.
 - **The planner tells its progress (TRA-242, ADR 0025).** A phase is set with `turn.phase(name)`
-  (never `tracer.phase` directly inside `PlanTrip`): it marks the trace and, unless
+  (never `tracer.phase` directly once the `Turn` exists; `__call__` marks `open` itself, before it
+  reads the request): it marks the trace and, unless
   `announce=False`, tells `PackingProgress` (`application/progress.py`), whose `progress` event
   `PlanTrip._with_progress` puts on the stream at once — the turn runs as a task feeding a queue,
   so the event reaches the page while the step's model call is still running. Steps only move

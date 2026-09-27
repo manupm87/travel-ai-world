@@ -46,7 +46,7 @@ LAST_RESORT = Photo(
     url="data:image/svg+xml," + quote(_PLACEHOLDER_SVG),
     credit=f"{ILLUSTRATIVE} · placeholder",
 )
-"""A neutral picture for a corpus with no photo of that category at all."""
+"""A neutral picture for a card nothing else could picture (ADR 0021)."""
 
 
 async def ensure_photos(

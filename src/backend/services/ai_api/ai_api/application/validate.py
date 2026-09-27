@@ -280,13 +280,19 @@ def closed_warnings(
 
 _CURRENCY_SYMBOLS = "€$£"
 # "Ft" only capitalised (never lowercase "ft", the imperial unit); the other
-# three-letter codes and the spelled-out forint are safe in lowercase too.
-_CURRENCY_WORDS = "EUR|USD|GBP|HUF|Ft|eur|usd|gbp|huf|(?i:forints?)"
-_AMOUNT = r"\d+(?:[.,]\d+)*"
+# three-letter codes and the spelled-out currencies are safe in lowercase too.
+_CURRENCY_WORDS = (
+    "EUR|USD|GBP|HUF|Ft|eur|usd|gbp|huf|(?i:euros?|dollars?|d[oó]lares|forints?)"
+)
+# A currency word ends where the letters end ("12 euros" is not "12 eur" plus
+# "os"), but may run into its amount ("Ft2200"): not followed by a letter.
+_WORD_END = r"(?![^\W\d_])"
+# Thousands may be grouped with a (narrow) space: "5 000 Ft".
+_AMOUNT = r"\d+(?:[ \u00a0\u202f]\d{3})*(?:[.,]\d+)*"
 _PRICE_RE = re.compile(
     rf"""
-    (?:[{_CURRENCY_SYMBOLS}]|\b(?:{_CURRENCY_WORDS}))\s?{_AMOUNT}
-    |{_AMOUNT}\s?(?:[{_CURRENCY_SYMBOLS}]|\b(?:{_CURRENCY_WORDS}))
+    (?:[{_CURRENCY_SYMBOLS}]|\b(?:{_CURRENCY_WORDS}){_WORD_END})\s?{_AMOUNT}
+    |{_AMOUNT}\s?(?:[{_CURRENCY_SYMBOLS}]|\b(?:{_CURRENCY_WORDS}){_WORD_END})
     """,
     re.VERBOSE,
 )
