@@ -43,7 +43,7 @@ import type { Slot } from "@/types/planner";
  * elsewhere) drops the draft too, and the pane offers a new trip.
  */
 export default function PlannerClientPage() {
-  const { t } = useLanguage();
+  const { t, resolved: languageResolved } = useLanguage();
   const router = useRouter();
   const params = useSearchParams();
   const query = params.get("q");
@@ -197,10 +197,12 @@ export default function PlannerClientPage() {
   const sentQuery = useRef(false);
   const hasMessages = state.messages.length > 0;
   useEffect(() => {
-    if (sentQuery.current || !query?.trim() || hasMessages) return;
+    // The first turn goes out in the traveller's language, not the default
+    // the page renders with until it has read theirs (TRA-246).
+    if (sentQuery.current || !query?.trim() || hasMessages || !languageResolved) return;
     sentQuery.current = true;
     sendMessage(query);
-  }, [query, hasMessages, sendMessage]);
+  }, [query, hasMessages, sendMessage, languageResolved]);
 
   const errorText = state.error ? t.plan.errors[state.error] : null;
 

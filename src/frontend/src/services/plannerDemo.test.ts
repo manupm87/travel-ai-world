@@ -33,6 +33,7 @@ function turn(overrides: Partial<PlannerTurn> = {}): PlannerTurn {
     exclude_card_ids: [],
     trip_id: null,
     session_id: null,
+    language: "en",
     ...overrides,
   };
 }

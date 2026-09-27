@@ -65,3 +65,7 @@ climate normals otherwise.
   which the turn spends like the ones in the itinerary. Statelessness is why it exists: the server
   cannot remember what it showed a minute ago, so the page tells it. The guidance for a "Change"
   needed no new field either: it travels inside the page's own ask message, after a colon.
+- 2026-09-27 (TRA-246): `PlannerTurn` gained `language` — the page's language. Guessing it from
+  the text alone flipped on ties and on a bare city name (a Spanish "voy a Bolonia" read as
+  English), so the page's language is now the answer unless the traveller's last few messages
+  clearly read as the other one. The page keeps the traveller's choice in `localStorage`.

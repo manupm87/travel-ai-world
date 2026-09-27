@@ -173,8 +173,11 @@ def _describe_op(op: dict[str, Any]) -> str:
 
 
 class Session:
-    def __init__(self, plan: PlanTrip, tally: Tally, *, out: Any, quiet: bool) -> None:
+    def __init__(
+        self, plan: PlanTrip, tally: Tally, *, out: Any, quiet: bool, language: str
+    ) -> None:
         self._plan = plan
+        self._language = language
         self._tally = tally
         self._out = out
         self._quiet = quiet
@@ -194,6 +197,7 @@ class Session:
                 "exclude_card_ids": [],
                 "trip_id": None,
                 "session_id": None,
+                "language": self._language,
             }
         )
         label = message or json.dumps(action, ensure_ascii=False)
@@ -259,7 +263,7 @@ async def run(args: argparse.Namespace, out: Any) -> int:
         previews=previews,
         cities=[city_of(args.city)],
     )
-    session = Session(plan, tally, out=out, quiet=args.quiet)
+    session = Session(plan, tally, out=out, quiet=args.quiet, language=args.lang)
     out.write(
         f"city={args.city} lang={args.lang} model={args.model} "
         f"documents={len(documents)} "

@@ -121,6 +121,7 @@ def turn(
     days: list[dict[str, list[str]]] | None = None,
     history: Sequence[tuple[str, str]] = (),
     exclude: Sequence[str] = (),
+    language: str = "en",
 ) -> PlannerTurn:
     itinerary = None
     if stay is not None or days is not None:
@@ -150,6 +151,7 @@ def turn(
             "exclude_card_ids": list(exclude),
             "trip_id": None,
             "session_id": None,
+            "language": language,
         }
     )
 
@@ -308,6 +310,17 @@ async def test_the_not_covered_text_names_every_covered_city_in_the_users_langua
     )
 
     events = await run(use_case(turn("Un fin de semana en París")))
+
+    assert "Budapest y Bologna" in joined_text(events)
+
+
+async def test_a_bare_city_on_a_spanish_page_is_answered_in_spanish():
+    """ "París" alone reads as neither language: the page's decides (TRA-246)."""
+    use_case, _, _ = planner(
+        [json.dumps({"destination": "París"})], cities=(BUDAPEST, BOLOGNA)
+    )
+
+    events = await run(use_case(turn("París", language="es")))
 
     assert "Budapest y Bologna" in joined_text(events)
 

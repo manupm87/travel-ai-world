@@ -210,6 +210,7 @@ def test_planner_turn_accepts_a_selection_without_a_message():
             "exclude_card_ids": [],
             "trip_id": None,
             "session_id": None,
+            "language": "en",
         }
     )
 
@@ -230,6 +231,7 @@ def test_planner_turn_rejects_an_unknown_action():
                 "exclude_card_ids": [],
                 "trip_id": None,
                 "session_id": None,
+                "language": "en",
             }
         )
 

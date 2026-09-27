@@ -41,7 +41,7 @@ export interface AskAlternativesOptions {
 /** A turn as the callers describe it: the request's own fields minus the state. */
 type TurnInput = Omit<
   PlannerTurn,
-  "history" | "brief" | "itinerary" | "exclude_card_ids" | "trip_id" | "session_id"
+  "history" | "brief" | "itinerary" | "exclude_card_ids" | "trip_id" | "session_id" | "language"
 > & { exclude_card_ids?: string[] };
 
 /**
@@ -62,11 +62,18 @@ type TurnInput = Omit<
  *   on mount, through `services/plannerDraft.ts` only, with its planner
  *   session id: every turn sends it as `session_id` (with the saved trip's id
  *   as `trip_id`), so the backend's traces of one draft read together.
+ * - Every turn also sends the page's language: Kiri answers in it unless the
+ *   traveller clearly writes in the other one (TRA-246).
  * - `hydrate` opens a saved trip in its place and `startNew` empties it; both
  *   move the id of the trip "Save trip" writes to along with the draft.
  */
 export function usePlanner() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  /** The page's language when a turn leaves, read from the stable callbacks. */
+  const languageRef = useRef(language);
+  useEffect(() => {
+    languageRef.current = language;
+  }, [language]);
   const [state, dispatch] = useReducer(plannerReducer, null, () =>
     initialPlannerState(readPlannerDraft())
   );
@@ -176,6 +183,7 @@ export function usePlanner() {
         exclude_card_ids: turn.exclude_card_ids ?? [],
         trip_id: readSavedTripId(),
         session_id: sessionIdRef.current,
+        language: languageRef.current,
       };
 
       try {

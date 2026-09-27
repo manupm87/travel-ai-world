@@ -3,13 +3,19 @@
 import {
   createContext,
   useContext,
-  useState,
+  useEffect,
   useCallback,
   useMemo,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 import { DEFAULT_LANGUAGE, getLanguageMeta, locales } from "@/i18n";
 import type { Language, Translations } from "@/i18n";
+import {
+  preferredLanguage,
+  subscribeLanguage,
+  writeStoredLanguage,
+} from "@/services/languagePreference";
 
 interface LanguageContextValue {
   language: Language;
@@ -17,17 +23,35 @@ interface LanguageContextValue {
   locale: string;
   t: Translations;
   setLanguage: (lang: Language) => void;
+  /**
+   * False only while the static HTML hydrates in the default language; right
+   * after, the page is in the traveller's own (stored, else the browser's,
+   * TRA-246). Whatever speaks for the traveller at once — the planner's first
+   * turn — waits for it.
+   */
+  resolved: boolean;
 }
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
+const serverLanguage = (): Language => DEFAULT_LANGUAGE;
+const noSubscription = () => () => {};
+
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<Language>(DEFAULT_LANGUAGE);
+  const language = useSyncExternalStore(subscribeLanguage, preferredLanguage, serverLanguage);
+  const resolved = useSyncExternalStore(
+    noSubscription,
+    () => true,
+    () => false
+  );
+
+  // Keep the <html lang> attribute in sync for accessibility + SEO
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
 
   const setLanguage = useCallback((lang: Language) => {
-    setLanguageState(lang);
-    // Keep the <html lang> attribute in sync for accessibility + SEO
-    document.documentElement.lang = lang;
+    writeStoredLanguage(lang);
   }, []);
 
   const value = useMemo<LanguageContextValue>(
@@ -36,8 +60,9 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       locale: getLanguageMeta(language).locale,
       t: locales[language],
       setLanguage,
+      resolved,
     }),
-    [language, setLanguage]
+    [language, setLanguage, resolved]
   );
 
   return (

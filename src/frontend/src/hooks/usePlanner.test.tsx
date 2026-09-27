@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { LanguageProvider } from "@/context/LanguageContext";
+import { LanguageProvider, useLanguage } from "@/context/LanguageContext";
 import en from "@/i18n/en";
 import { interpolate } from "@/i18n";
 import { UnauthorizedError } from "@/services/http";
@@ -115,9 +115,29 @@ describe("usePlanner — sendMessage", () => {
     expect(turn.itinerary).toEqual({ stay_card_id: null, days: [] });
     expect(turn.trip_id).toBeNull();
     expect(turn.session_id).toBe("new-session-1");
+    expect(turn.language).toBe("en");
     expect(options.signal).toBeInstanceOf(AbortSignal);
 
     await waitFor(() => expect(result.current.state.status).toBe("idle"));
+  });
+
+  it("sends the page's language with every turn, as it is when the turn leaves (TRA-246)", async () => {
+    const { result } = renderHook(() => ({ planner: usePlanner(), lang: useLanguage() }), {
+      wrapper,
+    });
+
+    act(() => {
+      result.current.lang.setLanguage("es");
+    });
+    act(() => {
+      result.current.planner.sendMessage("Budapest");
+    });
+
+    await waitFor(() => expect(streamPlannerTurnMock).toHaveBeenCalledTimes(1));
+    const [turn] = streamPlannerTurnMock.mock.calls[0] as [PlannerTurn, unknown];
+    expect(turn.language).toBe("es");
+
+    await waitFor(() => expect(result.current.planner.state.status).toBe("idle"));
   });
 
   it("does not duplicate the message just sent into history", async () => {
@@ -630,6 +650,7 @@ describe("usePlanner — planner session (TRA-220)", () => {
       exclude_card_ids: [],
       trip_id: "22222222-2222-4222-8222-222222222222",
       session_id: STORED_SESSION,
+      language: "en",
     });
     expect(newPlannerSessionIdMock).not.toHaveBeenCalled();
     await waitFor(() => expect(result.current.state.status).toBe("idle"));

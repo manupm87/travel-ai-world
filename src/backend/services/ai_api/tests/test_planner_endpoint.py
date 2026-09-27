@@ -40,6 +40,7 @@ EMPTY_TURN = {
     "exclude_card_ids": [],
     "trip_id": None,
     "session_id": None,
+    "language": "en",
 }
 
 

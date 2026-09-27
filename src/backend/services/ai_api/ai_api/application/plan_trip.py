@@ -29,7 +29,11 @@ from pydantic import BaseModel, Field
 from travel_common.exceptions import DomainError
 
 from ai_api.application.cards import card_from_document, cards_for, title_of
-from ai_api.application.language import Language, detect_language
+from ai_api.application.language import (
+    RECENT_MESSAGES,
+    Language,
+    detect_language,
+)
 from ai_api.application.photos import PhotoTally, ensure_photos
 from ai_api.application.progress import PackingProgress
 from ai_api.application.structured import complete_json
@@ -297,9 +301,12 @@ class Turn:
 
 def _read_turn(request: PlannerTurn) -> Turn:
     brief = request.brief or TripBrief.empty()
+    # The traveller's latest words decide against the page's language, never
+    # the whole transcript: an early message does not outvote a later switch.
     texts = [m.content for m in request.history if m.role == "user"]
     if request.message:
         texts.append(request.message)
+    texts = texts[-RECENT_MESSAGES:]
     used: set[str] = set()
     if request.itinerary is not None:
         if request.itinerary.stay_card_id:
@@ -314,7 +321,7 @@ def _read_turn(request: PlannerTurn) -> Turn:
     return Turn(
         request=request,
         brief=brief,
-        language=detect_language(texts),
+        language=detect_language(texts, request.language),
         stay_id=(request.itinerary.stay_card_id if request.itinerary else None),
         used_ids=used,
     )

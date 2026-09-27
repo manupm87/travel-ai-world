@@ -105,6 +105,12 @@ class PlannerTurn(BaseModel):
             "the turn's trace to the others of the same conversation (ADR 0024)"
         )
     )
+    language: Literal["en", "es"] = Field(
+        description=(
+            "The page's language: what the planner answers in unless the "
+            "traveller's latest messages clearly read as the other one (TRA-246)"
+        )
+    )
 
 
 class CardDetail(OptionCard):

@@ -654,6 +654,12 @@ export interface components {
              */
             history: components["schemas"]["ChatMessage"][];
             itinerary: components["schemas"]["ItinerarySnapshot"] | null;
+            /**
+             * Language
+             * @description The page's language: what the planner answers in unless the traveller's latest messages clearly read as the other one (TRA-246)
+             * @enum {string}
+             */
+            language: "en" | "es";
             /** Message */
             message: string | null;
             /**
