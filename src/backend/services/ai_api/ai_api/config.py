@@ -112,6 +112,17 @@ class AISettings(CommonSettings, DynamoSettings):
     # a model call's input and output, the answer, the history.
     TRACE_PAYLOAD_BYTES: int = 8192
 
+    # Access list and daily token quota (ADR 0026). On, every planner and
+    # chat route asks core_api (`GET /users/me/access`, the caller's token)
+    # whether the account may use the app and its daily token limit; off (the
+    # default: ai_api runs on its own) nobody is asked and nothing is limited.
+    # The tokens are counted either way, when INTERACTIONS_TABLE is set.
+    ACCESS_CONTROL_ENABLED: bool = False
+    # Seconds core_api's answer is kept per account, in process: how long a
+    # changed limit or a removed grant takes to reach this service. 0 asks
+    # every time.
+    ACCESS_CACHE_SECONDS: int = 60
+
 
 @lru_cache
 def get_settings() -> AISettings:

@@ -34,6 +34,7 @@ from ai_api.domain.tracing import (
     TurnSummary,
     TurnTrace,
 )
+from ai_api.domain.usage import DailyUsage, Entitlement
 from ai_api.infrastructure.dynamo_traces import summary_sk
 
 
@@ -409,6 +410,72 @@ class InMemoryTraceLog:
 
     def _summaries(self) -> list[TurnSummary]:
         return [_summary(trace) for trace in self.traces]
+
+
+class InMemoryUsageStore:
+    """The daily counters in a dict; `fail_with` makes every call raise."""
+
+    def __init__(self, fail_with: Exception | None = None) -> None:
+        self.days: dict[tuple[str, str], DailyUsage] = {}
+        self.fail_with = fail_with
+
+    async def add(
+        self,
+        subject: str,
+        day: date,
+        *,
+        input_tokens: int,
+        output_tokens: int,
+        embed_tokens: int,
+    ) -> None:
+        was = await self.get(subject, day)
+        self.days[(subject, day.isoformat())] = DailyUsage(
+            subject=subject,
+            day=day.isoformat(),
+            input_tokens=was.input_tokens + input_tokens,
+            output_tokens=was.output_tokens + output_tokens,
+            embed_tokens=was.embed_tokens + embed_tokens,
+            turns=was.turns + 1,
+        )
+
+    async def get(self, subject: str, day: date) -> DailyUsage:
+        self._check()
+        key = (subject, day.isoformat())
+        return self.days.get(key, DailyUsage(subject=subject, day=day.isoformat()))
+
+    async def list_day(self, day: date) -> list[DailyUsage]:
+        self._check()
+        return [u for u in self.days.values() if u.day == day.isoformat()]
+
+    def _check(self) -> None:
+        if self.fail_with is not None:
+            raise self.fail_with
+
+
+class FakeAccessGateway:
+    """core_api's `/users/me/access`: one answer for every token unless
+    `by_token` has its own; `fail_with` makes it raise. Tokens asked are
+    kept in `tokens`."""
+
+    def __init__(
+        self,
+        entitlement: Entitlement | None = None,
+        *,
+        by_token: dict[str, Entitlement] | None = None,
+        fail_with: Exception | None = None,
+    ) -> None:
+        self.entitlement = entitlement or Entitlement(
+            allowed=True, daily_token_limit=None
+        )
+        self.by_token = by_token or {}
+        self.fail_with = fail_with
+        self.tokens: list[str] = []
+
+    async def access(self, bearer_token: str) -> Entitlement:
+        self.tokens.append(bearer_token)
+        if self.fail_with is not None:
+            raise self.fail_with
+        return self.by_token.get(bearer_token, self.entitlement)
 
 
 def make_trace(**overrides: Any) -> TurnTrace:

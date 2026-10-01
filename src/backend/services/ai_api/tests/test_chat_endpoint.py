@@ -320,6 +320,9 @@ async def test_lifespan_installs_and_closes_the_provider():
         assert not provider._client.is_closed
         # RETRIEVAL_ENABLED is off by default: no store, the chat as before.
         assert app.state.retriever is None
+        # The daily counters and the access check are built once (ADR 0026).
+        assert app.state.usage_store is not None
+        assert app.state.check_access is not None
     assert provider._client.is_closed
 
 

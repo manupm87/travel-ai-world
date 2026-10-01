@@ -18,6 +18,8 @@ from ai_api.api.deps import (
     get_plan_trip,
     get_record_trace,
     new_tracer,
+    require_access,
+    require_budget,
 )
 from ai_api.api.v1.endpoints.chat import SSE_HEADERS
 from ai_api.application.card_detail import CardDetailLookup
@@ -40,7 +42,11 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("/cities", response_model=list[PlannerCity])
+@router.get(
+    "/cities",
+    response_model=list[PlannerCity],
+    dependencies=[Depends(require_access)],
+)
 async def cities(
     principal: Principal = Depends(get_current_user),
     covered: tuple[City, ...] = Depends(get_cities),
@@ -50,7 +56,7 @@ async def cities(
     return [planner_city(city) for city in covered]
 
 
-@router.get("/card", response_model=CardDetail)
+@router.get("/card", response_model=CardDetail, dependencies=[Depends(require_access)])
 async def card(
     request: Request,
     id: str = Query(
@@ -85,6 +91,7 @@ async def card(
 
 @router.post(
     "",
+    dependencies=[Depends(require_budget)],
     responses={
         200: {
             "description": (
@@ -117,6 +124,11 @@ async def planner(
     every card is a corpus document, so without a store the endpoint answers
     503. The turn's trace is written to the interactions table before
     `[DONE]` (ADR 0024).
+
+    With `ACCESS_CONTROL_ENABLED` the turn is refused before the stream starts,
+    as a plain JSON error: 403 `ACCESS_DENIED` for an account that is not on
+    the access list, 429 `DAILY_TOKEN_LIMIT` (`extras`: `limit`, `used`,
+    `resets_at`) once today's tokens are spent (ADR 0026).
     """
     logger.info(
         "Planner turn from user %s (%s, %d history turns, %d days)",

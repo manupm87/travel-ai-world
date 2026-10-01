@@ -14,6 +14,16 @@ and, when the turn has a session, GSI2 (`SESSION#<session_id>` / ts: one
 conversation's turns). Every item has `expires_at` (epoch seconds), the
 table's TTL attribute. `None` is written as NULL so every key is present.
 
+The table also holds the daily token counters (ADR 0026), written by
+`dynamo_usage.DynamoUsageStore` in partitions of their own, so no query here
+returns one:
+
+| Item    | PK                   | SK                        |
+|---------|----------------------|---------------------------|
+| usage   | `USAGE#<subject>`    | `DAY#<YYYY-MM-DD>`        |
+
+(GSI1: `USAGE_DAY#<day>` / `<subject>`, every subject's counter of a day.)
+
 On AWS the table is Terraform's (`infra/aws/traces.tf`); `spec()` creates it
 only against a local endpoint (Compose, `just dynamodb-local`, tests).
 

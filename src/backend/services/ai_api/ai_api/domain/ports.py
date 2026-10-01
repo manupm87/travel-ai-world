@@ -23,6 +23,7 @@ from ai_api.domain.tracing import (
     TurnSummary,
     TurnTrace,
 )
+from ai_api.domain.usage import DailyUsage, Entitlement
 
 
 class LLMProvider(Protocol):
@@ -181,3 +182,38 @@ class TraceLog(Protocol):
     def iter_range(self, start: date, end: date) -> AsyncIterator[TurnSummary]:
         """Every summary of every day in `[start, end]`, in any order."""
         ...
+
+
+class UsageStore(Protocol):
+    """The daily token counters (ADR 0026): one per subject and UTC day, in
+    the interactions table; zeros when `INTERACTIONS_TABLE` is empty. May
+    raise: `RecordTrace` logs a failed `add`, `CheckAccess` a failed `get`."""
+
+    async def add(
+        self,
+        subject: str,
+        day: date,
+        *,
+        input_tokens: int,
+        output_tokens: int,
+        embed_tokens: int,
+    ) -> None:
+        """Add one turn's tokens to the subject's day, atomically."""
+        ...
+
+    async def get(self, subject: str, day: date) -> DailyUsage:
+        """The subject's day; zeros when nothing was counted."""
+        ...
+
+    async def list_day(self, day: date) -> list[DailyUsage]:
+        """Every subject's counter of one day, in any order."""
+        ...
+
+
+class AccessGateway(Protocol):
+    """Who may use the app and how much: core_api, asked as the caller.
+
+    Raises `Unauthorized` for a token core_api refuses and
+    `ProviderUnavailable` when it cannot be reached (ADR 0026)."""
+
+    async def access(self, bearer_token: str) -> Entitlement: ...

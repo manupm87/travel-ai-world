@@ -7,6 +7,11 @@ error — the trace is finished and written **before** the closing frame goes
 out, because Lambda may freeze the process as soon as the response ends. A
 client that goes away mid-stream leaves a `cancelled` trace, best effort.
 
+With the trace, the turn's tokens are added to the caller's counter of the
+day (ADR 0026): the trace's UTC date, input and output tokens (what the daily
+limit counts) and embedding tokens (kept, not counted). A turn that spent no
+token adds nothing. Both writes are attempted, each on its own.
+
 Recording never breaks a turn: a failed write is logged and the stream goes
 on as if nothing happened.
 """
@@ -21,7 +26,7 @@ from travel_common.exceptions import DomainError
 
 from ai_api.application.tracing import TurnTracer, activate
 from ai_api.domain.models import ThreadSaved
-from ai_api.domain.ports import TraceLog
+from ai_api.domain.ports import TraceLog, UsageStore
 from ai_api.domain.tracing import Status, TurnTrace
 from ai_api.schemas.planner_events import (
     BriefEvent,
@@ -38,8 +43,9 @@ logger = logging.getLogger(__name__)
 
 
 class RecordTrace:
-    def __init__(self, log: TraceLog) -> None:
+    def __init__(self, log: TraceLog, usage: UsageStore) -> None:
         self._log = log
+        self._usage = usage
 
     async def __call__(
         self, tracer: TurnTracer, events: AsyncIterator[PlannerEvent]
@@ -114,6 +120,19 @@ class RecordTrace:
             await self._log.record(trace)
         except Exception:
             logger.exception("Trace of turn %s not recorded", trace.turn_id)
+        # The day's counter (ADR 0026), whatever became of the trace write.
+        if not (trace.input_tokens or trace.output_tokens or trace.embed_tokens):
+            return
+        try:
+            await self._usage.add(
+                trace.subject,
+                trace.ts.date(),
+                input_tokens=trace.input_tokens,
+                output_tokens=trace.output_tokens,
+                embed_tokens=trace.embed_tokens,
+            )
+        except Exception:
+            logger.exception("Usage of turn %s not counted", trace.turn_id)
 
 
 def _ends_planner(event: PlannerEvent) -> tuple[Status, str | None] | None:

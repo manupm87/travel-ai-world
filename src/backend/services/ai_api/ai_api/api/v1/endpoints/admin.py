@@ -1,4 +1,5 @@
-"""Admin reads over the turn traces (ADR 0024, TRA-221). Administrators only.
+"""Admin reads over the turn traces (ADR 0024, TRA-221) and the daily token
+counters (ADR 0026). Administrators only.
 
 Every route logs one audit line, `admin_read subject=… route=… target=…`,
 before it reads anything (the same line `core_api`'s admin routes log).
@@ -11,15 +12,22 @@ from fastapi import APIRouter, Depends, Query, Request
 from travel_common.exceptions import BadRequest, EntityNotFound, Forbidden
 from travel_common.principal import Principal
 
-from ai_api.api.deps import get_current_user, get_trace_log
+from ai_api.api.deps import (
+    get_check_access,
+    get_current_user,
+    get_trace_log,
+    get_usage_store,
+)
 from ai_api.application import trace_stats
-from ai_api.domain.ports import TraceLog
+from ai_api.application.access import CheckAccess
+from ai_api.domain.ports import TraceLog, UsageStore
 from ai_api.domain.tracing import Kind, Status, TurnFilters
 from ai_api.schemas.admin import (
     TraceStatsResponse,
     TurnDetailResponse,
     TurnPageResponse,
 )
+from ai_api.schemas.usage import AdminUsageItem, AdminUsageResponse
 
 logger = logging.getLogger(__name__)
 
@@ -120,3 +128,29 @@ async def read_stats(
     summaries = [turn async for turn in traces.iter_range(start, end)]
     stats = trace_stats.compute(summaries, start, end)
     return TraceStatsResponse.model_validate(stats)
+
+
+@router.get("/usage", response_model=AdminUsageResponse)
+async def read_usage(
+    day: date | None = Query(None, description="A UTC day, `YYYY-MM-DD`; today."),
+    usage: UsageStore = Depends(get_usage_store),
+    check: CheckAccess = Depends(get_check_access),
+):
+    """Every account's token counter of one UTC day (today by default), most
+    tokens first. `tokens` is input + output, what the daily limit counts."""
+    day = day or check.today()
+    counters = sorted(await usage.list_day(day), key=lambda u: (-u.tokens, u.subject))
+    return AdminUsageResponse(
+        day=day.isoformat(),
+        items=[
+            AdminUsageItem(
+                subject=u.subject,
+                input_tokens=u.input_tokens,
+                output_tokens=u.output_tokens,
+                embed_tokens=u.embed_tokens,
+                tokens=u.tokens,
+                turns=u.turns,
+            )
+            for u in counters
+        ],
+    )

@@ -1,6 +1,67 @@
 {
   "components": {
     "schemas": {
+      "AdminUsageItem": {
+        "description": "One account's counter; `tokens` is input + output, what the limit counts.",
+        "properties": {
+          "embed_tokens": {
+            "title": "Embed Tokens",
+            "type": "integer"
+          },
+          "input_tokens": {
+            "title": "Input Tokens",
+            "type": "integer"
+          },
+          "output_tokens": {
+            "title": "Output Tokens",
+            "type": "integer"
+          },
+          "subject": {
+            "title": "Subject",
+            "type": "string"
+          },
+          "tokens": {
+            "title": "Tokens",
+            "type": "integer"
+          },
+          "turns": {
+            "title": "Turns",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "subject",
+          "input_tokens",
+          "output_tokens",
+          "embed_tokens",
+          "tokens",
+          "turns"
+        ],
+        "title": "AdminUsageItem",
+        "type": "object"
+      },
+      "AdminUsageResponse": {
+        "description": "Every account's counter of one UTC day, most tokens first.",
+        "properties": {
+          "day": {
+            "title": "Day",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AdminUsageItem"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "day",
+          "items"
+        ],
+        "title": "AdminUsageResponse",
+        "type": "object"
+      },
       "BriefEvent": {
         "properties": {
           "brief": {
@@ -2690,6 +2751,58 @@
         "title": "TurnSummaryResponse",
         "type": "object"
       },
+      "UsageResponse": {
+        "description": "What the caller spent today (UTC) and what they may spend:\n`used_tokens` is input + output, what the limit counts;\n`daily_token_limit` is `null` when unlimited (or when\n`ACCESS_CONTROL_ENABLED` is off); `resets_at` is the next UTC midnight.",
+        "properties": {
+          "daily_token_limit": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Daily Token Limit"
+          },
+          "day": {
+            "title": "Day",
+            "type": "string"
+          },
+          "input_tokens": {
+            "title": "Input Tokens",
+            "type": "integer"
+          },
+          "output_tokens": {
+            "title": "Output Tokens",
+            "type": "integer"
+          },
+          "resets_at": {
+            "format": "date-time",
+            "title": "Resets At",
+            "type": "string"
+          },
+          "turns": {
+            "title": "Turns",
+            "type": "integer"
+          },
+          "used_tokens": {
+            "title": "Used Tokens",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "day",
+          "used_tokens",
+          "input_tokens",
+          "output_tokens",
+          "turns",
+          "daily_token_limit",
+          "resets_at"
+        ],
+        "title": "UsageResponse",
+        "type": "object"
+      },
       "UsedDocResponse": {
         "properties": {
           "count": {
@@ -3198,9 +3311,67 @@
         ]
       }
     },
+    "/api/v1/ai/admin/usage": {
+      "get": {
+        "description": "Every account's token counter of one UTC day (today by default), most\ntokens first. `tokens` is input + output, what the daily limit counts.",
+        "operationId": "read_usage_api_v1_ai_admin_usage_get",
+        "parameters": [
+          {
+            "description": "A UTC day, `YYYY-MM-DD`; today.",
+            "in": "query",
+            "name": "day",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A UTC day, `YYYY-MM-DD`; today.",
+              "title": "Day"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUsageResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Usage",
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
     "/api/v1/ai/chat": {
       "post": {
-        "description": "Stream a chat completion for the authenticated user.\n\nWire format, one JSON object per `data:` line, terminated by `[DONE]`:\n\n    data: {\"content\": \"Hola\"}\n    data: {\"thread_id\": \"...\"}\n    data: {\"error\": \"...\"}\n    data: [DONE]\n\nThe `system` prompt is inserted server-side; clients may only send\n`user` and `assistant` turns. Once the answer is complete, the exchange is\nrecorded in the caller's conversation (`thread_id`, or a new one) and\n`{\"thread_id\"}` is sent before `[DONE]`; if recording fails, the answer is\nstill delivered and that event is simply missing. The answer's trace\nis written to the interactions table before `[DONE]` (ADR 0024).",
+        "description": "Stream a chat completion for the authenticated user.\n\nWire format, one JSON object per `data:` line, terminated by `[DONE]`:\n\n    data: {\"content\": \"Hola\"}\n    data: {\"thread_id\": \"...\"}\n    data: {\"error\": \"...\"}\n    data: [DONE]\n\nThe `system` prompt is inserted server-side; clients may only send\n`user` and `assistant` turns. Once the answer is complete, the exchange is\nrecorded in the caller's conversation (`thread_id`, or a new one) and\n`{\"thread_id\"}` is sent before `[DONE]`; if recording fails, the answer is\nstill delivered and that event is simply missing. The answer's trace\nis written to the interactions table before `[DONE]` (ADR 0024).\n\nWith `ACCESS_CONTROL_ENABLED` the request is refused before the stream\nstarts, as a plain JSON error: 403 `ACCESS_DENIED` or 429\n`DAILY_TOKEN_LIMIT` (ADR 0026).",
         "operationId": "chat_api_v1_ai_chat_post",
         "requestBody": {
           "content": {
@@ -3284,7 +3455,7 @@
     },
     "/api/v1/ai/planner": {
       "post": {
-        "description": "Stream the planner's answer to one turn for the authenticated user.\n\nThe service keeps no state: the turn carries the brief, the itinerary\nsnapshot and the transcript. Events are discriminated on `type` (`text`,\n`brief`, `options`, `itinerary_patch`, `progress`, `error`, `done`); the\nstream ends with `data: [DONE]`. Needs retrieval (`RETRIEVAL_ENABLED`):\nevery card is a corpus document, so without a store the endpoint answers\n503. The turn's trace is written to the interactions table before\n`[DONE]` (ADR 0024).",
+        "description": "Stream the planner's answer to one turn for the authenticated user.\n\nThe service keeps no state: the turn carries the brief, the itinerary\nsnapshot and the transcript. Events are discriminated on `type` (`text`,\n`brief`, `options`, `itinerary_patch`, `progress`, `error`, `done`); the\nstream ends with `data: [DONE]`. Needs retrieval (`RETRIEVAL_ENABLED`):\nevery card is a corpus document, so without a store the endpoint answers\n503. The turn's trace is written to the interactions table before\n`[DONE]` (ADR 0024).\n\nWith `ACCESS_CONTROL_ENABLED` the turn is refused before the stream starts,\nas a plain JSON error: 403 `ACCESS_DENIED` for an account that is not on\nthe access list, 429 `DAILY_TOKEN_LIMIT` (`extras`: `limit`, `used`,\n`resets_at`) once today's tokens are spent (ADR 0026).",
         "operationId": "planner_api_v1_ai_planner_post",
         "requestBody": {
           "content": {
@@ -3412,6 +3583,33 @@
         "summary": "Cities",
         "tags": [
           "Planner"
+        ]
+      }
+    },
+    "/api/v1/ai/usage/me": {
+      "get": {
+        "description": "What the caller spent today (UTC), their daily limit (`null` =\nunlimited, and always `null` with `ACCESS_CONTROL_ENABLED` off) and when\nthe counter starts again. Embedding tokens are not counted.",
+        "operationId": "read_my_usage_api_v1_ai_usage_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read My Usage",
+        "tags": [
+          "Usage"
         ]
       }
     }

@@ -1,7 +1,8 @@
 """Which adapters the process runs: the LLM, decided by `LLM_PROVIDER`, the
 retriever, switched on by `RETRIEVAL_ENABLED`, and the cities the planner
 covers, read from the packaged manifest and narrowed by `PLANNER_CITIES`,
-and where the traces go, decided by `INTERACTIONS_TABLE` (ADR 0024).
+and where the traces and the daily token counters go, decided by
+`INTERACTIONS_TABLE` (ADR 0024, ADR 0026).
 
 The use cases and the endpoints only see the ports; this is the one place that
 knows the concrete adapters.
@@ -10,11 +11,12 @@ knows the concrete adapters.
 from travel_common.dynamodb import dynamodb_client
 
 from ai_api.config import AISettings
-from ai_api.domain.ports import TraceLog
+from ai_api.domain.ports import TraceLog, UsageStore
 from ai_api.infrastructure.bedrock_embedder import TitanEmbedder
 from ai_api.infrastructure.bedrock_provider import BedrockProvider
 from ai_api.infrastructure.cities import City, load_cities, select_cities
 from ai_api.infrastructure.dynamo_traces import DynamoTraceLog, NullTraceLog
+from ai_api.infrastructure.dynamo_usage import DynamoUsageStore, NullUsageStore
 from ai_api.infrastructure.nvidia_provider import NvidiaProvider
 from ai_api.infrastructure.s3vectors_retriever import S3VectorsRetriever
 
@@ -54,6 +56,18 @@ def build_trace_log(settings: AISettings) -> TraceLog:
     if not settings.INTERACTIONS_TABLE:
         return NullTraceLog()
     return DynamoTraceLog(
+        dynamodb_client(settings.DYNAMODB_ENDPOINT_URL, settings.AWS_REGION),
+        settings.INTERACTIONS_TABLE,
+        settings.INTERACTION_TTL_DAYS,
+    )
+
+
+def build_usage_store(settings: AISettings) -> UsageStore:
+    """The daily token counters, in the interactions table too (ADR 0026);
+    nothing is counted when `INTERACTIONS_TABLE` is empty."""
+    if not settings.INTERACTIONS_TABLE:
+        return NullUsageStore()
+    return DynamoUsageStore(
         dynamodb_client(settings.DYNAMODB_ENDPOINT_URL, settings.AWS_REGION),
         settings.INTERACTIONS_TABLE,
         settings.INTERACTION_TTL_DAYS,

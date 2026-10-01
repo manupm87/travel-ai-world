@@ -86,6 +86,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/ai/admin/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Usage
+         * @description Every account's token counter of one UTC day (today by default), most
+         *     tokens first. `tokens` is input + output, what the daily limit counts.
+         */
+        get: operations["read_usage_api_v1_ai_admin_usage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ai/chat": {
         parameters: {
             query?: never;
@@ -112,6 +133,10 @@ export interface paths {
          *     `{"thread_id"}` is sent before `[DONE]`; if recording fails, the answer is
          *     still delivered and that event is simply missing. The answer's trace
          *     is written to the interactions table before `[DONE]` (ADR 0024).
+         *
+         *     With `ACCESS_CONTROL_ENABLED` the request is refused before the stream
+         *     starts, as a plain JSON error: 403 `ACCESS_DENIED` or 429
+         *     `DAILY_TOKEN_LIMIT` (ADR 0026).
          */
         post: operations["chat_api_v1_ai_chat_post"];
         delete?: never;
@@ -180,6 +205,11 @@ export interface paths {
          *     every card is a corpus document, so without a store the endpoint answers
          *     503. The turn's trace is written to the interactions table before
          *     `[DONE]` (ADR 0024).
+         *
+         *     With `ACCESS_CONTROL_ENABLED` the turn is refused before the stream starts,
+         *     as a plain JSON error: 403 `ACCESS_DENIED` for an account that is not on
+         *     the access list, 429 `DAILY_TOKEN_LIMIT` (`extras`: `limit`, `used`,
+         *     `resets_at`) once today's tokens are spent (ADR 0026).
          */
         post: operations["planner_api_v1_ai_planner_post"];
         delete?: never;
@@ -235,10 +265,60 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/ai/usage/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read My Usage
+         * @description What the caller spent today (UTC), their daily limit (`null` =
+         *     unlimited, and always `null` with `ACCESS_CONTROL_ENABLED` off) and when
+         *     the counter starts again. Embedding tokens are not counted.
+         */
+        get: operations["read_my_usage_api_v1_ai_usage_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AdminUsageItem
+         * @description One account's counter; `tokens` is input + output, what the limit counts.
+         */
+        AdminUsageItem: {
+            /** Embed Tokens */
+            embed_tokens: number;
+            /** Input Tokens */
+            input_tokens: number;
+            /** Output Tokens */
+            output_tokens: number;
+            /** Subject */
+            subject: string;
+            /** Tokens */
+            tokens: number;
+            /** Turns */
+            turns: number;
+        };
+        /**
+         * AdminUsageResponse
+         * @description Every account's counter of one UTC day, most tokens first.
+         */
+        AdminUsageResponse: {
+            /** Day */
+            day: string;
+            /** Items */
+            items: components["schemas"]["AdminUsageItem"][];
+        };
         /** BriefEvent */
         BriefEvent: {
             brief: components["schemas"]["TripBrief"];
@@ -1136,6 +1216,32 @@ export interface components {
             /** Warnings */
             warnings: number;
         };
+        /**
+         * UsageResponse
+         * @description What the caller spent today (UTC) and what they may spend:
+         *     `used_tokens` is input + output, what the limit counts;
+         *     `daily_token_limit` is `null` when unlimited (or when
+         *     `ACCESS_CONTROL_ENABLED` is off); `resets_at` is the next UTC midnight.
+         */
+        UsageResponse: {
+            /** Daily Token Limit */
+            daily_token_limit: number | null;
+            /** Day */
+            day: string;
+            /** Input Tokens */
+            input_tokens: number;
+            /** Output Tokens */
+            output_tokens: number;
+            /**
+             * Resets At
+             * Format: date-time
+             */
+            resets_at: string;
+            /** Turns */
+            turns: number;
+            /** Used Tokens */
+            used_tokens: number;
+        };
         /** UsedDocResponse */
         UsedDocResponse: {
             /** Count */
@@ -1324,6 +1430,38 @@ export interface operations {
             };
         };
     };
+    read_usage_api_v1_ai_admin_usage_get: {
+        parameters: {
+            query?: {
+                /** @description A UTC day, `YYYY-MM-DD`; today. */
+                day?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUsageResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     chat_api_v1_ai_chat_post: {
         parameters: {
             query?: never;
@@ -1479,6 +1617,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlannerCity"][];
+                };
+            };
+        };
+    };
+    read_my_usage_api_v1_ai_usage_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsageResponse"];
                 };
             };
         };

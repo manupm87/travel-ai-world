@@ -14,6 +14,7 @@ from ai_api.api.deps import (
     get_record_trace,
     get_stream_chat,
     new_tracer,
+    require_budget,
 )
 from ai_api.application.record_conversation import RecordConversation
 from ai_api.application.record_trace import RecordTrace
@@ -35,7 +36,7 @@ SSE_HEADERS = {
 }
 
 
-@router.post("")
+@router.post("", dependencies=[Depends(require_budget)])
 async def chat(
     request: ChatRequest,
     http_request: Request,
@@ -61,6 +62,10 @@ async def chat(
     `{"thread_id"}` is sent before `[DONE]`; if recording fails, the answer is
     still delivered and that event is simply missing. The answer's trace
     is written to the interactions table before `[DONE]` (ADR 0024).
+
+    With `ACCESS_CONTROL_ENABLED` the request is refused before the stream
+    starts, as a plain JSON error: 403 `ACCESS_DENIED` or 429
+    `DAILY_TOKEN_LIMIT` (ADR 0026).
     """
     logger.info(
         "Chat request from user %s (%d history turns)",

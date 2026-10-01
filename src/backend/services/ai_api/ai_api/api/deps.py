@@ -11,6 +11,7 @@ from travel_common.http.auth import extract_bearer_token
 from travel_common.principal import Principal
 from travel_common.security import principal_from_token
 
+from ai_api.application.access import CheckAccess
 from ai_api.application.card_detail import CardDetailLookup
 from ai_api.application.plan_trip import PlanTrip
 from ai_api.application.record_conversation import RecordConversation
@@ -20,17 +21,21 @@ from ai_api.application.tracing import TurnTracer
 from ai_api.config import AISettings, get_settings
 from ai_api.domain.models import City, GenerationParams
 from ai_api.domain.ports import (
+    AccessGateway,
     ConversationGateway,
     LLMProvider,
     PhotoFinder,
     Retriever,
     SitePreviewFinder,
     TraceLog,
+    UsageStore,
     WeatherForecast,
 )
 from ai_api.domain.tracing import Kind
+from ai_api.domain.usage import Entitlement
 from ai_api.infrastructure.core_api_client import CoreApiClient
 from ai_api.infrastructure.dynamo_traces import NullTraceLog
+from ai_api.infrastructure.dynamo_usage import NullUsageStore
 from ai_api.infrastructure.providers import ChatProvider, planner_cities
 from ai_api.prompts import CHAT_SYSTEM_PROMPT
 
@@ -160,8 +165,68 @@ def get_trace_log(request: Request) -> TraceLog:
     return log if log is not None else NullTraceLog()
 
 
-def get_record_trace(log: TraceLog = Depends(get_trace_log)) -> RecordTrace:
-    return RecordTrace(log)
+def get_usage_store(request: Request) -> UsageStore:
+    """The daily token counters built in `lifespan` (ADR 0026); zeros without."""
+    store: UsageStore | None = getattr(request.app.state, "usage_store", None)
+    return store if store is not None else NullUsageStore()
+
+
+def get_record_trace(
+    log: TraceLog = Depends(get_trace_log),
+    usage: UsageStore = Depends(get_usage_store),
+) -> RecordTrace:
+    return RecordTrace(log, usage)
+
+
+def get_access_gateway(settings: AISettings = Depends(get_settings)) -> AccessGateway:
+    """core_api, which owns the access list and the limits (ADR 0026)."""
+    return CoreApiClient(settings.CORE_API_URL, settings.API_V1_STR)
+
+
+def get_check_access(
+    request: Request,
+    gateway: AccessGateway = Depends(get_access_gateway),
+    usage: UsageStore = Depends(get_usage_store),
+    settings: AISettings = Depends(get_settings),
+) -> CheckAccess:
+    """The check built in `lifespan`, which keeps core_api's answers for
+    `ACCESS_CACHE_SECONDS`; a fresh one (nothing remembered) when there is no
+    lifespan (tests drive the app without one)."""
+    check: CheckAccess | None = getattr(request.app.state, "check_access", None)
+    if check is None:
+        check = CheckAccess(gateway, usage, ttl_seconds=settings.ACCESS_CACHE_SECONDS)
+    return check
+
+
+UNLIMITED = Entitlement(allowed=True, daily_token_limit=None)
+"""Everyone's entitlement when `ACCESS_CONTROL_ENABLED` is off."""
+
+
+async def require_access(
+    principal: Principal = Depends(get_current_user),
+    token: str = Depends(extract_bearer_token),
+    check: CheckAccess = Depends(get_check_access),
+    settings: AISettings = Depends(get_settings),
+) -> Entitlement:
+    """The caller's entitlement; 403 `ACCESS_DENIED` when the account is not
+    on the access list. Asks nobody when `ACCESS_CONTROL_ENABLED` is off."""
+    if not settings.ACCESS_CONTROL_ENABLED:
+        return UNLIMITED
+    return await check.allowed(principal, token)
+
+
+async def require_budget(
+    principal: Principal = Depends(get_current_user),
+    token: str = Depends(extract_bearer_token),
+    check: CheckAccess = Depends(get_check_access),
+    settings: AISettings = Depends(get_settings),
+) -> Entitlement:
+    """`require_access`, and 429 `DAILY_TOKEN_LIMIT` once today's tokens are
+    spent. On the routes that spend tokens; it answers before any stream
+    starts, so the refusal is a plain JSON error."""
+    if not settings.ACCESS_CONTROL_ENABLED:
+        return UNLIMITED
+    return await check.budget(principal, token)
 
 
 def new_tracer(

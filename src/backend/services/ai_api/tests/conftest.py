@@ -8,6 +8,7 @@ from ai_api.api.deps import (
     get_conversation_gateway,
     get_llm_provider,
     get_trace_log,
+    get_usage_store,
 )
 from ai_api.config import AISettings, get_settings
 from ai_api.main import app
@@ -15,6 +16,7 @@ from ai_api.testing import (
     FakeConversations,
     FakeProvider,
     InMemoryTraceLog,
+    InMemoryUsageStore,
     settings_for_tests,
 )
 from httpx import ASGITransport, AsyncClient
@@ -45,15 +47,27 @@ def trace_log() -> InMemoryTraceLog:
 
 
 @pytest.fixture
+def usage_store() -> InMemoryUsageStore:
+    return InMemoryUsageStore()
+
+
+@pytest.fixture
 async def client(
     provider: FakeProvider,
     conversations: FakeConversations,
     trace_log: InMemoryTraceLog,
+    usage_store: InMemoryUsageStore,
 ) -> AsyncGenerator[AsyncClient, None]:
+    # A test that ran the lifespan leaves its access check (and its cache) on
+    # the app: every test starts without one, so the overrides below are used.
+    for name in ("check_access", "usage_store"):
+        if hasattr(app.state, name):
+            delattr(app.state, name)
     app.dependency_overrides[get_settings] = lambda: TEST_SETTINGS
     app.dependency_overrides[get_llm_provider] = lambda: provider
     app.dependency_overrides[get_conversation_gateway] = lambda: conversations
     app.dependency_overrides[get_trace_log] = lambda: trace_log
+    app.dependency_overrides[get_usage_store] = lambda: usage_store
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://t") as ac:
         yield ac
     app.dependency_overrides.clear()

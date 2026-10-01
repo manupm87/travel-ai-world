@@ -2,7 +2,9 @@
 the closing frame, whatever way the turn ends."""
 
 from collections.abc import AsyncIterator
+from datetime import UTC, date, datetime
 
+import pytest
 from ai_api.application.record_trace import RecordTrace
 from ai_api.application.tracing import TurnTracer, current_tracer
 from ai_api.domain.models import ThreadSaved
@@ -20,8 +22,10 @@ from ai_api.schemas.planner_events import (
     set_day_title,
     text,
 )
-from ai_api.testing import InMemoryTraceLog
+from ai_api.testing import InMemoryTraceLog, InMemoryUsageStore
 from travel_common.exceptions import ProviderUnavailable
+
+DAY = datetime(2026, 9, 23, 10, 0, tzinfo=UTC)
 
 
 def tracer() -> TurnTracer:
@@ -93,7 +97,7 @@ async def test_a_done_turn_is_recorded_before_done_is_yielded():
         done(),
     )
 
-    out = await collect(RecordTrace(log)(t, events), order)
+    out = await collect(RecordTrace(log, InMemoryUsageStore())(t, events), order)
 
     assert len(out) == 5
     assert order == ["text", "text", "options", "itinerary_patch", "record", "done"]
@@ -125,7 +129,7 @@ async def test_progress_events_are_stamped_as_progress():
         done(),
     )
 
-    await collect(RecordTrace(log)(tracer(), events), [])
+    await collect(RecordTrace(log, InMemoryUsageStore())(tracer(), events), [])
 
     [trace] = log.traces
     assert trace.events == {"progress": 2, "text": 1, "done": 1}
@@ -141,7 +145,9 @@ async def test_a_stream_that_just_ends_is_recorded_ok():
     order: list[str] = []
     log = OrderedLog(order)
 
-    await collect(RecordTrace(log)(tracer(), stream(text("x"))), order)
+    await collect(
+        RecordTrace(log, InMemoryUsageStore())(tracer(), stream(text("x"))), order
+    )
 
     assert order == ["text", "record"]
     assert log.traces[0].status == "ok"
@@ -150,7 +156,10 @@ async def test_a_stream_that_just_ends_is_recorded_ok():
 async def test_an_empty_stream_is_still_recorded():
     log = InMemoryTraceLog()
 
-    assert await collect(RecordTrace(log)(tracer(), stream()), []) == []
+    assert (
+        await collect(RecordTrace(log, InMemoryUsageStore())(tracer(), stream()), [])
+        == []
+    )
     assert [t.status for t in log.traces] == ["ok"]
 
 
@@ -159,7 +168,7 @@ async def test_an_error_event_is_recorded_as_an_error():
     log = OrderedLog(order)
 
     await collect(
-        RecordTrace(log)(
+        RecordTrace(log, InMemoryUsageStore())(
             tracer(), stream(text("x"), error_event("Boom", "SERVICE_UNAVAILABLE"))
         ),
         order,
@@ -178,7 +187,7 @@ async def test_a_raised_domain_error_is_recorded_then_propagates():
         raise ProviderUnavailable("Vector store error")
 
     try:
-        await collect(RecordTrace(log)(tracer(), failing()), [])
+        await collect(RecordTrace(log, InMemoryUsageStore())(tracer(), failing()), [])
     except ProviderUnavailable:
         pass
     else:
@@ -191,7 +200,9 @@ async def test_a_raised_domain_error_is_recorded_then_propagates():
 
 async def test_a_client_that_goes_away_leaves_a_cancelled_trace():
     log = InMemoryTraceLog()
-    events = RecordTrace(log)(tracer(), stream(text("a"), text("b"), done()))
+    events = RecordTrace(log, InMemoryUsageStore())(
+        tracer(), stream(text("a"), text("b"), done())
+    )
 
     first = await anext(events)
     await events.aclose()
@@ -204,7 +215,9 @@ async def test_a_client_that_goes_away_leaves_a_cancelled_trace():
 async def test_a_failing_log_never_breaks_the_stream():
     log = InMemoryTraceLog(fail_with=RuntimeError("dynamo down"))
 
-    out = await collect(RecordTrace(log)(tracer(), stream(text("x"), done())), [])
+    out = await collect(
+        RecordTrace(log, InMemoryUsageStore())(tracer(), stream(text("x"), done())), []
+    )
 
     assert [e.type for e in out] == ["text", "done"]
     assert log.traces == []
@@ -218,7 +231,9 @@ async def test_the_tracer_is_current_inside_the_wrapped_stream():
         seen.append(current_tracer())
         yield done()
 
-    await collect(RecordTrace(InMemoryTraceLog())(t, use_case()), [])
+    await collect(
+        RecordTrace(InMemoryTraceLog(), InMemoryUsageStore())(t, use_case()), []
+    )
 
     assert seen == [t]
 
@@ -231,10 +246,123 @@ async def test_the_chat_stream_records_text_and_the_thread():
         yield " mundo"
         yield ThreadSaved("thread-1")
 
-    out = [e async for e in RecordTrace(log).chat(tracer(), chat())]
+    out = [
+        e async for e in RecordTrace(log, InMemoryUsageStore()).chat(tracer(), chat())
+    ]
 
     assert out[-1] == ThreadSaved("thread-1")
     [trace] = log.traces
     assert trace.status == "ok"
     assert trace.events == {"text": 2, "thread": 1}
     assert trace.context.answer_text == "Hola mundo"
+
+
+# ─── The day's token counter (ADR 0026) ─────────────────────────────────────
+
+
+def spending(input_tokens: int = 100, output_tokens: int = 50) -> TurnTracer:
+    """A tracer whose turn spent tokens on 2026-09-23 (UTC)."""
+    t = TurnTracer("planner", "/api/v1/ai/planner", "sub-1", now=lambda: DAY)
+    t.input_tokens = input_tokens
+    t.output_tokens = output_tokens
+    t.embed_tokens = 7
+    return t
+
+
+async def counted(usage: InMemoryUsageStore) -> tuple[int, int, int, int]:
+    day = await usage.get("sub-1", date(2026, 9, 23))
+    return day.input_tokens, day.output_tokens, day.embed_tokens, day.turns
+
+
+async def test_an_ok_turn_adds_its_tokens_to_the_day():
+    usage = InMemoryUsageStore()
+    record = RecordTrace(InMemoryTraceLog(), usage)
+
+    await collect(record(spending(), stream(text("x"), done())), [])
+    await collect(record(spending(10, 5), stream(text("x"), done())), [])
+
+    assert await counted(usage) == (110, 55, 14, 2)
+
+
+async def test_an_error_turn_is_counted_too():
+    usage = InMemoryUsageStore()
+    record = RecordTrace(InMemoryTraceLog(), usage)
+
+    async def failing() -> AsyncIterator[PlannerEvent]:
+        yield text("x")
+        raise ProviderUnavailable("bedrock down")
+
+    await collect(
+        record(spending(), stream(error_event("SERVICE_UNAVAILABLE", "x"))), []
+    )
+    with pytest.raises(ProviderUnavailable):
+        await collect(record(spending(), failing()), [])
+
+    assert await counted(usage) == (200, 100, 14, 2)
+
+
+async def test_a_cancelled_turn_is_counted_too():
+    usage = InMemoryUsageStore()
+    events = RecordTrace(InMemoryTraceLog(), usage)(
+        spending(), stream(text("a"), text("b"), done())
+    )
+
+    await anext(events)
+    await events.aclose()
+
+    assert await counted(usage) == (100, 50, 7, 1)
+
+
+async def test_a_request_that_does_not_stream_is_counted():
+    usage = InMemoryUsageStore()
+    log = InMemoryTraceLog()
+
+    await RecordTrace(log, usage).record(spending(0, 0), "ok", None)
+
+    # A card detail spends embedding tokens only: kept, not counted.
+    day = await usage.get("sub-1", date(2026, 9, 23))
+    assert (day.embed_tokens, day.tokens, day.turns) == (7, 0, 1)
+    assert len(log.traces) == 1
+
+
+async def test_a_turn_without_tokens_adds_nothing():
+    usage = InMemoryUsageStore()
+
+    await collect(RecordTrace(InMemoryTraceLog(), usage)(tracer(), stream(done())), [])
+
+    assert usage.days == {}
+
+
+async def test_a_failing_usage_store_never_breaks_the_stream():
+    log = InMemoryTraceLog()
+    usage = FailingAdds()
+
+    out = await collect(
+        RecordTrace(log, usage)(spending(), stream(text("x"), done())), []
+    )
+
+    assert [e.type for e in out] == ["text", "done"]
+    assert usage.attempts == 1
+    assert len(log.traces) == 1  # the trace is written all the same
+
+
+async def test_a_failing_log_still_counts_the_tokens():
+    log = InMemoryTraceLog(fail_with=RuntimeError("dynamo down"))
+    usage = InMemoryUsageStore()
+
+    out = await collect(
+        RecordTrace(log, usage)(spending(), stream(text("x"), done())), []
+    )
+
+    assert [e.type for e in out] == ["text", "done"]
+    assert await counted(usage) == (100, 50, 7, 1)
+
+
+class FailingAdds(InMemoryUsageStore):
+    def __init__(self) -> None:
+        super().__init__()
+        self.attempts = 0
+
+    async def add(self, subject: str, day: date, **tokens: int) -> None:
+        self.attempts += 1
+        raise RuntimeError("dynamo down")
