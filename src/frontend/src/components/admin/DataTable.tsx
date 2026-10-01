@@ -12,6 +12,8 @@ export interface Column<T> {
   /** Right-aligned, tabular numerals. */
   numeric?: boolean;
   className?: string;
+  /** For the header cell, e.g. to hide the column at the widths its cells are hidden. */
+  headerClassName?: string;
 }
 
 interface DataTableProps<T> {
@@ -71,7 +73,8 @@ export function DataTable<T>({
                 scope="col"
                 className={cn(
                   "sticky top-0 z-10 whitespace-nowrap border-b border-border-card bg-bg-card px-3 py-2 text-xs font-medium text-text-secondary",
-                  column.numeric && "text-right"
+                  column.numeric && "text-right",
+                  column.headerClassName
                 )}
               >
                 {column.header}

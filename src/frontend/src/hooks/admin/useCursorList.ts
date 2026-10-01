@@ -17,6 +17,12 @@ export interface CursorListResult<T> {
   hasMore: boolean;
   loadMore: () => void;
   reload: () => void;
+  /**
+   * Reads the list again from its first page while the rows on screen stay:
+   * they are replaced when the answer arrives. Opt-in (`reload` starts over
+   * behind the loader); what a page calls after its own write.
+   */
+  refresh: () => void;
 }
 
 interface ListState<T> {
@@ -117,6 +123,8 @@ export function useCursorList<T>(
 
   const reload = useCallback(() => setAttempt((n) => n + 1), []);
 
+  const refresh = useCallback(() => read(null, fullKey), [read, fullKey]);
+
   return {
     items: state.items,
     status: state.status,
@@ -125,5 +133,6 @@ export function useCursorList<T>(
     hasMore: state.cursor !== null,
     loadMore,
     reload,
+    refresh,
   };
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useRef, useState, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { AdminHeading, AdminLoadState } from "@/components/admin/AdminStates";
 import { ConfirmRemoveAccess } from "@/components/admin/access/ConfirmRemoveAccess";
 import { DataTable } from "@/components/admin/DataTable";
@@ -17,9 +17,10 @@ const NOTE_MAX = 200;
 const FIELD =
   "w-full rounded-lg border border-border-soft bg-bg-secondary px-3 py-2 text-sm text-text-primary placeholder:text-text-secondary/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50";
 const ROW_BUTTON =
-  "rounded px-2 py-1 text-sm underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50";
+  "inline-flex min-h-9 items-center rounded px-2 py-1 text-sm underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50";
 
-type Message = { tone: "ok" | "error"; text: string };
+/** `field` names the input a validation message is about. */
+type Message = { tone: "ok" | "error"; text: string; field?: "email" | "limit" };
 
 /** `null` for an empty field, the number for a whole one ≥ 0, `"invalid"` for the rest. */
 export function parseLimit(text: string): number | null | "invalid" {
@@ -33,8 +34,15 @@ export function parseLimit(text: string): number | null | "invalid" {
 /**
  * The access list (TRA-257, ADR 0026): who may use the app, and each one's
  * daily token limit. One form writes a grant (the same call invites a new
- * email and changes an existing one), the table shows what is stored, "Edit"
- * refills the form from a row and "Remove" asks before it deletes.
+ * email and changes an existing one), the table shows what is stored and
+ * "Remove" asks before it deletes.
+ *
+ * "Edit" refills the form from a row and says so: the email goes read-only,
+ * the submit names it ("Update ada@…"), "Cancel edit" empties the form, and
+ * the status line announces it. Every outcome is said in that one status
+ * line, which is always in the page so a screen reader hears each change; a
+ * validation message is also tied to its field (`aria-invalid`,
+ * `aria-describedby`), which takes the focus.
  */
 export default function AccessClientPage() {
   const { t } = useLanguage();
@@ -47,6 +55,8 @@ export default function AccessClientPage() {
   const limitId = useId();
   const limitHintId = useId();
   const noteId = useId();
+  const messageId = useId();
+  const formRef = useRef<HTMLFormElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const limitRef = useRef<HTMLInputElement>(null);
 
@@ -55,28 +65,55 @@ export default function AccessClientPage() {
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<Message | null>(null);
+  /** The row the form was filled from; `null` while it invites a new email. */
+  const [editing, setEditing] = useState<string | null>(null);
   const [removing, setRemoving] = useState<string | null>(null);
+  const focusEmailOnClose = useRef(false);
 
-  const fail = (text: string, field?: HTMLInputElement | null) => {
-    setMessage({ tone: "error", text });
-    field?.focus();
+  // The row that opened the confirmation is gone once it is confirmed, so the
+  // focus the dialog hands back would be lost: it goes to the email field.
+  // (The dialog's own restore is an effect cleanup, which runs before this.)
+  useEffect(() => {
+    if (removing !== null || !focusEmailOnClose.current) return;
+    focusEmailOnClose.current = false;
+    emailRef.current?.focus();
+  }, [removing]);
+
+  const fail = (text: string, field: "email" | "limit") => {
+    setMessage({ tone: "error", text, field });
+    (field === "email" ? emailRef : limitRef).current?.focus();
+  };
+
+  const clearForm = () => {
+    setEmail("");
+    setLimit("");
+    setNote("");
+    setEditing(null);
+  };
+
+  /** A change in the form: whatever was said about the last attempt is stale. */
+  const typed = (set: (value: string) => void) => (event: { target: { value: string } }) => {
+    set(event.target.value);
+    setMessage(null);
   };
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     const address = email.trim().toLowerCase();
-    if (!EMAIL.test(address)) return fail(ta.form.invalidEmail, emailRef.current);
+    if (!EMAIL.test(address)) return fail(ta.form.invalidEmail, "email");
     const parsed = parseLimit(limit);
-    if (parsed === "invalid") return fail(ta.form.invalidLimit, limitRef.current);
+    if (parsed === "invalid") return fail(ta.form.invalidLimit, "limit");
+    const existed = grants.items.some((grant) => grant.email === address);
 
     setSaving(true);
     setMessage(null);
     try {
       const saved = await grants.save(address, { daily_token_limit: parsed, note: note.trim() || null });
-      setEmail("");
-      setLimit("");
-      setNote("");
-      setMessage({ tone: "ok", text: interpolate(ta.form.saved, { email: saved.email }) });
+      clearForm();
+      setMessage({
+        tone: "ok",
+        text: interpolate(existed ? ta.form.updated : ta.form.added, { email: saved.email }),
+      });
       emailRef.current?.focus();
     } catch (err) {
       const forbidden = err instanceof AccessWriteError && err.reason === "forbidden";
@@ -90,14 +127,25 @@ export default function AccessClientPage() {
     setEmail(grant.email);
     setLimit(grant.daily_token_limit === null ? "" : String(grant.daily_token_limit));
     setNote(grant.note ?? "");
+    setEditing(grant.email);
+    setMessage({ tone: "ok", text: interpolate(ta.form.editing, { email: grant.email }) });
+    // The form is above the table: bring it into view when the row was far down.
+    formRef.current?.scrollIntoView?.({ block: "nearest" });
+    limitRef.current?.focus({ preventScroll: true });
+  };
+
+  const cancelEdit = () => {
+    clearForm();
     setMessage(null);
-    limitRef.current?.focus();
+    emailRef.current?.focus();
   };
 
   const confirmRemove = async () => {
     if (removing === null) return;
     const gone = removing;
     await grants.remove(gone);
+    if (editing === gone) clearForm();
+    focusEmailOnClose.current = true;
     setRemoving(null);
     setMessage({ tone: "ok", text: interpolate(ta.removed, { email: gone }) });
   };
@@ -113,6 +161,7 @@ export default function AccessClientPage() {
       <AdminHeading title={ta.title} subtitle={ta.subtitle} />
 
       <form
+        ref={formRef}
         onSubmit={submit}
         noValidate
         aria-label={ta.form.label}
@@ -129,10 +178,13 @@ export default function AccessClientPage() {
             name="email"
             autoComplete="off"
             required
+            readOnly={editing !== null}
             value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            onChange={typed(setEmail)}
             placeholder={ta.form.emailPlaceholder}
-            className={FIELD}
+            aria-invalid={message?.field === "email" || undefined}
+            aria-describedby={message?.field === "email" ? messageId : undefined}
+            className={`${FIELD} read-only:cursor-default read-only:opacity-70`}
           />
         </div>
         <div>
@@ -147,8 +199,9 @@ export default function AccessClientPage() {
             name="daily_token_limit"
             autoComplete="off"
             value={limit}
-            onChange={(event) => setLimit(event.target.value)}
-            aria-describedby={limitHintId}
+            onChange={typed(setLimit)}
+            aria-invalid={message?.field === "limit" || undefined}
+            aria-describedby={message?.field === "limit" ? `${limitHintId} ${messageId}` : limitHintId}
             className={FIELD}
           />
           <p id={limitHintId} className="mt-1 text-xs text-text-secondary">
@@ -166,29 +219,35 @@ export default function AccessClientPage() {
             autoComplete="off"
             maxLength={NOTE_MAX}
             value={note}
-            onChange={(event) => setNote(event.target.value)}
+            onChange={typed(setNote)}
             className={FIELD}
           />
         </div>
-        <div className="lg:pt-5">
-          <Button type="submit" size="sm" disabled={saving} aria-busy={saving} className="w-full whitespace-nowrap">
-            {saving ? ta.form.saving : ta.form.submit}
+        <div className="flex flex-col gap-2 sm:col-span-2 lg:col-span-1 lg:max-w-56 lg:pt-5">
+          <Button type="submit" size="sm" disabled={saving} aria-busy={saving} className="w-full break-all">
+            {saving
+              ? ta.form.saving
+              : editing !== null
+                ? interpolate(ta.form.update, { email: editing })
+                : ta.form.submit}
           </Button>
+          {editing !== null && (
+            <Button type="button" size="sm" variant="ghost" onClick={cancelEdit} disabled={saving} className="w-full">
+              {ta.form.cancelEdit}
+            </Button>
+          )}
         </div>
       </form>
 
-      {/* One live region for both outcomes, so a second message is announced too. */}
-      <div aria-live="polite" className="mb-4 min-h-5 text-sm">
-        {message && (
-          <p
-            role={message.tone === "error" ? "alert" : "status"}
-            data-testid="access-message"
-            className={message.tone === "error" ? "text-error" : "text-text-secondary"}
-          >
-            {message.text}
-          </p>
-        )}
-      </div>
+      {/* The one live region, always in the page: every outcome is written into it. */}
+      <p
+        id={messageId}
+        role="status"
+        data-testid="access-message"
+        className={`mb-4 min-h-5 break-words text-sm ${message?.tone === "error" ? "text-error" : "text-text-secondary"}`}
+      >
+        {message?.text ?? ""}
+      </p>
 
       {grants.status !== "ready" ? (
         <AdminLoadState status={grants.status} error={grants.error} onRetry={grants.reload} />
@@ -205,7 +264,9 @@ export default function AccessClientPage() {
             {
               key: "added",
               header: ta.columns.added,
-              className: "whitespace-nowrap",
+              // The phone keeps the actions in reach: the date is the column to give up.
+              className: "hidden whitespace-nowrap sm:table-cell",
+              headerClassName: "hidden sm:table-cell",
               cell: (g) => f.formatDate(g.created_at, { month: "short", day: "numeric", year: "numeric" }),
             },
             {
@@ -213,7 +274,7 @@ export default function AccessClientPage() {
               header: ta.columns.actions,
               className: "whitespace-nowrap",
               cell: (g) => (
-                <span className="inline-flex items-center gap-1">
+                <span className="inline-flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => edit(g)}

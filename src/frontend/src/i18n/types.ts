@@ -496,6 +496,11 @@ export interface Translations {
       /** `{email}` is the account's email. */
       description: string;
       hint: string;
+      /** Asks core_api again, for someone who has just been invited. */
+      checkAgain: string;
+      checking: string;
+      /** `{email}` is the account's email; said when the answer is still no. */
+      stillDenied: string;
       signOut: string;
     };
   };
@@ -650,9 +655,15 @@ export interface Translations {
         limitHint: string;
         note: string;
         submit: string;
+        /** The submit button while a row is being edited; `{email}` is the row's. */
+        update: string;
+        cancelEdit: string;
+        /** Announced when "Edit" fills the form; `{email}` is the row's. */
+        editing: string;
         saving: string;
-        /** `{email}` is the grant that was just written. */
-        saved: string;
+        /** `{email}` is the grant that was just written: a new one, or a changed one. */
+        added: string;
+        updated: string;
         invalidEmail: string;
         invalidLimit: string;
         failed: string;

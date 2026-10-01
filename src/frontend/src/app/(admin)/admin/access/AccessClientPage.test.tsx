@@ -30,6 +30,7 @@ const emailField = () => screen.getByLabelText("Email");
 const limitField = () => screen.getByLabelText("Daily token limit");
 const noteField = () => screen.getByLabelText("Note");
 const submit = () => screen.getByRole("button", { name: "Add or update" });
+const message = () => screen.getByTestId("access-message");
 const type = (field: HTMLElement, value: string) => fireEvent.change(field, { target: { value } });
 
 describe("parseLimit", () => {
@@ -100,7 +101,8 @@ describe("AccessClientPage", () => {
       daily_token_limit: 1200,
       note: "friend",
     });
-    expect(await screen.findByRole("status")).toHaveTextContent("new@example.com is on the list.");
+    await waitFor(() => expect(message()).toHaveTextContent("new@example.com was invited."));
+    expect(message()).toHaveAttribute("role", "status");
     await waitFor(async () => expect(await rows()).toHaveLength(1));
     expect(emailField()).toHaveValue("");
     expect(limitField()).toHaveValue("");
@@ -125,14 +127,29 @@ describe("AccessClientPage", () => {
 
     type(emailField(), "not-an-email");
     fireEvent.click(submit());
-    expect(screen.getByRole("alert")).toHaveTextContent("Enter a valid email address.");
+    expect(message()).toHaveTextContent("Enter a valid email address.");
     expect(emailField()).toHaveFocus();
+    expect(emailField()).toHaveAttribute("aria-invalid", "true");
+    expect(emailField().getAttribute("aria-describedby")).toBe(message().id);
+    expect(limitField()).not.toHaveAttribute("aria-invalid");
 
+    // Editing the form takes the stale message, and the mark on the field, away.
     type(emailField(), "ok@example.com");
+    expect(message()).toBeEmptyDOMElement();
+    expect(emailField()).not.toHaveAttribute("aria-invalid");
+    expect(emailField()).not.toHaveAttribute("aria-describedby");
+
     type(limitField(), "-5");
     fireEvent.click(submit());
-    expect(screen.getByRole("alert")).toHaveTextContent("The limit must be a whole number, 0 or more.");
+    expect(message()).toHaveTextContent("The limit must be a whole number, 0 or more.");
     expect(limitField()).toHaveFocus();
+    expect(limitField()).toHaveAttribute("aria-invalid", "true");
+    // The hint stays in the description; the message joins it.
+    const described = limitField().getAttribute("aria-describedby")!.split(" ");
+    expect(described).toHaveLength(2);
+    expect(document.getElementById(described[0]!)).toHaveTextContent("Leave empty for the default");
+    expect(described[1]).toBe(message().id);
+    expect(emailField()).not.toHaveAttribute("aria-invalid");
 
     expect(putAccessGrant).not.toHaveBeenCalled();
   });
@@ -145,7 +162,7 @@ describe("AccessClientPage", () => {
     type(emailField(), "new@example.com");
     fireEvent.click(submit());
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("We couldn't save that. Please try again.");
+    await waitFor(() => expect(message()).toHaveTextContent("We couldn't save that. Please try again."));
     expect(emailField()).toHaveValue("new@example.com");
     expect(submit()).toBeEnabled();
     expect(listAccessGrants).toHaveBeenCalledTimes(1);
@@ -159,7 +176,36 @@ describe("AccessClientPage", () => {
     type(emailField(), "new@example.com");
     fireEvent.click(submit());
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("isn't allowed to change the access list");
+    await waitFor(() => expect(message()).toHaveTextContent("isn't allowed to change the access list"));
+  });
+
+  it("has one live region, in the page from the start, and nothing nested in it", async () => {
+    renderWithProviders(<AccessClientPage />);
+    await table();
+
+    expect(message()).toHaveAttribute("role", "status");
+    expect(message()).toBeEmptyDOMElement();
+    expect(message().closest("[aria-live]")).toBeNull();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("keeps the rows on screen while the list is read again after a write", async () => {
+    const saved = grant("new@example.com");
+    vi.mocked(putAccessGrant).mockResolvedValue(saved);
+    renderWithProviders(<AccessClientPage />);
+    await table();
+    let answer!: (page: { items: AccessGrant[]; next_cursor: null }) => void;
+    vi.mocked(listAccessGrants).mockReturnValue(new Promise((resolve) => (answer = resolve)));
+
+    type(emailField(), "new@example.com");
+    fireEvent.click(submit());
+
+    await waitFor(() => expect(listAccessGrants).toHaveBeenCalledTimes(2));
+    expect(screen.getByRole("table", { name: "Invited emails" })).toBeInTheDocument();
+    expect(await rows()).toHaveLength(3);
+
+    answer({ items: [...ACCESS_GRANT_PAGE.items, saved], next_cursor: null });
+    await waitFor(async () => expect(await rows()).toHaveLength(4));
   });
 
   it("edit refills the form from the row and moves to the limit", async () => {
@@ -176,6 +222,48 @@ describe("AccessClientPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Edit linus@example.com" }));
     expect(limitField()).toHaveValue("");
     expect(noteField()).toHaveValue("");
+  });
+
+  it("says it is editing: read-only email, a submit that names it, and a way out", async () => {
+    const scrollIntoView = vi.fn();
+    Element.prototype.scrollIntoView = scrollIntoView;
+    renderWithProviders(<AccessClientPage />);
+    await table();
+    expect(emailField()).not.toHaveAttribute("readonly");
+    expect(screen.queryByRole("button", { name: "Cancel edit" })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Edit ada@example.com" }));
+
+    expect(emailField()).toHaveAttribute("readonly");
+    expect(screen.getByRole("button", { name: "Update ada@example.com" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Add or update" })).not.toBeInTheDocument();
+    expect(message()).toHaveTextContent("Editing ada@example.com");
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: "nearest" });
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancel edit" }));
+
+    expect(emailField()).toHaveValue("");
+    expect(limitField()).toHaveValue("");
+    expect(noteField()).toHaveValue("");
+    expect(emailField()).not.toHaveAttribute("readonly");
+    expect(emailField()).toHaveFocus();
+    expect(submit()).toBeInTheDocument();
+    expect(message()).toBeEmptyDOMElement();
+  });
+
+  it("says a changed grant was updated, not invited, and leaves edit mode", async () => {
+    vi.mocked(putAccessGrant).mockResolvedValue(grant("ada@example.com", { daily_token_limit: 70000 }));
+    renderWithProviders(<AccessClientPage />);
+    await table();
+
+    fireEvent.click(screen.getByRole("button", { name: "Edit ada@example.com" }));
+    type(limitField(), "70000");
+    fireEvent.click(screen.getByRole("button", { name: "Update ada@example.com" }));
+
+    expect(putAccessGrant).toHaveBeenCalledWith("ada@example.com", { daily_token_limit: 70000, note: "team" });
+    await waitFor(() => expect(message()).toHaveTextContent("Limit updated for ada@example.com."));
+    expect(submit()).toBeInTheDocument();
+    expect(emailField()).not.toHaveAttribute("readonly");
   });
 
   it("removes an email only after the confirmation", async () => {
@@ -197,8 +285,23 @@ describe("AccessClientPage", () => {
 
     expect(deleteAccessGrant).toHaveBeenCalledWith("grace@example.com");
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-    expect(await screen.findByRole("status")).toHaveTextContent("grace@example.com is off the list.");
+    await waitFor(() => expect(message()).toHaveTextContent("grace@example.com is off the list."));
     await waitFor(async () => expect(await rows()).toHaveLength(2));
+    // The row that opened the dialog is gone: the focus lands on the form instead.
+    expect(emailField()).toHaveFocus();
+  });
+
+  it("counts an email that someone else already removed (404) as removed", async () => {
+    vi.mocked(deleteAccessGrant).mockRejectedValue(new ApiError(404, "gone", "NOT_FOUND"));
+    renderWithProviders(<AccessClientPage />);
+    await table();
+
+    fireEvent.click(screen.getByRole("button", { name: "Remove ada@example.com" }));
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Remove access" }));
+
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(message()).toHaveTextContent("ada@example.com is off the list.");
+    expect(listAccessGrants).toHaveBeenCalledTimes(2);
   });
 
   it("cancelling the confirmation removes nothing", async () => {
@@ -213,7 +316,7 @@ describe("AccessClientPage", () => {
   });
 
   it("keeps the confirmation open and says so when removing fails", async () => {
-    vi.mocked(deleteAccessGrant).mockRejectedValue(new ApiError(404, "gone", "NOT_FOUND"));
+    vi.mocked(deleteAccessGrant).mockRejectedValue(new ApiError(500, "boom"));
     renderWithProviders(<AccessClientPage />);
     await table();
 
