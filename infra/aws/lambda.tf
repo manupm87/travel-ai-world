@@ -53,6 +53,9 @@ resource "aws_lambda_function" "core_api" {
   environment {
     variables = merge(local.backend_env, {
       CORE_TABLE = aws_dynamodb_table.core.name
+      # The access list and the default daily quota (ADR 0026).
+      ACCESS_MODE               = var.access_mode
+      DEFAULT_DAILY_TOKEN_LIMIT = tostring(var.default_daily_token_limit)
     })
   }
 

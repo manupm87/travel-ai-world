@@ -183,6 +183,32 @@ variable "admin_usernames" {
   default     = []
 }
 
+# -----------------------------------------------------------------------------
+# Access list and daily token quota (ADR 0026)
+# -----------------------------------------------------------------------------
+
+variable "access_mode" {
+  description = "Who may use the app: \"allowlist\" = administrators and the emails invited at /admin/access/ (everyone else gets 403 ACCESS_DENIED); \"open\" = every signed-in account."
+  type        = string
+  default     = "allowlist"
+
+  validation {
+    condition     = contains(["open", "allowlist"], var.access_mode)
+    error_message = "access_mode must be \"open\" or \"allowlist\"."
+  }
+}
+
+variable "default_daily_token_limit" {
+  description = "Tokens a person may spend per UTC day when their grant sets no limit of its own; 0 = unlimited. Served by core_api on GET /users/me/access."
+  type        = number
+  default     = 300000
+
+  validation {
+    condition     = var.default_daily_token_limit >= 0 && floor(var.default_daily_token_limit) == var.default_daily_token_limit
+    error_message = "default_daily_token_limit must be a whole number, 0 or more."
+  }
+}
+
 variable "tags" {
   description = "Tags to apply to all resources."
   type        = map(string)

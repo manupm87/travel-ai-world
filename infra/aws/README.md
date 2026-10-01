@@ -19,7 +19,7 @@ removes it.
 
 | Function | Image | Where | Receives |
 |---|---|---|---|
-| `core-api` | `core-api` | outside the VPC (DynamoDB through IAM, HTTPS) | `CORE_TABLE`, `AUTH_MODE=cognito` + `COGNITO_*`, `BACKEND_CORS_ORIGINS` |
+| `core-api` | `core-api` | outside the VPC (DynamoDB through IAM, HTTPS) | `CORE_TABLE`, `AUTH_MODE=cognito` + `COGNITO_*`, `BACKEND_CORS_ORIGINS`, `ACCESS_MODE` + `DEFAULT_DAILY_TOKEN_LIMIT` |
 | `ai-api` | `ai-api` | outside the VPC (Bedrock, NVIDIA, `core_api` through CloudFront) | `LLM_PROVIDER` (`bedrock` by default) + `BEDROCK_*`, `NVIDIA_*` (fallback), `AUTH_MODE=cognito` + `COGNITO_*`, `CORE_API_URL=https://<domain>`, `RETRIEVAL_ENABLED` + `VECTOR_*` + `EMBEDDINGS_*`, `INTERACTIONS_TABLE` |
 
 Request path: `https://<domain>/api/v1/...` → CloudFront (`/api/*`, no cache, `Authorization`
@@ -154,6 +154,13 @@ first `terraform apply`:
    `terraform output -raw cognito_jwks` in `.env` to test against the real pool.
 4. **Administrators**: `admin_usernames` in `admins.auto.tfvars` (committed; below); the role
    travels in the ID token as `cognito:groups`.
+5. **Everyone else is invited** ([ADR 0026](../../docs/architecture/adr/0026-access-list-and-daily-token-quota.md)):
+   `access_mode` (default `"allowlist"`) becomes `core-api`'s `ACCESS_MODE`, so a signed-in account
+   that is neither an administrator nor on the access list gets 403 `ACCESS_DENIED`. The list is
+   data, not Terraform: administrators edit it at `/admin/access/`
+   ([runbook](../../docs/runbooks/access.md)). `default_daily_token_limit` (default `300000`,
+   `0` = unlimited) becomes `DEFAULT_DAILY_TOKEN_LIMIT`, the daily token quota of anyone whose
+   grant sets none. `access_mode = "open"` lets every signed-in account in again.
 
 The managed-login host is `auth.<domain>` by default (`cognito_subdomain`, covered by the wildcard
 certificate); set it to `""` to fall back to the pool's own host
