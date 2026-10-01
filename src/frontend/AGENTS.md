@@ -232,7 +232,7 @@ TypeScript 5, Tailwind CSS v4.
   while the DELETE is on its way). `LoginModal`, `RenameTripDialog`, `ConfirmDelete` and `MobileDrawer` all use it —
   a new modal uses it too rather than writing a fourth trap. All three sit on the same surface,
   `bg-glass-bg backdrop-blur-xl border-glass-border` over the aurora, never an opaque card. The
-  sign-in dialog adds its own `h2` ("Sign in to plan") as the label, the orbit `Mark` from
+  sign-in dialog adds its own `h2` ("Sign in to plan") as the label, the pin-over-the-world `Mark` from
   `Logo.tsx` and the landing's `.conic-ring` around its one action.
 - **`/dashboard/` is the signed-in home** (TRA-199, ADR 0020): "Your trips". A static shell
   (`app/(app)/dashboard/page.tsx`) over `TripsHome.tsx`, which is two things in the order they are
