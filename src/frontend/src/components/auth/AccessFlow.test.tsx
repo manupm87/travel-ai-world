@@ -65,7 +65,9 @@ describe("a signed-in account and the access list (AuthProvider + ProtectedRoute
     const card = await screen.findByTestId("no-access");
     expect(card).toHaveTextContent("grace@example.com hasn't been invited yet");
     expect(screen.queryByText("my trips")).not.toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 1, name: "You're not on the list yet" })).toHaveFocus();
+    const heading = screen.getByRole("heading", { level: 1, name: "You're not on the list yet" });
+    // The heading takes the focus in an effect, which may run after `findBy` resolves.
+    await waitFor(() => expect(heading).toHaveFocus());
     expect(push).not.toHaveBeenCalled();
   });
 
