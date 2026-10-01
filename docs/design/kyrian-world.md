@@ -63,9 +63,13 @@ model's answer, which stays in the body font. All three are loaded in `app/layou
   admin console keeps its density.
 - No ALL-CAPS tracked labels above headings, no "WORD — fragment" eyebrows, no monospace for small
   data labels, no numbered `01 / 02 / 03` markers unless the content really is a sequence.
-- The wordmark is "Kyrian World" in Outfit 500, sentence case, beside **the K of the route**
-  (`components/layout/Logo.tsx`): a solid stem and leg in the text colour, the arm drawn as a dotted
-  route that reaches a sage dot. It is never translated.
+- The wordmark is "Kyrian World" in Outfit 500, sentence case, beside **the pin over the world**
+  (`components/layout/Logo.tsx`, TRA-259): a map pin with a four-point star standing on the curve of
+  a world, on a rounded tile (radius 23% of the side, 1 px border). Three levels of detail by size:
+  up to 32 px the pin alone (header, phone menu, favicon); up to 64 px the ocean, the continent and
+  the pin (the sign-in dialog, 56 px); above that the two islands and the horizon line too. Its
+  colours are the `--logo-*` tokens in `globals.css`, one set per theme; the pin takes Kiri's clay
+  (`--kiri-light` on dark, `--kiri-dark` on light). It is never translated.
 
 ## Kiri
 
