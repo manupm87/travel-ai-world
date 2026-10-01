@@ -17,6 +17,10 @@ const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:8080";
 export default defineConfig({
   ...baseConfig,
   testIgnore: [],
+  // The stack's export is built with a core_api URL (`just build-stack`), so
+  // specs that skip themselves on an API-less build must run here
+  // (`e2e/access.spec.ts`, the denied account).
+  metadata: { apiConfigured: true },
 
   use: {
     ...baseConfig.use,

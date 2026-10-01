@@ -86,7 +86,7 @@ async function mockAccessList(page: Page) {
 }
 
 test.describe("Access list — an account that is not invited", () => {
-  test("lands on the no-access page instead of its trips, and can sign out", async ({ page }) => {
+  test("lands on the no-access page instead of its trips, and can sign out", async ({ page }, testInfo) => {
     const me = await signIn(page, "user", { allowed: false });
     // What an uninvited account's other calls get from core_api.
     await page.route(prefix("/api/v1/trips"), (route) =>
@@ -97,20 +97,31 @@ test.describe("Access list — an account that is not invited", () => {
     );
 
     // The app asks about access only when it is built with a core_api URL
-    // (`NEXT_PUBLIC_API_URL`); the plain static export has no backend to ask
-    // and leaves the answer unknown, so there is nothing to see there.
+    // (`NEXT_PUBLIC_API_URL`). The Compose stack is (`playwright.stack.config.ts`
+    // says so in its metadata), so there the question must be asked and this
+    // test must run: that is CI's `e2e-stack` job. The plain static export
+    // (`just test-e2e-static`, CI's `frontend` job) has no backend to ask and
+    // leaves the answer unknown, so there is nothing to see there.
     const asked = page.waitForRequest((request) => new URL(request.url()).pathname === ACCESS_PATH, {
       timeout: 5_000,
     });
     await page.goto("/dashboard/");
-    test.skip(
-      (await asked.catch(() => null)) === null,
-      "this build has no core_api URL, so it never asks /users/me/access"
-    );
+    if (testInfo.config.metadata.apiConfigured) {
+      await asked;
+    } else {
+      test.skip(
+        (await asked.catch(() => null)) === null,
+        "This build has no core_api URL (the static export keeps the demo mode), so the app never asks " +
+          "/users/me/access. The flow is covered by CI's e2e-stack job (just test-e2e-stack, this same test) " +
+          "and by Vitest: src/components/auth/AccessFlow.test.tsx (AuthProvider + ProtectedRoute + NoAccess)."
+      );
+    }
 
     const card = page.getByTestId("no-access");
     await expect(card).toBeVisible();
     await expect(card.getByRole("heading", { level: 1 })).toHaveText("You're not on the list yet");
+    await expect(card.getByRole("heading", { level: 1 })).toBeFocused();
+    await expect(card.getByRole("button", { name: "Check again" })).toBeVisible();
     await expect(card).toContainText(me.email);
 
     await card.getByRole("button", { name: "Sign out" }).click();
@@ -139,7 +150,7 @@ test.describe("Access list — as an administrator", () => {
     await page.getByLabel("Note", { exact: true }).fill("beta tester");
     await page.getByRole("button", { name: "Add or update" }).click();
 
-    await expect(page.getByTestId("access-message")).toHaveText("new.person@example.com is on the list.");
+    await expect(page.getByTestId("access-message")).toHaveText("new.person@example.com was invited.");
     await expect(list.locator("tbody tr")).toHaveCount(4);
     const row = list.locator("tbody tr", { hasText: "new.person@example.com" });
     await expect(row).toContainText("1,200");
@@ -154,6 +165,8 @@ test.describe("Access list — as an administrator", () => {
 
     await expect(dialog).toHaveCount(0);
     await expect(page.getByTestId("access-message")).toHaveText("new.person@example.com is off the list.");
+    // The removed row cannot take the focus back: the form does.
+    await expect(page.getByLabel("Email", { exact: true })).toBeFocused();
     await expect(list.locator("tbody tr")).toHaveCount(3);
     await expect(list).not.toContainText("new.person@example.com");
 
@@ -178,6 +191,7 @@ test.describe("Access list — as an administrator", () => {
 
     await expect(page.getByTestId("access-message")).toHaveText("Enter a valid email address.");
     await expect(page.getByLabel("Email", { exact: true })).toBeFocused();
+    await expect(page.getByLabel("Email", { exact: true })).toHaveAttribute("aria-invalid", "true");
     expect(writes).toEqual([]);
   });
 });
