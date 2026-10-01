@@ -34,6 +34,13 @@ class Forbidden(DomainError):
     default_message = "Not enough permissions"
 
 
+class AccessDenied(Forbidden):
+    """A signed-in account that is not on the access list (ADR 0025)."""
+
+    error_code = "ACCESS_DENIED"
+    default_message = "This account has not been given access yet"
+
+
 class EntityNotFound(DomainError):
     error_code = "NOT_FOUND"
     default_message = "Resource not found"

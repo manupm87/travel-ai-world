@@ -4,6 +4,7 @@ import pytest
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 from travel_common.exceptions import (
+    AccessDenied,
     DomainError,
     EntityNotFound,
     Forbidden,
@@ -22,6 +23,7 @@ class _CustomNotFound(EntityNotFound):
     [
         (Unauthorized(), 401),
         (Forbidden(), 403),
+        (AccessDenied(), 403),
         (EntityNotFound("Trip", 7), 404),
         (_CustomNotFound("Meal"), 404),
         (ProviderUnavailable(), 503),
@@ -40,6 +42,10 @@ def app() -> FastAPI:
     @app.get("/missing")
     async def missing():
         raise EntityNotFound("Trip", "abc")
+
+    @app.get("/uninvited")
+    async def uninvited():
+        raise AccessDenied()
 
     @app.get("/private")
     async def private():
@@ -69,3 +75,16 @@ async def test_unauthorized_sets_challenge_header(app: FastAPI):
     assert response.status_code == 401
     assert response.headers["WWW-Authenticate"] == "Bearer"
     assert response.json()["detail"]["error_code"] == "UNAUTHORIZED"
+
+
+async def test_access_denied_is_a_403_with_its_own_code(app: FastAPI):
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://t") as c:
+        response = await c.get("/uninvited")
+
+    assert response.status_code == 403
+    assert response.json() == {
+        "detail": {
+            "message": "This account has not been given access yet",
+            "error_code": "ACCESS_DENIED",
+        }
+    }
