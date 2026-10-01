@@ -51,7 +51,7 @@ import { isEditable } from "@/types/trip";
 export default function PlannerClientPage() {
   const { t, resolved: languageResolved } = useLanguage();
   const { user } = useAuth();
-  const { formatClock } = useFormatters();
+  const { formatWeekdayTime } = useFormatters();
   const router = useRouter();
   const params = useSearchParams();
   const query = params.get("q");
@@ -217,7 +217,7 @@ export default function PlannerClientPage() {
   }, [query, hasMessages, sendMessage, languageResolved, router]);
 
   // A spent daily allowance says when it resets, in the reader's own time (TRA-258).
-  const errorText = plannerErrorText(t, state, { email: user?.email ?? null, formatClock });
+  const errorText = plannerErrorText(t, state, { email: user?.email ?? null, formatWeekdayTime });
 
   const generate = useCallback(() => {
     sendMessage(t.plan.checklist.generateMessage);

@@ -350,7 +350,7 @@ export interface Translations {
     errors: {
       generic: string;
       unauthorized: string;
-      /** Today's token allowance is spent (ADR 0026); `{time}` is the local reset time. */
+      /** Today's token allowance is spent (ADR 0026); `{when}` is the local weekday and time it starts again. */
       quota: string;
       /** The same, when the reset time is not known. */
       quotaNoTime: string;
@@ -699,6 +699,8 @@ export interface Translations {
         empty: string;
         reload: string;
         reloading: string;
+        /** Announced (`role="status"`) when a reload has finished. */
+        reloaded: string;
         columns: {
           account: string;
           turns: string;
@@ -706,7 +708,7 @@ export interface Translations {
           limit: string;
           share: string;
         };
-        /** Read out beside a bar that is full. */
+        /** Shown beside a bar that is full. */
         over: string;
       };
       confirm: {

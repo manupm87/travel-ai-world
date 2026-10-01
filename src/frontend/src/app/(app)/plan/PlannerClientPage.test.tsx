@@ -226,8 +226,10 @@ describe("PlannerClientPage — a turn ai_api refuses (TRA-258)", () => {
     open("q=Four%20days%20in%20Rome");
 
     const alert = await screen.findByRole("alert");
-    const time = new Date(resetsAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
-    expect(alert).toHaveTextContent(`You have used today's allowance. It resets at ${time}.`);
+    const when = new Intl.DateTimeFormat("en-US", { weekday: "short", hour: "numeric", minute: "2-digit" }).format(
+      new Date(resetsAt)
+    );
+    expect(alert).toHaveTextContent(`You've reached today's planning limit. You can keep planning from ${when}.`);
     expect(screen.queryByRole("button", { name: en.plan.packing.lost.retry })).toBeNull();
   });
 

@@ -254,9 +254,9 @@ test.describe("Daily token quota — a planner turn over the limit", () => {
     await page.getByPlaceholder("Ask for a change or search for something…").fill("Four days in Budapest");
     await page.getByRole("button", { name: "Send" }).click();
 
-    const alert = page.getByRole("alert").filter({ hasText: "today's allowance" });
+    const alert = page.getByRole("alert").filter({ hasText: "today's planning limit" });
     await expect(alert).toBeVisible();
-    await expect(alert).toContainText(/You have used today's allowance\. It resets at \d{1,2}:\d{2}/);
+    await expect(alert).toContainText(/You've reached today's planning limit\. You can keep planning from \w+,? \d{1,2}:\d{2}/);
     await expect(alert.getByRole("button", { name: "Retry" })).toHaveCount(0);
     // The recorded demo must not answer in ai_api's place.
     await expect(page.getByRole("status").filter({ hasText: "Demo mode" })).toHaveCount(0);

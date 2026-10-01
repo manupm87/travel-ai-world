@@ -12,7 +12,7 @@ import {
 import { FIRST_ITINERARY_OPS, GROUP_IDS, NEIGHBOURHOODS } from "@/data/planner-demo/session";
 import { EMPTY_BRIEF } from "@/types/planner";
 import { applyItineraryOps, EMPTY_ITINERARY } from "@/hooks/plannerReducer";
-import { ChatColumn } from "./ChatColumn";
+import { ChatColumn, turnsRefused } from "./ChatColumn";
 
 const p = en.plan;
 
@@ -327,16 +327,68 @@ describe("ChatColumn — Kiri's answer (TRA-239)", () => {
   });
 
   it("says a spent allowance and when it resets, with nothing to retry (TRA-258)", () => {
-    const text = interpolate(p.errors.quota, { time: "2:00 AM" });
+    const text = interpolate(p.errors.quota, { when: "Fri 2:00 AM" });
     renderColumn({ status: "error", error: "quota" }, text, { onRetry: vi.fn() });
 
     const alert = screen.getByRole("alert");
-    expect(alert).toHaveTextContent("You have used today's allowance. It resets at 2:00 AM.");
+    expect(alert).toHaveTextContent(
+      "You've reached today's planning limit. You can keep planning from Fri 2:00 AM."
+    );
     expect(screen.queryByRole("button", { name: p.packing.lost.retry })).not.toBeInTheDocument();
   });
 
+  const FAR = "2999-01-01T00:00:00+00:00";
+  const GONE = "2000-01-01T00:00:00+00:00";
+
+  it.each([
+    ["an account off the list", { error: "denied" as const }],
+    ["a spent allowance", { error: "quota" as const, quotaResetsAt: FAR }],
+    ["a spent allowance with no reset time", { error: "quota" as const, quotaResetsAt: null }],
+  ])("takes no turn after %s: composer, chips and options are off (TRA-258)", (_, failure) => {
+    const { onSend, onSelect } = renderColumn({ status: "error", ...failure }, "refused");
+
+    const box = screen.getByRole("textbox", { name: en.planner.title });
+    fireEvent.change(box, { target: { value: "One more day" } });
+    expect(screen.getByRole("button", { name: en.planner.send })).toBeDisabled();
+    // Enter goes through `submit`, not the button: it is guarded too.
+    fireEvent.keyDown(box, { key: "Enter" });
+    expect(onSend).not.toHaveBeenCalled();
+    expect(box).toHaveValue("One more day");
+
+    for (const chip of p.suggestions) {
+      expect(screen.getByRole("button", { name: chip })).toBeDisabled();
+    }
+    fireEvent.click(screen.getByRole("button", { name: p.suggestions[0]! }));
+    expect(onSend).not.toHaveBeenCalled();
+    expect(onSelect).not.toHaveBeenCalled();
+  });
+
+  it("takes turns again once the allowance has started again (TRA-258)", () => {
+    const { onSend } = renderColumn({ status: "error", error: "quota", quotaResetsAt: GONE }, "refused");
+
+    fireEvent.change(screen.getByRole("textbox", { name: en.planner.title }), { target: { value: "One more day" } });
+    const send = screen.getByRole("button", { name: en.planner.send });
+    expect(send).toBeEnabled();
+    fireEvent.click(send);
+
+    expect(onSend).toHaveBeenCalledWith("One more day");
+  });
+
+  it("knows which failures refuse every turn", () => {
+    const at = Date.parse("2026-10-01T22:00:00Z");
+    const resets = "2026-10-02T00:00:00+00:00";
+    expect(turnsRefused({ error: null, quotaResetsAt: null }, at)).toBe(false);
+    expect(turnsRefused({ error: "generic", quotaResetsAt: null }, at)).toBe(false);
+    expect(turnsRefused({ error: "unauthorized", quotaResetsAt: null }, at)).toBe(false);
+    expect(turnsRefused({ error: "denied", quotaResetsAt: null }, at)).toBe(true);
+    expect(turnsRefused({ error: "quota", quotaResetsAt: resets }, at)).toBe(true);
+    expect(turnsRefused({ error: "quota", quotaResetsAt: resets }, Date.parse(resets))).toBe(false);
+    expect(turnsRefused({ error: "quota", quotaResetsAt: null }, at)).toBe(true);
+    expect(turnsRefused({ error: "quota", quotaResetsAt: "soon" }, at)).toBe(true);
+  });
+
   it("says an account is not on the list, with nothing to retry (TRA-258)", () => {
-    const text = interpolate(en.auth.noAccess.description, { email: "ada@example.com" });
+    const text = `${interpolate(en.auth.noAccess.description, { email: "ada@example.com" })} ${en.auth.noAccess.hint}`;
     renderColumn({ status: "error", error: "denied" }, text, { onRetry: vi.fn() });
 
     expect(screen.getByRole("alert")).toHaveTextContent(

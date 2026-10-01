@@ -3,7 +3,6 @@
 import { useMemo } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import {
-  formatClock,
   formatCurrency,
   formatDate,
   formatDuration,
@@ -13,6 +12,7 @@ import {
   formatPercent,
   formatTime,
   formatUsd,
+  formatWeekdayTime,
 } from "@/utils/format";
 
 /**
@@ -35,12 +35,12 @@ export function useFormatters() {
       formatMs: (ms: number) => formatMs(ms, locale),
       /** US dollars, two decimals (four under a cent). */
       formatUsd: (n: number) => formatUsd(n, locale),
-      /** A 0–1 ratio as a percentage, at most one decimal. */
-      formatPercent: (x: number) => formatPercent(x, locale),
+      /** A 0–1 ratio as a percentage, at most one decimal (or `digits`). */
+      formatPercent: (x: number, digits?: number) => formatPercent(x, locale, digits),
       /** "Budapest, Bologna and Berlin", joined the locale's way. */
       formatList: (items: string[]) => formatList(items, locale),
-      /** The local hour and minute of a timestamp, the locale's way. */
-      formatClock: (iso: string) => formatClock(iso, locale),
+      /** The local weekday, hour and minute of a timestamp, the locale's way. */
+      formatWeekdayTime: (iso: string) => formatWeekdayTime(iso, locale),
       /** The local time of a timestamp, `HH:mm:ss`. */
       formatTime: (iso: string) => formatTime(iso, locale),
     }),

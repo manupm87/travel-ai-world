@@ -3,7 +3,7 @@ import en from "@/i18n/en";
 import es from "@/i18n/es";
 import { plannerErrorText } from "./plannerErrorText";
 
-const context = { email: "ada@example.com", formatClock: () => "2:00 AM" };
+const context = { email: "ada@example.com", formatWeekdayTime: () => "Fri 2:00 AM" };
 
 describe("plannerErrorText (TRA-258)", () => {
   it("says nothing when no turn failed", () => {
@@ -17,32 +17,37 @@ describe("plannerErrorText (TRA-258)", () => {
     );
   });
 
-  it("names the local time a spent allowance resets at", () => {
+  it("names the local weekday and time a spent allowance starts again at", () => {
     const seen: string[] = [];
     const text = plannerErrorText(
       en,
       { error: "quota", quotaResetsAt: "2026-10-02T00:00:00+00:00" },
-      { ...context, formatClock: (iso) => (seen.push(iso), "2:00 AM") }
+      { ...context, formatWeekdayTime: (iso) => (seen.push(iso), "Fri 2:00 AM") }
     );
 
-    expect(text).toBe("You have used today's allowance. It resets at 2:00 AM.");
+    expect(text).toBe("You've reached today's planning limit. You can keep planning from Fri 2:00 AM.");
     expect(seen).toEqual(["2026-10-02T00:00:00+00:00"]);
     expect(
-      plannerErrorText(es, { error: "quota", quotaResetsAt: "2026-10-02T00:00:00+00:00" }, { ...context, formatClock: () => "2:00" })
-    ).toBe("Has usado el cupo de hoy. Se renueva a las 2:00.");
+      plannerErrorText(es, { error: "quota", quotaResetsAt: "2026-10-02T00:00:00+00:00" }, { ...context, formatWeekdayTime: () => "vie, 2:00" })
+    ).toBe("Has alcanzado el límite de uso de hoy. Podrás seguir planificando a partir del vie, 2:00.");
   });
 
-  it("falls back to tomorrow when the reset time is missing or unreadable", () => {
+  it("says to come back later when the reset time is missing or unreadable", () => {
     expect(plannerErrorText(en, { error: "quota", quotaResetsAt: null }, context)).toBe(en.plan.errors.quotaNoTime);
     expect(
-      plannerErrorText(en, { error: "quota", quotaResetsAt: "soon" }, { ...context, formatClock: () => "" })
+      plannerErrorText(en, { error: "quota", quotaResetsAt: "soon" }, { ...context, formatWeekdayTime: () => "" })
     ).toBe(en.plan.errors.quotaNoTime);
   });
 
-  it("reads the no-access page's sentence for an account off the list", () => {
+  it("reads the no-access page's sentence and its way out for an account off the list", () => {
     expect(plannerErrorText(en, { error: "denied", quotaResetsAt: null }, context)).toBe(
-      "Kyrian World is in a closed beta and the account ada@example.com hasn't been invited yet."
+      "Kyrian World is in a closed beta and the account ada@example.com hasn't been invited yet. Ask the team to add this email, then check again."
     );
+    expect(plannerErrorText(es, { error: "denied", quotaResetsAt: null }, context)).toBe(
+      `Kyrian World está en beta cerrada y la cuenta ada@example.com aún no ha sido invitada. ${es.auth.noAccess.hint}`
+    );
+    expect(en.plan.errors.denied).toContain(en.auth.noAccess.hint);
+    expect(es.plan.errors.denied).toContain(es.auth.noAccess.hint);
     expect(plannerErrorText(en, { error: "denied", quotaResetsAt: null }, { ...context, email: null })).toBe(
       en.plan.errors.denied
     );

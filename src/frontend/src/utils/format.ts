@@ -51,13 +51,19 @@ export function formatTime(iso: string, locale = "en-US"): string {
 }
 
 /**
- * The local hour and minute of an ISO timestamp, the locale's way ("2:00 AM",
- * "02:00"); `""` when it is not a date.
+ * The weekday, hour and minute of an ISO timestamp in the viewer's own time
+ * zone, the locale's way ("Fri 2:00 AM", "vie, 2:00"); `""` when it is not a
+ * date. For a moment that may fall on another day than today: a time alone
+ * would not say which.
  */
-export function formatClock(iso: string, locale = "en-US"): string {
+export function formatWeekdayTime(iso: string, locale = "en-US"): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return "";
-  return date.toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit" });
+  return new Intl.DateTimeFormat(locale, {
+    weekday: "short",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
 }
 
 /** A plain count with the locale's grouping ("12,345" / "12.345"). */
@@ -91,11 +97,14 @@ export function formatUsd(n: number, locale = "en-US"): string {
   }).format(n);
 }
 
-/** A ratio (0.125) as a percentage with at most one decimal ("12.5%"). */
-export function formatPercent(x: number, locale = "en-US"): string {
+/**
+ * A ratio (0.125) as a percentage with at most one decimal ("12.5%"), or
+ * `maximumFractionDigits` of them (0 for a whole percent).
+ */
+export function formatPercent(x: number, locale = "en-US", maximumFractionDigits = 1): string {
   return new Intl.NumberFormat(locale, {
     style: "percent",
-    maximumFractionDigits: 1,
+    maximumFractionDigits,
   }).format(x);
 }
 

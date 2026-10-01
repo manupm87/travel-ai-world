@@ -51,6 +51,22 @@ export interface ChatColumnProps {
   holding?: boolean;
 }
 
+/**
+ * ai_api refuses every turn of this account for now (TRA-258): it is off the
+ * access list, or today's allowance is spent and the time it starts again has
+ * not come (unknown: until a reload). Sending again would only earn another
+ * 403/429 and leave another message without an answer.
+ */
+export function turnsRefused(
+  state: Pick<PlannerState, "error" | "quotaResetsAt">,
+  now: number = Date.now()
+): boolean {
+  if (state.error === "denied") return true;
+  if (state.error !== "quota") return false;
+  const resetsAt = state.quotaResetsAt ? Date.parse(state.quotaResetsAt) : NaN;
+  return Number.isNaN(resetsAt) || now < resetsAt;
+}
+
 /** The most brief fields the luggage tag lists; with more it is not shown (TRA-251). */
 const TAG_MAX_MISSING = 2;
 
@@ -83,14 +99,17 @@ export function ChatColumn({
   });
 
   const isStreaming = state.status === "streaming";
-  const canSubmit = input.trim().length > 0 && !isStreaming && !unavailable && !holding;
+  // Compared on every render and again on submit: no timer, the composer
+  // comes back with the first render after the allowance has started again.
+  const refused = turnsRefused(state);
+  const canSubmit = input.trim().length > 0 && !isStreaming && !unavailable && !holding && !refused;
   // What the log shows: nothing at all while holding, so a draft that belongs
   // to some other trip never paints for the beat before it is dropped.
   const messages = holding ? [] : state.messages;
 
   const submit = () => {
     const text = input.trim();
-    if (!text || isStreaming || unavailable || holding) return;
+    if (!text || isStreaming || unavailable || holding || turnsRefused(state)) return;
     onSend(text);
     setInput("");
   };
@@ -183,7 +202,7 @@ export function ChatColumn({
             shortlist={state.shortlist}
             // Unplaced cards ask which day they join, out of these (TRA-185).
             itinerary={state.itinerary}
-            disabled={isStreaming}
+            disabled={isStreaming || refused}
             onSelect={onSelect}
             onDismiss={onDismiss}
             onToggleShortlist={onToggleShortlist}
@@ -230,6 +249,7 @@ export function ChatColumn({
             brief={state.brief}
             missing={state.missing}
             destinationPlaceholder={cities[0]?.name}
+            disabled={refused}
             onAnswer={onAnswer}
           />
         )}
@@ -251,7 +271,7 @@ export function ChatColumn({
         <>
           <SuggestionChips
             onPick={onSend}
-            disabled={isStreaming || unavailable || holding}
+            disabled={isStreaming || unavailable || holding || refused}
             cities={cities}
             showStarters={messages.length === 0}
           />

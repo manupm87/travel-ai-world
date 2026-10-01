@@ -309,9 +309,10 @@ const en: Translations = {
     errors: {
       generic: "Sorry, something went wrong while planning. Please try again.",
       unauthorized: "Your session has expired. Log in again to keep planning.",
-      quota: "You have used today's allowance. It resets at {time}.",
-      quotaNoTime: "You have used today's allowance. It resets tomorrow.",
-      denied: "Kyrian World is in a closed beta and this account hasn't been invited yet.",
+      quota: "You've reached today's planning limit. You can keep planning from {when}.",
+      quotaNoTime: "You've reached today's planning limit. Come back later: it renews every day.",
+      denied:
+        "Kyrian World is in a closed beta and this account hasn't been invited yet. Ask the team to add this email, then check again.",
     },
     map: {
       region: "Map of day {day}",
@@ -614,6 +615,7 @@ const en: Translations = {
         empty: "Nobody has spent a token today.",
         reload: "Reload",
         reloading: "Reloading…",
+        reloaded: "Usage updated.",
         columns: {
           account: "Account",
           turns: "Turns",
