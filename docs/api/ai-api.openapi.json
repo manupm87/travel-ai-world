@@ -652,6 +652,31 @@
         "title": "EventMarkResponse",
         "type": "object"
       },
+      "ExpectedRankResponse": {
+        "properties": {
+          "doc_id": {
+            "title": "Doc Id",
+            "type": "string"
+          },
+          "rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rank"
+          }
+        },
+        "required": [
+          "doc_id",
+          "rank"
+        ],
+        "title": "ExpectedRankResponse",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -1550,6 +1575,143 @@
           "card_id"
         ],
         "title": "RemoveActivityOp",
+        "type": "object"
+      },
+      "RetrievalEvalResponse": {
+        "description": "One run of the retrieval evaluation over the deployed index.",
+        "properties": {
+          "by_city": {
+            "items": {
+              "$ref": "#/components/schemas/RetrievalScoresResponse"
+            },
+            "title": "By City",
+            "type": "array"
+          },
+          "by_language": {
+            "items": {
+              "$ref": "#/components/schemas/RetrievalScoresResponse"
+            },
+            "title": "By Language",
+            "type": "array"
+          },
+          "embeddings_model": {
+            "title": "Embeddings Model",
+            "type": "string"
+          },
+          "index": {
+            "title": "Index",
+            "type": "string"
+          },
+          "misses": {
+            "items": {
+              "$ref": "#/components/schemas/RetrievalMissResponse"
+            },
+            "title": "Misses",
+            "type": "array"
+          },
+          "missing_from_index": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing From Index",
+            "type": "array"
+          },
+          "overall": {
+            "$ref": "#/components/schemas/RetrievalScoresResponse"
+          },
+          "ran_at": {
+            "format": "date-time",
+            "title": "Ran At",
+            "type": "string"
+          },
+          "top_k": {
+            "title": "Top K",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "ran_at",
+          "index",
+          "embeddings_model",
+          "top_k",
+          "overall",
+          "by_city",
+          "by_language",
+          "misses",
+          "missing_from_index"
+        ],
+        "title": "RetrievalEvalResponse",
+        "type": "object"
+      },
+      "RetrievalMissResponse": {
+        "description": "A question that left an expected id out of its top results.",
+        "properties": {
+          "city": {
+            "title": "City",
+            "type": "string"
+          },
+          "expected": {
+            "items": {
+              "$ref": "#/components/schemas/ExpectedRankResponse"
+            },
+            "title": "Expected",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "lang": {
+            "title": "Lang",
+            "type": "string"
+          },
+          "query": {
+            "title": "Query",
+            "type": "string"
+          }
+        },
+        "required": [
+          "city",
+          "id",
+          "lang",
+          "query",
+          "expected"
+        ],
+        "title": "RetrievalMissResponse",
+        "type": "object"
+      },
+      "RetrievalScoresResponse": {
+        "description": "Recall@5, recall@10 and MRR of a group of questions; `label` is `all`, a\ncity slug or a language code. Definitions in `application/retrieval_eval.py`.",
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "mrr": {
+            "title": "Mrr",
+            "type": "number"
+          },
+          "questions": {
+            "title": "Questions",
+            "type": "integer"
+          },
+          "recall_at_10": {
+            "title": "Recall At 10",
+            "type": "number"
+          },
+          "recall_at_5": {
+            "title": "Recall At 5",
+            "type": "number"
+          }
+        },
+        "required": [
+          "label",
+          "questions",
+          "recall_at_5",
+          "recall_at_10",
+          "mrr"
+        ],
+        "title": "RetrievalScoresResponse",
         "type": "object"
       },
       "RetrievedDocResponse": {
@@ -2928,6 +3090,33 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/ai/admin/retrieval-eval": {
+      "post": {
+        "description": "Recall@5, recall@10 and MRR of the index over the 20 questions of every\ncity: the run `just eval-retrieval` does (120 searches, 8 at a time, a few\nseconds and a few hundred Titan tokens). Nothing is stored. 503 when\nretrieval is off.",
+        "operationId": "run_retrieval_eval_api_v1_ai_admin_retrieval_eval_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetrievalEvalResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Run Retrieval Eval",
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
     "/api/v1/ai/admin/sessions/{session_id}": {
       "get": {
         "description": "One planner conversation's turns, oldest first.",

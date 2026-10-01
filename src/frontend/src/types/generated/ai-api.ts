@@ -4,6 +4,29 @@
  */
 
 export interface paths {
+    "/api/v1/ai/admin/retrieval-eval": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Run Retrieval Eval
+         * @description Recall@5, recall@10 and MRR of the index over the 20 questions of every
+         *     city: the run `just eval-retrieval` does (120 searches, 8 at a time, a few
+         *     seconds and a few hundred Titan tokens). Nothing is stored. 503 when
+         *     retrieval is off.
+         */
+        post: operations["run_retrieval_eval_api_v1_ai_admin_retrieval_eval_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ai/admin/sessions/{session_id}": {
         parameters: {
             query?: never;
@@ -538,6 +561,13 @@ export interface components {
             /** Type */
             type: string;
         };
+        /** ExpectedRankResponse */
+        ExpectedRankResponse: {
+            /** Doc Id */
+            doc_id: string;
+            /** Rank */
+            rank: number | null;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -826,6 +856,65 @@ export interface components {
              */
             op: "remove_activity";
             slot: components["schemas"]["Slot"];
+        };
+        /**
+         * RetrievalEvalResponse
+         * @description One run of the retrieval evaluation over the deployed index.
+         */
+        RetrievalEvalResponse: {
+            /** By City */
+            by_city: components["schemas"]["RetrievalScoresResponse"][];
+            /** By Language */
+            by_language: components["schemas"]["RetrievalScoresResponse"][];
+            /** Embeddings Model */
+            embeddings_model: string;
+            /** Index */
+            index: string;
+            /** Misses */
+            misses: components["schemas"]["RetrievalMissResponse"][];
+            /** Missing From Index */
+            missing_from_index: string[];
+            overall: components["schemas"]["RetrievalScoresResponse"];
+            /**
+             * Ran At
+             * Format: date-time
+             */
+            ran_at: string;
+            /** Top K */
+            top_k: number;
+        };
+        /**
+         * RetrievalMissResponse
+         * @description A question that left an expected id out of its top results.
+         */
+        RetrievalMissResponse: {
+            /** City */
+            city: string;
+            /** Expected */
+            expected: components["schemas"]["ExpectedRankResponse"][];
+            /** Id */
+            id: string;
+            /** Lang */
+            lang: string;
+            /** Query */
+            query: string;
+        };
+        /**
+         * RetrievalScoresResponse
+         * @description Recall@5, recall@10 and MRR of a group of questions; `label` is `all`, a
+         *     city slug or a language code. Definitions in `application/retrieval_eval.py`.
+         */
+        RetrievalScoresResponse: {
+            /** Label */
+            label: string;
+            /** Mrr */
+            mrr: number;
+            /** Questions */
+            questions: number;
+            /** Recall At 10 */
+            recall_at_10: number;
+            /** Recall At 5 */
+            recall_at_5: number;
         };
         /** RetrievedDocResponse */
         RetrievedDocResponse: {
@@ -1289,6 +1378,26 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    run_retrieval_eval_api_v1_ai_admin_retrieval_eval_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RetrievalEvalResponse"];
+                };
+            };
+        };
+    };
     read_session_api_v1_ai_admin_sessions__session_id__get: {
         parameters: {
             query?: {
