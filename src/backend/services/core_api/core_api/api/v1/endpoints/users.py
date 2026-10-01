@@ -5,6 +5,8 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, status
 
 from core_api.api.deps import (
+    get_access_service,
+    get_authenticated_user,
     get_current_admin_user,
     get_current_user,
     get_user_service,
@@ -12,12 +14,14 @@ from core_api.api.deps import (
 )
 from core_api.auth.principal import AccountPrincipal
 from core_api.pagination import Page
+from core_api.schemas.access import AccessResponse
 from core_api.schemas.user import UserResponse, UserRoleUpdate, UserUpdate
+from core_api.services.access_service import AccessService
 from core_api.services.user_service import UserService
 
 router = APIRouter()
 
-# Static routes (/me) MUST be declared before parameterized ones (/{user_id}),
+# Static routes (/me, /me/access) MUST be declared before parameterized ones (/{user_id}),
 # otherwise FastAPI tries to parse "me" as a UUID and returns 422.
 
 
@@ -33,11 +37,21 @@ async def read_users(
 
 @router.get("/me", response_model=UserResponse)
 async def read_user_me(
-    principal: AccountPrincipal = Depends(get_current_user),
+    principal: AccountPrincipal = Depends(get_authenticated_user),
     service: UserService = Depends(get_user_service),
 ):
-    """Profile of the authenticated user."""
+    """Profile of the authenticated user, invited or not (ADR 0025)."""
     return await service.get(principal.id)
+
+
+@router.get("/me/access", response_model=AccessResponse)
+async def read_my_access(
+    principal: AccountPrincipal = Depends(get_authenticated_user),
+    access: AccessService = Depends(get_access_service),
+):
+    """Whether the caller may use the app and their daily token limit
+    (`null` = unlimited). Answers for a not-yet-invited account too."""
+    return await access.resolve(principal)
 
 
 @router.get("/{user_id}", response_model=UserResponse)

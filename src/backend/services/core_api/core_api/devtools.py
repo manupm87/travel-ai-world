@@ -1,4 +1,5 @@
-"""Developer-only commands: `python -m core_api.devtools token <email> [--admin]`.
+"""Developer-only commands: `python -m core_api.devtools token <email> [--admin]`
+and `python -m core_api.devtools grant <email> [--limit N]`.
 
 Minting a bearer token for an arbitrary account must never be reachable from
 the deployed service: nothing in the web process imports this module (a test
@@ -19,6 +20,13 @@ It honours `DYNAMODB_ENDPOINT_URL` and creates the table there when it is
 missing, like the service does. The Playwright suite and the Playwright MCP
 write the token into `localStorage` to sign in without Google
 (`src/frontend/e2e/trips.spec.ts`, `.claude/commands/check-site.md`).
+
+    just dev-grant you@example.com --limit 50000
+
+`grant` puts an email on the access list (ADR 0025) of the local table, as
+`PUT /admin/access/{email}` would, so `ACCESS_MODE=allowlist` can be tried
+without an administrator. `--limit` is the daily token limit (0 = unlimited;
+left out, the service default applies).
 """
 
 import argparse
@@ -30,9 +38,12 @@ from travel_common.principal import Principal, Role
 from travel_common.security import create_access_token
 
 from core_api.config import CoreSettings, get_settings
-from core_api.domain.models import User
-from core_api.domain.ports import UserRepository
-from core_api.infrastructure.dynamo.repositories import DynamoUserRepository
+from core_api.domain.models import AccessGrant, User
+from core_api.domain.ports import AccessGrantRepository, UserRepository
+from core_api.infrastructure.dynamo.repositories import (
+    DynamoAccessGrantRepository,
+    DynamoUserRepository,
+)
 from core_api.infrastructure.dynamo.table import open_table
 
 
@@ -78,7 +89,34 @@ async def _mint_with_own_table(
     return await mint_token(DynamoUserRepository(table), email, settings, admin=admin)
 
 
-# ── CLI: python -m core_api.devtools token <email> [--admin] ─────────────────
+GRANTED_BY = "devtools"
+"""`added_by` of a grant written from a shell: no administrator was involved."""
+
+
+async def grant_access(
+    grants: AccessGrantRepository, email: str, limit: int | None = None
+) -> AccessGrant:
+    """Put `email` on the access list; an existing grant gets the new limit."""
+    return await grants.put(
+        AccessGrant(email=email, daily_token_limit=limit, added_by=GRANTED_BY)
+    )
+
+
+async def _grant_with_own_table(
+    email: str, settings: CoreSettings, *, limit: int | None = None
+) -> AccessGrant:
+    table = await open_table(settings)
+    return await grant_access(DynamoAccessGrantRepository(table), email, limit)
+
+
+def _limit(value: str) -> int:
+    limit = int(value)
+    if limit < 0:
+        raise argparse.ArgumentTypeError("the limit cannot be negative")
+    return limit
+
+
+# ── CLI: python -m core_api.devtools {token,grant} <email> ───────────────────
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -97,13 +135,33 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="make the account an administrator before minting",
     )
+    grant = commands.add_parser(
+        "grant", help="put an email on the access list of the local table"
+    )
+    grant.add_argument("email", help="the email to invite")
+    grant.add_argument(
+        "--limit",
+        type=_limit,
+        default=None,
+        help="daily token limit (0 = unlimited; default: the service default)",
+    )
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Exit 0 with the token on stdout; exit 1 with the reason on stderr."""
+    """Exit 0 with the result on stdout; exit 1 with the reason on stderr."""
     namespace = build_parser().parse_args(argv)
     try:
+        if namespace.command == "grant":
+            granted = asyncio.run(
+                _grant_with_own_table(
+                    namespace.email, get_settings(), limit=namespace.limit
+                )
+            )
+            limit = granted.daily_token_limit
+            shown = "default" if limit is None else limit or "unlimited"
+            print(f"granted {granted.email} (daily token limit: {shown})")
+            return 0
         token = asyncio.run(
             _mint_with_own_table(namespace.email, get_settings(), admin=namespace.admin)
         )

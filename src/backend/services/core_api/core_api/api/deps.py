@@ -1,5 +1,5 @@
 """FastAPI dependables: pagination, the table and its repositories, service
-wiring, authentication, RBAC and the ownership boundaries (`get_owned_trip`,
+wiring, authentication, the access list, RBAC and the ownership boundaries (`get_owned_trip`,
 `get_owned_itinerary_day`, `get_owned_chat_thread`)."""
 
 from uuid import UUID
@@ -13,12 +13,14 @@ from core_api.auth.principal import AccountPrincipal
 from core_api.config import CoreSettings, get_settings
 from core_api.domain.models import ChatThread, Trip
 from core_api.domain.ports import (
+    AccessGrantRepository,
     ChatMessageRepository,
     ChatThreadRepository,
     TripRepository,
     UserRepository,
 )
 from core_api.infrastructure.dynamo.repositories import (
+    DynamoAccessGrantRepository,
     DynamoChatMessageRepository,
     DynamoChatThreadRepository,
     DynamoTripRepository,
@@ -26,6 +28,7 @@ from core_api.infrastructure.dynamo.repositories import (
 )
 from core_api.infrastructure.dynamo.table import DynamoTable
 from core_api.pagination import MAX_PAGE_SIZE, Page
+from core_api.services.access_service import AccessService
 from core_api.services.auth_service import Authenticate, SignIn
 from core_api.services.chat_message_service import ChatMessageService
 from core_api.services.chat_thread_service import ChatThreadService
@@ -72,6 +75,19 @@ def get_chat_message_repository(
     return DynamoChatMessageRepository(table)
 
 
+def get_access_grant_repository(
+    table: DynamoTable = Depends(get_table),
+) -> AccessGrantRepository:
+    return DynamoAccessGrantRepository(table)
+
+
+def get_access_service(
+    grants: AccessGrantRepository = Depends(get_access_grant_repository),
+    settings: CoreSettings = Depends(get_settings),
+) -> AccessService:
+    return AccessService(grants, settings)
+
+
 def get_user_service(
     users: UserRepository = Depends(get_user_repository),
 ) -> UserService:
@@ -106,13 +122,28 @@ def get_authenticate(
     return Authenticate(users, settings)
 
 
-async def get_current_user(
+async def get_authenticated_user(
     token: str = Depends(extract_bearer_token),
     authenticate: Authenticate = Depends(get_authenticate),
 ) -> AccountPrincipal:
     """The account behind the bearer token; 401 when the token or the account
-    is no good. Local tokens are looked up, Cognito tokens are upserted."""
+    is no good. Local tokens are looked up, Cognito tokens are upserted.
+
+    No access check: only for the routes a not-yet-invited person must reach
+    to be told so (`GET /users/me`, `GET /users/me/access`). Everything else
+    depends on `get_current_user`.
+    """
     return await authenticate(token)
+
+
+async def get_current_user(
+    principal: AccountPrincipal = Depends(get_authenticated_user),
+    access: AccessService = Depends(get_access_service),
+) -> AccountPrincipal:
+    """The authenticated account, once the access list lets it in (ADR 0025):
+    403 `ACCESS_DENIED` otherwise. The default for every route."""
+    await access.ensure_allowed(principal)
+    return principal
 
 
 async def get_current_admin_user(

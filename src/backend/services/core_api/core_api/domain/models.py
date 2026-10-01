@@ -33,6 +33,7 @@ from travel_common.principal import Role
 from core_api.domain.enums import ChatRole
 
 __all__ = [
+    "AccessGrant",
     "Accommodation",
     "Activity",
     "ChatMessage",
@@ -46,6 +47,7 @@ __all__ = [
     "TripSummary",
     "User",
     "ensure_ordered",
+    "normalize_email",
     "phase_of",
     "utc_now",
 ]
@@ -381,3 +383,28 @@ class ChatMessage(Entity):
             raise UnprocessableEntity(
                 "A user message has no sources, model or usage: only answers do"
             )
+
+
+def normalize_email(email: str) -> str:
+    """How the access list spells an email: trimmed and lower-cased."""
+    return email.strip().lower()
+
+
+@dataclass
+class AccessGrant:
+    """An email allowed to use the app (ADR 0025). Its identity is the email,
+    so it is not an `Entity`: it exists before the person ever signs in.
+
+    `daily_token_limit`: None = the service default applies; 0 = unlimited
+    for this person; N = at most N tokens per UTC day.
+    """
+
+    email: str
+    added_by: str
+    daily_token_limit: int | None = None
+    note: str | None = None
+    created_at: datetime = field(default_factory=utc_now)
+    updated_at: datetime = field(default_factory=utc_now)
+
+    def __post_init__(self) -> None:
+        self.email = normalize_email(self.email)

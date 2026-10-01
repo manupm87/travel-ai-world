@@ -8,6 +8,7 @@
 |               | (GSI2: `TRIPS` / `<created_at µs UTC>#<trip_id>`, the admin list) |
 | Conversation  | `USER#<user_id>`        | `THREAD#<thread_id>`                 |
 | Message       | `THREAD#<thread_id>`    | `MSG#<created_at µs UTC>#<msg_id>`   |
+| Access grant  | `ACCESS#<email, lower>` | `ACCESS` (GSI1: `ACCESS` / email)    |
 """
 
 from datetime import UTC, datetime
@@ -27,6 +28,7 @@ TRIPS_GSI2PK = "TRIPS"
 TRIP_PREFIX = "TRIP#"
 THREAD_PREFIX = "THREAD#"
 MSG_PREFIX = "MSG#"
+ACCESS = "ACCESS"
 
 
 def user_pk(user_id: UUID) -> str:
@@ -35,6 +37,11 @@ def user_pk(user_id: UUID) -> str:
 
 def email_pk(email: str) -> str:
     return f"EMAIL#{email.lower()}"
+
+
+def access_pk(email: str) -> str:
+    """The access list is keyed by email (ADR 0025), trimmed and lower-cased."""
+    return f"ACCESS#{email.strip().lower()}"
 
 
 def trip_sk(trip_id: UUID) -> str:

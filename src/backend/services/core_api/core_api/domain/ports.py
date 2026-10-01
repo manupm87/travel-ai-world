@@ -10,7 +10,14 @@ import builtins
 from typing import Protocol
 from uuid import UUID
 
-from core_api.domain.models import ChatMessage, ChatThread, Trip, TripSummary, User
+from core_api.domain.models import (
+    AccessGrant,
+    ChatMessage,
+    ChatThread,
+    Trip,
+    TripSummary,
+    User,
+)
 from core_api.pagination import Page
 
 
@@ -90,4 +97,26 @@ class ChatMessageRepository(Protocol):
 
     async def append(self, thread: ChatThread, message: ChatMessage) -> ChatMessage:
         """Write the message and move the thread's `updated_at` together."""
+        ...
+
+
+class AccessGrantRepository(Protocol):
+    """The access list (ADR 0025): one grant per email, case-insensitive."""
+
+    async def get(self, email: str) -> AccessGrant | None: ...
+
+    async def list_page(
+        self, cursor: str | None, limit: int
+    ) -> tuple[list[AccessGrant], str | None]:
+        """Up to `limit` grants by email after `cursor`, and the next cursor
+        (None on the last page). `BadRequest` for a cursor it did not issue."""
+        ...
+
+    async def put(self, grant: AccessGrant) -> AccessGrant:
+        """Create or replace the grant of that email. An existing grant keeps
+        its `created_at` and `added_by`."""
+        ...
+
+    async def delete(self, email: str) -> bool:
+        """Remove the grant; False when there was none."""
         ...

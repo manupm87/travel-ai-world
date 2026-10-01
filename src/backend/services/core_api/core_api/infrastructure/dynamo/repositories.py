@@ -27,7 +27,14 @@ from travel_common.exceptions import (
     UnprocessableEntity,
 )
 
-from core_api.domain.models import ChatMessage, ChatThread, Trip, TripSummary, User
+from core_api.domain.models import (
+    AccessGrant,
+    ChatMessage,
+    ChatThread,
+    Trip,
+    TripSummary,
+    User,
+)
 from core_api.infrastructure.dynamo import keys
 from core_api.infrastructure.dynamo.codec import (
     entity_to_item,
@@ -98,6 +105,16 @@ def message_item(message: ChatMessage) -> Item:
         message,
         PK=keys.thread_pk(message.thread_id),
         SK=keys.message_sk(message.created_at, message.id),
+    )
+
+
+def access_grant_item(grant: AccessGrant) -> Item:
+    return entity_to_item(
+        grant,
+        PK=keys.access_pk(grant.email),
+        SK=keys.ACCESS,
+        GSI1PK=keys.ACCESS,
+        GSI1SK=grant.email,
     )
 
 
@@ -566,3 +583,44 @@ class DynamoChatMessageRepository(_Store):
         thread.updated_at = message.created_at
         thread.version += 1
         return message
+
+
+# ── Access list ─────────────────────────────────────────────────────────────
+
+
+class DynamoAccessGrantRepository(_Store):
+    """Grants by email (ADR 0025). They share GSI1 with the accounts under
+    their own partition (`ACCESS`), so neither list sees the other."""
+
+    async def get(self, email: str) -> AccessGrant | None:
+        item = await self._get(keys.access_pk(email), keys.ACCESS)
+        return item_to_entity(AccessGrant, item) if item else None
+
+    async def list_page(
+        self, cursor: str | None, limit: int
+    ) -> tuple[builtins.list[AccessGrant], str | None]:
+        items, next_cursor = await self._index_page(
+            GSI1, (keys.GSI1PK, keys.GSI1SK), keys.ACCESS, cursor=cursor, limit=limit
+        )
+        return [item_to_entity(AccessGrant, item) for item in items], next_cursor
+
+    async def put(self, grant: AccessGrant) -> AccessGrant:
+        stored = await self.get(grant.email)
+        if stored is not None:
+            grant.created_at = stored.created_at
+            grant.added_by = stored.added_by
+        await call(
+            self._client.put_item,
+            TableName=self.table.name,
+            Item=access_grant_item(grant),
+        )
+        return grant
+
+    async def delete(self, email: str) -> bool:
+        response = await call(
+            self._client.delete_item,
+            TableName=self.table.name,
+            Key=keys.key(keys.access_pk(email), keys.ACCESS),
+            ReturnValues="ALL_OLD",
+        )
+        return bool(response.get("Attributes"))
