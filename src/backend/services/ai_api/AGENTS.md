@@ -73,7 +73,9 @@ testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, Ke
   `UsageStore` (`infrastructure/dynamo_usage.py`: `USAGE#<subject>` / `DAY#<day>`, one atomic
   `UpdateItem ADD`; `NullUsageStore` without a table; `testing.InMemoryUsageStore`), fed by
   `RecordTrace(log, usage)` for every trace that spent a token, whatever became of the trace
-  write. Only input + output tokens count; the limit is soft (checked before, counted after).
+  write. Only input + output tokens count; the limit is soft and approximate (checked before, counted after: turns in flight
+  all finish). Both writes go through `RecordTrace._write` (usage first, shielded from
+  cancellation): never await `_record` directly from a stream path.
   Closed when `core_api` cannot be asked, open when the counter cannot be read. Reads:
   `GET /usage/me`, `GET /admin/usage?day=`. Never import `core_api` for any of it.
 - Auth is **stateless**: `principal_from_token(token, settings)`; no user lookup. `AUTH_MODE` picks

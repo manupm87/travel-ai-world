@@ -52,8 +52,9 @@ Another day: `GET /api/v1/ai/admin/usage?day=YYYY-MM-DD` (administrators only; k
 
 ## Someone hit the limit
 
-What they see: the planner answers "You have used today's allowance. It resets at <their local
-time of 00:00 UTC>." in place of the turn, with no retry button. Their trip is untouched, and
+What they see: the planner answers "You've reached today's planning limit. You can keep planning
+from <weekday and their local time of 00:00 UTC>." in place of the turn, with no retry button,
+and the composer takes no message until then. Their trip is untouched, and
 everything that spends no tokens keeps working (their trips, saving, the cards already on screen).
 
 To let them go on today: **Edit** their row and raise the limit (or `0` for unlimited), **Add or
@@ -61,8 +62,9 @@ update**. Within a minute their next message goes through; nothing has to be res
 check compares today's count with the new limit. Lowering a limit below what someone already
 spent stops them the same way, within a minute.
 
-The limit is soft: the turn that crosses it finishes (tokens are only known once it ends), so a
-row can show a little over 100 %.
+The limit is soft and approximate: tokens are only known once a turn ends, so the turn that
+crosses it finishes, and so does every other turn the person had running at that moment (several
+tabs). A row can show over 100 %, marked "Limit reached".
 
 ## Remove someone
 

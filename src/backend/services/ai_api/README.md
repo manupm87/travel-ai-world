@@ -229,11 +229,15 @@ Compose and on AWS.
   write, concurrent turns lose nothing. The day is in the key, so nothing is ever reset; the item
   expires with the table's TTL. Its partitions are its own, so no trace listing returns one.
 - **What counts**: `input_tokens + output_tokens` of the turn's model calls. Embedding tokens are
-  stored and not counted. The day is the UTC date the turn started.
+  stored and not counted. A turn is charged to the UTC day it started on. The counter is written
+  first and both writes are shielded from cancellation, so a client that disconnects as the turn
+  ends is still counted, once.
 - **Checking** (`application/access.py`, `CheckAccess`; dependencies `require_access` and
   `require_budget` in `api/deps.py`). `ai_api` asks `core_api` `GET /users/me/access` with the
   caller's token and keeps the answer per token subject for `ACCESS_CACHE_SECONDS` (60), in
-  process, at most 1024 accounts. A refusal is never kept.
+  process, at most 1024 accounts. A refusal is never kept: an account that is refused costs one
+  `core_api` call per request, an accepted cost. Besides that, one `GetItem` per limited turn and
+  per `/usage/me`.
 
   | Routes | Dependency | Refuses with |
   |---|---|---|
@@ -244,10 +248,14 @@ Compose and on AWS.
   The refusal is a plain JSON error sent before any stream starts, never an SSE `error` event:
   `{"detail": {"message": "Daily token limit reached", "error_code": "DAILY_TOKEN_LIMIT",
   "extras": {"limit", "used", "resets_at"}}}`, `resets_at` being the next UTC midnight.
-- **A soft limit.** Tokens are known when a turn ends, so the turn that crosses the line finishes
-  and the next one is refused. A `null` limit (unlimited) skips the counter.
-- **Closed on the list, open on the counter.** `core_api` unreachable → 503, nothing runs. The
-  counter unreadable → logged, the turn runs.
+- **A soft, approximate limit.** The counter is written when a turn ends, so the turns already
+  running or started in parallel when the line is crossed all finish: the overshoot is bounded by
+  the concurrent turns, not by one turn. There is no in-process cap because it would not hold: on
+  Lambda, concurrent requests run in separate execution environments. A `null` limit (unlimited)
+  skips the counter; a limit of zero or less from `core_api` is read as none.
+- **Closed on the list, open on the counter.** `core_api` unreachable → 503, nothing runs; so is
+  any answer of its access route other than 200, 401 or 403 (a 400/404/422 or another shape),
+  never passed on as a 4xx of the planner. The counter unreadable → logged, the turn runs.
 - **How long a change takes.** A raised limit, a lowered one or a removed grant reaches `ai_api`
   within `ACCESS_CACHE_SECONDS` per warm Lambda environment (each keeps its own cache); an
   invitation works at once.

@@ -91,16 +91,32 @@ first sign-in) and a `terraform apply` per invitation.
   routes are unchanged. A refusal is an ordinary JSON error, sent before any stream exists:
   **403 `ACCESS_DENIED`**, or **429 `DAILY_TOKEN_LIMIT`** with `extras` `limit`, `used` and
   `resets_at` (the next UTC midnight, ISO 8601).
-- **It is a soft limit**: tokens are only known when a turn ends, so the turn that crosses the
-  line finishes and the next one is refused (`used >= limit`). A `null` limit skips the counter.
+- **It is a soft, approximate limit.** Tokens are only known when a turn ends, and that is when
+  the counter is written. A request is refused when `used >= limit` at the moment it arrives, so
+  every turn already running, or started in parallel, when the line is crossed finishes: the
+  overshoot is bounded by the turns in flight at that moment, not by one turn. A turn is charged
+  to the UTC day it started on, so one that runs across midnight counts for the day before. A
+  `null` limit skips the counter, and a limit of zero or less read from `core_api` is taken as
+  none.
+- **No cap in process.** A per-account lock or an in-memory count of running turns would not
+  hold: on Lambda, concurrent requests run in separate execution environments that share no
+  memory. A strict cap needs a reservation in DynamoDB (see the alternatives); the approximate
+  one is what a daily budget per person needs.
+- **The counter survives a client that leaves.** The usage write comes first and both writes run
+  shielded from the cancellation of the streaming task, so a disconnect at the end of a turn
+  cannot make it free. It is still counted once.
 - **`core_api`'s answer is cached in process, per token subject, for `ACCESS_CACHE_SECONDS`
   (60)**, at most 1024 accounts, oldest dropped. That is the price of not calling `core_api` on
   every request, and it is the delay of this design: a changed limit or a removed grant reaches
   `ai_api` within a minute, per warm Lambda environment. A refusal is never cached, so an
-  invitation works on the next request.
+  invitation works on the next request; the accepted cost is one `core_api` call for every
+  request of an account that is refused.
 - **Fail open on the counter, closed on the list.** If the counter cannot be read the turn runs
   (a quota must not take the planner down); if `core_api` says `allowed: false`, or cannot be
-  asked, the turn does not (503 when it is unreachable).
+  asked, the turn does not (503 when it is unreachable). Only `core_api`'s 401 and 403 are
+  passed on as such: any other answer to the access question (400, 404, 422, a body of another
+  shape) is a 503 too, so that a planner route never answers a 404 the browser would read as
+  "not deployed".
 - **`ACCESS_CONTROL_ENABLED`** (default `false`) turns the check on. Off, `ai_api` asks nobody
   and limits nothing — it still runs on its own in local development — while the tokens are
   counted all the same. Terraform and Compose set it to `true`.
@@ -108,8 +124,9 @@ first sign-in) and a `terraform apply` per invitation.
   daily_token_limit, resets_at}` for the caller; `GET /ai/admin/usage?day=` → every account's
   counter of a UTC day, most tokens first, for administrators (audited like the trace reads).
 - **The frontend says it where it happens.** The planner turns a 429 `DAILY_TOKEN_LIMIT` into
-  "you have used today's allowance; it resets at <local time>", with no retry, and a 403
-  `ACCESS_DENIED` into the no-access sentence. `/admin/access/` gains "Usage today": turns and
+  "you've reached today's planning limit; you can keep planning from <local weekday and time>",
+  with no retry, and a 403 `ACCESS_DENIED` into the no-access sentence and its hint. In both
+  cases the composer and the suggestions stop taking turns (until the reset time for the limit). `/admin/access/` gains "Usage today": turns and
   tokens per account against the limit its grant gives it. `ai_api` knows subjects, not emails,
   so the page joins the counters to the accounts in the browser, as it does for traces. There is
   no usage meter in the traveller's UI.
@@ -125,10 +142,12 @@ first sign-in) and a `terraform apply` per invitation.
   `core_api`; `ai_api` follows within `ACCESS_CACHE_SECONDS`.
 - **`ai_api` now depends on `core_api` to answer.** One HTTP call per account per minute and per
   warm environment, through the public origin; when `core_api` is down, planner and chat requests
-  answer 503 instead of running unchecked. One `GetItem` per limited turn and one `UpdateItem`
-  per turn are added to the interactions table.
-- **The limit can be overshot by one turn per concurrent request**, by design (soft limit), and a
-  person with several tabs can start several turns under the line at once. The bound is on a
+  answer 503 instead of running unchecked. One `GetItem` per limited turn and per
+  `GET /ai/usage/me`, and one `UpdateItem` per turn, are added to the interactions table. An
+  account that is refused costs one `core_api` call per request, since denials are not cached.
+- **The limit is approximate.** It can be overshot by every turn that was running or started in
+  parallel when the line was crossed (a person with several tabs can start several under the line
+  at once): the overshoot is bounded by concurrent turns, not by one turn. The bound is on a
   day's spend, not on a request's.
 - **The counter starts at 00:00 UTC**, not at the person's midnight: one rule for everyone, and a
   key that needs no time zone. The page prints the reset in local time.
