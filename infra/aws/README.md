@@ -7,8 +7,8 @@ the same two container images run as **Lambda functions** behind an **API Gatewa
 browser signs in through a **Cognito user pool**, and **CloudFront** is the single public origin
 for the static frontend (S3) and the API (`/api/*`). `core_api` keeps its data in the DynamoDB
 table `${name_prefix}-core` ([ADR 0023](../../docs/architecture/adr/0023-dynamodb-data-store.md));
-`ai_api` writes the trace of every turn to `${name_prefix}-interactions`
-(ADR 0024, TRA-226).
+`ai_api` writes the trace of every turn, and each account's daily token counter, to
+`${name_prefix}-interactions` (ADR 0024, TRA-226; ADR 0026, TRA-258).
 No VPC, no load balancer, no NAT, no Secrets Manager: both functions run outside any VPC and
 reach AWS services over their public endpoints with IAM. The bill is about 5 €/month.
 
@@ -20,7 +20,7 @@ removes it.
 | Function | Image | Where | Receives |
 |---|---|---|---|
 | `core-api` | `core-api` | outside the VPC (DynamoDB through IAM, HTTPS) | `CORE_TABLE`, `AUTH_MODE=cognito` + `COGNITO_*`, `BACKEND_CORS_ORIGINS`, `ACCESS_MODE` + `DEFAULT_DAILY_TOKEN_LIMIT` |
-| `ai-api` | `ai-api` | outside the VPC (Bedrock, NVIDIA, `core_api` through CloudFront) | `LLM_PROVIDER` (`bedrock` by default) + `BEDROCK_*`, `NVIDIA_*` (fallback), `AUTH_MODE=cognito` + `COGNITO_*`, `CORE_API_URL=https://<domain>`, `RETRIEVAL_ENABLED` + `VECTOR_*` + `EMBEDDINGS_*`, `INTERACTIONS_TABLE` |
+| `ai-api` | `ai-api` | outside the VPC (Bedrock, NVIDIA, `core_api` through CloudFront) | `LLM_PROVIDER` (`bedrock` by default) + `BEDROCK_*`, `NVIDIA_*` (fallback), `AUTH_MODE=cognito` + `COGNITO_*`, `CORE_API_URL=https://<domain>`, `RETRIEVAL_ENABLED` + `VECTOR_*` + `EMBEDDINGS_*`, `INTERACTIONS_TABLE`, `ACCESS_CONTROL_ENABLED=true` |
 
 Request path: `https://<domain>/api/v1/...` → CloudFront (`/api/*`, no cache, `Authorization`
 forwarded) → API Gateway (Cognito authorizer, then `/api/v1/ai/{proxy+}` streamed to `ai-api`,
@@ -32,7 +32,7 @@ a Cognito ID token, health endpoints included.
 | File | Resources |
 |---|---|
 | `dynamodb.tf` | The `core_api` table `${name_prefix}-core` (on-demand, `PK`/`SK` + `GSI1` (accounts) + `GSI2` (every trip, summary projection), point-in-time recovery, deletion protection), and `core-api`'s item-level permissions on it ([ADR 0023](../../docs/architecture/adr/0023-dynamodb-data-store.md)); see [History](#history-rds--dynamodb-2026-09-22) |
-| `traces.tf` | `ai_api`'s interaction log `${name_prefix}-interactions` (on-demand, `PK`/`SK` + `GSI1` by subject + sparse `GSI2` by planner session, TTL on `expires_at`: traces expire after `INTERACTION_TTL_DAYS`, 90 by default; no point-in-time recovery, no deletion protection) and the `ai-api` role's `PutItem`, `BatchWriteItem`, `Query`, `GetItem` and `DescribeTable` on it and its indexes — the reads are granted now for the admin console (TRA-221) (ADR 0024, TRA-226) |
+| `traces.tf` | `ai_api`'s interaction log `${name_prefix}-interactions` (on-demand, `PK`/`SK` + `GSI1` by subject + sparse `GSI2` by planner session, TTL on `expires_at`: traces expire after `INTERACTION_TTL_DAYS`, 90 by default; no point-in-time recovery, no deletion protection) and the `ai-api` role's `PutItem`, `UpdateItem`, `BatchWriteItem`, `Query`, `GetItem` and `DescribeTable` on it and its indexes — the reads are for the admin console (TRA-221) (ADR 0024, TRA-226). The same table holds the daily token counters (`USAGE#<subject>` / `DAY#<day>`, listed per day through `GSI1`; `UpdateItem` is their atomic add) (ADR 0026, TRA-258) |
 | `ecr.tf` | Two ECR repositories: `${name_prefix}-core-api`, `${name_prefix}-ai-api` |
 | `cognito.tf` | User pool, Google identity provider, public app client (code + PKCE), `admin` group and its members (`admin_usernames`), hosted-UI domain, the JWKS as output and environment |
 | `lambda.tf` | Two container-image functions with their roles (basic execution for both; for `ai-api`, Bedrock invoke on the EU inference profiles of the chat and title models, see [Chat model](#chat-model-bedrock)) and log groups; permissions for the gateway |
@@ -160,8 +160,12 @@ first `terraform apply`:
    data, not Terraform: administrators edit it at `/admin/access/`
    ([runbook](../../docs/runbooks/access.md)). `default_daily_token_limit` (default `300000`,
    `0` = unlimited) becomes `DEFAULT_DAILY_TOKEN_LIMIT`, the daily token quota of anyone whose
-   grant sets none. `access_mode = "open"` lets every signed-in account in again. Until TRA-258
-   only `core-api` is gated and nothing enforces the limit: `ai-api` reads neither yet.
+   grant sets none. `access_mode = "open"` lets every signed-in account in again. `ai-api` runs
+   with `ACCESS_CONTROL_ENABLED=true`: before a planner or chat request it asks `core-api`
+   (`GET /users/me/access`, the caller's token, through `CORE_API_URL`), refuses an account that
+   is not allowed (403) and one that has spent its tokens of the UTC day (429
+   `DAILY_TOKEN_LIMIT`). It keeps each answer for 60 s (`ACCESS_CACHE_SECONDS`, the code's
+   default), so a changed limit or a removed grant reaches it within a minute.
 
 The managed-login host is `auth.<domain>` by default (`cognito_subdomain`, covered by the wildcard
 certificate); set it to `""` to fall back to the pool's own host

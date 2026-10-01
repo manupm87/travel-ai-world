@@ -6,11 +6,9 @@
 Amends [ADR 0024](0024-turn-traces-and-admin-access.md) ("no service reads a list at request
 time"). TRA-257 (the access list) and TRA-258 (the quota).
 
-**What is in force:** TRA-257 gates `core_api`'s routes only. Until TRA-258 is delivered `ai_api`
-does not read the list or the limit: it verifies the token and nothing else, so the planner's
-LLM turns are neither closed to uninvited accounts nor counted. Everything under "The daily
-token quota" below, including `ai_api` refusing an account that is not allowed, is design, not
-behaviour.
+**What is in force:** both parts. TRA-257 gates `core_api`'s routes; TRA-258 makes `ai_api`
+refuse the same accounts, count every turn's tokens and enforce the daily limit, wherever it runs
+with `ACCESS_CONTROL_ENABLED=true` (AWS and Compose; off in plain local development).
 
 ## Context
 
@@ -32,8 +30,8 @@ first sign-in) and a `terraform apply` per invitation.
 
 ### The access list (TRA-257)
 
-- **Scope: `core_api`.** This part gates `core_api`'s routes. `ai_api` starts honouring the list
-  with TRA-258 (below); until then an uninvited account with a valid token can still call it.
+- **Scope: `core_api`.** This part gates `core_api`'s routes. `ai_api` honours the list through
+  the quota's check (below).
 - **`core_api` keeps the list in its table.** An `AccessGrant` is keyed by email (trimmed,
   lower-cased): `PK = ACCESS#<email>`, `SK = ACCESS`, listed through GSI1 under its own partition
   (`GSI1PK = ACCESS`, `GSI1SK = <email>`), so the accounts list (`GSI1PK = USERS`) never sees it
@@ -66,23 +64,55 @@ first sign-in) and a `terraform apply` per invitation.
   (no API, a failed read) behaves as allowed, because the backend refuses anyway. The console
   gains `/admin/access/`.
 
-### The daily token quota (TRA-258, designed here, implemented there)
-
-Not built yet: the present tense below describes `ai_api` once TRA-258 is delivered.
+### The daily token quota (TRA-258)
 
 - **`ai_api` counts, `core_api` says how many.** `ai_api` stays stateless about accounts: before
   a turn it asks `core_api` for `GET /users/me/access` with the caller's token (the same
   service-to-service call as every other, ADR 0002) and gets both answers at once — may this
   account use the app, and its limit.
-- **The counter is one item per subject and UTC day in the interactions table** (ADR 0024),
-  incremented with the turn's input + output tokens when the turn's trace is written. The key
-  carries the day, so there is nothing to reset, and the item expires with the table's TTL.
-- **Over the limit is 429 `DAILY_TOKEN_LIMIT`**, checked before the turn starts. It is a **soft
-  limit**: the turn that crosses the line finishes (tokens are only known at the end) and the
-  next one is refused. A `null` limit skips the check.
+- **What counts** is `input_tokens + output_tokens` of the turn's model calls, as its trace
+  reports them. Embedding tokens are stored beside them and not counted. The day is the UTC date
+  the turn started.
+- **The counter is one item per token subject and UTC day in the interactions table** (ADR 0024):
+  `PK = USAGE#<subject>`, `SK = DAY#<YYYY-MM-DD>`, listed per day through GSI1
+  (`GSI1PK = USAGE_DAY#<day>`, `GSI1SK = <subject>`), with `input_tokens`, `output_tokens`,
+  `embed_tokens`, `turns`, `item = "usage"` and `expires_at`. It is written when the turn's trace
+  is, by one `UpdateItem` with `ADD`: atomic, nothing is read to write, so concurrent turns lose
+  nothing. The key carries the day, so there is nothing to reset, and the item expires with the
+  table's TTL (`INTERACTION_TTL_DAYS` after the day ends). The partitions are the counter's own:
+  no trace listing returns one, and no table or index changes — the `ai-api` role only gains
+  `dynamodb:UpdateItem`.
+- **Every turn is counted**, however it ends: a stream that finishes, one that ends in an error,
+  one the client abandons, and the card detail. The trace write and the counter write are
+  attempted independently; a failure of either is logged and never breaks the turn.
+- **The check runs before the turn starts**, as a route dependency: `require_budget` on
+  `POST /ai/planner` and `POST /ai/chat`, `require_access` (the list only) on
+  `GET /ai/planner/cities`, `GET /ai/planner/card` and `GET /ai/usage/me`. The admin and health
+  routes are unchanged. A refusal is an ordinary JSON error, sent before any stream exists:
+  **403 `ACCESS_DENIED`**, or **429 `DAILY_TOKEN_LIMIT`** with `extras` `limit`, `used` and
+  `resets_at` (the next UTC midnight, ISO 8601).
+- **It is a soft limit**: tokens are only known when a turn ends, so the turn that crosses the
+  line finishes and the next one is refused (`used >= limit`). A `null` limit skips the counter.
+- **`core_api`'s answer is cached in process, per token subject, for `ACCESS_CACHE_SECONDS`
+  (60)**, at most 1024 accounts, oldest dropped. That is the price of not calling `core_api` on
+  every request, and it is the delay of this design: a changed limit or a removed grant reaches
+  `ai_api` within a minute, per warm Lambda environment. A refusal is never cached, so an
+  invitation works on the next request.
 - **Fail open on the counter, closed on the list.** If the counter cannot be read the turn runs
   (a quota must not take the planner down); if `core_api` says `allowed: false`, or cannot be
-  asked, the turn does not.
+  asked, the turn does not (503 when it is unreachable).
+- **`ACCESS_CONTROL_ENABLED`** (default `false`) turns the check on. Off, `ai_api` asks nobody
+  and limits nothing — it still runs on its own in local development — while the tokens are
+  counted all the same. Terraform and Compose set it to `true`.
+- **Two reads.** `GET /ai/usage/me` → `{day, used_tokens, input_tokens, output_tokens, turns,
+  daily_token_limit, resets_at}` for the caller; `GET /ai/admin/usage?day=` → every account's
+  counter of a UTC day, most tokens first, for administrators (audited like the trace reads).
+- **The frontend says it where it happens.** The planner turns a 429 `DAILY_TOKEN_LIMIT` into
+  "you have used today's allowance; it resets at <local time>", with no retry, and a 403
+  `ACCESS_DENIED` into the no-access sentence. `/admin/access/` gains "Usage today": turns and
+  tokens per account against the limit its grant gives it. `ai_api` knows subjects, not emails,
+  so the page joins the counters to the accounts in the browser, as it does for traces. There is
+  no usage meter in the traveller's UI.
 
 ## Consequences
 
@@ -91,8 +121,17 @@ Not built yet: the present tense below describes `ai_api` once TRA-258 is delive
   a runtime list because it must be editable without a deploy and before first sign-in.
 - **One more read per request in `allowlist` mode** for non-admins: a `GetItem` by key
   (consistent, single-digit milliseconds, a fraction of a cent per million). `open` mode and
-  administrators read nothing. Removing a grant takes effect on the person's next request — there
-  is no cache to wait out.
+  administrators read nothing. Removing a grant takes effect on the person's next request to
+  `core_api`; `ai_api` follows within `ACCESS_CACHE_SECONDS`.
+- **`ai_api` now depends on `core_api` to answer.** One HTTP call per account per minute and per
+  warm environment, through the public origin; when `core_api` is down, planner and chat requests
+  answer 503 instead of running unchecked. One `GetItem` per limited turn and one `UpdateItem`
+  per turn are added to the interactions table.
+- **The limit can be overshot by one turn per concurrent request**, by design (soft limit), and a
+  person with several tabs can start several turns under the line at once. The bound is on a
+  day's spend, not on a request's.
+- **The counter starts at 00:00 UTC**, not at the person's midnight: one rule for everyone, and a
+  key that needs no time zone. The page prints the reset in local time.
 - **The first deploy locks everyone out but the administrators**, by design: `access_mode`
   defaults to `allowlist`. The team is invited at `/admin/access/` right after
   ([runbook](../../runbooks/access.md)); `access_mode = "open"` is the way back.
@@ -101,6 +140,8 @@ Not built yet: the present tense below describes `ai_api` once TRA-258 is delive
 - **Email is the key**, so a person who signs in with another Google account is someone else.
   Emails are compared trimmed and lower-cased; nothing cleverer (no `+tag` or dot folding).
 - The quota is per person, not global: a monthly budget alarm stays the backstop for total spend.
+- **The counter is its own item, not a sum over the day's traces**, so it stays right when a
+  trace write fails and costs one read however many turns the day had.
 
 ### Rejected
 
@@ -112,3 +153,12 @@ Not built yet: the present tense below describes `ai_api` once TRA-258 is delive
   explain it; and it still needs somewhere to keep the list and the per-person limit.
 - **An `ALLOWED_EMAILS` environment variable.** A deploy per invitation, no per-person limit,
   and a list of personal emails in Terraform state and the function's configuration.
+- **Summing the day's traces at check time** instead of a counter. A query over every turn of
+  the day per request, slower as the day goes on, and wrong whenever a trace write failed.
+- **A hard limit** (reserve tokens before the turn, settle after). The size of a turn is not
+  known in advance; a reservation would refuse turns that fit, and it needs a second write and a
+  clean-up path for turns that die. One turn of overshoot is cheaper than that.
+- **Asking `core_api` on every request**, with no cache. It doubles the latency floor of every
+  planner read for a list that changes a few times a week; a minute of delay is acceptable.
+- **Sharing the access list's table with `ai_api`** (or the counters' with `core_api`). Each
+  service keeps its own table (ADR 0023); the question is one HTTP call.

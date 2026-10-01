@@ -1,7 +1,8 @@
 # AGENTS.md — ai_api
 
 Read [`backend/AGENTS.md`](../../AGENTS.md) first. `ai_api` owns everything that talks to language
-models and retrieval. It has **no database** beyond the append-only trace log (ADR 0024) and never
+models and retrieval. It has **no database** beyond the append-only trace log (ADR 0024) and the daily
+token counters kept in the same table (ADR 0026), and never
 imports `core_api`.
 
 ## Layout (ports and adapters)
@@ -10,10 +11,11 @@ imports `core_api`.
 domain/         Message, ChatRole, Document, RetrievalFilters, GenerationParams, Usage, ChatTrace, ChatTurn, ThreadSaved,
                 DayWeather, RouteSuggestion
                 + Protocols: LLMProvider (stream + complete), Embedder, Retriever (search + fetch), WeatherForecast,
-                PhotoFinder, SitePreviewFinder, ConversationGateway, TraceLog
+                PhotoFinder, SitePreviewFinder, ConversationGateway, TraceLog, UsageStore, AccessGateway
+                usage.py: DailyUsage, Entitlement, resets_at (ADR 0026)
                 tracing.py: TurnTrace, Span, RetrievedDoc, EventMark, TurnContext (ADR 0024) and the read models
                 TurnSummary, TurnDetail, TurnFilters, TurnPage (TRA-221)
-application/    use cases (StreamChat, RecordConversation, PlanTrip, CardDetailLookup) and their pure helpers:
+application/    use cases (StreamChat, RecordConversation, PlanTrip, CardDetailLookup, CheckAccess) and their pure helpers:
                 structured.py (complete_json: JSON out of `LLMProvider.complete`, one repair retry), cards.py
                 (OptionCard — and the fuller CardDetail — from a Document), validate.py (distance, load, closed,
                 prices), language.py. Depend on domain ports and on `schemas/` (the use cases emit the
@@ -26,16 +28,17 @@ infrastructure/ adapters: nvidia_provider.py, bedrock_provider.py, bedrock_embed
                 site_previews.py (the og:image a venue publishes on its own site, ADR 0021;
                 its `GROUP_DOMAINS` — the hotel groups a brand domain may redirect to — is a copy
                 of the corpus tool's `config/hotel_groups.py`, kept in step by hand, TRA-211),
-                sse.py, retry.py, core_api_client.py
-api/            deps.py (per-request wiring; process resources come from app.state), v1/endpoints/{chat,planner,admin,health}.py
+                sse.py, retry.py, core_api_client.py (ConversationGateway + AccessGateway),
+                dynamo_traces.py, dynamo_usage.py (the daily token counters, same table)
+api/            deps.py (per-request wiring; process resources come from app.state), v1/endpoints/{chat,planner,usage,admin,health}.py
 schemas/        chat.py (request), planner.py (PlannerTurn request, PlannerCity, CardDetail), planner_events.py
-                (SSE v2 events, ADR 0015), admin.py (trace pages, detail and stats responses)
+                (SSE v2 events, ADR 0015), admin.py (trace pages, detail and stats responses), usage.py
 openapi.py      puts the planner's stream models into the OpenAPI document (no route declares them)
 main.py         lifespan builds the provider and the retriever once (providers.build_*) and closes them
 indexing.py     CLI that fills the vector index from a corpus JSONL (just index); never runs in a request
 prompts.py      every prompt string (system prompt, RAG context template, format_context)
 testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, KeywordRetriever (tf-idf over a corpus file),
-                FakePhotoFinder, FakeSitePreviews + settings_for_tests()
+                FakePhotoFinder, FakeSitePreviews, InMemoryTraceLog, InMemoryUsageStore, FakeAccessGateway + settings_for_tests()
 ```
 
 - Routes live under `/api/v1/ai/*` so a proxy can route by prefix. Keep it that way.
@@ -59,6 +62,20 @@ testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, Ke
   `DynamoTraceLog`, `NullTraceLog` (finds nothing) and `testing.InMemoryTraceLog`
   (`testing.make_trace(**overrides)` builds a trace for tests). New fields on `TurnTrace` go to
   `TurnSummary` and `schemas/admin.py` too, then `just contracts`.
+- **Access and the daily token quota (ADR 0026, TRA-258).** A route that spends tokens declares
+  `dependencies=[Depends(require_budget)]`; a planner read declares `require_access`
+  (`api/deps.py`). A new route under `/chat` or `/planner` needs one of the two; admin and health
+  routes need neither. Both ask `CheckAccess` (`application/access.py`), built once in `lifespan`
+  (`app.state.check_access`: it holds the per-subject cache of `core_api`'s
+  `GET /users/me/access`, `ACCESS_CACHE_SECONDS`), and do nothing with `ACCESS_CONTROL_ENABLED`
+  off. Errors are `AccessDenied` (403) and `DailyTokenLimit` (429, extras `limit`, `used`,
+  `resets_at`) from `travel_common`, raised before the `StreamingResponse` exists. The counter is
+  `UsageStore` (`infrastructure/dynamo_usage.py`: `USAGE#<subject>` / `DAY#<day>`, one atomic
+  `UpdateItem ADD`; `NullUsageStore` without a table; `testing.InMemoryUsageStore`), fed by
+  `RecordTrace(log, usage)` for every trace that spent a token, whatever became of the trace
+  write. Only input + output tokens count; the limit is soft (checked before, counted after).
+  Closed when `core_api` cannot be asked, open when the counter cannot be read. Reads:
+  `GET /usage/me`, `GET /admin/usage?day=`. Never import `core_api` for any of it.
 - Auth is **stateless**: `principal_from_token(token, settings)`; no user lookup. `AUTH_MODE` picks
   the issuer (local HS256 with `SECRET_KEY`, or the Cognito pool's RS256 ID tokens against
   `COGNITO_JWKS`); `tests/test_cognito_mode.py` covers the second with `CognitoTestIssuer`.

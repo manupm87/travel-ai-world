@@ -2,8 +2,8 @@
 
 Everything that talks to language models: a streaming chat and a trip planner over NVIDIA-hosted
 models (local development) or Amazon Bedrock (deployed), grounded in a corpus of city documents
-searched in Amazon S3 Vectors. No database of its own besides the turn traces it writes to
-DynamoDB (ADR 0024); authenticates with the bearer token alone (core_api's HS256 JWT
+searched in Amazon S3 Vectors. No database of its own besides the turn traces and the daily token counters it writes to
+DynamoDB (ADR 0024, ADR 0026); authenticates with the bearer token alone (core_api's HS256 JWT
 locally, the Cognito pool's RS256 ID token when deployed).
 
 ## Run
@@ -25,6 +25,8 @@ uv run uvicorn ai_api.main:app --reload --port 8001    # http://localhost:8001/a
 | `GET` | `/admin/turns/{turn_id}` | Admin | One turn whole: `summary`, `context`, `spans` (by `seq`), `timeline`; 404 when unknown |
 | `GET` | `/admin/sessions/{session_id}` | Admin | One planner draft's turns, oldest first; `cursor`, `limit` |
 | `GET` | `/admin/stats?start=&end=` | Admin | Range stats (≤ 31 days, both included): per day, totals, by kind / model / city, RAG metrics, most and never used documents |
+| `GET` | `/admin/usage?day=` | Admin | Every account's token counter of one UTC day (`YYYY-MM-DD`, today by default), most tokens first: `{day, items: [{subject, input_tokens, output_tokens, embed_tokens, tokens, turns}]}`; `tokens` is input + output, what the limit counts. See [Access and the daily token quota](#access-and-the-daily-token-quota-adr-0026) |
+| `GET` | `/usage/me` | Bearer | The caller's tokens of today (UTC) and their limit: `{day, used_tokens, input_tokens, output_tokens, turns, daily_token_limit, resets_at}`; `daily_token_limit` is `null` when unlimited or when `ACCESS_CONTROL_ENABLED` is off; `resets_at` is the next UTC midnight |
 | `GET` | `/health/` | — | |
 | `GET` | `/health/provider` | — | 503 when the active provider is not configured (no `NVIDIA_API_KEY`, or an empty `BEDROCK_CHAT_MODEL`); answers its `name` |
 
@@ -74,16 +76,16 @@ Full contract: [`docs/api/ai-api.openapi.json`](../../../../docs/api/ai-api.open
 ```text
 ai_api/
 ├── main.py         lifespan: one provider (by LLM_PROVIDER) and, with RETRIEVAL_ENABLED, one retriever per process, on app.state
-├── config.py       AISettings: LLM_PROVIDER, NVIDIA_*, BEDROCK_*, CHAT_*, RETRIEVAL_*, VECTOR_*, EMBEDDINGS_*, PLANNER_*, OPEN_METEO_*, PHOTOS_ENABLED, COMMONS_*, SITE_PREVIEW_*
+├── config.py       AISettings: LLM_PROVIDER, NVIDIA_*, BEDROCK_*, CHAT_*, RETRIEVAL_*, VECTOR_*, EMBEDDINGS_*, PLANNER_*, OPEN_METEO_*, PHOTOS_ENABLED, COMMONS_*, SITE_PREVIEW_*, INTERACTION*, TRACE_PAYLOAD_BYTES, ACCESS_CONTROL_ENABLED, ACCESS_CACHE_SECONDS
 ├── prompts.py      CHAT_SYSTEM_PROMPT, RAG_CONTEXT_PROMPT, format_context(), the planner prompts and its fixed en/es sentences
 ├── openapi.py      registers the planner's stream models in the OpenAPI document (no route declares them)
 ├── indexing.py     python -m ai_api.indexing <documents.jsonl>: fills the vector index (just index)
-├── domain/         models.py (Message, Document, RetrievalFilters, GenerationParams, Usage, ChatTrace, ChatTurn, DayWeather, RouteSuggestion) · ports.py (LLMProvider, Embedder, Retriever, WeatherForecast, PhotoFinder, SitePreviewFinder, ConversationGateway, TraceLog) · tracing.py (the turn trace, ADR 0024)
-├── application/    stream_chat.py, record_conversation.py, plan_trip.py, card_detail.py — the use cases, depend only on ports · structured.py (JSON out of a completion) · cards.py · photos.py · validate.py · language.py
-├── infrastructure/ nvidia_provider.py · bedrock_provider.py · bedrock_embedder.py · bedrock.py (client config and retry rules both Bedrock adapters share) · s3vectors.py (client, keys, metadata split) · s3vectors_retriever.py · providers.py (settings → adapters) · open_meteo.py · static_flight_search.py (+ data/airports.json) · cities.py (+ data/cities.json, the cities manifest the corpus tool writes) · commons_photos.py · site_previews.py (the image a venue publishes on its own site, ADR 0021; the corpus does the same for hotels at build time, ADR 0022) · sse.py · retry.py · core_api_client.py
-├── api/            deps.py (wiring) · v1/endpoints/chat.py, planner.py, admin.py (trace reads, admins only), health.py
-├── schemas/        chat.py · planner.py (PlannerTurn, PlannerCity, CardDetail) · planner_events.py (SSE v2 events and ops) · admin.py (trace pages, detail, stats)
-└── testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, documents_from_corpus(), settings_for_tests()
+├── domain/         models.py (Message, Document, RetrievalFilters, GenerationParams, Usage, ChatTrace, ChatTurn, DayWeather, RouteSuggestion) · ports.py (LLMProvider, Embedder, Retriever, WeatherForecast, PhotoFinder, SitePreviewFinder, ConversationGateway, TraceLog, UsageStore, AccessGateway) · tracing.py (the turn trace, ADR 0024) · usage.py (DailyUsage, Entitlement, ADR 0026)
+├── application/    stream_chat.py, record_conversation.py, plan_trip.py, card_detail.py, access.py (CheckAccess: the access list and the daily limit) — the use cases, depend only on ports · structured.py (JSON out of a completion) · cards.py · photos.py · validate.py · language.py
+├── infrastructure/ nvidia_provider.py · bedrock_provider.py · bedrock_embedder.py · bedrock.py (client config and retry rules both Bedrock adapters share) · s3vectors.py (client, keys, metadata split) · s3vectors_retriever.py · providers.py (settings → adapters) · open_meteo.py · static_flight_search.py (+ data/airports.json) · cities.py (+ data/cities.json, the cities manifest the corpus tool writes) · commons_photos.py · site_previews.py (the image a venue publishes on its own site, ADR 0021; the corpus does the same for hotels at build time, ADR 0022) · sse.py · retry.py · core_api_client.py (conversations, and the caller's access) · dynamo_traces.py · dynamo_usage.py (the daily token counters)
+├── api/            deps.py (wiring) · v1/endpoints/chat.py, planner.py, usage.py, admin.py (trace and usage reads, admins only), health.py
+├── schemas/        chat.py · planner.py (PlannerTurn, PlannerCity, CardDetail) · planner_events.py (SSE v2 events and ops) · admin.py (trace pages, detail, stats) · usage.py (the caller's usage, a day's counters)
+└── testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, InMemoryTraceLog, InMemoryUsageStore, FakeAccessGateway, documents_from_corpus(), settings_for_tests()
 ```
 
 Swap the model: `NVIDIA_CHAT_MODEL` in `.env` (NVIDIA retires models without notice; a `410` from
@@ -207,6 +209,51 @@ sparse). Every item has `expires_at` (`INTERACTION_TTL_DAYS`, 90 by default).
 - **Locally.** Empty `INTERACTIONS_TABLE` records nothing. Set it (`travel-ai-local-interactions`)
   with `DYNAMODB_ENDPOINT_URL` pointing at `just dynamodb-local` and `just dev-ai` creates the table
   at start-up; Compose (`just docker-up`) sets both for you.
+
+## Access and the daily token quota (ADR 0026)
+
+`core_api` owns the access list and each person's limit; `ai_api` counts the tokens and enforces
+both. Off by default (`ACCESS_CONTROL_ENABLED=false`: nobody is asked, nothing is limited); on in
+Compose and on AWS.
+
+- **Counting** (always, when `INTERACTIONS_TABLE` is set). `RecordTrace` adds every turn's tokens
+  to one item per token subject and UTC day, with the trace and independently of it (a failed
+  write of either is logged and never breaks the turn). It covers streams that end well, in an
+  error or cancelled, and the card detail. A turn that spent nothing adds nothing.
+
+  | Item | `PK` | `SK` | GSI1 | Holds |
+  |---|---|---|---|---|
+  | Usage | `USAGE#<subject>` | `DAY#<YYYY-MM-DD>` | `USAGE_DAY#<day>` / `<subject>` | `input_tokens`, `output_tokens`, `embed_tokens`, `turns`, `expires_at` |
+
+  One `UpdateItem` with `ADD` (`infrastructure/dynamo_usage.py`): atomic, nothing is read to
+  write, concurrent turns lose nothing. The day is in the key, so nothing is ever reset; the item
+  expires with the table's TTL. Its partitions are its own, so no trace listing returns one.
+- **What counts**: `input_tokens + output_tokens` of the turn's model calls. Embedding tokens are
+  stored and not counted. The day is the UTC date the turn started.
+- **Checking** (`application/access.py`, `CheckAccess`; dependencies `require_access` and
+  `require_budget` in `api/deps.py`). `ai_api` asks `core_api` `GET /users/me/access` with the
+  caller's token and keeps the answer per token subject for `ACCESS_CACHE_SECONDS` (60), in
+  process, at most 1024 accounts. A refusal is never kept.
+
+  | Routes | Dependency | Refuses with |
+  |---|---|---|
+  | `POST /planner`, `POST /chat` | `require_budget` | 403 `ACCESS_DENIED`; 429 `DAILY_TOKEN_LIMIT` when today's tokens ≥ the limit |
+  | `GET /planner/cities`, `GET /planner/card`, `GET /usage/me` | `require_access` | 403 `ACCESS_DENIED` |
+  | `/admin/*`, `/health/*` | — | unchanged (administrators only; public) |
+
+  The refusal is a plain JSON error sent before any stream starts, never an SSE `error` event:
+  `{"detail": {"message": "Daily token limit reached", "error_code": "DAILY_TOKEN_LIMIT",
+  "extras": {"limit", "used", "resets_at"}}}`, `resets_at` being the next UTC midnight.
+- **A soft limit.** Tokens are known when a turn ends, so the turn that crosses the line finishes
+  and the next one is refused. A `null` limit (unlimited) skips the counter.
+- **Closed on the list, open on the counter.** `core_api` unreachable → 503, nothing runs. The
+  counter unreadable → logged, the turn runs.
+- **How long a change takes.** A raised limit, a lowered one or a removed grant reaches `ai_api`
+  within `ACCESS_CACHE_SECONDS` per warm Lambda environment (each keeps its own cache); an
+  invitation works at once.
+- **Locally.** `just dev-ai` asks nobody. To try it: `ACCESS_CONTROL_ENABLED="true"` in
+  `services/ai_api/.env`, `INTERACTIONS_TABLE` set, `core_api` running, and a grant with a small
+  limit (`just dev-grant you@example.com --limit 2000`).
 
 ### Admin reads (TRA-221)
 

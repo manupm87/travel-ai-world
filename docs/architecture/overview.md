@@ -135,9 +135,13 @@ In both modes:
   everyone else gets 403 `ACCESS_DENIED` from every route except `GET /users/me` and
   `GET /users/me/access`. The frontend asks the latter once per signed-in account and shows a
   "not invited yet" page instead of the app. The same answer carries the account's daily token
-  limit. **Only `core_api` is gated today:** `ai_api` does not read the list or the limit yet
-  (it verifies the token only, below); both arrive there with TRA-258. Locally the mode is `open`.
-- `ai_api` verifies the token only (stateless). A deactivated user can keep chatting until the
+  limit. `ai_api` honours both: before a planner or chat request it asks `core_api` for that same
+  answer with the caller's token (kept per account for 60 s), refuses an account that is not
+  allowed (403 `ACCESS_DENIED`) and one that has spent its tokens of the UTC day (429
+  `DAILY_TOKEN_LIMIT`, counted in its own table). Locally the mode is `open` and `ai_api` asks
+  nobody (`ACCESS_CONTROL_ENABLED=false`); Compose and AWS turn the check on.
+- `ai_api` keeps no accounts: it verifies the token itself and asks `core_api` only for access and
+  the limit, above. A deactivated user can keep chatting until the
   token expires (60 min). See [ADR 0002](adr/0002-auth-between-services.md) (superseded for the
   issuer, still the rule for the boundary).
 
@@ -171,7 +175,8 @@ filled out of band by `just index` from the corpus committed under `tools/city_c
 Wire format is fixed by `ai_api/infrastructure/sse.py` and consumed by `src/frontend/src/services/chat.ts`.
 Conversations are stored by `core_api` ([ADR 0013](adr/0013-chat-conversations-in-core-api.md)):
 `ai_api` never reaches `core_api`'s table: its only storage is its own trace table,
-`<prefix>-interactions` ([ADR 0024](adr/0024-turn-traces-and-admin-access.md)).
+`<prefix>-interactions` ([ADR 0024](adr/0024-turn-traces-and-admin-access.md)), which also holds
+each account's daily token counter ([ADR 0026](adr/0026-access-list-and-daily-token-quota.md)).
 
 ## Planner
 
@@ -227,6 +232,11 @@ browser), it calls `core_api` **as the user**:
 it forwards the same bearer token, so `core_api` applies the same permissions it applies to the
 browser. No service secret exists today; add an `INTERNAL_API_KEY` + `/internal/*` router only when
 a job must act without a user.
+
+| Call | When | What for |
+|---|---|---|
+| `POST /chat-threads/`, `POST /chat-threads/{id}/messages/` | after a chat answer | the conversation ([ADR 0013](adr/0013-chat-conversations-in-core-api.md)); a failure never fails the answer |
+| `GET /users/me/access` | before a planner or chat request, and for the planner's reads, when `ACCESS_CONTROL_ENABLED` | may this account use the app, and its daily token limit ([ADR 0026](adr/0026-access-list-and-daily-token-quota.md)). Kept in process per token subject for `ACCESS_CACHE_SECONDS` (60); **fails closed**: when `core_api` cannot be asked the request is refused with 503 |
 
 ## Contracts
 

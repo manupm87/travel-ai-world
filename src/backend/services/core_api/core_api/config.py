@@ -22,11 +22,12 @@ class CoreSettings(CommonSettings, DynamoSettings):
     # Who may use the app (ADR 0026). "open": every signed-in account.
     # "allowlist": administrators and the emails on the access list
     # (`/admin/access`); everyone else gets 403 ACCESS_DENIED from core_api.
-    # ai_api does not read the list yet: that arrives with TRA-258.
+    # ai_api asks this service (`GET /users/me/access`) and refuses the same
+    # accounts when its ACCESS_CONTROL_ENABLED is on.
     ACCESS_MODE: Literal["open", "allowlist"] = "open"
     # Tokens a person may spend per UTC day when their grant sets no limit of
-    # its own; 0 = unlimited. Served by GET /users/me/access; nothing enforces
-    # it yet (ai_api will, with TRA-258).
+    # its own; 0 = unlimited. Served by GET /users/me/access; ai_api counts
+    # the tokens and enforces it (429 DAILY_TOKEN_LIMIT).
     DEFAULT_DAILY_TOKEN_LIMIT: int = Field(default=300_000, ge=0)
 
     # Set by the Lambda runtime itself; never in a .env. On Lambda the empty
