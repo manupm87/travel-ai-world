@@ -64,6 +64,9 @@ services:
       - DYNAMODB_ENDPOINT_URL=http://dynamodb:8000
       # The trace of every turn (ADR 0024), table created at start-up.
       - INTERACTIONS_TABLE=travel-ai-local-interactions
+      # The access list and the daily token quota (ADR 0026): core_api is here
+      # to be asked (its ACCESS_MODE is `open`, so only the limit applies).
+      - ACCESS_CONTROL_ENABLED=true
       - AWS_ACCESS_KEY_ID=local
       - AWS_SECRET_ACCESS_KEY=local
       - AWS_REGION=eu-west-1

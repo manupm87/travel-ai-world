@@ -157,6 +157,9 @@ resource "aws_lambda_function" "ai_api" {
       EMBEDDINGS_REGION = var.region
       # The trace of every turn (ADR 0024), table in traces.tf.
       INTERACTIONS_TABLE = aws_dynamodb_table.interactions.name
+      # Ask core_api who may use the app and how many tokens a day, before
+      # every planner and chat request (ADR 0026).
+      ACCESS_CONTROL_ENABLED = "true"
     })
   }
 

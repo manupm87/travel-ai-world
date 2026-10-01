@@ -9,6 +9,12 @@
 #   context  PK = TURN#<turn_id>     SK = CONTEXT
 #   events   PK = TURN#<turn_id>     SK = EVENTS
 #   step     PK = TURN#<turn_id>     SK = SPAN#<seq>
+#   usage    PK = USAGE#<subject>    SK = DAY#<YYYY-MM-DD>
+#            GSI1 = USAGE_DAY#<day> / <subject> (every account's counter of a day)
+#            The daily token counter (ADR 0026): input, output and embedding
+#            tokens and turns, added with one UpdateItem (ADD) per turn by
+#            ai_api/infrastructure/dynamo_usage.py. Its partitions are its
+#            own, so no trace query returns one.
 # Every item carries `expires_at` (epoch seconds): the TTL below deletes it
 # after INTERACTION_TTL_DAYS (90 by default). A log that expires by design
 # needs no point-in-time recovery and no deletion protection.
@@ -69,13 +75,15 @@ resource "aws_dynamodb_table" "interactions" {
 }
 
 # ai_api writes the traces and, for the admin console (TRA-221), reads them
-# back by key and by index. Never Scan, never the table's configuration
-# beyond describing it.
+# back by key and by index; UpdateItem is the daily token counter's atomic
+# ADD (ADR 0026). Never Scan, never the table's configuration beyond
+# describing it.
 data "aws_iam_policy_document" "ai_api_interactions" {
   statement {
     effect = "Allow"
     actions = [
       "dynamodb:PutItem",
+      "dynamodb:UpdateItem",
       "dynamodb:BatchWriteItem",
       "dynamodb:Query",
       "dynamodb:GetItem",
