@@ -1,9 +1,9 @@
 """`infrastructure.dynamo_usage.DynamoUsageStore` against moto's DynamoDB."""
 
-import asyncio
 from collections.abc import Iterator
 from datetime import UTC, date, datetime
 from typing import Any
+from unittest.mock import patch
 
 import pytest
 from ai_api.domain.tracing import TurnFilters
@@ -55,22 +55,24 @@ async def test_two_adds_sum_into_one_item(store: DynamoUsageStore, client: Any):
     assert item["item"] == {"S": "usage"}
 
 
-async def test_concurrent_adds_lose_nothing(store: DynamoUsageStore):
-    await asyncio.gather(
-        *(
-            store.add("sub-1", DAY, input_tokens=3, output_tokens=2, embed_tokens=1)
-            for _ in range(20)
-        )
-    )
+async def test_an_add_is_one_atomic_update(store: DynamoUsageStore, client: Any):
+    """Concurrent turns lose nothing because an add is one `UpdateItem` with
+    `ADD`, which DynamoDB applies atomically, never a read and then a write.
+    That is what is checked: moto's table is not thread-safe, so adds fired at
+    it from several threads lose counts in moto, not in DynamoDB (TRA-271)."""
+    with (
+        patch.object(client, "update_item", wraps=client.update_item) as update,
+        patch.object(client, "get_item", wraps=client.get_item) as get,
+        patch.object(client, "put_item", wraps=client.put_item) as put,
+    ):
+        await store.add("sub-1", DAY, input_tokens=3, output_tokens=2, embed_tokens=1)
 
-    usage = await store.get("sub-1", DAY)
-
-    assert (usage.input_tokens, usage.output_tokens, usage.embed_tokens) == (
-        60,
-        40,
-        20,
+    update.assert_called_once()
+    get.assert_not_called()
+    put.assert_not_called()
+    assert update.call_args.kwargs["UpdateExpression"].startswith(
+        "ADD input_tokens :i, output_tokens :o, embed_tokens :e, turns :one "
     )
-    assert usage.turns == 20
 
 
 async def test_a_day_nothing_was_counted_on_reads_as_zeros(store: DynamoUsageStore):
