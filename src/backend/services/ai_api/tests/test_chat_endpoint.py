@@ -323,6 +323,9 @@ async def test_lifespan_installs_and_closes_the_provider():
         # The daily counters and the access check are built once (ADR 0026).
         assert app.state.usage_store is not None
         assert app.state.check_access is not None
+        assert app.state.check_access.ttl_seconds == (
+            get_settings().ACCESS_CACHE_SECONDS
+        )
     assert provider._client.is_closed
 
 

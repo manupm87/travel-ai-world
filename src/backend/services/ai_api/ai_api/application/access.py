@@ -53,7 +53,7 @@ class CheckAccess:
     ) -> None:
         self._gateway = gateway
         self._usage = usage
-        self._ttl = ttl_seconds
+        self.ttl_seconds = ttl_seconds
         self._clock = clock
         self.today = today
         self._cache: OrderedDict[str, tuple[float, Entitlement]] = OrderedDict()
@@ -95,8 +95,8 @@ class CheckAccess:
             return cached[1]
         entitlement = await self._gateway.access(bearer_token)
         self._cache.pop(subject, None)
-        if entitlement.allowed and self._ttl > 0:
-            self._cache[subject] = (now + self._ttl, entitlement)
+        if entitlement.allowed and self.ttl_seconds > 0:
+            self._cache[subject] = (now + self.ttl_seconds, entitlement)
             while len(self._cache) > MAX_CACHED:
                 self._cache.popitem(last=False)
         return entitlement
