@@ -321,4 +321,21 @@ turn's events and a summary (activities per day, where each photo came from — 
 turn) and exits 1 on an unpictured activity or a price, 2 when the provider fails. Needs
 `NVIDIA_API_KEY` in `.env`; about a minute. pytest never collects `tests/manual`.
 
+### Retrieval eval (the deployed index, AWS)
+
+```bash
+just eval-retrieval                     # every city with a question set; or `just eval-retrieval madrid`
+uv run python tests/manual/retrieval_eval.py budapest
+```
+
+`tests/manual/retrieval_eval.py` sends each question of `tests/manual/questions/<city>.jsonl`
+through `S3VectorsRetriever` with the planner's city filter (top 10) and prints recall@5,
+recall@10 and MRR — overall, per city, per language — and the questions that left an expected
+`doc_id` out of their top 10, with ranks. Expected ids the index no longer holds are listed first.
+A question carries `id`, `lang`, `query`, `expected` and `why` (how the expectation was chosen).
+Needs an AWS session (`just aws-login`); reads `VECTOR_BUCKET` / `VECTOR_INDEX` (production's by
+default); a few seconds and a few hundred Titan tokens. Run it after a change to the corpus, the
+index or the filters; the baseline and how to read it are in
+[`docs/architecture/rag-evaluation.md`](../../../../docs/architecture/rag-evaluation.md).
+
 For agents: [`AGENTS.md`](AGENTS.md).

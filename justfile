@@ -94,6 +94,11 @@ index city="budapest" *flags="":
 planner-smoke city="budapest" lang="es" *flags="":
     cd {{ai}} && uv run python tests/manual/planner_smoke.py --city {{city}} --lang {{lang}} {{flags}}
 
+# Recall@5/10 and MRR of the deployed index over tests/manual/questions (TRA-263), with the
+# planner's city filter; no city = every city with a question set. Needs an AWS session.
+eval-retrieval city="":
+    cd {{ai}} && uv run python tests/manual/retrieval_eval.py {{city}}
+
 # ── Quality ──────────────────────────────────────────────────────────────────
 
 # Lint backend (ruff, incl. scripts/) and frontend (eslint)
