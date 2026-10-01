@@ -8,6 +8,7 @@ from typing import Any
 import pytest
 from core_api.domain.enums import ChatRole
 from core_api.domain.models import (
+    AccessGrant,
     Activity,
     ChatMessage,
     ChatThread,
@@ -17,6 +18,7 @@ from core_api.domain.models import (
 )
 from core_api.infrastructure.dynamo.repositories import (
     MAX_TRIP_BYTES,
+    DynamoAccessGrantRepository,
     DynamoChatMessageRepository,
     DynamoChatThreadRepository,
     DynamoTripRepository,
@@ -412,6 +414,33 @@ async def test_a_cursor_from_elsewhere_is_a_bad_request(
     for cursor in ("%%%", "bm90IGpzb24", user_cursor):
         with pytest.raises(BadRequest):
             await trips.list_all(cursor, 10)
+
+
+async def test_a_cursor_of_the_other_list_on_the_same_index_is_a_bad_request(
+    table: DynamoTable, users: DynamoUserRepository
+):
+    """Accounts and access grants share GSI1 (same key names): the partition
+    in the cursor is what tells them apart."""
+    grants = DynamoAccessGrantRepository(table)
+    for email in ("a@example.com", "b@example.com"):
+        await users.add(User(email=email))
+        await grants.put(AccessGrant(email=email, added_by="t"))
+    _, user_cursor = await users.list_page(None, 1)
+    _, grant_cursor = await grants.list_page(None, 1)
+    assert user_cursor is not None
+    assert grant_cursor is not None
+
+    with pytest.raises(BadRequest, match="Invalid cursor"):
+        await grants.list_page(user_cursor, 10)
+    with pytest.raises(BadRequest, match="Invalid cursor"):
+        await users.list_page(grant_cursor, 10)
+    # Each still walks its own list.
+    assert [g.email for g in (await grants.list_page(grant_cursor, 10))[0]] == [
+        "b@example.com"
+    ]
+    assert [u.email for u in (await users.list_page(user_cursor, 10))[0]] == [
+        "b@example.com"
+    ]
 
 
 async def test_users_page_by_cursor_and_keep_their_subject(

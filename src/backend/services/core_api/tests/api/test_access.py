@@ -4,6 +4,8 @@ import logging
 from collections.abc import Iterator
 
 import pytest
+from core_api.api.deps import get_identity_verifier
+from core_api.auth.google import ExternalIdentity
 from core_api.config import CoreSettings, get_settings
 from core_api.domain.models import AccessGrant, User
 from core_api.infrastructure.dynamo.repositories import DynamoAccessGrantRepository
@@ -73,6 +75,36 @@ async def test_an_uninvited_account_is_refused_everywhere_but_its_own_profile(
     assert me.json()["email"] == alice.email
     assert access.status_code == 200, access.text
     assert access.json() == {"allowed": False, "daily_token_limit": DEFAULT_LIMIT}
+
+
+class _Verifier:
+    """Google's answer for one credential, without Google."""
+
+    async def verify(self, credential: str) -> ExternalIdentity:
+        return ExternalIdentity(
+            subject="g-1", email="newcomer@example.com", name="New", picture=None
+        )
+
+
+@pytest.mark.usefixtures("allowlist")
+async def test_an_uninvited_person_can_still_sign_in_locally_and_is_told_why(
+    client: AsyncClient,
+):
+    """The gate is in the dependency, not in the sign-in: `/auth/google` gives
+    an uninvited person a session, so the frontend can explain."""
+    app.dependency_overrides[get_identity_verifier] = lambda: _Verifier()
+
+    signed_in = await client.post("/api/v1/auth/google", json={"credential": "x"})
+
+    assert signed_in.status_code == 200, signed_in.text
+    assert signed_in.json()["user"]["email"] == "newcomer@example.com"
+    headers = {"Authorization": f"Bearer {signed_in.json()['access_token']}"}
+    access = await client.get(ACCESS_URL, headers=headers)
+    trips = await client.get(TRIPS_URL, headers=headers)
+    assert access.status_code == 200, access.text
+    assert access.json()["allowed"] is False
+    assert trips.status_code == 403
+    assert trips.json()["detail"]["error_code"] == "ACCESS_DENIED"
 
 
 @pytest.mark.usefixtures("allowlist")
@@ -296,3 +328,27 @@ async def test_reads_and_writes_of_the_list_are_audited(
         f"admin_write subject={admin.id} route={route}/new@example.com "
         "target=new@example.com",
     ]
+
+
+async def test_a_cursor_of_the_accounts_list_is_refused_and_the_reverse(
+    client: AsyncClient, admin: User, alice: User
+):
+    headers = headers_for(admin)
+    for email in ("a@example.com", "b@example.com"):
+        await client.put(f"{ADMIN_ACCESS_URL}/{email}", json={}, headers=headers)
+    users_url = "/api/v1/admin/users"
+    grants = await client.get(ADMIN_ACCESS_URL, params={"limit": 1}, headers=headers)
+    users = await client.get(users_url, params={"limit": 1}, headers=headers)
+
+    crossed = await client.get(
+        ADMIN_ACCESS_URL,
+        params={"cursor": users.json()["next_cursor"]},
+        headers=headers,
+    )
+    reverse = await client.get(
+        users_url, params={"cursor": grants.json()["next_cursor"]}, headers=headers
+    )
+
+    for refused in (crossed, reverse):
+        assert refused.status_code == 400, refused.text
+        assert refused.json()["detail"]["message"] == "Invalid cursor"

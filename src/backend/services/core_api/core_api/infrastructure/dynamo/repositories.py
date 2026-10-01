@@ -130,9 +130,12 @@ def encode_cursor(last_key: Item | None) -> str | None:
     return base64.urlsafe_b64encode(raw).decode().rstrip("=")
 
 
-def decode_cursor(cursor: str | None, index_keys: tuple[str, str]) -> Item | None:
+def decode_cursor(
+    cursor: str | None, index_keys: tuple[str, str], partition: str
+) -> Item | None:
     """The `ExclusiveStartKey` a cursor stands for; `BadRequest` when it is not
-    one this index could have produced."""
+    one this partition of the index could have produced (two lists share GSI1:
+    a cursor of the accounts is not one of the access list)."""
     if not cursor:
         return None
     expected = {keys.PK, keys.SK, *index_keys}
@@ -152,6 +155,8 @@ def decode_cursor(cursor: str | None, index_keys: tuple[str, str]) -> Item | Non
             for value in start.values()
         )
     ):
+        raise BadRequest("Invalid cursor")
+    if start[index_keys[0]]["S"] != partition:
         raise BadRequest("Invalid cursor")
     return start
 
@@ -231,7 +236,7 @@ class _Store:
             "ScanIndexForward": not newest_first,
             "Limit": limit,
         }
-        start = decode_cursor(cursor, index_keys)
+        start = decode_cursor(cursor, index_keys, partition)
         if start is not None:
             kwargs["ExclusiveStartKey"] = start
         response = await call(self._client.query, **kwargs)
