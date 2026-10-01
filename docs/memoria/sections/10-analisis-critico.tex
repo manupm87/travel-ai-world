@@ -34,10 +34,11 @@ no medida.
 
 \paragraph{Inteligencia artificial.} Tres huecos pesan más que el resto:
 \begin{itemize}
-\item \emph{Sin evaluación extremo a extremo.} TRA-148 solo mide la recuperación (R@10 0,726 sobre
-  el índice de producción, 01-10): los 597 tests de
-  \code{ai\_api} comprueban el orquestador con un LLM guionizado, no si un itinerario es bueno. No
-  hay juez LLM~\cite{cr:zheng2023judge}, ni regresión de \emph{prompts} en CI, ni guardrails: el
+\item \emph{Sin evaluación extremo a extremo de los itinerarios.} TRA-148 mide la recuperación
+  (R@10 0,726 sobre el índice de producción, 01-10) y, con un juez LLM~\cite{cr:zheng2023judge},
+  las respuestas del chat (\emph{groundedness} 4,72/5), pero no si un itinerario es bueno: los
+  tests de \code{ai\_api} comprueban el orquestador con un LLM guionizado. No hay regresión de
+  \emph{prompts} en CI, ni guardrails: el
   texto de Wikivoyage, editable por cualquiera, entra en el \emph{prompt} y abre un vector de
   inyección indirecta~\cite{cr:greshake2023injection}.
 \item \emph{Lo medido no está en producción.} La fusión BM25+RRF subió el MRR de 0,591 a 0,651 en
