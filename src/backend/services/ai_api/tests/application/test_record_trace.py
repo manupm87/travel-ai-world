@@ -1,6 +1,7 @@
 """`application.record_trace.RecordTrace`: the trace is written once, before
 the closing frame, whatever way the turn ends."""
 
+import asyncio
 from collections.abc import AsyncIterator
 from datetime import UTC, date, datetime
 
@@ -356,6 +357,60 @@ async def test_a_failing_log_still_counts_the_tokens():
 
     assert [e.type for e in out] == ["text", "done"]
     assert await counted(usage) == (100, 50, 7, 1)
+
+
+class SlowLog(InMemoryTraceLog):
+    """A trace write that is in flight until `release` is set."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.writing = asyncio.Event()
+        self.release = asyncio.Event()
+
+    async def record(self, trace: TurnTrace) -> None:
+        self.writing.set()
+        await self.release.wait()
+        await super().record(trace)
+
+
+@pytest.mark.parametrize(
+    "events",
+    [
+        lambda: stream(text("x"), done()),
+        lambda: stream(text("x"), error_event("Boom", "SERVICE_UNAVAILABLE")),
+        lambda: stream(text("x")),
+    ],
+    ids=["done", "error-event", "end-of-stream"],
+)
+async def test_a_client_that_leaves_during_the_trace_write_is_still_counted(events):
+    """The server cancels the streaming task on disconnect: neither write is
+    lost, and the turn is counted once."""
+    log = SlowLog()
+    usage = InMemoryUsageStore()
+    task = asyncio.create_task(
+        collect(RecordTrace(log, usage)(spending(), events()), [])
+    )
+
+    await log.writing.wait()
+    task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+
+    assert await counted(usage) == (100, 50, 7, 1)
+    log.release.set()
+    for _ in range(5):
+        await asyncio.sleep(0)
+    assert len(log.traces) == 1  # the shielded write went through, once
+    assert await counted(usage) == (100, 50, 7, 1)
+
+
+async def test_the_usage_store_fake_fails_on_add_when_told_to():
+    usage = InMemoryUsageStore(fail_with=RuntimeError("dynamo down"))
+
+    with pytest.raises(RuntimeError):
+        await usage.add(
+            "sub-1", date(2026, 9, 23), input_tokens=1, output_tokens=1, embed_tokens=0
+        )
 
 
 class FailingAdds(InMemoryUsageStore):

@@ -428,6 +428,7 @@ class InMemoryUsageStore:
         output_tokens: int,
         embed_tokens: int,
     ) -> None:
+        self._check()
         was = await self.get(subject, day)
         self.days[(subject, day.isoformat())] = DailyUsage(
             subject=subject,

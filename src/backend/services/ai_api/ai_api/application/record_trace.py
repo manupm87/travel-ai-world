@@ -10,7 +10,10 @@ client that goes away mid-stream leaves a `cancelled` trace, best effort.
 With the trace, the turn's tokens are added to the caller's counter of the
 day (ADR 0026): the trace's UTC date, input and output tokens (what the daily
 limit counts) and embedding tokens (kept, not counted). A turn that spent no
-token adds nothing. Both writes are attempted, each on its own.
+token adds nothing. The counter is written first and both writes are
+attempted, each on its own, in a task of their own: the server cancels the
+streaming task when the client goes away, and a turn whose client left during
+the trace write must still be counted (once).
 
 Recording never breaks a turn: a failed write is logged and the stream goes
 on as if nothing happened.
@@ -46,6 +49,8 @@ class RecordTrace:
     def __init__(self, log: TraceLog, usage: UsageStore) -> None:
         self._log = log
         self._usage = usage
+        # Strong references: the loop only keeps weak ones to running tasks.
+        self._writes: set[asyncio.Task[None]] = set()
 
     async def __call__(
         self, tracer: TurnTracer, events: AsyncIterator[PlannerEvent]
@@ -69,7 +74,7 @@ class RecordTrace:
         self, tracer: TurnTracer, status: Status, code: str | None
     ) -> None:
         """Finish and write the trace of a request that does not stream."""
-        await self._record(tracer.finish(status, code))
+        await self._write(tracer.finish(status, code))
 
     async def _wrap[E](
         self,
@@ -88,51 +93,59 @@ class RecordTrace:
                 end = ends(event)
                 if end is not None:
                     finished = True
-                    await self._record(tracer.finish(*end))
+                    await self._write(tracer.finish(*end))
                 yield event
                 if finished:
                     return
             finished = True
-            await self._record(tracer.finish("ok"))
+            await self._write(tracer.finish("ok"))
         except DomainError as exc:
             if not finished:
                 finished = True
                 tracer.event("error", exc.error_code, 0)
-                await self._record(tracer.finish("error", exc.error_code))
+                await self._write(tracer.finish("error", exc.error_code))
             raise
         except Exception:
             if not finished:
                 finished = True
                 tracer.event("error", "INTERNAL", 0)
-                await self._record(tracer.finish("error", "INTERNAL"))
+                await self._write(tracer.finish("error", "INTERNAL"))
             raise
         finally:
             if not finished:
                 # Closed early: the client went away (GeneratorExit or a
                 # cancellation). Write what there is, without being cancelled.
                 try:
-                    await asyncio.shield(self._record(tracer.finish("cancelled")))
+                    await self._write(tracer.finish("cancelled"))
                 except BaseException:
                     logger.warning("Cancelled turn %s not recorded", tracer.turn_id)
 
+    async def _write(self, trace: TurnTrace) -> None:
+        """Both writes in their own task, shielded: cancelling the caller
+        (a client that disconnects) does not cancel them."""
+        task = asyncio.ensure_future(self._record(trace))
+        self._writes.add(task)
+        task.add_done_callback(self._writes.discard)
+        await asyncio.shield(task)
+
     async def _record(self, trace: TurnTrace) -> None:
+        # The day's counter first (ADR 0026): it is what the limit reads.
+        if trace.input_tokens or trace.output_tokens or trace.embed_tokens:
+            try:
+                await self._usage.add(
+                    trace.subject,
+                    trace.ts.date(),
+                    input_tokens=trace.input_tokens,
+                    output_tokens=trace.output_tokens,
+                    embed_tokens=trace.embed_tokens,
+                )
+            except Exception:
+                logger.exception("Usage of turn %s not counted", trace.turn_id)
+        # The trace, whatever became of the counter.
         try:
             await self._log.record(trace)
         except Exception:
             logger.exception("Trace of turn %s not recorded", trace.turn_id)
-        # The day's counter (ADR 0026), whatever became of the trace write.
-        if not (trace.input_tokens or trace.output_tokens or trace.embed_tokens):
-            return
-        try:
-            await self._usage.add(
-                trace.subject,
-                trace.ts.date(),
-                input_tokens=trace.input_tokens,
-                output_tokens=trace.output_tokens,
-                embed_tokens=trace.embed_tokens,
-            )
-        except Exception:
-            logger.exception("Usage of turn %s not counted", trace.turn_id)
 
 
 def _ends_planner(event: PlannerEvent) -> tuple[Status, str | None] | None:
