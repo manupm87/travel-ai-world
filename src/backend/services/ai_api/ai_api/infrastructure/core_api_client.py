@@ -62,13 +62,28 @@ class CoreApiClient:
         await self._post(bearer_token, f"/chat-threads/{thread_id}/messages/", body)
 
     async def access(self, bearer_token: str) -> Entitlement:
-        """May the caller use the app, and their daily token limit (ADR 0026)."""
-        body = await self._get(bearer_token, "/users/me/access")
+        """May the caller use the app, and their daily token limit (ADR 0026).
+
+        Only core_api's 401 and 403 are the caller's own; any other refusal
+        (400, 404, 422: a core_api without the route, a contract that moved)
+        and a body of another shape are this service's failure to ask, so
+        they are `ProviderUnavailable` (503), never a 4xx of the planner route
+        that the browser would read as its own. A limit of zero or less is no
+        limit.
+        """
+        try:
+            body = await self._get(bearer_token, "/users/me/access")
+        except (Unauthorized, Forbidden):
+            raise
+        except DomainError as exc:
+            raise ProviderUnavailable("core_api could not answer the access") from exc
         allowed, limit = body.get("allowed"), body.get("daily_token_limit")
         if not isinstance(allowed, bool) or isinstance(limit, bool):
             raise ProviderUnavailable("core_api answered an unreadable access")
         if limit is not None and not isinstance(limit, int):
             raise ProviderUnavailable("core_api answered an unreadable access")
+        if limit is not None and limit <= 0:
+            limit = None
         return Entitlement(allowed=allowed, daily_token_limit=limit)
 
     async def _post(
