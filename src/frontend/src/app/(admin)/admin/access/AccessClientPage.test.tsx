@@ -9,7 +9,8 @@ import {
   type AccessGrant,
 } from "@/services/admin";
 import { ACCESS_GRANT_PAGE, ADMIN_USAGE, ADMIN_USER_PAGE } from "@/test/fixtures/admin";
-import { fireEvent, renderWithProviders, screen, waitFor, within } from "@/test/render";
+import { usagePercent } from "@/components/admin/access/UsageToday";
+import { act, fireEvent, renderWithProviders, screen, waitFor, within } from "@/test/render";
 import AccessClientPage, { parseLimit } from "./AccessClientPage";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
@@ -390,7 +391,9 @@ describe("AccessClientPage — usage today (TRA-258)", () => {
     expect(ada).toHaveTextContent("14");
     expect(ada).toHaveTextContent("52,500");
     expect(ada).toHaveTextContent("50,000");
-    expect(ada).toHaveTextContent("Limit reached");
+    expect(ada).toHaveTextContent("105%");
+    // Said in the row for everyone, not only to a screen reader.
+    expect(within(ada!).getByText("Limit reached")).not.toHaveClass("sr-only");
     expect(within(ada!).getByTestId("usage-bar")).toHaveStyle({ width: "100%" });
     // Grace's grant is 0: unlimited, so there is nothing to fill.
     expect(grace).toHaveTextContent("grace@example.com");
@@ -398,6 +401,10 @@ describe("AccessClientPage — usage today (TRA-258)", () => {
     expect(within(grace!).queryByTestId("usage-bar")).not.toBeInTheDocument();
     // A subject no account answers for: its short form, on the default limit.
     expect(unknown).toHaveTextContent("ffffffff");
+    // The whole subject is in the DOM, cut by CSS: no hover-only title.
+    const subject = within(unknown!).getByText(ADMIN_USAGE.items[2]!.subject);
+    expect(subject).toHaveClass("truncate");
+    expect(subject).not.toHaveAttribute("title");
     expect(unknown).toHaveTextContent("Default");
     expect(within(unknown!).queryByTestId("usage-bar")).not.toBeInTheDocument();
     expect(screen.getByText(/Tokens spent on 2026-10-01 \(UTC\)/)).toBeInTheDocument();
@@ -417,6 +424,26 @@ describe("AccessClientPage — usage today (TRA-258)", () => {
     expect(within(ada!).getByTestId("usage-bar")).toHaveStyle({ width: "25%" });
     expect(ada).toHaveTextContent("25%");
     expect(ada).not.toHaveTextContent("Limit reached");
+  });
+
+  it("never shows 100% for a counter that is still under the limit", async () => {
+    vi.mocked(getAdminUsage).mockResolvedValue({
+      day: "2026-10-01",
+      items: [{ ...ADMIN_USAGE.items[0]!, input_tokens: 40_000, output_tokens: 9_980, tokens: 49_980 }],
+    });
+
+    renderWithProviders(<AccessClientPage />);
+
+    await waitFor(async () => expect((await usageRows())[0]).toHaveTextContent("ada@example.com"));
+    const [ada] = await usageRows();
+    expect(ada).toHaveTextContent("99%");
+    expect(ada).not.toHaveTextContent("100%");
+    expect(ada).not.toHaveTextContent("Limit reached");
+    expect(within(ada!).getByTestId("usage-bar")).toHaveStyle({ width: "99%" });
+    expect(usagePercent(49_980, 50_000)).toBe(99);
+    expect(usagePercent(50_000, 50_000)).toBe(100);
+    expect(usagePercent(52_500, 50_000)).toBe(105);
+    expect(usagePercent(200, 50_000)).toBe(0);
   });
 
   it("says when nobody has spent anything", async () => {
@@ -442,13 +469,54 @@ describe("AccessClientPage — usage today (TRA-258)", () => {
     expect(await usageRows()).toHaveLength(1);
   });
 
+  it("keeps the focus on Reload while it waits, takes no second click, and says when it is done", async () => {
+    renderWithProviders(<AccessClientPage />);
+    await usageRows();
+    const section = screen.getByRole("region", { name: "Usage today" });
+    expect(within(section).getByRole("status")).toBeEmptyDOMElement();
+    let answer: (usage: typeof ADMIN_USAGE) => void = () => {};
+    vi.mocked(getAdminUsage).mockReturnValue(new Promise((resolve) => (answer = resolve)));
+
+    const reload = screen.getByRole("button", { name: "Reload" });
+    reload.focus();
+    fireEvent.click(reload);
+
+    const waiting = await screen.findByRole("button", { name: "Reloading…" });
+    expect(waiting).toBe(reload);
+    expect(waiting).toHaveAttribute("aria-disabled", "true");
+    expect(waiting).not.toBeDisabled();
+    expect(waiting).toHaveFocus();
+    fireEvent.click(waiting);
+    expect(getAdminUsage).toHaveBeenCalledTimes(2);
+    expect(within(section).getByRole("status")).toBeEmptyDOMElement();
+
+    await act(async () => answer(ADMIN_USAGE));
+
+    expect(await screen.findByRole("button", { name: "Reload" })).toHaveFocus();
+    expect(within(section).getByRole("status")).toHaveTextContent("Usage updated.");
+  });
+
+  it("is called Reload, not Reloading, while the first load is in flight", async () => {
+    vi.mocked(getAdminUsage).mockReturnValue(new Promise(() => {}));
+
+    renderWithProviders(<AccessClientPage />);
+
+    const reload = await screen.findByRole("button", { name: "Reload" });
+    expect(reload).toHaveAttribute("aria-disabled", "true");
+    expect(screen.queryByRole("button", { name: "Reloading…" })).not.toBeInTheDocument();
+  });
+
   it("a usage that fails does not take the access list down, and can be retried", async () => {
     vi.mocked(getAdminUsage).mockRejectedValueOnce(new ApiError(503, "down"));
 
     renderWithProviders(<AccessClientPage />);
 
     expect(await rows()).toHaveLength(3);
-    fireEvent.click(await screen.findByRole("button", { name: "Try again" }));
+    const retry = await screen.findByRole("button", { name: "Try again" });
+    // One way to ask again, not two: the header's Reload steps aside.
+    expect(screen.queryByRole("button", { name: "Reload" })).not.toBeInTheDocument();
+    fireEvent.click(retry);
     expect(await usageRows()).toHaveLength(3);
+    expect(screen.getByRole("button", { name: "Reload" })).toBeInTheDocument();
   });
 });

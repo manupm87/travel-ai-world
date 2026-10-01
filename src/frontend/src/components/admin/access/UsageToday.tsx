@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useMemo } from "react";
+import { useId, useMemo, useState } from "react";
 import { AdminLoadState } from "@/components/admin/AdminStates";
 import { DataTable } from "@/components/admin/DataTable";
 import { Button } from "@/components/ui/Button";
@@ -16,9 +16,19 @@ export interface UsageTodayProps {
   grants: AccessGrant[];
 }
 
-/** How full a day is, 0–100, for a limit that is a number above zero. */
+/**
+ * How much of a limit (a number above zero) is spent, as a whole percent that
+ * agrees with "limit reached": rounded down and at most 99 below the limit
+ * (99.96% is not 100%), rounded from the limit on (105%).
+ */
+export function usagePercent(tokens: number, limit: number): number {
+  const percent = (tokens / limit) * 100;
+  return tokens >= limit ? Math.round(percent) : Math.min(99, Math.floor(percent));
+}
+
+/** How full the bar is, 0–100. */
 export function usageShare(tokens: number, limit: number): number {
-  return Math.min(100, Math.round((tokens / limit) * 100));
+  return Math.min(100, usagePercent(tokens, limit));
 }
 
 /**
@@ -36,6 +46,16 @@ export function UsageToday({ grants }: UsageTodayProps) {
   const usage = useAdminUsage();
   const { bySubject } = useAdminUsers();
   const headingId = useId();
+  // Whether the admin has asked for a reload: its end is announced, the first
+  // load's is not.
+  const [asked, setAsked] = useState(false);
+  const reloading = usage.status === "ready" && usage.reloading;
+  const reload = () => {
+    // `aria-disabled`, not `disabled`: the button keeps the focus while it waits.
+    if (usage.reloading) return;
+    setAsked(true);
+    usage.reload();
+  };
 
   const limits = useMemo(
     () => new Map(grants.map((grant) => [grant.email, grant.daily_token_limit])),
@@ -65,17 +85,23 @@ export function UsageToday({ grants }: UsageTodayProps) {
             {usage.status === "ready" ? interpolate(tu.subtitle, { day: usage.usage.day }) : tu.subtitleLoading}
           </p>
         </div>
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          onClick={usage.reload}
-          disabled={usage.reloading}
-          aria-busy={usage.reloading}
-        >
-          {usage.reloading ? tu.reloading : tu.reload}
-        </Button>
+        {/* The error state below has its own "Try again". */}
+        {usage.status !== "error" && (
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={reload}
+            aria-disabled={usage.reloading}
+            className={usage.reloading ? "cursor-not-allowed opacity-60" : undefined}
+          >
+            {reloading ? tu.reloading : tu.reload}
+          </Button>
+        )}
       </div>
+      <p role="status" className="sr-only">
+        {asked && usage.status === "ready" && !usage.reloading ? tu.reloaded : ""}
+      </p>
 
       {usage.status !== "ready" ? (
         <AdminLoadState status={usage.status} error={usage.status === "error" ? usage.error : null} onRetry={usage.reload} />
@@ -91,9 +117,8 @@ export function UsageToday({ grants }: UsageTodayProps) {
               header: tu.columns.account,
               cell: (row) =>
                 emailOf(row) ?? (
-                  <span className="font-mono text-xs" title={row.subject}>
-                    {row.subject.slice(0, 8)}
-                  </span>
+                  // The whole subject is in the DOM (copy, screen readers); CSS cuts it.
+                  <span className="block max-w-32 truncate font-mono text-xs">{row.subject}</span>
                 ),
             },
             { key: "turns", header: tu.columns.turns, numeric: true, cell: (row) => f.formatNumber(row.turns) },
@@ -109,21 +134,23 @@ export function UsageToday({ grants }: UsageTodayProps) {
                 const share = usageShare(row.tokens, limit);
                 const over = row.tokens >= limit;
                 return (
-                  <span className="flex items-center gap-2">
-                    <span
-                      aria-hidden="true"
-                      className="h-1.5 min-w-12 flex-1 overflow-hidden rounded-full bg-bg-secondary"
-                    >
+                  <span className="flex flex-col gap-1">
+                    <span className="flex items-center gap-2">
                       <span
-                        data-testid="usage-bar"
-                        className={`block h-full rounded-full ${over ? "bg-error" : "bg-accent"}`}
-                        style={{ width: `${share}%` }}
-                      />
+                        aria-hidden="true"
+                        className="h-1.5 min-w-12 flex-1 overflow-hidden rounded-full bg-bg-secondary"
+                      >
+                        <span
+                          data-testid="usage-bar"
+                          className={`block h-full rounded-full ${over ? "bg-error" : "bg-accent"}`}
+                          style={{ width: `${share}%` }}
+                        />
+                      </span>
+                      <span className={`min-w-12 text-right text-xs tabular-nums ${over ? "text-error" : "text-text-secondary"}`}>
+                        {f.formatPercent(usagePercent(row.tokens, limit) / 100, 0)}
+                      </span>
                     </span>
-                    <span className={`w-10 text-right text-xs tabular-nums ${over ? "text-error" : "text-text-secondary"}`}>
-                      {f.formatPercent(row.tokens / limit)}
-                    </span>
-                    {over && <span className="sr-only">{tu.over}</span>}
+                    {over && <span className="text-xs text-error">{tu.over}</span>}
                   </span>
                 );
               },
