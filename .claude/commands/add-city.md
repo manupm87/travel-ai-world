@@ -117,9 +117,14 @@ Steps:
    like a route. A failing run is a corpus problem first (go back to step 3), a prompt problem
    second (that is a separate ticket, not this one).
 
-6. **PR.** Commit `cities/<slug>.toml`, `data/<slug>/` (documents, manifest, report), the curated
+6. **PR.** First write the city's 20 retrieval questions,
+   `src/backend/services/ai_api/ai_api/data/eval_questions/<slug>.jsonl` (`just test-ai` fails
+   without them; recipe in the runbook, step 7, "Evaluation questions": 12 en + 8 es with 3 twins,
+   expected ids found by the entity's name in the corpus, never by running the question). Commit
+   `cities/<slug>.toml`, `data/<slug>/` (documents, manifest, report), the curated
    file if any, `data/cities.json` and `src/backend/services/ai_api/ai_api/data/cities.json` (CI
-   fails when the two copies differ). Run `just lint`, `just test-corpus`, `just docs-check`. The PR
+   fails when the two copies differ) and the questions. Run `just lint`, `just test-corpus`,
+   `just test-ai`, `just docs-check`. The PR
    body follows `.github/pull_request_template.md`, carries `Closes TRA-<n>`, the report's
    Readiness table, both smoke summaries and the deviations. Comment the PR URL on the issue. Merge
    when CI is green (squash).
@@ -127,7 +132,9 @@ Steps:
 7. **After the merge, hand over.** Tell Manuel the two things only he can do, in this order:
    1. `just aws-login && just index <slug>` — embeds the corpus and upserts it into the shared
       S3 Vectors index; it prunes only that city's stale vectors, other cities are untouched.
-      `just index <slug> --dry-run` first parses and measures without touching AWS.
+      `just index <slug> --dry-run` first parses and measures without touching AWS. Right after,
+      `just eval-retrieval <slug>`: every expected id in the index and R@10 ≥ 0.75, or an issue
+      with the misses it prints.
    2. A backend deploy: the cities manifest ships inside the `ai_api` image, so the planner offers
       the city only after "Backend images" has built the merge commit and "Deploy backend" has
       promoted it (`docs/runbooks/deploy.md`, "Promoting a backend change": `gh workflow run

@@ -25,6 +25,7 @@ uv run uvicorn ai_api.main:app --reload --port 8001    # http://localhost:8001/a
 | `GET` | `/admin/turns/{turn_id}` | Admin | One turn whole: `summary`, `context`, `spans` (by `seq`), `timeline`; 404 when unknown |
 | `GET` | `/admin/sessions/{session_id}` | Admin | One planner draft's turns, oldest first; `cursor`, `limit` |
 | `GET` | `/admin/stats?start=&end=` | Admin | Range stats (≤ 31 days, both included): per day, totals, by kind / model / city, RAG metrics, most and never used documents |
+| `POST` | `/admin/retrieval-eval` | Admin | Runs the retrieval evaluation (TRA-273): the 20 questions of every city against the index, recall@5/10 and MRR overall, per city and per language, the misses with ranks and the expected ids the index lacks. A few seconds; nothing stored; 503 without retrieval. See [Retrieval eval](#retrieval-eval-the-deployed-index-aws) |
 | `GET` | `/admin/usage?day=` | Admin | Every account's token counter of one UTC day (`YYYY-MM-DD`, today by default), most tokens first: `{day, items: [{subject, input_tokens, output_tokens, embed_tokens, tokens, turns}]}`; `tokens` is input + output, what the limit counts. See [Access and the daily token quota](#access-and-the-daily-token-quota-adr-0026) |
 | `GET` | `/usage/me` | Bearer | The caller's tokens of today (UTC) and their limit: `{day, used_tokens, input_tokens, output_tokens, turns, daily_token_limit, resets_at}`; `daily_token_limit` is `null` when unlimited or when `ACCESS_CONTROL_ENABLED` is off; `resets_at` is the next UTC midnight |
 | `GET` | `/health/` | — | |
@@ -83,8 +84,8 @@ ai_api/
 ├── domain/         models.py (Message, Document, RetrievalFilters, GenerationParams, Usage, ChatTrace, ChatTurn, DayWeather, RouteSuggestion) · ports.py (LLMProvider, Embedder, Retriever, WeatherForecast, PhotoFinder, SitePreviewFinder, ConversationGateway, TraceLog, UsageStore, AccessGateway) · tracing.py (the turn trace, ADR 0024) · usage.py (DailyUsage, Entitlement, ADR 0026)
 ├── application/    stream_chat.py, record_conversation.py, plan_trip.py, card_detail.py, access.py (CheckAccess: the access list and the daily limit) — the use cases, depend only on ports · structured.py (JSON out of a completion) · cards.py · photos.py · validate.py · language.py
 ├── infrastructure/ nvidia_provider.py · bedrock_provider.py · bedrock_embedder.py · bedrock.py (client config and retry rules both Bedrock adapters share) · s3vectors.py (client, keys, metadata split) · s3vectors_retriever.py · providers.py (settings → adapters) · open_meteo.py · static_flight_search.py (+ data/airports.json) · cities.py (+ data/cities.json, the cities manifest the corpus tool writes) · commons_photos.py · site_previews.py (the image a venue publishes on its own site, ADR 0021; the corpus does the same for hotels at build time, ADR 0022) · sse.py · retry.py · core_api_client.py (conversations, and the caller's access) · dynamo_traces.py · dynamo_usage.py (the daily token counters)
-├── api/            deps.py (wiring) · v1/endpoints/chat.py, planner.py, usage.py, admin.py (trace and usage reads, admins only), health.py
-├── schemas/        chat.py · planner.py (PlannerTurn, PlannerCity, CardDetail) · planner_events.py (SSE v2 events and ops) · admin.py (trace pages, detail, stats) · usage.py (the caller's usage, a day's counters)
+├── api/            deps.py (wiring) · v1/endpoints/chat.py, planner.py, usage.py, admin.py (trace and usage reads, the retrieval evaluation; admins only), health.py
+├── schemas/        chat.py · planner.py (PlannerTurn, PlannerCity, CardDetail) · planner_events.py (SSE v2 events and ops) · admin.py (trace pages, detail, stats, retrieval evaluation) · usage.py (the caller's usage, a day's counters)
 └── testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, InMemoryTraceLog, InMemoryUsageStore, FakeAccessGateway, documents_from_corpus(), settings_for_tests()
 ```
 
@@ -324,18 +325,21 @@ turn) and exits 1 on an unpictured activity or a price, 2 when the provider fail
 ### Retrieval eval (the deployed index, AWS)
 
 ```bash
-just eval-retrieval                     # every city with a question set; or `just eval-retrieval madrid`
+just eval-retrieval                     # every city; or `just eval-retrieval madrid`
 uv run python tests/manual/retrieval_eval.py budapest
 ```
 
-`tests/manual/retrieval_eval.py` sends each question of `tests/manual/questions/<city>.jsonl`
-through `S3VectorsRetriever` with the planner's city filter (top 10) and prints recall@5,
-recall@10 and MRR — overall, per city, per language — and the questions that left an expected
-`doc_id` out of their top 10, with ranks. Expected ids the index no longer holds are listed first.
-A question carries `id`, `lang`, `query`, `expected` and `why` (how the expectation was chosen).
-Needs an AWS session (`just aws-login`); reads `VECTOR_BUCKET` / `VECTOR_INDEX` (production's by
-default); a few seconds and a few hundred Titan tokens. Run it after a change to the corpus, the
-index or the filters; the baseline and how to read it are in
+`application/retrieval_eval.py` sends each question of `ai_api/data/eval_questions/<city>.jsonl`
+(20 per city: 12 en, 8 es, 3 of them twins of English ones) through `S3VectorsRetriever` with the
+planner's city filter (top 10, 8 searches at a time) and reports recall@5, recall@10 and MRR —
+overall, per city, per language — and the questions that left an expected `doc_id` out of their
+top 10, with ranks. Expected ids the index no longer holds are listed first. A question carries
+`id`, `lang`, `query`, `expected` and `why` (how the expectation was chosen); every city of the
+manifest must have its 20 (`tests/application/test_retrieval_eval.py`). The script
+`tests/manual/retrieval_eval.py` prints the report as Markdown. Needs an AWS session
+(`just aws-login`); reads `VECTOR_BUCKET` / `VECTOR_INDEX` (production's by default); seconds and
+a few hundred Titan tokens. Run it after a change to the corpus, the index or the filters, and
+right after `just index <city>`; the baseline and how to read it are in
 [`docs/architecture/rag-evaluation.md`](../../../../docs/architecture/rag-evaluation.md).
 
 For agents: [`AGENTS.md`](AGENTS.md).

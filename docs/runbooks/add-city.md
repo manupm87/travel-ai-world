@@ -179,9 +179,20 @@ There is **no map step**: the planner's map reads OpenFreeMap's global tiles fro
 centres itself on the `centre` the manifest already carries (ADR 0016). Nothing per city is built,
 uploaded or configured.
 
+**Evaluation questions.** Every city in the manifest has exactly 20 retrieval questions in
+`src/backend/services/ai_api/ai_api/data/eval_questions/<slug>.jsonl`, and `just test-ai` fails
+until the new one does. Write them from the committed corpus, like the other cities' files: 12 in
+English and 8 in Spanish, 3 of the Spanish ones twins of English ones (`<id>-es`, same `expected`);
+named places (some typed without accents), descriptive ones, the airport and public-transport
+tickets, a climate month, food or drink, two intents with no keyword overlap, a tour. `expected`
+lists the 1 to 4 documents about the entity or topic that answers (found by its name, never by
+running the question), and `why` says so ([rag-evaluation.md](../architecture/rag-evaluation.md),
+"Adding questions").
+
 The PR carries `cities/<slug>.toml`, `data/<slug>/` (documents, manifest, report), the curated file
-if any, both manifest copies, the report's Readiness table, both smoke summaries and the deviations.
-`just lint`, `just test-corpus` and `just docs-check` pass; squash-merge when CI is green.
+if any, both manifest copies, the 20 evaluation questions, the report's Readiness table, both smoke
+summaries and the deviations. `just lint`, `just test-corpus`, `just test-ai` and `just docs-check`
+pass; squash-merge when CI is green.
 
 ## 8. Index
 
@@ -189,7 +200,14 @@ if any, both manifest copies, the report's Readiness table, both smoke summaries
 just aws-login
 just index <slug> --dry-run   # parse and measure only, no AWS call
 just index <slug>                   # embed, upsert by key, prune that city's stale vectors
+just eval-retrieval <slug>          # recall@5/10 and MRR of the new city, right after indexing
 ```
+
+The evaluation runs the city's 20 questions against the index just filled. Every expected id must
+be in the index (the report lists the missing ones first), and R@10 should reach the 0.75 of the
+other cities ([rag-evaluation.md](../architecture/rag-evaluation.md)); below that, open an issue with
+the misses it prints. Add the city's row to the baseline there. Once the deploy of step 9 is out,
+**Run evaluation** in `/admin/quality/` shows the same figures for every city.
 
 One S3 Vectors index holds every city. A run reads one city's file (a mixed file is refused),
 upserts its documents and deletes only the vectors of **that** city the file no longer mentions:
