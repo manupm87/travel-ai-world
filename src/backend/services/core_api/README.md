@@ -31,6 +31,11 @@ sign-in adopts it later, matching on the email — refuses an inactive one, and 
 (`just dev-token you@example.com --admin`) stores `role=admin` on the account first, so the token
 opens the `/admin` routes; without it the account keeps the role it has.
 
+`devtools grant` (`just dev-grant you@example.com --limit 50000`) puts an email on the access list
+of the local table, as `PUT /admin/access/{email}` would (`--limit 0` = unlimited; no flag = the
+default). It only matters with `ACCESS_MODE="allowlist"` in `.env`; the default is `open`
+([runbook](../../../../docs/runbooks/access.md)).
+
 A table created before GSI2 existed (ADR 0024) keeps its old schema: restart DynamoDB Local (or
 delete the table) so the service creates it again with both indexes.
 
@@ -58,7 +63,8 @@ once, right after the TRA-227 apply ([infra/aws/README.md](../../../../infra/aws
 | Method | Path | Auth | Notes |
 |---|---|---|---|
 | `POST` | `/auth/google` | — | Local mode only: Google ID token → our JWT + profile (absent when `AUTH_MODE=cognito`) |
-| `GET` | `/users/me` | Bearer | Own profile |
+| `GET` | `/users/me` | Bearer (invited or not) | Own profile |
+| `GET` | `/users/me/access` | Bearer (invited or not) | `{allowed, daily_token_limit}`: whether the account may use the app and its daily token limit (`null` = unlimited) ([ADR 0026](../../../../docs/architecture/adr/0026-access-list-and-daily-token-quota.md)) |
 | `GET` | `/users/` | Admin | List users, by email |
 | `GET` | `/users/{id}` | Admin | Profiles are not public; ids are UUIDs |
 | `PATCH/DELETE` | `/users/{id}` | Bearer (owner) | Only your own account (403 otherwise); an email already registered is 409; delete takes trips and conversations with it |
@@ -73,7 +79,15 @@ once, right after the TRA-227 apply ([infra/aws/README.md](../../../../infra/aws
 | `GET` | `/admin/trips?cursor=&limit=50` | Admin | Every user's trips, newest first (GSI2 summary: owner, city, dates, `phase`, `planner_session_id`); `limit` 1..200, `next_cursor` is `null` on the last page |
 | `GET` | `/admin/trips/{user_id}/{trip_id}` | Admin | Anyone's trip, whole (`TripResponse`); 404 when there is none |
 | `GET` | `/admin/users?cursor=&limit=100` | Admin | Every account by email, with the token `subject` the AI traces name it by |
+| `GET` | `/admin/access?cursor=&limit=100` | Admin | The access list by email (`limit` 1..200) |
+| `PUT` | `/admin/access/{email}` | Admin | Invite an email or change its grant: body `{daily_token_limit, note}` (`null` = the default limit, `0` = unlimited; note ≤ 200 chars); 422 for a bad email or a negative limit; keeps `added_by` and `created_at` of an existing grant |
+| `DELETE` | `/admin/access/{email}` | Admin | Take an email off the list (204); 404 when it was not on it |
 | `GET` | `/health/`, `/health/db` | — | `/health/db` asks DynamoDB for the table; 503 when it cannot |
+
+**Bearer means invited.** With `ACCESS_MODE=allowlist` every `Bearer` and `Bearer (owner)` route
+answers 403 `ACCESS_DENIED` to an account that is neither an administrator nor on the access list;
+only the two "invited or not" routes answer it. With `ACCESS_MODE=open` (the default) the list
+gates nothing.
 
 Every trip collection offers `GET /` (paginated with `skip`/`limit`), `POST /`, `GET/PATCH/DELETE /{item_id}`.
 A child that exists under another trip answers 404, never 403, so ids leak nothing
@@ -109,8 +123,10 @@ core_api/
 │                      backfill.py (the one-off GSI2 backfill behind `ops`)
 ├── services/          trip_service.py, trip_children.py (every nested collection), user_service.py,
 │                      chat_thread_service.py, chat_message_service.py,
-│                      auth_service.py (Authenticate: both modes; SignIn: local issuer)
-├── api/deps.py        get_table → repositories → services; get_current_user → AccountPrincipal;
+│                      auth_service.py (Authenticate: both modes; SignIn: local issuer),
+│                      access_service.py (the access list: resolve, ensure_allowed, upsert, remove)
+├── api/deps.py        get_table → repositories → services; get_authenticated_user → AccountPrincipal;
+│                      get_current_user = that + the access list (403 ACCESS_DENIED);
 │                      get_owned_trip / get_owned_itinerary_day / get_owned_chat_thread; get_sign_in
 ├── api/v1/endpoints/  thin controllers for auth (local mode only), users, trips, chat_threads, admin, health
 ├── api/v1/resources.py  CHILD_RESOURCES + child_router(): the nested CRUD collections

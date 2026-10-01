@@ -31,6 +31,22 @@ infrastructure/dynamo/  the only adapter: table.py, keys.py, codec.py, repositor
   Cognito mode upserts the account from the claims (profile and `admin` group) and **writes only when
   something changed**, so a request does not cost a write. Inactive accounts are 401 in both. It
   returns an `AccountPrincipal` (`auth/principal.py`: a `Principal` plus the account's UUID).
+- **Two auth dependencies, and the default is the gated one** (ADR 0026).
+  `get_authenticated_user` is token → `AccountPrincipal` and nothing else. `get_current_user`
+  depends on it and calls `AccessService.ensure_allowed`: with `ACCESS_MODE=allowlist` an account
+  that is neither an administrator nor on the access list gets `AccessDenied` (403
+  `ACCESS_DENIED`); with `open` (the default, and what the tests run in) nothing is read.
+  **Use `get_current_user` for every route** — and `get_current_admin_user` / the ownership
+  dependencies, which build on it. `get_authenticated_user` is only for what a not-yet-invited
+  person must reach to be told so: `GET /users/me` and `GET /users/me/access`. Adding a third
+  route to that list is a decision, not a convenience. The check lives in the dependency, not in
+  `Authenticate`, so local-mode sign-in keeps working for someone who is not invited yet.
+- **The access list** (`services/access_service.py`, `AccessGrantRepository`): an `AccessGrant`
+  is a plain dataclass keyed by its email (trimmed, lower-cased), not an `Entity`.
+  `AccessService.resolve(principal)` → `Access(allowed, daily_token_limit)`: the grant's limit
+  when it has one, else `DEFAULT_DAILY_TOKEN_LIMIT`; `0` is reported as `None` (unlimited).
+  `put` is an upsert that keeps `created_at` and `added_by`; `delete` answers whether there was
+  one. Tests switch the mode by overriding `get_settings` (`tests/api/test_access.py`).
 - **Local-mode sign-in is a use case** (`services/auth_service.py::SignIn`) behind the
   `IdentityVerifier` port (`auth/google.py`); `GoogleTokenInfoVerifier` is its only adapter. The
   `/auth` router is mounted only when `AUTH_MODE=local` (`api/v1/api_router.py::build_api_router`);
@@ -62,8 +78,11 @@ infrastructure/dynamo/  the only adapter: table.py, keys.py, codec.py, repositor
   their rules: `PATCH/DELETE /users/{id}` by someone else is 403, admin reads are 403 for non-admins.
 - **Admin reads** (ADR 0024) live in `api/v1/endpoints/admin.py` under `/admin`: every trip
   (`TripService.list_all` → GSI2, newest first), any trip by owner and id (`get_any`), every
-  account (`UserService.list_page` → GSI1), each by cursor. The router's dependency
-  `audit_admin_read` checks the admin and logs `admin_read subject=… route=… target=…` once.
+  account (`UserService.list_page` → GSI1), each by cursor; and the access list (ADR 0026):
+  `GET /admin/access`, `PUT` and `DELETE /admin/access/{email}` (the path parameter is an
+  `EmailStr`: 422 otherwise) — the console's only writes. The router's dependency `audit_admin`
+  checks the admin and logs once: `admin_read subject=… route=… target=…` for a GET,
+  `admin_write …` for a PUT or DELETE (target = the trip, the user or the email).
 - **`User.subject`** is the `sub` of the account's tokens: `upsert_from_identity` writes the
   identity's subject (Cognito) or the account id (`subject_is_account_id=True`, local sign-in;
   `devtools` sets it too), only when it changes. The AI traces name users by it, never by email.
@@ -90,6 +109,7 @@ infrastructure/dynamo/  the only adapter: table.py, keys.py, codec.py, repositor
 | Trip (whole aggregate) | `USER#<user_id>` | `TRIP#<trip_id>` (`GSI2PK=TRIPS`, `GSI2SK=<created_at, µs, UTC>#<trip_id>`: the admin list) |
 | Conversation | `USER#<user_id>` | `THREAD#<thread_id>` |
 | Message | `THREAD#<thread_id>` | `MSG#<created_at, µs, UTC>#<message_id>` |
+| Access grant | `ACCESS#<email, lowercased>` | `ACCESS` (`GSI1PK=ACCESS`, `GSI1SK=<email>`: the admin list) |
 
 - **GSI2 projects a summary on AWS** (`INCLUDE`: `id`, `user_id`, `title`, `city_slug`, `city`,
   `country_code`, dates, `image_url`, timestamps, `planner_session_id`, `version`), which is what
@@ -126,6 +146,9 @@ infrastructure/dynamo/  the only adapter: table.py, keys.py, codec.py, repositor
   (`just dev-token <email> --admin`) stores `role=admin` first; without it the role is left alone. It honours
   `DYNAMODB_ENDPOINT_URL` like the service. Nothing in the service imports `devtools`
   (`tests/test_import_boundaries.py` checks it). Refuses in Cognito mode.
+- **`devtools grant <email> [--limit N]`** (`just dev-grant`) puts an email on the access list
+  of the local table (`added_by = "devtools"`), to try `ACCESS_MODE=allowlist` without an
+  administrator. Same rules as `token`: dev-only, never imported by the service.
 - **One-off table operations live in `ops.py`** (the CLI) with the algorithm in the adapter
   (`infrastructure/dynamo/backfill.py`): `python -m core_api.ops backfill-trip-index [--dry-run]`
   (`just backfill-trip-index`) writes `GSI2PK`/`GSI2SK` on trips saved before TRA-227 with the
@@ -139,6 +162,7 @@ just dynamodb-local                # another terminal: moto on :8002 (the devcon
 uv run uvicorn core_api.main:app --reload --port 8000
 uv run python -m core_api.devtools token you@example.com   # local JWT for that account (just dev-token)
 uv run python -m core_api.devtools token you@example.com --admin   # ... as an administrator
+uv run python -m core_api.devtools grant you@example.com --limit 50000   # on the access list (just dev-grant)
 uv run python -m core_api.ops backfill-trip-index --dry-run         # one-off GSI2 backfill (just backfill-trip-index)
 uv run pytest                      # moto in process, no database
 ```

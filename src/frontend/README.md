@@ -53,7 +53,7 @@ src/
 │   │   ├── dashboard/    # page.tsx (static shell) + TripsHome.tsx: the signed-in home, the ask over the trips
 │   │   └── trip/         # page.tsx + TripRedirect.tsx: ?id= → /plan/?trip= (old links)
 │   ├── (admin)/          # The admin console (TRA-222): layout = header + ProtectedRoute + AdminGate, once
-│   │   └── admin/        # page.tsx (overview, ?range=30), turns/, turn/ (?id=), trips/, trip/ (?user=&id=), users/: static shells + client pages
+│   │   └── admin/        # page.tsx (overview, ?range=30), turns/, turn/ (?id=), trips/, trip/ (?user=&id=), users/, access/ (the access list, TRA-257): static shells + client pages
 │   └── error.tsx, loading.tsx, not-found.tsx
 ├── components/     # UI by feature: ui/, layout/, landing/, planner/, auth/, common/, admin/
 ├── context/        # Providers: AuthContext, LanguageContext, ThemeContext

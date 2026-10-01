@@ -27,8 +27,9 @@ One file per decision, numbered, never deleted (superseded ones get a new status
 | [0021](0021-venue-photos-from-the-venues-site-preview.md) | A venue with no photo shows the preview of its own site, never another venue's | Accepted |
 | [0022](0022-hotel-photos-resolved-at-build-time.md) | Every hotel has a photo: resolved at build time, or it leaves the corpus | Accepted |
 | [0023](0023-dynamodb-data-store.md) | DynamoDB is the data store: one table for `core_api`, one interaction log for `ai_api`, RDS retired | Accepted (amended by 0024) |
-| [0024](0024-turn-traces-and-admin-access.md) | A turn is a trace with steps; admins are the Cognito group, filled from Terraform | Accepted |
+| [0024](0024-turn-traces-and-admin-access.md) | A turn is a trace with steps; admins are the Cognito group, filled from Terraform | Accepted (amended by 0026) |
 | [0025](0025-planner-progress-event.md) | The planner streams its progress: a `progress` event per packing step | Accepted |
+| [0026](0026-access-list-and-daily-token-quota.md) | An access list in `core_api` gates the app; a daily token quota per person | Accepted |
 
 ## Inputs
 

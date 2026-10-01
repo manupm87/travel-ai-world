@@ -118,14 +118,23 @@ TypeScript 5, Tailwind CSS v4.
 - Routes live in groups: `app/(marketing)/` (public; layout = the aurora, Header and Footer in a
   `min-h-dvh` column whose `main` takes what the footer leaves, includes `auth/callback/`, where
   Cognito sends the browser back) and `app/(app)/` (signed-in; layout = shell + `ProtectedRoute`).
-  Do not wrap pages in `ProtectedRoute` again. `app/(admin)/` is the admin console (TRA-222, ADR
+  Do not wrap pages in `ProtectedRoute` again. `ProtectedRoute` is also where a signed-in account
+  that is not on the access list is told so (TRA-257, ADR 0026): `AuthContext` reads
+  `services/access.ts::getMyAccess()` once per signed-in account and exposes
+  `access: "unknown" | "allowed" | "denied"` (in memory only, never in the stored session);
+  `denied` renders `components/auth/NoAccess.tsx` (`data-testid="no-access"`) instead of the page,
+  `unknown` (no API configured, a failed read) renders the page — the backend refuses anyway.
+  `app/(admin)/` is the admin console (TRA-222, ADR
   0024): its layout is the `app` header (no aurora, plain `bg-bg-primary`), `ProtectedRoute` and
   `components/admin/AdminGate.tsx` — a spinner while the session is read, `NotAllowed` for anyone
   who is not an admin, and `AdminShell` for the rest (a 240 px sticky sidebar from `lg`, a tab strip
   below it, a dense content area with no max width). The header's **Admin** link (`ShieldCheck`,
   desktop bar and drawer) exists only when `isAdmin`. Pages are static shells over client pages
   (`admin/page.tsx` overview with `?range=30`, `turns/` with its filters in the URL, `turn/?id=`,
-  `trips/`, `users/`); hooks in `hooks/admin/` own the async state (`useAdminStats`, `useTurns`,
+  `trips/`, `users/`, and `access/` — the access list, the console's only writes: one form that
+  invites an email or changes its daily token limit, a table with Edit and Remove, the removal
+  confirmed through `components/admin/access/ConfirmRemoveAccess.tsx` on `useDialog`;
+  `useAccessGrants` reloads the list after each write); hooks in `hooks/admin/` own the async state (`useAdminStats`, `useTurns`,
   `useTurn`, `useAdminUsers` — every page read, `byId` and `bySubject` for the joins — and
   `useAdminTrips`, the lists over one `useCursorList`); a 401 clears the session, a 403 is
   `"forbidden"`. `components/admin/` holds the one `DataTable` (sticky header, numeric columns

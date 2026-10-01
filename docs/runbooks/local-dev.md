@@ -75,6 +75,7 @@ token can be minted from the shell for any account instead of going through the 
 
 ```bash
 just dev-token you@example.com           # prints the JWT POST /auth/google would issue
+just dev-grant you@example.com           # on the access list, for ACCESS_MODE=allowlist (access.md)
 ```
 
 The account is created when it is new — the Google sign-in adopts it later, because both modes

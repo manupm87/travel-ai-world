@@ -129,6 +129,13 @@ In both modes:
 - Administrators read every trip and account under `core_api`'s `/api/v1/admin` (GSI2 lists
   every trip newest first; each read logs an audit line). The Cognito `admin` group is filled from
   `admin_usernames` in Terraform (ADR 0024).
+- **Signing in is not getting in** ([ADR 0026](adr/0026-access-list-and-daily-token-quota.md)).
+  With `ACCESS_MODE=allowlist` (AWS) `core_api` lets an account through only when it is an
+  administrator or its email is on the access list, which administrators edit at `/admin/access/`;
+  everyone else gets 403 `ACCESS_DENIED` from every route except `GET /users/me` and
+  `GET /users/me/access`. The frontend asks the latter once per signed-in account and shows a
+  "not invited yet" page instead of the app. The same answer carries the account's daily token
+  limit, which `ai_api` enforces (TRA-258). Locally the mode is `open`.
 - `ai_api` verifies the token only (stateless). A deactivated user can keep chatting until the
   token expires (60 min). See [ADR 0002](adr/0002-auth-between-services.md) (superseded for the
   issuer, still the rule for the boundary).
