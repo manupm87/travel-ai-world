@@ -1,6 +1,145 @@
 {
   "components": {
     "schemas": {
+      "AccessGrantPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AccessGrantResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "AccessGrantPage",
+        "type": "object"
+      },
+      "AccessGrantResponse": {
+        "properties": {
+          "added_by": {
+            "title": "Added By",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "daily_token_limit": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Daily Token Limit"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "daily_token_limit",
+          "note",
+          "added_by",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "AccessGrantResponse",
+        "type": "object"
+      },
+      "AccessGrantWrite": {
+        "description": "`daily_token_limit`: null = the service default, 0 = unlimited.",
+        "properties": {
+          "daily_token_limit": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Daily Token Limit"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "title": "AccessGrantWrite",
+        "type": "object"
+      },
+      "AccessResponse": {
+        "description": "`daily_token_limit` null = unlimited.",
+        "properties": {
+          "allowed": {
+            "title": "Allowed",
+            "type": "boolean"
+          },
+          "daily_token_limit": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Daily Token Limit"
+          }
+        },
+        "required": [
+          "allowed",
+          "daily_token_limit"
+        ],
+        "title": "AccessResponse",
+        "type": "object"
+      },
       "AccommodationCreate": {
         "properties": {
           "address": {
@@ -4439,6 +4578,176 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/admin/access": {
+      "get": {
+        "description": "Every invited email, in order, a page at a time.",
+        "operationId": "list_access_grants_api_v1_admin_access_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessGrantPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Access Grants",
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/api/v1/admin/access/{email}": {
+      "delete": {
+        "description": "Take an email off the list; 404 when it was not on it.",
+        "operationId": "delete_access_grant_api_v1_admin_access__email__delete",
+        "parameters": [
+          {
+            "description": "The invited email",
+            "in": "path",
+            "name": "email",
+            "required": true,
+            "schema": {
+              "description": "The invited email",
+              "format": "email",
+              "title": "Email",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Access Grant",
+        "tags": [
+          "Admin"
+        ]
+      },
+      "put": {
+        "description": "Invite an email, or change its daily limit and note (an upsert).",
+        "operationId": "put_access_grant_api_v1_admin_access__email__put",
+        "parameters": [
+          {
+            "description": "The invited email",
+            "in": "path",
+            "name": "email",
+            "required": true,
+            "schema": {
+              "description": "The invited email",
+              "format": "email",
+              "title": "Email",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccessGrantWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessGrantResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Put Access Grant",
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
     "/api/v1/admin/trips": {
       "get": {
         "description": "Every user's trips, newest first, a page at a time.",
@@ -7049,7 +7358,7 @@
     },
     "/api/v1/users/me": {
       "get": {
-        "description": "Profile of the authenticated user.",
+        "description": "Profile of the authenticated user, invited or not (ADR 0025).",
         "operationId": "read_user_me_api_v1_users_me_get",
         "responses": {
           "200": {
@@ -7069,6 +7378,33 @@
           }
         ],
         "summary": "Read User Me",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/api/v1/users/me/access": {
+      "get": {
+        "description": "Whether the caller may use the app and their daily token limit\n(`null` = unlimited). Answers for a not-yet-invited account too.",
+        "operationId": "read_my_access_api_v1_users_me_access_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read My Access",
         "tags": [
           "Users"
         ]

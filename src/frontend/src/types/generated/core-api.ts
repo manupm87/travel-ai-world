@@ -4,6 +4,50 @@
  */
 
 export interface paths {
+    "/api/v1/admin/access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Access Grants
+         * @description Every invited email, in order, a page at a time.
+         */
+        get: operations["list_access_grants_api_v1_admin_access_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/access/{email}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Put Access Grant
+         * @description Invite an email, or change its daily limit and note (an upsert).
+         */
+        put: operations["put_access_grant_api_v1_admin_access__email__put"];
+        post?: never;
+        /**
+         * Delete Access Grant
+         * @description Take an email off the list; 404 when it was not on it.
+         */
+        delete: operations["delete_access_grant_api_v1_admin_access__email__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/trips": {
         parameters: {
             query?: never;
@@ -469,9 +513,30 @@ export interface paths {
         };
         /**
          * Read User Me
-         * @description Profile of the authenticated user.
+         * @description Profile of the authenticated user, invited or not (ADR 0025).
          */
         get: operations["read_user_me_api_v1_users_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/me/access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read My Access
+         * @description Whether the caller may use the app and their daily token limit
+         *     (`null` = unlimited). Answers for a not-yet-invited account too.
+         */
+        get: operations["read_my_access_api_v1_users_me_access_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -532,6 +597,54 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AccessGrantPage */
+        AccessGrantPage: {
+            /** Items */
+            items: components["schemas"]["AccessGrantResponse"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /** AccessGrantResponse */
+        AccessGrantResponse: {
+            /** Added By */
+            added_by: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Daily Token Limit */
+            daily_token_limit: number | null;
+            /** Email */
+            email: string;
+            /** Note */
+            note: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * AccessGrantWrite
+         * @description `daily_token_limit`: null = the service default, 0 = unlimited.
+         */
+        AccessGrantWrite: {
+            /** Daily Token Limit */
+            daily_token_limit?: number | null;
+            /** Note */
+            note?: string | null;
+        };
+        /**
+         * AccessResponse
+         * @description `daily_token_limit` null = unlimited.
+         */
+        AccessResponse: {
+            /** Allowed */
+            allowed: boolean;
+            /** Daily Token Limit */
+            daily_token_limit: number | null;
+        };
         /** AccommodationCreate */
         AccommodationCreate: {
             /** Address */
@@ -1620,6 +1733,104 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    list_access_grants_api_v1_admin_access_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessGrantPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_access_grant_api_v1_admin_access__email__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The invited email */
+                email: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccessGrantWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessGrantResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_access_grant_api_v1_admin_access__email__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The invited email */
+                email: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_all_trips_api_v1_admin_trips_get: {
         parameters: {
             query?: {
@@ -3071,6 +3282,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserResponse"];
+                };
+            };
+        };
+    };
+    read_my_access_api_v1_users_me_access_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessResponse"];
                 };
             };
         };
