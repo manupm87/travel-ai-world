@@ -130,6 +130,13 @@ first sign-in) and a `terraform apply` per invitation.
   tokens per account against the limit its grant gives it. `ai_api` knows subjects, not emails,
   so the page joins the counters to the accounts in the browser, as it does for traces. There is
   no usage meter in the traveller's UI.
+- **Behind CloudFront an API 403 arrives as a 404.** The distribution rewrites every 403 into
+  the HTML `/404.html` (`custom_error_response` in `infra/aws/frontend.tf`), API paths included,
+  so in production the browser never sees `ACCESS_DENIED` as such. The traveller-facing gate
+  therefore relies on `GET /users/me/access`, which answers 200 for an uninvited account too; and
+  the planner, which treats a 404 on its route as "not deployed" and plays the recorded demo,
+  re-checks that read first: `allowed: false` gives the no-access sentence, anything else the
+  demo as before. The 429 is not rewritten. Locally and in Compose the 403 arrives untouched.
 
 ## Consequences
 

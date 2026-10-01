@@ -336,7 +336,9 @@ TypeScript 5, Tailwind CSS v4.
   `just contracts`; `src/types/planner.ts` only re-exports `components["schemas"]` and adds helpers. A price is only ever a tier (`€`/`€€`/`€€€`), never a number. The recorded
   Budapest session lives in `src/data/planner-demo/session.ts` (real corpus ids, Wikimedia Commons
   photos with credits) and ships: `services/plannerDemo.ts` plays it as a synthetic backend
-  whenever `streamPlannerTurn` finds no ai_api URL or a 404/405 on `/planner` (TRA-158), the hook
+  whenever `streamPlannerTurn` finds no ai_api URL or a 404/405 on `/planner` (TRA-158; on a
+  404/405 it first asks `getMyAccess()`, and `allowed: false` is thrown as `ACCESS_DENIED`
+  instead, because CloudFront serves an API 403 as a 404 — ADR 0026), the hook
   reports `demo: true` and the page shows `DemoBanner`; the day the real route answers, no demo,
   no banner. The same session is the test double in unit tests and in `e2e/planner.spec.ts`
   (route mocked with it, plus one test where the route answers 404). Motion comes from the

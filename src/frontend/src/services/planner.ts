@@ -25,6 +25,7 @@ import {
   WARN_CODES,
 } from "@/types/planner";
 import { ApiError, UnauthorizedError, isAiAvailable, request, requestRaw } from "./http";
+import { getMyAccess } from "./access";
 import { streamDemoTurn } from "./plannerDemo";
 
 /** The packing steps a `progress` event may name, in order. */
@@ -322,6 +323,24 @@ function isRouteMissing(err: unknown): boolean {
 }
 
 /**
+ * Whether a "missing" planner route is really the access list. Behind
+ * CloudFront every API 403 reaches the browser as an HTML 404 (the
+ * distribution's `custom_error_response`, `infra/aws/frontend.tf`), so ai_api's
+ * 403 `ACCESS_DENIED` looks exactly like a route that is not deployed. The
+ * access read is a 200 for an uninvited account too, so it can tell them
+ * apart. Anything but a clear "not allowed" (allowed, no answer, a failed
+ * read) keeps the demo fallback.
+ */
+async function isAccessDenied(signal?: AbortSignal): Promise<boolean> {
+  try {
+    const access = await getMyAccess({ signal });
+    return access?.allowed === false;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * The cities the planner covers (`GET /ai/planner/cities`), for the
  * destination hint and the starter chips. Empty when there is no ai_api
  * URL; the page keeps its built-in copy then. Failures propagate (the hook
@@ -405,7 +424,9 @@ export async function getCardDetail(
  * `done` event last; the generator returns after `done` or when the body
  * ends. Throws `UnauthorizedError` on 401 and `ApiError` on other failures
  * (`toPlannerFailure` says which: a spent daily allowance and an account off
- * the access list are refused before the stream, as plain JSON);
+ * the access list are refused before the stream, as plain JSON; a 404 on the
+ * route is checked against `getMyAccess` before the demo answers, because
+ * CloudFront turns that 403 into a 404);
  * an in-stream `error` event is yielded, not thrown, so the caller decides.
  */
 export async function* streamPlannerTurn(
@@ -428,6 +449,11 @@ export async function* streamPlannerTurn(
     });
   } catch (err) {
     if (!isRouteMissing(err)) throw err;
+    // The request was really sent: before playing the demo, make sure the 404
+    // is not a 403 `ACCESS_DENIED` rewritten on the way (ADR 0026).
+    if (await isAccessDenied(signal)) {
+      throw new ApiError(403, "This account has not been given access yet", "ACCESS_DENIED");
+    }
     onDemo?.();
     yield* streamDemoTurn(turn, { signal });
     return;

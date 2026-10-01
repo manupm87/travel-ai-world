@@ -22,6 +22,11 @@ done by an administrator from the console; nothing needs a deploy except switchi
   works at once.
 - Administrators (`admin_usernames` in `infra/aws/admins.auto.tfvars`, ADR 0024) never need a
   grant; a grant only gives them a limit of their own.
+- **Behind CloudFront an API 403 arrives as a 404** (the distribution serves `/404.html` for
+  every 403, see [deploy.md](deploy.md)). So do not look for `ACCESS_DENIED` in the browser's
+  network tab in production: the "not on the list" page relies on `GET /users/me/access` (a 200
+  either way), and the planner re-checks that read before falling back to the demo on a 404, so
+  an uninvited account gets the no-access message, never a recorded plan.
 
 ## Invite someone
 

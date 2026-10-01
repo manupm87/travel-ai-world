@@ -606,4 +606,80 @@ describe("streamPlannerTurn — refused before the stream (TRA-258)", () => {
 
     expect(failure).toEqual({ kind: "denied", resetsAt: null });
   });
+
+  // In production CloudFront rewrites every API 403 into an HTML 404, so the
+  // refusal above arrives looking like a route that is not deployed.
+  describe("a 404 on the route, behind CloudFront", () => {
+    const turn: PlannerTurn = {
+      message: "5 days in Budapest",
+      action: null,
+      history: [],
+      brief: null,
+      itinerary: null,
+      exclude_card_ids: [],
+      trip_id: null,
+      session_id: null,
+      language: "en",
+    };
+    const notFound = () => new Response("<html>Not found</html>", { status: 404 });
+    const access = (allowed: boolean) =>
+      new Response(
+        JSON.stringify({ allowed, mode: "allowlist", is_admin: false, daily_token_limit: null }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      );
+    const answer = (accessAnswer: () => Response | Promise<Response>) =>
+      fetchMock.mockImplementation((input: RequestInfo | URL) =>
+        String(input).includes("/users/me/access") ? accessAnswer() : Promise.resolve(notFound())
+      );
+    const drain = async (gen: AsyncGenerator<PlannerEvent>) => {
+      const events: PlannerEvent[] = [];
+      for await (const event of gen) events.push(event);
+      return events;
+    };
+
+    it("is denied, with no demo, when the access read says not allowed", async () => {
+      answer(() => access(false));
+      const onDemo = vi.fn();
+
+      const failure = await streamPlannerTurn(turn, { onDemo })
+        .next()
+        .then(
+          () => null,
+          (err: unknown) => toPlannerFailure(err)
+        );
+
+      expect(failure).toEqual({ kind: "denied", resetsAt: null });
+      expect(onDemo).not.toHaveBeenCalled();
+    });
+
+    it("plays the demo as before when the account is allowed", async () => {
+      answer(() => access(true));
+      const onDemo = vi.fn();
+
+      const events = await drain(streamPlannerTurn(turn, { onDemo }));
+
+      expect(onDemo).toHaveBeenCalledTimes(1);
+      expect(events.at(-1)).toEqual({ type: "done" });
+    });
+
+    it("plays the demo as before when the access read fails", async () => {
+      answer(() => new Response("boom", { status: 500 }));
+      const onDemo = vi.fn();
+
+      const events = await drain(streamPlannerTurn(turn, { onDemo }));
+
+      expect(onDemo).toHaveBeenCalledTimes(1);
+      expect(events.at(-1)).toEqual({ type: "done" });
+    });
+
+    it("plays the demo as before when the access read cannot be made", async () => {
+      answer(() => Promise.reject(new TypeError("Failed to fetch")));
+      const onDemo = vi.fn();
+
+      const events = await drain(streamPlannerTurn(turn, { onDemo }));
+
+      expect(onDemo).toHaveBeenCalledTimes(1);
+      expect(events.at(-1)).toEqual({ type: "done" });
+    });
+  });
 });
