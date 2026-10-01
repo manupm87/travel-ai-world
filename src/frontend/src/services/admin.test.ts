@@ -4,6 +4,7 @@ import {
   ADMIN_USAGE,
   ADMIN_TRIP_PAGE,
   ADMIN_USER_PAGE,
+  RETRIEVAL_EVAL,
   TRACE_STATS,
   TURN_DETAIL,
   TURN_PAGE,
@@ -20,6 +21,7 @@ import {
   listSessionTurns,
   listTurns,
   putAccessGrant,
+  runRetrievalEval,
 } from "./admin";
 import { ApiError } from "./http";
 import { clearSession, writeSession } from "./session";
@@ -170,5 +172,16 @@ describe("services/admin", () => {
 
     await getAdminUsage("2026-09-30");
     expect(Object.fromEntries(called(1).params)).toEqual({ day: "2026-09-30" });
+  });
+
+  it("runs the retrieval evaluation with a POST to ai_api (TRA-273)", async () => {
+    fetchMock.mockResolvedValue(json(RETRIEVAL_EVAL));
+
+    await expect(runRetrievalEval()).resolves.toEqual(RETRIEVAL_EVAL);
+
+    const { path, init } = called();
+    expect(path).toBe("/api/v1/ai/admin/retrieval-eval");
+    expect(init.method).toBe("POST");
+    expect((init.headers as Record<string, string>).Authorization).toBe("Bearer tok");
   });
 });

@@ -10,6 +10,7 @@ import type {
   AdminUsage,
   AdminTripPage,
   AdminUserPage,
+  RetrievalEval,
   TraceStats,
   TurnDetail,
   TurnPage,
@@ -271,3 +272,33 @@ export const ADMIN_USAGE = {
     { subject: "ffffffff-0000-4000-8000-00000unknown", input_tokens: 700, output_tokens: 300, embed_tokens: 0, tokens: 1_000, turns: 1 },
   ],
 } satisfies AdminUsage;
+
+/** One run of the retrieval evaluation (TRA-273): two cities, one miss, one id gone from the index. */
+export const RETRIEVAL_EVAL = {
+  ran_at: "2026-10-01T19:30:00Z",
+  index: "travel-ai-vectors/city-kb",
+  embeddings_model: "amazon.titan-embed-text-v2:0",
+  top_k: 10,
+  overall: { label: "all", questions: 40, recall_at_5: 0.6352, recall_at_10: 0.7261, mrr: 0.6559 },
+  by_city: [
+    { label: "budapest", questions: 20, recall_at_5: 0.5167, recall_at_10: 0.675, mrr: 0.4661 },
+    { label: "madrid", questions: 20, recall_at_5: 0.6875, recall_at_10: 0.7208, mrr: 0.7167 },
+  ],
+  by_language: [
+    { label: "en", questions: 24, recall_at_5: 0.6021, recall_at_10: 0.6917, mrr: 0.6021 },
+    { label: "es", questions: 16, recall_at_5: 0.6858, recall_at_10: 0.7778, mrr: 0.7361 },
+  ],
+  misses: [
+    {
+      city: "madrid",
+      id: "ninos-lluvia-es",
+      lang: "es",
+      query: "algo para hacer con niños si llueve",
+      expected: [
+        { doc_id: "wv:en:Madrid/Arganzuela#see:planetario-de-madrid", rank: null },
+        { doc_id: "wv:en:Madrid/Chamberí-Castellana#see:museo-nacional-de-ciencias-naturales", rank: 4 },
+      ],
+    },
+  ],
+  missing_from_index: ["osm:node/13830250001"],
+} satisfies RetrievalEval;

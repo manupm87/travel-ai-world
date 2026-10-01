@@ -10,6 +10,7 @@ import {
   formatMs,
   formatNumber,
   formatPercent,
+  formatScore,
   formatTime,
   formatUsd,
   formatWeekdayTime,
@@ -37,6 +38,8 @@ export function useFormatters() {
       formatUsd: (n: number) => formatUsd(n, locale),
       /** A 0–1 ratio as a percentage, at most one decimal (or `digits`). */
       formatPercent: (x: number, digits?: number) => formatPercent(x, locale, digits),
+      /** A 0–1 score (recall, MRR), three decimals. */
+      formatScore: (x: number) => formatScore(x, locale),
       /** "Budapest, Bologna and Berlin", joined the locale's way. */
       formatList: (items: string[]) => formatList(items, locale),
       /** The local weekday, hour and minute of a timestamp, the locale's way. */

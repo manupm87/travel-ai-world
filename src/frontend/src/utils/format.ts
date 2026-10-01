@@ -108,6 +108,14 @@ export function formatPercent(x: number, locale = "en-US", maximumFractionDigits
   }).format(x);
 }
 
+/** A 0–1 score (recall, MRR) with three decimals: "0.726", "0,726" in Spanish. */
+export function formatScore(x: number, locale = "en-US"): string {
+  return new Intl.NumberFormat(locale, {
+    minimumFractionDigits: 3,
+    maximumFractionDigits: 3,
+  }).format(x);
+}
+
 /** "Budapest, Bologna and Berlin": a list joined the locale's way. */
 export function formatList(items: string[], locale: string): string {
   return new Intl.ListFormat(locale, { style: "long", type: "conjunction" }).format(items);

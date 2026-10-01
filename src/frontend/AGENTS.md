@@ -20,7 +20,8 @@ TypeScript 5, Tailwind CSS v4.
   `tripDraft.ts` (`tripToDraft`, the pure inverse of the save: a saved trip back as the planner
   draft it was written from), `users.ts` (`getMe`: `GET /users/me`, the account's `role` and
   `subject`; `null` on 401/404) and `admin.ts` (the admin console's reads, TRA-222: `getStats`,
-  `listTurns`, `getTurn`, `listSessionTurns` on ai_api; `listAdminUsers`, `listAdminTrips`,
+  `listTurns`, `getTurn`, `listSessionTurns`, `runRetrievalEval` (a POST, TRA-273) on ai_api;
+  `listAdminUsers`, `listAdminTrips`,
   `getAdminTrip` on core_api; every shape the generated one, only the set query params sent,
   `null` on 404 for the single reads).
   Components never `fetch` or touch the session storage.
@@ -138,7 +139,11 @@ TypeScript 5, Tailwind CSS v4.
   confirmed through `components/admin/access/ConfirmRemoveAccess.tsx` on `useDialog`;
   `useAccessGrants` re-reads the list after each write with `useCursorList`'s opt-in `refresh()`,
   which keeps the rows on screen, where `reload()` starts over behind the loader; every outcome
-  goes to the page's one `role="status"` line); hooks in `hooks/admin/` own the async state (`useAdminStats`, `useTurns`,
+  goes to the page's one `role="status"` line), and `quality/` — the retrieval evaluation
+  (TRA-273): nothing runs on arrival; "Run evaluation" calls `runRetrievalEval` (`POST
+  /ai/admin/retrieval-eval`, a few seconds, nothing stored) through `useRetrievalEval`, which keeps
+  the last result on screen while the next run goes; scores are `formatScore` (three decimals).
+  Hooks in `hooks/admin/` own the async state (`useAdminStats`, `useTurns`,
   `useTurn`, `useAdminUsers` — every page read, `byId` and `bySubject` for the joins — and
   `useAdminTrips`, the lists over one `useCursorList`); a 401 clears the session, a 403 is
   `"forbidden"`. `components/admin/` holds the one `DataTable` (sticky header, numeric columns

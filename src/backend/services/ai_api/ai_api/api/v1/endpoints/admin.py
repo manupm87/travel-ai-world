@@ -1,12 +1,13 @@
 """Admin reads over the turn traces (ADR 0024, TRA-221) and the daily token
-counters (ADR 0026). Administrators only.
+counters (ADR 0026), and the retrieval evaluation (TRA-273). Administrators
+only.
 
 Every route logs one audit line, `admin_read subject=… route=… target=…`,
 before it reads anything (the same line `core_api`'s admin routes log).
 """
 
 import logging
-from datetime import date
+from datetime import UTC, date, datetime
 
 from fastapi import APIRouter, Depends, Query, Request
 from travel_common.exceptions import BadRequest, EntityNotFound, Forbidden
@@ -17,12 +18,18 @@ from ai_api.api.deps import (
     get_current_user,
     get_trace_log,
     get_usage_store,
+    require_retriever,
 )
-from ai_api.application import trace_stats
+from ai_api.application import retrieval_eval, trace_stats
 from ai_api.application.access import CheckAccess
-from ai_api.domain.ports import TraceLog, UsageStore
+from ai_api.config import AISettings, get_settings
+from ai_api.domain.ports import Retriever, TraceLog, UsageStore
 from ai_api.domain.tracing import Kind, Status, TurnFilters
 from ai_api.schemas.admin import (
+    ExpectedRankResponse,
+    RetrievalEvalResponse,
+    RetrievalMissResponse,
+    RetrievalScoresResponse,
     TraceStatsResponse,
     TurnDetailResponse,
     TurnPageResponse,
@@ -153,4 +160,43 @@ async def read_usage(
             )
             for u in counters
         ],
+    )
+
+
+@router.post("/retrieval-eval", response_model=RetrievalEvalResponse)
+async def run_retrieval_eval(
+    retriever: Retriever = Depends(require_retriever),
+    settings: AISettings = Depends(get_settings),
+):
+    """Recall@5, recall@10 and MRR of the index over the 20 questions of every
+    city: the run `just eval-retrieval` does (120 searches, 8 at a time, a few
+    seconds and a few hundred Titan tokens). Nothing is stored. 503 when
+    retrieval is off."""
+    report = await retrieval_eval.run(retriever, retrieval_eval.cities_with_questions())
+    return RetrievalEvalResponse(
+        ran_at=datetime.now(UTC),
+        index=f"{settings.VECTOR_BUCKET}/{settings.VECTOR_INDEX}",
+        embeddings_model=settings.EMBEDDINGS_MODEL,
+        top_k=retrieval_eval.TOP_K,
+        overall=RetrievalScoresResponse.model_validate(report.overall),
+        by_city=[RetrievalScoresResponse.model_validate(s) for s in report.by_city],
+        by_language=[
+            RetrievalScoresResponse.model_validate(s) for s in report.by_language
+        ],
+        misses=[
+            RetrievalMissResponse(
+                city=miss.question.city,
+                id=miss.question.id,
+                lang=miss.question.lang,
+                query=miss.question.query,
+                expected=[
+                    ExpectedRankResponse(doc_id=doc_id, rank=rank)
+                    for doc_id, rank in zip(
+                        miss.question.expected, miss.ranks, strict=True
+                    )
+                ],
+            )
+            for miss in report.misses
+        ],
+        missing_from_index=report.missing_from_index,
     )

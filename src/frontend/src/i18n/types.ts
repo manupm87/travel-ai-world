@@ -520,6 +520,7 @@ export interface Translations {
       trips: string;
       users: string;
       access: string;
+      quality: string;
     };
     /** Any `/admin/` URL opened by an account that is not an administrator. */
     gate: {
@@ -722,6 +723,51 @@ export interface Translations {
       };
       /** `{email}` is the grant that was just removed. */
       removed: string;
+    };
+    /** The retrieval evaluation (`/admin/quality/`, TRA-273). */
+    quality: {
+      title: string;
+      subtitle: string;
+      /** What a run does and what the numbers mean. */
+      explain: string;
+      run: string;
+      running: string;
+      /** Before the first run of the visit. */
+      idle: string;
+      /** Announced when a run ends. */
+      done: string;
+      /** Under the figures; `{time}`, `{index}`, `{model}`, `{k}`. */
+      meta: string;
+      kpis: {
+        label: string;
+        recall10: string;
+        recall5: string;
+        mrr: string;
+        questions: string;
+      };
+      caption: string;
+      columns: {
+        set: string;
+        questions: string;
+        recall5: string;
+        recall10: string;
+        mrr: string;
+      };
+      /** The table's first row, every question. */
+      all: string;
+      languages: {
+        en: string;
+        es: string;
+      };
+      /** `{count}` questions out of `{total}`. */
+      misses: string;
+      noMisses: string;
+      /** The rank of an expected document; `{rank}`. */
+      rank: string;
+      /** An expected document outside the top results; `{k}`. */
+      notFound: string;
+      /** Expected documents the index no longer holds. */
+      missing: string;
     };
     trips: {
       title: string;

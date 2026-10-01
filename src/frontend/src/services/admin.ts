@@ -28,6 +28,9 @@ export type TurnDetail = AiComponents["schemas"]["TurnDetailResponse"];
 export type TurnKind = TurnSummary["kind"];
 export type TurnStatus = TurnSummary["status"];
 export type AdminUsage = AiComponents["schemas"]["AdminUsageResponse"];
+export type RetrievalEval = AiComponents["schemas"]["RetrievalEvalResponse"];
+export type RetrievalScores = AiComponents["schemas"]["RetrievalScoresResponse"];
+export type RetrievalMiss = AiComponents["schemas"]["RetrievalMissResponse"];
 export type AdminUsageItem = AiComponents["schemas"]["AdminUsageItem"];
 export type AdminUser = CoreComponents["schemas"]["UserResponse"];
 export type AdminUserPage = CoreComponents["schemas"]["AdminUserPage"];
@@ -195,4 +198,17 @@ export async function deleteAccessGrant(email: string, { signal }: ReadOptions =
  */
 export function getAdminUsage(day?: string, { signal }: ReadOptions = {}): Promise<AdminUsage> {
   return request<AdminUsage>("ai", `/ai/admin/usage${query({ day })}`, { auth: true, signal });
+}
+
+/**
+ * Runs the retrieval evaluation (TRA-273): the 20 questions of every city
+ * against the deployed index, recall@5/10 and MRR back in a few seconds.
+ * Nothing is stored, so every call is a new run.
+ */
+export function runRetrievalEval({ signal }: ReadOptions = {}): Promise<RetrievalEval> {
+  return request<RetrievalEval>("ai", "/ai/admin/retrieval-eval", {
+    auth: true,
+    method: "POST",
+    signal,
+  });
 }

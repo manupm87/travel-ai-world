@@ -94,8 +94,8 @@ index city="budapest" *flags="":
 planner-smoke city="budapest" lang="es" *flags="":
     cd {{ai}} && uv run python tests/manual/planner_smoke.py --city {{city}} --lang {{lang}} {{flags}}
 
-# Recall@5/10 and MRR of the deployed index over tests/manual/questions (TRA-263), with the
-# planner's city filter; no city = every city with a question set. Needs an AWS session.
+# Recall@5/10 and MRR of the deployed index over ai_api/data/eval_questions (20 per city), with
+# the planner's city filter; no city = every city. Needs an AWS session. Run it after `just index`.
 eval-retrieval city="":
     cd {{ai}} && uv run python tests/manual/retrieval_eval.py {{city}}
 

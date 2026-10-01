@@ -18,7 +18,8 @@ domain/         Message, ChatRole, Document, RetrievalFilters, GenerationParams,
 application/    use cases (StreamChat, RecordConversation, PlanTrip, CardDetailLookup, CheckAccess) and their pure helpers:
                 structured.py (complete_json: JSON out of `LLMProvider.complete`, one repair retry), cards.py
                 (OptionCard — and the fuller CardDetail — from a Document), validate.py (distance, load, closed,
-                prices), language.py. Depend on domain ports and on `schemas/` (the use cases emit the
+                prices), language.py, retrieval_eval.py (recall@k / MRR over the 20 questions per city of
+                data/eval_questions/, TRA-263/272). Depend on domain ports and on `schemas/` (the use cases emit the
                 wire events, ADR 0015); `plan_trip.py` also imports the pure `static_flight_search.route_for`.
 infrastructure/ adapters: nvidia_provider.py, bedrock_provider.py, bedrock_embedder.py, bedrock.py (shared by both
                 Bedrock adapters), s3vectors.py + s3vectors_retriever.py, providers.py (settings → adapters),
@@ -61,7 +62,10 @@ testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, Ke
   (`list_day`, `list_subject`, `list_session`, `get`, `iter_range`), implemented by
   `DynamoTraceLog`, `NullTraceLog` (finds nothing) and `testing.InMemoryTraceLog`
   (`testing.make_trace(**overrides)` builds a trace for tests). New fields on `TurnTrace` go to
-  `TurnSummary` and `schemas/admin.py` too, then `just contracts`.
+  `TurnSummary` and `schemas/admin.py` too, then `just contracts`. `POST /retrieval-eval`
+  (TRA-273) runs `application/retrieval_eval.run` over every city with the app's retriever
+  (`deps.require_retriever`: 503 when retrieval is off) and answers the report; it stores and
+  traces nothing and counts no tokens against anyone.
 - **Access and the daily token quota (ADR 0026, TRA-258).** A route that spends tokens declares
   `dependencies=[Depends(require_budget)]`; a planner read declares `require_access`
   (`api/deps.py`). A new route under `/chat` or `/planner` needs one of the two; admin and health
@@ -190,7 +194,7 @@ uv run uvicorn ai_api.main:app --reload --port 8001
 uv run pytest        # no network, no key: fakes for providers, embedder, retriever and boto3 clients
 just index budapest [--dry-run]   # fills the S3 Vectors index; needs just aws-login
 just planner-smoke budapest es     # real model + KeywordRetriever over the corpus, photo tally; NVIDIA_API_KEY, no AWS
-just eval-retrieval [city]         # recall@k / MRR of the deployed index over tests/manual/questions; needs just aws-login
+just eval-retrieval [city]         # recall@k / MRR of the deployed index over ai_api/data/eval_questions; needs just aws-login
 ```
 
 Run the smoke session (README "Smoke session") after any change to the planner's prompts, cards or

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatWeekdayTime, formatDate, formatCurrency, formatDuration } from './format';
+import { formatWeekdayTime, formatDate, formatCurrency, formatDuration, formatScore } from './format';
 
 describe('format utils', () => {
   describe('formatDate', () => {
@@ -59,6 +59,14 @@ describe('format utils', () => {
       expect(formatDuration(90)).toBe('1h 30m');
       expect(formatDuration(125)).toBe('2h 5m');
       expect(formatDuration(NaN)).toBe('0m');
+    });
+  });
+
+  describe('formatScore', () => {
+    it('shows a 0–1 score with three decimals, in the locale', () => {
+      expect(formatScore(0.72608)).toBe('0.726');
+      expect(formatScore(1)).toBe('1.000');
+      expect(formatScore(0.7, 'es-ES')).toBe('0,700');
     });
   });
 });
