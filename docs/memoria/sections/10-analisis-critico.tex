@@ -34,7 +34,8 @@ no medida.
 
 \paragraph{Inteligencia artificial.} Tres huecos pesan más que el resto:
 \begin{itemize}
-\item \emph{Sin evaluación extremo a extremo.} TRA-148 no tiene código: los 597 tests de
+\item \emph{Sin evaluación extremo a extremo.} TRA-148 solo mide la recuperación (R@10 0,760 sobre
+  el índice de producción, 01-10): los 597 tests de
   \code{ai\_api} comprueban el orquestador con un LLM guionizado, no si un itinerario es bueno. No
   hay juez LLM~\cite{cr:zheng2023judge}, ni regresión de \emph{prompts} en CI, ni guardrails: el
   texto de Wikivoyage, editable por cualquiera, entra en el \emph{prompt} y abre un vector de
