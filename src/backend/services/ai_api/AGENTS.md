@@ -190,10 +190,13 @@ uv run uvicorn ai_api.main:app --reload --port 8001
 uv run pytest        # no network, no key: fakes for providers, embedder, retriever and boto3 clients
 just index budapest [--dry-run]   # fills the S3 Vectors index; needs just aws-login
 just planner-smoke budapest es     # real model + KeywordRetriever over the corpus, photo tally; NVIDIA_API_KEY, no AWS
+just eval-retrieval [city]         # recall@k / MRR of the deployed index over tests/manual/questions; needs just aws-login
 ```
 
 Run the smoke session (README "Smoke session") after any change to the planner's prompts, cards or
 photos, and paste its summary in the PR: the unit tests script the model, only this exercises it.
+Likewise `just eval-retrieval` after a change to the retriever, its filters, the embeddings or a
+city's index: paste its table in the PR, next to the baseline of `docs/architecture/rag-evaluation.md`.
 
 Env: `.env.example` (`LLM_PROVIDER`, `NVIDIA_API_KEY` or `BEDROCK_*`, `CORE_API_URL`,
 `RETRIEVAL_*` / `VECTOR_*` / `EMBEDDINGS_*`, and the same
