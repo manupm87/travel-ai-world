@@ -6,7 +6,9 @@
  * - `ai_api` owns the turn traces: `/ai/admin/stats`, `/ai/admin/turns`,
  *   `/ai/admin/turns/{id}` and `/ai/admin/sessions/{id}`.
  * - `core_api` owns the accounts and the trips: `/admin/users`,
- *   `/admin/trips` and `/admin/trips/{user_id}/{trip_id}`.
+ *   `/admin/trips` and `/admin/trips/{user_id}/{trip_id}`; and the access
+ *   list (TRA-257, ADR 0026), the console's only writes: `/admin/access`
+ *   and `/admin/access/{email}`.
  *
  * Neither service reads the other's table, so the console joins a trace's
  * `subject` to an account in the browser, from `listAdminUsers`.
@@ -15,7 +17,7 @@
 
 import type { components as AiComponents } from "@/types/generated/ai-api";
 import type { components as CoreComponents } from "@/types/generated/core-api";
-import { ApiError, request } from "./http";
+import { ApiError, request, requestRaw } from "./http";
 
 export type TraceStats = AiComponents["schemas"]["TraceStatsResponse"];
 export type DayStats = AiComponents["schemas"]["DayStatsResponse"];
@@ -29,6 +31,9 @@ export type AdminUserPage = CoreComponents["schemas"]["AdminUserPage"];
 export type AdminTripPage = CoreComponents["schemas"]["AdminTripPage"];
 export type AdminTripSummary = CoreComponents["schemas"]["AdminTripSummary"];
 export type AdminTrip = CoreComponents["schemas"]["TripResponse"];
+export type AccessGrant = CoreComponents["schemas"]["AccessGrantResponse"];
+export type AccessGrantPage = CoreComponents["schemas"]["AccessGrantPage"];
+export type AccessGrantWrite = CoreComponents["schemas"]["AccessGrantWrite"];
 
 /** The turns explorer's filters; only the ones that are set are sent. */
 export interface TurnQuery {
@@ -144,4 +149,39 @@ export function getAdminTrip(
       { auth: true, signal }
     )
   );
+}
+
+const accessPath = (email: string) => `/admin/access/${encodeURIComponent(email.trim().toLowerCase())}`;
+
+/** One page of the access list, by email (200 at a time). */
+export function listAccessGrants(
+  cursor?: string | null,
+  { signal }: ReadOptions = {}
+): Promise<AccessGrantPage> {
+  return request<AccessGrantPage>("core", `/admin/access${query({ cursor, limit: 200 })}`, {
+    auth: true,
+    signal,
+  });
+}
+
+/**
+ * Invites `email`, or replaces its limit and note (an upsert).
+ * `daily_token_limit`: `null` = the service default, `0` = unlimited.
+ */
+export function putAccessGrant(
+  email: string,
+  grant: AccessGrantWrite,
+  { signal }: ReadOptions = {}
+): Promise<AccessGrant> {
+  return request<AccessGrant>("core", accessPath(email), {
+    auth: true,
+    method: "PUT",
+    json: { daily_token_limit: grant.daily_token_limit ?? null, note: grant.note ?? null },
+    signal,
+  });
+}
+
+/** Takes `email` off the list; a 404 (it was not on it) rejects like any failure. */
+export async function deleteAccessGrant(email: string, { signal }: ReadOptions = {}): Promise<void> {
+  await requestRaw("core", accessPath(email), { auth: true, method: "DELETE", signal });
 }

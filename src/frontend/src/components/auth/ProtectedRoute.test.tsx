@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import React from "react";
 import ProtectedRoute from "./ProtectedRoute";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth, type AccessState } from "@/context/AuthContext";
 
 const mockPush = vi.fn();
 vi.mock("next/navigation", () => ({
@@ -14,12 +14,17 @@ vi.mock("@/context/AuthContext", () => ({
   useAuth: vi.fn(),
 }));
 
+vi.mock("./NoAccess", () => ({
+  NoAccess: () => <div data-testid="no-access">not invited</div>,
+}));
+
 vi.mock("@/components/common/LoadingSpinner", () => ({
   default: () => <div role="status">spinner</div>,
 }));
 
-const auth = (state: { isAuthenticated: boolean; isLoading: boolean }) =>
+const auth = (state: { isAuthenticated: boolean; isLoading: boolean; access?: AccessState }) =>
   vi.mocked(useAuth).mockReturnValue({
+    access: "unknown" as const,
     ...state,
     user: null,
     login: vi.fn(),
@@ -73,6 +78,43 @@ describe("ProtectedRoute", () => {
     } finally {
       window.history.replaceState(null, "", "/");
     }
+  });
+
+  it.each(["unknown", "allowed"] as const)("renders children when the access is %s", (access) => {
+    auth({ isAuthenticated: true, isLoading: false, access });
+    render(
+      <ProtectedRoute>
+        <p>secret</p>
+      </ProtectedRoute>
+    );
+
+    expect(screen.getByText("secret")).toBeInTheDocument();
+    expect(screen.queryByTestId("no-access")).not.toBeInTheDocument();
+  });
+
+  it("shows the no-access page instead of the children when the account is not invited", () => {
+    auth({ isAuthenticated: true, isLoading: false, access: "denied" });
+    render(
+      <ProtectedRoute>
+        <p>secret</p>
+      </ProtectedRoute>
+    );
+
+    expect(screen.getByTestId("no-access")).toBeInTheDocument();
+    expect(screen.queryByText("secret")).not.toBeInTheDocument();
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it("sends a signed-out visitor home even if a stale answer said denied", () => {
+    auth({ isAuthenticated: false, isLoading: false, access: "denied" });
+    const { container } = render(
+      <ProtectedRoute>
+        <p>secret</p>
+      </ProtectedRoute>
+    );
+
+    expect(container).toBeEmptyDOMElement();
+    expect(mockPush).toHaveBeenCalled();
   });
 
   it("renders children when signed in", () => {

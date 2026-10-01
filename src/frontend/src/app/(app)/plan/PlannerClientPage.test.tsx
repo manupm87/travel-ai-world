@@ -98,6 +98,7 @@ beforeEach(() => {
     loginWithRedirect: vi.fn(),
     completeLogin: vi.fn(),
     isAdmin: false,
+    access: "unknown" as const,
     logout: vi.fn(),
   });
   vi.mocked(streamPlannerTurn).mockImplementation(done);

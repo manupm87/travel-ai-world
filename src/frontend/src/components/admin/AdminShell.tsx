@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ListOrdered, Map as MapIcon, Users, type LucideIcon } from "lucide-react";
+import { KeyRound, LayoutDashboard, ListOrdered, Map as MapIcon, Users, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import type { Translations } from "@/i18n/types";
 import { cn } from "@/utils/cn";
 
-type Section = keyof Translations["admin"]["nav"] & ("overview" | "turns" | "trips" | "users");
+type Section = keyof Translations["admin"]["nav"] & ("overview" | "turns" | "trips" | "users" | "access");
 
 interface Entry {
   id: Section;
@@ -23,6 +23,7 @@ const ENTRIES: Entry[] = [
   { id: "turns", href: "/admin/turns/", icon: ListOrdered, matches: ["/admin/turns", "/admin/turn"] },
   { id: "trips", href: "/admin/trips/", icon: MapIcon, matches: ["/admin/trips", "/admin/trip"] },
   { id: "users", href: "/admin/users/", icon: Users, matches: ["/admin/users"] },
+  { id: "access", href: "/admin/access/", icon: KeyRound, matches: ["/admin/access"] },
 ];
 
 /** The entry a path belongs to, trailing slash or not. */

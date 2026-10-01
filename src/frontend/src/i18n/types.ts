@@ -490,6 +490,14 @@ export interface Translations {
     completingSignIn: string;
     callbackError: string;
     backHome: string;
+    /** What a signed-in account that is not on the access list sees (TRA-257). */
+    noAccess: {
+      title: string;
+      /** `{email}` is the account's email. */
+      description: string;
+      hint: string;
+      signOut: string;
+    };
   };
   /** The admin console (`/admin/`, TRA-222): only administrators ever see it. */
   admin: {
@@ -500,6 +508,7 @@ export interface Translations {
       turns: string;
       trips: string;
       users: string;
+      access: string;
     };
     /** Any `/admin/` URL opened by an account that is not an administrator. */
     gate: {
@@ -625,6 +634,55 @@ export interface Translations {
       /** The copy button's accessible name. */
       copySubject: string;
       empty: string;
+    };
+    /** The access list (`/admin/access/`, TRA-257): who may use the app. */
+    access: {
+      title: string;
+      subtitle: string;
+      caption: string;
+      empty: string;
+      form: {
+        /** The form's accessible name. */
+        label: string;
+        email: string;
+        emailPlaceholder: string;
+        limit: string;
+        limitHint: string;
+        note: string;
+        submit: string;
+        saving: string;
+        /** `{email}` is the grant that was just written. */
+        saved: string;
+        invalidEmail: string;
+        invalidLimit: string;
+        failed: string;
+        forbidden: string;
+      };
+      columns: {
+        email: string;
+        limit: string;
+        note: string;
+        added: string;
+        actions: string;
+      };
+      limitDefault: string;
+      limitUnlimited: string;
+      /** Accessible names of a row's buttons; `{email}` is the row's. */
+      edit: string;
+      editLabel: string;
+      remove: string;
+      removeLabel: string;
+      confirm: {
+        title: string;
+        /** `{email}` is the grant about to go. */
+        description: string;
+        cancel: string;
+        confirm: string;
+        removing: string;
+        failed: string;
+      };
+      /** `{email}` is the grant that was just removed. */
+      removed: string;
     };
     trips: {
       title: string;

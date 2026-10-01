@@ -30,6 +30,7 @@ describe("AuthCallback", () => {
       user: null,
       isAuthenticated: false,
       isAdmin: false,
+      access: "unknown" as const,
       isLoading: false,
     });
   });

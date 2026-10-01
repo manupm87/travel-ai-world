@@ -6,6 +6,7 @@
  */
 
 import type {
+  AccessGrantPage,
   AdminTripPage,
   AdminUserPage,
   TraceStats,
@@ -228,3 +229,34 @@ export const ADMIN_TRIP_PAGE = {
   ],
   next_cursor: null,
 } satisfies AdminTripPage;
+
+/** The access list (TRA-257): one grant with its own limit, one unlimited, one on the default. */
+export const ACCESS_GRANT_PAGE = {
+  items: [
+    {
+      email: "ada@example.com",
+      daily_token_limit: 50_000,
+      note: "team",
+      added_by: ADA_SUBJECT,
+      created_at: "2026-09-30T09:00:00Z",
+      updated_at: "2026-09-30T09:00:00Z",
+    },
+    {
+      email: "grace@example.com",
+      daily_token_limit: 0,
+      note: null,
+      added_by: ADA_SUBJECT,
+      created_at: "2026-09-30T10:00:00Z",
+      updated_at: "2026-10-01T08:00:00Z",
+    },
+    {
+      email: "linus@example.com",
+      daily_token_limit: null,
+      note: null,
+      added_by: ADA_SUBJECT,
+      created_at: "2026-10-01T07:30:00Z",
+      updated_at: "2026-10-01T07:30:00Z",
+    },
+  ],
+  next_cursor: null,
+} satisfies AccessGrantPage;

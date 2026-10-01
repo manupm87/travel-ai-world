@@ -29,6 +29,7 @@ const setAuth = (authenticated: boolean) =>
     loginWithRedirect: vi.fn(),
     completeLogin: vi.fn(),
     isAdmin: false,
+    access: "unknown" as const,
   });
 
 describe("UserMenu", () => {

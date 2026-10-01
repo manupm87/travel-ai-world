@@ -4,16 +4,20 @@ import { useEffect, ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { NoAccess } from "./NoAccess";
 
 interface ProtectedRouteProps {
   children: ReactNode;
 }
 
 /**
- * A wrapper component that protects routes from unauthenticated access.
+ * A wrapper component that protects routes from unauthenticated access, and
+ * tells a signed-in account that is not on the access list so (TRA-257):
+ * `NoAccess` replaces the page once core_api has answered "not invited".
+ * While that answer is unknown the page renders — the backend refuses anyway.
  */
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, access } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -36,6 +40,8 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   if (!isAuthenticated) {
     return null; // Will redirect via useEffect
   }
+
+  if (access === "denied") return <NoAccess />;
 
   return <>{children}</>;
 }

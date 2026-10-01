@@ -71,6 +71,7 @@ const auth = (isAuthenticated: boolean) =>
     loginWithRedirect: vi.fn(),
     completeLogin: vi.fn(),
     isAdmin: false,
+    access: "unknown" as const,
     logout: vi.fn(),
   });
 

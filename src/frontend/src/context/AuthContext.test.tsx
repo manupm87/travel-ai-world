@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
 import React from "react";
 import { AuthProvider, useAuth } from "./AuthContext";
+import { getMyAccess } from "@/services/access";
 import { loginWithGoogle } from "@/services/auth";
 import {
   completeCognitoLogin,
@@ -30,6 +31,10 @@ vi.mock("@/services/cognito", () => ({
   logoutFromCognito: vi.fn(),
 }));
 
+vi.mock("@/services/access", () => ({
+  getMyAccess: vi.fn(),
+}));
+
 vi.mock("@/services/users", () => ({
   getMe: vi.fn(),
 }));
@@ -55,6 +60,8 @@ describe("AuthContext", () => {
   beforeEach(() => {
     localStorage.clear();
     vi.clearAllMocks();
+    vi.mocked(getMe).mockResolvedValue(null);
+    vi.mocked(getMyAccess).mockResolvedValue(null);
     vi.mocked(loginWithGoogle).mockImplementation(async (credential) => {
       writeSession(credential, user);
       return user;
@@ -271,6 +278,101 @@ describe("AuthContext", () => {
       writeSession(validToken, user);
       renderHook(() => useAuth(), { wrapper });
       expect(getMe).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("the account's access", () => {
+    beforeEach(() => {
+      vi.mocked(isApiAvailable).mockReturnValue(true);
+    });
+
+    afterEach(() => {
+      vi.mocked(isApiAvailable).mockReturnValue(false);
+    });
+
+    it("is unknown while signed out, and nobody is asked", () => {
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      expect(result.current.access).toBe("unknown");
+      expect(getMyAccess).not.toHaveBeenCalled();
+    });
+
+    it("asks core_api once on restore and reports an invited account as allowed", async () => {
+      vi.mocked(getMyAccess).mockResolvedValue({ allowed: true, daily_token_limit: 300000 });
+      writeSession(validToken, user);
+
+      const { result, rerender } = renderHook(() => useAuth(), { wrapper });
+      expect(result.current.access).toBe("unknown");
+
+      await waitFor(() => expect(result.current.access).toBe("allowed"));
+      rerender();
+      expect(getMyAccess).toHaveBeenCalledTimes(1);
+    });
+
+    it("reports an uninvited account as denied, and never stores it with the session", async () => {
+      vi.mocked(getMyAccess).mockResolvedValue({ allowed: false, daily_token_limit: 300000 });
+      writeSession(validToken, user);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => expect(result.current.access).toBe("denied"));
+      expect(result.current.isAuthenticated).toBe(true);
+      expect(localStorage.getItem("travel_ai_user")).not.toMatch(/denied|access|allowed/);
+    });
+
+    it("asks right after a login", async () => {
+      vi.mocked(getMyAccess).mockResolvedValue({ allowed: false, daily_token_limit: null });
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await act(async () => {
+        await result.current.login(validToken);
+      });
+
+      await waitFor(() => expect(result.current.access).toBe("denied"));
+    });
+
+    it.each([
+      ["the call fails", () => vi.mocked(getMyAccess).mockRejectedValue(new Error("offline"))],
+      ["core_api has no answer (401, 404)", () => vi.mocked(getMyAccess).mockResolvedValue(null)],
+    ])("stays unknown when %s", async (_name, arrange) => {
+      arrange();
+      writeSession(validToken, user);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => expect(getMyAccess).toHaveBeenCalled());
+      await act(async () => {});
+      expect(result.current.access).toBe("unknown");
+    });
+
+    it("stays unknown, without asking, when no API is configured", () => {
+      vi.mocked(isApiAvailable).mockReturnValue(false);
+      writeSession(validToken, user);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      expect(result.current.access).toBe("unknown");
+      expect(getMyAccess).not.toHaveBeenCalled();
+    });
+
+    it("forgets the answer on logout, and asks again for the next account", async () => {
+      vi.mocked(getMyAccess).mockResolvedValue({ allowed: false, daily_token_limit: null });
+      writeSession(validToken, user);
+      const { result } = renderHook(() => useAuth(), { wrapper });
+      await waitFor(() => expect(result.current.access).toBe("denied"));
+
+      act(() => {
+        result.current.logout();
+      });
+      expect(result.current.access).toBe("unknown");
+
+      vi.mocked(getMyAccess).mockResolvedValue({ allowed: true, daily_token_limit: null });
+      act(() => {
+        writeSession(validToken, { ...user, id: "456", email: "other@example.com" });
+      });
+
+      await waitFor(() => expect(result.current.access).toBe("allowed"));
+      expect(getMyAccess).toHaveBeenCalledTimes(2);
     });
   });
 

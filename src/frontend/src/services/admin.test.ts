@@ -1,13 +1,23 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ADMIN_TRIP_PAGE, ADMIN_USER_PAGE, TRACE_STATS, TURN_DETAIL, TURN_PAGE } from "@/test/fixtures/admin";
 import {
+  ACCESS_GRANT_PAGE,
+  ADMIN_TRIP_PAGE,
+  ADMIN_USER_PAGE,
+  TRACE_STATS,
+  TURN_DETAIL,
+  TURN_PAGE,
+} from "@/test/fixtures/admin";
+import {
+  deleteAccessGrant,
   getAdminTrip,
   getStats,
   getTurn,
+  listAccessGrants,
   listAdminTrips,
   listAdminUsers,
   listSessionTurns,
   listTurns,
+  putAccessGrant,
 } from "./admin";
 import { ApiError } from "./http";
 import { clearSession, writeSession } from "./session";
@@ -85,6 +95,46 @@ describe("services/admin", () => {
     await listSessionTurns("s-1", "C2");
     expect(called().path).toBe("/api/v1/ai/admin/sessions/s-1");
     expect(Object.fromEntries(called().params)).toEqual({ cursor: "C2" });
+  });
+
+  it("pages the access list 200 at a time, from core_api", async () => {
+    fetchMock.mockImplementation(async () => json(ACCESS_GRANT_PAGE));
+
+    await expect(listAccessGrants()).resolves.toEqual(ACCESS_GRANT_PAGE);
+    expect(called().path).toBe("/api/v1/admin/access");
+    expect(Object.fromEntries(called().params)).toEqual({ limit: "200" });
+    expect((called().init.headers as Record<string, string>).Authorization).toBe("Bearer tok");
+
+    await listAccessGrants("NEXT");
+    expect(Object.fromEntries(called(1).params)).toEqual({ cursor: "NEXT", limit: "200" });
+  });
+
+  it("puts a grant under its email, lower-cased and encoded, nulls included", async () => {
+    const grant = ACCESS_GRANT_PAGE.items[0]!;
+    fetchMock.mockImplementation(async () => json(grant));
+
+    await expect(putAccessGrant(" Ada+Beta@Example.com ", { daily_token_limit: 0 })).resolves.toEqual(grant);
+
+    const [url] = fetchMock.mock.calls[0] as [string];
+    expect(url).toMatch(/\/api\/v1\/admin\/access\/ada%2Bbeta%40example\.com$/);
+    expect(called().init.method).toBe("PUT");
+    expect(JSON.parse(called().init.body as string)).toEqual({ daily_token_limit: 0, note: null });
+
+    await putAccessGrant("ada@example.com", { daily_token_limit: null, note: "team" });
+    expect(JSON.parse(called(1).init.body as string)).toEqual({ daily_token_limit: null, note: "team" });
+  });
+
+  it("deletes a grant, and rejects when core_api refuses", async () => {
+    fetchMock.mockResolvedValueOnce(new Response(null, { status: 204 }));
+    await expect(deleteAccessGrant("Ada@example.com")).resolves.toBeUndefined();
+    expect(called().path).toBe("/api/v1/admin/access/ada%40example.com");
+    expect(called().init.method).toBe("DELETE");
+
+    fetchMock.mockResolvedValueOnce(json({ detail: { message: "x", error_code: "NOT_FOUND" } }, 404));
+    await expect(deleteAccessGrant("gone@example.com")).rejects.toMatchObject({ status: 404 });
+
+    fetchMock.mockResolvedValueOnce(json({ detail: { message: "x", error_code: "FORBIDDEN" } }, 403));
+    await expect(putAccessGrant("x@example.com", {})).rejects.toBeInstanceOf(ApiError);
   });
 
   it("pages the accounts 200 at a time and the trips 50 at a time, from core_api", async () => {

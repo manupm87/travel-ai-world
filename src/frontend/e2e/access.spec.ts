@@ -1,0 +1,183 @@
+import { test, expect, type Page, type Route } from "@playwright/test";
+import { TOKEN_STORAGE_KEY, USER_STORAGE_KEY } from "../src/services/session";
+import { ACCESS_GRANT_PAGE, ADMIN_USER_PAGE } from "../src/test/fixtures/admin";
+
+/**
+ * The access list (TRA-257, ADR 0026). Like `admin.spec.ts`, every API route
+ * is mocked with `page.route` and the session is a fake unsigned JWT in
+ * `localStorage` (the runner's real `E2E_TOKEN` when it has one), so it needs
+ * no backend and never writes to one.
+ */
+
+type Role = "admin" | "user";
+type Grant = (typeof ACCESS_GRANT_PAGE.items)[number] | Record<string, unknown>;
+
+const ACCESS_PATH = "/api/v1/users/me/access";
+const path = (pathname: string) => (url: URL) => url.pathname === pathname;
+const prefix = (start: string) => (url: URL) =>
+  url.pathname.startsWith(start) && url.pathname.length > start.length;
+
+function fakeToken(sub: string, email: string): string {
+  const b64url = (value: object) => Buffer.from(JSON.stringify(value)).toString("base64url");
+  const exp = Math.floor(Date.now() / 1000) + 24 * 60 * 60;
+  return `${b64url({ alg: "none", typ: "JWT" })}.${b64url({ sub, email, exp })}.`;
+}
+
+async function signIn(page: Page, role: Role, { allowed }: { allowed: boolean }) {
+  const me = { ...ADMIN_USER_PAGE.items[role === "admin" ? 0 : 1]!, role };
+  await page.addInitScript(
+    ({ keys, session }) => {
+      window.localStorage.setItem(keys.user, JSON.stringify(session.user));
+      window.localStorage.setItem(keys.token, session.token);
+    },
+    {
+      keys: { token: TOKEN_STORAGE_KEY, user: USER_STORAGE_KEY },
+      session: {
+        token: process.env.E2E_TOKEN ?? fakeToken(me.subject ?? "sub", me.email),
+        user: { id: me.id, email: me.email, name: me.name, role },
+      },
+    }
+  );
+  await page.route(path("/api/v1/users/me"), (route) => route.fulfill({ json: me }));
+  await page.route(path(ACCESS_PATH), (route) =>
+    route.fulfill({ json: { allowed, daily_token_limit: 300000 } })
+  );
+  return me;
+}
+
+/** An in-memory access list behind `/api/v1/admin/access`: GET lists, PUT upserts, DELETE removes. */
+async function mockAccessList(page: Page) {
+  const grants = new Map<string, Grant>(ACCESS_GRANT_PAGE.items.map((grant) => [grant.email, grant]));
+  const writes: { method: string; email: string; body: unknown }[] = [];
+
+  await page.route(path("/api/v1/admin/access"), (route) =>
+    route.fulfill({
+      json: {
+        items: [...grants.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([, grant]) => grant),
+        next_cursor: null,
+      },
+    })
+  );
+  await page.route(prefix("/api/v1/admin/access/"), (route: Route) => {
+    const request = route.request();
+    const email = decodeURIComponent(new URL(request.url()).pathname.split("/").pop()!);
+    if (request.method() === "PUT") {
+      const body = request.postDataJSON() as { daily_token_limit: number | null; note: string | null };
+      writes.push({ method: "PUT", email, body });
+      const grant = {
+        email,
+        ...body,
+        added_by: "admin-sub",
+        created_at: "2026-10-01T12:00:00Z",
+        updated_at: "2026-10-01T12:00:00Z",
+      };
+      grants.set(email, grant);
+      return route.fulfill({ json: grant });
+    }
+    if (request.method() === "DELETE") {
+      writes.push({ method: "DELETE", email, body: null });
+      return grants.delete(email)
+        ? route.fulfill({ status: 204 })
+        : route.fulfill({ status: 404, json: { detail: { message: "x", error_code: "NOT_FOUND" } } });
+    }
+    return route.fallback();
+  });
+  return writes;
+}
+
+test.describe("Access list — an account that is not invited", () => {
+  test("lands on the no-access page instead of its trips, and can sign out", async ({ page }) => {
+    const me = await signIn(page, "user", { allowed: false });
+    // What an uninvited account's other calls get from core_api.
+    await page.route(prefix("/api/v1/trips"), (route) =>
+      route.fulfill({
+        status: 403,
+        json: { detail: { message: "This account has not been given access yet", error_code: "ACCESS_DENIED" } },
+      })
+    );
+
+    // The app asks about access only when it is built with a core_api URL
+    // (`NEXT_PUBLIC_API_URL`); the plain static export has no backend to ask
+    // and leaves the answer unknown, so there is nothing to see there.
+    const asked = page.waitForRequest((request) => new URL(request.url()).pathname === ACCESS_PATH, {
+      timeout: 5_000,
+    });
+    await page.goto("/dashboard/");
+    test.skip(
+      (await asked.catch(() => null)) === null,
+      "this build has no core_api URL, so it never asks /users/me/access"
+    );
+
+    const card = page.getByTestId("no-access");
+    await expect(card).toBeVisible();
+    await expect(card.getByRole("heading", { level: 1 })).toHaveText("You're not on the list yet");
+    await expect(card).toContainText(me.email);
+
+    await card.getByRole("button", { name: "Sign out" }).click();
+    // Home, with or without the route guard's `?redirect=` (it races the sign-out's own push).
+    await expect.poll(() => new URL(page.url()).pathname).toBe("/");
+    await expect(page.getByTestId("no-access")).toHaveCount(0);
+  });
+});
+
+test.describe("Access list — as an administrator", () => {
+  test("adds an email with a limit, then removes it", async ({ page }) => {
+    await signIn(page, "admin", { allowed: true });
+    const writes = await mockAccessList(page);
+
+    await page.goto("/admin/access/");
+
+    const nav = page.getByRole("navigation", { name: "Admin console" });
+    await expect(nav.getByRole("link", { name: "Access", exact: true })).toHaveAttribute("aria-current", "page");
+    const list = page.getByRole("table", { name: "Invited emails" });
+    await expect(list.locator("tbody tr")).toHaveCount(3);
+    await expect(list).toContainText("Unlimited");
+    await expect(list).toContainText("Default");
+
+    await page.getByLabel("Email", { exact: true }).fill("New.Person@Example.com");
+    await page.getByLabel("Daily token limit").fill("1200");
+    await page.getByLabel("Note", { exact: true }).fill("beta tester");
+    await page.getByRole("button", { name: "Add or update" }).click();
+
+    await expect(page.getByTestId("access-message")).toHaveText("new.person@example.com is on the list.");
+    await expect(list.locator("tbody tr")).toHaveCount(4);
+    const row = list.locator("tbody tr", { hasText: "new.person@example.com" });
+    await expect(row).toContainText("1,200");
+    await expect(row).toContainText("beta tester");
+    await expect(page.getByLabel("Email", { exact: true })).toHaveValue("");
+
+    await page.getByRole("button", { name: "Remove new.person@example.com" }).click();
+    const dialog = page.getByRole("dialog", { name: "Remove this email?" });
+    await expect(dialog).toContainText("new.person@example.com");
+    await expect(dialog.getByRole("button", { name: "Cancel" })).toBeFocused();
+    await dialog.getByRole("button", { name: "Remove access" }).click();
+
+    await expect(dialog).toHaveCount(0);
+    await expect(page.getByTestId("access-message")).toHaveText("new.person@example.com is off the list.");
+    await expect(list.locator("tbody tr")).toHaveCount(3);
+    await expect(list).not.toContainText("new.person@example.com");
+
+    expect(writes).toEqual([
+      {
+        method: "PUT",
+        email: "new.person@example.com",
+        body: { daily_token_limit: 1200, note: "beta tester" },
+      },
+      { method: "DELETE", email: "new.person@example.com", body: null },
+    ]);
+  });
+
+  test("a bad email never reaches the API", async ({ page }) => {
+    await signIn(page, "admin", { allowed: true });
+    const writes = await mockAccessList(page);
+
+    await page.goto("/admin/access/");
+    await expect(page.getByRole("table", { name: "Invited emails" })).toBeVisible();
+    await page.getByLabel("Email", { exact: true }).fill("not-an-email");
+    await page.getByRole("button", { name: "Add or update" }).click();
+
+    await expect(page.getByTestId("access-message")).toHaveText("Enter a valid email address.");
+    await expect(page.getByLabel("Email", { exact: true })).toBeFocused();
+    expect(writes).toEqual([]);
+  });
+});
