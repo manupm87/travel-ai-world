@@ -6,6 +6,12 @@
 Amends [ADR 0024](0024-turn-traces-and-admin-access.md) ("no service reads a list at request
 time"). TRA-257 (the access list) and TRA-258 (the quota).
 
+**What is in force:** TRA-257 gates `core_api`'s routes only. Until TRA-258 is delivered `ai_api`
+does not read the list or the limit: it verifies the token and nothing else, so the planner's
+LLM turns are neither closed to uninvited accounts nor counted. Everything under "The daily
+token quota" below, including `ai_api` refusing an account that is not allowed, is design, not
+behaviour.
+
 ## Context
 
 The app is public: anyone with a Google account can sign in, and every planner turn spends LLM
@@ -26,6 +32,8 @@ first sign-in) and a `terraform apply` per invitation.
 
 ### The access list (TRA-257)
 
+- **Scope: `core_api`.** This part gates `core_api`'s routes. `ai_api` starts honouring the list
+  with TRA-258 (below); until then an uninvited account with a valid token can still call it.
 - **`core_api` keeps the list in its table.** An `AccessGrant` is keyed by email (trimmed,
   lower-cased): `PK = ACCESS#<email>`, `SK = ACCESS`, listed through GSI1 under its own partition
   (`GSI1PK = ACCESS`, `GSI1SK = <email>`), so the accounts list (`GSI1PK = USERS`) never sees it
@@ -59,6 +67,8 @@ first sign-in) and a `terraform apply` per invitation.
   gains `/admin/access/`.
 
 ### The daily token quota (TRA-258, designed here, implemented there)
+
+Not built yet: the present tense below describes `ai_api` once TRA-258 is delivered.
 
 - **`ai_api` counts, `core_api` says how many.** `ai_api` stays stateless about accounts: before
   a turn it asks `core_api` for `GET /users/me/access` with the caller's token (the same

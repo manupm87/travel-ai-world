@@ -135,7 +135,8 @@ In both modes:
   everyone else gets 403 `ACCESS_DENIED` from every route except `GET /users/me` and
   `GET /users/me/access`. The frontend asks the latter once per signed-in account and shows a
   "not invited yet" page instead of the app. The same answer carries the account's daily token
-  limit, which `ai_api` enforces (TRA-258). Locally the mode is `open`.
+  limit. **Only `core_api` is gated today:** `ai_api` does not read the list or the limit yet
+  (it verifies the token only, below); both arrive there with TRA-258. Locally the mode is `open`.
 - `ai_api` verifies the token only (stateless). A deactivated user can keep chatting until the
   token expires (60 min). See [ADR 0002](adr/0002-auth-between-services.md) (superseded for the
   issuer, still the rule for the boundary).

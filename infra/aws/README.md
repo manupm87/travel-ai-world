@@ -160,7 +160,8 @@ first `terraform apply`:
    data, not Terraform: administrators edit it at `/admin/access/`
    ([runbook](../../docs/runbooks/access.md)). `default_daily_token_limit` (default `300000`,
    `0` = unlimited) becomes `DEFAULT_DAILY_TOKEN_LIMIT`, the daily token quota of anyone whose
-   grant sets none. `access_mode = "open"` lets every signed-in account in again.
+   grant sets none. `access_mode = "open"` lets every signed-in account in again. Until TRA-258
+   only `core-api` is gated and nothing enforces the limit: `ai-api` reads neither yet.
 
 The managed-login host is `auth.<domain>` by default (`cognito_subdomain`, covered by the wildcard
 certificate); set it to `""` to fall back to the pool's own host

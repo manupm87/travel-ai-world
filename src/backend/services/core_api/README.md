@@ -87,7 +87,8 @@ once, right after the TRA-227 apply ([infra/aws/README.md](../../../../infra/aws
 **Bearer means invited.** With `ACCESS_MODE=allowlist` every `Bearer` and `Bearer (owner)` route
 answers 403 `ACCESS_DENIED` to an account that is neither an administrator nor on the access list;
 only the two "invited or not" routes answer it. With `ACCESS_MODE=open` (the default) the list
-gates nothing.
+gates nothing. The gate is `core_api`'s only: `ai_api` does not read the list, nor enforce
+`daily_token_limit`, until TRA-258.
 
 Every trip collection offers `GET /` (paginated with `skip`/`limit`), `POST /`, `GET/PATCH/DELETE /{item_id}`.
 A child that exists under another trip answers 404, never 403, so ids leak nothing

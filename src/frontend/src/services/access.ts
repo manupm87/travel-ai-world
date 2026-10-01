@@ -6,7 +6,8 @@
  * emails and administrators get past it, and everything else answers 403
  * `ACCESS_DENIED`. This one route answers for an uninvited account too, so
  * the UI can say so instead of failing request by request. It also carries
- * the account's daily token limit (`null` = unlimited), which ai_api enforces.
+ * the account's daily token limit (`null` = unlimited), which nothing enforces
+ * yet: ai_api will, with TRA-258.
  */
 
 import type { components } from "@/types/generated/core-api";

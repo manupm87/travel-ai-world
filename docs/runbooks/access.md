@@ -12,7 +12,13 @@ done by an administrator from the console; nothing needs a deploy except switchi
 - The list is data in `core_api`'s table, edited at **`/admin/access/`**. A change takes effect
   on the person's next request.
 - Each grant may carry a **daily token limit**: empty = the default
-  (`DEFAULT_DAILY_TOKEN_LIMIT`, 300 000), `0` = unlimited. `ai_api` enforces it (TRA-258).
+  (`DEFAULT_DAILY_TOKEN_LIMIT`, 300 000), `0` = unlimited. **Nothing enforces it yet**: the limit
+  is stored and served by `GET /users/me/access`; `ai_api` will count tokens and refuse over it
+  when TRA-258 lands.
+- **Until TRA-258, only `core_api`'s routes are gated.** `ai_api` does not read the list yet: it
+  still verifies the token only, so an uninvited account with a valid token can still call
+  `ai_api` directly and spend tokens (the app itself shows it the "not on the list" page, and
+  whatever goes to `core_api` with that token is refused). TRA-258 closes that.
 - Administrators (`admin_usernames` in `infra/aws/admins.auto.tfvars`, ADR 0024) never need a
   grant; a grant only gives them a limit of their own.
 
@@ -33,7 +39,8 @@ removes the limit for that person. To change the default for everyone, set
 
 ## Remove someone
 
-**Remove** on the row, then confirm. Their next request is refused; their account, trips and
+**Remove** on the row, then confirm. Their next request to `core_api` is refused (`ai_api` follows
+with TRA-258); their account, trips and
 conversations stay as they are, and inviting them again brings everything back.
 
 ## Switch the mode, or the default limit
@@ -56,7 +63,8 @@ The deploy that brings this in turns the list on with nobody on it:
 2. Open `/admin/access/` and invite the team and the people already using the app
    (`/admin/users/` lists every account's email).
 3. Sign in with a non-admin account that you invited: the dashboard opens. With one that you did
-   not: the "not on the list yet" page shows, with the email it signed in with.
+   not: the "not on the list yet" page shows, with the email it signed in with. Someone invited
+   while they look at that page presses **Check again**; no new sign-in is needed.
 
 If something is wrong, `access_mode = "open"` and an apply puts things back as they were.
 
