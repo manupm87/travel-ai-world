@@ -326,6 +326,25 @@ describe("ChatColumn — Kiri's answer (TRA-239)", () => {
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
 
+  it("says a spent allowance and when it resets, with nothing to retry (TRA-258)", () => {
+    const text = interpolate(p.errors.quota, { time: "2:00 AM" });
+    renderColumn({ status: "error", error: "quota" }, text, { onRetry: vi.fn() });
+
+    const alert = screen.getByRole("alert");
+    expect(alert).toHaveTextContent("You have used today's allowance. It resets at 2:00 AM.");
+    expect(screen.queryByRole("button", { name: p.packing.lost.retry })).not.toBeInTheDocument();
+  });
+
+  it("says an account is not on the list, with nothing to retry (TRA-258)", () => {
+    const text = interpolate(en.auth.noAccess.description, { email: "ada@example.com" });
+    renderColumn({ status: "error", error: "denied" }, text, { onRetry: vi.fn() });
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "the account ada@example.com hasn't been invited yet"
+    );
+    expect(screen.queryByRole("button", { name: p.packing.lost.retry })).not.toBeInTheDocument();
+  });
+
   it("offers no retry when the session is what failed", () => {
     renderColumn({ status: "error", error: "unauthorized" }, p.errors.unauthorized, {
       onRetry: vi.fn(),

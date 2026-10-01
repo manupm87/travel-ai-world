@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import {
+  formatClock,
   formatCurrency,
   formatDate,
   formatDuration,
@@ -38,6 +39,8 @@ export function useFormatters() {
       formatPercent: (x: number) => formatPercent(x, locale),
       /** "Budapest, Bologna and Berlin", joined the locale's way. */
       formatList: (items: string[]) => formatList(items, locale),
+      /** The local hour and minute of a timestamp, the locale's way. */
+      formatClock: (iso: string) => formatClock(iso, locale),
       /** The local time of a timestamp, `HH:mm:ss`. */
       formatTime: (iso: string) => formatTime(iso, locale),
     }),

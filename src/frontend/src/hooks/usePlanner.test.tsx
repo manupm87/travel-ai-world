@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { LanguageProvider, useLanguage } from "@/context/LanguageContext";
 import en from "@/i18n/en";
 import { interpolate } from "@/i18n";
-import { UnauthorizedError } from "@/services/http";
+import { ApiError, UnauthorizedError } from "@/services/http";
 import { streamPlannerTurn, type StreamPlannerOptions } from "@/services/planner";
 import {
   clearPlannerDraft,
@@ -28,7 +28,8 @@ import { BRIEF_FIELDS, EMPTY_BRIEF, type PlannerEvent, type PlannerTurn } from "
 import { EMPTY_ITINERARY, type PlannerDraft } from "./plannerReducer";
 import { usePlanner } from "./usePlanner";
 
-vi.mock("@/services/planner", () => ({
+vi.mock("@/services/planner", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/services/planner")>()),
   streamPlannerTurn: vi.fn(),
 }));
 
@@ -462,6 +463,39 @@ describe("usePlanner — failures", () => {
 
     await waitFor(() => expect(result.current.state.status).toBe("error"));
     expect(result.current.state.error).toBe("generic");
+  });
+
+  it("a 429 DAILY_TOKEN_LIMIT is the quota, with when it resets (TRA-258)", async () => {
+    streamPlannerTurnMock.mockImplementation(async function* () {
+      throw new ApiError(429, "Daily token limit reached", "DAILY_TOKEN_LIMIT", {
+        limit: 1000,
+        used: 1000,
+        resets_at: "2026-10-02T00:00:00+00:00",
+      });
+    });
+    const { result } = renderHook(() => usePlanner(), { wrapper });
+
+    act(() => {
+      result.current.sendMessage("hello");
+    });
+
+    await waitFor(() => expect(result.current.state.status).toBe("error"));
+    expect(result.current.state.error).toBe("quota");
+    expect(result.current.state.quotaResetsAt).toBe("2026-10-02T00:00:00+00:00");
+  });
+
+  it("a 403 ACCESS_DENIED is the access list (TRA-258)", async () => {
+    streamPlannerTurnMock.mockImplementation(async function* () {
+      throw new ApiError(403, "Not invited", "ACCESS_DENIED");
+    });
+    const { result } = renderHook(() => usePlanner(), { wrapper });
+
+    act(() => {
+      result.current.sendMessage("hello");
+    });
+
+    await waitFor(() => expect(result.current.state.status).toBe("error"));
+    expect(result.current.state.error).toBe("denied");
   });
 });
 

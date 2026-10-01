@@ -4,6 +4,7 @@
  * without React. `usePlanner` drives it and owns the network.
  */
 
+import type { PlannerFailureKind } from "@/services/planner";
 import {
   BRIEF_FIELDS,
   DAY_PARTS,
@@ -62,7 +63,7 @@ export interface ItineraryDraft {
 export type PlannerStatus = "idle" | "streaming" | "error";
 
 /** Why the last turn failed; the UI maps it to translated copy. */
-export type PlannerErrorKind = "unauthorized" | "generic";
+export type PlannerErrorKind = PlannerFailureKind;
 
 /** What survives a reload (`services/plannerDraft.ts`). */
 export interface PlannerDraft {
@@ -118,6 +119,8 @@ export interface PlannerState extends PlannerDraft {
   /** The last turn's packing, or `null` before any turn of this page. */
   packing: PackingState | null;
   error: PlannerErrorKind | null;
+  /** With `error: "quota"`: when today's allowance starts again (ISO 8601), if known. */
+  quotaResetsAt: string | null;
   /** Option groups shown and not yet answered. */
   pendingGroupIds: string[];
   /** Counts turns; the transcript re-pins to the bottom when it changes. */
@@ -137,6 +140,7 @@ export function initialPlannerState(draft: PlannerDraft | null = null): PlannerS
     status: "idle",
     packing: null,
     error: null,
+    quotaResetsAt: null,
     pendingGroupIds: draft ? Object.values(draft.groups).filter((g) => g.selectedIds.length === 0).map((g) => g.group_id) : [],
     turn: 0,
   };
@@ -154,7 +158,7 @@ export type PlannerAction =
   | { type: "turn_started"; message: string | null }
   | { type: "event"; event: PlannerEvent }
   | { type: "turn_finished" }
-  | { type: "turn_failed"; error: PlannerErrorKind }
+  | { type: "turn_failed"; error: PlannerErrorKind; resetsAt?: string | null }
   /** A quick reply answered part of the brief before the server confirms it. */
   | { type: "brief_patched"; patch: Partial<TripBrief> }
   /**
@@ -487,6 +491,7 @@ function applyEventToDraft(state: PlannerState, event: PlannerEvent): PlannerSta
         ...state,
         status: "error",
         error: event.error_code.toLowerCase() === "unauthorized" ? "unauthorized" : "generic",
+        quotaResetsAt: null,
         messages: dropEmptyTail(state.messages),
       };
     case "done":
@@ -507,6 +512,7 @@ export function plannerReducer(state: PlannerState, action: PlannerAction): Plan
         messages,
         status: "streaming",
         error: null,
+        quotaResetsAt: null,
         turn: state.turn + 1,
         packing: {
           step: "open",
@@ -538,6 +544,7 @@ export function plannerReducer(state: PlannerState, action: PlannerAction): Plan
         messages: dropEmptyTail(state.messages),
         status: "error",
         error: action.error,
+        quotaResetsAt: action.error === "quota" ? (action.resetsAt ?? null) : null,
         packing: state.packing ? { ...state.packing, failed: true } : state.packing,
       };
     case "retry_prepared": {
@@ -549,6 +556,7 @@ export function plannerReducer(state: PlannerState, action: PlannerAction): Plan
           last?.kind === "text" && last.role === "user" ? messages.slice(0, -1) : messages,
         status: "idle",
         error: null,
+        quotaResetsAt: null,
         packing: null,
       };
     }

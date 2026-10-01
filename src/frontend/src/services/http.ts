@@ -25,17 +25,25 @@ const API_PREFIX = "/api/v1";
 /**
  * A non-2xx answer from the backend. `code` is the backend's `error_code`
  * when the body was a domain error, so the UI can pick its own translated
- * message instead of showing the server's.
+ * message instead of showing the server's; `extras` is what the error says
+ * about itself (a daily limit's `resets_at`, a locked trip's `phase`).
  */
 export class ApiError extends Error {
   readonly status: number;
   readonly code: string | null;
+  readonly extras: Record<string, unknown> | null;
 
-  constructor(status: number, message: string, code: string | null = null) {
+  constructor(
+    status: number,
+    message: string,
+    code: string | null = null,
+    extras: Record<string, unknown> | null = null
+  ) {
     super(message);
     this.name = "ApiError";
     this.status = status;
     this.code = code;
+    this.extras = extras;
   }
 }
 
@@ -79,26 +87,33 @@ export function authHeaders(): Record<string, string> {
 export interface ErrorBody {
   message: string | null;
   code: string | null;
+  /** The domain error's `extras`, when it sent any. */
+  extras: Record<string, unknown> | null;
 }
 
 /**
- * Backend error bodies are `{ detail: { message, error_code } }` (domain
- * errors) or `{ detail: string }` (framework errors). Pure.
+ * Backend error bodies are `{ detail: { message, error_code, extras? } }`
+ * (domain errors) or `{ detail: string }` (framework errors). Pure.
  */
 export function parseErrorBody(body: unknown): ErrorBody {
   const detail = (body as { detail?: unknown } | null)?.detail;
-  if (typeof detail === "string") return { message: detail, code: null };
+  if (typeof detail === "string") return { message: detail, code: null, extras: null };
   if (detail && typeof detail === "object") {
-    const { message, error_code } = detail as {
+    const { message, error_code, extras } = detail as {
       message?: unknown;
       error_code?: unknown;
+      extras?: unknown;
     };
     return {
       message: typeof message === "string" ? message : null,
       code: typeof error_code === "string" ? error_code : null,
+      extras:
+        extras && typeof extras === "object" && !Array.isArray(extras)
+          ? (extras as Record<string, unknown>)
+          : null,
     };
   }
-  return { message: null, code: null };
+  return { message: null, code: null, extras: null };
 }
 
 /** Reads and parses an error response's body; tolerates non-JSON bodies. */
@@ -146,10 +161,10 @@ export async function requestRaw(
 
   if (res.ok) return res;
 
-  const { message, code } = await readErrorBody(res);
+  const { message, code, extras } = await readErrorBody(res);
   const text = message ?? `Request failed with status ${res.status}`;
   if (res.status === 401) throw new UnauthorizedError(text, code);
-  throw new ApiError(res.status, text, code);
+  throw new ApiError(res.status, text, code, extras);
 }
 
 /** `requestRaw` plus JSON decoding of the successful body. */

@@ -50,6 +50,16 @@ export function formatTime(iso: string, locale = "en-US"): string {
   });
 }
 
+/**
+ * The local hour and minute of an ISO timestamp, the locale's way ("2:00 AM",
+ * "02:00"); `""` when it is not a date.
+ */
+export function formatClock(iso: string, locale = "en-US"): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit" });
+}
+
 /** A plain count with the locale's grouping ("12,345" / "12.345"). */
 export function formatNumber(n: number, locale = "en-US"): string {
   return new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(n);

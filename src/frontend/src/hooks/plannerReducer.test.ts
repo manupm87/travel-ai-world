@@ -620,6 +620,36 @@ describe("plannerReducer — turn_failed", () => {
     expect(state.error).toBe("unauthorized");
     expect(state.messages).toEqual([{ id: "m1", kind: "text", role: "user", content: "Hi" }]);
   });
+
+  it("keeps when a spent allowance resets, until the next turn or a retry (TRA-258)", () => {
+    const started = plannerReducer(initialPlannerState(), { type: "turn_started", message: "Hi" });
+    const spent = plannerReducer(started, {
+      type: "turn_failed",
+      error: "quota",
+      resetsAt: "2026-10-02T00:00:00+00:00",
+    });
+    expect(spent).toMatchObject({
+      status: "error",
+      error: "quota",
+      quotaResetsAt: "2026-10-02T00:00:00+00:00",
+    });
+
+    expect(plannerReducer(spent, { type: "turn_started", message: "Again" })).toMatchObject({
+      error: null,
+      quotaResetsAt: null,
+    });
+    expect(plannerReducer(spent, { type: "retry_prepared" }).quotaResetsAt).toBeNull();
+  });
+
+  it("an account off the list is its own kind, with no reset time", () => {
+    const started = plannerReducer(initialPlannerState(), { type: "turn_started", message: "Hi" });
+    const denied = plannerReducer(started, {
+      type: "turn_failed",
+      error: "denied",
+      resetsAt: "2026-10-02T00:00:00+00:00",
+    });
+    expect(denied).toMatchObject({ status: "error", error: "denied", quotaResetsAt: null });
+  });
 });
 
 describe("plannerReducer — brief_patched", () => {

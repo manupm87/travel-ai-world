@@ -24,7 +24,7 @@ import {
   OPTION_KINDS,
   WARN_CODES,
 } from "@/types/planner";
-import { ApiError, isAiAvailable, request, requestRaw } from "./http";
+import { ApiError, UnauthorizedError, isAiAvailable, request, requestRaw } from "./http";
 import { streamDemoTurn } from "./plannerDemo";
 
 /** The packing steps a `progress` event may name, in order. */
@@ -290,6 +290,32 @@ export interface StreamPlannerOptions {
   onDemo?: () => void;
 }
 
+/**
+ * Why a turn could not be asked. `quota`: the account spent today's tokens
+ * (429 `DAILY_TOKEN_LIMIT`); `denied`: it is not on the access list (403
+ * `ACCESS_DENIED`). ADR 0026.
+ */
+export type PlannerFailureKind = "unauthorized" | "generic" | "quota" | "denied";
+
+export interface PlannerFailure {
+  kind: PlannerFailureKind;
+  /** When a spent daily allowance starts again (ISO 8601); `null` otherwise. */
+  resetsAt: string | null;
+}
+
+/** What a rejected planner request means for the page. Pure. */
+export function toPlannerFailure(err: unknown): PlannerFailure {
+  if (err instanceof UnauthorizedError) return { kind: "unauthorized", resetsAt: null };
+  if (err instanceof ApiError) {
+    if (err.status === 429 && err.code === "DAILY_TOKEN_LIMIT") {
+      const resetsAt = err.extras?.resets_at;
+      return { kind: "quota", resetsAt: typeof resetsAt === "string" ? resetsAt : null };
+    }
+    if (err.status === 403 && err.code === "ACCESS_DENIED") return { kind: "denied", resetsAt: null };
+  }
+  return { kind: "generic", resetsAt: null };
+}
+
 /** A 404/405 from the planner route means it is not deployed: not a failure. */
 function isRouteMissing(err: unknown): boolean {
   return err instanceof ApiError && (err.status === 404 || err.status === 405);
@@ -377,7 +403,9 @@ export async function getCardDetail(
 /**
  * Streams one planner turn. Yields every typed event as it arrives, the
  * `done` event last; the generator returns after `done` or when the body
- * ends. Throws `UnauthorizedError` on 401 and `ApiError` on other failures;
+ * ends. Throws `UnauthorizedError` on 401 and `ApiError` on other failures
+ * (`toPlannerFailure` says which: a spent daily allowance and an account off
+ * the access list are refused before the stream, as plain JSON);
  * an in-stream `error` event is yielded, not thrown, so the caller decides.
  */
 export async function* streamPlannerTurn(

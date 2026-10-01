@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ACCESS_GRANT_PAGE,
+  ADMIN_USAGE,
   ADMIN_TRIP_PAGE,
   ADMIN_USER_PAGE,
   TRACE_STATS,
@@ -10,6 +11,7 @@ import {
 import {
   deleteAccessGrant,
   getAdminTrip,
+  getAdminUsage,
   getStats,
   getTurn,
   listAccessGrants,
@@ -156,5 +158,17 @@ describe("services/admin", () => {
 
     fetchMock.mockResolvedValueOnce(json({ detail: "missing" }, 404));
     await expect(getAdminTrip("u-1", "t-2")).resolves.toBeNull();
+  });
+
+  it("reads today's usage from ai_api, or a named day's (TRA-258)", async () => {
+    fetchMock.mockImplementation(async () => json(ADMIN_USAGE));
+
+    await expect(getAdminUsage()).resolves.toEqual(ADMIN_USAGE);
+    expect(called().path).toBe("/api/v1/ai/admin/usage");
+    expect(Object.fromEntries(called().params)).toEqual({});
+    expect((called().init.headers as Record<string, string>).Authorization).toBe("Bearer tok");
+
+    await getAdminUsage("2026-09-30");
+    expect(Object.fromEntries(called(1).params)).toEqual({ day: "2026-09-30" });
   });
 });

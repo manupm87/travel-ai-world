@@ -4,6 +4,7 @@ import en from "@/i18n/en";
 import { useAuth } from "@/context/AuthContext";
 import { initialPlannerState, toPlannerDraft } from "@/hooks/plannerReducer";
 import { useTrip, type UseTripResult } from "@/hooks/useTrip";
+import { ApiError } from "@/services/http";
 import { streamPlannerTurn } from "@/services/planner";
 import {
   PLANNER_DRAFT_KEY,
@@ -48,7 +49,10 @@ vi.mock("@/hooks/usePlannerCities", async () => {
   };
 });
 
-vi.mock("@/services/planner", () => ({ streamPlannerTurn: vi.fn() }));
+vi.mock("@/services/planner", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/services/planner")>()),
+  streamPlannerTurn: vi.fn(),
+}));
 
 vi.mock("@/components/planner/v2/TripMap", () => ({ TripMap: () => null }));
 
@@ -205,5 +209,36 @@ describe("PlannerClientPage — a ?trip= that is not found (TRA-223)", () => {
     screen.getByRole("button", { name: en.plan.trips.newTrip }).click();
 
     await waitFor(() => expect(replace).toHaveBeenCalledWith("/plan/"));
+  });
+});
+
+describe("PlannerClientPage — a turn ai_api refuses (TRA-258)", () => {
+  it("says today's allowance is spent and when it resets, with no retry", async () => {
+    const resetsAt = "2026-10-02T00:00:00+00:00";
+    vi.mocked(streamPlannerTurn).mockImplementation(async function* () {
+      throw new ApiError(429, "Daily token limit reached", "DAILY_TOKEN_LIMIT", {
+        limit: 1000,
+        used: 1000,
+        resets_at: resetsAt,
+      });
+    });
+
+    open("q=Four%20days%20in%20Rome");
+
+    const alert = await screen.findByRole("alert");
+    const time = new Date(resetsAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+    expect(alert).toHaveTextContent(`You have used today's allowance. It resets at ${time}.`);
+    expect(screen.queryByRole("button", { name: en.plan.packing.lost.retry })).toBeNull();
+  });
+
+  it("says the account is not on the list", async () => {
+    vi.mocked(streamPlannerTurn).mockImplementation(async function* () {
+      throw new ApiError(403, "This account has not been given access yet", "ACCESS_DENIED");
+    });
+
+    open("q=Four%20days%20in%20Rome");
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(en.plan.errors.denied);
+    expect(screen.queryByRole("button", { name: en.plan.packing.lost.retry })).toBeNull();
   });
 });

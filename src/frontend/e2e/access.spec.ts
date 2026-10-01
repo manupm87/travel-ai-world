@@ -1,12 +1,15 @@
 import { test, expect, type Page, type Route } from "@playwright/test";
 import { TOKEN_STORAGE_KEY, USER_STORAGE_KEY } from "../src/services/session";
-import { ACCESS_GRANT_PAGE, ADMIN_USER_PAGE } from "../src/test/fixtures/admin";
+import { ACCESS_GRANT_PAGE, ADMIN_USAGE, ADMIN_USER_PAGE } from "../src/test/fixtures/admin";
 
 /**
  * The access list (TRA-257, ADR 0026). Like `admin.spec.ts`, every API route
  * is mocked with `page.route` and the session is a fake unsigned JWT in
  * `localStorage` (the runner's real `E2E_TOKEN` when it has one), so it needs
  * no backend and never writes to one.
+ *
+ * The daily token quota (TRA-258) is here too: "Usage today" on the access
+ * page, and the planner's message when ai_api answers a turn with 429.
  */
 
 type Role = "admin" | "user";
@@ -49,6 +52,10 @@ async function signIn(page: Page, role: Role, { allowed }: { allowed: boolean })
 async function mockAccessList(page: Page) {
   const grants = new Map<string, Grant>(ACCESS_GRANT_PAGE.items.map((grant) => [grant.email, grant]));
   const writes: { method: string; email: string; body: unknown }[] = [];
+
+  // "Usage today" (TRA-258): ai_api's counters, joined to the accounts in the browser.
+  await page.route(path("/api/v1/ai/admin/usage"), (route) => route.fulfill({ json: ADMIN_USAGE }));
+  await page.route(path("/api/v1/admin/users"), (route) => route.fulfill({ json: ADMIN_USER_PAGE }));
 
   await page.route(path("/api/v1/admin/access"), (route) =>
     route.fulfill({
@@ -180,6 +187,25 @@ test.describe("Access list — as an administrator", () => {
     ]);
   });
 
+  test("shows what each account spent today against its limit", async ({ page }) => {
+    await signIn(page, "admin", { allowed: true });
+    await mockAccessList(page);
+
+    await page.goto("/admin/access/");
+
+    await expect(page.getByRole("heading", { level: 2, name: "Usage today" })).toBeVisible();
+    const usage = page.getByRole("table", { name: "Token usage today" });
+    await expect(usage.locator("tbody tr")).toHaveCount(3);
+    // Ada spent 52,500 of her 50,000; Grace is unlimited; the third subject has no account.
+    const ada = usage.locator("tbody tr", { hasText: "ada@example.com" });
+    await expect(ada).toContainText("52,500");
+    await expect(ada).toContainText("50,000");
+    await expect(ada).toContainText("Limit reached");
+    await expect(usage.locator("tbody tr", { hasText: "grace@example.com" })).toContainText("Unlimited");
+    await expect(usage.locator("tbody tr", { hasText: "ffffffff" })).toContainText("Default");
+    await expect(page.getByRole("button", { name: "Reload" })).toBeEnabled();
+  });
+
   test("a bad email never reaches the API", async ({ page }) => {
     await signIn(page, "admin", { allowed: true });
     const writes = await mockAccessList(page);
@@ -193,5 +219,46 @@ test.describe("Access list — as an administrator", () => {
     await expect(page.getByLabel("Email", { exact: true })).toBeFocused();
     await expect(page.getByLabel("Email", { exact: true })).toHaveAttribute("aria-invalid", "true");
     expect(writes).toEqual([]);
+  });
+});
+
+test.describe("Daily token quota — a planner turn over the limit", () => {
+  test("says today's allowance is spent and when it resets, with nothing to retry", async ({ page }, testInfo) => {
+    // The planner asks ai_api only when the app is built with an API URL. The
+    // plain static export (`just test-e2e-static`) answers every turn from the
+    // recorded demo and never sends one, so there is nothing to refuse there:
+    // this runs on the Compose stack (CI's `e2e-stack`, `just test-e2e-stack`).
+    test.skip(
+      !testInfo.config.metadata.apiConfigured,
+      "This build has no ai_api URL (the static export plans from the recorded demo), so no turn is ever " +
+        "sent. Covered by CI's e2e-stack job (this same test) and by Vitest: " +
+        "src/app/(app)/plan/PlannerClientPage.test.tsx and src/services/planner.test.ts."
+    );
+    await signIn(page, "user", { allowed: true });
+    const resetsAt = new Date(Date.UTC(2030, 0, 2)).toISOString();
+    await page.route(path("/api/v1/ai/planner/cities"), (route) => route.fulfill({ json: [] }));
+    await page.route(path("/api/v1/ai/planner"), (route) =>
+      route.fulfill({
+        status: 429,
+        json: {
+          detail: {
+            message: "Daily token limit reached",
+            error_code: "DAILY_TOKEN_LIMIT",
+            extras: { limit: 300000, used: 300412, resets_at: resetsAt },
+          },
+        },
+      })
+    );
+
+    await page.goto("/plan/");
+    await page.getByPlaceholder("Ask for a change or search for something…").fill("Four days in Budapest");
+    await page.getByRole("button", { name: "Send" }).click();
+
+    const alert = page.getByRole("alert").filter({ hasText: "today's allowance" });
+    await expect(alert).toBeVisible();
+    await expect(alert).toContainText(/You have used today's allowance\. It resets at \d{1,2}:\d{2}/);
+    await expect(alert.getByRole("button", { name: "Retry" })).toHaveCount(0);
+    // The recorded demo must not answer in ai_api's place.
+    await expect(page.getByRole("status").filter({ hasText: "Demo mode" })).toHaveCount(0);
   });
 });

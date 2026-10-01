@@ -302,6 +302,9 @@ const es: Translations = {
     errors: {
       generic: "Lo siento, algo ha fallado al planificar. Inténtalo de nuevo.",
       unauthorized: "Tu sesión ha caducado. Vuelve a iniciar sesión para seguir planificando.",
+      quota: "Has usado el cupo de hoy. Se renueva a las {time}.",
+      quotaNoTime: "Has usado el cupo de hoy. Se renueva mañana.",
+      denied: "Kyrian World está en beta cerrada y esta cuenta todavía no ha sido invitada.",
     },
     map: {
       region: "Mapa del día {day}",
@@ -596,6 +599,23 @@ const es: Translations = {
       editLabel: "Editar {email}",
       remove: "Quitar",
       removeLabel: "Quitar {email}",
+      usage: {
+        title: "Uso de hoy",
+        subtitle: "Tokens gastados el {day} (UTC), frente al límite de cada cuenta. La cuenta empieza de nuevo a medianoche UTC.",
+        subtitleLoading: "Tokens gastados hoy (UTC), frente al límite de cada cuenta.",
+        caption: "Uso de tokens de hoy",
+        empty: "Nadie ha gastado tokens hoy.",
+        reload: "Recargar",
+        reloading: "Recargando…",
+        columns: {
+          account: "Cuenta",
+          turns: "Turnos",
+          tokens: "Tokens",
+          limit: "Límite diario",
+          share: "Usado",
+        },
+        over: "Límite alcanzado",
+      },
       confirm: {
         title: "¿Quitar este correo?",
         description: "{email} dejará de poder entrar a partir de su próxima petición. Sus viajes se conservan.",

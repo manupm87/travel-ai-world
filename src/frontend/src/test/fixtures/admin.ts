@@ -7,6 +7,7 @@
 
 import type {
   AccessGrantPage,
+  AdminUsage,
   AdminTripPage,
   AdminUserPage,
   TraceStats,
@@ -260,3 +261,13 @@ export const ACCESS_GRANT_PAGE = {
   ],
   next_cursor: null,
 } satisfies AccessGrantPage;
+
+/** Today's token counters (TRA-258): Ada over her 50,000, Grace (unlimited), an unknown subject. */
+export const ADMIN_USAGE = {
+  day: "2026-10-01",
+  items: [
+    { subject: ADA_SUBJECT, input_tokens: 40_000, output_tokens: 12_500, embed_tokens: 300, tokens: 52_500, turns: 14 },
+    { subject: GRACE_SUBJECT, input_tokens: 9_000, output_tokens: 3_000, embed_tokens: 120, tokens: 12_000, turns: 5 },
+    { subject: "ffffffff-0000-4000-8000-00000unknown", input_tokens: 700, output_tokens: 300, embed_tokens: 0, tokens: 1_000, turns: 1 },
+  ],
+} satisfies AdminUsage;

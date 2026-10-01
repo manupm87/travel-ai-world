@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { AdminHeading, AdminLoadState } from "@/components/admin/AdminStates";
 import { ConfirmRemoveAccess } from "@/components/admin/access/ConfirmRemoveAccess";
+import { UsageToday } from "@/components/admin/access/UsageToday";
 import { DataTable } from "@/components/admin/DataTable";
 import { Button } from "@/components/ui/Button";
 import { useLanguage } from "@/context/LanguageContext";
@@ -36,6 +37,9 @@ export function parseLimit(text: string): number | null | "invalid" {
  * daily token limit. One form writes a grant (the same call invites a new
  * email and changes an existing one), the table shows what is stored and
  * "Remove" asks before it deletes.
+ *
+ * Under the list, "Usage today" (TRA-258): what each account has spent since
+ * the last UTC midnight against the limit this list gives it.
  *
  * "Edit" refills the form from a row and says so: the email goes read-only,
  * the submit names it ("Update ada@…"), "Cancel edit" empties the form, and
@@ -297,6 +301,8 @@ export default function AccessClientPage() {
           ]}
         />
       )}
+
+      <UsageToday grants={grants.items} />
 
       <ConfirmRemoveAccess email={removing} onConfirm={confirmRemove} onCancel={() => setRemoving(null)} />
     </div>

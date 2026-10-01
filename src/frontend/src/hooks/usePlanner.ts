@@ -3,8 +3,7 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { interpolate } from "@/i18n";
-import { UnauthorizedError } from "@/services/http";
-import { streamPlannerTurn } from "@/services/planner";
+import { streamPlannerTurn, toPlannerFailure } from "@/services/planner";
 import {
   clearPlannerDraft,
   newPlannerSessionId,
@@ -208,10 +207,8 @@ export function usePlanner() {
         // A cancelled stream (unmount, a newer turn) is not a failure.
         if (controller.signal.aborted) return;
         flushText();
-        dispatch({
-          type: "turn_failed",
-          error: err instanceof UnauthorizedError ? "unauthorized" : "generic",
-        });
+        const failure = toPlannerFailure(err);
+        dispatch({ type: "turn_failed", error: failure.kind, resetsAt: failure.resetsAt });
       } finally {
         if (controllerRef.current === controller) controllerRef.current = null;
       }

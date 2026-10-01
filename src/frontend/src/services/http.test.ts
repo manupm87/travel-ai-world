@@ -74,21 +74,31 @@ describe("http", () => {
     it("reads domain errors with message and code", () => {
       expect(
         parseErrorBody({ detail: { message: "Nope", error_code: "TRIP_NOT_FOUND" } })
-      ).toEqual({ message: "Nope", code: "TRIP_NOT_FOUND" });
+      ).toEqual({ message: "Nope", code: "TRIP_NOT_FOUND", extras: null });
+    });
+
+    it("keeps a domain error's extras", () => {
+      const extras = { limit: 1000, used: 1200, resets_at: "2026-10-02T00:00:00+00:00" };
+      expect(
+        parseErrorBody({ detail: { message: "Spent", error_code: "DAILY_TOKEN_LIMIT", extras } })
+      ).toEqual({ message: "Spent", code: "DAILY_TOKEN_LIMIT", extras });
+      expect(parseErrorBody({ detail: { message: "x", extras: ["no"] } }).extras).toBeNull();
     });
 
     it("reads framework errors with a string detail", () => {
       expect(parseErrorBody({ detail: "Not authenticated" })).toEqual({
         message: "Not authenticated",
         code: null,
+        extras: null,
       });
     });
 
     it("tolerates unknown shapes", () => {
-      expect(parseErrorBody(null)).toEqual({ message: null, code: null });
-      expect(parseErrorBody({})).toEqual({ message: null, code: null });
-      expect(parseErrorBody({ detail: { message: 42 } })).toEqual({ message: null, code: null });
-      expect(parseErrorBody("oops")).toEqual({ message: null, code: null });
+      const nothing = { message: null, code: null, extras: null };
+      expect(parseErrorBody(null)).toEqual(nothing);
+      expect(parseErrorBody({})).toEqual(nothing);
+      expect(parseErrorBody({ detail: { message: 42 } })).toEqual(nothing);
+      expect(parseErrorBody("oops")).toEqual(nothing);
     });
   });
 

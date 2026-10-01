@@ -5,11 +5,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ChatColumn } from "@/components/planner/v2/ChatColumn";
 import { DemoBanner } from "@/components/planner/v2/DemoBanner";
 import { toMapStops, toOptionMarks } from "@/components/planner/v2/mapStops";
+import { plannerErrorText } from "@/components/planner/v2/plannerErrorText";
 import { PlannerLayout } from "@/components/planner/v2/PlannerLayout";
 import { TripMap } from "@/components/planner/v2/TripMap";
 import { TripPanel } from "@/components/planner/v2/TripPanel";
 import type { OpenTripState } from "@/components/planner/v2/OpenTripNotice";
+import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
+import { useFormatters } from "@/hooks/useFormatters";
 import { usePlanner, type AskAlternativesOptions } from "@/hooks/usePlanner";
 import { useSaveTrip } from "@/hooks/useSaveTrip";
 import { isTripId, useTrip } from "@/hooks/useTrip";
@@ -47,6 +50,8 @@ import { isEditable } from "@/types/trip";
  */
 export default function PlannerClientPage() {
   const { t, resolved: languageResolved } = useLanguage();
+  const { user } = useAuth();
+  const { formatClock } = useFormatters();
   const router = useRouter();
   const params = useSearchParams();
   const query = params.get("q");
@@ -211,7 +216,8 @@ export default function PlannerClientPage() {
     router.replace("/plan/");
   }, [query, hasMessages, sendMessage, languageResolved, router]);
 
-  const errorText = state.error ? t.plan.errors[state.error] : null;
+  // A spent daily allowance says when it resets, in the reader's own time (TRA-258).
+  const errorText = plannerErrorText(t, state, { email: user?.email ?? null, formatClock });
 
   const generate = useCallback(() => {
     sendMessage(t.plan.checklist.generateMessage);

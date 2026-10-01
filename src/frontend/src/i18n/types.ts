@@ -350,6 +350,12 @@ export interface Translations {
     errors: {
       generic: string;
       unauthorized: string;
+      /** Today's token allowance is spent (ADR 0026); `{time}` is the local reset time. */
+      quota: string;
+      /** The same, when the reset time is not known. */
+      quotaNoTime: string;
+      /** The account is not on the access list, and its email is not at hand. */
+      denied: string;
     };
     /** The day map (TRA-147): MapLibre GL over OpenFreeMap tiles. */
     map: {
@@ -683,6 +689,26 @@ export interface Translations {
       editLabel: string;
       remove: string;
       removeLabel: string;
+      /** "Usage today" (TRA-258): each account's tokens of the UTC day against its limit. */
+      usage: {
+        title: string;
+        /** `{day}` is the UTC day, `YYYY-MM-DD`. */
+        subtitle: string;
+        subtitleLoading: string;
+        caption: string;
+        empty: string;
+        reload: string;
+        reloading: string;
+        columns: {
+          account: string;
+          turns: string;
+          tokens: string;
+          limit: string;
+          share: string;
+        };
+        /** Read out beside a bar that is full. */
+        over: string;
+      };
       confirm: {
         title: string;
         /** `{email}` is the grant about to go. */

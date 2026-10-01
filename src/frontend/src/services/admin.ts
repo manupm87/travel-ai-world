@@ -4,7 +4,8 @@
  * Cognito group `admin`.
  *
  * - `ai_api` owns the turn traces: `/ai/admin/stats`, `/ai/admin/turns`,
- *   `/ai/admin/turns/{id}` and `/ai/admin/sessions/{id}`.
+ *   `/ai/admin/turns/{id}` and `/ai/admin/sessions/{id}`; and the daily
+ *   token counters (TRA-258, ADR 0026): `/ai/admin/usage`.
  * - `core_api` owns the accounts and the trips: `/admin/users`,
  *   `/admin/trips` and `/admin/trips/{user_id}/{trip_id}`; and the access
  *   list (TRA-257, ADR 0026), the console's only writes: `/admin/access`
@@ -26,6 +27,8 @@ export type TurnSummary = AiComponents["schemas"]["TurnSummaryResponse"];
 export type TurnDetail = AiComponents["schemas"]["TurnDetailResponse"];
 export type TurnKind = TurnSummary["kind"];
 export type TurnStatus = TurnSummary["status"];
+export type AdminUsage = AiComponents["schemas"]["AdminUsageResponse"];
+export type AdminUsageItem = AiComponents["schemas"]["AdminUsageItem"];
 export type AdminUser = CoreComponents["schemas"]["UserResponse"];
 export type AdminUserPage = CoreComponents["schemas"]["AdminUserPage"];
 export type AdminTripPage = CoreComponents["schemas"]["AdminTripPage"];
@@ -184,4 +187,12 @@ export function putAccessGrant(
 /** Takes `email` off the list; a 404 (it was not on it) rejects like any failure. */
 export async function deleteAccessGrant(email: string, { signal }: ReadOptions = {}): Promise<void> {
   await requestRaw("core", accessPath(email), { auth: true, method: "DELETE", signal });
+}
+
+/**
+ * Every account's token counter of one UTC day (`YYYY-MM-DD`; today when
+ * omitted), most tokens first. Keyed by token subject: ai_api knows no email.
+ */
+export function getAdminUsage(day?: string, { signal }: ReadOptions = {}): Promise<AdminUsage> {
+  return request<AdminUsage>("ai", `/ai/admin/usage${query({ day })}`, { auth: true, signal });
 }

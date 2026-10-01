@@ -6,7 +6,7 @@ import { TURNS, toSseBody } from "@/data/planner-demo/session";
 import type { OptionCard, PlannerEvent, PlannerTurn } from "@/types/planner";
 import { EMPTY_BRIEF } from "@/types/planner";
 import { apiUrl, ApiError, UnauthorizedError } from "./http";
-import { parsePlannerEvents, streamPlannerTurn, toPlannerEvent } from "./planner";
+import { parsePlannerEvents, streamPlannerTurn, toPlannerEvent, toPlannerFailure } from "./planner";
 import { clearSession, writeSession } from "./session";
 
 // The planner falls back to the recorded session when no ai_api URL is
@@ -519,5 +519,91 @@ describe("streamPlannerTurn — demo fallback (TRA-158)", () => {
     expect(fetchMock).not.toHaveBeenCalled();
     expect(onDemo).toHaveBeenCalledTimes(1);
     expect(events.at(-1)).toEqual({ type: "done" });
+  });
+});
+
+describe("toPlannerFailure (TRA-258)", () => {
+  it("a 429 DAILY_TOKEN_LIMIT is the quota, with its reset time", () => {
+    const err = new ApiError(429, "Daily token limit reached", "DAILY_TOKEN_LIMIT", {
+      limit: 1000,
+      used: 1200,
+      resets_at: "2026-10-02T00:00:00+00:00",
+    });
+    expect(toPlannerFailure(err)).toEqual({ kind: "quota", resetsAt: "2026-10-02T00:00:00+00:00" });
+  });
+
+  it("a quota without a readable reset time is still the quota", () => {
+    expect(toPlannerFailure(new ApiError(429, "x", "DAILY_TOKEN_LIMIT"))).toEqual({
+      kind: "quota",
+      resetsAt: null,
+    });
+    expect(toPlannerFailure(new ApiError(429, "x", "DAILY_TOKEN_LIMIT", { resets_at: 7 })).resetsAt).toBeNull();
+  });
+
+  it("a 403 ACCESS_DENIED is the access list", () => {
+    expect(toPlannerFailure(new ApiError(403, "x", "ACCESS_DENIED"))).toEqual({ kind: "denied", resetsAt: null });
+  });
+
+  it("a 401 is the session, and everything else is generic", () => {
+    expect(toPlannerFailure(new UnauthorizedError()).kind).toBe("unauthorized");
+    expect(toPlannerFailure(new ApiError(429, "slow down", "TOO_MANY_REQUESTS")).kind).toBe("generic");
+    expect(toPlannerFailure(new ApiError(403, "x", "FORBIDDEN")).kind).toBe("generic");
+    expect(toPlannerFailure(new ApiError(503, "x", "SERVICE_UNAVAILABLE")).kind).toBe("generic");
+    expect(toPlannerFailure(new Error("boom")).kind).toBe("generic");
+  });
+});
+
+describe("streamPlannerTurn — refused before the stream (TRA-258)", () => {
+  const fetchMock = vi.fn();
+  const refusal = (status: number, detail: object) =>
+    new Response(JSON.stringify({ detail }), { status, headers: { "content-type": "application/json" } });
+
+  beforeEach(() => {
+    aiAvailable = true;
+    fetchMock.mockReset();
+    vi.stubGlobal("fetch", fetchMock);
+    writeSession("tok", { id: "1", email: "a@b.c", name: "A" });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    clearSession();
+  });
+
+  it("rejects a 429 with the code and the extras the page needs", async () => {
+    fetchMock.mockResolvedValue(
+      refusal(429, {
+        message: "Daily token limit reached",
+        error_code: "DAILY_TOKEN_LIMIT",
+        extras: { limit: 1000, used: 1000, resets_at: "2026-10-02T00:00:00+00:00" },
+      })
+    );
+    const onDemo = vi.fn();
+
+    const failure = await streamPlannerTurn({} as PlannerTurn, { onDemo })
+      .next()
+      .then(
+        () => null,
+        (err: unknown) => toPlannerFailure(err)
+      );
+
+    expect(failure).toEqual({ kind: "quota", resetsAt: "2026-10-02T00:00:00+00:00" });
+    // A refusal is not a missing route: the recorded demo must not answer instead.
+    expect(onDemo).not.toHaveBeenCalled();
+  });
+
+  it("rejects a 403 ACCESS_DENIED as denied", async () => {
+    fetchMock.mockResolvedValue(
+      refusal(403, { message: "This account has not been given access yet", error_code: "ACCESS_DENIED" })
+    );
+
+    const failure = await streamPlannerTurn({} as PlannerTurn)
+      .next()
+      .then(
+        () => null,
+        (err: unknown) => toPlannerFailure(err)
+      );
+
+    expect(failure).toEqual({ kind: "denied", resetsAt: null });
   });
 });

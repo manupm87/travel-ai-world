@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatDate, formatCurrency, formatDuration } from './format';
+import { formatClock, formatDate, formatCurrency, formatDuration } from './format';
 
 describe('format utils', () => {
   describe('formatDate', () => {
@@ -28,6 +28,21 @@ describe('format utils', () => {
       const eur = formatCurrency(1500, 'EUR', 'de-DE');
       expect(eur).toContain('1.500');
       expect(eur).toContain('€');
+    });
+  });
+
+  describe('formatClock', () => {
+    it('gives the local hour and minute, the locale\'s way', () => {
+      const iso = '2026-10-02T00:00:00+00:00';
+      const local = new Date(iso);
+      const minutes = String(local.getMinutes()).padStart(2, '0');
+
+      expect(formatClock(iso, 'en-US')).toMatch(new RegExp(`^\\d{1,2}:${minutes}\\s?(AM|PM)$`));
+      expect(formatClock(iso, 'es-ES')).toBe(`${local.getHours()}:${minutes}`);
+    });
+
+    it('is empty for something that is not a date', () => {
+      expect(formatClock('soon')).toBe('');
     });
   });
 
