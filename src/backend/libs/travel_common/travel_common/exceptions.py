@@ -76,6 +76,17 @@ class TooManyRequests(DomainError):
     default_message = "Too many requests. Please slow down."
 
 
+class DailyTokenLimit(TooManyRequests):
+    """The account has spent its tokens of the day (ADR 0026).
+
+    `extras`: `limit` and `used` (tokens) and `resets_at`, the next UTC
+    midnight as ISO 8601, when the counter starts again.
+    """
+
+    error_code = "DAILY_TOKEN_LIMIT"
+    default_message = "Daily token limit reached"
+
+
 class ProviderUnavailable(DomainError):
     """An upstream dependency (database, AI provider, ...) cannot serve us."""
 
