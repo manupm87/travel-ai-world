@@ -218,3 +218,47 @@ class TraceStatsResponse(_FromAttributes):
     rag: RagStatsResponse
     top_used: list[UsedDocResponse]
     never_used: list[NeverUsedDocResponse]
+
+
+# ── Retrieval evaluation (TRA-273) ───────────────────────────────────────────
+
+
+class RetrievalScoresResponse(_FromAttributes):
+    """Recall@5, recall@10 and MRR of a group of questions; `label` is `all`, a
+    city slug or a language code. Definitions in `application/retrieval_eval.py`."""
+
+    label: str
+    questions: int
+    recall_at_5: float
+    recall_at_10: float
+    mrr: float
+
+
+class ExpectedRankResponse(BaseModel):
+    doc_id: str
+    rank: int | None
+    """1-based rank among the top results; `null` when outside them."""
+
+
+class RetrievalMissResponse(BaseModel):
+    """A question that left an expected id out of its top results."""
+
+    city: str
+    id: str
+    lang: str
+    query: str
+    expected: list[ExpectedRankResponse]
+
+
+class RetrievalEvalResponse(BaseModel):
+    """One run of the retrieval evaluation over the deployed index."""
+
+    ran_at: datetime
+    index: str
+    embeddings_model: str
+    top_k: int
+    overall: RetrievalScoresResponse
+    by_city: list[RetrievalScoresResponse]
+    by_language: list[RetrievalScoresResponse]
+    misses: list[RetrievalMissResponse]
+    missing_from_index: list[str]

@@ -63,6 +63,15 @@ def get_retriever(request: Request) -> Retriever | None:
     return getattr(request.app.state, "retriever", None)
 
 
+def require_retriever(
+    retriever: Retriever | None = Depends(get_retriever),
+) -> Retriever:
+    """The vector store, for a route that has nothing to do without it."""
+    if retriever is None:
+        raise ProviderUnavailable("Retrieval is off (RETRIEVAL_ENABLED)")
+    return retriever
+
+
 def get_stream_chat(
     provider: LLMProvider = Depends(get_llm_provider),
     retriever: Retriever | None = Depends(get_retriever),

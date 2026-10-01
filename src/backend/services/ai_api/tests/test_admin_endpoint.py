@@ -1,10 +1,20 @@
-"""`/api/v1/ai/admin`: the turn traces, for administrators only (TRA-221)."""
+"""`/api/v1/ai/admin`: the turn traces (TRA-221) and the retrieval evaluation
+(TRA-273), for administrators only."""
 
 import logging
 from datetime import UTC, datetime
 
 import pytest
-from ai_api.testing import InMemoryTraceLog, make_trace, settings_for_tests
+from ai_api.api.deps import get_retriever
+from ai_api.application import retrieval_eval
+from ai_api.domain.models import Document
+from ai_api.main import app
+from ai_api.testing import (
+    FakeRetriever,
+    InMemoryTraceLog,
+    make_trace,
+    settings_for_tests,
+)
 from httpx import AsyncClient
 from travel_common.principal import Principal, Role
 from travel_common.security import create_access_token
@@ -250,3 +260,53 @@ async def test_every_admin_read_logs_an_audit_line(
         f"admin_read subject=admin-1 route={BASE}/turns/t1 target=t1",
         f"admin_read subject=admin-1 route={BASE}/turns target=-",
     ]
+
+
+# ── POST /admin/retrieval-eval (TRA-273) ─────────────────────────────────────
+
+EVAL = f"{BASE}/retrieval-eval"
+
+
+async def test_the_retrieval_eval_scores_every_city_for_an_admin(
+    client: AsyncClient, admin: dict[str, str]
+):
+    first = retrieval_eval.load_questions("madrid")[0]
+    found = Document(id=first.expected[0], content="", metadata={"city": "madrid"})
+    app.dependency_overrides[get_retriever] = lambda: FakeRetriever([found])
+
+    response = await client.post(EVAL, headers=admin)
+
+    assert response.status_code == 200
+    body = response.json()
+    settings = settings_for_tests()
+    assert body["index"] == f"{settings.VECTOR_BUCKET}/{settings.VECTOR_INDEX}"
+    assert body["top_k"] == 10
+    assert body["overall"]["questions"] == 120
+    cities = [s["label"] for s in body["by_city"]]
+    assert cities == retrieval_eval.cities_with_questions()
+    assert [s["label"] for s in body["by_language"]] == ["en", "es"]
+    miss = next(m for m in body["misses"] if m["id"] == first.id)
+    assert miss["city"] == "madrid"
+    assert miss["expected"][0] == {"doc_id": first.expected[0], "rank": 1}
+    assert all(e["rank"] is None for e in miss["expected"][1:])
+    assert first.expected[0] not in body["missing_from_index"]
+
+
+async def test_the_retrieval_eval_is_for_admins_only(
+    client: AsyncClient, auth_headers: dict[str, str]
+):
+    app.dependency_overrides[get_retriever] = lambda: FakeRetriever()
+
+    response = await client.post(EVAL, headers=auth_headers)
+
+    assert response.status_code == 403
+
+
+async def test_the_retrieval_eval_needs_retrieval(
+    client: AsyncClient, admin: dict[str, str]
+):
+    app.dependency_overrides[get_retriever] = lambda: None
+
+    response = await client.post(EVAL, headers=admin)
+
+    assert response.status_code == 503
