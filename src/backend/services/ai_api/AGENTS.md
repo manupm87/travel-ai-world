@@ -19,7 +19,10 @@ application/    use cases (StreamChat, RecordConversation, PlanTrip, CardDetailL
                 structured.py (complete_json: JSON out of `LLMProvider.complete`, one repair retry), cards.py
                 (OptionCard — and the fuller CardDetail — from a Document), validate.py (distance, load, closed,
                 prices), language.py, retrieval_eval.py (recall@k / MRR over the 20 questions per city of
-                data/eval_questions/, TRA-263/272). Depend on domain ports and on `schemas/` (the use cases emit the
+                data/eval_questions/, TRA-263/272), answer_eval.py (the chat's answers to those questions and to
+                data/eval_unanswerable.jsonl, graded by a judge model, TRA-266; the chat prompt is
+                `plan_trip.chat_messages`, shared with `PlanTrip._chat`, so the two never drift). Depend on domain
+                ports and on `schemas/` (the use cases emit the
                 wire events, ADR 0015); `plan_trip.py` also imports the pure `static_flight_search.route_for`.
 infrastructure/ adapters: nvidia_provider.py, bedrock_provider.py, bedrock_embedder.py, bedrock.py (shared by both
                 Bedrock adapters), s3vectors.py + s3vectors_retriever.py, providers.py (settings → adapters),
@@ -195,6 +198,7 @@ uv run pytest        # no network, no key: fakes for providers, embedder, retrie
 just index budapest [--dry-run]   # fills the S3 Vectors index; needs just aws-login
 just planner-smoke budapest es     # real model + KeywordRetriever over the corpus, photo tally; NVIDIA_API_KEY, no AWS
 just eval-retrieval [city]         # recall@k / MRR of the deployed index over ai_api/data/eval_questions; needs just aws-login
+just eval-answers [city] [flags]   # groundedness / relevance of the chat answers, judged by Nova Pro; ~1 USD; needs AWS
 ```
 
 Run the smoke session (README "Smoke session") after any change to the planner's prompts, cards or

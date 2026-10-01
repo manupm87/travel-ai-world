@@ -18,6 +18,7 @@ Métrica & Valor & Obtención & Origen y límites \\
 \multicolumn{4}{@{}l}{\textit{Técnicas}} \\
 R@5 / R@10 / MRR (\emph{spike}) & 0,688 / 0,812 / 0,591 (S3 Vectors) & medido, 17-09 & Spike: 32 consultas, 52 ids esperados, solo Budapest, 4 en español, sin intervalos de confianza \\
 R@5 / R@10 / MRR (producción) & 0,635 / 0,726 / 0,656; en español 0,686 / 0,778 / 0,736 & medido, 01-10 & \code{just eval-retrieval}: índice \code{city-kb} con filtro de ciudad; 120 consultas (20 por ciudad, 6 ciudades), 40\,\% en español; en 18 parejas en/es con los mismos ids, R@10 0,620 en inglés y 0,644 en español \\
+Juez LLM de las respuestas & \emph{groundedness} 4,72/5, relevancia 4,98/5, 4\,\% por debajo de 3; 6 de 6 preguntas sin respuesta reconocidas & medido, 01-10 & \code{just eval-answers}: respuestas de Haiku~4.5 por el camino del chat del planificador, juez Amazon Nova Pro; 126 respuestas, 0,6~USD; 8 de 11 veredictos revisados a mano coinciden, el juez es generoso con la relevancia \\
 Acuerdo con coseno exacto & 0,969 del top-10 & medido, 17-09 & Spike; mide el almacén, no la relevancia \\
 Latencia búsqueda (caliente) & p50 64~ms, p95 69~ms (2\,048~MB); frío 91~ms & medido, 17-09 & Spike, 128 consultas desde Lambda en \code{eu-west-1} \\
 Latencia embedding Titan & $\sim$75~ms; búsqueda total p50 137~ms & medido, 17-09 & Spike; despreciable frente al LLM \\
@@ -50,11 +51,13 @@ costes por turno son estimaciones sobre el código; la consola ya registra el co
 agregar por viaje ni publicar.
 
 \paragraph{Lo que no está evaluado.} La calidad del itinerario extremo a extremo (coherencia,
-distancias, interés), sin juez LLM ni humano; el comportamiento con usuarios reales, que no los
-hay; la carga y las cuotas de Bedrock; la seguridad más allá del análisis estático (inyección de
-\emph{prompt}, sin DAST ni \emph{pentest}); la accesibilidad, sin auditoría; y el español más allá
-de la recuperación: con un corpus 98,8\,\% en inglés, el recall en español iguala al inglés en las
-18 parejas medidas, pero nadie ha juzgado aún las respuestas. El análisis y las propuestas están en la
+distancias, interés): el juez LLM califica las respuestas del chat, no los itinerarios; el
+comportamiento con usuarios reales, que no los hay; la carga y las cuotas de Bedrock; la seguridad
+más allá del análisis estático (inyección de \emph{prompt}, sin DAST ni \emph{pentest}); la
+accesibilidad, sin auditoría; y el acuerdo del juez con personas, medido solo sobre 11 veredictos
+y sin $\kappa$. El español no queda por detrás: con un corpus 98,8\,\% en inglés, el recall en
+español iguala al inglés en las 18 parejas medidas y las respuestas en español puntúan igual
+(\emph{groundedness} 4,71 frente a 4,74). El análisis y las propuestas están en la
 \cref{sec:10-analisis-critico}.
 
 \paragraph{Criterios de aceptación propuestos.} Coherentes con la \cref{tab:10-propuestas}, se

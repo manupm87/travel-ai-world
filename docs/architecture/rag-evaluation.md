@@ -5,8 +5,8 @@ so far. Umbrella issue: TRA-148. Two measurements, compared before and after a c
 
 1. **Retrieval** — recall@k and MRR of the deployed index over a fixed question set (TRA-263,
    TRA-272, below).
-2. **Answers** — groundedness and relevance with an LLM judge over the same questions (TRA-266,
-   not done yet).
+2. **Answers** — groundedness and relevance of the planner's answers to the same questions,
+   graded by an LLM judge (TRA-266, below).
 
 ## Retrieval: recall@k and MRR
 
@@ -156,4 +156,71 @@ changed question changes the totals: record a new baseline rather than comparing
 
 ## Answers: groundedness and relevance
 
-TRA-266: an LLM judge scores the planner's answers to the same questions. Not done yet.
+`just eval-answers [city]` (from a laptop with an AWS session; `--per-city N` for a cheap sample,
+`--out file.jsonl` to keep every answer and verdict) runs `ai_api/application/answer_eval.py` (how
+it works: the ai_api README, "Answer eval"). Each of the 120 questions above, plus 6 that no guide
+answers (`ai_api/data/eval_unanswerable.jsonl`, one per city: today's exchange rate, tonight's
+traffic, a live Uber price, a wifi password, a club queue, a pharmacy's hours), is answered exactly
+as the planner answers a question in chat: the same 6 passages with the city filter, the same
+prompt (`plan_trip.chat_messages`, shared with the planner), the production model. A judge model
+then reads the question, the passages and the answer and grades:
+
+- **groundedness** 1–5: is every claim supported by the passages? An invented specific (a place,
+  price, time, address, figure) caps it at 2; general advice clearly flagged as such after saying
+  the passages do not cover the question does not count against it;
+- **relevance** 1–5: does it answer what was asked?
+- **acknowledges_gap**: does it say the information is not available or cannot be confirmed?
+
+**The judge is Amazon Nova Pro** (`eu.amazon.nova-pro-v1:0`, temperature 0): another family than
+the answering Claude, so the model does not grade itself, at a quarter of a Sonnet's price. A whole
+run costs about 0.6 USD and takes a few minutes. The report prints the judge prompt's version:
+scores of two versions are not compared.
+
+### Baseline, 2026-10-01
+
+Answers by `eu.anthropic.claude-haiku-4-5-20251001-v1:0` over `travel-ai-vectors/city-kb`, judge
+`eu.amazon.nova-pro-v1:0`, judge prompt `f7a13e321bf8`; code at `main` `8b35b72` plus TRA-266.
+126 answers, no failure, no verdict needed a repair. Cost: answering 0.34 USD (216k tokens in,
+25k out), judging 0.25 USD (285k in, 8k out).
+
+| Set | Answers | Groundedness | Relevance | Either under 3 |
+|---|---:|---:|---:|---:|
+| **all** (answerable) | 120 | 4.72 | 4.98 | 4% |
+| berlin | 20 | 4.60 | 4.95 | 5% |
+| bologna | 20 | 4.85 | 4.95 | 0% |
+| budapest | 20 | 4.65 | 5.00 | 5% |
+| los-angeles | 20 | 4.95 | 5.00 | 0% |
+| madrid | 20 | 4.70 | 5.00 | 5% |
+| miami | 20 | 4.60 | 5.00 | 10% |
+| lang `en` | 72 | 4.74 | 4.99 | 3% |
+| lang `es` | 48 | 4.71 | 4.98 | 6% |
+
+- **The 6 unanswerable questions: 6 of 6 answers say the information is not available** and send
+  the traveller to a live source (XE or the bank, Google Maps, the venue). One still adds a figure
+  the passages do not give: a taxi fare to South Beach of "30–60 $".
+- **11 answerable questions (9 %) were turned down** ("I don't have that"): the children-on-a-rainy-day
+  ones in Berlin and Miami, Szimpla Kert, January in Budapest, Bologna's bus tickets and bike tour,
+  the Barnacle, Vizcaya in Spanish, the Holocaust memorial in Spanish, the Pergamon (closed: a
+  correct gap). Almost all match the retrieval misses above: when the passages do not hold the
+  answer, the model says so instead of inventing it.
+- **The five worst answers** are the cases to fix: an invented figure (2,711 slabs of the Holocaust
+  memorial: true, but not in the passages), a price in the wrong currency (Vizcaya, "€25" for
+  "$25"), general advice presented as fact (Miami's rainy-day options, January snow in Budapest),
+  and one the judge got wrong (cocido, below).
+
+### Checking the judge by hand
+
+On 2026-10-01 eleven verdicts were checked against their passages (by Claude while building this;
+a person of the team should repeat it on another ten): the four worst of the list above, four
+random 5/5 answers, the Pergamon, the January climate of Bologna and the Uber question. **8 of 11
+agree.** The three disagreements:
+
+- *cocido*: the judge marked the Cazorla restaurants, their addresses and prices as unsupported;
+  they are in the Spanish Wikivoyage passage. Too harsh on groundedness (2 for a 4–5).
+- *Uber price*: the answer gives a taxi fare the passages do not; the judge gave it 4. Too lenient.
+- *romantic sunset* (Madrid): the retrieval missed the Templo de Debod and the answer suggests an
+  arts centre under an overpass; grounded, but the judge gave relevance 5. Too lenient on relevance.
+
+So read these scores as an upper bound, relevance most of all (4.98 leaves no room to move).
+Agreement was not measured with κ; the memoria's proposed criterion (judge ≥ 4/5, κ ≥ 0.6 against
+50 labelled answers) is met on the first half only.

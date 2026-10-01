@@ -129,6 +129,12 @@ OPTIONS_COUNT = 3
 MENTIONED_COUNT = 5
 """Most cards an answer's own places may become (TRA-185)."""
 
+CHAT_PASSAGES = 6
+"""Passages a question's answer is grounded on."""
+
+EMPTY_ITINERARY = "(empty)"
+"""What the chat intro says of a trip with no itinerary yet."""
+
 NAMED_LIMIT = 10
 """Documents the name lookup of an ask reads (TRA-186)."""
 
@@ -1650,23 +1656,13 @@ class PlanTrip:
         yield options(group_id, kind, prompt_text, cards, slot=placed)
 
     async def _chat(self, turn: Turn) -> AsyncIterator[PlannerEvent]:
-        messages = [
-            Message("system", self._persona(turn)),
-            Message(
-                "system",
-                CHAT_INTRO.format(
-                    language=LANGUAGE_NAMES[turn.language],
-                    itinerary=_itinerary_summary(turn),
-                ),
-            ),
-        ]
         turn.phase("wardrobe")
         try:
             passages = await self._search(
                 turn,
                 turn.message,
                 (),
-                limit=6,
+                limit=CHAT_PASSAGES,
                 districts=(),
                 tier=None,
                 purpose="chat",
@@ -1674,15 +1670,13 @@ class PlanTrip:
         except DomainError as exc:
             logger.warning("Answering without retrieval: %s", exc.message)
             passages = []
-        if passages:
-            messages.append(
-                Message(
-                    "system",
-                    RAG_CONTEXT_PROMPT.format(context=format_context(passages)),
-                )
-            )
-        messages.extend(turn.history())
-        messages.append(Message("user", turn.message))
+        messages = chat_messages(
+            turn.language,
+            _itinerary_summary(turn),
+            passages,
+            turn.history(),
+            turn.message,
+        )
         answer: list[str] = []
         turn.phase("zip")
         async for delta in traced_llm_stream(
@@ -1951,10 +1945,39 @@ def _hotels_offered_in(turn: Turn) -> str | None:
     return None
 
 
+def chat_messages(
+    language: Language,
+    itinerary: str,
+    passages: Sequence[Document],
+    history: Sequence[Message],
+    message: str,
+) -> list[Message]:
+    """What the model reads to answer a traveller's question: the persona, the
+    chat intro with the itinerary so far, the retrieved passages (when there
+    are any), the conversation and the question. The planner's chat turn and
+    the answer evaluation (`application/answer_eval.py`) both build it here."""
+    messages = [
+        Message("system", PLANNER_PERSONA.format(language=LANGUAGE_NAMES[language])),
+        Message(
+            "system",
+            CHAT_INTRO.format(language=LANGUAGE_NAMES[language], itinerary=itinerary),
+        ),
+    ]
+    if passages:
+        messages.append(
+            Message(
+                "system", RAG_CONTEXT_PROMPT.format(context=format_context(passages))
+            )
+        )
+    messages.extend(history)
+    messages.append(Message("user", message))
+    return messages
+
+
 def _itinerary_summary(turn: Turn) -> str:
     itinerary = turn.request.itinerary
     if itinerary is None:
-        return "(empty)"
+        return EMPTY_ITINERARY
     lines = [f"stay: {itinerary.stay_card_id or '-'}"]
     for day in itinerary.days:
         parts = ", ".join(

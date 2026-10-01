@@ -342,4 +342,27 @@ a few hundred Titan tokens. Run it after a change to the corpus, the index or th
 right after `just index <city>`; the baseline and how to read it are in
 [`docs/architecture/rag-evaluation.md`](../../../../docs/architecture/rag-evaluation.md).
 
+### Answer eval (an LLM judge, AWS)
+
+```bash
+just eval-answers                                   # every city, about 1 USD and a few minutes
+just eval-answers madrid --per-city 5               # a cheap sample: 5 questions + the unanswerable one
+uv run python tests/manual/answer_eval.py --out answers.jsonl --judge-model eu.amazon.nova-lite-v1:0
+```
+
+`application/answer_eval.py` answers each evaluation question the way the planner's chat does —
+the `CHAT_PASSAGES` (6) passages of the city, `plan_trip.chat_messages` with an empty itinerary,
+the Bedrock chat model of the settings (Haiku 4.5) — plus the 6 questions of
+`ai_api/data/eval_unanswerable.jsonl` that no guide answers (one per city: live prices, tonight's
+traffic, a wifi password). A judge model (Amazon Nova Pro by default, temperature 0: another family
+than the answering Claude, at a quarter of a Sonnet's price) reads question, passages and answer
+with `prompts.JUDGE_PROMPT` and returns `groundedness` and `relevance` (1–5), `acknowledges_gap`
+and the `unsupported_claims` through `complete_json` (validated, one repair). The report gives the
+means per city and language and the share under 3 for the answerable questions, how many
+unanswerable ones were acknowledged, the answerable ones turned down anyway, the five worst answers
+with their unsupported claims, the failures, and tokens and USD per model (`pricing.py`). It prints
+the judge prompt's version: scores of two versions are not compared. `--out` writes every answer
+and verdict as JSON lines, to read the judge's work (keep it out of the repo). Needs an AWS session;
+not in CI.
+
 For agents: [`AGENTS.md`](AGENTS.md).
