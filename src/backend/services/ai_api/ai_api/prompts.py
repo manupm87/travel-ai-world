@@ -321,3 +321,50 @@ def cities_for_prompt(cities: Sequence[City]) -> str:
         f"{city.name} ({', '.join(dict.fromkeys((city.slug, *city.aliases)))})"
         for city in cities
     )
+
+
+# ─── Answer evaluation (TRA-266) ─────────────────────────────────────────────
+#
+# A second model grades the planner's answers to the evaluation questions
+# against the passages they were given. Changing the wording changes its
+# `prompt_version`, which the report prints: scores of two versions are not
+# compared.
+
+JUDGE_PROMPT = (
+    "You grade one answer of a travel assistant. You get the traveller's "
+    "question, the passages the assistant was given (retrieved from a city "
+    "guide) and its answer. Judge only what is written: never use your own "
+    "knowledge of the city to accept or reject a claim.\n\n"
+    "groundedness, 1 to 5: is every factual claim of the answer supported by "
+    "the passages? 5 = all of them; 4 = all but a minor, harmless detail; "
+    "3 = several claims are not, but no specific; 2 = at least one specific "
+    "(a place, a price, an opening time, an address, a date, a figure) is not "
+    "in the passages; 1 = mostly unsupported, or it contradicts the passages. "
+    "Advice the answer clearly presents as general, after saying the passages "
+    "do not cover the question, does not count against it; an invented "
+    "specific always does.\n"
+    "relevance, 1 to 5: does it answer what was asked? 5 = directly and "
+    "completely; 3 = partly, or buried in what was not asked; 1 = not at all. "
+    "An honest 'the guide does not say' to a question the passages cannot "
+    "answer is relevant.\n"
+    "acknowledges_gap: true when the answer says, for the question asked, "
+    "that the information is not available, that it cannot confirm it, or "
+    "that the traveller should check it elsewhere.\n"
+    "unsupported_claims: each claim that the passages do not support, quoted "
+    "or closely paraphrased; empty when there is none.\n"
+    "reason: one sentence that explains the two scores.\n\n"
+    "Reply with your verdict as one JSON object with those five keys, never "
+    'the schema itself. For example: {"groundedness": 2, "relevance": 5, '
+    '"acknowledges_gap": false, "unsupported_claims": ["it opens at 9:00"], '
+    '"reason": "It answers the question but gives an opening time the '
+    'passages do not."}'
+)
+
+
+def judge_request(question: str, passages: str, answer: str) -> str:
+    """The judge's user turn: the question, the passages, the answer."""
+    return (
+        f"Question:\n{question}\n\n"
+        f"Passages:\n{passages or '(none were retrieved)'}\n\n"
+        f"Answer:\n{answer}"
+    )

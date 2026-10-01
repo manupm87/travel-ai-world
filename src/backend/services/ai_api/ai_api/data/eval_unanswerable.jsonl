@@ -1,0 +1,6 @@
+{"id": "pharmacy-tonight-es", "city": "madrid", "lang": "es", "query": "¿A qué hora cierra hoy la farmacia de la calle Fuencarral 45?", "why": "Today's hours of a shop no guide lists: the answer should say it cannot confirm them."}
+{"id": "exchange-rate-today", "city": "budapest", "lang": "en", "query": "What is today's exchange rate from euros to forints?", "why": "Live data: at most an approximate figure from the guide, flagged as such."}
+{"id": "club-queue-saturday", "city": "berlin", "lang": "en", "query": "Which Berlin club will have the shortest queue at the door this Saturday?", "why": "A real-time question no corpus can answer."}
+{"id": "salaborsa-wifi-es", "city": "bologna", "lang": "es", "query": "¿Cuál es la contraseña del wifi de la Biblioteca Salaborsa?", "why": "A detail no guide publishes: the place is in the corpus, the password is not."}
+{"id": "freeway-closed-tonight", "city": "los-angeles", "lang": "en", "query": "Is the 10 freeway closed tonight near Santa Monica?", "why": "Live traffic: the answer should send the traveller to a live source."}
+{"id": "uber-price-now-es", "city": "miami", "lang": "es", "query": "¿Cuánto cuesta ahora mismo un Uber del aeropuerto a South Beach?", "why": "A live price, and the planner never states prices it was not given."}

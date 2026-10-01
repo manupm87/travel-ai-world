@@ -99,6 +99,12 @@ planner-smoke city="budapest" lang="es" *flags="":
 eval-retrieval city="":
     cd {{ai}} && uv run python tests/manual/retrieval_eval.py {{city}}
 
+# Groundedness and relevance of the planner's answers, graded by a judge model (TRA-266): the
+# eval questions plus 6 no guide answers. About 1 USD and a few minutes for every city; extra
+# flags go through (--per-city N, --judge-model ID, --out answers.jsonl). Needs an AWS session.
+eval-answers city="" *flags="":
+    cd {{ai}} && uv run python tests/manual/answer_eval.py {{city}} {{flags}}
+
 # ── Quality ──────────────────────────────────────────────────────────────────
 
 # Lint backend (ruff, incl. scripts/) and frontend (eslint)

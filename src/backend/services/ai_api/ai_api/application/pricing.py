@@ -12,6 +12,8 @@ PRICING_VERSION = "2026-09"
 PRICES: dict[str, tuple[float, float]] = {
     "anthropic.claude-haiku-4-5": (1.00, 5.00),
     "amazon.titan-embed-text-v2": (0.02, 0.0),
+    # The answer evaluation's judge (TRA-266); no request of the app uses it.
+    "amazon.nova-pro": (0.80, 3.20),
 }
 
 _PER_TOKEN = 1_000_000
