@@ -115,7 +115,7 @@ export function LoginModal({ isOpen, onClose, redirect: asked }: LoginModalProps
         </button>
 
         <div className="mb-8 flex flex-col items-center text-center">
-          <Mark size={36} />
+          <Mark size={56} />
           <h2
             id={titleId}
             className="mt-4 mb-2 font-heading text-2xl font-light text-text-primary"

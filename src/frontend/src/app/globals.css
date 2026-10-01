@@ -62,6 +62,13 @@
   --kiri-sticker-1: #8FA89B;
   --kiri-sticker-2: #F7F3EE;
   --kiri-sticker-3: #6B7F99;
+  /* The mark, the pin over the world (components/layout/Logo.tsx); the pin takes Kiri's clay. */
+  --logo-tile: #161B21;
+  --logo-tile-border: #252C34;
+  --logo-ocean: #1D2A30;
+  --logo-land: #47705F;
+  --logo-horizon: #8FB3A6;
+  --logo-pin: #DDA58F;
   /* Fixed header height: the offset every page and sticky element uses. */
   --header-h: 72px;
   --shadow-accent-glow: 0 0 18px rgba(143, 179, 166, 0.28);
@@ -105,6 +112,12 @@
   --color-success: #47705F;
   --color-warning: #8A5A2B;
   --kiri-mark: #7A8593;
+  --logo-tile: #FFFFFF;
+  --logo-tile-border: #DDE3EA;
+  --logo-ocean: #E4ECE9;
+  --logo-land: #B3CDC3;
+  --logo-horizon: #47705F;
+  --logo-pin: #9C6250;
   --shadow-accent-glow: 0 0 16px rgba(71, 112, 95, 0.2);
   --aurora-1: rgba(143, 179, 166, 0.2);
   --aurora-2: rgba(125, 151, 196, 0.16);
