@@ -374,6 +374,66 @@ describe("AuthContext", () => {
       await waitFor(() => expect(result.current.access).toBe("allowed"));
       expect(getMyAccess).toHaveBeenCalledTimes(2);
     });
+
+    it("starts from unknown when the same account signs in again", async () => {
+      vi.mocked(getMyAccess).mockResolvedValue({ allowed: false, daily_token_limit: null });
+      writeSession(validToken, user);
+      const { result } = renderHook(() => useAuth(), { wrapper });
+      await waitFor(() => expect(result.current.access).toBe("denied"));
+
+      act(() => {
+        result.current.logout();
+      });
+      // Invited meanwhile; the answer is slow, and the stale "denied" must not show.
+      let answer!: (value: { allowed: boolean; daily_token_limit: null }) => void;
+      vi.mocked(getMyAccess).mockReturnValue(new Promise((resolve) => (answer = resolve)));
+      act(() => {
+        writeSession(validToken, user);
+      });
+
+      expect(result.current.isAuthenticated).toBe(true);
+      expect(result.current.access).toBe("unknown");
+      await act(async () => {
+        answer({ allowed: true, daily_token_limit: null });
+      });
+      expect(result.current.access).toBe("allowed");
+    });
+
+    it("refreshAccess asks again and takes the new answer", async () => {
+      vi.mocked(getMyAccess).mockResolvedValue({ allowed: false, daily_token_limit: null });
+      writeSession(validToken, user);
+      const { result } = renderHook(() => useAuth(), { wrapper });
+      await waitFor(() => expect(result.current.access).toBe("denied"));
+
+      vi.mocked(getMyAccess).mockResolvedValue({ allowed: true, daily_token_limit: null });
+      await act(async () => {
+        await result.current.refreshAccess();
+      });
+
+      expect(result.current.access).toBe("allowed");
+      expect(getMyAccess).toHaveBeenCalledTimes(2);
+    });
+
+    it("refreshAccess keeps the answer when the read fails, and asks nobody when signed out", async () => {
+      vi.mocked(getMyAccess).mockResolvedValue({ allowed: false, daily_token_limit: null });
+      writeSession(validToken, user);
+      const { result } = renderHook(() => useAuth(), { wrapper });
+      await waitFor(() => expect(result.current.access).toBe("denied"));
+
+      vi.mocked(getMyAccess).mockRejectedValue(new Error("offline"));
+      await act(async () => {
+        await result.current.refreshAccess();
+      });
+      expect(result.current.access).toBe("denied");
+
+      act(() => {
+        result.current.logout();
+      });
+      await act(async () => {
+        await result.current.refreshAccess();
+      });
+      expect(getMyAccess).toHaveBeenCalledTimes(2);
+    });
   });
 
   it("throws when used outside the provider", () => {

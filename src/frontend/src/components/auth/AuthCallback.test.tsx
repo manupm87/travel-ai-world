@@ -31,6 +31,7 @@ describe("AuthCallback", () => {
       isAuthenticated: false,
       isAdmin: false,
       access: "unknown" as const,
+      refreshAccess: vi.fn(),
       isLoading: false,
     });
   });

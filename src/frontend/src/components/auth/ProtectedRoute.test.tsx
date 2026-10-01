@@ -25,6 +25,7 @@ vi.mock("@/components/common/LoadingSpinner", () => ({
 const auth = (state: { isAuthenticated: boolean; isLoading: boolean; access?: AccessState }) =>
   vi.mocked(useAuth).mockReturnValue({
     access: "unknown" as const,
+    refreshAccess: vi.fn(),
     ...state,
     user: null,
     login: vi.fn(),

@@ -56,6 +56,9 @@ interface AuthContextType {
   isAdmin: boolean;
   /** `denied`: signed in, but not invited yet. Never stored with the session. */
   access: AccessState;
+  /** Asks core_api again whether the account is on the list (someone who was
+   * just invited need not sign out and in). A failed read keeps the answer. */
+  refreshAccess: () => Promise<void>;
   /** True until the client has hydrated and storage has been read (and, in
    * Cognito mode, an expired session has been refreshed or dropped). */
   isLoading: boolean;
@@ -118,6 +121,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [accessAnswer, setAccessAnswer] = useState<{ userId: string; access: AccessState } | null>(null);
   const isLoading = !isHydrated || restoring;
   const userId = user?.id ?? null;
+  // Signed out: the answer goes with the session, so the next sign-in (even of
+  // the same account, perhaps invited meanwhile) starts from "unknown".
+  if (userId === null && accessAnswer !== null) setAccessAnswer(null);
   useEffect(() => {
     if (isLoading || userId === null) {
       if (userId === null) roleCheckedFor.current = null;
@@ -140,6 +146,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const access: AccessState =
     accessAnswer !== null && accessAnswer.userId === userId ? accessAnswer.access : "unknown";
+
+  const refreshAccess = useCallback(async () => {
+    if (userId === null || !readToken() || !isApiAvailable()) return;
+    const answer = await getMyAccess().catch(() => null);
+    if (answer) setAccessAnswer({ userId, access: answer.allowed ? "allowed" : "denied" });
+  }, [userId]);
 
   const login = useCallback(async (credential: string) => {
     await loginWithGoogle(credential);
@@ -165,6 +177,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated: user !== null,
       isAdmin: user?.role === "admin",
       access,
+      refreshAccess,
       isLoading,
       provider,
       login,
@@ -172,7 +185,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       completeLogin,
       logout,
     }),
-    [user, access, isLoading, provider, login, loginWithRedirect, completeLogin, logout]
+    [user, access, refreshAccess, isLoading, provider, login, loginWithRedirect, completeLogin, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

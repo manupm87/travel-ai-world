@@ -50,6 +50,7 @@ const signedOut = () =>
     completeLogin: vi.fn(),
     isAdmin: false,
     access: "unknown" as const,
+    refreshAccess: vi.fn(),
   });
 
 const signedIn = () =>
@@ -64,6 +65,7 @@ const signedIn = () =>
     completeLogin: vi.fn(),
     isAdmin: false,
     access: "unknown" as const,
+    refreshAccess: vi.fn(),
   });
 
 describe("Header", () => {

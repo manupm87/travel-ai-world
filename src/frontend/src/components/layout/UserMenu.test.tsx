@@ -30,6 +30,7 @@ const setAuth = (authenticated: boolean) =>
     completeLogin: vi.fn(),
     isAdmin: false,
     access: "unknown" as const,
+    refreshAccess: vi.fn(),
   });
 
 describe("UserMenu", () => {
