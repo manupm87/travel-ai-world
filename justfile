@@ -205,7 +205,7 @@ cognito-username email:
 dev-token email *flags="":
     @cd {{core}} && uv run --quiet python -m core_api.devtools token {{email}} {{flags}}
 
-# Put an email on the access list (ADR 0025) of the local table, without an administrator:
+# Put an email on the access list (ADR 0026) of the local table, without an administrator:
 # `just dev-grant you@example.com --limit 50000` (0 = unlimited; no flag = the service default).
 dev-grant email *flags="":
     @cd {{core}} && uv run --quiet python -m core_api.devtools grant {{email}} {{flags}}

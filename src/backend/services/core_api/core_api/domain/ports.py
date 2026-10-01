@@ -101,7 +101,7 @@ class ChatMessageRepository(Protocol):
 
 
 class AccessGrantRepository(Protocol):
-    """The access list (ADR 0025): one grant per email, case-insensitive."""
+    """The access list (ADR 0026): one grant per email, case-insensitive."""
 
     async def get(self, email: str) -> AccessGrant | None: ...
 

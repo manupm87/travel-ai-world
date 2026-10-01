@@ -1,4 +1,4 @@
-"""`AccessService` (ADR 0025): the rules, and the grants over moto."""
+"""`AccessService` (ADR 0026): the rules, and the grants over moto."""
 
 import uuid
 from datetime import UTC, datetime

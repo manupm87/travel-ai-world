@@ -392,7 +392,7 @@ def normalize_email(email: str) -> str:
 
 @dataclass
 class AccessGrant:
-    """An email allowed to use the app (ADR 0025). Its identity is the email,
+    """An email allowed to use the app (ADR 0026). Its identity is the email,
     so it is not an `Entity`: it exists before the person ever signs in.
 
     `daily_token_limit`: None = the service default applies; 0 = unlimited

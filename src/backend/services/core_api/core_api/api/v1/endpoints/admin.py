@@ -1,4 +1,4 @@
-"""Admin routes (ADR 0024, ADR 0025). Administrators only: reads across every
+"""Admin routes (ADR 0024, ADR 0026). Administrators only: reads across every
 account, and the access list, which they also write.
 
 Every route logs one audit line before it does anything:
@@ -99,7 +99,7 @@ async def list_all_users(
     )
 
 
-# ── Access list (ADR 0025) ───────────────────────────────────────────────────
+# ── Access list (ADR 0026) ───────────────────────────────────────────────────
 
 
 @router.get("/access", response_model=AccessGrantPage)

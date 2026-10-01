@@ -1,4 +1,4 @@
-"""Who may use the app, and how many tokens a day (ADR 0025).
+"""Who may use the app, and how many tokens a day (ADR 0026).
 
 The access list is read at request time: it has to be editable without a
 deploy and before the person's first sign-in. Administrators never need a

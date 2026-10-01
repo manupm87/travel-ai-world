@@ -1,4 +1,4 @@
-"""The access list (ADR 0025): who gets in, and the admin routes that edit it."""
+"""The access list (ADR 0026): who gets in, and the admin routes that edit it."""
 
 import logging
 from collections.abc import Iterator

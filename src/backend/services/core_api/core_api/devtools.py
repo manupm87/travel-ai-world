@@ -23,7 +23,7 @@ write the token into `localStorage` to sign in without Google
 
     just dev-grant you@example.com --limit 50000
 
-`grant` puts an email on the access list (ADR 0025) of the local table, as
+`grant` puts an email on the access list (ADR 0026) of the local table, as
 `PUT /admin/access/{email}` would, so `ACCESS_MODE=allowlist` can be tried
 without an administrator. `--limit` is the daily token limit (0 = unlimited;
 left out, the service default applies).

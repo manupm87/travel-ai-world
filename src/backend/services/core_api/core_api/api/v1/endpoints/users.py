@@ -40,7 +40,7 @@ async def read_user_me(
     principal: AccountPrincipal = Depends(get_authenticated_user),
     service: UserService = Depends(get_user_service),
 ):
-    """Profile of the authenticated user, invited or not (ADR 0025)."""
+    """Profile of the authenticated user, invited or not (ADR 0026)."""
     return await service.get(principal.id)
 
 

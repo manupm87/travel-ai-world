@@ -1,4 +1,4 @@
-"""The access list and the caller's own access (ADR 0025).
+"""The access list and the caller's own access (ADR 0026).
 
 No optional wire fields in responses: a nullable value is always present,
 `null` when there is none.

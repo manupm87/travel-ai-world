@@ -140,7 +140,7 @@ async def get_current_user(
     principal: AccountPrincipal = Depends(get_authenticated_user),
     access: AccessService = Depends(get_access_service),
 ) -> AccountPrincipal:
-    """The authenticated account, once the access list lets it in (ADR 0025):
+    """The authenticated account, once the access list lets it in (ADR 0026):
     403 `ACCESS_DENIED` otherwise. The default for every route."""
     await access.ensure_allowed(principal)
     return principal

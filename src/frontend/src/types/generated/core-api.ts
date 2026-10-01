@@ -513,7 +513,7 @@ export interface paths {
         };
         /**
          * Read User Me
-         * @description Profile of the authenticated user, invited or not (ADR 0025).
+         * @description Profile of the authenticated user, invited or not (ADR 0026).
          */
         get: operations["read_user_me_api_v1_users_me_get"];
         put?: never;

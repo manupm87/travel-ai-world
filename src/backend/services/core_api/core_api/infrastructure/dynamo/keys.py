@@ -40,7 +40,7 @@ def email_pk(email: str) -> str:
 
 
 def access_pk(email: str) -> str:
-    """The access list is keyed by email (ADR 0025), trimmed and lower-cased."""
+    """The access list is keyed by email (ADR 0026), trimmed and lower-cased."""
     return f"ACCESS#{email.strip().lower()}"
 
 

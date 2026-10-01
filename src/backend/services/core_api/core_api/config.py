@@ -19,13 +19,13 @@ class CoreSettings(CommonSettings, DynamoSettings):
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
 
-    # Who may use the app (ADR 0025). "open": every signed-in account.
+    # Who may use the app (ADR 0026). "open": every signed-in account.
     # "allowlist": administrators and the emails on the access list
     # (`/admin/access`); everyone else gets 403 ACCESS_DENIED.
     ACCESS_MODE: Literal["open", "allowlist"] = "open"
     # Tokens a person may spend per UTC day when their grant sets no limit of
     # its own; 0 = unlimited. Served by GET /users/me/access, enforced by ai_api.
-    DEFAULT_DAILY_TOKEN_LIMIT: int = Field(300_000, ge=0)
+    DEFAULT_DAILY_TOKEN_LIMIT: int = Field(default=300_000, ge=0)
 
     # Set by the Lambda runtime itself; never in a .env. On Lambda the empty
     # DYNAMODB_ENDPOINT_URL is expected (the regional endpoint), so the start-up

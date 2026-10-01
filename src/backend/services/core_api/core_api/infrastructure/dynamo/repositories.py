@@ -589,7 +589,7 @@ class DynamoChatMessageRepository(_Store):
 
 
 class DynamoAccessGrantRepository(_Store):
-    """Grants by email (ADR 0025). They share GSI1 with the accounts under
+    """Grants by email (ADR 0026). They share GSI1 with the accounts under
     their own partition (`ACCESS`), so neither list sees the other."""
 
     async def get(self, email: str) -> AccessGrant | None:
