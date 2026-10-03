@@ -30,7 +30,6 @@ TOML_MANIFESTS = [
     ROOT / "src/backend/libs/travel_common/pyproject.toml",
     ROOT / "src/backend/services/core_api/pyproject.toml",
     ROOT / "src/backend/services/ai_api/pyproject.toml",
-    ROOT / "src/backend/tools/scraper/pyproject.toml",
     ROOT / "src/backend/tools/city_corpus/pyproject.toml",
 ]
 SEMVER = re.compile(r"^\d+\.\d+\.\d+$")

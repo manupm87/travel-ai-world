@@ -7,7 +7,7 @@ One file per decision, numbered, never deleted (superseded ones get a new status
 | [0001](0001-backend-split.md) | Split the backend into `core_api` and `ai_api` | Accepted |
 | [0002](0002-auth-between-services.md) | Stateless JWT in `ai_api`; forward the user's token to `core_api` | Superseded by 0009 |
 | [0003](0003-frontend-two-base-urls.md) | Frontend supports two base URLs; reverse proxy is optional | Accepted |
-| [0004](0004-repository-layout.md) | Source under `src/`, infrastructure under `infra/`, one ignore file | Accepted |
+| [0004](0004-repository-layout.md) | Source under `src/`, infrastructure under `infra/`, one ignore file | Accepted (updated by 0028) |
 | [0005](0005-trip-aggregate-nested-resources.md) | `Trip` is the aggregate root; child resources are nested and declarative | Accepted (superseded in part by 0019 and 0023) |
 | [0006](0006-frontend-trip-view-model.md) | The frontend renders a view model mapped from the backend contract | Accepted (superseded in part by 0019) |
 | [0007](0007-aws-cloud-and-auth.md) | AWS is the deployment cloud; SSO locally, OIDC in CI, state in S3 | Accepted |
@@ -30,6 +30,7 @@ One file per decision, numbered, never deleted (superseded ones get a new status
 | [0024](0024-turn-traces-and-admin-access.md) | A turn is a trace with steps; admins are the Cognito group, filled from Terraform | Accepted (amended by 0026) |
 | [0025](0025-planner-progress-event.md) | The planner streams its progress: a `progress` event per packing step | Accepted |
 | [0026](0026-access-list-and-daily-token-quota.md) | An access list in `core_api` gates the app; a daily token quota per person | Accepted |
+| [0028](0028-retire-the-legacy-scraper.md) | The legacy scraper leaves the tree; the cities come from `tools/city_corpus` only | Accepted |
 
 ## Inputs
 

@@ -18,7 +18,6 @@ AI-powered travel planner. Static Next.js frontend + two FastAPI services:
 | `src/backend/services/core_api/` | Google auth, users, trips CRUD, chat conversations | DynamoDB (one table, ADR 0023) |
 | `src/backend/services/ai_api/` | Trip planner (typed SSE, ADR 0015/0025), card details, chat, admin reads over the turn traces; Bedrock deployed, NVIDIA locally; RAG over S3 Vectors (ADR 0014) | `core_api` (with the caller's token), Bedrock, S3 Vectors, its own trace table (ADR 0024), Open-Meteo, Wikimedia Commons |
 | `src/backend/libs/travel_common/` | Shared kernel: Principal, settings, errors, JWT, app factory | — |
-| `src/backend/tools/scraper/` | Legacy Madrid ingestion scripts (JSON output); nothing reads its output | Google Places, Wikipedia |
 | `src/backend/tools/city_corpus/` | RAG corpus builder: licence-clean city documents as JSONL (committed) | Wikivoyage, Wikipedia, OpenStreetMap, Wikidata, Open-Meteo |
 | `src/backend/tools/vector_store_bench/` | TRA-151 spike (Qdrant vs S3 Vectors); frozen, never deployed | — |
 | `infra/{gcp,aws}/` | Two-service deployment, one cloud per folder; **AWS is the deployed one** | — |
@@ -46,7 +45,6 @@ just docs-check     # documentation hygiene
 just docker-up      # backend only: proxy :8080 + core_api + ai_api + DynamoDB Local (no Node)
 just stack-up       # the stack as deployed: frontend export + the above on one origin :8080
 just build-stack    # only the export for :8080 (what stack-up runs before docker-up)
-just scrape         # run the city scraper (needs GOOGLE_API_KEY in its .env)
 just corpus         # build the RAG corpus (Wikivoyage, Wikipedia, OSM, Wikidata, Open-Meteo → tools/city_corpus/data/<city>/)
 just corpus-discover "<City>"  # draft a new city's TOML; the whole flow: docs/runbooks/add-city.md (Claude: /add-city)
 just aws-login      # AWS via IAM Identity Center (devcontainer); never access keys
@@ -78,8 +76,7 @@ database: DynamoDB is moto in process.
 
 - Python 3.12, `uv` workspace at `src/backend/` (one lockfile), ruff (line length 88; rules E4/E7/E9/F +
   I, UP, B, SIM, N, RUF, ASYNC, S — see `src/backend/pyproject.toml`) and pyright (standard mode) over
-  `libs/`, `services/`, `tools/city_corpus` and `tools/vector_store_bench` (`[tool.pyright]`). The
-  scraper keeps the E/F-only policy.
+  `libs/`, `services/`, `tools/city_corpus` and `tools/vector_store_bench` (`[tool.pyright]`).
 - TypeScript strict, Tailwind v4 (CSS custom properties, no `tailwind.config.js`), Vitest, Playwright.
 - Commits: conventional prefixes (`feat`, `fix`, `refactor`, `build`, `ci`, `docs`, `infra`, `test`, `chore`).
 - Branches: `<type>/TRA-<n>-<short-title>` (e.g. `feat/TRA-123-trip-list`): the same prefixes as

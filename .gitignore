@@ -12,7 +12,7 @@
 *.key
 *.crt
 
-# Python (uv workspace under src/backend, scraper, scripts)
+# Python (uv workspace under src/backend, scripts)
 __pycache__/
 *.py[cod]
 .venv/
@@ -47,7 +47,6 @@ npm-debug.log*
 crash.log
 crash.*.log
 
-# Scraper datasets are versioned for reproducible retrieval ingestion.
 # city_corpus: data/ is committed (source of truth); raw API downloads are not.
 src/backend/tools/city_corpus/.cache/
 

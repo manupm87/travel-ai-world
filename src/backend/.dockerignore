@@ -58,6 +58,6 @@ Dockerfile
 *.db
 *.sqlite3
 
-# Scripts (dev-only tooling) and scraper output
+# Scripts (dev-only tooling) and tool output (the corpus data)
 scripts/
 tools/*/data/
