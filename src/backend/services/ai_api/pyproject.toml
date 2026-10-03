@@ -9,7 +9,13 @@ description = "Kyrian World AI API: LLM chat streaming and retrieval"
 requires-python = ">=3.12"
 dependencies = [
     "travel-common",
-    "fastapi[standard]>=0.141.1",
+    "fastapi>=0.141.1",
+    # uvicorn picks these up on its own (`--loop auto`, `--http auto`): the
+    # event loop and HTTP parser production has always run. Not the
+    # [standard] extra, whose websockets, watchfiles and pyyaml never run here.
+    "uvicorn>=0.54.0",
+    "uvloop>=0.23.0; sys_platform != 'win32' and sys_platform != 'cygwin' and platform_python_implementation != 'PyPy'",
+    "httptools>=0.8.0",
     "httpx>=0.28.1",
     "boto3>=1.40",
 ]

@@ -60,6 +60,12 @@ uv run python scripts/export_openapi.py  # → docs/api/*.openapi.json (then `np
 - **Errors**: services raise `travel_common.exceptions.*`; `travel_common.http.error_handlers` maps
   them to `{"detail": {"message", "error_code", "extras"}}`. Endpoints never raise `HTTPException`.
 - **Adding a dependency**: edit the *member's* `pyproject.toml`, then `uv lock` at the workspace root.
+  A service's dependencies are its image: `fastapi` and `uvicorn` **without extras**, plus `uvloop`
+  and `httptools` (the loop and parser uvicorn picks on its own, as before TRA-277) and what the code
+  imports (`httpx`, `email-validator` for `EmailStr`). Never `fastapi[standard]` or
+  `uvicorn[standard]`: the CLI, Sentry, templates, WebSockets and file watcher they bring never run
+  in Lambda. Dev-only tools go to the root `dev` group (`watchfiles` is there so `--reload` watches
+  instead of polling).
 - **Tools** (`tools/*`) are workspace members with `package = false`: they get the venv, the lock and
   ruff, but are never imported by a service nor copied into an image.
 - **Adding a service**: `services/<name>/pyproject.toml` (name with dashes, package with underscores),
