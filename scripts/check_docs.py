@@ -34,8 +34,6 @@ REQUIRED = [
     "src/backend/services/ai_api/README.md",
     "src/backend/services/ai_api/AGENTS.md",
     "src/backend/services/ai_api/.env.example",
-    "src/backend/tools/scraper/README.md",
-    "src/backend/tools/scraper/.env.example",
     "src/backend/tools/city_corpus/README.md",
     "src/backend/tools/city_corpus/AGENTS.md",
     "src/backend/tools/vector_store_bench/README.md",

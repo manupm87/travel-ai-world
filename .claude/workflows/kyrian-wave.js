@@ -28,7 +28,7 @@ const RULES = `
 Ground rules (the repo's AGENTS.md files apply; these are the ones a wave trips on):
 - You work in a fresh git worktree. First: git fetch origin, then create or check out the branch as told.
   Frontend work needs the worktree's own node_modules: cd src/frontend && npm ci. Backend work: uv sync.
-- Never touch .claude/, docs/api/, src/frontend/src/types/generated/, lockfiles, or src/backend/tools/scraper/.
+- Never touch .claude/, docs/api/, src/frontend/src/types/generated/ or lockfiles.
 - Every commit is conventional and ends with the trailer line:
   Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
 - Push with: git push -u origin ${branch}

@@ -66,6 +66,5 @@ tests/                   fixtures only; never hit the network
 - **The readiness gate is the definition of done for a corpus**: `just corpus-report <slug>`
   must pass before `just index`; commit `report.md` and `report.json` with the corpus. Change a
   threshold only in `config/readiness.py`, with the reason in the PR.
-- Full ruff rule set and pyright apply here (unlike `tools/scraper`); `logging`, never `print`.
+- Full ruff rule set and pyright apply here; `logging`, never `print`.
 - Never import this package from a service; the indexer reads the JSONL file.
-- Do not touch `tools/scraper/`.

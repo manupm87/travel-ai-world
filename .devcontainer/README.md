@@ -16,8 +16,8 @@ with the same `just` recipes everyone uses.
 `src/backend/.venv`, `src/frontend/node_modules` and `src/frontend/.next` are named Docker volumes, so the
 host's copies (with their platform-specific binaries) are never touched.
 
-On first creation `post-create.sh` runs `just setup` (creates the four `.env` files, including the
-scraper's, `uv sync`, `npm install`) and installs Chromium for `just test-e2e`. There are no
+On first creation `post-create.sh` runs `just setup` (creates the three `.env` files, `uv sync`,
+`npm install`) and installs Chromium for `just test-e2e`. There are no
 migrations: `core_api` creates its DynamoDB table in DynamoDB Local when it starts (ADR 0023).
 
 ## Database wiring

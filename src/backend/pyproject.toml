@@ -1,5 +1,5 @@
 # Workspace root. Members: libs/* (shared libraries), services/* (deployable APIs)
-# and tools/* (scripts that share the toolchain but are not deployed, e.g. the scraper).
+# and tools/* (scripts that share the toolchain but are not deployed, e.g. city_corpus).
 # One lockfile and one virtualenv for the whole backend: `uv sync` at this level
 # installs every member; `uv sync --package core-api` installs only one.
 [project]
@@ -55,11 +55,9 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "**/tests/**" = ["S101", "S105", "S106"]  # asserts and fake secrets are what tests are made of
-# The scraper is maintained separately and keeps the original E/F-only policy.
 # Corpus tests assert real text: typographic characters (›, –) are expected.
 "tools/city_corpus/tests/**" = ["S101", "RUF001"]
 "tools/vector_store_bench/tests/**" = ["S101", "RUF001"]
-"tools/scraper/**" = ["I", "UP", "B", "SIM", "N", "RUF", "ASYNC", "S"]
 
 [tool.pyright]
 include = [

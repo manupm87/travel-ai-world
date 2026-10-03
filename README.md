@@ -15,7 +15,6 @@ sign-in come from the same domain: `infra/aws/`, ADR 0009; the data lives in Dyn
 | [`src/backend/services/ai_api/`](src/backend/services/ai_api/README.md) | Trip planner (typed SSE, ADR 0015), card details, chat, admin reads over the turn traces; Bedrock deployed, NVIDIA locally; RAG over S3 Vectors (ADR 0014) | FastAPI · boto3 · httpx · SSE |
 | [`src/backend/libs/travel_common/`](src/backend/libs/travel_common/README.md) | Shared kernel: identity, settings, errors, token verification, DynamoDB access, app factory | Pydantic · PyJWT · boto3 |
 | [`src/backend/tools/city_corpus/`](src/backend/tools/city_corpus/README.md) | The RAG corpus: licence-clean city documents as committed JSONL, one folder per city | httpx · Wikivoyage · Wikipedia · OpenStreetMap · Wikidata |
-| [`src/backend/tools/scraper/`](src/backend/tools/scraper/README.md) | Legacy Madrid datasets (Google Places, transport, Wikipedia); not used by the planner | requests · BeautifulSoup · Google Places |
 | [`src/backend/tools/vector_store_bench/`](src/backend/tools/vector_store_bench/README.md) | Vector store spike (TRA-151, Qdrant vs S3 Vectors); frozen, never deployed | numpy · qdrant-client |
 | [`infra/`](infra/README.md) | Terraform: [`aws/`](infra/aws/README.md) is what is deployed; [`gcp/`](infra/gcp/README.md) still validates but is not ported to DynamoDB | Terraform |
 | [`docs/`](docs/README.md) | Architecture overview, ADRs, runbooks, generated OpenAPI documents, design file | Markdown · Mermaid |

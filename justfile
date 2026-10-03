@@ -14,7 +14,6 @@ backend := "src/backend"
 core := "src/backend/services/core_api"
 ai := "src/backend/services/ai_api"
 common := "src/backend/libs/travel_common"
-scraper := "src/backend/tools/scraper"
 corpus := "src/backend/tools/city_corpus"
 frontend := "src/frontend"
 
@@ -29,7 +28,6 @@ setup:
     @[ -f {{core}}/.env ] || cp {{core}}/.env.example {{core}}/.env
     @[ -f {{ai}}/.env ] || cp {{ai}}/.env.example {{ai}}/.env
     @[ -f {{frontend}}/.env.local ] || cp {{frontend}}/.env.example {{frontend}}/.env.local
-    @[ -f {{scraper}}/.env ] || cp {{scraper}}/.env.example {{scraper}}/.env
     cd {{backend}} && uv sync --all-packages
     cd {{frontend}} && npm install
     @echo "Setup complete. Fill in SECRET_KEY (same value in both backend .env files), GOOGLE_* and NVIDIA_API_KEY."
@@ -52,10 +50,6 @@ dev-frontend:
 # In-memory DynamoDB on :8002 for `just dev-core`/`dev-ai` without Docker (moto); Compose uses amazon/dynamodb-local
 dynamodb-local:
     cd {{backend}} && uv run moto_server -H 0.0.0.0 -p 8002
-
-# Run the city scraper (needs GOOGLE_API_KEY in {{scraper}}/.env); output in {{scraper}}/data/
-scrape:
-    cd {{scraper}} && uv run python main.py
 
 # Build a city's knowledge-base corpus (Wikivoyage, Wikipedia, OpenStreetMap, Wikidata, Open-Meteo
 # → data/<city>/documents.jsonl), then its readiness report (fails below the thresholds).

@@ -19,8 +19,8 @@ src/backend/
 │   ├── core_api/           api → services → domain (entities + ports) ← infrastructure/dynamo (one table)
 │   └── ai_api/             ports & adapters: domain → application → infrastructure → api
 └── tools/
-    ├── scraper/            legacy Madrid scripts, `package = false`: linted and locked here, never in an image
-    ├── city_corpus/        RAG corpus builder (Wikivoyage/Wikipedia → JSONL), same model; see its AGENTS.md
+    ├── city_corpus/        RAG corpus builder (Wikivoyage/Wikipedia → JSONL), `package = false`: linted and
+    │                       locked here, never in an image; see its AGENTS.md
     └── vector_store_bench/ TRA-151 spike (Qdrant vs S3 Vectors), frozen; see its AGENTS.md
 ```
 
@@ -68,8 +68,7 @@ uv run python scripts/export_openapi.py  # → docs/api/*.openapi.json (then `np
 - **Tests** run per package with `--import-mode=importlib`; never `from tests.x import` across packages.
 - **Lint policy** lives in the root `pyproject.toml`: ruff `I, UP, B, SIM, N, RUF, ASYNC, S` on top of
   `E/F`, `B008` and `N818` ignored on purpose (FastAPI defaults; domain error names), tests may
-  `assert` and hold fake secrets, `tools/scraper/**` keeps the old E/F-only set (`tools/city_corpus` gets
-  the full set and pyright). Type-check with pyright
+  `assert` and hold fake secrets; `tools/city_corpus` gets the full set and pyright too. Type-check with pyright
   (`[tool.pyright]`); prefer fixing the type over `# pyright: ignore`, and justify every ignore.
 - **Runtime model (Lambda): nothing runs after the response.** In production both services are the
   same FastAPI app, but each one runs inside an AWS Lambda execution environment behind the

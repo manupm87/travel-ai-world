@@ -1,6 +1,8 @@
 # 0004 — Source under `src/`, infrastructure under `infra/`, one ignore file
 
-**Status:** Accepted
+> **Updated by [ADR 0028](0028-retire-the-legacy-scraper.md)** (`tools/scraper` removed).
+
+**Status:** Accepted (updated by [0028](0028-retire-the-legacy-scraper.md))
 **Date:** 2026-09-07
 
 ## Context
