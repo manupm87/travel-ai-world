@@ -1,6 +1,6 @@
 # 0023 — DynamoDB is the data store: one table for `core_api`, one interaction log for `ai_api`, RDS retired
 
-**Status:** Accepted (amended by [0024](0024-turn-traces-and-admin-access.md))
+**Status:** Accepted (amended by [0024](0024-turn-traces-and-admin-access.md); the conversation items and their repositories retired by [0027](0027-retire-chat-v1.md))
 **Date:** 2026-09-22
 
 ## Context

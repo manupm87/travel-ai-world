@@ -1,5 +1,5 @@
 """The access list and the daily token quota over HTTP (ADR 0026): the
-planner and the chat refuse before they stream, `/usage/me`, `/admin/usage`."""
+planner refuses before it streams, `/usage/me`, `/admin/usage`."""
 
 from collections.abc import Iterator
 from datetime import UTC, date, datetime
@@ -16,6 +16,7 @@ from ai_api.domain.usage import Entitlement
 from ai_api.main import app
 from ai_api.testing import (
     FakeAccessGateway,
+    FakeProvider,
     FakeRetriever,
     InMemoryUsageStore,
     settings_for_tests,
@@ -26,7 +27,6 @@ from travel_common.principal import Principal, Role
 from travel_common.security import create_access_token
 
 PLANNER_URL = "/api/v1/ai/planner"
-CHAT_URL = "/api/v1/ai/chat"
 USAGE_URL = "/api/v1/ai/usage/me"
 ADMIN_USAGE_URL = "/api/v1/ai/admin/usage"
 
@@ -86,15 +86,12 @@ async def spend(usage: InMemoryUsageStore, tokens: int, subject: str = "1") -> N
 # ─── The routes that spend tokens ───────────────────────────────────────────
 
 
-@pytest.mark.parametrize(
-    ("url", "body"), [(PLANNER_URL, TURN), (CHAT_URL, {"message": "hola"})]
-)
 async def test_over_budget_is_a_plain_429_before_any_stream(
-    gated: AsyncClient, auth_headers, usage_store: InMemoryUsageStore, url, body
+    gated: AsyncClient, auth_headers, usage_store: InMemoryUsageStore
 ):
     await spend(usage_store, 1000)
 
-    response = await gated.post(url, json=body, headers=auth_headers)
+    response = await gated.post(PLANNER_URL, json=TURN, headers=auth_headers)
 
     assert response.status_code == 429
     assert response.headers["content-type"] == "application/json"
@@ -115,7 +112,6 @@ async def test_over_budget_is_a_plain_429_before_any_stream(
     ("method", "url", "body"),
     [
         ("POST", PLANNER_URL, TURN),
-        ("POST", CHAT_URL, {"message": "hola"}),
         ("GET", f"{PLANNER_URL}/cities", None),
         ("GET", f"{PLANNER_URL}/card?id=osm:node/1", None),
         ("GET", USAGE_URL, None),
@@ -138,9 +134,7 @@ async def test_core_api_out_of_reach_refuses_the_turn(
 ):
     gateway.fail_with = ProviderUnavailable("core_api unreachable")
 
-    response = await gated.post(
-        CHAT_URL, json={"message": "hola"}, headers=auth_headers
-    )
+    response = await gated.post(PLANNER_URL, json=TURN, headers=auth_headers)
 
     assert response.status_code == 503
 
@@ -148,7 +142,7 @@ async def test_core_api_out_of_reach_refuses_the_turn(
 async def test_the_token_is_checked_before_core_api_is_asked(
     gated: AsyncClient, gateway: FakeAccessGateway
 ):
-    response = await gated.post(CHAT_URL, json={"message": "hola"})
+    response = await gated.post(PLANNER_URL, json=TURN)
 
     assert response.status_code == 401
     assert gateway.tokens == []
@@ -157,19 +151,20 @@ async def test_the_token_is_checked_before_core_api_is_asked(
 async def test_under_budget_the_turn_runs_and_is_counted(
     gated: AsyncClient,
     auth_headers,
+    provider: FakeProvider,
     gateway: FakeAccessGateway,
     usage_store: InMemoryUsageStore,
 ):
-    response = await gated.post(
-        CHAT_URL, json={"message": "hola"}, headers=auth_headers
-    )
+    response = await gated.post(PLANNER_URL, json=TURN, headers=auth_headers)
 
     assert response.status_code == 200
-    assert "Hola" in response.text
+    assert response.headers["content-type"].startswith("text/event-stream")
     assert gateway.tokens == [auth_headers["Authorization"].removeprefix("Bearer ")]
-    # The fake model reports 3 + 2 tokens, on the UTC day the turn ran.
+    # The fake model reports 3 + 2 tokens a call, on the UTC day the turn ran.
+    calls = len(provider.calls) + len(provider.completions)
+    assert calls > 0
     [counter] = usage_store.days.values()
-    assert (counter.subject, counter.tokens, counter.turns) == ("1", 5, 1)
+    assert (counter.subject, counter.tokens, counter.turns) == ("1", 5 * calls, 1)
     assert counter.day == datetime.now(UTC).date().isoformat()
 
 
@@ -182,13 +177,16 @@ async def test_the_turn_that_crosses_the_limit_finishes_and_the_next_is_refused(
     gateway.entitlement = limited(4)
     app.dependency_overrides[get_settings] = lambda: ENABLED
     app.dependency_overrides[get_access_gateway] = lambda: gateway
+    app.dependency_overrides[get_retriever] = lambda: FakeRetriever([])
 
-    first = await client.post(CHAT_URL, json={"message": "hola"}, headers=auth_headers)
-    second = await client.post(CHAT_URL, json={"message": "hola"}, headers=auth_headers)
+    first = await client.post(PLANNER_URL, json=TURN, headers=auth_headers)
+    [counter] = usage_store.days.values()
+    second = await client.post(PLANNER_URL, json=TURN, headers=auth_headers)
 
-    assert first.status_code == 200 and "Hola" in first.text
+    assert first.status_code == 200
+    assert counter.tokens > 4, "the first turn ran past the limit"
     assert second.status_code == 429
-    assert second.json()["detail"]["extras"]["used"] == 5
+    assert second.json()["detail"]["extras"]["used"] == counter.tokens
 
 
 async def test_planner_within_budget_streams(gated: AsyncClient, auth_headers):
@@ -198,16 +196,11 @@ async def test_planner_within_budget_streams(gated: AsyncClient, auth_headers):
     assert response.headers["content-type"].startswith("text/event-stream")
 
 
-@pytest.mark.parametrize(
-    ("url", "body"), [(PLANNER_URL, TURN), (CHAT_URL, {"message": "hola"})]
-)
 async def test_access_control_off_asks_nobody_and_limits_nothing(
     client: AsyncClient,
     auth_headers,
     gateway: FakeAccessGateway,
     usage_store: InMemoryUsageStore,
-    url,
-    body,
 ):
     gateway.entitlement = DENIED
     app.dependency_overrides[get_access_gateway] = lambda: gateway
@@ -220,7 +213,7 @@ async def test_access_control_off_asks_nobody_and_limits_nothing(
         embed_tokens=0,
     )
 
-    response = await client.post(url, json=body, headers=auth_headers)
+    response = await client.post(PLANNER_URL, json=TURN, headers=auth_headers)
 
     assert response.status_code == 200
     assert gateway.tokens == []

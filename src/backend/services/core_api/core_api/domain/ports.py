@@ -2,7 +2,7 @@
 
 The DynamoDB adapter (`core_api.infrastructure.dynamo.repositories`) is the
 only implementation; tests use it over moto. Every method is async. Writes
-of a versioned entity (profile, trip, thread) are optimistic: a stale
+of a versioned entity (profile, trip) are optimistic: a stale
 `version` raises `travel_common.exceptions.Conflict`.
 """
 
@@ -10,14 +10,7 @@ import builtins
 from typing import Protocol
 from uuid import UUID
 
-from core_api.domain.models import (
-    AccessGrant,
-    ChatMessage,
-    ChatThread,
-    Trip,
-    TripSummary,
-    User,
-)
+from core_api.domain.models import AccessGrant, Trip, TripSummary, User
 from core_api.pagination import Page
 
 
@@ -47,7 +40,7 @@ class UserRepository(Protocol):
         ...
 
     async def delete(self, user: User) -> None:
-        """The account and everything it owns: trips, threads, messages."""
+        """The account, every item stored under it, and its email item."""
         ...
 
 
@@ -72,32 +65,6 @@ class TripRepository(Protocol):
         ...
 
     async def delete(self, trip: Trip) -> None: ...
-
-
-class ChatThreadRepository(Protocol):
-    async def get(self, owner_id: UUID, thread_id: UUID) -> ChatThread | None: ...
-
-    async def list_for(self, owner_id: UUID) -> list[ChatThread]:
-        """All the owner's threads, most recent activity first."""
-        ...
-
-    async def add(self, thread: ChatThread) -> ChatThread: ...
-
-    async def save(self, thread: ChatThread) -> ChatThread: ...
-
-    async def delete(self, thread: ChatThread) -> None:
-        """The thread and, first, its messages."""
-        ...
-
-
-class ChatMessageRepository(Protocol):
-    async def list_in(self, thread_id: UUID, page: Page) -> list[ChatMessage]:
-        """A thread's messages, oldest first."""
-        ...
-
-    async def append(self, thread: ChatThread, message: ChatMessage) -> ChatMessage:
-        """Write the message and move the thread's `updated_at` together."""
-        ...
 
 
 class AccessGrantRepository(Protocol):

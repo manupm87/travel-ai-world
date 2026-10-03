@@ -1,4 +1,9 @@
-"""User endpoints: the caller manages their own account; admins see everyone."""
+"""User endpoints: the caller manages their own account; admins see everyone.
+
+`role_router` (`PATCH /{user_id}/role`) is mounted only in local auth mode
+(`api_router.build_api_router`): with Cognito the pool's `admin` group decides
+the role, and the account's next request would undo a stored change.
+"""
 
 from uuid import UUID
 
@@ -20,6 +25,7 @@ from core_api.services.access_service import AccessService
 from core_api.services.user_service import UserService
 
 router = APIRouter()
+role_router = APIRouter()
 
 # Static routes (/me, /me/access) MUST be declared before parameterized ones (/{user_id}),
 # otherwise FastAPI tries to parse "me" as a UUID and returns 422.
@@ -71,7 +77,7 @@ async def update_user(
     principal: AccountPrincipal = Depends(get_current_user),
     service: UserService = Depends(get_user_service),
 ):
-    """Update an account. Only its owner may do so."""
+    """Update an account's name or picture. Only its owner may do so."""
     return await service.update(await service.get_owned(user_id, principal), user_in)
 
 
@@ -85,12 +91,12 @@ async def delete_user(
     await service.delete(await service.get_owned(user_id, principal))
 
 
-@router.patch("/{user_id}/role", response_model=UserResponse)
+@role_router.patch("/{user_id}/role", response_model=UserResponse)
 async def update_user_role(
     user_id: UUID,
     role_in: UserRoleUpdate,
     _admin: AccountPrincipal = Depends(get_current_admin_user),
     service: UserService = Depends(get_user_service),
 ):
-    """Change a user's role. Administrators only."""
+    """Change a user's role. Administrators only; local auth mode only."""
     return await service.update(await service.get(user_id), role_in)

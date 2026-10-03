@@ -10,7 +10,6 @@ components trivial to mock in tests.
 | `session.ts` | `localStorage` | The only owner of the persisted session (token, profile, refresh token): `readSession`, `readToken`, `readRefreshToken`, `writeSession`, `writeToken`, `updateStoredUser(patch)` (merges the account's `role` into the stored profile, tokens untouched), `clearSession`, `pruneInvalidSession`, `userFromIdToken`, `tokenExpiresWithin`, plus `subscribe`/`getSnapshot` for `useSyncExternalStore` |
 | `cognito.ts` | the Cognito user pool (`NEXT_PUBLIC_COGNITO_DOMAIN`) | The deployed sign-in, no SDK: `startCognitoLogin(redirect)` (code + PKCE, leaves for the managed login), `completeCognitoLogin(params)` (on `/auth/callback/`: state check, code exchange, writes the session), `ensureFreshToken` / `refreshCognitoSession` (refresh-token grant, single-flight), `logoutFromCognito`, `isCognitoAvailable`, and the pure `buildAuthorizeUrl` / `buildLogoutUrl` / `pkceChallenge` |
 | `auth.ts` | `core_api` | The local Google flow: `loginWithGoogle(credential)` (API vs static mode, writes the session, throws on an invalid credential), `verifyGoogleToken(credential)` |
-| `chat.ts` | `ai_api` | `streamChat(message, history, { signal })` — async generator over SSE, cancellable with an `AbortSignal`; `parseSseEvents(buffer)` — the pure SSE line parser it is built on |
 | `planner.ts` | `ai_api` (`POST /api/v1/ai/planner`) | `streamPlannerTurn(turn, { signal })` — async generator of typed SSE v2 events (`text`, `brief`, `options`, `itinerary_patch`, `error`, `done`; TRA-142); `parsePlannerEvents(buffer)` / `toPlannerEvent(json)` — the tolerant parser (unknown types ignored, malformed lines skipped, legacy `{"content"}`/`{"error"}` mapped) |
 | `plannerDemo.ts` | — (in-browser) | `streamDemoTurn(turn, { fast, signal })` — the synthetic backend: plays `data/planner-demo/session.ts` as SSE v2 events chosen from the turn (`demoEventsFor`, pure), word by word with model-like timing; `streamPlannerTurn` falls back to it when no ai_api URL is set or `/planner` answers 404/405 and reports it through `onDemo` (TRA-158) — unless `getMyAccess()` says `allowed: false`: CloudFront turns a 403 into a 404, so that 404 is thrown as `ACCESS_DENIED` instead (TRA-258) |
 | `plannerDraft.ts` | `sessionStorage` | The only owner of the planner's per-tab draft: `readPlannerDraft`, `writePlannerDraft`, `clearPlannerDraft` (versioned; a stale or unreadable draft reads as `null`), the id of the trip that draft was saved as (`readSavedTripId`, `writeSavedTripId`; cleared with the draft, so "Start over" starts a new trip), plus the demo banner's per-tab dismissal (`isDemoBannerDismissed`, `dismissDemoBanner`) |
@@ -32,9 +31,9 @@ Request/response types are generated from the backend's OpenAPI documents into
 
 ```typescript
 // Good: the component calls a service
-import { streamChat } from "@/services/chat";
-for await (const chunk of streamChat(message, history)) { ... }
+import { streamPlannerTurn } from "@/services/planner";
+for await (const event of streamPlannerTurn(turn, { signal })) { ... }
 
 // Bad: the component fetches on its own
-const res = await fetch("http://localhost:8001/api/v1/ai/chat", ...);
+const res = await fetch("http://localhost:8001/api/v1/ai/planner", ...);
 ```

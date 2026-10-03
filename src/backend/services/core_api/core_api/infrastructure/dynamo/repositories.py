@@ -1,6 +1,6 @@
 """The domain's repository ports over the core table (ADR 0023).
 
-Every write of a versioned item (profile, trip, thread) is conditional:
+Every write of a versioned item (profile, trip) is conditional:
 `attribute_not_exists(PK)` when it is created, `version = :expected` when it
 changes. A failed condition is a `Conflict` ("reload and retry"), never a
 silent overwrite. There are no database cascades, so deletes walk what an
@@ -13,12 +13,11 @@ import binascii
 import builtins
 import json
 from collections.abc import Sequence
-from datetime import datetime, timedelta
 from typing import Any
 from uuid import UUID
 
 from botocore.exceptions import ClientError
-from travel_common.dynamodb import call, from_item
+from travel_common.dynamodb import call
 from travel_common.exceptions import (
     BadRequest,
     Conflict,
@@ -27,14 +26,7 @@ from travel_common.exceptions import (
     UnprocessableEntity,
 )
 
-from core_api.domain.models import (
-    AccessGrant,
-    ChatMessage,
-    ChatThread,
-    Trip,
-    TripSummary,
-    User,
-)
+from core_api.domain.models import AccessGrant, Trip, TripSummary, User
 from core_api.infrastructure.dynamo import keys
 from core_api.infrastructure.dynamo.codec import (
     entity_to_item,
@@ -88,23 +80,6 @@ def trip_item(trip: Trip, version: int) -> Item:
         GSI2PK=keys.TRIPS_GSI2PK,
         GSI2SK=keys.trip_gsi2_sk(trip.created_at, trip.id),
         version=version,
-    )
-
-
-def thread_item(thread: ChatThread, version: int) -> Item:
-    return entity_to_item(
-        thread,
-        PK=keys.user_pk(thread.user_id),
-        SK=keys.thread_sk(thread.id),
-        version=version,
-    )
-
-
-def message_item(message: ChatMessage) -> Item:
-    return entity_to_item(
-        message,
-        PK=keys.thread_pk(message.thread_id),
-        SK=keys.message_sk(message.created_at, message.id),
     )
 
 
@@ -280,17 +255,6 @@ class _Store:
     async def _batch_delete(self, items: list[Item]) -> None:
         await self._batch([{"DeleteRequest": {"Key": _key_of(item)}} for item in items])
 
-    async def _delete_thread_items(self, owner_id: UUID, thread_id: UUID) -> None:
-        """A thread's messages, then the thread itself."""
-        await self._batch_delete(
-            await self._query(keys.thread_pk(thread_id), keys.MSG_PREFIX)
-        )
-        await call(
-            self._client.delete_item,
-            TableName=self.table.name,
-            Key=keys.key(keys.user_pk(owner_id), keys.thread_sk(thread_id)),
-        )
-
 
 def _key_of(item: Item) -> Item:
     return {keys.PK: item[keys.PK], keys.SK: item[keys.SK]}
@@ -410,10 +374,7 @@ class DynamoUserRepository(_Store):
         return user
 
     async def delete(self, user: User) -> None:
-        owner = keys.user_pk(user.id)
-        for thread in await self._query(owner, keys.THREAD_PREFIX):
-            await self._delete_thread_items(user.id, UUID(from_item(thread)["id"]))
-        await self._batch_delete(await self._query(owner, None))
+        await self._batch_delete(await self._query(keys.user_pk(user.id), None))
         await call(
             self._client.delete_item,
             TableName=self.table.name,
@@ -478,116 +439,6 @@ class DynamoTripRepository(_Store):
             TableName=self.table.name,
             Key=keys.key(keys.user_pk(trip.user_id), keys.trip_sk(trip.id)),
         )
-
-
-# ── Conversations ───────────────────────────────────────────────────────────
-
-
-class DynamoChatThreadRepository(_Store):
-    async def get(self, owner_id: UUID, thread_id: UUID) -> ChatThread | None:
-        item = await self._get(keys.user_pk(owner_id), keys.thread_sk(thread_id))
-        return item_to_entity(ChatThread, item) if item else None
-
-    async def list_for(self, owner_id: UUID) -> list[ChatThread]:
-        items = await self._query(keys.user_pk(owner_id), keys.THREAD_PREFIX)
-        threads = [item_to_entity(ChatThread, item) for item in items]
-        # Most recent activity first; the id breaks ties in a stable order.
-        threads.sort(key=lambda thread: str(thread.id))
-        threads.sort(key=lambda thread: thread.updated_at, reverse=True)
-        return threads
-
-    async def add(self, thread: ChatThread) -> ChatThread:
-        await self._write(
-            "put_item",
-            [STALE],
-            TableName=self.table.name,
-            Item=thread_item(thread, thread.version),
-            ConditionExpression="attribute_not_exists(PK)",
-        )
-        return thread
-
-    async def save(self, thread: ChatThread) -> ChatThread:
-        new_version = thread.version + 1
-        await self._write(
-            "put_item",
-            [STALE],
-            TableName=self.table.name,
-            Item=thread_item(thread, new_version),
-            **_expected(thread.version),
-        )
-        thread.version = new_version
-        return thread
-
-    async def delete(self, thread: ChatThread) -> None:
-        await self._delete_thread_items(thread.user_id, thread.id)
-
-
-class DynamoChatMessageRepository(_Store):
-    async def list_in(self, thread_id: UUID, page: Page) -> list[ChatMessage]:
-        items = await self._query(
-            keys.thread_pk(thread_id), keys.MSG_PREFIX, wanted=page.skip + page.limit
-        )
-        window = items[page.skip : page.skip + page.limit]
-        return [item_to_entity(ChatMessage, item) for item in window]
-
-    async def _last_created_at(self, thread_id: UUID) -> datetime | None:
-        response = await call(
-            self._client.query,
-            TableName=self.table.name,
-            KeyConditionExpression="PK = :pk AND begins_with(SK, :prefix)",
-            ExpressionAttributeValues={
-                ":pk": {"S": keys.thread_pk(thread_id)},
-                ":prefix": {"S": keys.MSG_PREFIX},
-            },
-            ScanIndexForward=False,
-            Limit=1,
-            ConsistentRead=True,
-        )
-        items = response.get("Items", [])
-        return item_to_entity(ChatMessage, items[0]).created_at if items else None
-
-    async def append(self, thread: ChatThread, message: ChatMessage) -> ChatMessage:
-        """Write the message and bump the thread in one transaction.
-
-        The sort key is the order (ADR 0013): a message never sorts before the
-        one already last, even when both carry the same clock reading.
-        """
-        last = await self._last_created_at(thread.id)
-        if last is not None and message.created_at <= last:
-            message.created_at = last + timedelta(microseconds=1)
-        # The thread is bumped, not compared: an append never conflicts with a
-        # rename or another append (ai_api writes question and answer back to
-        # back), it only requires the thread to still exist.
-        await self._write(
-            "transact_write_items",
-            [STALE, "the conversation no longer exists"],
-            TransactItems=[
-                {
-                    "Put": {
-                        "TableName": self.table.name,
-                        "Item": message_item(message),
-                        "ConditionExpression": "attribute_not_exists(PK)",
-                    }
-                },
-                {
-                    "Update": {
-                        "TableName": self.table.name,
-                        "Key": keys.key(
-                            keys.user_pk(thread.user_id), keys.thread_sk(thread.id)
-                        ),
-                        "UpdateExpression": "SET updated_at = :now ADD version :one",
-                        "ConditionExpression": "attribute_exists(PK)",
-                        "ExpressionAttributeValues": {
-                            ":now": {"S": message.created_at.isoformat()},
-                            ":one": {"N": "1"},
-                        },
-                    }
-                },
-            ],
-        )
-        thread.updated_at = message.created_at
-        thread.version += 1
-        return message
 
 
 # ── Access list ─────────────────────────────────────────────────────────────

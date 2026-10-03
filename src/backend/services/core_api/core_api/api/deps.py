@@ -1,6 +1,6 @@
 """FastAPI dependables: pagination, the table and its repositories, service
 wiring, authentication, the access list, RBAC and the ownership boundaries (`get_owned_trip`,
-`get_owned_itinerary_day`, `get_owned_chat_thread`)."""
+`get_owned_itinerary_day`)."""
 
 from uuid import UUID
 
@@ -11,18 +11,14 @@ from travel_common.http.auth import extract_bearer_token
 from core_api.auth.google import GoogleTokenInfoVerifier, IdentityVerifier
 from core_api.auth.principal import AccountPrincipal
 from core_api.config import CoreSettings, get_settings
-from core_api.domain.models import ChatThread, Trip
+from core_api.domain.models import Trip
 from core_api.domain.ports import (
     AccessGrantRepository,
-    ChatMessageRepository,
-    ChatThreadRepository,
     TripRepository,
     UserRepository,
 )
 from core_api.infrastructure.dynamo.repositories import (
     DynamoAccessGrantRepository,
-    DynamoChatMessageRepository,
-    DynamoChatThreadRepository,
     DynamoTripRepository,
     DynamoUserRepository,
 )
@@ -30,8 +26,6 @@ from core_api.infrastructure.dynamo.table import DynamoTable
 from core_api.pagination import MAX_PAGE_SIZE, Page
 from core_api.services.access_service import AccessService
 from core_api.services.auth_service import Authenticate, SignIn
-from core_api.services.chat_message_service import ChatMessageService
-from core_api.services.chat_thread_service import ChatThreadService
 from core_api.services.trip_children import ITINERARY_DAYS, Located, get_child
 from core_api.services.trip_service import TripService
 from core_api.services.user_service import UserService
@@ -63,18 +57,6 @@ def get_trip_repository(table: DynamoTable = Depends(get_table)) -> TripReposito
     return DynamoTripRepository(table)
 
 
-def get_chat_thread_repository(
-    table: DynamoTable = Depends(get_table),
-) -> ChatThreadRepository:
-    return DynamoChatThreadRepository(table)
-
-
-def get_chat_message_repository(
-    table: DynamoTable = Depends(get_table),
-) -> ChatMessageRepository:
-    return DynamoChatMessageRepository(table)
-
-
 def get_access_grant_repository(
     table: DynamoTable = Depends(get_table),
 ) -> AccessGrantRepository:
@@ -98,18 +80,6 @@ def get_trip_service(
     trips: TripRepository = Depends(get_trip_repository),
 ) -> TripService:
     return TripService(trips)
-
-
-def get_chat_thread_service(
-    threads: ChatThreadRepository = Depends(get_chat_thread_repository),
-) -> ChatThreadService:
-    return ChatThreadService(threads)
-
-
-def get_chat_message_service(
-    messages: ChatMessageRepository = Depends(get_chat_message_repository),
-) -> ChatMessageService:
-    return ChatMessageService(messages)
 
 
 # ── Authentication ───────────────────────────────────────────────────────────
@@ -216,16 +186,3 @@ async def get_editable_itinerary_day(
 ) -> Located:
     """A day of an editable trip: the lock is checked before the day is read."""
     return Located(trip=trip, parent=get_child(trip, ITINERARY_DAYS, itinerary_day_id))
-
-
-# ── Chat threads ─────────────────────────────────────────────────────────────
-# A conversation is its own root, owned by a user like a trip (ADR 0013): its
-# messages are reached through it, so authorization happens once, here.
-
-
-async def get_owned_chat_thread(
-    thread_id: UUID,
-    principal: AccountPrincipal = Depends(get_current_user),
-    threads: ChatThreadService = Depends(get_chat_thread_service),
-) -> ChatThread:
-    return await threads.get_owned(thread_id, principal)

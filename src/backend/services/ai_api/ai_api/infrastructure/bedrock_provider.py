@@ -217,7 +217,7 @@ def _extract_delta(
 
     The final `metadata` event carries the token usage: logged so the cost of
     a deployment can be reconciled with Cost Explorer, and handed to the
-    caller through `usage` so a recorded conversation keeps it.
+    caller through `usage` so the turn's trace keeps it.
     """
     text = event.get("contentBlockDelta", {}).get("delta", {}).get("text")
     if text:

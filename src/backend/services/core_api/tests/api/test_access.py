@@ -18,7 +18,6 @@ from tests.conftest import headers_for, make_user, trip_body
 ME_URL = "/api/v1/users/me"
 ACCESS_URL = "/api/v1/users/me/access"
 TRIPS_URL = "/api/v1/trips/"
-THREADS_URL = "/api/v1/chat-threads/"
 ADMIN_ACCESS_URL = "/api/v1/admin/access"
 DEFAULT_LIMIT = get_settings().DEFAULT_DAILY_TOKEN_LIMIT
 
@@ -57,15 +56,13 @@ async def test_an_uninvited_account_is_refused_everywhere_but_its_own_profile(
 
     trips = await client.get(TRIPS_URL, headers=headers)
     new_trip = await client.post(TRIPS_URL, json=trip_body(), headers=headers)
-    threads = await client.get(THREADS_URL, headers=headers)
-    new_thread = await client.post(THREADS_URL, json={}, headers=headers)
     patch = await client.patch(
         f"/api/v1/users/{alice.id}", json={"name": "A"}, headers=headers
     )
     me = await client.get(ME_URL, headers=headers)
     access = await client.get(ACCESS_URL, headers=headers)
 
-    for refused in (trips, new_trip, threads, new_thread, patch):
+    for refused in (trips, new_trip, patch):
         assert refused.status_code == 403, refused.text
         assert refused.json()["detail"] == {
             "message": "This account has not been given access yet",
@@ -116,11 +113,9 @@ async def test_an_invited_account_gets_in_whatever_the_case_of_its_email(
     headers = headers_for(user)
 
     trips = await client.get(TRIPS_URL, headers=headers)
-    threads = await client.get(THREADS_URL, headers=headers)
     access = await client.get(ACCESS_URL, headers=headers)
 
     assert trips.status_code == 200, trips.text
-    assert threads.status_code == 200, threads.text
     assert access.json() == {"allowed": True, "daily_token_limit": 1000}
 
 

@@ -50,7 +50,7 @@ Leave `DYNAMODB_ENDPOINT_URL` empty only on AWS. Tests need none of this: they u
 ## The planner needs the corpus
 
 With the default `RETRIEVAL_ENABLED=false`, `POST /api/v1/ai/planner` and `/planner/card` answer
-**503** (every card is a corpus document) and the chat answers from the model alone. Retrieval has
+**503** (every card is a corpus document). Retrieval has
 no local emulator: it reads the deployed S3 Vectors index and embeds the question with Titan on
 Bedrock, so it needs an AWS session and `RETRIEVAL_ENABLED=true` in
 `src/backend/services/ai_api/.env`. Without AWS, either leave `NEXT_PUBLIC_AI_API_URL` empty (the AI

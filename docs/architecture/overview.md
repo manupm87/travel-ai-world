@@ -10,7 +10,7 @@ flowchart LR
     Browser["Browser<br/>Next.js static export"]
     Proxy["Reverse proxy<br/>(nginx in Compose / CloudFront)<br/>optional"]
     Core["core_api<br/>FastAPI · boto3<br/>auth · users · trips"]
-    AI["ai_api<br/>FastAPI · httpx · boto3<br/>chat streaming · RAG"]
+    AI["ai_api<br/>FastAPI · httpx · boto3<br/>planner streaming · RAG"]
     DDB[("DynamoDB<br/>one table, travel-ai-core<br/>(owned by core_api)")]
     Cognito["Cognito user pool<br/>(Google IdP) · deployed"]
     Google["Google OAuth<br/>tokeninfo · local"]
@@ -39,10 +39,10 @@ flowchart LR
 Calls go in one direction only: `ai_api → core_api`. `core_api` works with `ai_api` down.
 
 `core_api` keeps everything in **one DynamoDB table** ([ADR 0023](adr/0023-dynamodb-data-store.md)):
-the account under `USER#<id>`/`PROFILE` (plus an `EMAIL#` item for uniqueness), each trip as one
-item holding its whole aggregate, each conversation under its owner and its messages under
-`THREAD#<id>`, ordered by time. There are no migrations and no SQL database: RDS was retired
-in TRA-219.
+the account under `USER#<id>`/`PROFILE` (plus an `EMAIL#` item for uniqueness) and each trip as
+one item holding its whole aggregate. The conversations of the retired chat (`THREAD#`/`MSG#`
+items) are still in the table and nothing reads them ([ADR 0027](adr/0027-retire-chat-v1.md)).
+There are no migrations and no SQL database: RDS was retired in TRA-219.
 
 ## Code layout per service
 
@@ -53,7 +53,7 @@ in TRA-219.
   trip is one city; its `phase` (`upcoming | ongoing | past`) is derived from its dates, and an
   ongoing or past trip refuses every write with 409 `TRIP_LOCKED`
   ([ADR 0019](adr/0019-trips-live-in-the-planner.md)).
-  Domain models own their invariants (`check_invariants()`); profile, trip and thread writes are
+  Domain models own their invariants (`check_invariants()`); profile and trip writes are
   conditional on a `version`, and a lost race is 409 `CONFLICT`.
 - `ai_api` is **ports and adapters**: `domain` (types + Protocols) ← `application` (use cases) ←
   `infrastructure` (NVIDIA and Bedrock providers, Titan embedder, S3 Vectors retriever, trace log,
@@ -91,7 +91,7 @@ sequenceDiagram
     B->>C: GET /api/v1/users/me · Bearer ID token
     C->>C: verify against JWKS · upsert user from claims · is_active?
     C-->>B: profile
-    B->>A: POST /api/v1/ai/chat · Bearer ID token
+    B->>A: POST /api/v1/ai/planner · Bearer ID token
     A->>A: verify against JWKS · Principal from claims
 ```
 
@@ -125,7 +125,8 @@ In both modes:
 - `core_api` verifies the token **and** checks the account in its table on every request:
   a deactivated user is cut off immediately. In Cognito mode the profile is upserted from the
   claims (written only when they change it) and the `admin` role mirrors the pool's `admin`
-  group; in local mode the table owns the role (`PATCH /users/{id}/role`).
+  group; in local mode the table owns the role (`PATCH /users/{id}/role`, mounted only in that
+  mode).
 - Administrators read every trip and account under `core_api`'s `/api/v1/admin` (GSI2 lists
   every trip newest first; each read logs an audit line). The Cognito `admin` group is filled from
   `admin_usernames` in Terraform (ADR 0024).
@@ -135,7 +136,7 @@ In both modes:
   everyone else gets 403 `ACCESS_DENIED` from every route except `GET /users/me` and
   `GET /users/me/access`. The frontend asks the latter once per signed-in account and shows a
   "not invited yet" page instead of the app. The same answer carries the account's daily token
-  limit. `ai_api` honours both: before a planner or chat request it asks `core_api` for that same
+  limit. `ai_api` honours both: before a planner request it asks `core_api` for that same
   answer with the caller's token (kept per account for 60 s), refuses an account that is not
   allowed (403 `ACCESS_DENIED`) and one that has spent its tokens of the UTC day (429
   `DAILY_TOKEN_LIMIT`, counted in its own table). Locally the mode is `open` and `ai_api` asks
@@ -145,43 +146,10 @@ In both modes:
   token expires (60 min). See [ADR 0002](adr/0002-auth-between-services.md) (superseded for the
   issuer, still the rule for the boundary).
 
-## Chat
-
-```mermaid
-sequenceDiagram
-    participant B as Browser
-    participant A as ai_api
-    participant V as S3 Vectors (+ Titan)
-    participant N as LLM (Bedrock or NVIDIA)
-    participant C as core_api
-    B->>A: POST /api/v1/ai/chat {message, history, thread_id?} + Bearer
-    A->>A: principal_from_token (local HS256 or Cognito RS256)
-    A->>V: embed the question (Titan V2) · QueryVectors top-k
-    V-->>A: passages + metadata (skipped if RETRIEVAL_ENABLED is off or the store fails)
-    A->>A: StreamChat: [system] + [system: passages] + history + [user]
-    A->>N: converse_stream (Bedrock) or chat/completions (NVIDIA)
-    N-->>A: SSE deltas
-    A-->>B: data: {"content": ...} ×n
-    A->>C: POST /chat-threads/… question + answer (sources, model, tokens, latency)
-    A-->>B: data: {"thread_id": ...} · data: [DONE]
-    Note over A,B: on failure after output started: data: {"error", "error_code"} then [DONE]
-    Note over A,C: recording failures are logged only; the answer is already delivered
-```
-
-Retrieval ([ADR 0014](adr/0014-vector-store-s3-vectors.md)) embeds only the question; the passages
-reach the model as a second system turn and the recorded answer as its `sources`. The index is
-filled out of band by `just index` from the corpus committed under `tools/city_corpus/data/`.
-
-Wire format is fixed by `ai_api/infrastructure/sse.py` and consumed by `src/frontend/src/services/chat.ts`.
-Conversations are stored by `core_api` ([ADR 0013](adr/0013-chat-conversations-in-core-api.md)):
-`ai_api` never reaches `core_api`'s table: its only storage is its own trace table,
-`<prefix>-interactions` ([ADR 0024](adr/0024-turn-traces-and-admin-access.md)), which also holds
-each account's daily token counter ([ADR 0026](adr/0026-access-list-and-daily-token-quota.md)).
-
 ## Planner
 
-The planner page (`/plan/`) talks to `POST /api/v1/ai/planner`, the typed successor of the chat
-stream: SSE v2 ([ADR 0015](adr/0015-planner-sse-v2-stateless-orchestration.md)), one JSON event per
+The planner page (`/plan/`) talks to `POST /api/v1/ai/planner`, a typed stream: SSE v2
+([ADR 0015](adr/0015-planner-sse-v2-stateless-orchestration.md)), one JSON event per
 `data:` line (`text`, `brief`, `options`, `itinerary_patch`, `progress` ([ADR 0025](adr/0025-planner-progress-event.md)),
 `error`, `done`) then `[DONE]`, with the models
 generated for both sides by `just contracts`.
@@ -218,6 +186,14 @@ way the carousel's are (Commons, then the venue's own site preview), but it cann
 the model wrote for a turn, nor the fallback photo that turn picked, so the page merges the detail
 onto the card it already holds rather than replacing it.
 
+Retrieval ([ADR 0014](adr/0014-vector-store-s3-vectors.md)) searches an S3 Vectors index that is
+filled out of band by `just index` from the corpus committed under `tools/city_corpus/data/`. The
+wire format is framed by `ai_api/infrastructure/sse.py` and read by
+`src/frontend/src/services/planner.ts`. `ai_api` never reaches `core_api`'s table: its only storage
+is its own trace table, `<prefix>-interactions` ([ADR 0024](adr/0024-turn-traces-and-admin-access.md)),
+which also holds each account's daily token counter
+([ADR 0026](adr/0026-access-list-and-daily-token-quota.md)).
+
 Every card is a retrieved corpus document (`application/cards.py`); ids the model returns that were
 not retrieved are dropped, prices are tiers, flights a prefilled search link (`static_flight_search.py`),
 and `application/validate.py` adds `warn` ops (distance, load per pace, closed that weekday, a price
@@ -227,16 +203,15 @@ session is the test double for the page.
 
 ## Service-to-service calls
 
-When `ai_api` persists something (the chat's conversation; the planner's itinerary is saved by the
-browser), it calls `core_api` **as the user**:
+When `ai_api` needs `core_api` (the caller's access; the planner's itinerary is saved by the
+browser, not by `ai_api`), it calls `core_api` **as the user**:
 it forwards the same bearer token, so `core_api` applies the same permissions it applies to the
 browser. No service secret exists today; add an `INTERNAL_API_KEY` + `/internal/*` router only when
 a job must act without a user.
 
 | Call | When | What for |
 |---|---|---|
-| `POST /chat-threads/`, `POST /chat-threads/{id}/messages/` | after a chat answer | the conversation ([ADR 0013](adr/0013-chat-conversations-in-core-api.md)); a failure never fails the answer |
-| `GET /users/me/access` | before a planner or chat request, and for the planner's reads, when `ACCESS_CONTROL_ENABLED` | may this account use the app, and its daily token limit ([ADR 0026](adr/0026-access-list-and-daily-token-quota.md)). Kept in process per token subject for `ACCESS_CACHE_SECONDS` (60); **fails closed**: when `core_api` cannot be asked the request is refused with 503 |
+| `GET /users/me/access` | before a planner request, and for the planner's reads, when `ACCESS_CONTROL_ENABLED` | may this account use the app, and its daily token limit ([ADR 0026](adr/0026-access-list-and-daily-token-quota.md)). Kept in process per token subject for `ACCESS_CACHE_SECONDS` (60); **fails closed**: when `core_api` cannot be asked the request is refused with 503 |
 
 ## Contracts
 

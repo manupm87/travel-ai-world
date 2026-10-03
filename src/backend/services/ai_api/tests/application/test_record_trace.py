@@ -8,7 +8,6 @@ from datetime import UTC, date, datetime
 import pytest
 from ai_api.application.record_trace import RecordTrace
 from ai_api.application.tracing import TurnTracer, current_tracer
-from ai_api.domain.models import ThreadSaved
 from ai_api.domain.tracing import TurnTrace
 from ai_api.schemas.planner_events import (
     OptionCard,
@@ -237,25 +236,6 @@ async def test_the_tracer_is_current_inside_the_wrapped_stream():
     )
 
     assert seen == [t]
-
-
-async def test_the_chat_stream_records_text_and_the_thread():
-    log = InMemoryTraceLog()
-
-    async def chat() -> AsyncIterator[str | ThreadSaved]:
-        yield "Hola"
-        yield " mundo"
-        yield ThreadSaved("thread-1")
-
-    out = [
-        e async for e in RecordTrace(log, InMemoryUsageStore()).chat(tracer(), chat())
-    ]
-
-    assert out[-1] == ThreadSaved("thread-1")
-    [trace] = log.traces
-    assert trace.status == "ok"
-    assert trace.events == {"text": 2, "thread": 1}
-    assert trace.context.answer_text == "Hola mundo"
 
 
 # ─── The day's token counter (ADR 0026) ─────────────────────────────────────

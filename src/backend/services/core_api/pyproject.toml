@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "core-api"
 version = "0.1.1"
-description = "Kyrian World core API: auth, users, trips and conversations on DynamoDB"
+description = "Kyrian World core API: auth, users, trips and the access list on DynamoDB"
 requires-python = ">=3.12"
 dependencies = [
     "travel-common",

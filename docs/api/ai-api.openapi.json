@@ -347,45 +347,6 @@
         "title": "ChatMessage",
         "type": "object"
       },
-      "ChatRequest": {
-        "description": "Incoming chat request body.",
-        "properties": {
-          "history": {
-            "description": "Previous conversation messages for context",
-            "items": {
-              "$ref": "#/components/schemas/ChatMessage"
-            },
-            "maxItems": 40,
-            "title": "History",
-            "type": "array"
-          },
-          "message": {
-            "description": "Current user message",
-            "maxLength": 4000,
-            "minLength": 1,
-            "title": "Message",
-            "type": "string"
-          },
-          "thread_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "Conversation to record this exchange in. Omit it to start a new one; the stream ends with `{\"thread_id\": ...}` to send back next time.",
-            "title": "Thread Id"
-          }
-        },
-        "required": [
-          "message"
-        ],
-        "title": "ChatRequest",
-        "type": "object"
-      },
       "CityIntro": {
         "description": "A city's own description in one language: the lead of its Wikivoyage\narticle (CC BY-SA 4.0), trimmed at a sentence boundary, and the page it\ncomes from \u2014 shown with the text, as the licence asks.",
         "properties": {
@@ -3555,51 +3516,6 @@
         "summary": "Read Usage",
         "tags": [
           "Admin"
-        ]
-      }
-    },
-    "/api/v1/ai/chat": {
-      "post": {
-        "description": "Stream a chat completion for the authenticated user.\n\nWire format, one JSON object per `data:` line, terminated by `[DONE]`:\n\n    data: {\"content\": \"Hola\"}\n    data: {\"thread_id\": \"...\"}\n    data: {\"error\": \"...\"}\n    data: [DONE]\n\nThe `system` prompt is inserted server-side; clients may only send\n`user` and `assistant` turns. Once the answer is complete, the exchange is\nrecorded in the caller's conversation (`thread_id`, or a new one) and\n`{\"thread_id\"}` is sent before `[DONE]`; if recording fails, the answer is\nstill delivered and that event is simply missing. The answer's trace\nis written to the interactions table before `[DONE]` (ADR 0024).\n\nWith `ACCESS_CONTROL_ENABLED` the request is refused before the stream\nstarts, as a plain JSON error: 403 `ACCESS_DENIED` or 429\n`DAILY_TOKEN_LIMIT` (ADR 0026).",
-        "operationId": "chat_api_v1_ai_chat_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ChatRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Chat",
-        "tags": [
-          "Chat"
         ]
       }
     },

@@ -128,85 +128,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/chat-threads/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Read Chat Threads
-         * @description The caller's conversations, most recent activity first (paginated).
-         */
-        get: operations["read_chat_threads_api_v1_chat_threads__get"];
-        put?: never;
-        /**
-         * Create Chat Thread
-         * @description Start a conversation owned by the caller.
-         */
-        post: operations["create_chat_thread_api_v1_chat_threads__post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/chat-threads/{thread_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Read Chat Thread
-         * @description Get one of the caller's conversations, without its messages.
-         */
-        get: operations["read_chat_thread_api_v1_chat_threads__thread_id__get"];
-        put?: never;
-        post?: never;
-        /**
-         * Delete Chat Thread
-         * @description Delete a conversation and all its messages.
-         */
-        delete: operations["delete_chat_thread_api_v1_chat_threads__thread_id__delete"];
-        options?: never;
-        head?: never;
-        /**
-         * Update Chat Thread
-         * @description Rename a conversation or change its city.
-         */
-        patch: operations["update_chat_thread_api_v1_chat_threads__thread_id__patch"];
-        trace?: never;
-    };
-    "/api/v1/chat-threads/{thread_id}/messages/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Read Chat Messages
-         * @description A conversation's messages in the order they were written (paginated).
-         */
-        get: operations["read_chat_messages_api_v1_chat_threads__thread_id__messages__get"];
-        put?: never;
-        /**
-         * Append Chat Message
-         * @description Append a turn to one of the caller's conversations.
-         *
-         *     An assistant answer may carry its sources, model and usage; a user turn
-         *     carries none of them (422).
-         */
-        post: operations["append_chat_message_api_v1_chat_threads__thread_id__messages__post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/health/": {
         parameters: {
             query?: never;
@@ -568,7 +489,7 @@ export interface paths {
         head?: never;
         /**
          * Update User
-         * @description Update an account. Only its owner may do so.
+         * @description Update an account's name or picture. Only its owner may do so.
          */
         patch: operations["update_user_api_v1_users__user_id__patch"];
         trace?: never;
@@ -588,7 +509,7 @@ export interface paths {
         head?: never;
         /**
          * Update User Role
-         * @description Change a user's role. Administrators only.
+         * @description Change a user's role. Administrators only; local auth mode only.
          */
         patch: operations["update_user_role_api_v1_users__user_id__role_patch"];
         trace?: never;
@@ -988,116 +909,6 @@ export interface components {
             name?: string | null;
             /** Picture */
             picture?: string | null;
-        };
-        /** ChatMessageCreate */
-        ChatMessageCreate: {
-            /** Content */
-            content: string;
-            /** Input Tokens */
-            input_tokens?: number | null;
-            /** Latency Ms */
-            latency_ms?: number | null;
-            /** Model */
-            model?: string | null;
-            /** Output Tokens */
-            output_tokens?: number | null;
-            role: components["schemas"]["ChatRole"];
-            /** Sources */
-            sources?: components["schemas"]["ChatSource"][] | null;
-        };
-        /** ChatMessageResponse */
-        ChatMessageResponse: {
-            /** Content */
-            content: string;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Input Tokens */
-            input_tokens?: number | null;
-            /** Latency Ms */
-            latency_ms?: number | null;
-            /** Model */
-            model?: string | null;
-            /** Output Tokens */
-            output_tokens?: number | null;
-            role: components["schemas"]["ChatRole"];
-            /** Sources */
-            sources?: components["schemas"]["ChatSource"][] | null;
-            /**
-             * Thread Id
-             * Format: uuid
-             */
-            thread_id: string;
-        };
-        /**
-         * ChatRole
-         * @enum {string}
-         */
-        ChatRole: "user" | "assistant";
-        /**
-         * ChatSource
-         * @description A corpus document an answer was grounded on.
-         */
-        ChatSource: {
-            /** Doc Id */
-            doc_id: string;
-            /** Score */
-            score?: number | null;
-            /** Title */
-            title?: string | null;
-            /** Url */
-            url?: string | null;
-        };
-        /** ChatThreadCreate */
-        ChatThreadCreate: {
-            /** City */
-            city?: string | null;
-            /** Title */
-            title?: string | null;
-        };
-        /** ChatThreadResponse */
-        ChatThreadResponse: {
-            /** City */
-            city?: string | null;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Title */
-            title?: string | null;
-            /**
-             * Updated At
-             * Format: date-time
-             */
-            updated_at: string;
-            /**
-             * User Id
-             * Format: uuid
-             */
-            user_id: string;
-        };
-        /**
-         * ChatThreadUpdate
-         * @description Partial update of ChatThreadBase.
-         */
-        ChatThreadUpdate: {
-            /** City */
-            city?: string | null;
-            /** Title */
-            title?: string | null;
         };
         /**
          * GoogleAuthRequest
@@ -1699,13 +1510,11 @@ export interface components {
         };
         /**
          * UserUpdate
-         * @description All fields are optional: a partial update (PATCH).
+         * @description All fields are optional: a partial update (PATCH). The email is how a
+         *     sign-in finds its account (and so its trips), so it is not editable;
+         *     neither is `is_active`.
          */
         UserUpdate: {
-            /** Email */
-            email?: string | null;
-            /** Is Active */
-            is_active?: boolean | null;
             /** Name */
             name?: string | null;
             /** Picture */
@@ -1947,235 +1756,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GoogleAuthResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    read_chat_threads_api_v1_chat_threads__get: {
-        parameters: {
-            query?: {
-                skip?: number;
-                limit?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ChatThreadResponse"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_chat_thread_api_v1_chat_threads__post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ChatThreadCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ChatThreadResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    read_chat_thread_api_v1_chat_threads__thread_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                thread_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ChatThreadResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_chat_thread_api_v1_chat_threads__thread_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                thread_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_chat_thread_api_v1_chat_threads__thread_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                thread_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ChatThreadUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ChatThreadResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    read_chat_messages_api_v1_chat_threads__thread_id__messages__get: {
-        parameters: {
-            query?: {
-                skip?: number;
-                limit?: number;
-            };
-            header?: never;
-            path: {
-                thread_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ChatMessageResponse"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    append_chat_message_api_v1_chat_threads__thread_id__messages__post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                thread_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ChatMessageCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ChatMessageResponse"];
                 };
             };
             /** @description Validation Error */

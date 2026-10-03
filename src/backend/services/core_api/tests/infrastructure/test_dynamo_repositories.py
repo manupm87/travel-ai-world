@@ -6,12 +6,9 @@ from decimal import Decimal
 from typing import Any
 
 import pytest
-from core_api.domain.enums import ChatRole
 from core_api.domain.models import (
     AccessGrant,
     Activity,
-    ChatMessage,
-    ChatThread,
     ItineraryDay,
     Trip,
     User,
@@ -19,8 +16,6 @@ from core_api.domain.models import (
 from core_api.infrastructure.dynamo.repositories import (
     MAX_TRIP_BYTES,
     DynamoAccessGrantRepository,
-    DynamoChatMessageRepository,
-    DynamoChatThreadRepository,
     DynamoTripRepository,
     DynamoUserRepository,
 )
@@ -40,16 +35,6 @@ def users(table: DynamoTable) -> DynamoUserRepository:
 @pytest.fixture
 def trips(table: DynamoTable) -> DynamoTripRepository:
     return DynamoTripRepository(table)
-
-
-@pytest.fixture
-def threads(table: DynamoTable) -> DynamoChatThreadRepository:
-    return DynamoChatThreadRepository(table)
-
-
-@pytest.fixture
-def messages(table: DynamoTable) -> DynamoChatMessageRepository:
-    return DynamoChatMessageRepository(table)
 
 
 def all_items(table: DynamoTable) -> list[dict[str, Any]]:
@@ -73,12 +58,6 @@ def a_trip(owner: uuid.UUID, **fields: Any) -> Trip:
     return Trip(**{**base, **fields})
 
 
-def a_message(thread: ChatThread, content: str, **fields: Any) -> ChatMessage:
-    return ChatMessage(
-        thread_id=thread.id, role=ChatRole.USER, content=content, **fields
-    )
-
-
 # ── Key layout ──────────────────────────────────────────────────────────────
 
 
@@ -86,21 +65,14 @@ async def test_every_item_type_has_its_key(
     table: DynamoTable,
     users: DynamoUserRepository,
     trips: DynamoTripRepository,
-    threads: DynamoChatThreadRepository,
-    messages: DynamoChatMessageRepository,
 ):
     user = await users.add(User(email="Ada@Example.com"))
     trip = await trips.add(a_trip(user.id))
-    thread = await threads.add(ChatThread(user_id=user.id))
-    at = datetime(2026, 9, 22, 10, 0, 0, 5, tzinfo=UTC)
-    message = await messages.append(thread, a_message(thread, "hi", created_at=at))
 
     assert keys_of(table) == {
         (f"USER#{user.id}", "PROFILE"),
         ("EMAIL#ada@example.com", "EMAIL"),
         (f"USER#{user.id}", f"TRIP#{trip.id}"),
-        (f"USER#{user.id}", f"THREAD#{thread.id}"),
-        (f"THREAD#{thread.id}", f"MSG#2026-09-22T10:00:00.000005+00:00#{message.id}"),
     }
     profile = next(i for i in all_items(table) if i["SK"] == "PROFILE")
     assert (profile["GSI1PK"], profile["GSI1SK"]) == ("USERS", "Ada@Example.com")
@@ -230,38 +202,15 @@ async def test_users_are_listed_by_email_and_paged(users: DynamoUserRepository):
 # ── Deletes: no database cascades ───────────────────────────────────────────
 
 
-async def test_deleting_a_thread_removes_its_messages(
-    table: DynamoTable,
-    threads: DynamoChatThreadRepository,
-    messages: DynamoChatMessageRepository,
-):
-    owner = uuid.uuid4()
-    thread = await threads.add(ChatThread(user_id=owner))
-    kept = await threads.add(ChatThread(user_id=owner))
-    for n in range(30):  # more than one batch of 25
-        await messages.append(thread, a_message(thread, f"m{n}"))
-    await messages.append(kept, a_message(kept, "stays"))
-
-    await threads.delete(thread)
-
-    assert await threads.get(owner, thread.id) is None
-    assert await messages.list_in(thread.id, Page()) == []
-    assert [m.content for m in await messages.list_in(kept.id, Page())] == ["stays"]
-
-
 async def test_deleting_a_user_removes_everything_it_owns(
     table: DynamoTable,
     users: DynamoUserRepository,
     trips: DynamoTripRepository,
-    threads: DynamoChatThreadRepository,
-    messages: DynamoChatMessageRepository,
 ):
     ada = await users.add(User(email="ada@example.com"))
     bob = await users.add(User(email="bob@example.com"))
     await trips.add(a_trip(ada.id))
     await trips.add(a_trip(ada.id))
-    thread = await threads.add(ChatThread(user_id=ada.id))
-    await messages.append(thread, a_message(thread, "hi"))
     bobs_trip = await trips.add(a_trip(bob.id))
 
     await users.delete(ada)
@@ -271,94 +220,6 @@ async def test_deleting_a_user_removes_everything_it_owns(
         ("EMAIL#bob@example.com", "EMAIL"),
         (f"USER#{bob.id}", f"TRIP#{bobs_trip.id}"),
     }
-
-
-# ── Messages: order and paging ──────────────────────────────────────────────
-
-
-async def test_messages_with_the_same_clock_reading_stay_in_order(
-    threads: DynamoChatThreadRepository, messages: DynamoChatMessageRepository
-):
-    """A question and its answer written within one clock tick (ADR 0013)."""
-    frozen = datetime(2026, 9, 22, 12, 0, tzinfo=UTC)
-    thread = await threads.add(ChatThread(user_id=uuid.uuid4()))
-
-    question = await messages.append(
-        thread, a_message(thread, "question", created_at=frozen)
-    )
-    answer = await messages.append(
-        thread, a_message(thread, "answer", created_at=frozen)
-    )
-    early = await messages.append(
-        thread, a_message(thread, "clock went back", created_at=frozen)
-    )
-
-    assert question.created_at == frozen
-    assert answer.created_at == frozen + timedelta(microseconds=1)
-    assert early.created_at == frozen + timedelta(microseconds=2)
-    listed = await messages.list_in(thread.id, Page())
-    assert [m.content for m in listed] == ["question", "answer", "clock went back"]
-
-
-async def test_an_append_moves_the_thread(
-    threads: DynamoChatThreadRepository, messages: DynamoChatMessageRepository
-):
-    owner = uuid.uuid4()
-    thread = await threads.add(ChatThread(user_id=owner))
-    later = thread.updated_at + timedelta(seconds=5)
-
-    await messages.append(thread, a_message(thread, "hi", created_at=later))
-
-    stored = await threads.get(owner, thread.id)
-    assert stored is not None
-    assert stored.updated_at == later
-    assert stored.version == thread.version == 1
-
-
-async def test_an_append_does_not_race_a_rename(
-    threads: DynamoChatThreadRepository, messages: DynamoChatMessageRepository
-):
-    """ai_api appends while another request renames the thread: both land."""
-    owner = uuid.uuid4()
-    thread = await threads.add(ChatThread(user_id=owner))
-    stale = await threads.get(owner, thread.id)
-    assert stale is not None
-
-    renamed = await threads.get(owner, thread.id)
-    assert renamed is not None
-    renamed.title = "Budapest in May"
-    await threads.save(renamed)
-
-    await messages.append(stale, a_message(stale, "hi"))
-
-    stored = await threads.get(owner, thread.id)
-    assert stored is not None
-    assert stored.title == "Budapest in May"
-    assert stored.version == 2
-    assert [m.content for m in await messages.list_in(thread.id, Page())] == ["hi"]
-
-
-async def test_an_append_to_a_deleted_thread_is_a_conflict(
-    threads: DynamoChatThreadRepository, messages: DynamoChatMessageRepository
-):
-    owner = uuid.uuid4()
-    thread = await threads.add(ChatThread(user_id=owner))
-    await threads.delete(thread)
-
-    with pytest.raises(Conflict):
-        await messages.append(thread, a_message(thread, "hi"))
-
-
-async def test_messages_page_in_order(
-    threads: DynamoChatThreadRepository, messages: DynamoChatMessageRepository
-):
-    thread = await threads.add(ChatThread(user_id=uuid.uuid4()))
-    for n in range(5):
-        await messages.append(thread, a_message(thread, f"m{n}"))
-
-    page = await messages.list_in(thread.id, Page(skip=1, limit=2))
-
-    assert [m.content for m in page] == ["m1", "m2"]
 
 
 # ── Lists of a user's items ─────────────────────────────────────────────────
@@ -478,23 +339,6 @@ async def test_items_written_before_the_new_fields_still_read(
     assert old_user is not None and old_user.subject is None
     assert old_trip is not None and old_trip.planner_session_id is None
     assert await trips.list_all(None, 10) == ([], None), "GSI2 is sparse"
-
-
-async def test_threads_are_listed_most_recent_first(
-    threads: DynamoChatThreadRepository,
-):
-    owner = uuid.uuid4()
-    start = datetime(2026, 1, 1, tzinfo=UTC)
-    for n in (0, 2, 1):
-        await threads.add(
-            ChatThread(
-                user_id=owner, title=f"c{n}", updated_at=start + timedelta(hours=n)
-            )
-        )
-
-    listed = await threads.list_for(owner)
-
-    assert [t.title for t in listed] == ["c2", "c1", "c0"]
 
 
 # ── Size guard ──────────────────────────────────────────────────────────────

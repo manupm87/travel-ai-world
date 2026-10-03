@@ -66,19 +66,8 @@ variable "bedrock_chat_model" {
   }
 }
 
-variable "bedrock_title_model" {
-  description = "Bedrock EU cross-Region inference profile for short, cheap completions such as conversation titles."
-  type        = string
-  default     = "eu.amazon.nova-lite-v1:0"
-
-  validation {
-    condition     = startswith(var.bedrock_title_model, "eu.")
-    error_message = "Use an EU geographic inference profile (eu. prefix): the IAM policy derives the foundation model from it."
-  }
-}
-
 variable "retrieval_enabled" {
-  description = "Whether ai_api grounds its answers in the vector store (fill it first with just index). False is the rollback: the chat answers from the model alone."
+  description = "Whether ai_api grounds its answers in the vector store (fill it first with just index). False turns the planner off: it answers 503 without the corpus."
   type        = bool
   default     = true
 }

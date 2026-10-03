@@ -76,9 +76,6 @@ SessionId = Annotated[
 ]
 """A planner draft's id: a UUID as text, lower-cased (ADR 0024)."""
 
-MessageText = Annotated[str, StringConstraints(min_length=1, max_length=100_000)]
-"""One chat turn, kept verbatim."""
-
 
 def _as_list(value: object) -> object:
     return [value] if isinstance(value, str) else value

@@ -165,8 +165,8 @@ function toItineraryOp(raw: unknown): ItineraryOp | null {
 /**
  * Turns one decoded `data:` payload into an event, or `null` when it is not
  * one we understand. Tolerant on purpose: a new event type or a malformed
- * payload must not break the stream, and the legacy `{"content"}` /
- * `{"error"}` lines of `/ai/chat` still map to `text` / `error`.
+ * payload must not break the stream, and an untyped `{"content"}` /
+ * `{"error"}` line (the format before SSE v2) still maps to `text` / `error`.
  */
 export function toPlannerEvent(parsed: unknown): PlannerEvent | null {
   if (!isObject(parsed)) return null;

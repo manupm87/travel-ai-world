@@ -1,6 +1,7 @@
 """Accounts: owners manage their own; administrators see and promote everyone."""
 
 from core_api.domain.models import User
+from core_api.infrastructure.dynamo.repositories import DynamoUserRepository
 from httpx import AsyncClient
 
 from tests.conftest import headers_for
@@ -54,6 +55,8 @@ async def test_owner_updates_own_account_only(
 
 
 async def test_role_change_is_admin_only(client: AsyncClient, admin: User, alice: User):
+    """Local mode only: in Cognito mode the route does not exist
+    (`test_cognito_mode.py`)."""
     denied = await client.patch(
         f"{USERS_URL}{alice.id}/role",
         json={"role": "admin"},
@@ -88,19 +91,20 @@ async def test_ids_are_uuids(client: AsyncClient, admin: User, alice: User):
     assert not_a_uuid.status_code == 422
 
 
-async def test_an_email_already_registered_is_a_conflict(
-    client: AsyncClient, alice: User, bob: User
+async def test_the_email_and_the_active_flag_are_not_editable(
+    client: AsyncClient, alice: User, users: DynamoUserRepository
 ):
-    taken = await client.patch(
-        f"{USERS_URL}{alice.id}", json={"email": bob.email}, headers=headers_for(alice)
-    )
-    moved = await client.patch(
+    """A sign-in finds its account (and so its trips) by email; switching an
+    account off has no way back. A PATCH changes neither."""
+    response = await client.patch(
         f"{USERS_URL}{alice.id}",
-        json={"email": "alice.l@example.com"},
+        json={"email": "alice.l@example.com", "is_active": False, "name": "Al"},
         headers=headers_for(alice),
     )
 
-    assert taken.status_code == 409
-    assert taken.json()["detail"]["message"] == "email already registered"
-    assert moved.status_code == 200
-    assert moved.json()["email"] == "alice.l@example.com"
+    assert response.status_code == 200, response.text
+    assert response.json()["email"] == alice.email
+    assert response.json()["is_active"] is True
+    stored = await users.get(alice.id)
+    assert stored is not None
+    assert (stored.email, stored.is_active, stored.name) == (alice.email, True, "Al")

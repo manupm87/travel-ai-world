@@ -53,43 +53,6 @@ class Usage:
     output_tokens: int | None = None
 
 
-@dataclass(slots=True)
-class ChatTrace:
-    """What one answer was built from, filled in while it streams."""
-
-    documents: list[Document] = field(default_factory=list)
-    usage: Usage = field(default_factory=Usage)
-
-
-@dataclass(frozen=True, slots=True)
-class Source:
-    """A document an answer was grounded on, as a conversation keeps it."""
-
-    doc_id: str
-    title: str | None = None
-    url: str | None = None
-
-
-@dataclass(frozen=True, slots=True)
-class ChatTurn:
-    """One message of a recorded conversation (ADR 0013)."""
-
-    role: Literal["user", "assistant"]
-    content: str
-    sources: tuple[Source, ...] = ()
-    model: str | None = None
-    input_tokens: int | None = None
-    output_tokens: int | None = None
-    latency_ms: int | None = None
-
-
-@dataclass(frozen=True, slots=True)
-class ThreadSaved:
-    """Stream event: the exchange was recorded in this conversation."""
-
-    thread_id: str
-
-
 @dataclass(frozen=True, slots=True)
 class DayWeather:
     """One day's weather as a forecast or a climate normal describes it."""

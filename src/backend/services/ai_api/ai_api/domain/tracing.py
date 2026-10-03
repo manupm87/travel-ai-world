@@ -1,6 +1,7 @@
 """What one request to `ai_api` did, step by step (ADR 0024).
 
-A `TurnTrace` is one planner turn, one chat answer or one card detail: a
+A `TurnTrace` is one planner turn or one card detail (`chat` is the kind of
+the retired chat's answers, still read until they expire, ADR 0027): a
 summary (who, what, how much, how fast), the request context, one `Span` per
 step (a model call, a retrieval, an external tool, a code step) and the SSE
 timeline. The vocabulary is the industry's (Langfuse's trace / observation,

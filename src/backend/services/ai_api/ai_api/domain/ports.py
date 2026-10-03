@@ -8,7 +8,6 @@ from datetime import date
 from typing import Protocol
 
 from ai_api.domain.models import (
-    ChatTurn,
     DayWeather,
     Document,
     Message,
@@ -130,20 +129,6 @@ class SitePreviewFinder(Protocol):
         """The link preview (`og:image` and its kin) of the venue's own site,
         credited with the site's bare domain."""
         ...
-
-
-class ConversationGateway(Protocol):
-    """Where the chat keeps its conversations: core_api, acting as the caller.
-
-    Raises `EntityNotFound` / `Forbidden` for a thread the caller cannot use
-    and `ProviderUnavailable` when core_api cannot be reached (ADR 0013).
-    """
-
-    async def start_thread(self, bearer_token: str) -> str: ...
-
-    async def append_turn(
-        self, bearer_token: str, thread_id: str, turn: ChatTurn
-    ) -> None: ...
 
 
 class TraceLog(Protocol):

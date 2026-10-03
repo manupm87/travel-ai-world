@@ -4,19 +4,15 @@ The response schemas populate from them with `from_attributes=True`. Ids
 are UUIDs, timestamps are aware UTC datetimes set by the application, money
 is `Decimal`.
 
-Two aggregates own everything else:
-
-- `Trip` (ADR 0005, ADR 0019) embeds its days, stays and journeys, and each
-  day embeds its activities and meals. The whole tree is stored and loaded
-  as one item.
-- `ChatThread` (ADR 0013) is stored without its messages; `ChatMessage`s
-  are an append-only log beside it.
+`Trip` (ADR 0005, ADR 0019) is the aggregate that owns everything else: it
+embeds its days, stays and journeys, and each day embeds its activities and
+meals. The whole tree is stored and loaded as one item.
 
 Entities own their rules: `check_invariants` raises a domain error when the
 entity, taken as a whole, is not valid. Services call it before every create
 and update, so a PATCH cannot break a rule that a POST enforces.
 
-`version` (profile, trip, thread) is the optimistic-concurrency counter the
+`version` (profile, trip) is the optimistic-concurrency counter the
 repositories check on every write; it is not part of any response.
 """
 
@@ -30,14 +26,10 @@ from typing import Any, Literal
 from travel_common.exceptions import TripLocked, UnprocessableEntity
 from travel_common.principal import Role
 
-from core_api.domain.enums import ChatRole
-
 __all__ = [
     "AccessGrant",
     "Accommodation",
     "Activity",
-    "ChatMessage",
-    "ChatThread",
     "Entity",
     "ItineraryDay",
     "Meal",
@@ -329,60 +321,6 @@ class TripSummary:
     @property
     def phase(self) -> TripPhase:
         return phase_of(self.start_date, self.end_date, utc_now().date())
-
-
-# ── Conversations ───────────────────────────────────────────────────────────
-
-
-@dataclass(slots=True, kw_only=True)
-class ChatThread(TimestampedEntity):
-    """One conversation with the assistant, private to the user who owns it.
-
-    `updated_at` moves with every appended message, so a user's list shows the
-    most recent conversations first (ADR 0013).
-    """
-
-    user_id: uuid.UUID
-    title: str | None = None
-    # Corpus city slug ("madrid", "berlin", "budapest"); None for a general chat.
-    city: str | None = None
-    version: int = 0
-
-
-@dataclass(slots=True, kw_only=True)
-class ChatMessage(Entity):
-    """One turn of a conversation: appended, never edited.
-
-    An assistant answer keeps what it was grounded on (`sources`), the model
-    that wrote it and what it cost (`input_tokens`, `output_tokens`,
-    `latency_ms`), so a conversation can be reviewed afterwards.
-    """
-
-    thread_id: uuid.UUID
-    role: str  # ChatRole
-    content: str
-    # [{"doc_id", "score", "title", "url"}, ...] for answers built on the corpus.
-    sources: list[dict[str, Any]] | None = None
-    model: str | None = None
-    input_tokens: int | None = None
-    output_tokens: int | None = None
-    latency_ms: int | None = None
-    created_at: datetime = field(default_factory=utc_now)
-
-    def check_invariants(self) -> None:
-        if self.role == ChatRole.USER and any(
-            value is not None
-            for value in (
-                self.sources,
-                self.model,
-                self.input_tokens,
-                self.output_tokens,
-                self.latency_ms,
-            )
-        ):
-            raise UnprocessableEntity(
-                "A user message has no sources, model or usage: only answers do"
-            )
 
 
 def normalize_email(email: str) -> str:

@@ -1,5 +1,5 @@
 # ai_api's interaction log (ADR 0023, amended by ADR 0024): one trace per
-# planner turn, chat answer and card detail, written before the stream's
+# planner turn and card detail, written before the stream's
 # closing frame (ai_api/infrastructure/dynamo_traces.py).
 #
 # Items:

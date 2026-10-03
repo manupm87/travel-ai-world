@@ -39,7 +39,7 @@ describe("http", () => {
         NEXT_PUBLIC_AI_API_URL: undefined,
       });
       expect(http.apiUrl("core", "/auth/google")).toBe("https://core.example/api/v1/auth/google");
-      expect(http.apiUrl("ai", "/ai/chat")).toBe("https://core.example/api/v1/ai/chat");
+      expect(http.apiUrl("ai", "/ai/planner")).toBe("https://core.example/api/v1/ai/planner");
       expect(http.isApiAvailable()).toBe(true);
       expect(http.isAiAvailable()).toBe(true);
     });
@@ -142,7 +142,7 @@ describe("http", () => {
       writeSession("tok", { id: "1", email: "a@b.c", name: "A" });
       fetchMock.mockResolvedValue(new Response("{}", { status: 200 }));
 
-      await requestRaw("ai", "/ai/chat", { auth: true });
+      await requestRaw("ai", "/ai/planner", { auth: true });
       await requestRaw("ai", "/ai/health");
 
       expect(ensureFreshToken).toHaveBeenCalledTimes(1);
@@ -152,14 +152,14 @@ describe("http", () => {
       writeSession("tok", { id: "1", email: "a@b.c", name: "A" });
       fetchMock.mockResolvedValue(new Response("{}", { status: 200 }));
 
-      await requestRaw("ai", "/ai/chat", { auth: true });
+      await requestRaw("ai", "/ai/planner", { auth: true });
 
       const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
       expect((init.headers as Record<string, string>).Authorization).toBe("Bearer tok");
     });
 
     it("refuses to call the backend without a session when `auth` is set", async () => {
-      await expect(requestRaw("ai", "/ai/chat", { auth: true })).rejects.toBeInstanceOf(
+      await expect(requestRaw("ai", "/ai/planner", { auth: true })).rejects.toBeInstanceOf(
         UnauthorizedError
       );
       expect(fetchMock).not.toHaveBeenCalled();
