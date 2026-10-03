@@ -8,14 +8,13 @@ imports `core_api`.
 ## Layout (ports and adapters)
 
 ```text
-domain/         Message, ChatRole, Document, RetrievalFilters, GenerationParams, Usage, ChatTrace, ChatTurn, ThreadSaved,
-                DayWeather, RouteSuggestion
+domain/         Message, ChatRole, Document, RetrievalFilters, GenerationParams, Usage, DayWeather, RouteSuggestion
                 + Protocols: LLMProvider (stream + complete), Embedder, Retriever (search + fetch), WeatherForecast,
-                PhotoFinder, SitePreviewFinder, ConversationGateway, TraceLog, UsageStore, AccessGateway
+                PhotoFinder, SitePreviewFinder, TraceLog, UsageStore, AccessGateway
                 usage.py: DailyUsage, Entitlement, resets_at (ADR 0026)
                 tracing.py: TurnTrace, Span, RetrievedDoc, EventMark, TurnContext (ADR 0024) and the read models
                 TurnSummary, TurnDetail, TurnFilters, TurnPage (TRA-221)
-application/    use cases (StreamChat, RecordConversation, PlanTrip, CardDetailLookup, CheckAccess) and their pure helpers:
+application/    use cases (PlanTrip, CardDetailLookup, CheckAccess) and their pure helpers:
                 structured.py (complete_json: JSON out of `LLMProvider.complete`, one repair retry), cards.py
                 (OptionCard — and the fuller CardDetail — from a Document), validate.py (distance, load, closed,
                 prices), language.py, retrieval_eval.py (recall@k / MRR over the 20 questions per city of
@@ -32,16 +31,16 @@ infrastructure/ adapters: nvidia_provider.py, bedrock_provider.py, bedrock_embed
                 site_previews.py (the og:image a venue publishes on its own site, ADR 0021;
                 its `GROUP_DOMAINS` — the hotel groups a brand domain may redirect to — is a copy
                 of the corpus tool's `config/hotel_groups.py`, kept in step by hand, TRA-211),
-                sse.py, retry.py, core_api_client.py (ConversationGateway + AccessGateway),
+                sse.py, retry.py, core_api_client.py (AccessGateway),
                 dynamo_traces.py, dynamo_usage.py (the daily token counters, same table)
-api/            deps.py (per-request wiring; process resources come from app.state), v1/endpoints/{chat,planner,usage,admin,health}.py
-schemas/        chat.py (request), planner.py (PlannerTurn request, PlannerCity, CardDetail), planner_events.py
+api/            deps.py (per-request wiring; process resources come from app.state), v1/endpoints/{planner,usage,admin,health}.py
+schemas/        chat.py (ChatMessage, the transcript's limits), planner.py (PlannerTurn request, PlannerCity, CardDetail), planner_events.py
                 (SSE v2 events, ADR 0015), admin.py (trace pages, detail and stats responses), usage.py
 openapi.py      puts the planner's stream models into the OpenAPI document (no route declares them)
 main.py         lifespan builds the provider and the retriever once (providers.build_*) and closes them
 indexing.py     CLI that fills the vector index from a corpus JSONL (just index); never runs in a request
-prompts.py      every prompt string (system prompt, RAG context template, format_context)
-testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, KeywordRetriever (tf-idf over a corpus file),
+prompts.py      every prompt string (RAG context template, format_context, the planner's prompts)
+testing.py      FakeProvider, FakeEmbedder, FakeRetriever, KeywordRetriever (tf-idf over a corpus file),
                 FakePhotoFinder, FakeSitePreviews, InMemoryTraceLog, InMemoryUsageStore, FakeAccessGateway + settings_for_tests()
 ```
 
@@ -71,7 +70,7 @@ testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, Ke
   traces nothing and counts no tokens against anyone.
 - **Access and the daily token quota (ADR 0026, TRA-258).** A route that spends tokens declares
   `dependencies=[Depends(require_budget)]`; a planner read declares `require_access`
-  (`api/deps.py`). A new route under `/chat` or `/planner` needs one of the two; admin and health
+  (`api/deps.py`). A new route under `/planner` needs one of the two; admin and health
   routes need neither. Both ask `CheckAccess` (`application/access.py`), built once in `lifespan`
   (`app.state.check_access`: it holds the per-subject cache of `core_api`'s
   `GET /users/me/access`, `ACCESS_CACHE_SECONDS`), and do nothing with `ACCESS_CONTROL_ENABLED`
@@ -95,10 +94,10 @@ testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, Ke
   from `AISettings` (`CHAT_*`) as a `GenerationParams`, never from literals in the adapter; Bedrock
   sends only the temperature (Claude 4.5+ rejects it together with `top_p`).
 - **Retrieval** (ADR 0014): `S3VectorsRetriever` over Amazon S3 Vectors, fed by `TitanEmbedder`,
-  built in `lifespan` only when `RETRIEVAL_ENABLED` and injected by `get_stream_chat`. Another store
+  built in `lifespan` only when `RETRIEVAL_ENABLED` and injected by `get_retriever` (the planner
+  and the card details answer 503 without it). Another store
   is another `Retriever` in `infrastructure/` added to `providers.build_retriever`; never
-  `core_api`'s database. A retrieval failure never fails the chat: `StreamChat` logs it and answers
-  without context. Titan V2 accepts only `inputText`, `dimensions`, `normalize` (no `inputType`).
+  `core_api`'s database. Titan V2 accepts only `inputText`, `dimensions`, `normalize` (no `inputType`).
   An embedder reports tokens through the `Usage` it is handed, never through a counter of its own
   (no state between requests on Lambda).
 - **The index is Terraform's, the vectors are ours.** `indexing.py` fills an existing index and
@@ -119,7 +118,8 @@ testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, Ke
   manifest that has neither.
 - The corpus contract is mirrored in `indexing.CorpusDocument`, never imported from `city_corpus`.
 - The planner saves nothing: the browser saves the trip through core_api (`saveDraftAsTrip`,
-  ADR 0019). What ai_api writes to core_api is the chat's conversation (`ConversationGateway`).
+  ADR 0019). ai_api writes nothing to core_api; it only asks it for the caller's access
+  (`AccessGateway`, ADR 0026).
 - **The planner (`POST /api/v1/ai/planner`, ADR 0015)** is `application/plan_trip.py`: stateless, driven by the
   request (brief + itinerary snapshot + transcript + message or `select`/`remove` action). Group ids carry their
   meaning (`nb`, `hotels:<district>`, `slot:<day>:<part>`) so a selection is read back without a session. The
@@ -156,9 +156,8 @@ testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, Ke
   "Bolonia" is `bologna`), the brief prompt lists the covered spellings, the not-covered sentence names
   every covered city, and `GET /planner/cities` tells the page what to offer. A city name in code is a
   test fixture (`testing.city_for`, `testing.BUDAPEST`), never a default.
-- SSE wire format to the browser is fixed (`data: {"content"}`, `data: {"thread_id"}`,
-  `data: {"error", "error_code"}`, `data: [DONE]`); the frontend's `services/chat.ts` depends on it. Upstream bodies and unexpected
-  exceptions never reach the client: `sse.py` sends the domain message or a generic one and logs the rest.
+- Upstream bodies and unexpected exceptions never reach the client: `sse.sse_events` sends the
+  domain message or a generic one as an `error` event and logs the rest.
 - **The planner's stream is typed (SSE v2, ADR 0015):** `schemas/planner_events.py` is a discriminated
   union on `type` (`text`, `brief`, `options`, `itinerary_patch`, `error`, `done`, `progress`), ops on `op`, flat fields,
   **no field optional on the wire** (unknown → `null`; no defaults on the models, so the generated TypeScript
@@ -180,14 +179,8 @@ testing.py      FakeProvider, FakeConversations, FakeEmbedder, FakeRetriever, Ke
   dates on or before today ("1 to 3 September" asked in late September) move forward a year at a
   time, both ends together. core_api creates a trip whose dates have passed already locked
   (ADR 0019) and refuses its days, so a planned trip must start tomorrow at the earliest.
-- **Conversations live in `core_api`** (ADR 0013), never here: `ai_api` stays stateless and has no
-  database. `RecordConversation` wraps the answer stream and, once the answer is complete, appends
-  the question and the answer (sources, model, tokens, latency from `ChatTrace`) through
-  `ConversationGateway` with the caller's token, then emits `ThreadSaved`. Recording must never
-  break a chat: a failure is logged, the answer is already delivered, and an unusable thread is
-  replaced by a new one. `CHAT_RECORD_CONVERSATIONS=false` switches it off.
 - A provider fills the `Usage` it is handed (model and token counts) by the end of the stream, on
-  top of logging it. That is what a recorded answer keeps.
+  top of logging it. That is what the turn's trace keeps.
 - Retries happen only before any delta has been streamed; after that, fail in-band.
 
 ## Commands

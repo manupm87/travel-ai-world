@@ -80,8 +80,8 @@ resource "aws_iam_role_policy_attachment" "ai_api_basic" {
 }
 
 # Bedrock as the cloud LLM provider (ADR 0009, TRA-122). ai_api calls the chat
-# and title models through EU geographic cross-Region inference profiles, so
-# prompts are processed in EU Regions. Invoking a profile takes two grants: the
+# model through an EU geographic cross-Region inference profile, so prompts are
+# processed in EU Regions. Invoking a profile takes two grants: the
 # profile in this Region, and its foundation model in every Region the profile
 # routes to. The second grant is pinned to the profile by the
 # bedrock:InferenceProfileArn condition, so the Region wildcard never allows
@@ -90,7 +90,7 @@ resource "aws_iam_role_policy_attachment" "ai_api_basic" {
 # vectors.tf.
 locals {
   bedrock_profile_arns = {
-    for profile in toset([var.bedrock_chat_model, var.bedrock_title_model]) :
+    for profile in toset([var.bedrock_chat_model]) :
     profile => "arn:aws:bedrock:${var.region}:${data.aws_caller_identity.current.account_id}:inference-profile/${profile}"
   }
 }
@@ -139,12 +139,11 @@ resource "aws_lambda_function" "ai_api" {
     variables = merge(local.backend_env, {
       # Which adapter answers the chat (TRA-122): Bedrock with this role, or
       # NVIDIA as the fallback (llm_provider = "nvidia"; its key stays set).
-      LLM_PROVIDER        = var.llm_provider
-      BEDROCK_REGION      = var.region
-      BEDROCK_CHAT_MODEL  = var.bedrock_chat_model
-      BEDROCK_TITLE_MODEL = var.bedrock_title_model
-      NVIDIA_API_KEY      = var.nvidia_api_key
-      NVIDIA_CHAT_MODEL   = var.nvidia_chat_model
+      LLM_PROVIDER       = var.llm_provider
+      BEDROCK_REGION     = var.region
+      BEDROCK_CHAT_MODEL = var.bedrock_chat_model
+      NVIDIA_API_KEY     = var.nvidia_api_key
+      NVIDIA_CHAT_MODEL  = var.nvidia_chat_model
       # core_api through the public origin, with the caller's own token.
       CORE_API_URL = "https://${var.domain_name}"
       # Where the answers are grounded (ADR 0014): the index of vectors.tf,
@@ -158,7 +157,7 @@ resource "aws_lambda_function" "ai_api" {
       # The trace of every turn (ADR 0024), table in traces.tf.
       INTERACTIONS_TABLE = aws_dynamodb_table.interactions.name
       # Ask core_api who may use the app and how many tokens a day, before
-      # every planner and chat request (ADR 0026).
+      # every planner request (ADR 0026).
       ACCESS_CONTROL_ENABLED = "true"
     })
   }

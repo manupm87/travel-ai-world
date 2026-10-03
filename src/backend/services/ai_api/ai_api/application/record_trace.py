@@ -22,13 +22,12 @@ on as if nothing happened.
 import asyncio
 import logging
 from collections import Counter
-from collections.abc import AsyncGenerator, AsyncIterator, Callable
+from collections.abc import AsyncGenerator, AsyncIterator
 from contextlib import aclosing
 
 from travel_common.exceptions import DomainError
 
 from ai_api.application.tracing import TurnTracer, activate
-from ai_api.domain.models import ThreadSaved
 from ai_api.domain.ports import TraceLog, UsageStore
 from ai_api.domain.tracing import Status, TurnTrace
 from ai_api.schemas.planner_events import (
@@ -56,16 +55,7 @@ class RecordTrace:
         self, tracer: TurnTracer, events: AsyncIterator[PlannerEvent]
     ) -> AsyncIterator[PlannerEvent]:
         """The planner's typed stream, unchanged, with its trace recorded."""
-        wrapped = self._wrap(tracer, events, _stamp_planner, _ends_planner)
-        async with aclosing(wrapped):
-            async for event in wrapped:
-                yield event
-
-    async def chat(
-        self, tracer: TurnTracer, events: AsyncIterator[str | ThreadSaved]
-    ) -> AsyncIterator[str | ThreadSaved]:
-        """The chat's stream (text deltas and the recorded thread)."""
-        wrapped = self._wrap(tracer, events, _stamp_chat, lambda _: None)
+        wrapped = self._wrap(tracer, events)
         async with aclosing(wrapped):
             async for event in wrapped:
                 yield event
@@ -76,21 +66,17 @@ class RecordTrace:
         """Finish and write the trace of a request that does not stream."""
         await self._write(tracer.finish(status, code))
 
-    async def _wrap[E](
-        self,
-        tracer: TurnTracer,
-        events: AsyncIterator[E],
-        stamp: Callable[[TurnTracer, E], None],
-        ends: Callable[[E], tuple[Status, str | None] | None],
-    ) -> AsyncGenerator[E]:
+    async def _wrap(
+        self, tracer: TurnTracer, events: AsyncIterator[PlannerEvent]
+    ) -> AsyncGenerator[PlannerEvent]:
         # The generator runs in the streaming task's context, not the
         # endpoint's: make the tracer current here, before the use case starts.
         activate(tracer)
         finished = False
         try:
             async for event in events:
-                stamp(tracer, event)
-                end = ends(event)
+                _stamp(tracer, event)
+                end = _ends(event)
                 if end is not None:
                     finished = True
                     await self._write(tracer.finish(*end))
@@ -148,7 +134,7 @@ class RecordTrace:
             logger.exception("Trace of turn %s not recorded", trace.turn_id)
 
 
-def _ends_planner(event: PlannerEvent) -> tuple[Status, str | None] | None:
+def _ends(event: PlannerEvent) -> tuple[Status, str | None] | None:
     if isinstance(event, DoneEvent):
         return "ok", None
     if isinstance(event, ErrorEvent):
@@ -156,7 +142,7 @@ def _ends_planner(event: PlannerEvent) -> tuple[Status, str | None] | None:
     return None
 
 
-def _stamp_planner(tracer: TurnTracer, event: PlannerEvent) -> None:
+def _stamp(tracer: TurnTracer, event: PlannerEvent) -> None:
     size = len(event.model_dump_json().encode())
     if isinstance(event, TextEvent):
         tracer.answer(event.delta)
@@ -189,11 +175,3 @@ def _stamp_planner(tracer: TurnTracer, event: PlannerEvent) -> None:
         tracer.event("done", "end", size)
     else:  # an event added to the union later: stamped as itself, never as `done`
         tracer.event(event.type, "", size)
-
-
-def _stamp_chat(tracer: TurnTracer, event: str | ThreadSaved) -> None:
-    if isinstance(event, ThreadSaved):
-        tracer.event("thread", event.thread_id, len(event.thread_id))
-    else:
-        tracer.answer(event)
-        tracer.event("text", "", len(event.encode()))

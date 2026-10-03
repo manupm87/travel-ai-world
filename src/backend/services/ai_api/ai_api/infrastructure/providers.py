@@ -31,10 +31,10 @@ def build_llm_provider(settings: AISettings) -> ChatProvider:
 
 
 def build_retriever(settings: AISettings) -> S3VectorsRetriever | None:
-    """The vector store the chat searches, or None when retrieval is off.
+    """The vector store the planner searches, or None when retrieval is off.
 
     Off is the local default (on when deployed, Terraform `retrieval_enabled`):
-    the chat then answers from the model's own knowledge and reaches no store.
+    the planner and the card details then answer 503 and reach no store.
     """
     if not settings.RETRIEVAL_ENABLED:
         return None

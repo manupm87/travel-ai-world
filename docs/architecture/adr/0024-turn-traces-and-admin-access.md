@@ -1,6 +1,6 @@
 # 0024 — A turn is a trace with steps; admins are the Cognito group, filled from Terraform
 
-**Status:** Accepted
+**Status:** Accepted (amended by [0026](0026-access-list-and-daily-token-quota.md); the chat and `RecordConversation` retired by [0027](0027-retire-chat-v1.md))
 **Date:** 2026-09-23
 
 Amends the `ai_api` section of [ADR 0023](0023-dynamodb-data-store.md) (the interaction log) and

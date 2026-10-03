@@ -2,9 +2,9 @@
 # core_api's single table here; ai_api's interaction log is in traces.tf.
 # On-demand billing: demo traffic costs cents, and nothing is provisioned idle.
 
-# ── core_api: users, trips (whole aggregates), conversations, messages ──────
+# ── core_api: users, trips (whole aggregates) ───────────────────────────────
 # Keys (core_api/infrastructure/dynamo): USER#<id>/PROFILE, EMAIL#<email>/EMAIL,
-# USER#<id>/TRIP#<id>, USER#<id>/THREAD#<id>, THREAD#<id>/MSG#<ts>#<id>;
+# USER#<id>/TRIP#<id>;
 # GSI1 = USERS/<email> for the admin list of accounts;
 # GSI2 = TRIPS/<created_at µs UTC>#<trip_id> for the admin list of every trip
 # (ADR 0024), projecting only the summary fields the list shows.

@@ -276,8 +276,8 @@ drive the same headless Chromium (`npx playwright install --with-deps chromium` 
 
 1. Set `NEXT_PUBLIC_API_URL=http://localhost:8000` and `NEXT_PUBLIC_AI_API_URL=http://localhost:8001`
    in `.env.local` (one URL is enough behind the Docker Compose proxy on `:8080`).
-2. `services/auth.ts` (`loginWithGoogle`) talks to `core_api`; `services/chat.ts` (`streamChat`)
-   consumes `ai_api`'s SSE stream; `services/trips.ts` (`listTrips`, `getTrip`) reads the planner's
+2. `services/auth.ts` (`loginWithGoogle`) talks to `core_api`; `services/planner.ts`
+   (`streamPlannerTurn`) consumes `ai_api`'s SSE stream; `services/trips.ts` (`listTrips`, `getTrip`) reads the planner's
    list of trips and the one it reopens from `core_api`, mapped through `toTripSummary` / `toTrip`
    (ADR 0006). There is no fixture fallback: without `core_api` the list shows its error state.
 3. `app/(app)/plan/` streams real answers when `ai_api` is reachable (`usePlanner`, which also

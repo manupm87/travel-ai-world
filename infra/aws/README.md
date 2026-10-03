@@ -35,7 +35,7 @@ a Cognito ID token, health endpoints included.
 | `traces.tf` | `ai_api`'s interaction log `${name_prefix}-interactions` (on-demand, `PK`/`SK` + `GSI1` by subject + sparse `GSI2` by planner session, TTL on `expires_at`: traces expire after `INTERACTION_TTL_DAYS`, 90 by default; no point-in-time recovery, no deletion protection) and the `ai-api` role's `PutItem`, `UpdateItem`, `BatchWriteItem`, `Query`, `GetItem` and `DescribeTable` on it and its indexes — the reads are for the admin console (TRA-221) (ADR 0024, TRA-226). The same table holds the daily token counters (`USAGE#<subject>` / `DAY#<day>`, listed per day through `GSI1`; `UpdateItem` is their atomic add) (ADR 0026, TRA-258) |
 | `ecr.tf` | Two ECR repositories: `${name_prefix}-core-api`, `${name_prefix}-ai-api` |
 | `cognito.tf` | User pool, Google identity provider, public app client (code + PKCE), `admin` group and its members (`admin_usernames`), hosted-UI domain, the JWKS as output and environment |
-| `lambda.tf` | Two container-image functions with their roles (basic execution for both; for `ai-api`, Bedrock invoke on the EU inference profiles of the chat and title models, see [Chat model](#chat-model-bedrock)) and log groups; permissions for the gateway |
+| `lambda.tf` | Two container-image functions with their roles (basic execution for both; for `ai-api`, Bedrock invoke on the EU inference profile of the chat model, see [Chat model](#chat-model-bedrock)) and log groups; permissions for the gateway |
 | `vectors.tf` | S3 Vectors bucket and the `city-kb` index (1024 dimensions, cosine), plus the read-only `s3vectors` and Titan embeddings permissions of the `ai-api` role, see [Vector store](#vector-store-s3-vectors) |
 | `apigateway.tf` | REST API (regional), Cognito authorizer, the two proxy resources, deployment and `prod` stage |
 | `frontend.tf` | Private S3 bucket (OAC), CloudFront with the S3 default behaviour, the `/api/*` behaviour to the gateway and a directory-index function, S3's 403 for a missing page served as the export's `404.html` with status 404, Route 53 aliases; the public hosted zone and the ACM certificate (us-east-1, apex + wildcard, DNS-validated), both `prevent_destroy` (ADR 0010) |
@@ -161,7 +161,7 @@ first `terraform apply`:
    ([runbook](../../docs/runbooks/access.md)). `default_daily_token_limit` (default `300000`,
    `0` = unlimited) becomes `DEFAULT_DAILY_TOKEN_LIMIT`, the daily token quota of anyone whose
    grant sets none. `access_mode = "open"` lets every signed-in account in again. `ai-api` runs
-   with `ACCESS_CONTROL_ENABLED=true`: before a planner or chat request it asks `core-api`
+   with `ACCESS_CONTROL_ENABLED=true`: before a planner request it asks `core-api`
    (`GET /users/me/access`, the caller's token, through `CORE_API_URL`), refuses an account that
    is not allowed (403) and one that has spent its tokens of the UTC day (429
    `DAILY_TOKEN_LIMIT`). It keeps each answer for 60 s (`ACCESS_CACHE_SECONDS`, the code's
@@ -212,9 +212,8 @@ them alone, so do not: the list is the source of truth.
 ## Chat model (Bedrock)
 
 `ai-api` answers with Amazon Bedrock (`llm_provider = "bedrock"`, the default): Claude Haiku 4.5
-for the chat (`bedrock_chat_model`) and Amazon Nova Lite for short completions such as titles
-(`bedrock_title_model`). Both are EU geographic cross-Region inference profiles (`eu.` prefix),
-so prompts are processed in EU Regions. There is no API key: the function's role signs the calls.
+(`bedrock_chat_model`), an EU geographic cross-Region inference profile (`eu.` prefix), so
+prompts are processed in EU Regions. There is no API key: the function's role signs the calls.
 
 - **Model access, once per account.** Most Bedrock models are enabled automatically. Anthropic
   models need a one-time use-case form (Bedrock console in eu-west-1 → Model catalog → a Claude
@@ -222,8 +221,8 @@ so prompts are processed in EU Regions. There is no API key: the function's role
   "being verified" for a few hours, and Anthropic calls answer `AccessDeniedException` with that
   text until it finishes.
 - **IAM.** `lambda.tf` grants `bedrock:InvokeModel` and `bedrock:InvokeModelWithResponseStream`
-  on the two inference profiles, and on their foundation models in any Region only for calls made
-  through those profiles (`bedrock:InferenceProfileArn` condition). Any other model is denied.
+  on that inference profile, and on its foundation model in any Region only for calls made
+  through the profile (`bedrock:InferenceProfileArn` condition). Any other model is denied.
 - **Changing a model.** Set the variable to another `eu.` profile id
   (`aws bedrock list-inference-profiles --region eu-west-1`) and apply; the policy follows it.
 - **Rollback to NVIDIA.** `llm_provider = "nvidia"` and apply. `NVIDIA_API_KEY` stays in the
@@ -248,8 +247,8 @@ own role, so a question never leaves the account.
   The function never writes: the index is filled from a laptop with `just index`
   ([`ai_api` README](../../src/backend/services/ai_api/README.md#filling-the-index)).
 - **On by default** (`retrieval_enabled = true`, since TRA-152). The index has to hold a corpus
-  before a deploy switches it on; `retrieval_enabled = false` and apply is the rollback, and the
-  chat then answers from the model alone, as before.
+  before a deploy switches it on; `retrieval_enabled = false` and apply turns it off, and the
+  planner then answers 503: every card it shows is a corpus document.
 
 ## Debugging
 

@@ -5,11 +5,8 @@ from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 
 import pytest
-from core_api.domain.enums import ChatRole
 from core_api.domain.models import (
     Accommodation,
-    ChatMessage,
-    ChatThread,
     ItineraryDay,
     Transportation,
     Trip,
@@ -118,24 +115,6 @@ def test_a_stay_and_a_journey_must_end_after_they_start():
             trip_id=trip_id,
             departure_time=later,
             arrival_time=later - timedelta(hours=1),
-        ).check_invariants()
-
-
-def test_a_user_turn_carries_no_model_or_usage():
-    thread = ChatThread(user_id=uuid.uuid4())
-    ChatMessage(thread_id=thread.id, role=ChatRole.USER, content="?").check_invariants()
-    ChatMessage(
-        thread_id=thread.id,
-        role=ChatRole.ASSISTANT,
-        content="!",
-        model="m",
-        input_tokens=1,
-        sources=[{"doc_id": "d"}],
-    ).check_invariants()
-
-    with pytest.raises(UnprocessableEntity, match="only answers"):
-        ChatMessage(
-            thread_id=thread.id, role=ChatRole.USER, content="?", latency_ms=5
         ).check_invariants()
 
 

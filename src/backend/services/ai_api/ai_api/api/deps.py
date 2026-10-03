@@ -14,15 +14,12 @@ from travel_common.security import principal_from_token
 from ai_api.application.access import CheckAccess
 from ai_api.application.card_detail import CardDetailLookup
 from ai_api.application.plan_trip import PlanTrip
-from ai_api.application.record_conversation import RecordConversation
 from ai_api.application.record_trace import RecordTrace
-from ai_api.application.stream_chat import StreamChat
 from ai_api.application.tracing import TurnTracer
 from ai_api.config import AISettings, get_settings
 from ai_api.domain.models import City, GenerationParams
 from ai_api.domain.ports import (
     AccessGateway,
-    ConversationGateway,
     LLMProvider,
     PhotoFinder,
     Retriever,
@@ -37,7 +34,6 @@ from ai_api.infrastructure.core_api_client import CoreApiClient
 from ai_api.infrastructure.dynamo_traces import NullTraceLog
 from ai_api.infrastructure.dynamo_usage import NullUsageStore
 from ai_api.infrastructure.providers import ChatProvider, planner_cities
-from ai_api.prompts import CHAT_SYSTEM_PROMPT
 
 
 async def get_current_user(
@@ -70,19 +66,6 @@ def require_retriever(
     if retriever is None:
         raise ProviderUnavailable("Retrieval is off (RETRIEVAL_ENABLED)")
     return retriever
-
-
-def get_stream_chat(
-    provider: LLMProvider = Depends(get_llm_provider),
-    retriever: Retriever | None = Depends(get_retriever),
-    settings: AISettings = Depends(get_settings),
-) -> StreamChat:
-    return StreamChat(
-        provider,
-        CHAT_SYSTEM_PROMPT,
-        retriever=retriever,
-        retrieval_limit=settings.RETRIEVAL_LIMIT,
-    )
 
 
 def get_weather(request: Request) -> WeatherForecast | None:
@@ -151,21 +134,6 @@ def get_card_detail(
     if retriever is None:
         raise ProviderUnavailable("Card details need retrieval (RETRIEVAL_ENABLED)")
     return CardDetailLookup(retriever, photos=photos, previews=previews, cities=cities)
-
-
-def get_conversation_gateway(
-    settings: AISettings = Depends(get_settings),
-) -> ConversationGateway | None:
-    """core_api, or None when recording is switched off."""
-    if not settings.CHAT_RECORD_CONVERSATIONS:
-        return None
-    return CoreApiClient(settings.CORE_API_URL, settings.API_V1_STR)
-
-
-def get_record_conversation(
-    conversations: ConversationGateway | None = Depends(get_conversation_gateway),
-) -> RecordConversation | None:
-    return RecordConversation(conversations) if conversations is not None else None
 
 
 def get_trace_log(request: Request) -> TraceLog:

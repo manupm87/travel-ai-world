@@ -2,7 +2,7 @@
 
 Layout (ports and adapters):
 - domain/          pure types and the Protocols the use cases depend on
-- application/     use cases (StreamChat, ...) built only on domain ports
+- application/     use cases (PlanTrip, ...) built only on domain ports
 - infrastructure/  adapters: NVIDIA provider, SSE codec, core_api client
 - api/             FastAPI wiring: dependencies, routers, endpoints
 """

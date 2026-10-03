@@ -11,8 +11,8 @@ sign-in come from the same domain: `infra/aws/`, ADR 0009; the data lives in Dyn
 | Path | What | Stack |
 |---|---|---|
 | [`src/frontend/`](src/frontend/README.md) | Web app: landing, sign-in, trips home (`/dashboard/`), AI planner (`/plan/`), admin console (`/admin/`) | Next.js 16 (static export) · React 19 · Tailwind v4 · TypeScript |
-| [`src/backend/services/core_api/`](src/backend/services/core_api/README.md) | Users, trips, conversations, admin reads; verifies Cognito tokens (issues its own JWT only in local mode) | FastAPI · DynamoDB (boto3) |
-| [`src/backend/services/ai_api/`](src/backend/services/ai_api/README.md) | Trip planner (typed SSE, ADR 0015), card details, chat, admin reads over the turn traces; Bedrock deployed, NVIDIA locally; RAG over S3 Vectors (ADR 0014) | FastAPI · boto3 · httpx · SSE |
+| [`src/backend/services/core_api/`](src/backend/services/core_api/README.md) | Users, trips, the access list, admin reads; verifies Cognito tokens (issues its own JWT only in local mode) | FastAPI · DynamoDB (boto3) |
+| [`src/backend/services/ai_api/`](src/backend/services/ai_api/README.md) | Trip planner (typed SSE, ADR 0015), card details, admin reads over the turn traces; Bedrock deployed, NVIDIA locally; RAG over S3 Vectors (ADR 0014) | FastAPI · boto3 · httpx · SSE |
 | [`src/backend/libs/travel_common/`](src/backend/libs/travel_common/README.md) | Shared kernel: identity, settings, errors, token verification, DynamoDB access, app factory | Pydantic · PyJWT · boto3 |
 | [`src/backend/tools/city_corpus/`](src/backend/tools/city_corpus/README.md) | The RAG corpus: licence-clean city documents as committed JSONL, one folder per city | httpx · Wikivoyage · Wikipedia · OpenStreetMap · Wikidata |
 | [`src/backend/tools/vector_store_bench/`](src/backend/tools/vector_store_bench/README.md) | Vector store spike (TRA-151, Qdrant vs S3 Vectors); frozen, never deployed | numpy · qdrant-client |

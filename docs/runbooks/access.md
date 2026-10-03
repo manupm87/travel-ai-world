@@ -13,10 +13,10 @@ done by an administrator from the console; nothing needs a deploy except switchi
   on the person's next request.
 - Each grant may carry a **daily token limit**: empty = the default
   (`DEFAULT_DAILY_TOKEN_LIMIT`, 300 000), `0` = unlimited. `ai_api` enforces it: it adds every
-  turn's input + output tokens to a counter per account and UTC day, and refuses a planner or
-  chat request once the day's count has reached the limit (429 `DAILY_TOKEN_LIMIT`). The count
+  turn's input + output tokens to a counter per account and UTC day, and refuses a planner
+  request once the day's count has reached the limit (429 `DAILY_TOKEN_LIMIT`). The count
   starts again at **00:00 UTC**.
-- **`ai_api` is gated too.** Before a planner or chat request it asks `core_api` whether the
+- **`ai_api` is gated too.** Before a planner request it asks `core_api` whether the
   account may use the app and what its limit is, and keeps the answer for **60 seconds**. So a
   removed grant or a changed limit takes up to a minute to reach the planner; an invitation
   works at once.
@@ -74,8 +74,8 @@ tabs). A row can show over 100 %, marked "Limit reached".
 ## Remove someone
 
 **Remove** on the row, then confirm. Their next request to `core_api` is refused, and `ai_api`
-follows within a minute (it keeps each answer for 60 seconds); their account, trips and
-conversations stay as they are, and inviting them again brings everything back.
+follows within a minute (it keeps each answer for 60 seconds); their account and trips stay as
+they are, and inviting them again brings everything back.
 
 ## Switch the mode, or the default limit
 
@@ -107,8 +107,8 @@ The deploy that brings this in turns the list on with nobody on it:
 
 If something is wrong, `access_mode = "open"` and an apply puts things back as they were.
 
-`ai-api` depends on `core-api` for this: if `core-api` cannot be reached, planner and chat
-requests answer 503 rather than run unchecked (the counter failing, on the other hand, never
+`ai-api` depends on `core-api` for this: if `core-api` cannot be reached, planner requests
+answer 503 rather than run unchecked (the counter failing, on the other hand, never
 stops a turn).
 
 ## Locally

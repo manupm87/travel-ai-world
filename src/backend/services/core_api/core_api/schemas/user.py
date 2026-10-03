@@ -10,10 +10,10 @@ class UserBase(BaseModel):
 
 
 class UserUpdate(BaseModel):
-    """All fields are optional: a partial update (PATCH)."""
+    """All fields are optional: a partial update (PATCH). The email is how a
+    sign-in finds its account (and so its trips), so it is not editable;
+    neither is `is_active`."""
 
-    email: EmailStr | None = None
-    is_active: bool | None = None
     name: str | None = None
     picture: str | None = None
 

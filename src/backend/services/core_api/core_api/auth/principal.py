@@ -8,7 +8,7 @@ from travel_common.principal import Principal
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class AccountPrincipal(Principal):
-    """A `Principal` plus the account id (a UUID) that owns trips and threads.
+    """A `Principal` plus the account id (a UUID) that owns trips.
 
     Endpoints and services in this service scope every read by `id`; the
     `subject` is what the token said and what a stateless service would see.

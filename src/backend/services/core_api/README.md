@@ -1,7 +1,7 @@
 # core_api
 
 Users, trip data (trips, itinerary days, activities, meals, accommodations, transportations)
-and chat conversations (threads and their messages), all in one DynamoDB table
+and the access list, all in one DynamoDB table
 ([ADR 0023](../../../../docs/architecture/adr/0023-dynamodb-data-store.md)). Owns the account behind every bearer token: in local mode it also
 signs people in with Google and issues the JWTs every service trusts; in Cognito mode
 ([ADR 0009](../../../../docs/architecture/adr/0009-lambda-cognito-budget.md)) the user pool issues
@@ -67,15 +67,12 @@ once, right after the TRA-227 apply ([infra/aws/README.md](../../../../infra/aws
 | `GET` | `/users/me/access` | Bearer (invited or not) | `{allowed, daily_token_limit}`: whether the account may use the app and its daily token limit (`null` = unlimited) ([ADR 0026](../../../../docs/architecture/adr/0026-access-list-and-daily-token-quota.md)) |
 | `GET` | `/users/` | Admin | List users, by email |
 | `GET` | `/users/{id}` | Admin | Profiles are not public; ids are UUIDs |
-| `PATCH/DELETE` | `/users/{id}` | Bearer (owner) | Only your own account (403 otherwise); an email already registered is 409; delete takes trips and conversations with it |
-| `PATCH` | `/users/{id}/role` | Admin | |
+| `PATCH/DELETE` | `/users/{id}` | Bearer (owner) | Only your own account (403 otherwise); `PATCH` changes `name` and `picture` only (the email and `is_active` are not editable); delete takes the account's trips with it |
+| `PATCH` | `/users/{id}/role` | Admin | Local mode only (absent when `AUTH_MODE=cognito`: the pool's `admin` group is the role there) |
 | `GET/POST` | `/trips/` | Bearer | Only the caller's trips |
 | `GET/PATCH/DELETE` | `/trips/{id}` | Bearer (owner) | 404 for another user's trip; response embeds every child and its derived `phase`; `PATCH` is 409 `TRIP_LOCKED` once the trip is ongoing or past, `DELETE` never is |
 | CRUD | `/trips/{id}/itinerary-days/`, `/trips/{id}/accommodations/`, `/trips/{id}/transportations/` | Bearer (owner) | Nested under the owner's trip; writes 409 `TRIP_LOCKED` unless the trip is `upcoming` |
 | CRUD | `/trips/{id}/itinerary-days/{day_id}/activities/`, `.../meals/` | Bearer (owner) | Nested under a day of the owner's trip; same lock |
-| `GET/POST` | `/chat-threads/` | Bearer | Only the caller's conversations, most recent activity first |
-| `GET/PATCH/DELETE` | `/chat-threads/{id}` | Bearer (owner) | 404 for another user's thread; the response has no messages; delete takes them with it |
-| `GET/POST` | `/chat-threads/{id}/messages/` | Bearer (owner) | Append-only, in the order written; an answer may carry `sources`, `model`, tokens and `latency_ms` ([ADR 0013](../../../../docs/architecture/adr/0013-chat-conversations-in-core-api.md)) |
 | `GET` | `/admin/trips?cursor=&limit=50` | Admin | Every user's trips, newest first (GSI2 summary: owner, city, dates, `phase`, `planner_session_id`); `limit` 1..200, `next_cursor` is `null` on the last page |
 | `GET` | `/admin/trips/{user_id}/{trip_id}` | Admin | Anyone's trip, whole (`TripResponse`); 404 when there is none |
 | `GET` | `/admin/users?cursor=&limit=100` | Admin | Every account by email, with the token `subject` the AI traces name it by |
@@ -87,14 +84,14 @@ once, right after the TRA-227 apply ([infra/aws/README.md](../../../../infra/aws
 **Bearer means invited.** With `ACCESS_MODE=allowlist` every `Bearer` and `Bearer (owner)` route
 answers 403 `ACCESS_DENIED` to an account that is neither an administrator nor on the access list;
 only the two "invited or not" routes answer it. With `ACCESS_MODE=open` (the default) the list
-gates nothing. `ai_api` asks `GET /users/me/access` with the caller's token before a planner or
-chat request (its `ACCESS_CONTROL_ENABLED`), refuses the accounts this service refuses and
+gates nothing. `ai_api` asks `GET /users/me/access` with the caller's token before a planner
+request (its `ACCESS_CONTROL_ENABLED`), refuses the accounts this service refuses and
 enforces `daily_token_limit` against the tokens it counts (ADR 0026).
 
 Every trip collection offers `GET /` (paginated with `skip`/`limit`), `POST /`, `GET/PATCH/DELETE /{item_id}`.
 A child that exists under another trip answers 404, never 403, so ids leak nothing
 ([ADR 0005](../../../../docs/architecture/adr/0005-trip-aggregate-nested-resources.md)).
-Writes that lose a race (someone saved the same trip, thread or profile in between) answer 409
+Writes that lose a race (someone saved the same trip or profile in between) answer 409
 `CONFLICT`: reload and retry.
 
 A trip is **one city** and its `phase` (`upcoming | ongoing | past`) is derived from its dates,
@@ -124,13 +121,13 @@ core_api/
 │                      table.py (spec, DynamoTable, open_table), keys.py, codec.py, repositories.py,
 │                      backfill.py (the one-off GSI2 backfill behind `ops`)
 ├── services/          trip_service.py, trip_children.py (every nested collection), user_service.py,
-│                      chat_thread_service.py, chat_message_service.py,
 │                      auth_service.py (Authenticate: both modes; SignIn: local issuer),
 │                      access_service.py (the access list: resolve, ensure_allowed, upsert, remove)
 ├── api/deps.py        get_table → repositories → services; get_authenticated_user → AccountPrincipal;
 │                      get_current_user = that + the access list (403 ACCESS_DENIED);
-│                      get_owned_trip / get_owned_itinerary_day / get_owned_chat_thread; get_sign_in
-├── api/v1/endpoints/  thin controllers for auth (local mode only), users, trips, chat_threads, admin, health
+│                      get_owned_trip / get_owned_itinerary_day; get_sign_in
+├── api/v1/endpoints/  thin controllers for auth (local mode only), users (the role route: local mode only),
+│                      trips, admin, health
 ├── api/v1/resources.py  CHILD_RESOURCES + child_router(): the nested CRUD collections
 ├── auth/google.py     IdentityVerifier port + GoogleTokenInfoVerifier adapter (local mode)
 ├── auth/principal.py  AccountPrincipal = Principal + the account's UUID

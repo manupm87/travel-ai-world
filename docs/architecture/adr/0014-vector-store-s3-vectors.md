@@ -1,6 +1,6 @@
 # 0014 — The vector store is Amazon S3 Vectors, filled from the committed corpus
 
-**Status:** Accepted
+**Status:** Accepted (the chat it first served, `StreamChat`, is retired by [0027](0027-retire-chat-v1.md); the planner searches the store)
 **Date:** 2026-09-17
 
 Decided with the bucket and the index (TRA-155); the retriever that reads them is TRA-152.

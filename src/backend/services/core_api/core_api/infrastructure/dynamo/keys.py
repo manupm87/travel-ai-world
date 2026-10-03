@@ -6,8 +6,6 @@
 | Email lookup  | `EMAIL#<email, lower>`  | `EMAIL`                              |
 | Trip          | `USER#<user_id>`        | `TRIP#<trip_id>`                     |
 |               | (GSI2: `TRIPS` / `<created_at µs UTC>#<trip_id>`, the admin list) |
-| Conversation  | `USER#<user_id>`        | `THREAD#<thread_id>`                 |
-| Message       | `THREAD#<thread_id>`    | `MSG#<created_at µs UTC>#<msg_id>`   |
 | Access grant  | `ACCESS#<email, lower>` | `ACCESS` (GSI1: `ACCESS` / email)    |
 """
 
@@ -26,8 +24,6 @@ EMAIL = "EMAIL"
 USERS = "USERS"
 TRIPS_GSI2PK = "TRIPS"
 TRIP_PREFIX = "TRIP#"
-THREAD_PREFIX = "THREAD#"
-MSG_PREFIX = "MSG#"
 ACCESS = "ACCESS"
 
 
@@ -48,21 +44,9 @@ def trip_sk(trip_id: UUID) -> str:
     return f"{TRIP_PREFIX}{trip_id}"
 
 
-def thread_sk(thread_id: UUID) -> str:
-    return f"{THREAD_PREFIX}{thread_id}"
-
-
-def thread_pk(thread_id: UUID) -> str:
-    return f"{THREAD_PREFIX}{thread_id}"
-
-
 def _stamp(moment: datetime) -> str:
     """Sorts by time: every timestamp is UTC with microseconds, same width."""
     return moment.astimezone(UTC).isoformat(timespec="microseconds")
-
-
-def message_sk(created_at: datetime, message_id: UUID) -> str:
-    return f"{MSG_PREFIX}{_stamp(created_at)}#{message_id}"
 
 
 def trip_gsi2_sk(created_at: datetime, trip_id: UUID) -> str:

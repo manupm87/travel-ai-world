@@ -15,8 +15,8 @@ AI-powered travel planner. Static Next.js frontend + two FastAPI services:
 | Path | Role | Talks to |
 |---|---|---|
 | `src/frontend/` | Next.js 16 static export (S3 + CloudFront on AWS) | `core_api`, `ai_api` |
-| `src/backend/services/core_api/` | Google auth, users, trips CRUD, chat conversations | DynamoDB (one table, ADR 0023) |
-| `src/backend/services/ai_api/` | Trip planner (typed SSE, ADR 0015/0025), card details, chat, admin reads over the turn traces; Bedrock deployed, NVIDIA locally; RAG over S3 Vectors (ADR 0014) | `core_api` (with the caller's token), Bedrock, S3 Vectors, its own trace table (ADR 0024), Open-Meteo, Wikimedia Commons |
+| `src/backend/services/core_api/` | Google auth, users, trips CRUD, the access list | DynamoDB (one table, ADR 0023) |
+| `src/backend/services/ai_api/` | Trip planner (typed SSE, ADR 0015/0025), card details, admin reads over the turn traces; Bedrock deployed, NVIDIA locally; RAG over S3 Vectors (ADR 0014) | `core_api` (with the caller's token), Bedrock, S3 Vectors, its own trace table (ADR 0024), Open-Meteo, Wikimedia Commons |
 | `src/backend/libs/travel_common/` | Shared kernel: Principal, settings, errors, JWT, app factory | — |
 | `src/backend/tools/city_corpus/` | RAG corpus builder: licence-clean city documents as JSONL (committed) | Wikivoyage, Wikipedia, OpenStreetMap, Wikidata, Open-Meteo |
 | `src/backend/tools/vector_store_bench/` | TRA-151 spike (Qdrant vs S3 Vectors); frozen, never deployed | — |
@@ -108,7 +108,7 @@ Runbook (brief template, how to run and resume a wave, what the human does):
 
 ## Where things live
 
-- Auth flow, chat flow, service-to-service calls → `docs/architecture/overview.md`
+- Auth flow, planner flow, service-to-service calls → `docs/architecture/overview.md`
 - Local dev, Docker, deploy, release, agent delivery → `docs/runbooks/`
 - API contracts (generated) → `docs/api/*.openapi.json` and `src/frontend/src/types/generated/`
 - Cloud deployment → `infra/README.md`, then `infra/<cloud>/README.md`

@@ -21,7 +21,6 @@ from ai_api.api.deps import (
     require_access,
     require_budget,
 )
-from ai_api.api.v1.endpoints.chat import SSE_HEADERS
 from ai_api.application.card_detail import CardDetailLookup
 from ai_api.application.plan_trip import PlanTrip, resolve_city
 from ai_api.application.record_trace import RecordTrace
@@ -40,6 +39,12 @@ from ai_api.schemas.planner import (
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+SSE_HEADERS = {
+    "Cache-Control": "no-cache",
+    "Connection": "keep-alive",
+    "X-Accel-Buffering": "no",
+}
 
 
 @router.get(

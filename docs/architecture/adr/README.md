@@ -16,8 +16,8 @@ One file per decision, numbered, never deleted (superseded ones get a new status
 | [0010](0010-domain-roots-in-terraform.md) | The hosted zone and the ACM certificate are Terraform resources, imported and `prevent_destroy` | Accepted |
 | [0011](0011-real-trips-seed-and-client-side-loading.md) | Real trips: backend-seeded demo data per account, client-side loading, `/trip/?id=`, Compose mirrors CloudFront | Accepted (superseded in part by 0019 and 0020) |
 | 0012 | Reserved for the knowledge base (TRA-137), never written: the corpus contract is [`tools/city_corpus/README.md`](../../../src/backend/tools/city_corpus/README.md#output), the store is ADR 0014 | — |
-| [0013](0013-chat-conversations-in-core-api.md) | Chat conversations are stored by `core_api` and written by `ai_api` over HTTP | Accepted (storage superseded by 0023) |
-| [0014](0014-vector-store-s3-vectors.md) | The vector store is Amazon S3 Vectors, filled from the committed corpus | Accepted |
+| [0013](0013-chat-conversations-in-core-api.md) | Chat conversations are stored by `core_api` and written by `ai_api` over HTTP | Superseded by 0027 (storage superseded by 0023 before) |
+| [0014](0014-vector-store-s3-vectors.md) | The vector store is Amazon S3 Vectors, filled from the committed corpus | Accepted (its first client, the chat, retired by 0027) |
 | [0015](0015-planner-sse-v2-stateless-orchestration.md) | The planner streams typed events (SSE v2) from a stateless orchestrator in `ai_api` | Accepted (amended by 0025) |
 | [0016](0016-planner-map-openfreemap-maplibre.md) | The planner's map is MapLibre GL over OpenFreeMap's hosted tiles | Accepted |
 | [0017](0017-city-intro-and-hero-in-the-cities-manifest.md) | A city's intro (derived from the corpus) and hero photo (curated) travel in the cities manifest | Accepted |
@@ -26,10 +26,11 @@ One file per decision, numbered, never deleted (superseded ones get a new status
 | [0020](0020-signed-in-home-is-the-trips-page.md) | The signed-in home is the trips page; the planner makes and reads one trip | Accepted |
 | [0021](0021-venue-photos-from-the-venues-site-preview.md) | A venue with no photo shows the preview of its own site, never another venue's | Accepted |
 | [0022](0022-hotel-photos-resolved-at-build-time.md) | Every hotel has a photo: resolved at build time, or it leaves the corpus | Accepted |
-| [0023](0023-dynamodb-data-store.md) | DynamoDB is the data store: one table for `core_api`, one interaction log for `ai_api`, RDS retired | Accepted (amended by 0024) |
-| [0024](0024-turn-traces-and-admin-access.md) | A turn is a trace with steps; admins are the Cognito group, filled from Terraform | Accepted (amended by 0026) |
+| [0023](0023-dynamodb-data-store.md) | DynamoDB is the data store: one table for `core_api`, one interaction log for `ai_api`, RDS retired | Accepted (amended by 0024; conversations retired by 0027) |
+| [0024](0024-turn-traces-and-admin-access.md) | A turn is a trace with steps; admins are the Cognito group, filled from Terraform | Accepted (amended by 0026; the chat retired by 0027) |
 | [0025](0025-planner-progress-event.md) | The planner streams its progress: a `progress` event per packing step | Accepted |
 | [0026](0026-access-list-and-daily-token-quota.md) | An access list in `core_api` gates the app; a daily token quota per person | Accepted |
+| [0027](0027-retire-chat-v1.md) | The chat v1 (`POST /ai/chat` and `core_api`'s conversations) is retired; with it the unused title model, and the user PATCH routes narrow | Accepted |
 | [0028](0028-retire-the-legacy-scraper.md) | The legacy scraper leaves the tree; the cities come from `tools/city_corpus` only | Accepted |
 
 ## Inputs

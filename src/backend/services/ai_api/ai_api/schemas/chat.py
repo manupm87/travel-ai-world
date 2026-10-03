@@ -1,13 +1,12 @@
-"""Chat request/response schemas for AI chatbot."""
+"""The planner's transcript: one replayed message, and what a turn may carry."""
 
 from typing import Literal
-from uuid import UUID
 
 from pydantic import BaseModel, Field
 
 # Request limits.
 MAX_MESSAGE_CHARS = 4_000
-"""Longest single user turn the endpoint accepts."""
+"""Longest message one planner turn carries."""
 
 MAX_HISTORY_MESSAGE_CHARS = 8_000
 """Longest replayed turn — assistant answers run longer than user prompts."""
@@ -25,26 +24,4 @@ class ChatMessage(BaseModel):
     content: str = Field(
         max_length=MAX_HISTORY_MESSAGE_CHARS,
         description="Message content",
-    )
-
-
-class ChatRequest(BaseModel):
-    """Incoming chat request body."""
-
-    message: str = Field(
-        min_length=1,
-        max_length=MAX_MESSAGE_CHARS,
-        description="Current user message",
-    )
-    history: list[ChatMessage] = Field(
-        default_factory=list,
-        max_length=MAX_HISTORY_TURNS,
-        description="Previous conversation messages for context",
-    )
-    thread_id: UUID | None = Field(
-        default=None,
-        description=(
-            "Conversation to record this exchange in. Omit it to start a new one; "
-            'the stream ends with `{"thread_id": ...}` to send back next time.'
-        ),
     )

@@ -161,6 +161,19 @@ async def test_no_sign_in_endpoint_in_cognito_mode(cognito_client: AsyncClient):
     assert response.status_code == 404
 
 
+async def test_no_role_endpoint_in_cognito_mode(cognito_client: AsyncClient):
+    """The pool's `admin` group is the role: the next request would undo a
+    stored change, so there is no route to make one."""
+    alice = await make_user("alice@example.com")
+    admin = bearer(pool.id_token(email="admin@example.com", groups=("admin",)))
+
+    response = await cognito_client.patch(
+        f"/api/v1/users/{alice.id}/role", json={"role": "admin"}, headers=admin
+    )
+
+    assert response.status_code == 404
+
+
 async def test_a_request_with_the_same_claims_writes_nothing(
     cognito_client: AsyncClient, users: DynamoUserRepository
 ):

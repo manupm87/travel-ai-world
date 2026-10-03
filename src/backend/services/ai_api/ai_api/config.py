@@ -10,8 +10,8 @@ LLMProviderName = Literal["nvidia", "bedrock"]
 class AISettings(CommonSettings, DynamoSettings):
     PROJECT_NAME: str = "Kyrian World — AI API"
 
-    # Which adapter answers the chat: NVIDIA (local development, an API key)
-    # or Amazon Bedrock (deployed: the function's IAM role, no key). ADR 0009.
+    # Which adapter answers the planner: NVIDIA (local development, an API
+    # key) or Amazon Bedrock (deployed: the function's IAM role, no key). ADR 0009.
     LLM_PROVIDER: LLMProviderName = "nvidia"
 
     # NVIDIA-hosted chat models (OpenAI-compatible API).
@@ -19,7 +19,7 @@ class AISettings(CommonSettings, DynamoSettings):
     NVIDIA_BASE_URL: str = "https://integrate.api.nvidia.com/v1"
     # Model-agnostic: any chat model on build.nvidia.com works here. Models get
     # retired without notice (minimax-m3 went 410 on 2026-09-09): check the
-    # catalogue when the chat starts answering SERVICE_UNAVAILABLE.
+    # catalogue when the planner starts answering SERVICE_UNAVAILABLE.
     NVIDIA_CHAT_MODEL: str = "nvidia/nemotron-3-super-120b-a12b"
     # Reasoning models think before answering; hidden reasoning costs tokens
     # and seconds and never reaches the browser, so it is off by default.
@@ -35,8 +35,6 @@ class AISettings(CommonSettings, DynamoSettings):
     # `aws bedrock list-inference-profiles --region eu-west-1`.
     BEDROCK_REGION: str = "eu-west-1"
     BEDROCK_CHAT_MODEL: str = "eu.anthropic.claude-haiku-4-5-20251001-v1:0"
-    # Short, cheap completions (conversation titles) go to a smaller model.
-    BEDROCK_TITLE_MODEL: str = "eu.amazon.nova-lite-v1:0"
     BEDROCK_CONNECT_TIMEOUT: float = 10.0
     BEDROCK_READ_TIMEOUT: float = 120.0
     BEDROCK_MAX_RETRIES: int = 2
@@ -47,19 +45,15 @@ class AISettings(CommonSettings, DynamoSettings):
     CHAT_TEMPERATURE: float = 0.7
     CHAT_TOP_P: float = 0.95
 
-    # Where core_api lives, for the calls that persist AI output.
+    # Where core_api lives, for the access check (ADR 0026).
     CORE_API_URL: str = "http://localhost:8000"
-    # Keep every answered exchange in the caller's conversation in core_api
-    # (ADR 0013). Off, the chat answers exactly as before and stores nothing.
-    CHAT_RECORD_CONVERSATIONS: bool = True
 
-    # Retrieval (ADR 0014). The chat grounds its answers in a corpus of city
-    # documents kept in an Amazon S3 Vectors index, searched with the same
-    # credentials Bedrock uses. Off by default locally, on when deployed
-    # (Terraform `retrieval_enabled`); with the flag down the chat answers from
-    # the model's own knowledge and the planner answers 503.
+    # Retrieval (ADR 0014). The planner grounds its cards and answers in a
+    # corpus of city documents kept in an Amazon S3 Vectors index, searched
+    # with the same credentials Bedrock uses. Off by default locally, on when
+    # deployed (Terraform `retrieval_enabled`); with the flag down the planner
+    # answers 503.
     RETRIEVAL_ENABLED: bool = False
-    RETRIEVAL_LIMIT: int = 6
     VECTOR_BUCKET: str = "travel-ai-vectors"
     VECTOR_INDEX: str = "city-kb"
     VECTOR_REGION: str = "eu-west-1"
@@ -113,7 +107,7 @@ class AISettings(CommonSettings, DynamoSettings):
     TRACE_PAYLOAD_BYTES: int = 8192
 
     # Access list and daily token quota (ADR 0026). On, every planner and
-    # chat route asks core_api (`GET /users/me/access`, the caller's token)
+    # usage route asks core_api (`GET /users/me/access`, the caller's token)
     # whether the account may use the app and its daily token limit; off (the
     # default: ai_api runs on its own) nobody is asked and nothing is limited.
     # The tokens are counted either way, when INTERACTIONS_TABLE is set.

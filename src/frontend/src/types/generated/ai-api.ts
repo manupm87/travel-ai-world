@@ -130,44 +130,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/ai/chat": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Chat
-         * @description Stream a chat completion for the authenticated user.
-         *
-         *     Wire format, one JSON object per `data:` line, terminated by `[DONE]`:
-         *
-         *         data: {"content": "Hola"}
-         *         data: {"thread_id": "..."}
-         *         data: {"error": "..."}
-         *         data: [DONE]
-         *
-         *     The `system` prompt is inserted server-side; clients may only send
-         *     `user` and `assistant` turns. Once the answer is complete, the exchange is
-         *     recorded in the caller's conversation (`thread_id`, or a new one) and
-         *     `{"thread_id"}` is sent before `[DONE]`; if recording fails, the answer is
-         *     still delivered and that event is simply missing. The answer's trace
-         *     is written to the interactions table before `[DONE]` (ADR 0024).
-         *
-         *     With `ACCESS_CONTROL_ENABLED` the request is refused before the stream
-         *     starts, as a plain JSON error: 403 `ACCESS_DENIED` or 429
-         *     `DAILY_TOKEN_LIMIT` (ADR 0026).
-         */
-        post: operations["chat_api_v1_ai_chat_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/ai/health/": {
         parameters: {
             query?: never;
@@ -434,27 +396,6 @@ export interface components {
              * @enum {string}
              */
             role: "user" | "assistant";
-        };
-        /**
-         * ChatRequest
-         * @description Incoming chat request body.
-         */
-        ChatRequest: {
-            /**
-             * History
-             * @description Previous conversation messages for context
-             */
-            history?: components["schemas"]["ChatMessage"][];
-            /**
-             * Message
-             * @description Current user message
-             */
-            message: string;
-            /**
-             * Thread Id
-             * @description Conversation to record this exchange in. Omit it to start a new one; the stream ends with `{"thread_id": ...}` to send back next time.
-             */
-            thread_id?: string | null;
         };
         /**
          * CityIntro
@@ -1558,39 +1499,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdminUsageResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    chat_api_v1_ai_chat_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ChatRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

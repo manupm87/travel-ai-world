@@ -11,8 +11,8 @@ How they fit: [architecture overview](../../docs/architecture/overview.md).
 
 | Package | Path | Role |
 |---|---|---|
-| `core-api` | [`services/core_api/`](services/core_api/README.md) | Google OAuth / Cognito, users, trips CRUD, chat conversations; one DynamoDB table (ADR 0023) |
-| `ai-api` | [`services/ai_api/`](services/ai_api/README.md) | Trip planner (typed SSE), card details, chat, admin reads over the turn traces; Bedrock deployed, NVIDIA locally; RAG over S3 Vectors |
+| `core-api` | [`services/core_api/`](services/core_api/README.md) | Google OAuth / Cognito, users, trips CRUD, the access list; one DynamoDB table (ADR 0023) |
+| `ai-api` | [`services/ai_api/`](services/ai_api/README.md) | Trip planner (typed SSE), card details, admin reads over the turn traces; Bedrock deployed, NVIDIA locally; RAG over S3 Vectors |
 | `travel-common` | [`libs/travel_common/`](libs/travel_common/README.md) | Identity, settings, errors, token verification, DynamoDB access, app factory |
 | `city-corpus` | [`tools/city_corpus/`](tools/city_corpus/README.md) | Licence-clean city knowledge base (Wikivoyage, Wikipedia, OSM, Wikidata, Open-Meteo) as JSONL for RAG (never deployed) |
 | `vector-store-bench` | [`tools/vector_store_bench/`](tools/vector_store_bench/README.md) | TRA-151 spike: Qdrant vs S3 Vectors (frozen, never deployed) |

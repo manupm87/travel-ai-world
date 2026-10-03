@@ -1,4 +1,4 @@
-import type { ChatMessage } from "@/services/chat";
+import type { ChatMessage } from "@/types/planner";
 import { cn } from "@/utils/cn";
 import { KiriTag } from "./v2/PackingStatus";
 import { MarkdownContent } from "./MarkdownContent";
