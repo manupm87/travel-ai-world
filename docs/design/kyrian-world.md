@@ -62,7 +62,9 @@ model's answer, which stays in the body font. All three are loaded in `app/layou
   secondary text 14 px, the chat 15 px. Small monitors read the canvas's 10–11 px as a blur. The
   admin console keeps its density.
 - No ALL-CAPS tracked labels above headings, no "WORD — fragment" eyebrows, no monospace for small
-  data labels, no numbered `01 / 02 / 03` markers unless the content really is a sequence.
+  data labels, no numbered `01 / 02 / 03` markers unless the content really is a sequence. The
+  small uppercase metadata inside the planner's cards (source chips, field labels) belongs to the
+  card, not to a heading, and stays.
 - The wordmark is "Kyrian World" in Outfit 500, sentence case, beside **the pin over the world**
   (`components/layout/Logo.tsx`, TRA-259): a map pin with a four-point star standing on the curve of
   a world, on a rounded tile (radius 23% of the side, 1 px border). Three levels of detail by size:
@@ -221,10 +223,10 @@ Two things the CSS has to say out loud, or the theme stops at the edge of our ow
 - `color-scheme` (`dark` on `:root`, `light` on `[data-theme="light"]`) — without it the native
   date picker, the select's list, the scrollbars and the caret all draw themselves light on the
   dusk sky.
-- Nothing that spans the page paints its own background. The footer is transparent, the trip
-  viewer's sections are `variant="transparent"` with glass cards, and the sticky filter row is
-  `bg-glass-bg backdrop-blur-xl`. An opaque band cuts the amber horizon off in a straight line,
-  which is exactly what it looks like.
+- Nothing that spans the page paints its own background. The footer is transparent, and
+  `Section`'s `primary` and `secondary` backgrounds are left unused: a new surface does not reach
+  for them. An opaque band cuts the amber horizon off in a straight line, which is exactly what
+  it looks like.
 
 The aurora belongs to a layout, never to a page: `(marketing)/layout.tsx` mounts it directly and
 `(app)/layout.tsx` through `components/layout/AppAurora.tsx`, which stands aside on `/plan/` —

@@ -338,7 +338,13 @@ export interface Translations {
       /** The box above the list: what the traveller wants instead. */
       guidePlaceholder: string;
       guideSubmit: string;
-      /** The message sent to ask for options: "Alternatives for day {day} · {part}" */
+      /**
+       * The message sent to ask for options: "Alternatives for day {day} · {part}".
+       * Not only copy: ai_api reads the slot out of it (`ALTERNATIVES_ASK` in
+       * `application/plan_trip.py`, English and Spanish, `{part}` as `plan.parts`
+       * writes it) and leaves any other wording to the model, so change or
+       * translate both together.
+       */
       askMessage: string;
       /** The guided ask: "Alternatives for day {day} · {part}: {guidance}" */
       askMessageGuided: string;
