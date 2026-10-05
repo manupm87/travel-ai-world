@@ -34,7 +34,7 @@
     "tailwind-merge": "^3.7.0"
   },
   "devDependencies": {
-    "@playwright/mcp": "^0.0.82",
+    "@playwright/mcp": "^0.0.83",
     "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@testing-library/jest-dom": "^7.0.1",
