@@ -15,7 +15,7 @@ domain/         Message, ChatRole, Document, RetrievalFilters, GenerationParams,
                 tracing.py: TurnTrace, Span, RetrievedDoc, EventMark, TurnContext (ADR 0024) and the read models
                 TurnSummary, TurnDetail, TurnFilters, TurnPage (TRA-221)
 application/    use cases (PlanTrip, CardDetailLookup, CheckAccess) and their pure helpers:
-                structured.py (complete_json: JSON out of `LLMProvider.complete`, one repair retry), cards.py
+                structured.py (complete_json: provider-constrained JSON, one attempt; deterministic use-case fallback), cards.py
                 (OptionCard — and the fuller CardDetail — from a Document), validate.py (distance, load, closed,
                 prices), language.py, retrieval_eval.py (recall@k / MRR over the 20 questions per city of
                 data/eval_questions/, TRA-263/272), answer_eval.py (the chat's answers to those questions and to
@@ -92,7 +92,11 @@ testing.py      FakeProvider, FakeEmbedder, FakeRetriever, KeywordRetriever (tf-
   `infrastructure/`, give it `name`, `is_configured` and `aclose()`, and add it to
   `providers.build_llm_provider`. The use case and the endpoint do not change. Sampling comes
   from `AISettings` (`CHAT_*`) as a `GenerationParams`, never from literals in the adapter; Bedrock
-  sends only the temperature (Claude 4.5+ rejects it together with `top_p`).
+  sends only the temperature (Claude 4.5+ rejects it together with `top_p`). `complete_json` passes
+  the JSON Schema to Bedrock Converse and to NVIDIA GLM-5.3-Flash (`response_format`); unsupported
+  NVIDIA models use the prompt instruction and tolerant parser. Structured calls make one attempt;
+  the use case owns the deterministic fallback. GLM structured calls set low reasoning effort and
+  clear hidden thinking to leave room for the answer.
 - **Retrieval** (ADR 0014): `S3VectorsRetriever` over Amazon S3 Vectors, fed by `TitanEmbedder`,
   built in `lifespan` only when `RETRIEVAL_ENABLED` and injected by `get_retriever` (the planner
   and the card details answer 503 without it). Another store

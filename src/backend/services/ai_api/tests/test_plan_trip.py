@@ -250,6 +250,17 @@ async def test_incomplete_brief_is_extracted_then_one_question_is_streamed():
     assert any("dates" in m.content for m in provider.calls[0])
 
 
+async def test_invalid_brief_answer_keeps_the_client_brief():
+    original = brief(interests=["food"])
+    use_case, provider, _ = planner(["not json"])
+
+    events = await run(use_case(turn("Add dates", brief=original)))
+
+    [brief_event] = only(events, BriefEvent)
+    assert brief_event.brief == original
+    assert len(provider.completions) == 2
+
+
 async def test_brief_merges_into_what_the_client_sent_and_derives_nights():
     partial = brief(start_date=None, end_date=None, nights=None, interests=["food"])
     use_case, _, _ = planner(
@@ -372,6 +383,17 @@ async def test_complete_brief_without_a_stay_offers_neighbourhoods():
     # The model was shown ids and summaries, never asked to write a place.
     prompt = provider.completions[1][-2].content
     assert BELVAROS in prompt and "Use only ids from the list" in prompt
+
+
+async def test_invalid_picks_answer_fills_from_the_candidates():
+    use_case, provider, _ = planner(["not json"])
+
+    events = await run(use_case(turn("Looks good", brief=brief())))
+
+    [group] = only(events, OptionsEvent)
+    assert group.cards
+    assert all(card.id in BY_ID for card in group.cards)
+    assert len(provider.completions) == 2
 
 
 async def test_selecting_a_neighbourhood_lists_hotels_there_within_budget():
@@ -911,6 +933,27 @@ async def test_free_text_after_the_draft_goes_through_the_intent_classifier():
     query, _, filters = next(s for s in retriever.searches if s[2] and s[2].categories)
     assert query == "Hungarian restaurant"
     assert filters is not None and filters.price_tier_max == 2
+
+
+async def test_invalid_intent_falls_back_to_grounded_chat():
+    use_case, provider, _ = planner(
+        ["not json"], deltas=("I can answer from the guide.",)
+    )
+
+    events = await run(
+        use_case(
+            turn(
+                "What is nearby?",
+                brief=brief(),
+                stay=ASTORIA,
+                days=[{}],
+            )
+        )
+    )
+
+    assert joined_text(events) == "I can answer from the guide."
+    assert not only(events, OptionsEvent)
+    assert len(provider.completions) == 1
 
 
 async def test_cheaper_stay_lists_hotels_a_tier_down_near_the_current_one():

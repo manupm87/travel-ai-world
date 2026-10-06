@@ -76,7 +76,7 @@ ai_api/
 ├── openapi.py      registers the planner's stream models in the OpenAPI document (no route declares them)
 ├── indexing.py     python -m ai_api.indexing <documents.jsonl>: fills the vector index (just index)
 ├── domain/         models.py (Message, Document, RetrievalFilters, GenerationParams, Usage, DayWeather, RouteSuggestion) · ports.py (LLMProvider, Embedder, Retriever, WeatherForecast, PhotoFinder, SitePreviewFinder, TraceLog, UsageStore, AccessGateway) · tracing.py (the turn trace, ADR 0024) · usage.py (DailyUsage, Entitlement, ADR 0026)
-├── application/    plan_trip.py, card_detail.py, access.py (CheckAccess: the access list and the daily limit) — the use cases, depend only on ports · structured.py (JSON out of a completion) · cards.py · photos.py · validate.py · language.py
+├── application/    plan_trip.py, card_detail.py, access.py (CheckAccess: the access list and the daily limit) — the use cases, depend only on ports · structured.py (provider-constrained JSON with validation) · cards.py · photos.py · validate.py · language.py
 ├── infrastructure/ nvidia_provider.py · bedrock_provider.py · bedrock_embedder.py · bedrock.py (client config and retry rules both Bedrock adapters share) · s3vectors.py (client, keys, metadata split) · s3vectors_retriever.py · providers.py (settings → adapters) · open_meteo.py · static_flight_search.py (+ data/airports.json) · cities.py (+ data/cities.json, the cities manifest the corpus tool writes) · commons_photos.py · site_previews.py (the image a venue publishes on its own site, ADR 0021; the corpus does the same for hotels at build time, ADR 0022) · sse.py · retry.py · core_api_client.py (the caller's access) · dynamo_traces.py · dynamo_usage.py (the daily token counters)
 ├── api/            deps.py (wiring) · v1/endpoints/planner.py, usage.py, admin.py (trace and usage reads, the retrieval evaluation; admins only), health.py
 ├── schemas/        chat.py (ChatMessage, the transcript's limits) · planner.py (PlannerTurn, PlannerCity, CardDetail) · planner_events.py (SSE v2 events and ops) · admin.py (trace pages, detail, stats, retrieval evaluation) · usage.py (the caller's usage, a day's counters)
@@ -84,10 +84,11 @@ ai_api/
 ```
 
 Swap the model: `NVIDIA_CHAT_MODEL` in `.env` (NVIDIA retires models without notice; a `410` from
-the provider means pick another one on build.nvidia.com); `NVIDIA_THINKING=true` lets reasoning
-models think first; tune sampling with `CHAT_*`. Swap the provider: `LLM_PROVIDER=nvidia|bedrock`; a
-third one is a new class in `infrastructure/` implementing `LLMProvider`, added to
-`providers.build_llm_provider`.
+the provider means pick another one on build.nvidia.com). `z-ai/glm-5.3-flash` supports native JSON
+Schema output; structured calls set `reasoning_effort=low` and `clear_thinking=true` for it.
+Other NVIDIA models receive the schema in the prompt and are parsed tolerantly. Tune sampling with
+`CHAT_*`. Swap the provider: `LLM_PROVIDER=nvidia|bedrock`; a third one is a new class in
+`infrastructure/` implementing `LLMProvider`, added to `providers.build_llm_provider`.
 
 ## Bedrock (`LLM_PROVIDER=bedrock`)
 
@@ -100,7 +101,9 @@ the Bedrock console before the first call (an `AccessDeniedException` in the log
 missing). Only `CHAT_TEMPERATURE` is sent (Claude 4.5+ refuses `top_p` alongside it); retries follow
 the same `RetryPolicy` as NVIDIA and happen only before the first delta.
 `BedrockProvider.complete()` returns one non-streamed answer (the planner's structured calls);
-its `model=` override is unused. The final stream event's token usage is logged
+it sends native JSON Schema through Converse `outputConfig.textFormat`. Invalid structured answers
+fail once and let the planner's deterministic fallback take over; the old JSON repair round trip is
+removed. Its `model=` override is unused. The final stream event's token usage is logged
 (`Bedrock usage ...`) so costs can be reconciled with Cost Explorer.
 
 ## Retrieval (`RETRIEVAL_ENABLED`)
@@ -258,8 +261,9 @@ line `core_api`'s admin routes log.
   from where it stopped (at most 10 round trips) and may come back with fewer than `limit` items
   and a cursor. The cursor is opaque (base64url of `LastEvaluatedKey`); a malformed one is `400`.
 - **One turn.** The `TURN#` partition (context, events, steps) and then its summary. A step's
-  `payload` holds its kind's keys — `llm`: provider, model, operation, schema, `prompt_version`,
-  sampling, tokens, time to first chunk, attempts, repaired, validation error, `picked_ids`,
+  `payload` holds its kind's keys — `llm`: provider, model, operation, schema, mechanism,
+  `fallback_used`, `prompt_version`, sampling, tokens, time to first chunk, attempts, validation
+  error, `picked_ids`,
   `dropped_ids`, input and output; `retriever`: purpose, query, filters, `k`, ladder step, embedding
   model and tokens (the documents are in `results`); `tool`: service, host, status, count;
   `chain`: the code step's own counters.
@@ -274,7 +278,8 @@ line `core_api`'s admin routes log.
     summary has no per-search hit count).
   - `used_over_retrieved`: Σ `docs_used` / Σ `docs_retrieved`.
   - `mean_distance_used`: mean distance of the used sources that have one.
-  - `repair_rate`: turns with a repaired structured answer / turns that called a model.
+  - `repair_rate`: legacy turns with a repaired structured answer / turns that called a model.
+  - `fallback_rate`: turns using a deterministic structured-answer fallback / turns that called a model.
   - `dropped_ids`: Σ ids a model picked that no retrieval offered.
   - `top_used`: the 20 documents used by most turns; `never_used`: 20 documents retrieved at least
     twice and never used.
@@ -338,7 +343,7 @@ the Bedrock chat model of the settings (Haiku 4.5) — plus the 6 questions of
 traffic, a wifi password). A judge model (Amazon Nova Pro by default, temperature 0: another family
 than the answering Claude, at a quarter of a Sonnet's price) reads question, passages and answer
 with `prompts.JUDGE_PROMPT` and returns `groundedness` and `relevance` (1–5), `acknowledges_gap`
-and the `unsupported_claims` through `complete_json` (validated, one repair). The report gives the
+and the `unsupported_claims` through `complete_json` (provider-constrained and validated once). The report gives the
 means per city and language and the share under 3 for the answerable questions, how many
 unanswerable ones were acknowledged, the answerable ones turned down anyway, the five worst answers
 with their unsupported claims, the failures, and tokens and USD per model (`pricing.py`). It prints

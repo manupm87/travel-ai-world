@@ -26,6 +26,11 @@ from ai_api.domain.usage import DailyUsage, Entitlement
 
 
 class LLMProvider(Protocol):
+    @property
+    def supports_structured_outputs(self) -> bool:
+        """Whether the active model constrains a completion to a JSON schema."""
+        ...
+
     def stream(
         self, messages: Sequence[Message], *, usage: Usage | None = None
     ) -> AsyncIterator[str]:
@@ -37,12 +42,17 @@ class LLMProvider(Protocol):
         ...
 
     async def complete(
-        self, messages: Sequence[Message], *, usage: Usage | None = None
+        self,
+        messages: Sequence[Message],
+        *,
+        response_schema: dict[str, object] | None = None,
+        response_schema_name: str | None = None,
+        usage: Usage | None = None,
     ) -> str:
         """One whole answer, not streamed: what structured output is parsed from.
 
-        Same failure and `usage` rules as `stream`. `application.structured`
-        turns it into a validated model with a repair retry.
+        When supported, `response_schema` constrains the provider's output.
+        Same failure and `usage` rules as `stream`.
         """
         ...
 

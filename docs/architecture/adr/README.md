@@ -32,6 +32,7 @@ One file per decision, numbered, never deleted (superseded ones get a new status
 | [0026](0026-access-list-and-daily-token-quota.md) | An access list in `core_api` gates the app; a daily token quota per person | Accepted |
 | [0027](0027-retire-chat-v1.md) | The chat v1 (`POST /ai/chat` and `core_api`'s conversations) is retired; with it the unused title model, and the user PATCH routes narrow | Accepted |
 | [0028](0028-retire-the-legacy-scraper.md) | The legacy scraper leaves the tree; the cities come from `tools/city_corpus` only | Accepted |
+| [0029](0029-provider-native-structured-outputs.md) | Structured planner answers are constrained by the active provider | Accepted |
 
 ## Inputs
 

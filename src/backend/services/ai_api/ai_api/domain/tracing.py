@@ -126,6 +126,7 @@ class TurnTrace:
     docs_retrieved: int
     docs_used: int
     repairs: int
+    fallbacks: int
     dropped_ids: int
     prices_stripped: int
     warnings: int
@@ -184,6 +185,7 @@ class TurnSummary:
     docs_retrieved: int
     docs_used: int
     repairs: int
+    fallbacks: int
     dropped_ids: int
     prices_stripped: int
     warnings: int

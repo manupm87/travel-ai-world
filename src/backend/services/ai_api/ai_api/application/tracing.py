@@ -84,6 +84,8 @@ def _payload_defaults(kind: SpanKind) -> dict[str, Any]:
             "ttfc_ms": None,
             "attempts": None,
             "repaired": False,
+            "mechanism": None,
+            "fallback_used": False,
             "validation_error": None,
             "picked_ids": [],
             "dropped_ids": [],
@@ -175,6 +177,7 @@ class TurnTracer:
         self.retrievals = 0
         self.docs_retrieved = 0
         self.repairs = 0
+        self.fallbacks = 0
         self.dropped_ids = 0
         self.prices_stripped = 0
         self.warnings = 0
@@ -267,6 +270,7 @@ class TurnTracer:
             self.input_tokens += payload.get("input_tokens") or 0
             self.output_tokens += payload.get("output_tokens") or 0
             self.repairs += 1 if payload.get("repaired") else 0
+            self.fallbacks += 1 if payload.get("fallback_used") else 0
             self.model = payload.get("model") or self.model
             self.provider = payload.get("provider") or self.provider
             self.prompt_version = payload.get("prompt_version") or self.prompt_version
@@ -452,6 +456,7 @@ class TurnTracer:
             docs_retrieved=self.docs_retrieved,
             docs_used=len(self._used),
             repairs=self.repairs,
+            fallbacks=self.fallbacks,
             dropped_ids=self.dropped_ids,
             prices_stripped=self.prices_stripped,
             warnings=self.warnings,

@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 # What the browser sees. Upstream status codes and bodies stay in the logs.
 UPSTREAM_ERROR_MESSAGE = "AI provider error"
+STRUCTURED_OUTPUT_MODEL = "z-ai/glm-5.3-flash"
 
 
 class NvidiaProvider:
@@ -74,6 +75,10 @@ class NvidiaProvider:
     def is_configured(self) -> bool:
         return bool(self._api_key)
 
+    @property
+    def supports_structured_outputs(self) -> bool:
+        return self._model == STRUCTURED_OUTPUT_MODEL
+
     async def aclose(self) -> None:
         await self._client.aclose()
 
@@ -101,7 +106,12 @@ class NvidiaProvider:
                 await asyncio.sleep(delay)
 
     async def complete(
-        self, messages: Sequence[Message], *, usage: Usage | None = None
+        self,
+        messages: Sequence[Message],
+        *,
+        response_schema: dict[str, object] | None = None,
+        response_schema_name: str | None = None,
+        usage: Usage | None = None,
     ) -> str:
         """One whole answer (no stream), for structured output."""
         if not self.is_configured:
@@ -109,6 +119,15 @@ class NvidiaProvider:
         if usage is not None:
             usage.model = self._model
         payload = self._payload(messages) | {"stream": False}
+        if response_schema is not None and self.supports_structured_outputs:
+            payload["response_format"] = {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": response_schema_name or "structured_response",
+                    "strict": True,
+                    "schema": response_schema,
+                },
+            }
         for delay in self._retry.delays():
             try:
                 response = await self._client.post(
@@ -139,7 +158,7 @@ class NvidiaProvider:
         }
 
     def _payload(self, messages: Sequence[Message]) -> dict[str, Any]:
-        return {
+        payload: dict[str, Any] = {
             "model": self._model,
             "messages": [asdict(m) for m in messages],
             **asdict(self._params),
@@ -148,6 +167,10 @@ class NvidiaProvider:
             # which `_extract_delta` drops: only the answer is streamed.
             "chat_template_kwargs": {"enable_thinking": self._thinking},
         }
+        if self.supports_structured_outputs:
+            payload["reasoning_effort"] = "low"
+            payload["chat_template_kwargs"]["clear_thinking"] = True
+        return payload
 
     async def _stream_once(
         self, messages: Sequence[Message], usage: Usage | None

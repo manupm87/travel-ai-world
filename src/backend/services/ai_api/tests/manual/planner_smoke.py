@@ -46,7 +46,7 @@ from travel_common.exceptions import DomainError
 
 SERVICE_DIR = Path(__file__).resolve().parents[2]
 CORPUS_DIR = SERVICE_DIR.parents[1] / "tools" / "city_corpus" / "data"
-DEFAULT_MODEL = "nvidia/nemotron-3-super-120b-a12b"
+DEFAULT_MODEL = "z-ai/glm-5.3-flash"
 
 PRICE = re.compile(r"[€$£]|\b(?:Ft|HUF|EUR|USD)\b")
 """A currency sign or code: a card must show tiers, never amounts."""

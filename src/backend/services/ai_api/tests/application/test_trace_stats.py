@@ -56,6 +56,7 @@ def test_an_empty_range_has_every_day_at_zero():
     assert stats.by_kind == [] and stats.by_model == [] and stats.by_city == []
     assert stats.rag.retrievals_per_turn is None
     assert stats.rag.no_hit_rate is None and stats.rag.repair_rate is None
+    assert stats.rag.fallback_rate is None
     assert stats.top_used == [] and stats.never_used == []
 
 
@@ -93,6 +94,7 @@ def test_rag_ratios():
             docs_retrieved=4,
             docs_used=2,
             repairs=1,
+            fallbacks=1,
             dropped_ids=3,
             sources=[
                 doc("a", used=True, distance=0.1),
@@ -121,6 +123,7 @@ def test_rag_ratios():
     assert rag.used_over_retrieved == pytest.approx(0.5)
     assert rag.mean_distance_used == pytest.approx(0.2)
     assert rag.repair_rate == pytest.approx(0.5)
+    assert rag.fallback_rate == pytest.approx(0.5)
     assert rag.dropped_ids == 3
 
 
