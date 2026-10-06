@@ -9,7 +9,12 @@ import pytest
 from ai_api.application.tracing import TurnTracer
 from ai_api.domain.models import Document
 from ai_api.domain.tracing import RetrievedDoc, Span, TurnFilters, TurnTrace
-from ai_api.infrastructure.dynamo_traces import DynamoTraceLog, TraceWriteFailed, spec
+from ai_api.infrastructure.dynamo_traces import (
+    DynamoTraceLog,
+    TraceWriteFailed,
+    spec,
+    summary_from_item,
+)
 from ai_api.testing import InMemoryTraceLog, make_trace
 from boto3.dynamodb.types import TypeDeserializer
 from botocore.exceptions import ClientError
@@ -104,6 +109,24 @@ async def test_every_item_has_its_keys_and_expiry(client: Any):
 
     events = stored[("TURN#turn1", "EVENTS")]
     assert events["timeline"][0]["type"] == "text"
+
+
+async def test_old_summary_without_fallback_count_reads_as_zero(client: Any):
+    await ensure_table(client, spec(TABLE))
+    trace = await build_trace(session_id=None)
+    await DynamoTraceLog(client, TABLE).record(trace)
+    response = client.query(
+        TableName=TABLE,
+        KeyConditionExpression="#pk = :pk",
+        ExpressionAttributeNames={"#pk": "PK"},
+        ExpressionAttributeValues={":pk": {"S": "DAY#2026-09-23"}},
+    )
+    item = response["Items"][0]
+    item.pop("fallbacks", None)
+
+    summary = summary_from_item(item)
+
+    assert summary.fallbacks == 0
 
 
 async def test_a_turn_without_a_session_has_no_gsi2(client: Any):

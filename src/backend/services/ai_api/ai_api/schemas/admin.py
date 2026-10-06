@@ -61,6 +61,7 @@ class TurnSummaryResponse(_FromAttributes):
     docs_retrieved: int
     docs_used: int
     repairs: int
+    fallbacks: int
     dropped_ids: int
     prices_stripped: int
     warnings: int
@@ -190,6 +191,7 @@ class RagStatsResponse(_FromAttributes):
     used_over_retrieved: float | None
     mean_distance_used: float | None
     repair_rate: float | None
+    fallback_rate: float | None
     dropped_ids: int
 
 

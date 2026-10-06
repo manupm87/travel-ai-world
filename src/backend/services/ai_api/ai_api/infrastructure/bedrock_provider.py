@@ -11,6 +11,7 @@ serving other requests while an answer streams.
 """
 
 import asyncio
+import json
 import logging
 from collections.abc import AsyncIterator, Iterator, Mapping, Sequence
 from typing import Any, Protocol, cast
@@ -28,6 +29,7 @@ logger = logging.getLogger(__name__)
 
 # What the browser sees. Bedrock's error codes and messages stay in the logs.
 UPSTREAM_ERROR_MESSAGE = "AI provider error"
+STRUCTURED_OUTPUT_MODELS = {"eu.anthropic.claude-haiku-4-5-20251001-v1:0"}
 
 _END = object()
 
@@ -90,6 +92,10 @@ class BedrockProvider:
     def is_configured(self) -> bool:
         return bool(self._model)
 
+    @property
+    def supports_structured_outputs(self) -> bool:
+        return self._model in STRUCTURED_OUTPUT_MODELS
+
     async def aclose(self) -> None:
         """boto3 clients hold nothing that needs closing; here for symmetry."""
         return None
@@ -120,6 +126,8 @@ class BedrockProvider:
         self,
         messages: Sequence[Message],
         *,
+        response_schema: dict[str, object] | None = None,
+        response_schema_name: str | None = None,
         usage: Usage | None = None,
         model: str | None = None,
         max_tokens: int | None = None,
@@ -131,6 +139,19 @@ class BedrockProvider:
         if not self.is_configured:
             raise ProviderUnavailable("AI provider not configured")
         request = self._request(messages, model=model, max_tokens=max_tokens)
+        if response_schema is not None:
+            request["outputConfig"] = {
+                "textFormat": {
+                    "type": "json_schema",
+                    "structure": {
+                        "jsonSchema": {
+                            "name": response_schema_name or "structured_response",
+                            "description": "Structured response",
+                            "schema": json.dumps(response_schema),
+                        }
+                    },
+                }
+            }
         for delay in self._retry.delays():
             try:
                 response = await asyncio.to_thread(self._client.converse, **request)

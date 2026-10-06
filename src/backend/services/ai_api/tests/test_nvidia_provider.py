@@ -23,10 +23,11 @@ UPSTREAM_STREAM = (
 
 
 def _provider(handler, retries: int = 0, **kwargs) -> NvidiaProvider:
+    model = kwargs.pop("model", "m")
     return NvidiaProvider(
         api_key="k",
         base_url="https://nvidia.test/v1",
-        model="m",
+        model=model,
         client=httpx.AsyncClient(transport=httpx.MockTransport(handler)),
         retry=RetryPolicy(max_retries=retries, base_delay=0),
         **kwargs,
@@ -86,6 +87,23 @@ async def test_thinking_flag_reaches_the_payload():
     assert seen[0]["chat_template_kwargs"] == {"enable_thinking": True}
 
 
+async def test_glm_stream_limits_reasoning_and_clears_hidden_thinking():
+    seen: list[dict] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(__import__("json").loads(request.content))
+        return httpx.Response(200, text=UPSTREAM_STREAM)
+
+    provider = _provider(handler, model="z-ai/glm-5.3-flash")
+
+    assert await _collect(provider) == ["Ho", "la"]
+    assert seen[0]["reasoning_effort"] == "low"
+    assert seen[0]["chat_template_kwargs"] == {
+        "enable_thinking": False,
+        "clear_thinking": True,
+    }
+
+
 def test_from_settings_reads_model_and_thinking():
     provider = NvidiaProvider.from_settings(
         AISettings(NVIDIA_API_KEY="k", NVIDIA_CHAT_MODEL="m", NVIDIA_THINKING=True)
@@ -93,6 +111,21 @@ def test_from_settings_reads_model_and_thinking():
 
     assert provider._model == "m"
     assert provider._thinking is True
+
+
+def test_settings_load_env_file_from_working_directory(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / ".env").write_text(
+        "LLM_PROVIDER=nvidia\n"
+        "NVIDIA_API_KEY=test-key\n"
+        "NVIDIA_CHAT_MODEL=z-ai/glm-5.3-flash\n"
+    )
+
+    settings = AISettings()
+
+    assert settings.LLM_PROVIDER == "nvidia"
+    assert settings.NVIDIA_API_KEY == "test-key"
+    assert settings.NVIDIA_CHAT_MODEL == "z-ai/glm-5.3-flash"
 
 
 async def test_reuses_one_client_across_calls():
@@ -199,6 +232,48 @@ async def test_complete_returns_the_whole_answer_with_its_usage():
     assert seen[0]["stream"] is False
     assert "stream_options" not in seen[0]
     assert seen[0]["messages"] == [{"role": "user", "content": "título"}]
+
+
+async def test_complete_sends_native_schema_for_glm():
+    seen: list[dict] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(__import__("json").loads(request.content))
+        return httpx.Response(200, json=COMPLETION)
+
+    schema = {"type": "object", "properties": {"title": {"type": "string"}}}
+    provider = _provider(handler, model="z-ai/glm-5.3-flash")
+
+    await provider.complete(
+        [Message("user", "título")],
+        response_schema=schema,
+        response_schema_name="Title",
+    )
+
+    assert provider.supports_structured_outputs is True
+    assert seen[0]["response_format"] == {
+        "type": "json_schema",
+        "json_schema": {"name": "Title", "strict": True, "schema": schema},
+    }
+    assert seen[0]["reasoning_effort"] == "low"
+    assert seen[0]["chat_template_kwargs"] == {
+        "enable_thinking": False,
+        "clear_thinking": True,
+    }
+
+
+async def test_complete_does_not_send_native_schema_for_other_models():
+    seen: list[dict] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(__import__("json").loads(request.content))
+        return httpx.Response(200, json=COMPLETION)
+
+    await _provider(handler).complete(
+        [Message("user", "título")], response_schema={"type": "object"}
+    )
+
+    assert "response_format" not in seen[0]
 
 
 async def test_complete_without_choices_is_an_empty_answer():

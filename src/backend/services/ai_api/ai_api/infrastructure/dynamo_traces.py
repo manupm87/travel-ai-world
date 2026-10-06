@@ -424,6 +424,7 @@ def summary_from_item(item: Mapping[str, Any]) -> TurnSummary:
     values["sources"] = [RetrievedDoc(**doc) for doc in plain.get("sources") or []]
     values["events"] = plain.get("events") or {}
     values["ops"] = plain.get("ops") or {}
+    values["fallbacks"] = plain.get("fallbacks") or 0
     return TurnSummary(
         **values,
         ts=datetime.fromisoformat(plain["ts"]),

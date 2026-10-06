@@ -72,18 +72,22 @@ class FakeProvider:
     """
 
     name = "fake"
+    supports_structured_outputs = True
 
     def __init__(
         self,
         deltas: Sequence[str] = ("Hola", " mundo"),
         usage: Usage | None = None,
         replies: Sequence[str] = (),
+        supports_structured_outputs: bool = False,
     ) -> None:
+        self.supports_structured_outputs = supports_structured_outputs
         self.deltas = list(deltas)
         self.usage = usage or Usage(model="fake-model", input_tokens=3, output_tokens=2)
         self.calls: list[list[Message]] = []
         self.replies = list(replies)
         self.completions: list[list[Message]] = []
+        self.structured_requests: list[tuple[str | None, dict[str, object] | None]] = []
 
     async def stream(
         self, messages: Sequence[Message], *, usage: Usage | None = None
@@ -94,9 +98,15 @@ class FakeProvider:
         self._fill(usage)
 
     async def complete(
-        self, messages: Sequence[Message], *, usage: Usage | None = None
+        self,
+        messages: Sequence[Message],
+        *,
+        response_schema: dict[str, object] | None = None,
+        response_schema_name: str | None = None,
+        usage: Usage | None = None,
     ) -> str:
         self.completions.append(list(messages))
+        self.structured_requests.append((response_schema_name, response_schema))
         self._fill(usage)
         if self.replies:
             return self.replies.pop(0)
@@ -480,6 +490,7 @@ def make_trace(**overrides: Any) -> TurnTrace:
         "docs_retrieved": 1,
         "docs_used": 1,
         "repairs": 0,
+        "fallbacks": 0,
         "dropped_ids": 0,
         "prices_stripped": 0,
         "warnings": 0,

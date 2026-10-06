@@ -1,6 +1,7 @@
 from functools import lru_cache
-from typing import Literal
+from typing import ClassVar, Literal
 
+from pydantic_settings import SettingsConfigDict
 from travel_common.config import CommonSettings
 from travel_common.dynamodb import DynamoSettings
 
@@ -8,6 +9,10 @@ LLMProviderName = Literal["nvidia", "bedrock"]
 
 
 class AISettings(CommonSettings, DynamoSettings):
+    model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", case_sensitive=True, extra="ignore"
+    )
+
     PROJECT_NAME: str = "Kyrian World — AI API"
 
     # Which adapter answers the planner: NVIDIA (local development, an API
@@ -20,7 +25,7 @@ class AISettings(CommonSettings, DynamoSettings):
     # Model-agnostic: any chat model on build.nvidia.com works here. Models get
     # retired without notice (minimax-m3 went 410 on 2026-09-09): check the
     # catalogue when the planner starts answering SERVICE_UNAVAILABLE.
-    NVIDIA_CHAT_MODEL: str = "nvidia/nemotron-3-super-120b-a12b"
+    NVIDIA_CHAT_MODEL: str = "z-ai/glm-5.3-flash"
     # Reasoning models think before answering; hidden reasoning costs tokens
     # and seconds and never reaches the browser, so it is off by default.
     NVIDIA_THINKING: bool = False

@@ -1423,6 +1423,17 @@
             "title": "Dropped Ids",
             "type": "integer"
           },
+          "fallback_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fallback Rate"
+          },
           "mean_distance_used": {
             "anyOf": [
               {
@@ -1485,6 +1496,7 @@
           "used_over_retrieved",
           "mean_distance_used",
           "repair_rate",
+          "fallback_rate",
           "dropped_ids"
         ],
         "title": "RagStatsResponse",
@@ -2656,6 +2668,10 @@
             "title": "Events",
             "type": "object"
           },
+          "fallbacks": {
+            "title": "Fallbacks",
+            "type": "integer"
+          },
           "first_event_ms": {
             "anyOf": [
               {
@@ -2861,6 +2877,7 @@
           "docs_retrieved",
           "docs_used",
           "repairs",
+          "fallbacks",
           "dropped_ids",
           "prices_stripped",
           "warnings",

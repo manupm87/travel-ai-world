@@ -1,5 +1,5 @@
-"""`application.answer_eval` (TRA-266): an answer built like the planner's chat,
-the judge's verdict parsed and repaired, failures kept, and the report."""
+"""`application.answer_eval` (TRA-266): planner-like answers, one-shot judge
+validation, failures, and the report."""
 
 import json
 
@@ -10,6 +10,7 @@ from ai_api.domain.models import Document, Usage
 from ai_api.infrastructure.cities import load_cities
 from ai_api.prompts import JUDGE_PROMPT
 from ai_api.testing import FakeProvider, FakeRetriever
+from travel_common.exceptions import ProviderUnavailable
 
 BATHS = Document(
     id="wv:bath",
@@ -87,20 +88,20 @@ async def test_an_answer_is_built_like_the_planner_chat_and_judged() -> None:
     assert result.answer_usage.model == "fake-model"
 
 
-async def test_a_verdict_out_of_range_is_repaired_once() -> None:
+async def test_a_verdict_out_of_range_fails_after_one_attempt() -> None:
     judge = FakeProvider(replies=[verdict(groundedness=7), verdict(groundedness=2)])
 
-    result = await ev.grade(
-        QUESTION, FakeRetriever([BATHS]), FakeProvider(replies=["a"]), judge
-    )
+    with pytest.raises(ProviderUnavailable):
+        await ev.grade(
+            QUESTION, FakeRetriever([BATHS]), FakeProvider(replies=["a"]), judge
+        )
 
-    assert result.verdict.groundedness == 2
-    assert len(judge.completions) == 2
+    assert len(judge.completions) == 1
 
 
 async def test_a_question_the_judge_cannot_grade_is_a_failure() -> None:
-    # The first question gets two answers that are no JSON; the second, a verdict.
-    judge = FakeProvider(replies=["not json", "still not json", verdict()])
+    # The first question gets no JSON; the second gets a valid verdict.
+    judge = FakeProvider(replies=["not json", verdict()])
     other = ev.Item("budapest", "other", "es", "¿Algo más?", True)
     answerer = FakeProvider(replies=["a", "b"])
 

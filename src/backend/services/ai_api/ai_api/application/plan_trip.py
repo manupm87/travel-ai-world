@@ -853,6 +853,7 @@ class PlanTrip:
                 BriefUpdate,
                 name="extract_brief",
                 template=BRIEF_EXTRACTION_PROMPT,
+                fallback_on_error=True,
             )
         except DomainError as exc:
             logger.warning("Brief kept as the client sent it: %s", exc.message)
@@ -1340,6 +1341,7 @@ class PlanTrip:
                 Skeleton,
                 name="skeleton",
                 template=SKELETON_PROMPT,
+                fallback_on_error=True,
             )
         except DomainError as exc:
             logger.warning("Skeleton unavailable, using plain days: %s", exc.message)
@@ -1413,6 +1415,7 @@ class PlanTrip:
                     DayPicks,
                     name=f"day_picks:{sketch.day}",
                     template=DAY_PICKS_PROMPT,
+                    fallback_on_error=True,
                 )
                 dropped: list[str] = []
                 for part in plan:
@@ -1564,6 +1567,7 @@ class PlanTrip:
                 Intent,
                 name="classify",
                 template=INTENT_PROMPT,
+                fallback_on_error=True,
             )
         except DomainError as exc:
             logger.warning("Intent unavailable, answering as chat: %s", exc.message)
@@ -1772,6 +1776,7 @@ class PlanTrip:
                 Picks,
                 name=name,
                 template=template,
+                fallback_on_error=True,
             )
             picks = _keep_known(answer.picks, known)
             turn.tracer.note_picks([p.id for p in picks], _unknown(answer.picks, known))

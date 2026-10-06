@@ -119,6 +119,7 @@ class RagStats:
     used_over_retrieved: float | None
     mean_distance_used: float | None
     repair_rate: float | None
+    fallback_rate: float | None
     dropped_ids: int
 
 
@@ -285,6 +286,7 @@ def _rag(turns: list[TurnSummary]) -> RagStats:
         ),
         mean_distance_used=_ratio(sum(distances), len(distances)),
         repair_rate=_ratio(sum(t.repairs > 0 for t in called), len(called)),
+        fallback_rate=_ratio(sum(t.fallbacks > 0 for t in called), len(called)),
         dropped_ids=sum(t.dropped_ids for t in turns),
     )
 

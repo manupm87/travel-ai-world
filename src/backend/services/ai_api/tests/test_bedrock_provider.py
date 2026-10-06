@@ -260,6 +260,48 @@ async def test_complete_records_the_usage_the_response_reports():
     assert usage == Usage(model="eu.anthropic.test", input_tokens=41, output_tokens=5)
 
 
+async def test_complete_sends_native_json_schema_to_converse():
+    client = FakeClient(
+        {"output": {"message": {"content": [{"text": '{"answer":"ACCEPTED"}'}]}}}
+    )
+    schema = {
+        "type": "object",
+        "properties": {"answer": {"type": "string", "enum": ["ACCEPTED"]}},
+        "required": ["answer"],
+        "additionalProperties": False,
+    }
+
+    answer = await _provider(client).complete(
+        [Message("user", "answer")],
+        response_schema=schema,
+        response_schema_name="Answer",
+    )
+
+    assert answer == '{"answer":"ACCEPTED"}'
+    assert client.calls[0]["outputConfig"] == {
+        "textFormat": {
+            "type": "json_schema",
+            "structure": {
+                "jsonSchema": {
+                    "name": "Answer",
+                    "description": "Structured response",
+                    "schema": __import__("json").dumps(schema),
+                }
+            },
+        }
+    }
+
+
+def test_native_schema_support_is_limited_to_the_verified_profile():
+    assert _provider(FakeClient()).supports_structured_outputs is False
+    assert (
+        BedrockProvider(
+            client=FakeClient(), model="eu.anthropic.claude-haiku-4-5-20251001-v1:0"
+        ).supports_structured_outputs
+        is True
+    )
+
+
 async def test_complete_refuses_when_the_provider_is_not_configured():
     provider = BedrockProvider(client=FakeClient(), model="")
 

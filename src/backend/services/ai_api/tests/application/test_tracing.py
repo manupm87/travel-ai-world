@@ -15,7 +15,7 @@ from ai_api.application.tracing import (
 from ai_api.domain.models import Document, Message, Usage
 from ai_api.domain.tracing import MAX_EVENT_MARKS, MAX_SOURCES, MAX_SPANS
 from ai_api.testing import FakeProvider
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from travel_common.exceptions import ProviderUnavailable
 
 
@@ -302,9 +302,9 @@ class Answer(BaseModel):
     value: int
 
 
-async def test_complete_json_records_a_repair():
+async def test_complete_json_uses_native_schema_in_one_call():
     t = tracer()
-    provider = FakeProvider(replies=["not json", '{"value": 3}'])
+    provider = FakeProvider(replies=['{"value": 3}'], supports_structured_outputs=True)
 
     answer = await complete_json(
         provider, [Message("user", "q")], Answer, name="extract", tracer=t
@@ -314,22 +314,89 @@ async def test_complete_json_records_a_repair():
     assert answer.value == 3
     assert span.payload["schema"] == "Answer"
     assert span.payload["operation"] == "structured"
-    assert span.payload["attempts"] == 2 and span.payload["repaired"] is True
-    assert span.payload["validation_error"]
-    # Tokens of both attempts.
-    assert (span.payload["input_tokens"], span.payload["output_tokens"]) == (6, 4)
-    assert t.finish("ok").repairs == 1
+    assert span.payload["mechanism"] == "native_json_schema"
+    assert span.payload["attempts"] == 1 and span.payload["repaired"] is False
+    assert span.payload["fallback_used"] is False
+    assert provider.structured_requests == (
+        [
+            (
+                "Answer",
+                {
+                    "properties": {"value": {"title": "Value", "type": "integer"}},
+                    "required": ["value"],
+                    "title": "Answer",
+                    "type": "object",
+                    "additionalProperties": False,
+                },
+            )
+        ]
+    )
+    assert len(provider.completions) == 1
+    assert (span.payload["input_tokens"], span.payload["output_tokens"]) == (3, 2)
+    assert t.finish("ok").repairs == 0
 
 
-async def test_complete_json_that_fails_twice_marks_the_span():
+async def test_complete_json_fails_once_and_marks_the_use_case_fallback():
     t = tracer()
-    provider = FakeProvider(replies=["nope", "still nope"])
+    provider = FakeProvider(replies=["nope"])
 
     with pytest.raises(ProviderUnavailable):
         await complete_json(
-            provider, [Message("user", "q")], Answer, name="extract", tracer=t
+            provider,
+            [Message("user", "q")],
+            Answer,
+            name="extract",
+            tracer=t,
+            fallback_on_error=True,
         )
 
     [span] = t.spans
-    assert span.level == "error" and span.payload["repaired"] is False
-    assert span.payload["attempts"] == 2
+    assert span.level == "error" and span.payload["fallback_used"] is True
+    assert span.payload["attempts"] == 1
+    assert len(provider.completions) == 1
+    assert t.finish("error").fallbacks == 1
+
+
+async def test_complete_json_uses_tolerant_prompt_for_unsupported_provider():
+    t = tracer()
+    provider = FakeProvider(
+        replies=['Here is the result: ```json\n{"value": 3}\n```'],
+        supports_structured_outputs=False,
+    )
+
+    answer = await complete_json(
+        provider, [Message("user", "q")], Answer, name="extract", tracer=t
+    )
+
+    [span] = t.spans
+    assert answer.value == 3
+    assert span.payload["mechanism"] == "prompt"
+    assert provider.structured_requests == [(None, None)]
+    assert "JSON schema exactly" in provider.completions[0][-1].content
+
+
+async def test_provider_schema_omits_unsupported_constraints_and_requires_all_fields():
+    class ConstrainedAnswer(BaseModel):
+        value: int = 1
+        label: str = Field(max_length=12)
+
+    provider = FakeProvider(
+        replies=['{"value": 2, "label": "ok"}'],
+        supports_structured_outputs=True,
+    )
+
+    answer = await complete_json(
+        provider,
+        [Message("user", "q")],
+        ConstrainedAnswer,
+        name="extract",
+        tracer=tracer(),
+    )
+
+    [schema_name, schema] = provider.structured_requests[0]
+    assert answer.value == 2 and schema_name == "ConstrainedAnswer"
+    assert schema is not None
+    assert schema["required"] == ["value", "label"]
+    assert schema["additionalProperties"] is False
+    assert "default" not in schema["properties"]["value"]
+    assert "maxLength" not in schema["properties"]["label"]

@@ -762,6 +762,8 @@ export interface components {
         RagStatsResponse: {
             /** Dropped Ids */
             dropped_ids: number;
+            /** Fallback Rate */
+            fallback_rate: number | null;
             /** Mean Distance Used */
             mean_distance_used: number | null;
             /** No Hit Rate */
@@ -1180,6 +1182,8 @@ export interface components {
             events: {
                 [key: string]: number;
             };
+            /** Fallbacks */
+            fallbacks: number;
             /** First Event Ms */
             first_event_ms: number | null;
             /** Input Tokens */

@@ -1,11 +1,9 @@
 """Structured output: a validated model out of one `LLMProvider.complete` call.
 
-The adapters stay text in, text out. This asks for JSON that matches a
-schema, parses whatever came back (with or without code fences, with or
-without chatter around it), validates it, and on failure sends the error
-back once so the model can repair its answer. A second failure is the
-provider's problem: `ProviderUnavailable`, which the stream reports as such.
-Every call is one `llm` span of the request's trace (ADR 0024).
+Providers that support JSON Schema constrain the answer natively; other
+models receive a prompt instruction. Pydantic validation remains the semantic
+check, and planner use cases own deterministic fallbacks. Every call is one
+`llm` span of the request's trace (ADR 0024).
 """
 
 import json
@@ -13,7 +11,7 @@ import logging
 from collections.abc import Sequence
 
 from pydantic import BaseModel, ValidationError
-from travel_common.exceptions import ProviderUnavailable
+from travel_common.exceptions import DomainError, ProviderUnavailable
 
 from ai_api.application.tracing import (
     VALIDATION_ERROR_CHARS,
@@ -34,12 +32,19 @@ JSON_INSTRUCTION = (
     "required key present, no extra keys):\n{schema}"
 )
 
-REPAIR_INSTRUCTION = (
-    "That answer was not valid JSON for the schema: {error}\n"
-    "Reply again with only the corrected JSON object."
-)
-
 INVALID_ANSWER_MESSAGE = "The AI model did not return a usable answer"
+_UNSUPPORTED_SCHEMA_KEYS = {
+    "default",
+    "exclusiveMaximum",
+    "exclusiveMinimum",
+    "maximum",
+    "maxItems",
+    "maxLength",
+    "minimum",
+    "minLength",
+    "multipleOf",
+    "pattern",
+}
 
 
 class NotJson(ValueError):
@@ -71,11 +76,12 @@ async def complete_json[T: BaseModel](
     usage: Usage | None = None,
     tracer: TurnTracer | None = None,
     template: str | None = None,
+    fallback_on_error: bool = False,
 ) -> T:
-    """Ask for `schema`, validate, repair once, then give up.
+    """Ask for `schema` once and validate; the caller owns any fallback.
 
-    One `llm` span (`name`) covers both attempts: tokens summed over them,
-    `attempts`, whether the answer was `repaired`, the `validation_error`.
+    One `llm` span (`name`) records its mechanism, validation error and whether
+    the caller's deterministic fallback was needed.
     `template` is the prompt the messages were built from (its version).
     """
     tracer = tracer or current_tracer()
@@ -85,7 +91,9 @@ async def complete_json[T: BaseModel](
     )
     async with tracer.span("llm", name, schema=schema.__name__, **payload) as span:
         try:
-            return await _complete_json(provider, messages, schema, usage, span)
+            return await _complete_json(
+                provider, messages, schema, usage, span, fallback_on_error
+            )
         finally:
             fill_usage(span, usage)
             span.payload["output"], span.payload["output_truncated"] = tracer.clip(
@@ -99,46 +107,81 @@ async def _complete_json[T: BaseModel](
     schema: type[T],
     usage: Usage,
     span: Span,
+    fallback_on_error: bool,
 ) -> T:
-    instruction = Message(
-        "system",
-        JSON_INSTRUCTION.format(schema=json.dumps(schema.model_json_schema())),
-    )
-    conversation = [*messages, instruction]
+    native = provider.supports_structured_outputs
+    response_schema = _provider_schema(schema) if native else None
+    conversation = list(messages)
+    if not native:
+        conversation.append(
+            Message(
+                "system",
+                JSON_INSTRUCTION.format(schema=json.dumps(schema.model_json_schema())),
+            )
+        )
+    span.payload["mechanism"] = "native_json_schema" if native else "prompt"
     span.payload["attempts"] = 1
-    first = Usage()
-    answer = await provider.complete(conversation, usage=first)
-    span.payload["output"] = answer
-    _add(usage, first)
+    call = Usage()
     try:
-        return schema.model_validate(extract_json(answer))
-    except (NotJson, ValidationError) as exc:
-        logger.warning(
-            "Structured answer for %s rejected, asking for a repair: %s",
-            schema.__name__,
-            str(exc)[:300],
+        answer = await provider.complete(
+            conversation,
+            response_schema=response_schema,
+            response_schema_name=schema.__name__ if native else None,
+            usage=call,
         )
-        span.payload["validation_error"] = str(exc)[:VALIDATION_ERROR_CHARS]
-        repair = [
-            *conversation,
-            Message("assistant", answer or "(empty)"),
-            Message("user", REPAIR_INSTRUCTION.format(error=str(exc)[:1_000])),
-        ]
-    span.payload["attempts"] = 2
-    second = Usage()
-    answer = await provider.complete(repair, usage=second)
+    except DomainError:
+        span.payload["fallback_used"] = fallback_on_error
+        raise
     span.payload["output"] = answer
-    _add(usage, second)
     try:
-        parsed = schema.model_validate(extract_json(answer))
+        parsed = _strict_json(answer) if native else extract_json(answer)
+        return schema.model_validate(parsed)
     except (NotJson, ValidationError) as exc:
-        logger.error(
-            "Structured answer for %s rejected twice: %s", schema.__name__, exc
-        )
         span.payload["validation_error"] = str(exc)[:VALIDATION_ERROR_CHARS]
+        span.payload["fallback_used"] = fallback_on_error
+        logger.warning("Structured answer for %s rejected: %s", schema.__name__, exc)
         raise ProviderUnavailable(INVALID_ANSWER_MESSAGE) from exc
-    span.payload["repaired"] = True
+    finally:
+        _add(usage, call)
+
+
+def _strict_json(text: str) -> dict[str, object]:
+    """Parse a native structured answer without tolerating surrounding prose."""
+    try:
+        parsed = json.loads(text)
+    except json.JSONDecodeError as exc:
+        raise NotJson(str(exc)) from exc
+    if not isinstance(parsed, dict):
+        raise NotJson("the JSON is not an object")
     return parsed
+
+
+def _provider_schema[T: BaseModel](schema: type[T]) -> dict[str, object]:
+    """Make Pydantic's schema strict while omitting provider-unsupported limits.
+
+    Pydantic still validates the complete model after generation, including
+    constraints omitted here for Bedrock's supported JSON Schema subset.
+    """
+    result = schema.model_json_schema()
+    _normalize_schema(result)
+    return result
+
+
+def _normalize_schema(node: object) -> None:
+    if isinstance(node, dict):
+        for key in _UNSUPPORTED_SCHEMA_KEYS:
+            node.pop(key, None)
+        properties = node.get("properties")
+        if isinstance(properties, dict):
+            node["required"] = list(properties)
+            node["additionalProperties"] = False
+        if node.get("minItems", 0) not in (0, 1):
+            node.pop("minItems", None)
+        for value in node.values():
+            _normalize_schema(value)
+    elif isinstance(node, list):
+        for value in node:
+            _normalize_schema(value)
 
 
 def _add(total: Usage, call: Usage) -> None:
