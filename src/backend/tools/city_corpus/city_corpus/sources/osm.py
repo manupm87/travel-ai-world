@@ -7,6 +7,7 @@ within 75 m) adds its tags to that document; any other element becomes a new doc
 import math
 import re
 import unicodedata
+from collections import Counter
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from typing import Any
@@ -59,6 +60,9 @@ USEFUL_TAGS = ("wikidata", "website", "opening_hours", "stars", "cuisine")
 FACEBOOK_TAGS = ("contact:facebook", "facebook")
 # Gunter Demnig's stones come in three shapes (stone, threshold, head stone).
 SMALL_MEMORIALS = frozenset({"stolperstein", "stolperschwelle", "kopfstein", "plaque"})
+# A brand with a Wikidata item and two or more outlets in the city is a chain:
+# not what a traveller crosses town for. A single outlet stays.
+CHAIN_QUERIES = frozenset({"eat", "drink"})
 MATCH_DISTANCE_M = 75.0
 MIN_CONTAINED_NAME = 6
 MIN_TEXT_CHARS = 40
@@ -112,6 +116,7 @@ class OsmStats:
     new: int = 0
     outside_bbox: int = 0
     too_short: int = 0
+    chain_outlets: int = 0
     timestamp: str | None = None
     fetched_at: list[str] = field(default_factory=list)
 
@@ -200,6 +205,8 @@ def places(
     city: CityConfig,
     stats: OsmStats,
 ) -> list[OsmPlace]:
+    responses = list(responses)
+    chains = _chains(responses)
     seen: set[str] = set()
     found: list[OsmPlace] = []
     for query, data in responses:
@@ -214,6 +221,9 @@ def places(
             if osm_id in seen or not _is_useful(query, tags):
                 continue
             seen.add(osm_id)
+            if query.key in CHAIN_QUERIES and tags.get("brand:wikidata") in chains:
+                stats.chain_outlets += 1
+                continue
             point = element if "lat" in element else element.get("center", {})
             if "lat" not in point or "lon" not in point:
                 continue
@@ -233,6 +243,18 @@ def places(
             )
     stats.candidates = len(found)
     return found
+
+
+def _chains(responses: Iterable[tuple[Query, dict[str, Any]]]) -> set[str]:
+    outlets: Counter[str] = Counter()
+    for query, data in responses:
+        if query.key not in CHAIN_QUERIES:
+            continue
+        for element in data.get("elements", []):
+            tags = element.get("tags", {})
+            if tags.get("brand:wikidata") and _is_useful(query, tags):
+                outlets[tags["brand:wikidata"]] += 1
+    return {brand for brand, n in outlets.items() if n >= 2}
 
 
 def normalise_name(name: str) -> str:

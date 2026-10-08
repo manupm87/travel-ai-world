@@ -35,8 +35,14 @@ the file.
 Categories are city-scoped on purpose: `Landmarks in Hungary` and `Castles in Hungary` would add 46
 articles, most of them outside Budapest. A category may set `require_coordinates`, which admits only
 articles located inside the bounding box — `Buildings and structures in Budapest` needs it, or it
-brings in embassies and government offices alongside the sights (12 skipped for Budapest). The
+brings in embassies and government offices alongside the sights (12 skipped for Budapest). What
+still slips through is listed by title under `[wikipedia] exclude` (Berlin: 33 articles). The
 manifest reports documents per category and what each one skipped.
+
+`[wikipedia] leads = ["es"]` adds the lead section of each article's Spanish version, for the
+questions travellers ask in Spanish (Berlin has no Spanish Wikivoyage district pages). The leads
+are added after the Wikidata stage and carry no coordinates: they answer questions, they never
+become a second card of a place.
 
 ## Pipeline
 
@@ -50,7 +56,9 @@ manifest reports documents per category and what each one skipped.
    least one of `wikidata`, `website`, `opening_hours`, `stars`, `cuisine` become new documents.
    Galleries need a Wikidata id, and swimming pools need thermal tags or a bath name. Small
    memorials (`memorial=stolperstein`, `stolperschwelle`, `kopfstein`, `plaque`) are never sights:
-   Berlin tags 7,362 stumbling stones, most with a website.
+   Berlin tags 7,362 stumbling stones, most with a website. Chain outlets are not places either: a
+   restaurant, café or bar whose `brand:wikidata` has two or more outlets in the city (Berlin: 24
+   Einstein Kaffee); a brand's only outlet stays.
 3. **Wikidata + Commons**: for every document with a Wikidata id, fill `lat`/`lon` and `url` when
    missing, add `name_es`, `heritage` and `entity_id` (documents about the same entity share it).
    `image_url` is a 640 px Commons thumbnail of the first free-licensed file among the Wikidata image

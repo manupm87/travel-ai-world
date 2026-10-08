@@ -89,6 +89,7 @@ def test_minimal_file_fills_defaults(tmp_path: Path) -> None:
     assert city.curated_tours is None
     assert city.curated_hotels is None
     assert city.hero is None  # the photo is optional; the gate does not ask for one
+    assert (city.wikipedia_exclude, city.wikipedia_leads) == ((), ())
 
 
 HERO = '\n[hero]\nfile = "Old Town.jpg"\ncredit = "A. Photographer (CC BY-SA 4.0)"\n'
@@ -187,3 +188,14 @@ def test_the_country_is_validated(tmp_path: Path, line: str, message: str) -> No
 
     with pytest.raises(CityConfigError, match=re.escape(message)):
         load_city(_write(tmp_path, text))
+
+
+def test_wikipedia_exclusions_and_leads_are_read(tmp_path: Path) -> None:
+    text = MINIMAL.replace(
+        "[[wikipedia.categories]]",
+        '[wikipedia]\nexclude = ["Embassy of Testland"]\nleads = ["es"]\n\n'
+        "[[wikipedia.categories]]",
+    )
+    city = load_city(_write(tmp_path, text))
+    assert city.wikipedia_exclude == ("Embassy of Testland",)
+    assert city.wikipedia_leads == ("es",)

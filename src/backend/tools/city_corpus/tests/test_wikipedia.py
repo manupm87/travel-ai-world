@@ -1,6 +1,8 @@
+from dataclasses import replace
+
 from city_corpus.config.cities import BUDAPEST
 from city_corpus.models import Category
-from city_corpus.sources.wikipedia import WikipediaArticle, parse_article
+from city_corpus.sources.wikipedia import WikipediaArticle, lead, parse_article
 
 EXTRACT = """The Chain Bridge is a suspension bridge over the Danube in Budapest.
 It opened in 1849.
@@ -88,3 +90,16 @@ def test_broad_categories_require_coordinates() -> None:
     assert by_name["Buildings and structures in Budapest"].require_coordinates
     assert not by_name["Museums in Budapest"].require_coordinates
     assert not any("Hungary" in name for name in by_name), "city-scoped categories only"
+
+
+def test_a_lead_in_another_language_is_unplaced_prose() -> None:
+    """It answers questions in that language; a second card of the bridge it
+    must not become, so it carries no coordinates."""
+    article = replace(_article(), lang="es", page_id=7, title="Puente de las Cadenas")
+
+    [doc] = lead(article, BUDAPEST)
+
+    assert doc.doc_id == "wp:es:7#s0-c1"
+    assert (doc.lat, doc.lon, doc.lang, doc.wikidata) == (None, None, "es", "Q12345")
+    assert doc.category == Category.SEE
+    assert doc.source_url.startswith("https://es.wikipedia.org/wiki/")

@@ -52,6 +52,48 @@ lang = "es"
 root = "Berlín"
 include_subpages = false  # no district pages
 
+# The Spanish lead of every article, for questions asked in Spanish: the
+# Spanish Wikivoyage has no district pages, so the corpus had little else.
+# Excluded: what the broad categories file next to the sights that a traveller
+# does not visit (embassies, institutes, a prison, transmitters, archives).
+[wikipedia]
+leads = ["es"]
+exclude = [
+    "Artemis (brothel)",
+    "Arthur Löwenstamm",
+    "Berlin-Britz transmitter",
+    "Berlin-Tegel radio transmitter",
+    "Betahaus",
+    "Bibliothek des Konservatismus",
+    "Bundeshaus (Berlin)",
+    "Campus Berlin-Buch",
+    "Corps Berlin",
+    "Embassy of Belarus, Berlin",
+    "Embassy of Turkey, Berlin",
+    "Embassy of the United Arab Emirates, Berlin",
+    "Embassy of the United Kingdom, Berlin",
+    "Friedrich-von-Raumer-Bibliothek",
+    "Hakenfelde Prison",
+    "ILA Berlin Air Show",
+    "Julius Leber Barracks (Berlin)",
+    "Landgericht Berlin",
+    "Leibniz-Forschungsinstitut für Molekulare Pharmakologie",
+    "List of castles in Berlin and Brandenburg",
+    "Max Planck Institute for Infection Biology",
+    "Power station Berlin-Wilmersdorf",
+    "Program (German non-profit)",
+    "Proletarian Theatre, Stage of the Revolutionary Workers of Greater Berlin",
+    "Prussian Heritage Image Archive",
+    "Representation of the European Commission in Germany",
+    "Research Institutes for Experimental Medicine",
+    "Steinway Hall",
+    "Tegel Prison",
+    "Transmitter Stallupöner Allee, Berlin",
+    "Unfallkrankenhaus Berlin",
+    "WZB Berlin Social Science Center",
+    "Zentralarchiv der Staatlichen Museen zu Berlin",
+]
+
 # 49 pages
 [[wikipedia.categories]]
 name = "Tourist attractions in Berlin"

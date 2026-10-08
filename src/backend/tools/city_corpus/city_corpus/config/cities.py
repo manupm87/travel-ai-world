@@ -102,6 +102,10 @@ class CityConfig:
     # The city's photo, read by the cities manifest (TRA-182). Optional: the
     # readiness gate does not ask for one.
     hero: HeroPhoto | None = None
+    # Article titles a category brings in that are not for a traveller.
+    wikipedia_exclude: tuple[str, ...] = field(default_factory=tuple)
+    # Languages whose lead section of each article is added, unplaced.
+    wikipedia_leads: tuple[str, ...] = field(default_factory=tuple)
 
 
 class CityConfigError(ValueError):
@@ -201,7 +205,7 @@ def parse_city(data: dict[str, Any], where: str = "<city>") -> CityConfig:
         )
 
     wikipedia = data["wikipedia"]
-    _check_keys(f"{where} [wikipedia]", wikipedia, {"categories"})
+    _check_keys(f"{where} [wikipedia]", wikipedia, {"categories", "exclude", "leads"})
     categories: list[WikipediaCategory] = []
     for index, category in enumerate(wikipedia.get("categories", [])):
         _check_keys(
@@ -291,6 +295,12 @@ def parse_city(data: dict[str, Any], where: str = "<city>") -> CityConfig:
         curated_tours=curated_tours,
         curated_hotels=curated_hotels,
         hero=hero,
+        wikipedia_exclude=_strings(
+            f"{where} [wikipedia] exclude", wikipedia.get("exclude", [])
+        ),
+        wikipedia_leads=_strings(
+            f"{where} [wikipedia] leads", wikipedia.get("leads", [])
+        ),
     )
 
 

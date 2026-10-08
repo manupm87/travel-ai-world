@@ -1,5 +1,7 @@
 import json
+from dataclasses import replace
 from pathlib import Path
+from types import SimpleNamespace
 
 import httpx
 import pytest
@@ -124,6 +126,44 @@ def test_the_photo_stage_runs_after_wikidata_and_before_climate(
     )
 
     assert order == ["openstreetmap", "wikidata", "districts", "photos", "climate"]
+
+
+def test_leads_in_another_language_come_after_wikidata(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Wikidata places any document with an item; a lead in Spanish added
+    before it would turn into a second card of the same place."""
+    city = replace(BUDAPEST, wikipedia_leads=("es",))
+    english = _doc(doc_id="wp:en:123#s0-c1", source=Source.WIKIPEDIA)
+    spanish = _doc(doc_id="wp:es:7#s0-c1", source=Source.WIKIPEDIA, lang="es")
+    order: list[str] = []
+
+    def wikipedia_stage(city: object, client: object, result: BuildResult) -> None:
+        order.append("wikipedia")
+        result.documents.append(english)
+
+    def langlinks(client: object, lang: str, ids: list[int], target: str):
+        assert (lang, ids, target) == ("en", [123], "es")
+        return {123: "Puente de las Cadenas"}
+
+    article = SimpleNamespace(title="Puente de las Cadenas", revision_id=5)
+    monkeypatch.setattr(build, "_collect_wikipedia", wikipedia_stage)
+    monkeypatch.setattr(build, "_enrich_wikidata", lambda *a: order.append("wikidata"))
+    monkeypatch.setattr(build.wikipedia, "langlinks", langlinks)
+    monkeypatch.setattr(
+        build.wikipedia, "fetch_article_by_title", lambda *a: (article, "2026")
+    )
+    monkeypatch.setattr(
+        build.wikipedia, "lead", lambda a, c: order.append("leads") or [spanish]
+    )
+
+    result = collect(
+        city, ApiClient(tmp_path), stages=(Stage.WIKIPEDIA, Stage.WIKIDATA)
+    )
+
+    assert order == ["wikipedia", "wikidata", "leads"]
+    assert result.documents == [english, spanish]
+    assert result.enrichment["wikipedia_leads"] == {"es": 1}
 
 
 def test_the_photo_stage_counters_reach_the_manifest(
