@@ -1,7 +1,7 @@
 """Wikipedia: articles in the city's attraction categories → section chunks."""
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from city_corpus.config.cities import CityConfig
 from city_corpus.http import ApiClient, Fetched
@@ -36,7 +36,7 @@ MIN_SECTION_CHARS = 40
 # next to the sights: it is how you arrive, not what you visit.
 _TRANSPORT_TITLE_RE = re.compile(
     r"\b(airport|railway station|train station|bus station|metro station"
-    r"|central station|aeroporto|stazione)\b",
+    r"|central station|aeroporto|stazione|aeropuerto|estación)\b",
     re.IGNORECASE,
 )
 _HEADING_RE = re.compile(r"^(={2,6})\s*(.+?)\s*\1\s*$")
@@ -77,6 +77,29 @@ def category_members(client: ApiClient, lang: str, category: str) -> list[int]:
         if not cont:
             return ids
         params = {**params, **cont}
+
+
+def langlinks(
+    client: ApiClient, lang: str, page_ids: list[int], target: str
+) -> dict[int, str]:
+    """The `target`-language title of each page that has one."""
+    titles: dict[int, str] = {}
+    for start in range(0, len(page_ids), 50):
+        batch = page_ids[start : start + 50]
+        data = client.get(
+            api_url(lang),
+            {
+                "action": "query",
+                "prop": "langlinks",
+                "pageids": "|".join(str(i) for i in batch),
+                "lllang": target,
+                "lllimit": "max",
+            },
+        ).data
+        for page in data["query"]["pages"]:
+            for link in page.get("langlinks", []):
+                titles[page["pageid"]] = link["title"]
+    return titles
 
 
 def strip_template_errors(text: str) -> str:
@@ -207,3 +230,10 @@ def parse_article(article: WikipediaArticle, city: CityConfig) -> list[CorpusDoc
                 )
             )
     return documents
+
+
+def lead(article: WikipediaArticle, city: CityConfig) -> list[CorpusDocument]:
+    """The lead's chunks without coordinates: a translation is prose for the
+    answers, never a second card of a place the corpus already has."""
+    unplaced = replace(article, lat=None, lon=None)
+    return [d for d in parse_article(unplaced, city) if "#s0-" in d.doc_id]

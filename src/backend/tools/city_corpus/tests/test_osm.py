@@ -346,3 +346,29 @@ def test_link_wikidata_by_name_and_distance() -> None:
     }
     assert osm.link_wikidata(documents, overpass) == 2
     assert [d.wikidata for d in documents] == ["Q914141", "Q2"]
+
+
+def test_chain_outlets_are_not_places() -> None:
+    """Two or more outlets of a brand with a Wikidata item (Berlin: 24 Einstein
+    Kaffee) are a chain; a brand's only outlet in the city stays."""
+    chain = {"brand:wikidata": "Q1", "brand": "Coffee Chain", "cuisine": "coffee"}
+    elements = [
+        _node(1, 47.5, 19.05, name="Coffee Chain", amenity="cafe", **chain),
+        _node(2, 47.5, 19.06, name="Coffee Chain", amenity="cafe", **chain),
+        _node(
+            3,
+            47.5,
+            19.07,
+            name="Famous Bakery",
+            amenity="cafe",
+            cuisine="bread",
+            **{"brand:wikidata": "Q2"},
+        ),
+        _node(4, 47.5, 19.08, name="Corner Café", amenity="cafe", cuisine="coffee"),
+    ]
+    stats = osm.OsmStats()
+
+    found = osm.places([(QUERY["eat"], {"elements": elements})], BUDAPEST, stats)
+
+    assert [p.osm_id for p in found] == ["node/3", "node/4"]
+    assert stats.chain_outlets == 2

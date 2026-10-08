@@ -124,6 +124,9 @@ def collect(
         _assign_districts(result, locator)
     if Stage.PHOTOS in stages:
         _resolve_photos(city, client, result, curated_dir)
+    # After Wikidata, which would place them.
+    if Stage.WIKIPEDIA in stages and city.wikipedia_leads:
+        _collect_wikipedia_leads(city, client, result)
     if Stage.CLIMATE in stages:
         fetched = climate.fetch(client, city)
         result.fetched_at.append(fetched.fetched_at)
@@ -188,10 +191,14 @@ def _collect_wikipedia(
 
     per_category: Counter[str] = Counter()
     skipped: Counter[str] = Counter()
+    excluded: set[str] = set()
     for page_id in sorted(needs_coordinates):
         article, fetched_at = wikipedia.fetch_article(client, lang, page_id)
         result.fetched_at.append(fetched_at)
         category_name = first_category[page_id]
+        if article.title in city.wikipedia_exclude:
+            excluded.add(article.title)
+            continue
         if needs_coordinates[page_id] and not wikipedia.is_located(article, city):
             logger.info("skipping %s: no coordinates in the city", article.title)
             skipped[category_name] += 1
@@ -201,11 +208,43 @@ def _collect_wikipedia(
         documents = wikipedia.parse_article(article, city)
         per_category[category_name] += len(documents)
         result.documents += documents
+    unmatched = sorted(set(city.wikipedia_exclude) - excluded)
+    if unmatched:
+        logger.warning("excluded articles not found: %s", ", ".join(unmatched))
     result.enrichment["wikipedia"] = {
-        "articles": len(needs_coordinates) - sum(skipped.values()),
+        "articles": len(needs_coordinates) - sum(skipped.values()) - len(excluded),
         "documents_per_category": dict(sorted(per_category.items())),
         "skipped_without_coordinates": dict(sorted(skipped.items())),
+        "excluded": len(excluded),
     }
+
+
+def _collect_wikipedia_leads(
+    city: CityConfig, client: ApiClient, result: BuildResult
+) -> None:
+    prefix = f"wp:{city.wikipedia_lang}:"
+    page_ids = sorted(
+        {
+            int(d.doc_id.removeprefix(prefix).split("#")[0])
+            for d in result.documents
+            if d.doc_id.startswith(prefix)
+        }
+    )
+    added: dict[str, int] = {}
+    for lang in city.wikipedia_leads:
+        titles = wikipedia.langlinks(client, city.wikipedia_lang, page_ids, lang)
+        added[lang] = 0
+        for title in sorted(set(titles.values())):
+            found = wikipedia.fetch_article_by_title(client, lang, title)
+            if found is None:
+                continue
+            article, fetched_at = found
+            result.fetched_at.append(fetched_at)
+            result.revisions[f"wikipedia:{lang}:{article.title}"] = article.revision_id
+            documents = wikipedia.lead(article, city)
+            added[lang] += len(documents)
+            result.documents += documents
+    result.enrichment["wikipedia_leads"] = added
 
 
 def _collect_osm(
@@ -248,6 +287,7 @@ def _collect_osm(
         "new_documents": stats.new,
         "outside_bbox": stats.outside_bbox,
         "skipped_too_short": stats.too_short,
+        "chain_outlets": stats.chain_outlets,
     }
     return locator
 

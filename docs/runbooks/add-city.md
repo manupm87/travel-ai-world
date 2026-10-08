@@ -250,8 +250,11 @@ vectors for a rehearsal.
   read-only requests are re-sent without the parameter. A stalled `discover` is usually this.
 - **Broad Wikipedia categories** hold embassies, ministries and companies next to the sights;
   `require_coordinates = true` keeps the unlocated ones out, and articles named after an airport or a
-  station are filed as `transport`. A category that any city may have goes into `discover`'s
-  standard list, so the next draft probes it.
+  station are filed as `transport`. What still slips through goes, by title, under
+  `[wikipedia] exclude`. A category that any city may have goes into `discover`'s standard list, so
+  the next draft probes it.
+- **Questions in Spanish** over a corpus with no Spanish Wikivoyage district pages: add
+  `[wikipedia] leads = ["es"]` (the Spanish lead of every article, as prose without coordinates).
 - **Wikivoyage groupings** without a page image (`North Buda`, `East Pest`) take the photo of a
   pictured sight of the district for their card; three identical carousel photos mean the district
   has no pictured sight.

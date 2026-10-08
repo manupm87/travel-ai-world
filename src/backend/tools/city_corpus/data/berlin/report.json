@@ -1,9 +1,9 @@
 {
   "city": "berlin",
-  "built_at": "2026-09-22T16:58:45Z",
-  "documents": 12240,
-  "listings": 9434,
-  "prose": 2806,
+  "built_at": "2026-10-08T18:25:37Z",
+  "documents": 12073,
+  "listings": 9266,
+  "prose": 2807,
   "sources": [
     "curated",
     "open-meteo",
@@ -34,15 +34,15 @@
       "wikivoyage": 217
     },
     "drink": {
-      "openstreetmap": 1047,
+      "openstreetmap": 1045,
       "wikivoyage": 133
     },
     "eat": {
-      "openstreetmap": 6286,
+      "openstreetmap": 6121,
       "wikivoyage": 186
     },
     "history": {
-      "wikipedia": 2027,
+      "wikipedia": 1880,
       "wikivoyage": 40
     },
     "neighbourhood": {
@@ -53,52 +53,52 @@
     },
     "see": {
       "openstreetmap": 718,
-      "wikipedia": 508,
+      "wikipedia": 655,
       "wikivoyage": 210
     },
     "sleep": {
-      "openstreetmap": 288,
-      "wikivoyage": 90
+      "openstreetmap": 286,
+      "wikivoyage": 91
     },
     "tour": {
       "curated": 4,
       "wikivoyage": 1
     },
     "transport": {
-      "wikipedia": 39,
+      "wikipedia": 40,
       "wikivoyage": 101
     }
   },
   "named_by_category": {
     "climate": 12,
     "do": 481,
-    "drink": 1167,
-    "eat": 6461,
-    "history": 2029,
+    "drink": 1165,
+    "eat": 6296,
+    "history": 1882,
     "practical": 5,
-    "see": 1419,
-    "sleep": 374,
+    "see": 1566,
+    "sleep": 373,
     "tour": 5,
-    "transport": 67
+    "transport": 68
   },
   "located_by_category": {
     "do": 451,
-    "drink": 1149,
-    "eat": 6453,
-    "history": 1913,
+    "drink": 1147,
+    "eat": 6288,
+    "history": 1801,
     "practical": 1,
-    "see": 1382,
-    "sleep": 341,
+    "see": 1355,
+    "sleep": 340,
     "tour": 4,
     "transport": 63
   },
   "pictured_by_category": {
     "do": 332,
     "drink": 44,
-    "eat": 43,
-    "history": 1874,
-    "see": 1169,
-    "sleep": 341,
+    "eat": 41,
+    "history": 1768,
+    "see": 1143,
+    "sleep": 340,
     "transport": 63
   },
   "districts": [
@@ -112,14 +112,14 @@
     "Treptow-Köpenick"
   ],
   "places_by_district": {
-    "City West": 2597,
-    "East": 793,
-    "East Central": 3028,
-    "Mitte": 2424,
-    "Reinickendorf and Spandau": 621,
-    "Steglitz-Zehlendorf": 758,
-    "Tempelhof and Neukölln": 920,
-    "Treptow-Köpenick": 551
+    "City West": 2528,
+    "East": 772,
+    "East Central": 2962,
+    "Mitte": 2317,
+    "Reinickendorf and Spandau": 609,
+    "Steglitz-Zehlendorf": 748,
+    "Tempelhof and Neukölln": 917,
+    "Treptow-Köpenick": 541
   },
   "small_districts": [],
   "described_districts": [
@@ -137,13 +137,13 @@
       "1": 55,
       "2": 54,
       "3": 19,
-      "untiered": 6344
+      "untiered": 6179
     },
     "sleep": {
       "1": 37,
       "2": 53,
       "3": 49,
-      "untiered": 239
+      "untiered": 238
     }
   },
   "climate_months": [
@@ -345,13 +345,13 @@
           "score": 12.08
         },
         {
-          "name": "Almansi Hostel",
+          "name": "Berlin Surf Hostel",
           "district": "East Central",
           "score": 11.79
         },
         {
-          "name": "Berlin Surf Hostel",
-          "district": "East Central",
+          "name": "CVJM Hostel - Jugend Gästehaus Kaulsdorf",
+          "district": "East",
           "score": 11.79
         }
       ]
@@ -378,12 +378,12 @@
   },
   "hotel_photos": {
     "curated": 6,
-    "site": 97,
+    "site": 98,
     "facebook": 5,
     "commons": 22,
-    "wikidata": 15,
-    "page": 114,
-    "dropped": 308,
+    "wikidata": 14,
+    "page": 113,
+    "dropped": 309,
     "shared": 16,
     "dropped_examples": [
       "1a pension apartment berlin",
@@ -634,31 +634,31 @@
       {
         "name": "Located see + history + do places",
         "threshold": "≥ 150",
-        "measured": "3746",
+        "measured": "3607",
         "passed": true
       },
       {
         "name": "Located eat places",
         "threshold": "≥ 100",
-        "measured": "6453",
+        "measured": "6288",
         "passed": true
       },
       {
         "name": "Sleep documents",
         "threshold": "≥ 20",
-        "measured": "378",
+        "measured": "377",
         "passed": true
       },
       {
         "name": "Located sleep places",
         "threshold": "≥ 10",
-        "measured": "341",
+        "measured": "340",
         "passed": true
       },
       {
         "name": "Pictured located sleep places",
         "threshold": "≥ 10",
-        "measured": "341",
+        "measured": "340",
         "passed": true
       },
       {

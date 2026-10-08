@@ -83,6 +83,25 @@ twins and 11 Madrid questions) gave R@5 0.651, R@10 0.760, MRR 0.617; on the spi
 queries, 0.781 against 0.812 in the spike (its own S3 Vectors index, the 2026-09-17 corpus, no
 filter). TRA-272 replaced it with the 20-per-city set.
 
+### Berlin after TRA-280, 2026-10-08
+
+Berlin's corpus rebuilt with 33 off-topic Wikipedia articles out, 170 chain outlets out and the
+Spanish lead of 181 articles added (unplaced prose), loaded into a temporary index and measured
+with the same 20 questions and expected ids as the production index that day:
+
+| Index | R@5 | R@10 | MRR | R@10 `en` (12) | R@10 `es` (8) |
+|---|---:|---:|---:|---:|---:|
+| `city-kb` (corpus of 2026-09-22) | 0.554 | 0.667 | 0.549 | 0.681 | 0.646 |
+| rebuilt corpus | 0.554 | 0.692 | 0.515 | 0.722 | 0.646 |
+
+- Recall@10 gains 0.025 and MRR loses 0.034: the Spanish leads take places in the top 10.
+- The expected ids are English documents (twins must expect the same ids), so a Spanish lead of
+  the right place is not counted. It reached the top 10 for the Brandenburg Gate (the question
+  went from 0.50 to 1.00), the Jewish Museum and the Holocaust memorial; the memorial still scores
+  0 on its English ids.
+- One regression: July's climate in Spanish drops from 1.00 to 0.50. The DDR Museum question
+  still misses.
+
 ### Misses, 2026-10-01
 
 Questions with an expected id outside the top 10, with the rank of each expected id (— = not in
