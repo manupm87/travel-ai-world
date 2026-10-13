@@ -1,0 +1,31 @@
+# Overlay paths are relative to the FIRST file: src/backend/docker-compose.yml.
+services:
+  core_api:
+    environment:
+      METRICS_ENABLED: "true"
+      METRICS_CITY_SLUGS: '["budapest"]'
+      WEB_CONCURRENCY: "1"
+    # Replace the base binding: the unauthenticated scrape is local only.
+    ports: !override
+      - "127.0.0.1:8000:8000"
+
+  prometheus:
+    image: prom/prometheus:v3.2.1
+    profiles: [metrics]
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=30d
+      - --storage.tsdb.retention.size=512MB
+    volumes:
+      - ../../infra/aws/metric/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - metrics_data:/prometheus
+    ports:
+      - "127.0.0.1:9090:9090"
+    depends_on:
+      core_api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  metrics_data:

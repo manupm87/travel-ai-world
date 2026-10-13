@@ -137,6 +137,14 @@ infrastructure/dynamo/  the only adapter: table.py, keys.py, codec.py, repositor
 
 ## Operations
 
+- **Local business metrics (ADR 0030)** are the sole local exception to the
+  authenticated-route rule and the ban on shared counters: `/metrics` is a
+  machine scrape, enabled only by `METRICS_ENABLED`, always absent on Lambda,
+  and excluded from OpenAPI. `main.build_app` owns an isolated registry/recorder
+  per app; `get_trip_service` injects the callback into `TripService`. Only a
+  successful new-trip add increments it. Keep the label allowlist bounded, run
+  one worker and bind to loopback. Never enable this adapter in cloud infra.
+
 - The deployed function exposes no commands: nothing but HTTP under `/api/v1` reaches it. The
   one-off copy from RDS (`copy-from-postgres`) ran on 2026-09-22 and was removed with RDS in
   TRA-219.

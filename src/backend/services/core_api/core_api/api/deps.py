@@ -77,9 +77,10 @@ def get_user_service(
 
 
 def get_trip_service(
+    request: Request,
     trips: TripRepository = Depends(get_trip_repository),
 ) -> TripService:
-    return TripService(trips)
+    return TripService(trips, getattr(request.app.state, "record_trip_created", None))
 
 
 # ── Authentication ───────────────────────────────────────────────────────────

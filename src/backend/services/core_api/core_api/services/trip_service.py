@@ -1,4 +1,6 @@
+import logging
 import uuid
+from collections.abc import Callable
 
 from pydantic import BaseModel
 from travel_common.exceptions import EntityNotFound
@@ -10,12 +12,19 @@ from core_api.pagination import Page
 from core_api.schemas.trip import TripCreate
 from core_api.services import apply_changes
 
+logger = logging.getLogger(__name__)
+
 
 class TripService:
     """A user's trips: private to their owner, read-only once under way."""
 
-    def __init__(self, trips: TripRepository) -> None:
+    def __init__(
+        self,
+        trips: TripRepository,
+        on_trip_created: Callable[[str], None] | None = None,
+    ) -> None:
         self.trips = trips
+        self.on_trip_created = on_trip_created
 
     async def list_for(
         self, principal: AccountPrincipal, page: Page = Page()
@@ -47,7 +56,14 @@ class TripService:
     async def create(self, data: TripCreate, *, user_id: uuid.UUID) -> Trip:
         trip = Trip(**data.model_dump(), user_id=user_id)
         trip.check_invariants()
-        return await self.trips.add(trip)
+        saved = await self.trips.add(trip)
+        if self.on_trip_created is not None:
+            try:
+                self.on_trip_created(saved.city_slug)
+            except Exception:
+                # Observability must not turn a committed write into a failed request.
+                logger.exception("Could not record trip creation metric")
+        return saved
 
     async def update(self, trip: Trip, data: BaseModel) -> Trip:
         """Only a trip still ahead can be changed (`TripLocked`, ADR 0019).

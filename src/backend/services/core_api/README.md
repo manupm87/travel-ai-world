@@ -144,3 +144,14 @@ uv run pytest      # DynamoDB on moto, in process: no container, no database
 ```
 
 For agents: [`AGENTS.md`](AGENTS.md).
+
+## Local business metrics
+
+`METRICS_ENABLED` defaults to false and is always refused on Lambda. When enabled
+locally, `GET /metrics` exposes `trips_created_total` after successful new-trip
+persistence, using `METRICS_CITY_SLUGS` and the fallback `other`. This machine
+endpoint has no bearer authentication and is excluded from OpenAPI; bind to
+loopback on a trusted laptop and run exactly one worker. Updates and deletes
+do not increment it, and app restarts reset it. See the
+[local Prometheus setup and queries](../../../../infra/aws/metric/README.md) and
+[ADR 0030](../../../../docs/architecture/adr/0030-local-business-metrics.md).

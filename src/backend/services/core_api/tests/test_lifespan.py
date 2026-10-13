@@ -3,22 +3,15 @@
 import logging
 
 import pytest
-from core_api import main
 from core_api.config import CoreSettings
 from core_api.infrastructure.dynamo.table import DynamoTable, open_table
-from core_api.main import app
+from core_api.main import build_app
 
 from tests.conftest import TEST_TABLE
 
 
-async def test_lifespan_puts_the_table_on_the_app_state(
-    monkeypatch: pytest.MonkeyPatch,
-):
-    monkeypatch.setattr(
-        main,
-        "get_settings",
-        lambda: CoreSettings(CORE_TABLE=TEST_TABLE, DYNAMODB_ENDPOINT_URL=""),
-    )
+async def test_lifespan_puts_the_table_on_the_app_state():
+    app = build_app(CoreSettings(CORE_TABLE=TEST_TABLE, DYNAMODB_ENDPOINT_URL=""))
 
     async with app.router.lifespan_context(app):
         table = app.state.table

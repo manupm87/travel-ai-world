@@ -15,6 +15,12 @@ class CoreSettings(CommonSettings, DynamoSettings):
     # found" instead of touching production.
     CORE_TABLE: str = "travel-ai-local-core"
 
+    # Local-only business metrics (ADR 0030); never active on Lambda.
+    METRICS_ENABLED: bool = False
+    METRICS_CITY_SLUGS: list[str] = Field(
+        default_factory=lambda: ["budapest"], max_length=100
+    )
+
     # Google OAuth
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
