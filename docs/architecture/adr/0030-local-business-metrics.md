@@ -19,6 +19,13 @@ mounting a route. The service receives an optional callback and calls it after
 a successful repository add; an observer failure is logged without failing a
 committed request. Update/delete and child writes do not count.
 
+TRA-282 extends the same callback to receive the persisted `Trip` and record
+bounded budget and normalized pace category counters, plus a duration histogram.
+Null categories use `unspecified`, unknown pace uses `other`, and only an
+explicit duration (including zero) is observed. No duration is inferred from
+dates. These are snapshots at creation; updates do not revise them. There are
+no city/profile label cross products or new public contracts.
+
 Labels use a configured allowlist of at most 100 city slugs (Budapest by
 default), with unknown slugs grouped into `other`. Series start at zero, and
 contain no user or trip identifiers. There are no default process collectors,

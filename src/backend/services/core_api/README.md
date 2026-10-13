@@ -155,3 +155,9 @@ loopback on a trusted laptop and run exactly one worker. Updates and deletes
 do not increment it, and app restarts reset it. See the
 [local Prometheus setup and queries](../../../../infra/aws/metric/README.md) and
 [ADR 0030](../../../../docs/architecture/adr/0030-local-business-metrics.md).
+
+The same creation callback records `trip_budget_tier_total`,
+`trip_pace_preference_total`, and the `trip_duration_days` histogram from the
+persisted trip. Categories are bounded; null budget/pace uses `unspecified`,
+unknown pace uses `other`. Durations include explicit zero and skip null, without
+inferring dates. These are creation snapshots, unaffected by later edits.

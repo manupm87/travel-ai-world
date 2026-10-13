@@ -1,4 +1,4 @@
-# Local trip business metric (TRA-281)
+# Local trip business metrics (TRA-281, TRA-282)
 
 `trips_created_total{city_slug="budapest"}` counts a new trip only after
 `TripService.create` successfully persists it. Updates, child changes and deletes
@@ -45,6 +45,23 @@ uv run uvicorn core_api.main:app --host 127.0.0.1 --port 8000 --workers 1
 Set Prometheus's target to your host instead of `core_api:8000` if running it
 outside the Compose network.
 
+## Trip profile at creation
+
+The recorder receives the persisted trip. These additional metrics capture its
+attributes once, at creation; later edits and deletes never change them:
+
+| Metric | Labels or observations |
+|---|---|
+| `trip_budget_tier_total` | `budget_tier`: `1`, `2`, `3`, `unspecified` for null; unexpected values fall back to `other` |
+| `trip_pace_preference_total` | `pace_preference`: `relaxed`, `balanced`, `intense`, `other`, `unspecified` |
+| `trip_duration_days` | Histogram of explicitly supplied `duration_days`, including zero; null is omitted |
+
+Pace strings are trimmed and lowercased. Null, empty and whitespace-only strings
+count as `unspecified`; any other unrecognized value counts as `other`.
+Categorical series start at zero. Profile metrics have no city labels or user
+identifiers. Duration is never inferred from dates. Its buckets are
+`0, 1, 2, 3, 5, 7, 10, 14, 21, 30, 60, 90, +Inf` days.
+
 ## Queries and interpretation
 
 ```promql
@@ -56,7 +73,18 @@ sum by (city_slug) (increase(trips_created_total[24h]))
 topk(5, sum by (city_slug) (increase(trips_created_total[24h])))
 # Scrape availability
 up{job="core_api"}
+# Budget snapshots in the last day
+sum by (budget_tier) (increase(trip_budget_tier_total[24h]))
+# Pace snapshots in the last day
+sum by (pace_preference) (increase(trip_pace_preference_total[24h]))
+# Average explicitly known duration in the last day (days)
+sum(increase(trip_duration_days_sum[24h]))
+  / sum(increase(trip_duration_days_count[24h]))
 ```
+
+The average includes explicit zero-day values and excludes absent durations.
+With no known durations in the window, the denominator is zero and the average
+is undefined (`NaN`); it is not an average across all created trips.
 
 Counters reset on app restart/reload and start from zero, without backfilling
 existing DynamoDB trips. Prometheus `increase` is extrapolated and may be

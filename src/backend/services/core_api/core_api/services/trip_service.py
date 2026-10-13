@@ -21,7 +21,7 @@ class TripService:
     def __init__(
         self,
         trips: TripRepository,
-        on_trip_created: Callable[[str], None] | None = None,
+        on_trip_created: Callable[[Trip], None] | None = None,
     ) -> None:
         self.trips = trips
         self.on_trip_created = on_trip_created
@@ -59,7 +59,7 @@ class TripService:
         saved = await self.trips.add(trip)
         if self.on_trip_created is not None:
             try:
-                self.on_trip_created(saved.city_slug)
+                self.on_trip_created(saved)
             except Exception:
                 # Observability must not turn a committed write into a failed request.
                 logger.exception("Could not record trip creation metric")
