@@ -29,6 +29,11 @@ a Cognito ID token, health endpoints included.
 
 ## What Terraform creates
 
+For local business metrics and a provisioned Grafana dashboard, see
+[`metric/README.md`](metric/README.md). This opt-in Compose overlay runs only on
+a trusted local machine, with loopback ports and anonymous Viewer access;
+it creates no AWS resources.
+
 | File | Resources |
 |---|---|
 | `dynamodb.tf` | The `core_api` table `${name_prefix}-core` (on-demand, `PK`/`SK` + `GSI1` (accounts) + `GSI2` (every trip, summary projection), point-in-time recovery, deletion protection), and `core-api`'s item-level permissions on it ([ADR 0023](../../docs/architecture/adr/0023-dynamodb-data-store.md)); see [History](#history-rds--dynamodb-2026-09-22) |

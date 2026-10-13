@@ -1,0 +1,11 @@
+apiVersion: 1
+providers:
+  - name: kyrian-business
+    orgId: 1
+    folder: Kyrian World
+    type: file
+    disableDeletion: false
+    allowUiUpdates: false
+    updateIntervalSeconds: 15
+    options:
+      path: /var/lib/grafana/dashboards

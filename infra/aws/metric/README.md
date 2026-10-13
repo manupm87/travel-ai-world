@@ -10,8 +10,8 @@ For Compose, edit `services.core_api.environment.METRICS_CITY_SLUGS` in
 `docker-compose.metrics.yml`: the overlay value overrides `.env`. For a direct
 uvicorn run, change the value in core_api's `.env` instead.
 
-This folder configures local Prometheus, not an AWS deployment. No paid cloud
-resources or Grafana are created. See [ADR 0030](../../../docs/architecture/adr/0030-local-business-metrics.md).
+This folder configures local Prometheus and Grafana, without paid cloud
+resources or an AWS deployment. See [ADR 0030](../../../docs/architecture/adr/0030-local-business-metrics.md).
 
 ## Start and verify
 
@@ -20,19 +20,47 @@ root, prepare the service `.env` files as described in the backend README and
 set the same non-empty local `SECRET_KEY` in both. Then run:
 
 ```bash
-docker compose -f src/backend/docker-compose.yml -f infra/aws/metric/docker-compose.metrics.yml --profile metrics up -d --build dynamodb core_api prometheus
+docker compose -f src/backend/docker-compose.yml -f infra/aws/metric/docker-compose.metrics.yml --profile metrics up -d --build dynamodb core_api prometheus grafana
 curl http://localhost:8000/metrics
 ```
 
 Prometheus opens at <http://localhost:9090>; its Targets page must show `core_api`
-UP. The API and Prometheus ports bind to loopback. Only these three services are
+UP. Open [the business dashboard](http://localhost:13000/d/kyrian-business) in
+Grafana; provisioning creates the datasource and dashboard automatically.
+The API, Prometheus and Grafana ports bind to loopback. These four services are
 started, with one core worker. Create a trip through the authenticated API or
 your local frontend and scrape again: the matching series increases by one.
 The initial scrape contains zero for every configured city and `other`.
 
 Use the same files/profile for `logs`, `config`, and `down`. The named volume
-keeps Prometheus samples across restarts; `down -v` deletes them. Storage is
-bounded to 30 days or 512 MB, whichever limit is reached first.
+keeps Prometheus samples across restarts; `grafana_data` preserves Grafana state.
+`down -v` deletes both volumes, including collected observations. Prometheus
+storage is bounded to 30 days or 512 MB, whichever limit is reached first.
+
+## Grafana dashboard
+
+Grafana 13.2.4 runs on <http://localhost:13000> with anonymous **Viewer** access:
+no login, signup or dashboard editing is needed. Use only on a trusted local
+machine and never publish this port. Basic authentication and the login form
+are disabled, and no plugins, cloud accounts or telemetry are configured.
+
+`grafana/provisioning/datasources/prometheus.yml` points to the server-side
+Docker URL `http://prometheus:9090`, not the browser address. If a local override
+maps Prometheus to host port 19090, open <http://localhost:19090> in the browser;
+the Grafana datasource still uses internal port 9090.
+
+The dashboard `kyrian-business`, in folder **Kyrian World**, refreshes every
+15 seconds. Cards and category bars show a snapshot at the end of the selected
+time range. With a relative range ending now, this reflects the current core
+process since its last restart; an absolute historical range shows historical
+values. The historical chart
+shows approximate creations per rate interval within the visible range.
+Missing average duration reads **Sin datos** instead of a fictitious zero.
+
+The read-only provisioned JSON lives at `grafana/dashboards/business.json`.
+Change and commit that file to update the dashboard; Grafana reloads it from
+disk. Provisioning overwrites the dashboard from this file and forbids UI saves.
+Provisioning details follow the [official Grafana documentation](https://grafana.com/docs/grafana/latest/administration/provisioning/).
 
 Without Docker, set `METRICS_ENABLED=true` in core_api's `.env`. From the repository
 root run:

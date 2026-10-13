@@ -41,7 +41,14 @@ Infrastructure lives under `infra/aws/metric` to match the existing deployment
 layout, but is exclusively a local Compose overlay. A metrics-profile Prometheus
 scrapes core_api with a read-only config and named data volume bounded to 30
 days/512 MB. One core worker is required; multiprocess operation is unsupported.
-No Terraform resource, cloud deployment, Grafana or new public contract is added.
+TRA-283 adds Grafana 13.2.4 to the same local metrics profile, with loopback port
+13000 and a persistent volume. A read-only provisioned datasource uses the
+internal Prometheus URL; a provisioned Spanish dashboard shows current process
+snapshots at the selected range's end (current with a relative range ending
+now) and explicitly approximate historical increases. Anonymous Viewer
+access removes the login step for a trusted local demo; login/basic auth and
+telemetry are disabled. This service must never be published or deployed to
+AWS. No Terraform resource, cloud deployment or new public contract is added.
 
 ## Consequences
 

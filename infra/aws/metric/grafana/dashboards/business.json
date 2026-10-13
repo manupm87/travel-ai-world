@@ -1,0 +1,486 @@
+{
+  "uid": "kyrian-business",
+  "title": "Kyrian World — Métricas de negocio",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": false,
+  "tags": [
+    "kyrian",
+    "negocio",
+    "local"
+  ],
+  "timezone": "browser",
+  "refresh": "15s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Viajes creados",
+      "type": "stat",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "description": "Valor al final del intervalo seleccionado; con un rango relativo terminado en ahora, refleja el proceso actual desde su último reinicio. No representa el número de viajes almacenados.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Sin datos",
+          "decimals": 0,
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto"
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "kyrian-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "kyrian-prometheus"
+          },
+          "expr": "sum(trips_created_total{job=\"core_api\"})",
+          "legendFormat": "{{city_slug}}",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Duración media",
+      "type": "stat",
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "description": "Solo duraciones explícitas, incluido cero. Sin datos cuando no hay duraciones conocidas. Valor al final del intervalo seleccionado; con un rango relativo terminado en ahora, refleja el proceso actual desde su último reinicio. No representa el número de viajes almacenados.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix: días",
+          "noValue": "Sin datos",
+          "decimals": 1,
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto"
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "kyrian-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "kyrian-prometheus"
+          },
+          "expr": "sum(trip_duration_days_sum{job=\"core_api\"}) / (sum(trip_duration_days_count{job=\"core_api\"}) > 0)",
+          "legendFormat": "{{city_slug}}",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Viajes con días",
+      "type": "stat",
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "description": "Valor al final del intervalo seleccionado; con un rango relativo terminado en ahora, refleja el proceso actual desde su último reinicio. No representa el número de viajes almacenados.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Sin datos",
+          "decimals": 0,
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto"
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "kyrian-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "kyrian-prometheus"
+          },
+          "expr": "sum(trip_duration_days_count{job=\"core_api\"})",
+          "legendFormat": "{{city_slug}}",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Recogida",
+      "type": "stat",
+      "gridPos": {
+        "x": 18,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "description": "Conectado = scrape correcto; Sin conexión = scrape fallido. Sin datos = no se conoce el target. Estado al final del intervalo seleccionado; con rango relativo terminado en ahora, refleja el estado actual.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Sin datos",
+          "decimals": 0,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "Sin conexión",
+                  "color": "red"
+                },
+                "1": {
+                  "text": "Conectado",
+                  "color": "green"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto"
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "kyrian-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "kyrian-prometheus"
+          },
+          "expr": "min(up{job=\"core_api\"})",
+          "legendFormat": "{{city_slug}}",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Viajes por destino",
+      "type": "bargauge",
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 8,
+        "h": 8
+      },
+      "description": "Valor al final del intervalo seleccionado; con un rango relativo terminado en ahora, refleja el proceso actual desde su último reinicio. No representa el número de viajes almacenados.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Sin datos",
+          "decimals": 0,
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "kyrian-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "kyrian-prometheus"
+          },
+          "expr": "sum by (city_slug) (trips_created_total{job=\"core_api\"})",
+          "legendFormat": "{{city_slug}}",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Presupuesto",
+      "type": "bargauge",
+      "gridPos": {
+        "x": 8,
+        "y": 4,
+        "w": 8,
+        "h": 8
+      },
+      "description": "Valor al final del intervalo seleccionado; con un rango relativo terminado en ahora, refleja el proceso actual desde su último reinicio. No representa el número de viajes almacenados.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Sin datos",
+          "decimals": 0,
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "kyrian-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "kyrian-prometheus"
+          },
+          "expr": "sum by (budget_tier) (trip_budget_tier_total{job=\"core_api\"})",
+          "legendFormat": "{{budget_tier}}",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Ritmo",
+      "type": "bargauge",
+      "gridPos": {
+        "x": 16,
+        "y": 4,
+        "w": 8,
+        "h": 8
+      },
+      "description": "Valor al final del intervalo seleccionado; con un rango relativo terminado en ahora, refleja el proceso actual desde su último reinicio. No representa el número de viajes almacenados.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Sin datos",
+          "decimals": 0,
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "kyrian-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "kyrian-prometheus"
+          },
+          "expr": "sum by (pace_preference) (trip_pace_preference_total{job=\"core_api\"})",
+          "legendFormat": "{{pace_preference}}",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Creaciones aproximadas por intervalo · historial",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 24,
+        "h": 8
+      },
+      "description": "Cada punto estima creaciones durante la ventana $__rate_interval. Se extrapola y puede tener decimales; no es el total del período visible.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Sin datos",
+          "decimals": 2,
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "kyrian-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "kyrian-prometheus"
+          },
+          "expr": "sum by (city_slug) (increase(trips_created_total{job=\"core_api\"}[$__rate_interval]))",
+          "legendFormat": "{{city_slug}}",
+          "instant": false,
+          "range": true
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Cómo interpretar estas métricas",
+      "type": "text",
+      "gridPos": {
+        "x": 0,
+        "y": 20,
+        "w": 24,
+        "h": 6
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Sin datos",
+          "decimals": 0,
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "**Observaciones locales, no totales duraderos.** Los contadores se reinician con core_api y no reconstruyen viajes anteriores. Las tarjetas y categorías muestran una instantánea al final del intervalo seleccionado. Con un rango relativo terminado en ahora, reflejan el proceso actual; un rango absoluto histórico muestra datos históricos.\n\n**Datos al crear:** presupuesto, ritmo y duración se capturan una vez desde el viaje guardado; editar o borrar no los cambia. `unspecified` significa presupuesto ausente o ritmo ausente/vacío. `other` agrupa destinos o categorías no reconocidos. Presupuesto 1, 2 y 3 son categorías numéricas. Ritmos: `relaxed` (relajado), `balanced` (equilibrado), `intense` (intenso).\n\n**Duración:** solo valores explícitos, incluido cero; nunca se deduce de las fechas. Ausente no significa cero. **Historial:** `increase` estima valores y puede perder observaciones entre scrapes o alrededor de un reinicio.\n\nAcceso local de solo lectura. No publicar este servicio en internet."
+      }
+    }
+  ]
+}
