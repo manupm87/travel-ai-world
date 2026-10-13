@@ -24,7 +24,7 @@ docker compose -f src/backend/docker-compose.yml -f infra/aws/metric/docker-comp
 curl http://localhost:8000/metrics
 ```
 
-Prometheus opens at http://localhost:9090; its Targets page must show `core_api`
+Prometheus opens at <http://localhost:9090>; its Targets page must show `core_api`
 UP. The API and Prometheus ports bind to loopback. Only these three services are
 started, with one core worker. Create a trip through the authenticated API or
 your local frontend and scrape again: the matching series increases by one.
@@ -41,6 +41,7 @@ root run:
 cd src/backend/services/core_api
 uv run uvicorn core_api.main:app --host 127.0.0.1 --port 8000 --workers 1
 ```
+
 Set Prometheus's target to your host instead of `core_api:8000` if running it
 outside the Compose network.
 
