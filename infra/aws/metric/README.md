@@ -15,6 +15,14 @@ resources or an AWS deployment. See [ADR 0030](../../../docs/architecture/adr/00
 
 ## Start and verify
 
+The stack below is local. For production, use existing CloudWatch application
+logs and the separate importable dashboard at
+`grafana/cloudwatch/business.json`, described in the
+[production runbook](../../../docs/runbooks/business-statistics-cloudwatch.md).
+It is intentionally outside `grafana/dashboards`, so local Grafana never
+automatically provisions it. Production uses Logs Insights and manual refresh,
+not a Prometheus scrape or the local dashboard's counters.
+
 Use Docker Compose 2.24.4 or newer (`!override` support). From the repository
 root, prepare the service `.env` files as described in the backend README and
 set the same non-empty local `SECRET_KEY` in both. Then run:

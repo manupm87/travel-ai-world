@@ -161,3 +161,15 @@ The same creation callback records `trip_budget_tier_total`,
 persisted trip. Categories are bounded; null budget/pace uses `unspecified`,
 unknown pace uses `other`. Durations include explicit zero and skip null, without
 inferring dates. These are creation snapshots, unaffected by later edits.
+
+## Production business events
+
+`BUSINESS_EVENTS_ENABLED` defaults false locally. Core Lambda's Terraform setting
+`business_events_enabled` defaults true and emits compact `business_event=` JSON
+to the existing application log group after a successful trip creation.
+Versioned events include bounded city/budget/pace categories, nullable explicit
+duration, saved timestamp and a hashed deduplication key, excluding raw UUIDs,
+emails and free text. Each observer fails independently; metrics remain absent
+on Lambda. Updates/deletes produce no creation event and no backfill runs.
+See the [production setup and cost/privacy limits](../../../../docs/runbooks/business-statistics-cloudwatch.md)
+and [ADR 0031](../../../../docs/architecture/adr/0031-production-business-events.md).

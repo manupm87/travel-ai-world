@@ -1,0 +1,575 @@
+{
+  "uid": "kyrian-business-cloudwatch",
+  "title": "Kyrian World — Negocio en producción",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "refresh": "",
+  "timezone": "browser",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "tags": [
+    "kyrian",
+    "negocio",
+    "cloudwatch"
+  ],
+  "__inputs": [
+    {
+      "name": "DS_CLOUDWATCH",
+      "label": "CloudWatch de core_api",
+      "description": "Datasource con Grafana Assume Role y acceso revisado al grupo core_api.",
+      "type": "datasource",
+      "pluginId": "cloudwatch",
+      "pluginName": "CloudWatch"
+    }
+  ],
+  "__requires": [
+    {
+      "type": "datasource",
+      "id": "cloudwatch",
+      "name": "CloudWatch",
+      "version": "1.0.0"
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "region",
+        "label": "Región",
+        "type": "textbox",
+        "query": "eu-west-1",
+        "current": {
+          "text": "eu-west-1",
+          "value": "eu-west-1"
+        },
+        "options": [],
+        "multi": false,
+        "includeAll": false
+      },
+      {
+        "name": "core_log_group",
+        "label": "Grupo core_api (obligatorio)",
+        "type": "textbox",
+        "query": "",
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "options": [],
+        "description": "Introduce el output core_api_log_group_name; no se enumeran grupos automáticamente."
+      }
+    ]
+  },
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Viajes creados · intervalo",
+      "type": "stat",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 8,
+        "h": 4
+      },
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "${DS_CLOUDWATCH}"
+      },
+      "description": " Eventos nuevos dentro del rango y retención seleccionados; deduplicados por event_id. No es el inventario actual de viajes.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Sin datos",
+          "decimals": 0,
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "id": "",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "${DS_CLOUDWATCH}"
+          },
+          "queryMode": "Logs",
+          "logsMode": "Insights",
+          "queryLanguage": "CWLI",
+          "logsQueryScope": "logGroupName",
+          "region": "$region",
+          "logGroups": [
+            {
+              "arn": "$core_log_group",
+              "name": "$core_log_group"
+            }
+          ],
+          "expression": "parse @message \"business_event=*\" as payload\n| fields jsonParse(payload) as e\n| filter e.event = \"trip_created\" and e.version = 1 and ispresent(e.event_id)\n| stats latest(e.city_slug) as city_slug, latest(e.budget_tier) as budget_tier, latest(e.pace_preference) as pace_preference, latest(e.duration_days) as duration_days, max(@timestamp) as ts by e.event_id\n| stats count(*) as viajes\n| filter viajes > 0",
+          "statsGroups": []
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "graphMode": "none",
+        "textMode": "auto",
+        "colorMode": "value"
+      }
+    },
+    {
+      "id": 2,
+      "title": "Duración media explícita",
+      "type": "stat",
+      "gridPos": {
+        "x": 8,
+        "y": 0,
+        "w": 8,
+        "h": 4
+      },
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "${DS_CLOUDWATCH}"
+      },
+      "description": "Incluye cero explícito; excluye null y nunca infiere fechas. Eventos nuevos dentro del rango y retención seleccionados; deduplicados por event_id. No es el inventario actual de viajes.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix: días",
+          "noValue": "Sin datos",
+          "decimals": 1,
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "id": "",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "${DS_CLOUDWATCH}"
+          },
+          "queryMode": "Logs",
+          "logsMode": "Insights",
+          "queryLanguage": "CWLI",
+          "logsQueryScope": "logGroupName",
+          "region": "$region",
+          "logGroups": [
+            {
+              "arn": "$core_log_group",
+              "name": "$core_log_group"
+            }
+          ],
+          "expression": "parse @message \"business_event=*\" as payload\n| fields jsonParse(payload) as e\n| filter e.event = \"trip_created\" and e.version = 1 and ispresent(e.event_id)\n| stats latest(e.city_slug) as city_slug, latest(e.budget_tier) as budget_tier, latest(e.pace_preference) as pace_preference, latest(e.duration_days) as duration_days, max(@timestamp) as ts by e.event_id\n| filter ispresent(duration_days) and duration_days >= 0\n| stats avg(duration_days) as dias, count(*) as conocidos\n| filter conocidos > 0\n| fields dias",
+          "statsGroups": []
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "graphMode": "none",
+        "textMode": "auto",
+        "colorMode": "value"
+      }
+    },
+    {
+      "id": 3,
+      "title": "Viajes con días explícitos",
+      "type": "stat",
+      "gridPos": {
+        "x": 16,
+        "y": 0,
+        "w": 8,
+        "h": 4
+      },
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "${DS_CLOUDWATCH}"
+      },
+      "description": " Eventos nuevos dentro del rango y retención seleccionados; deduplicados por event_id. No es el inventario actual de viajes.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Sin datos",
+          "decimals": 0,
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "id": "",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "${DS_CLOUDWATCH}"
+          },
+          "queryMode": "Logs",
+          "logsMode": "Insights",
+          "queryLanguage": "CWLI",
+          "logsQueryScope": "logGroupName",
+          "region": "$region",
+          "logGroups": [
+            {
+              "arn": "$core_log_group",
+              "name": "$core_log_group"
+            }
+          ],
+          "expression": "parse @message \"business_event=*\" as payload\n| fields jsonParse(payload) as e\n| filter e.event = \"trip_created\" and e.version = 1 and ispresent(e.event_id)\n| stats latest(e.city_slug) as city_slug, latest(e.budget_tier) as budget_tier, latest(e.pace_preference) as pace_preference, latest(e.duration_days) as duration_days, max(@timestamp) as ts by e.event_id\n| filter ispresent(duration_days) and duration_days >= 0\n| stats count(*) as conocidos\n| filter conocidos > 0",
+          "statsGroups": []
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "graphMode": "none",
+        "textMode": "auto",
+        "colorMode": "value"
+      }
+    },
+    {
+      "id": 4,
+      "title": "Viajes por destino",
+      "type": "bargauge",
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "${DS_CLOUDWATCH}"
+      },
+      "description": " Eventos nuevos dentro del rango y retención seleccionados; deduplicados por event_id. No es el inventario actual de viajes.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Sin datos",
+          "decimals": 0,
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "id": "",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "${DS_CLOUDWATCH}"
+          },
+          "queryMode": "Logs",
+          "logsMode": "Insights",
+          "queryLanguage": "CWLI",
+          "logsQueryScope": "logGroupName",
+          "region": "$region",
+          "logGroups": [
+            {
+              "arn": "$core_log_group",
+              "name": "$core_log_group"
+            }
+          ],
+          "expression": "parse @message \"business_event=*\" as payload\n| fields jsonParse(payload) as e\n| filter e.event = \"trip_created\" and e.version = 1 and ispresent(e.event_id)\n| stats latest(e.city_slug) as city_slug, latest(e.budget_tier) as budget_tier, latest(e.pace_preference) as pace_preference, latest(e.duration_days) as duration_days, max(@timestamp) as ts by e.event_id\n| stats count(*) as viajes by city_slug\n| sort viajes desc",
+          "statsGroups": [
+            "city_slug"
+          ]
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true
+      },
+      "transformations": [
+        {
+          "id": "rowsToFields",
+          "options": {
+            "mappings": [
+              {
+                "fieldName": "city_slug",
+                "handlerKey": "field.name"
+              },
+              {
+                "fieldName": "viajes",
+                "handlerKey": "field.value"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Presupuesto al crear",
+      "type": "bargauge",
+      "gridPos": {
+        "x": 8,
+        "y": 4,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "${DS_CLOUDWATCH}"
+      },
+      "description": " Eventos nuevos dentro del rango y retención seleccionados; deduplicados por event_id. No es el inventario actual de viajes.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Sin datos",
+          "decimals": 0,
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "id": "",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "${DS_CLOUDWATCH}"
+          },
+          "queryMode": "Logs",
+          "logsMode": "Insights",
+          "queryLanguage": "CWLI",
+          "logsQueryScope": "logGroupName",
+          "region": "$region",
+          "logGroups": [
+            {
+              "arn": "$core_log_group",
+              "name": "$core_log_group"
+            }
+          ],
+          "expression": "parse @message \"business_event=*\" as payload\n| fields jsonParse(payload) as e\n| filter e.event = \"trip_created\" and e.version = 1 and ispresent(e.event_id)\n| stats latest(e.city_slug) as city_slug, latest(e.budget_tier) as budget_tier, latest(e.pace_preference) as pace_preference, latest(e.duration_days) as duration_days, max(@timestamp) as ts by e.event_id\n| stats count(*) as viajes by budget_tier\n| sort viajes desc",
+          "statsGroups": [
+            "budget_tier"
+          ]
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true
+      },
+      "transformations": [
+        {
+          "id": "rowsToFields",
+          "options": {
+            "mappings": [
+              {
+                "fieldName": "budget_tier",
+                "handlerKey": "field.name"
+              },
+              {
+                "fieldName": "viajes",
+                "handlerKey": "field.value"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Ritmo al crear",
+      "type": "bargauge",
+      "gridPos": {
+        "x": 16,
+        "y": 4,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "${DS_CLOUDWATCH}"
+      },
+      "description": " Eventos nuevos dentro del rango y retención seleccionados; deduplicados por event_id. No es el inventario actual de viajes.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Sin datos",
+          "decimals": 0,
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "id": "",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "${DS_CLOUDWATCH}"
+          },
+          "queryMode": "Logs",
+          "logsMode": "Insights",
+          "queryLanguage": "CWLI",
+          "logsQueryScope": "logGroupName",
+          "region": "$region",
+          "logGroups": [
+            {
+              "arn": "$core_log_group",
+              "name": "$core_log_group"
+            }
+          ],
+          "expression": "parse @message \"business_event=*\" as payload\n| fields jsonParse(payload) as e\n| filter e.event = \"trip_created\" and e.version = 1 and ispresent(e.event_id)\n| stats latest(e.city_slug) as city_slug, latest(e.budget_tier) as budget_tier, latest(e.pace_preference) as pace_preference, latest(e.duration_days) as duration_days, max(@timestamp) as ts by e.event_id\n| stats count(*) as viajes by pace_preference\n| sort viajes desc",
+          "statsGroups": [
+            "pace_preference"
+          ]
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true
+      },
+      "transformations": [
+        {
+          "id": "rowsToFields",
+          "options": {
+            "mappings": [
+              {
+                "fieldName": "pace_preference",
+                "handlerKey": "field.name"
+              },
+              {
+                "fieldName": "viajes",
+                "handlerKey": "field.value"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Creaciones por 5 minutos",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 24,
+        "h": 8
+      },
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "${DS_CLOUDWATCH}"
+      },
+      "description": " Eventos nuevos dentro del rango y retención seleccionados; deduplicados por event_id. No es el inventario actual de viajes.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Sin datos",
+          "decimals": 0,
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "id": "",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "${DS_CLOUDWATCH}"
+          },
+          "queryMode": "Logs",
+          "logsMode": "Insights",
+          "queryLanguage": "CWLI",
+          "logsQueryScope": "logGroupName",
+          "region": "$region",
+          "logGroups": [
+            {
+              "arn": "$core_log_group",
+              "name": "$core_log_group"
+            }
+          ],
+          "expression": "parse @message \"business_event=*\" as payload\n| fields jsonParse(payload) as e\n| filter e.event = \"trip_created\" and e.version = 1 and ispresent(e.event_id)\n| stats latest(e.city_slug) as city_slug, latest(e.budget_tier) as budget_tier, latest(e.pace_preference) as pace_preference, latest(e.duration_days) as duration_days, max(@timestamp) as ts by e.event_id\n| stats count(*) as viajes by datefloor(ts, 5m) as intervalo\n| sort intervalo asc",
+          "statsGroups": [
+            "intervalo"
+          ]
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    },
+    {
+      "id": 8,
+      "title": "Alcance, privacidad y costes",
+      "type": "text",
+      "gridPos": {
+        "x": 0,
+        "y": 20,
+        "w": 24,
+        "h": 7
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "**Actualización manual.** Cada panel ejecuta una consulta Logs Insights facturada por datos escaneados. Empieza con una hora y refresca solo cuando lo necesites. No hay servidor de métricas ni custom metrics.\n\n**Eventos desde la activación**, sin reconstrucción histórica. Datos capturados al crear: modificar o eliminar un viaje no modifica sus eventos. `unspecified` indica ausencia; `other` agrupa valores no reconocidos. Duración solo explícita, incluido cero. Sin eventos o duraciones conocidas, se muestra **Sin datos**, no un cero ficticio.\n\n**Deduplicación dentro de la ventana y retención.** El ID estable evita repetir la misma creación observada. Puede perderse un evento por fallo de logging o caída después de guardar; estos datos no son un registro contable ni transaccional. El historial agrupa por el timestamp del último evento observado, no por fechas del viaje.\n\n**Permisos:** el lector puede consultar todo el grupo de logs core_api, no solo business_event. Otros mensajes pueden contener información personal; revisa el acceso antes de activarlo. No incluyas identificadores reales de cuenta o instancia en este JSON."
+      }
+    }
+  ]
+}

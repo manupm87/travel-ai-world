@@ -7,6 +7,7 @@ from travel_common.http.app_factory import create_app
 from core_api.api.v1.api_router import build_api_router
 from core_api.config import CoreSettings, get_settings
 from core_api.infrastructure.dynamo.table import open_table
+from core_api.observability.business_events import configure_business_events
 from core_api.observability.business_metrics import configure_metrics
 
 
@@ -23,6 +24,7 @@ def build_app(settings: CoreSettings) -> FastAPI:
     application = create_app(settings, [build_api_router(settings)], lifespan=lifespan)
     application.state.settings = settings
     configure_metrics(application, settings)
+    configure_business_events(application, settings)
     return application
 
 

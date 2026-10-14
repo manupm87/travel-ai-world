@@ -137,6 +137,15 @@ infrastructure/dynamo/  the only adapter: table.py, keys.py, codec.py, repositor
 
 ## Operations
 
+- **Production business events (ADR 0031)** use the existing application logger,
+  not Prometheus or EMF. `BUSINESS_EVENTS_ENABLED` defaults false; Terraform
+  enables it on core Lambda with an operator-controlled boolean. The composite
+  trip observer isolates each callback failure after persistence. Keep events
+  bounded and versioned: no raw user/trip IDs, email, free text, session or card
+  data. A stable hashed trip key supports query-window deduplication. The event
+  logger stays INFO when enabled, independently of the global log level. No
+  background work, network calls or historical database scan belongs here.
+
 - **Local business metrics (ADR 0030)** are the sole local exception to the
   authenticated-route rule and the ban on shared counters: `/metrics` is a
   machine scrape, enabled only by `METRICS_ENABLED`, always absent on Lambda,

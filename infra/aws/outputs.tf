@@ -29,3 +29,13 @@ output "ai_api_function_name" {
 output "core_table_name" {
   value = aws_dynamodb_table.core.name
 }
+
+output "grafana_business_logs_role_arn" {
+  description = "Optional Grafana Assume Role ARN; null until the private reader configuration is supplied."
+  value       = try(aws_iam_role.grafana_business_logs[0].arn, null)
+}
+
+output "core_api_log_group_name" {
+  description = "Existing application log group for core_api Logs Insights queries."
+  value       = aws_cloudwatch_log_group.core_api.name
+}

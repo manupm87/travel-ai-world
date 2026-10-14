@@ -29,6 +29,14 @@ a Cognito ID token, health endpoints included.
 
 ## What Terraform creates
 
+Production business statistics use bounded creation events in the **existing
+core Lambda application log group**, with optional Grafana Assume Role reading
+Logs Insights. There are no custom metrics or new servers. The role defaults
+absent (`grafana_cloud_logs_reader=null`); actual trust inputs remain private.
+It reads the entire core log group, not only business fields. See the
+[setup, permissions, costs and rollback runbook](../../docs/runbooks/business-statistics-cloudwatch.md)
+before enabling the reader or applying configuration.
+
 For local business metrics and a provisioned Grafana dashboard, see
 [`metric/README.md`](metric/README.md). This opt-in Compose overlay runs only on
 a trusted local machine, with loopback ports and anonymous Viewer access;

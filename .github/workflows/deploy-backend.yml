@@ -124,6 +124,8 @@ jobs:
         if: inputs.cloud == 'aws'
         env:
           STATE_BUCKET: ${{ vars.AWS_TF_STATE_BUCKET }}
+          GRAFANA_CLOUD_LOGS_READER: ${{ vars.GRAFANA_CLOUDWATCH_READER || 'null' }}
+          BUSINESS_EVENTS_ENABLED_CONTROL: ${{ vars.BUSINESS_EVENTS_ENABLED || 'true' }}
         run: |
           test -n "$STATE_BUCKET" || { echo "::error::Set the repository variable AWS_TF_STATE_BUCKET (infra/aws/bootstrap output state_bucket)"; exit 1; }
           echo "TF_INIT_ARGS=-backend-config=bucket=${STATE_BUCKET} -backend-config=region=${{ secrets.AWS_REGION }}" >> "$GITHUB_ENV"
@@ -135,6 +137,18 @@ jobs:
           echo "TF_VAR_region=${{ secrets.AWS_REGION }}" >> "$GITHUB_ENV"
           echo "TF_VAR_domain_name=${{ vars.FRONTEND_DOMAIN }}" >> "$GITHUB_ENV"
           echo "TF_VAR_frontend_bucket_name=${{ vars.FRONTEND_DOMAIN }}" >> "$GITHUB_ENV"
+          # Persist the private optional reader config across clean checkouts.
+          # Missing/cleared configuration means null: inspect any role deletion.
+          {
+            echo 'TF_VAR_grafana_cloud_logs_reader<<GRAFANA_READER_JSON'
+            printf '%s\n' "$GRAFANA_CLOUD_LOGS_READER"
+            echo 'GRAFANA_READER_JSON'
+          } >> "$GITHUB_ENV"
+          case "$BUSINESS_EVENTS_ENABLED_CONTROL" in
+            true|false) ;;
+            *) echo "::error::BUSINESS_EVENTS_ENABLED must be true or false"; exit 1 ;;
+          esac
+          echo "TF_VAR_business_events_enabled=$BUSINESS_EVENTS_ENABLED_CONTROL" >> "$GITHUB_ENV"
 
       # ── Promote images (registry-to-registry copy, no rebuild) ───────────
       # crane copies the manifest byte for byte, so the digest in the cloud

@@ -207,3 +207,27 @@ variable "tags" {
     ManagedBy   = "terraform"
   }
 }
+
+variable "business_events_enabled" {
+  description = "Emit bounded trip creation JSON events in existing core Lambda application logs (ADR 0031); no custom metrics."
+  type        = bool
+  default     = true
+}
+
+variable "grafana_cloud_logs_reader" {
+  description = "Optional Grafana Cloud Assume Role account/external ID; fill only in private operator inputs. Null creates no reader role."
+  type = object({
+    account_id  = string
+    external_id = string
+  })
+  default   = null
+  sensitive = true
+
+  validation {
+    condition = var.grafana_cloud_logs_reader == null ? true : (
+      can(regex("^[0-9]{12}$", var.grafana_cloud_logs_reader.account_id)) &&
+      length(trimspace(var.grafana_cloud_logs_reader.external_id)) > 0
+    )
+    error_message = "Use a 12-digit Grafana AWS account ID and a non-empty exact external ID, or null."
+  }
+}

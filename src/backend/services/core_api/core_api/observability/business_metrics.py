@@ -6,6 +6,7 @@ from fastapi import FastAPI, Response
 
 from core_api.config import CoreSettings
 from core_api.domain.models import Trip
+from core_api.observability.business_events import budget_category, pace_category
 
 
 class BusinessMetrics:
@@ -50,15 +51,9 @@ class BusinessMetrics:
     def record_trip_created(self, trip: Trip) -> None:
         city = trip.city_slug if trip.city_slug in self.cities else "other"
         self.trips_created.labels(city_slug=city).inc()
-        budget = "unspecified" if trip.budget_tier is None else str(trip.budget_tier)
-        if budget not in {"1", "2", "3", "unspecified"}:
-            budget = "other"
+        budget = budget_category(trip.budget_tier)
         self.trip_budget_tier.labels(budget_tier=budget).inc()
-        pace = (trip.pace_preference or "").strip().lower()
-        if not pace:
-            pace = "unspecified"
-        elif pace not in {"relaxed", "balanced", "intense"}:
-            pace = "other"
+        pace = pace_category(trip.pace_preference)
         self.trip_pace_preference.labels(pace_preference=pace).inc()
         if trip.duration_days is not None:
             self.trip_duration_days.observe(trip.duration_days)

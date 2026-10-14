@@ -34,6 +34,7 @@ One file per decision, numbered, never deleted (superseded ones get a new status
 | [0028](0028-retire-the-legacy-scraper.md) | The legacy scraper leaves the tree; the cities come from `tools/city_corpus` only | Accepted |
 | [0029](0029-provider-native-structured-outputs.md) | Structured planner answers are constrained by the active provider | Accepted |
 | [0030](0030-local-business-metrics.md) | Local trip creation business metric | Accepted |
+| [0031](0031-production-business-events.md) | Production business statistics from existing application logs | Accepted |
 
 ## Inputs
 

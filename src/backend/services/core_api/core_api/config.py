@@ -17,6 +17,8 @@ class CoreSettings(CommonSettings, DynamoSettings):
 
     # Local-only business metrics (ADR 0030); never active on Lambda.
     METRICS_ENABLED: bool = False
+    # Structured events use existing Lambda logs; also opt-in outside Lambda.
+    BUSINESS_EVENTS_ENABLED: bool = False
     METRICS_CITY_SLUGS: list[str] = Field(
         default_factory=lambda: ["budapest"], max_length=100
     )
