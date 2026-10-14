@@ -60,4 +60,3 @@ resource "aws_iam_role_policy" "grafana_business_logs_read" {
   role   = aws_iam_role.grafana_business_logs[0].id
   policy = data.aws_iam_policy_document.grafana_business_logs_read[0].json
 }
-
