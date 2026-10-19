@@ -613,6 +613,39 @@ describe("plannerReducer — turn_finished", () => {
   });
 });
 
+describe("plannerReducer — turn_finished packing", () => {
+  const progress = (step: "open" | "list" | "wardrobe" | "zip") =>
+    ({
+      type: "event",
+      event: { type: "progress", step, detail: "", sources: [] },
+    }) as const;
+
+  it("zips a turn the server zipped", () => {
+    let state = plannerReducer(initialPlannerState(), { type: "turn_started", message: "Hi" });
+    state = plannerReducer(state, progress("open"));
+    state = plannerReducer(state, progress("wardrobe"));
+    state = plannerReducer(state, progress("zip"));
+    state = plannerReducer(state, { type: "turn_finished" });
+    expect(state.packing?.step).toBe("zip");
+  });
+
+  it("zips a turn without progress events (an older backend, the demo)", () => {
+    let state = plannerReducer(initialPlannerState(), { type: "turn_started", message: "Hi" });
+    state = plannerReducer(state, { type: "event", event: { type: "text", delta: "Hello" } });
+    state = plannerReducer(state, { type: "turn_finished" });
+    expect(state.packing?.step).toBe("zip");
+  });
+
+  it("drops the suitcase of a live turn the server never zipped (a guard stop)", () => {
+    let state = plannerReducer(initialPlannerState(), { type: "turn_started", message: "Hi" });
+    state = plannerReducer(state, progress("open"));
+    state = plannerReducer(state, progress("list"));
+    state = plannerReducer(state, { type: "event", event: { type: "text", delta: "I can't help with that." } });
+    state = plannerReducer(state, { type: "turn_finished" });
+    expect(state.packing).toBeNull();
+  });
+});
+
 describe("plannerReducer — turn_failed", () => {
   it("sets status error, the error kind, and drops the trailing empty bubble", () => {
     let state = plannerReducer(initialPlannerState(), { type: "turn_started", message: "Hi" });

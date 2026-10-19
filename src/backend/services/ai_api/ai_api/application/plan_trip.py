@@ -727,7 +727,9 @@ class PlanTrip:
                     "usage_units": verdict.usage_units,
                 }
             if not verdict.allowed:
-                turn.phase("zip")
+                # No `zip`: the turn packed nothing and must not read as one
+                # that ended well; the page closes its suitcase without the
+                # happy banner (plannerReducer, `turn_finished`).
                 if turn.request.brief is not None:
                     yield brief_event(turn.brief)
                 reason = "other" if verdict.reason == "ok" else verdict.reason

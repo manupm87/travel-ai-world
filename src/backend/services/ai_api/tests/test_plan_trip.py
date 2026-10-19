@@ -1824,6 +1824,8 @@ async def test_a_message_the_guard_stops_reaches_no_model(
     [event] = only(events, BriefEvent)
     assert event.brief == brief()  # the brief as the client sent it
     assert not ops_of(events, "put_activity")
+    # Nothing was packed: the turn never zips, so the page shows no success.
+    assert all(e.step in ("open", "list") for e in _progress(events))
     [span] = [s for s in tracer.spans if s.name == "guard"]
     assert span.payload["details"]["allowed"] is False
     assert span.payload["details"]["reason"] == reason

@@ -437,6 +437,19 @@ function settleUndo(undo: UndoState | null, messages: PlannerMessage[]): UndoSta
   return { ...undo, settled: true, messageId };
 }
 
+/**
+ * The suitcase once the stream has ended: zipped, unless the turn failed. A
+ * live turn the server never zipped packed nothing (the input guard stopped
+ * the message, TRA-292): it has no suitcase to show, so no happy Kiri and no
+ * "Added to the suitcase" next to the refusal.
+ */
+function finishedPacking(state: PlannerState): PackingState | null {
+  const packing = state.packing;
+  if (state.status === "error" || !packing) return packing;
+  if (packing.live && packing.step !== "zip") return null;
+  return { ...packing, step: "zip" };
+}
+
 /** Moves the packing forward to `step`, never back. */
 function packedTo(packing: PackingState | null, step: PackingStep): PackingState | null {
   if (!packing) return packing;
@@ -613,10 +626,7 @@ export function plannerReducer(state: PlannerState, action: PlannerAction): Plan
         messages,
         undo: settleUndo(state.undo, messages),
         status: state.status === "error" ? "error" : "idle",
-        packing:
-          state.status === "error" || !state.packing
-            ? state.packing
-            : { ...state.packing, step: "zip" },
+        packing: finishedPacking(state),
       };
     }
     case "turn_failed": {
