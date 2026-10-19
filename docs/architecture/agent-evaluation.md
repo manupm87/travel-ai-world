@@ -344,4 +344,3 @@ What it says against TRA-290:
   (5 days drafted, 20 distinct activities, no prices). Its last turn, a transport question, ended
   with the `agent_budget` sentence: the model kept calling tools for a question the guide answers
   poorly. The smoke's own default model, GLM-5.3-Flash, cannot call tools (ADR 0032) and timed out.
-
