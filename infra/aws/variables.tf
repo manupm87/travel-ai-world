@@ -72,6 +72,12 @@ variable "retrieval_enabled" {
   default     = true
 }
 
+variable "planner_guardrail_enabled" {
+  description = "Whether every traveller message goes through the Bedrock Guardrail of guardrail.tf before a model sees it (TRA-292). False removes it and ai_api checks nothing."
+  type        = bool
+  default     = true
+}
+
 variable "vector_index_name" {
   description = "Index inside the vector bucket that holds the city knowledge base."
   type        = string

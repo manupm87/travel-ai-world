@@ -118,6 +118,17 @@ data "aws_iam_policy_document" "ai_api_bedrock" {
       }
     }
   }
+
+  # The guardrail of guardrail.tf, on every traveller message (TRA-292).
+  dynamic "statement" {
+    for_each = aws_bedrock_guardrail.planner[*].guardrail_arn
+    content {
+      sid       = "ApplyPlannerGuardrail"
+      effect    = "Allow"
+      actions   = ["bedrock:ApplyGuardrail"]
+      resources = [statement.value]
+    }
+  }
 }
 
 resource "aws_iam_role_policy" "ai_api_bedrock" {
@@ -145,6 +156,10 @@ resource "aws_lambda_function" "ai_api" {
       BEDROCK_CHAT_MODEL = var.bedrock_chat_model
       NVIDIA_API_KEY     = var.nvidia_api_key
       NVIDIA_CHAT_MODEL  = var.nvidia_chat_model
+      # Every traveller message through the guardrail of guardrail.tf
+      # (TRA-292); empty when `planner_guardrail_enabled` is false.
+      BEDROCK_GUARDRAIL_ID      = try(aws_bedrock_guardrail.planner[0].guardrail_id, "")
+      BEDROCK_GUARDRAIL_VERSION = try(aws_bedrock_guardrail_version.planner[0].version, "")
       # core_api through the public origin, with the caller's own token.
       CORE_API_URL = "https://${var.domain_name}"
       # Where the answers are grounded (ADR 0014): the index of vectors.tf,
