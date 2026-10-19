@@ -162,6 +162,7 @@ sequenceDiagram
     participant N as LLM (Bedrock or NVIDIA)
     participant W as Open-Meteo
     B->>A: POST /api/v1/ai/planner {message | action, history, brief, itinerary} + Bearer
+    Note over A: every message first: the input guard (Bedrock Guardrail, fail open) · stopped = one fixed sentence, no model
     Note over A: before the stay, deterministic: the checklist
     A->>N: extract/merge the brief (JSON) → data: {"type":"brief", missing}
     A->>N: one short question while a field is missing → data: {"type":"text"}
@@ -194,6 +195,10 @@ it searches, reads a place, the weather, checks a day, adds, removes, moves, ret
 day, and offers cards or other stays (TRA-290). The write tools accept only ids the server fetched
 in that turn, so the guarantee below holds. A model that cannot call tools answers a fixed
 sentence; there is no other fallback, and rolling back is redeploying the previous image.
+Before any of it, every traveller message goes through the input guard (TRA-292): an Amazon
+Bedrock Guardrail (`infra/aws/guardrail.tf`: prompt attacks, harmful content, card numbers, asks
+unrelated to travel) that answers a stopped message with one fixed sentence and fails open; guide
+text reaches the model only as `untrusted_text`, which its prompt treats as data.
 
 The turn's trace (its model calls, retrievals with their top-k, tools, the SSE timeline) is
 written to `<prefix>-interactions` before `[DONE]`, keyed by the page's `session_id` (ADR 0024).

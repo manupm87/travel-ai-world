@@ -49,6 +49,7 @@ it creates no AWS resources.
 | `ecr.tf` | Two ECR repositories: `${name_prefix}-core-api`, `${name_prefix}-ai-api` |
 | `cognito.tf` | User pool, Google identity provider, public app client (code + PKCE), `admin` group and its members (`admin_usernames`), hosted-UI domain, the JWKS as output and environment |
 | `lambda.tf` | Two container-image functions with their roles (basic execution for both; for `ai-api`, Bedrock invoke on the EU inference profile of the chat model, see [Chat model](#chat-model-bedrock)) and log groups; permissions for the gateway |
+| `guardrail.tf` | The planner's Bedrock Guardrail and its numbered version, behind `planner_guardrail_enabled`; `lambda.tf` grants `bedrock:ApplyGuardrail` on it, see [Planner guardrail](#planner-guardrail-bedrock-guardrails) |
 | `vectors.tf` | S3 Vectors bucket and the `city-kb` index (1024 dimensions, cosine), plus the read-only `s3vectors` and Titan embeddings permissions of the `ai-api` role, see [Vector store](#vector-store-s3-vectors) |
 | `apigateway.tf` | REST API (regional), Cognito authorizer, the two proxy resources, deployment and `prod` stage |
 | `frontend.tf` | Private S3 bucket (OAC), CloudFront with the S3 default behaviour, the `/api/*` behaviour to the gateway and a directory-index function, S3's 403 for a missing page served as the export's `404.html` with status 404, Route 53 aliases; the public hosted zone and the ACM certificate (us-east-1, apex + wildcard, DNS-validated), both `prevent_destroy` (ADR 0010) |
@@ -242,6 +243,36 @@ prompts are processed in EU Regions. There is no API key: the function's role si
   function for that reason.
 - **Checking it.** Each answer writes one `Bedrock usage model=... input_tokens=... output_tokens=...`
   line to the function log, which also reconciles the spend with Cost Explorer.
+
+## Planner guardrail (Bedrock Guardrails)
+
+Every traveller message goes through a Bedrock Guardrail before any model sees it (TRA-292,
+ADR 0032 "Guardrails"). `guardrail.tf` creates `aws_bedrock_guardrail.planner`
+(`${name_prefix}-planner`) and a numbered `aws_bedrock_guardrail_version`:
+
+- content filters HATE, INSULTS, SEXUAL, VIOLENCE and MISCONDUCT at MEDIUM on input, PROMPT_ATTACK
+  at HIGH on input (output NONE);
+- `CREDIT_DEBIT_CARD_NUMBER`, `CREDIT_DEBIT_CARD_CVV` and `INTERNATIONAL_BANK_ACCOUNT_NUMBER`
+  blocked on input;
+- one denied topic, "Unrelated tasks" (code, homework, general-purpose assistant asks).
+
+`ai-api` calls `ApplyGuardrail` on the message alone (`source = INPUT`) and writes its own
+sentence when one is stopped, so the blocked messaging strings are never shown. `lambda.tf` passes
+`BEDROCK_GUARDRAIL_ID` / `BEDROCK_GUARDRAIL_VERSION` and grants `bedrock:ApplyGuardrail` on the
+guardrail's ARN. A change to the guardrail makes a new version; old versions are kept
+(`skip_destroy`).
+
+- **Switch.** `planner_guardrail_enabled` (default `true`). False removes both resources and the
+  statement; the function's variables are then empty and it checks nothing.
+- **Fails open.** If the guardrail cannot be reached the message is allowed and logged
+  (`Input guard unavailable`): the daily token quota and the agent's structural rules still hold.
+- **Applying is manual.** A human runs `terraform apply` (it adds the two resources, the IAM
+  statement and the two variables), then a backend deploy. Until then the variables are empty and
+  the guard allows everything, which is the safe rollout. After the apply, run
+  `uv run python tests/manual/guard_probe.py` from `src/backend/services/ai_api` (after
+  `just aws-login`): the guardrail is relied upon only with **0 false positives** on its benign
+  set; otherwise lower PROMPT_ATTACK to MEDIUM or drop the denied topic, apply, and probe again.
+- **Cost.** Billed per text unit (1,000 characters) per policy: a few units per message.
 
 ## Vector store (S3 Vectors)
 

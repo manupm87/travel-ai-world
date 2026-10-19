@@ -126,3 +126,37 @@ The agent now runs the whole conversation, and three decisions above changed:
 
 Tool events reach the page as they come (`Toolbox.stream`), so a draft run by `plan_for_me` keeps
 the stream busy day by day, as the deterministic draft does.
+
+## Guardrails — amended by TRA-292 (2026-10-19)
+
+Three layers sit on top of the structural ones above (write tools take known ids only, the loop
+has its budgets, stays are offered and not set):
+
+1. **An input guard on every traveller message.** A new port, `InputGuard.check(text) ->
+   GuardVerdict(allowed, reason, usage_units)`, runs in `PlanTrip` before dispatch, for message
+   turns only (never `select`/`remove`), in a `chain` span `guard`. A stopped message reaches no
+   model: the turn sends the brief as it was and one fixed en/es sentence per reason
+   (`guard_off_topic`, `guard_pii`, the others "I can't help with that. Shall we keep planning?");
+   the trace status stays `ok`. The deployed adapter calls an Amazon Bedrock Guardrail
+   (`ApplyGuardrail`, `source = INPUT`; `infra/aws/guardrail.tf`): content filters, PROMPT_ATTACK at
+   HIGH, card numbers, CVVs and IBANs, one denied topic for asks unrelated to travel. Without
+   `BEDROCK_GUARDRAIL_ID` it is `NullInputGuard`. **It fails open**: an adapter error logs and
+   allows, because the quota and the structural rules still hold and a guard outage must not take
+   the planner down. Only the input is checked: the agent's prose is ours to filter (layer 2) and
+   its places are corpus ids.
+2. **No currency figure in the agent's prose.** Delivered by TRA-290: `ProseFilter` cuts the
+   streamed text at sentence ends (never next to an amount) and runs `strip_prices` on each piece.
+3. **Guide text is data.** Every summary and description a tool result carries is wrapped as
+   `{"untrusted_text": ...}`, and the shared data rule of both prompts names that key; it also
+   tells Kiri to refuse, without a tool call, a message that asks it to ignore its rules, claims to
+   be a system or admin message or asks for its prompt. Photo credits and site previews never
+   reach the model (a result says only whether a place has a photo).
+
+The conversation eval gained four Budapest scenarios tagged `safety` (an injected hotel, the system
+prompt, a card number, a role-play jailbreak). The guardrail is relied upon only after
+`tests/manual/guard_probe.py` shows 0 false positives on its benign set against the applied
+guardrail (`docs/architecture/agent-evaluation.md`).
+
+Rejected: checking the output with the guardrail too (the agent's text streams sentence by
+sentence, a per-sentence call would add latency to every turn and the price and id rules are
+already structural); failing closed (a Bedrock incident would stop every conversation).

@@ -12,7 +12,8 @@ domain/         Message, ChatRole, Document, RetrievalFilters, GenerationParams,
                 agent.py: ToolSpec, ToolCall, ToolResult, AgentMessage and the converse stream items
                 TextDelta, ToolCallReady, StepEnd (ADR 0032)
                 + Protocols: LLMProvider (stream + complete + converse), Embedder, Retriever (search + fetch), WeatherForecast,
-                PhotoFinder, SitePreviewFinder, TraceLog, UsageStore, AccessGateway
+                PhotoFinder, SitePreviewFinder, TraceLog, UsageStore, AccessGateway, InputGuard
+                (check → GuardVerdict, TRA-292)
                 usage.py: DailyUsage, Entitlement, resets_at (ADR 0026)
                 tracing.py: TurnTrace, Span, RetrievedDoc, EventMark, TurnContext (ADR 0024) and the read models
                 TurnSummary, TurnDetail, TurnFilters, TurnPage (TRA-221)
@@ -40,6 +41,8 @@ infrastructure/ adapters: nvidia_provider.py, bedrock_provider.py, bedrock_embed
                 site_previews.py (the og:image a venue publishes on its own site, ADR 0021;
                 its `GROUP_DOMAINS` — the hotel groups a brand domain may redirect to — is a copy
                 of the corpus tool's `config/hotel_groups.py`, kept in step by hand, TRA-211),
+                bedrock_guard.py (BedrockInputGuard: ApplyGuardrail on the traveller's message, fail open;
+                NullInputGuard when BEDROCK_GUARDRAIL_ID is empty, TRA-292),
                 sse.py, retry.py, core_api_client.py (AccessGateway),
                 dynamo_traces.py, dynamo_usage.py (the daily token counters, same table)
 api/            deps.py (per-request wiring; process resources come from app.state), v1/endpoints/{planner,usage,admin,health}.py
@@ -50,7 +53,7 @@ main.py         lifespan builds the provider and the retriever once (providers.b
 indexing.py     CLI that fills the vector index from a corpus JSONL (just index); never runs in a request
 prompts.py      every prompt string (RAG context template, format_context, the planner's prompts)
 testing.py      FakeProvider, FakeEmbedder, FakeRetriever, KeywordRetriever (tf-idf over a corpus file),
-                FakePhotoFinder, FakeSitePreviews, InMemoryTraceLog, InMemoryUsageStore, FakeAccessGateway + settings_for_tests()
+                FakePhotoFinder, FakeSitePreviews, FakeInputGuard, InMemoryTraceLog, InMemoryUsageStore, FakeAccessGateway + settings_for_tests()
 ```
 
 - Routes live under `/api/v1/ai/*` so a proxy can route by prefix. Keep it that way.
@@ -157,7 +160,16 @@ testing.py      FakeProvider, FakeEmbedder, FakeRetriever, KeywordRetriever (tf-
   `strip_prices`. It needs the retriever (503 without `RETRIEVAL_ENABLED`); a failed structured call degrades
   (top candidates, plain day titles) rather than failing the turn. Prompts and the fixed
   en/es sentences live in `prompts.py`. **Kiri, one tool-using agent, runs the conversation** (ADR 0032;
-  TRA-290 after the draft, TRA-291 before the stay). Routing, in `_on_message`:
+  TRA-290 after the draft, TRA-291 before the stay).
+  **Every message passes the input guard first** (TRA-292): `PlanTrip._guarded` calls
+  `InputGuard.check` on a message turn (never `select`/`remove`) before dispatch, in a `chain` span
+  `guard` (`details`: `reason`, `allowed`, `usage_units`). A stopped message gets the brief as sent
+  and `planner_text(lang, "guard_<reason>")`, reaches no model and leaves the trace `ok`. The
+  deployed guard is a Bedrock Guardrail (`infra/aws/guardrail.tf`, `BEDROCK_GUARDRAIL_ID` /
+  `_VERSION`); empty, it is `NullInputGuard`. **It fails open**: an adapter error logs and allows,
+  since the daily quota and the structural rules below still hold and a guard outage must not take
+  the planner down. Behind it, tool results carry guide prose only as `{"untrusted_text": ...}`,
+  which the prompts' data rule names (`_AGENT_DATA_RULE`). Routing, in `_on_message`:
   - *Before the stay* (`_before_stay`): `_extract_brief` + `_ahead` run on every message and the
     `brief` event goes out first (the checklist UI); the not-covered sentence stays deterministic;
     while `brief.missing()`, `_ask_missing` asks one question. Complete: the page's own button text
@@ -269,6 +281,7 @@ just planner-smoke budapest es     # real model + KeywordRetriever over the corp
 just eval-retrieval [city]         # recall@k / MRR of the deployed index over ai_api/data/eval_questions; needs just aws-login
 just eval-answers [city] [flags]   # groundedness / relevance of the chat answers, judged by Nova Pro; ~1 USD; needs AWS
 just eval-conversations [city] [flags]  # scripted conversations vs the real planner (--tag, --scenario, --repeat 3, --judge); exit 1 on a safety failure
+uv run python tests/manual/guard_probe.py  # false positives of the real guardrail (TRA-292); needs AWS and the apply
 ```
 
 Run the smoke session (README "Smoke session") after any change to the planner's prompts, cards or
@@ -281,7 +294,7 @@ does; when the page's reducer changes, `ClientState` changes with it.
 Likewise `just eval-retrieval` after a change to the retriever, its filters, the embeddings or a
 city's index: paste its table in the PR, next to the baseline of `docs/architecture/rag-evaluation.md`.
 
-Env: `.env.example` (`LLM_PROVIDER`, `NVIDIA_API_KEY` or `BEDROCK_*`, `CORE_API_URL`,
+Env: `.env.example` (`LLM_PROVIDER`, `NVIDIA_API_KEY` or `BEDROCK_*` (`BEDROCK_GUARDRAIL_*` too), `CORE_API_URL`,
 `RETRIEVAL_*` / `VECTOR_*` / `EMBEDDINGS_*`, and the same
 `AUTH_MODE`/`SECRET_KEY`/`COGNITO_*` as core_api). Every setting must be documented there
 (`tests/test_env_example.py`).
