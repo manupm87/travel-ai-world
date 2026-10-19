@@ -10,6 +10,7 @@ from ai_api.api.deps import (
     get_retriever,
     get_weather,
 )
+from ai_api.domain.agent import ToolCall
 from ai_api.domain.models import Photo
 from ai_api.main import app
 from ai_api.testing import (
@@ -18,6 +19,7 @@ from ai_api.testing import (
     FakeRetriever,
     FakeSitePreviews,
     InMemoryTraceLog,
+    InMemoryUsageStore,
     documents_from_corpus,
 )
 from httpx import AsyncClient
@@ -485,3 +487,51 @@ async def test_the_card_endpoint_leaves_a_trace(
     [fetch] = [s for s in ok.spans if s.kind == "retriever"]
     assert fetch.payload["purpose"] == "fetch" and fetch.results[0].used
     assert missing.status == "error" and missing.error_code == "NOT_FOUND"
+
+
+async def test_the_agents_steps_count_against_the_daily_quota(
+    client: AsyncClient,
+    auth_headers,
+    provider: FakeProvider,
+    trace_log: InMemoryTraceLog,
+    usage_store: InMemoryUsageStore,
+):
+    """TRA-290: every agent step is an `llm` span, so the existing trace path
+    counts its tokens, with no code of the agent's own."""
+    provider.steps = [
+        [
+            ToolCall(
+                id="c1", name="remove_activity", arguments={"id": PARLIAMENT, "day": 1}
+            )
+        ],
+        ["Parliament is off day 1."],
+    ]
+    app.dependency_overrides[get_retriever] = lambda: FakeRetriever(
+        documents_from_corpus(FIXTURE)
+    )
+    app.dependency_overrides[get_photos] = lambda: None
+    app.dependency_overrides[get_previews] = lambda: None
+    app.dependency_overrides[get_weather] = lambda: None
+    empty = {"morning": [], "afternoon": [], "evening": [], "night": []}
+    drafted = EMPTY_TURN | {
+        "message": "Remove the Parliament",
+        "brief": ONE_DAY,
+        "itinerary": {
+            "stay_card_id": ASTORIA,
+            "days": [{"day": 1, "slots": empty | {"morning": [PARLIAMENT]}}],
+        },
+    }
+
+    response = await client.post(PLANNER_URL, json=drafted, headers=auth_headers)
+
+    assert response.status_code == 200
+    events = events_of(response.text)
+    ops = [op for e in events if isinstance(e, dict) for op in e.get("ops", [])]
+    assert [op["op"] for op in ops] == ["remove_activity"]
+    [trace] = trace_log.traces
+    steps = [s for s in trace.spans if s.kind == "llm"]
+    assert [s.payload["operation"] for s in steps] == ["agent", "agent"]
+    assert [s.name for s in trace.spans if s.kind == "tool"] == ["tool:remove_activity"]
+    # The fake model reports 3 + 2 tokens a step.
+    [counter] = usage_store.days.values()
+    assert counter.tokens == 5 * len(steps) == trace.input_tokens + trace.output_tokens

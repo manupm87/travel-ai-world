@@ -21,6 +21,7 @@ from ai_api.application.plan_trip import (
     city_key,
     resolve_city,
 )
+from ai_api.domain.agent import ToolCall
 from ai_api.domain.models import City, DayWeather, Document, Photo
 from ai_api.schemas.planner import PlannerTurn
 from ai_api.schemas.planner_events import (
@@ -1987,3 +1988,117 @@ async def test_dates_ahead_are_kept():
     events = await run(use_case(turn("Budapest next month")))
     [event] = only(events, BriefEvent)
     assert event.brief.start_date == ahead
+
+
+# ─── The agent after the draft (TRA-290) ─────────────────────────────────────
+
+
+def agent_planner(
+    steps: Sequence[Sequence[object]] = (),
+    replies: Sequence[str] = (),
+    *,
+    enabled: bool = True,
+    supports_tools: bool = True,
+) -> tuple[PlanTrip, FakeProvider]:
+    provider = FakeProvider(
+        replies=replies,
+        steps=steps,  # type: ignore[arg-type]
+        supports_tools=supports_tools,
+        deltas=("From the guide.",),
+    )
+    use_case = PlanTrip(
+        provider,
+        FakeRetriever(CORPUS),
+        cities=(BUDAPEST,),
+        today=lambda: TODAY,
+        agent_enabled=enabled,
+    )
+    return use_case, provider
+
+
+def drafted(message: str) -> PlannerTurn:
+    return turn(
+        message, brief=brief(), stay=ASTORIA, days=[{"morning": [PARLIAMENT]}, {}]
+    )
+
+
+async def test_a_message_after_the_draft_goes_to_the_agent_when_it_is_on():
+    use_case, provider = agent_planner([["Parliament is lovely at dusk."]])
+
+    events = await run(use_case(drafted("Is the Parliament worth it?")))
+
+    assert joined_text(events) == "Parliament is lovely at dusk."
+    assert len(provider.conversations) == 1
+    assert provider.completions == []  # no intent classifier
+
+
+async def test_with_the_agent_off_the_intent_classifier_answers():
+    use_case, provider = agent_planner(
+        replies=[json.dumps({"intent": "chat"})], enabled=False
+    )
+
+    events = await run(use_case(drafted("Is the Parliament worth it?")))
+
+    assert provider.conversations == []
+    assert len(provider.completions) == 1  # the classifier
+    assert joined_text(events) == "From the guide."
+
+
+async def test_a_model_that_calls_no_tools_keeps_the_intent_classifier():
+    use_case, provider = agent_planner(
+        replies=[json.dumps({"intent": "chat"})], supports_tools=False
+    )
+
+    await run(use_case(drafted("Is the Parliament worth it?")))
+
+    assert provider.conversations == []
+    assert len(provider.completions) == 1
+
+
+async def test_the_pages_alternatives_ask_keeps_its_fast_path_with_the_agent_on():
+    use_case, provider = agent_planner(replies=[picks(BASILICA, GELLERT)])
+
+    events = await run(use_case(drafted("Alternatives for day 2 · afternoon")))
+
+    [group] = only(events, OptionsEvent)
+    assert group.group_id == "slot:2:afternoon"
+    assert provider.conversations == []
+
+
+async def test_before_the_stay_the_agent_is_not_asked():
+    use_case, provider = agent_planner(replies=[json.dumps({})])
+
+    await run(use_case(turn("A trip to Budapest", brief=brief())))
+
+    assert provider.conversations == []
+
+
+async def test_the_agents_edit_ends_with_the_touched_days_warnings():
+    use_case, _ = agent_planner(
+        [
+            [use("search_places", query="baths", kind="sight")],
+            [use("add_activity", id=GELLERT, day=1, part="afternoon")],
+            ["Added the Gellért Baths."],
+        ]
+    )
+    request = turn(
+        "Add a bath to day 1",
+        brief=brief(),
+        stay=ASTORIA,
+        days=[
+            {"morning": [PARLIAMENT, BASILICA, BASTION], "evening": [ANNA_CAFE]},
+            {},
+        ],
+    )
+
+    events = await run(use_case(request))
+
+    [put] = ops_of(events, "put_activity")
+    assert put.card.id == GELLERT
+    # Five activities on a balanced day: the turn ends with day 1's warning.
+    assert {w.code for w in ops_of(events, "warn")} == {"overloaded_day"}
+    assert isinstance(events[-1], ItineraryPatchEvent)
+
+
+def use(name: str, **arguments: object) -> ToolCall:
+    return ToolCall(id=f"call-{name}", name=name, arguments=arguments)
