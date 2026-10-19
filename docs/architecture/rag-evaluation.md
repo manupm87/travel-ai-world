@@ -180,6 +180,27 @@ Measured with the 120 questions, comparing S3 Vectors with exact search over the
   No city loses and no expected id leaves its top 10. Budapest's January climate question goes from
   missing to #1. It was the index, not the climate text (TRA-304, cancelled).
 
+### Los Angeles after TRA-307, 2026-10-19 (current baseline)
+
+Los Angeles was rebuilt with four more districts (Harbor, San Fernando Valley, Bunker Hill, Chinatown)
+and passed the gate on exact search with no change at all (R@5 0.842, R@10 0.908, MRR 0.725 before
+and after). Then it was reindexed into `city-kb` (6,778 written, 465 deleted). Production, two runs,
+identical:
+
+| | R@10 | MRR | Berlin | Bologna | Budapest | Los Angeles | Madrid | Miami |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| ENHANCED, before the reindex | 0.776 | 0.695 | 0.704 | 0.838 | 0.725 | 0.908 | 0.721 | 0.758 |
+| **After the LA reindex (baseline)** | **0.768** | **0.686** | 0.679 | 0.838 | 0.725 | 0.908 | 0.733 | 0.725 |
+
+- **Rewriting one city moves others.** Berlin, Madrid and Miami were not touched (identical vectors), yet
+  Berlin loses one expected id (the Checkpoint Charlie lead), Miami goes back to 0.725 and Madrid gains
+  one (El Rastro). In ENHANCED mode a rewrite reshuffles the shared index, not only its own city. This
+  is the build noise above, and the reason a change is gated on exact search, not on this table.
+- **Right after a reindex, the rewritten city gets short lists**: its deleted vectors keep taking
+  candidate slots. Six LA questions received 8 or 9 passages, and a search for sights in Downtown 7 of
+  10. Asking for 30 candidates and keeping the first 10 removes them with no change in recall (TRA-310,
+  live with the next backend deploy).
+
 ### Misses, 2026-10-01
 
 Questions with an expected id outside the top 10, with the rank of each expected id (— = not in
