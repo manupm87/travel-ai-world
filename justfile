@@ -99,6 +99,14 @@ eval-retrieval city="":
 eval-answers city="" *flags="":
     cd {{ai}} && uv run python tests/manual/answer_eval.py {{city}} {{flags}}
 
+# Scripted multi-turn conversations against the real planner (TRA-288), graded on the itinerary
+# and texts they leave; no city = every city. The provider of .env (NVIDIA locally, or Bedrock
+# with LLM_PROVIDER=bedrock after `just aws-login`); flags go through (--scenario ID, --tag
+# safety, --repeat 3, --judge, --judge-model ID, --photos, --out eval.md). Exit 1 on a failed
+# safety check. Gate and baseline: docs/architecture/agent-evaluation.md.
+eval-conversations city="" *flags="":
+    cd {{ai}} && uv run python tests/manual/conversation_eval.py {{city}} {{flags}}
+
 # ── Quality ──────────────────────────────────────────────────────────────────
 
 # Lint backend (ruff, incl. scripts/) and frontend (eslint)
