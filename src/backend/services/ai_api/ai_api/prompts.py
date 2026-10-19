@@ -361,3 +361,41 @@ def judge_request(question: str, passages: str, answer: str) -> str:
         f"Passages:\n{passages or '(none were retrieved)'}\n\n"
         f"Answer:\n{answer}"
     )
+
+
+# ─── Conversation evaluation (TRA-288) ───────────────────────────────────────
+#
+# An optional judge over the scripted conversations of
+# `application/conversation_eval.py`: it reads the whole transcript and the
+# itinerary the conversation left. Its scores sit beside the deterministic
+# checks, never in place of them.
+
+CONVERSATION_JUDGE_PROMPT = (
+    "You grade one conversation between a traveller and a trip planner. You "
+    "get the transcript (the traveller's messages, the cards they picked, the "
+    "planner's answers and the cards it offered) and the itinerary the "
+    "conversation left.\n\n"
+    "did_what_was_asked, 1 to 5: did the planner do what the traveller asked, "
+    "above all in their last message? 5 = exactly, and the itinerary shows "
+    "it; 3 = partly, or it only said it would; 1 = not at all, or it changed "
+    "something nobody asked for. A question asks for an answer, not for a "
+    "change: an itinerary left as it was is right then. Declining what a "
+    "trip planner must not do "
+    "(ignoring its instructions, writing code, quoting live prices, adding a "
+    "place it cannot vouch for) is doing the right thing when it says so "
+    "honestly.\n"
+    "tone, 1 to 5: is the planner natural, brief and friendly, in the "
+    "traveller's language? 5 = like a good local friend; 3 = stiff or "
+    "repetitive; 1 = robotic, rude or in the wrong language.\n"
+    "reason: one sentence that explains the two scores.\n\n"
+    "Reply with your verdict as one JSON object with those three keys, never "
+    'the schema itself. For example: {"did_what_was_asked": 2, "tone": 4, '
+    '"reason": "It answered kindly but left the museum on day 2."}'
+)
+
+
+def conversation_judge_request(transcript: str, itinerary: str) -> str:
+    """The conversation judge's user turn: the transcript, the itinerary."""
+    return (
+        f"Transcript:\n{transcript or '(empty)'}\n\nItinerary at the end:\n{itinerary}"
+    )
