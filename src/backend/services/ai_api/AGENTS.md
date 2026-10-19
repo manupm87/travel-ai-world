@@ -29,7 +29,9 @@ application/    use cases (PlanTrip, CardDetailLookup, CheckAccess) and their pu
                 ports and on `schemas/` (the use cases emit the
                 wire events, ADR 0015); `plan_trip.py` also imports the pure `static_flight_search.route_for`.
                 agent/schema.py (`tool_schema`: a tool's Pydantic input as JSON Schema, optional fields kept
-                optional, ADR 0032).
+                optional, ADR 0032), agent/context.py (system prompt + transcript), agent/tools.py
+                (AgentContext, the tools, Toolbox), agent/loop.py (run_agent, ProseFilter): Kiri after
+                the draft (TRA-290); they import plan_trip, which imports them inside `_agent`.
 infrastructure/ adapters: nvidia_provider.py, bedrock_provider.py, bedrock_embedder.py, bedrock.py (shared by both
                 Bedrock adapters), s3vectors.py + s3vectors_retriever.py, providers.py (settings → adapters),
                 open_meteo.py (forecast), static_flight_search.py + data/airports.json (route deep links),
@@ -154,7 +156,29 @@ testing.py      FakeProvider, FakeEmbedder, FakeRetriever, KeywordRetriever (tf-
   `cards.py` over the document's metadata, ids not retrieved are dropped, `why` and titles go through
   `strip_prices`. It needs the retriever (503 without `RETRIEVAL_ENABLED`); a failed structured call degrades
   (top candidates, plain day titles, chat intent) rather than failing the turn. Prompts and the fixed
-  en/es sentences live in `prompts.py`. **A place the ask names is offered first** (TRA-186):
+  en/es sentences live in `prompts.py`. **After the draft, Kiri is a tool-using agent** (ADR 0032,
+  TRA-290): once the trip has a stay and days, a message (other than the page's own "Alternatives for
+  day N · part", which keeps its fast path) goes to `_agent` when `PLANNER_AGENT` is on (the default;
+  `api/deps.py` passes it, `PlanTrip(agent_enabled=False)` otherwise) and `provider.supports_tools`;
+  else `_classify` and its three intents answer, as before. `agent/context.py` fetches the
+  itinerary's documents once (`agent_itinerary`) and writes `AGENT_SYSTEM_PROMPT` with the trip by
+  title; `agent/loop.py` (`run_agent`) streams each step's text through `ProseFilter` (cut at
+  sentence ends, never next to an amount, each piece through `strip_prices`) and runs the calls in
+  order within `AGENT_MAX_STEPS` / `AGENT_MAX_TOOL_CALLS` (past them: `budget_exhausted` results, one
+  last step, else `agent_budget`); `agent/tools.py` holds the twelve tools over the `PlanTrip`
+  helpers: `search_places`, `get_place`, `list_districts`, `get_weather`, `check_day` (read);
+  `add_activity`, `remove_activity`, `move_activity` (remove then put in one patch, the card hydrated
+  again), `set_day_title`, `redraft_day` (`_draft_day`, the draft's own per-day step) (write);
+  `offer_options` (always a fresh `found:` group, unplaced) and `offer_stays` (forwards
+  `_hotel_options` / `_neighbourhood_options`; the agent never sets a stay). **Write tools accept
+  only ids in `AgentContext.known`** (the itinerary's documents and whatever a tool retrieved or
+  fetched this turn) and only places that are not a stay; any other id is an error result the model
+  reads (`unknown id: call search_places first`, counted by `note_picks`). A tool's phase is
+  announced as it runs; after the loop, every day a write tool touched (except one `redraft_day`
+  already checked) gets one patch of its `warn` ops. Known limitation: no op clears a day-level
+  warning, so a warning an edit made untrue stays on the page (accepted, ADR 0032). Tests script the
+  model with `FakeProvider(steps=...)` (`tests/test_agent_loop.py`, `tests/test_agent_tools.py`).
+  **A place the ask names is offered first** (TRA-186):
   `_named_places` runs one unfiltered search on the traveller's words and pins the listings whose
   title the ask names (`_named_at`) ahead of the candidates and of the model's picks, on the options
   route and in `_chat`; a `restaurant` ask with no part searches `eat` *and* `drink`. Weather: Open-Meteo within 16 days, else the corpus's

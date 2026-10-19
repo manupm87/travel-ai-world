@@ -171,7 +171,23 @@ sequenceDiagram
     A->>W: daily forecast (≤ 16 days) — else the corpus's climate normals
     A-->>B: data: {"type":"itinerary_patch", ops: set_stay · set_route · set_day_title · put_activity · set_weather · warn}
     Note over A: stateless: the group id says what a selection means (nb, hotels:<district>, slot:<day>:<part>)
+    B->>A: after the draft: {message, itinerary snapshot}
+    loop agent steps (≤ AGENT_MAX_STEPS, ≤ AGENT_MAX_TOOL_CALLS)
+        A->>N: converse: system prompt (the trip with titles), transcript, tool results, tools
+        N-->>A: text (streamed, prices stripped) and tool calls
+        A->>V: the tools' own searches (search_places, get_place, list_districts, redraft_day)
+        A-->>B: data: itinerary_patch (put_activity · remove_activity · set_day_title) · options (found:, hotels:, nb)
+    end
+    A-->>B: data: {"type":"itinerary_patch", ops: warn} for every day an edit touched
 ```
+
+After the draft, a message goes to Kiri as a tool-using agent
+([ADR 0032](adr/0032-kiri-is-a-tool-using-agent.md), `ai_api/application/agent/`): the model
+chooses tools (search, read a place, the weather, check a day, add, remove, move, retitle or
+redraft a day, offer cards or other stays), and the write tools accept only ids the server fetched
+in that turn, so the guarantee below holds. The page's own "Alternatives for day N" ask and the
+`select` / `remove` actions stay deterministic; `PLANNER_AGENT=false`, or a model that cannot call
+tools, keeps the intent classifier.
 
 The turn's trace (its model calls, retrievals with their top-k, tools, the SSE timeline) is
 written to `<prefix>-interactions` before `[DONE]`, keyed by the page's `session_id` (ADR 0024).
