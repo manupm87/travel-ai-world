@@ -16,6 +16,12 @@ itinerary's documents, fetched once, and whatever a tool retrieved or fetched
 in this turn), and only places that are not a stay. Any other id is an error
 result, so a place reaches the traveller only as a corpus document the server
 fetched (ADR 0015). Edits reuse the existing ops: no wire contract change.
+
+**Guide prose is quoted, never obeyed** (TRA-292): every summary and
+description a result carries is wrapped as `{"untrusted_text": ...}`, the key
+the system prompt names as data. Photos and site previews only ever reach
+the page: a result says whether a place has a photo, never what its credit,
+caption or preview says.
 """
 
 import json
@@ -89,6 +95,16 @@ CONTENT_CHARS = 800
 """Longest description `get_place` returns."""
 
 DISTRICT_SUMMARY_CHARS = 160
+
+UNTRUSTED = "untrusted_text"
+"""The key every piece of corpus prose is wrapped in before the model sees it
+(TRA-292): the system prompt names it as data, never instructions."""
+
+
+def untrusted(value: str) -> dict[str, str]:
+    """Guide text as a tool result carries it: quoted, never obeyed."""
+    return {UNTRUSTED: value}
+
 
 UNKNOWN_ID = "unknown id: call search_places first"
 
@@ -217,7 +233,7 @@ def place(document: Document) -> dict[str, Any]:
         "category": m.get("category") or None,
         "district": m.get("district") or None,
         "tier": int(tier) if isinstance(tier, int | float) else None,
-        "summary": " ".join(document.content.split())[:SUMMARY_CHARS],
+        "summary": untrusted(" ".join(document.content.split())[:SUMMARY_CHARS]),
         "photo": has_image(document),
     }
 
@@ -372,7 +388,7 @@ class GetPlace:
         detail = detail_from_document(document)
         result = {
             **place(document),
-            "content": detail.description[:CONTENT_CHARS],
+            "content": untrusted(detail.description[:CONTENT_CHARS]),
             "hours": detail.hours,
             "url": detail.website or detail.source_url,
             "address": detail.address,
@@ -398,7 +414,7 @@ class ListDistricts:
         return ToolOutcome(
             result={
                 "districts": [
-                    {"name": name, "summary": summary}
+                    {"name": name, "summary": untrusted(summary)}
                     for name, summary in names.items()
                 ]
             },

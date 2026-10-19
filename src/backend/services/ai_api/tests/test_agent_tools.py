@@ -226,7 +226,9 @@ async def test_search_places_answers_compact_places_off_the_trip():
     places = result(found)["places"]
     assert not events and not found.is_error
     assert places and all(set(p) == PLACE_KEYS for p in places)
-    assert all(len(p["summary"]) <= 200 for p in places)
+    # Guide prose is quoted as data, never as bare text (TRA-292).
+    assert all(set(p["summary"]) == {"untrusted_text"} for p in places)
+    assert all(len(p["summary"]["untrusted_text"]) <= 200 for p in places)
     ids = [p["id"] for p in places]
     assert RUDAS not in ids and PARLIAMENT not in ids  # already on the trip
     assert all(p["category"] in {"see", "do", "tour", "history"} for p in places)
@@ -292,7 +294,7 @@ async def test_get_place_reads_a_known_or_fetchable_id_and_refuses_the_rest():
     missing, _ = await s.toolbox.call(call("get_place", id="wv:en:Budapest#see:prado"))
 
     assert result(known)["title"] == "Rudas Thermal Bath"
-    assert len(result(known)["content"]) <= 800
+    assert len(result(known)["content"]["untrusted_text"]) <= 800
     assert {"hours", "url", "address"} <= set(result(known))
     assert GELLERT in s.context.known  # fetched ids join the known ones
     assert not fetched.is_error
