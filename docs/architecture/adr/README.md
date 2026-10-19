@@ -18,7 +18,7 @@ One file per decision, numbered, never deleted (superseded ones get a new status
 | 0012 | Reserved for the knowledge base (TRA-137), never written: the corpus contract is [`tools/city_corpus/README.md`](../../../src/backend/tools/city_corpus/README.md#output), the store is ADR 0014 | — |
 | [0013](0013-chat-conversations-in-core-api.md) | Chat conversations are stored by `core_api` and written by `ai_api` over HTTP | Superseded by 0027 (storage superseded by 0023 before) |
 | [0014](0014-vector-store-s3-vectors.md) | The vector store is Amazon S3 Vectors, filled from the committed corpus | Accepted (its first client, the chat, retired by 0027) |
-| [0015](0015-planner-sse-v2-stateless-orchestration.md) | The planner streams typed events (SSE v2) from a stateless orchestrator in `ai_api` | Accepted (amended by 0025) |
+| [0015](0015-planner-sse-v2-stateless-orchestration.md) | The planner streams typed events (SSE v2) from a stateless orchestrator in `ai_api` | Accepted (amended by 0025 and 0032) |
 | [0016](0016-planner-map-openfreemap-maplibre.md) | The planner's map is MapLibre GL over OpenFreeMap's hosted tiles | Accepted |
 | [0017](0017-city-intro-and-hero-in-the-cities-manifest.md) | A city's intro (derived from the corpus) and hero photo (curated) travel in the cities manifest | Accepted |
 | [0018](0018-chat-answers-carry-cards-client-names-the-slot.md) | A chat answer's places become cards; the client names the slot | Accepted |
@@ -35,6 +35,7 @@ One file per decision, numbered, never deleted (superseded ones get a new status
 | [0029](0029-provider-native-structured-outputs.md) | Structured planner answers are constrained by the active provider | Accepted |
 | [0030](0030-local-business-metrics.md) | Local trip creation business metric | Accepted |
 | [0031](0031-production-business-events.md) | Production business statistics from existing application logs | Accepted |
+| [0032](0032-kiri-is-a-tool-using-agent.md) | Kiri is a tool-using agent in `ai_api` | Accepted (amends 0015) |
 
 ## Inputs
 

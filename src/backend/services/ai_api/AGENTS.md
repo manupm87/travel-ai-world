@@ -9,7 +9,9 @@ imports `core_api`.
 
 ```text
 domain/         Message, ChatRole, Document, RetrievalFilters, GenerationParams, Usage, DayWeather, RouteSuggestion
-                + Protocols: LLMProvider (stream + complete), Embedder, Retriever (search + fetch), WeatherForecast,
+                agent.py: ToolSpec, ToolCall, ToolResult, AgentMessage and the converse stream items
+                TextDelta, ToolCallReady, StepEnd (ADR 0032)
+                + Protocols: LLMProvider (stream + complete + converse), Embedder, Retriever (search + fetch), WeatherForecast,
                 PhotoFinder, SitePreviewFinder, TraceLog, UsageStore, AccessGateway
                 usage.py: DailyUsage, Entitlement, resets_at (ADR 0026)
                 tracing.py: TurnTrace, Span, RetrievedDoc, EventMark, TurnContext (ADR 0024) and the read models
@@ -23,6 +25,8 @@ application/    use cases (PlanTrip, CardDetailLookup, CheckAccess) and their pu
                 `plan_trip.chat_messages`, shared with `PlanTrip._chat`, so the two never drift). Depend on domain
                 ports and on `schemas/` (the use cases emit the
                 wire events, ADR 0015); `plan_trip.py` also imports the pure `static_flight_search.route_for`.
+                agent/schema.py (`tool_schema`: a tool's Pydantic input as JSON Schema, optional fields kept
+                optional, ADR 0032).
 infrastructure/ adapters: nvidia_provider.py, bedrock_provider.py, bedrock_embedder.py, bedrock.py (shared by both
                 Bedrock adapters), s3vectors.py + s3vectors_retriever.py, providers.py (settings → adapters),
                 open_meteo.py (forecast), static_flight_search.py + data/airports.json (route deep links),
@@ -46,11 +50,14 @@ testing.py      FakeProvider, FakeEmbedder, FakeRetriever, KeywordRetriever (tf-
 
 - Routes live under `/api/v1/ai/*` so a proxy can route by prefix. Keep it that way.
 - **Every request is traced (ADR 0024).** `application/tracing.py` (`TurnTracer`, `current_tracer`,
-  `traced_llm_stream`), `application/record_trace.py` (writes before `[DONE]`),
+  `traced_llm_stream`, `traced_converse`, `tool_span`), `application/record_trace.py` (writes before `[DONE]`),
   `application/pricing.py` (versioned USD per million tokens), `infrastructure/dynamo_traces.py`
   (`DynamoTraceLog`, `NullTraceLog` when `INTERACTIONS_TABLE` is empty; `testing.InMemoryTraceLog`
   in tests). Rules: every model call goes through `complete_json(name=..., template=...)` or
-  `traced_llm_stream(...)`; every planner search through `PlanTrip._search(..., purpose=...)` (and
+  `traced_llm_stream(...)`; every agent step goes through `traced_converse(...,
+  traveller_message=...)` (an `llm` span, `operation="agent"`, with `tools`, `tool_calls` and
+  `stop_reason`) and every tool it runs through `tool_span(tracer, name, arguments)` (a `tool`
+  span `tool:<name>`, `service="planner"`; the caller sets `status` and `count`); every planner search through `PlanTrip._search(..., purpose=...)` (and
   every fetch through `_fetch`), whose results are recorded; the ids a pick keeps go through
   `tracer.note_picks` / `mark_used`; `tracer.phase(...)` is set before each phase's steps. A trace
   write never fails a turn. Never put the email in a trace; the subject is enough.
@@ -97,6 +104,18 @@ testing.py      FakeProvider, FakeEmbedder, FakeRetriever, KeywordRetriever (tf-
   NVIDIA models use the prompt instruction and tolerant parser. Structured calls make one attempt;
   the use case owns the deterministic fallback. GLM structured calls set low reasoning effort and
   clear hidden thinking to leave room for the answer.
+  **Tool use (ADR 0032)**: `converse(system, messages, tools, *, usage)` streams `TextDelta`s, one
+  `ToolCallReady` per complete call and exactly one `StepEnd`; `supports_tools` is a verified model
+  set (`TOOL_USE_MODELS`: Bedrock's Haiku 4.5 EU profile, NVIDIA's GLM-5.3-Flash). Bedrock sends
+  `toolConfig` on every step and never a blank text block; NVIDIA sends OpenAI `tools` and assembles
+  `tool_calls` fragments by index. Input that is not a JSON object becomes `{"_raw": text}`
+  (`domain.agent.parse_tool_call`), empty input `{}`. Adding tool use to a provider: map
+  `AgentMessage`s to its message shape (calls on the assistant turn, every result of a turn in the
+  next user turn), parse its streamed calls into `ToolCall`s, map its stop reasons to `StepEnd`,
+  keep the retry-before-first-item rule, and add a model to its set only after
+  `tests/manual/converse_probe.py` (or a Bedrock run) shows a real call. Tests script steps with
+  `FakeProvider(steps=[["text", tool_call("name", arg=...)], ...])`; calls land in
+  `provider.conversations`.
 - **Retrieval** (ADR 0014): `S3VectorsRetriever` over Amazon S3 Vectors, fed by `TitanEmbedder`,
   built in `lifespan` only when `RETRIEVAL_ENABLED` and injected by `get_retriever` (the planner
   and the card details answer 503 without it). Another store
