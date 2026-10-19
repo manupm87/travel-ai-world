@@ -631,6 +631,9 @@ class PlanTrip:
         max_days: int = 7,
         candidates: int = 8,
         today: Callable[[], date] = date.today,
+        agent_enabled: bool = False,
+        agent_max_steps: int = 6,
+        agent_max_tool_calls: int = 12,
     ) -> None:
         self._provider = provider
         self._retriever = retriever
@@ -643,6 +646,12 @@ class PlanTrip:
         self._max_days = max_days
         self._candidate_count = candidates
         self._today = today
+        # After the draft a message goes to the tool-using agent (ADR 0032)
+        # when this is on and the model calls tools; `api/deps.py` passes
+        # `PLANNER_AGENT`, so a test that does not ask keeps the state machine.
+        self._agent_enabled = agent_enabled
+        self._agent_max_steps = agent_max_steps
+        self._agent_max_tool_calls = agent_max_tool_calls
 
     async def __call__(self, request: PlannerTurn) -> AsyncIterator[PlannerEvent]:
         tracer = current_tracer()
@@ -743,6 +752,11 @@ class PlanTrip:
                 yield event
             return
 
+        if self._uses_agent(turn):
+            async for event in self._agent(turn):
+                yield event
+            return
+
         intent = await self._classify(turn)
         if intent.intent == "find_options":
             kind: OptionKind = intent.kind or "experience"
@@ -759,6 +773,40 @@ class PlanTrip:
         else:
             async for event in self._chat(turn):
                 yield event
+
+    def _uses_agent(self, turn: Turn) -> bool:
+        """Whether this message goes to the agent: the trip has a stay and
+        days, the switch is on and the model calls tools (ADR 0032)."""
+        return (
+            self._agent_enabled
+            and turn.stay_id is not None
+            and turn.has_days
+            and self._provider.supports_tools
+        )
+
+    async def _agent(self, turn: Turn) -> AsyncIterator[PlannerEvent]:
+        """Kiri edits the drafted trip with tools (ADR 0032, TRA-290)."""
+        # The agent's modules build on this one's helpers, so they are
+        # imported here rather than at the top (an import cycle otherwise).
+        from ai_api.application.agent.context import build_context
+        from ai_api.application.agent.loop import run_agent
+        from ai_api.application.agent.tools import Toolbox
+
+        turn.phase("wardrobe")
+        context = await build_context(turn, self)
+        toolbox = Toolbox(context)
+        async for event in run_agent(
+            turn,
+            self._provider,
+            toolbox,
+            system=context.system,
+            messages=context.messages,
+            max_steps=self._agent_max_steps,
+            max_tool_calls=self._agent_max_tool_calls,
+        ):
+            yield event
+        for event in toolbox.finish():
+            yield event
 
     async def _change_stay(
         self, turn: Turn, intent: Intent, *, district: str | None
@@ -1169,65 +1217,91 @@ class PlanTrip:
             # The trace has a fold and a weigh per day; the page is told the
             # fold once, as the first day starts, and the weigh with the last.
             turn.phase("fold", announce=day == 1, days=days)
-            picks = await self._day_picks(turn, sketch, days, plan)
-            turn.phase("weigh", announce=day == days)
-            ops: list[Op] = []
-            placed: list[Placed] = []
-            price_seen = False
-            stripped = 0
-            slots: list[Slot] = []
-            cards: list[OptionCard] = []
-            for part in DAY_PARTS:
-                for document, why in picks.get(part, []):
-                    clean, found = strip_prices(why)
-                    price_seen = price_seen or found
-                    stripped += int(found)
-                    slots.append(Slot(day=day, part=part))
-                    cards.append(card_from_document(document, clean))
-                    turn.use(document)
-            if stripped:
-                with tracer.sync_span("chain", "strip_prices") as span:
-                    span.payload["details"] = {"day": day, "stripped": stripped}
-            for slot, card in zip(
-                slots, await self._with_photos(turn, cards), strict=True
-            ):
-                ops.append(put_activity(slot, card))
-                placed.append(Placed(slot=slot, card=card))
-            with tracer.sync_span("chain", "validate_day") as span:
-                warnings = validate_day(
-                    day,
-                    placed,
-                    pace=pace,
-                    on=_date_of(brief, day),
-                    language=turn.language,
-                )
-                span.payload["details"] = {
-                    "day": day,
-                    "warnings": [w.code for w in warnings],
-                }
-                if warnings:
-                    span.level = "warning"
-            ops.extend(warnings)
-            if price_seen:
-                ops.append(
-                    warn(
-                        "unverified_price",
-                        planner_text(turn.language, "warn_unverified_price"),
-                        slot=Slot(day=day, part=None),
-                    )
-                )
-            if day in weather:
-                w = weather[day]
-                ops.append(
-                    set_weather(
-                        day, w.summary, t_max=w.t_max, t_min=w.t_min, source=w.source
-                    )
-                )
+            ops = await self._draft_day(
+                turn, sketch, days, plan, weather, announce_weigh=day == days
+            )
             if ops:
                 yield patch(*ops)
 
         turn.phase("zip")
         yield text(planner_text(turn.language, "draft_done", days=days))
+
+    async def _draft_day(
+        self,
+        turn: Turn,
+        sketch: SkeletonDay,
+        days: int,
+        plan: Mapping[DayPart, int],
+        weather: Mapping[int, DayWeather],
+        *,
+        announce_weigh: bool = False,
+        chosen: list[Document] | None = None,
+    ) -> list[Op]:
+        """One day of the draft: its picks placed, pictured and checked.
+
+        The ops `_draft` sends for the day after its title — the activities,
+        the day's warnings and its weather when `weather` has it — and what
+        the agent's `redraft_day` sends after emptying the day (ADR 0032).
+        The documents placed are appended to `chosen` when it is given.
+        """
+        brief = turn.brief
+        day = sketch.day
+        tracer = turn.tracer
+        picks = await self._day_picks(turn, sketch, days, plan)
+        turn.phase("weigh", announce=announce_weigh)
+        ops: list[Op] = []
+        placed: list[Placed] = []
+        price_seen = False
+        stripped = 0
+        slots: list[Slot] = []
+        cards: list[OptionCard] = []
+        for part in DAY_PARTS:
+            for document, why in picks.get(part, []):
+                clean, found = strip_prices(why)
+                price_seen = price_seen or found
+                stripped += int(found)
+                slots.append(Slot(day=day, part=part))
+                cards.append(card_from_document(document, clean))
+                turn.use(document)
+                if chosen is not None:
+                    chosen.append(document)
+        if stripped:
+            with tracer.sync_span("chain", "strip_prices") as span:
+                span.payload["details"] = {"day": day, "stripped": stripped}
+        for slot, card in zip(slots, await self._with_photos(turn, cards), strict=True):
+            ops.append(put_activity(slot, card))
+            placed.append(Placed(slot=slot, card=card))
+        with tracer.sync_span("chain", "validate_day") as span:
+            warnings = validate_day(
+                day,
+                placed,
+                pace=brief.pace,
+                on=_date_of(brief, day),
+                language=turn.language,
+            )
+            span.payload["details"] = {
+                "day": day,
+                "warnings": [w.code for w in warnings],
+            }
+            if warnings:
+                span.level = "warning"
+        ops.extend(warnings)
+        if price_seen:
+            ops.append(
+                warn(
+                    "unverified_price",
+                    planner_text(turn.language, "warn_unverified_price"),
+                    slot=Slot(day=day, part=None),
+                )
+            )
+        if day in weather:
+            w = weather[day]
+            ops.append(
+                set_weather(
+                    day, w.summary, t_max=w.t_max, t_min=w.t_min, source=w.source
+                )
+            )
+        return ops
 
     def _route_ops(self, brief: TripBrief) -> list[Op]:
         if not brief.origin or not brief.destination:

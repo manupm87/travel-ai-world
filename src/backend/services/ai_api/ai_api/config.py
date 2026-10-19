@@ -84,6 +84,10 @@ class AISettings(CommonSettings, DynamoSettings):
     # documents the model chooses from per part of a day.
     PLANNER_MAX_DAYS: int = 7
     PLANNER_CANDIDATES: int = 8
+    # After the draft, Kiri edits the trip with tools (ADR 0032, TRA-290) when
+    # the model calls tools (`supports_tools`); off, the intent classifier of
+    # the state machine answers instead. The rollback switch, no Terraform.
+    PLANNER_AGENT: bool = True
     # The agent's budget per turn (ADR 0032): model steps and tool calls.
     # Past either, every further call is answered "budget exhausted" and one
     # last step must answer the traveller.
