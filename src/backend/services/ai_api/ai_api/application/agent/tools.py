@@ -1,11 +1,15 @@
-"""The tools Kiri edits a drafted trip with (ADR 0032, TRA-290).
+"""Kiri's tools (ADR 0032): editing a drafted trip (`TOOLS`, TRA-290) and
+choosing the stay before it (`PRE_STAY_TOOLS`, TRA-291).
 
 Each tool is a name, an English description that says when to use it, a
 Pydantic `Input` (its JSON Schema is what the model is shown, through
 `schema.tool_schema`) and an async `run(ctx, args)` that answers a
 `ToolOutcome`: a compact JSON result for the model and the planner events
-for the page. The tools call the `PlanTrip` helpers through the context —
-retrieval, cards, photos, the draft of a day — and never duplicate them.
+for the page. A tool that forwards a carousel or the whole draft has a
+`run_stream` instead, whose events reach the page as they come and whose
+`ToolOutcome` comes last. The tools call the `PlanTrip` helpers through the
+context — retrieval, cards, photos, the draft of a day — and never
+duplicate them.
 
 **Write tools accept only ids the turn knows** (`AgentContext.known`: the
 itinerary's documents, fetched once, and whatever a tool retrieved or fetched
