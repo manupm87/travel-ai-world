@@ -99,7 +99,8 @@ class AgentContext:
     itinerary's included; `days` and `stay_id` are a mutable copy of the
     snapshot the write tools keep up to date, so a later call in the same
     turn sees an earlier one's edit. `touched` are the days a write tool
-    changed, `validated` the ones `redraft_day` already checked.
+    changed, `validated` the ones `redraft_day` already checked and no later
+    write tool changed again.
     """
 
     turn: Turn
@@ -488,6 +489,7 @@ class AddActivity:
         slot = Slot(day=args.day, part=args.part)
         ctx.days[args.day][args.part].append(args.id)
         ctx.touched.add(args.day)
+        ctx.validated.discard(args.day)
         ctx.turn.use(document)
         ctx.turn.tracer.mark_used([args.id])
         return ToolOutcome(
@@ -522,6 +524,7 @@ class RemoveActivity:
             return failure(f"{args.id} is not on day {args.day}", id=args.id)
         ctx.days[args.day][part].remove(args.id)
         ctx.touched.add(args.day)
+        ctx.validated.discard(args.day)
         document = ctx.known.get(args.id)
         title = title_of(document) if document is not None else args.id
         return ToolOutcome(
@@ -563,6 +566,7 @@ class MoveActivity:
         ctx.days[args.from_day][part].remove(args.id)
         ctx.days[args.to_day][args.to_part].append(args.id)
         ctx.touched.update({args.from_day, args.to_day})
+        ctx.validated -= {args.from_day, args.to_day}
         ctx.turn.tracer.mark_used([args.id])
         ops: list[Op] = [
             remove_activity(Slot(day=args.from_day, part=part), args.id),

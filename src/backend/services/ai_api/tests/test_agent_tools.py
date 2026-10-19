@@ -515,6 +515,36 @@ async def test_the_turn_ends_with_the_warnings_of_the_days_it_touched():
     assert "overloaded_day" in {op.code for op in event.ops}
 
 
+async def test_a_redrafted_day_edited_again_is_checked_at_the_turn_end():
+    s = await setup()
+    await s.toolbox.call(
+        call(
+            "redraft_day",
+            day=2,
+            title="Pest's cafés",
+            districts=["belvaros"],
+            theme="coffee houses and sweets",
+        )
+    )
+    await s.toolbox.call(call("search_places", query="bath", kind="sight"))
+    # The redraft freed the Bastion and Rudas; the search found the Gellért.
+    for doc_id, part in (
+        (BASTION, "morning"),
+        (RUDAS, "afternoon"),
+        (GELLERT, "evening"),
+    ):
+        added, _ = await s.toolbox.call(
+            call("add_activity", id=doc_id, day=2, part=part)
+        )
+        assert not added.is_error
+
+    # A later edit undoes the redraft's check: the day is checked again.
+    assert 2 not in s.context.validated
+    [event] = s.toolbox.finish()
+    assert event.ops and all(op.op == "warn" for op in event.ops)
+    assert "overloaded_day" in {op.code for op in event.ops}
+
+
 async def test_a_turn_that_changed_nothing_ends_without_a_patch():
     s = await setup()
     await s.toolbox.call(call("search_places", query="bath", kind="sight"))
