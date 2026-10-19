@@ -43,6 +43,13 @@ class AISettings(CommonSettings, DynamoSettings):
     BEDROCK_CONNECT_TIMEOUT: float = 10.0
     BEDROCK_READ_TIMEOUT: float = 120.0
     BEDROCK_MAX_RETRIES: int = 2
+    # The Bedrock Guardrail every traveller message goes through before any
+    # model sees it (TRA-292, Terraform `guardrail.tf`): prompt attacks,
+    # harmful content, card numbers, asks unrelated to travel. Empty (the
+    # local default, and on AWS until the guardrail is applied) checks
+    # nothing. An unreachable guardrail allows the message (fail open).
+    BEDROCK_GUARDRAIL_ID: str = ""
+    BEDROCK_GUARDRAIL_VERSION: str = ""
 
     # Sampling. Tune per deployment, not in code. CHAT_TOP_P is only sent to
     # NVIDIA: Claude 4.5+ on Bedrock refuses temperature and top_p together.

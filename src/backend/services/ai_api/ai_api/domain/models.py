@@ -121,3 +121,17 @@ class GenerationParams:
     max_tokens: int = 4096
     temperature: float = 0.7
     top_p: float = 0.95
+
+
+GuardReason = Literal["ok", "prompt_attack", "harmful", "pii", "off_topic", "other"]
+"""Why the input guard let a message through (`ok`) or stopped it."""
+
+
+@dataclass(frozen=True, slots=True)
+class GuardVerdict:
+    """What the input guard decided about one traveller message (TRA-292):
+    whether it may reach a model, why not, and the policy units it cost."""
+
+    allowed: bool
+    reason: GuardReason = "ok"
+    usage_units: int = 0

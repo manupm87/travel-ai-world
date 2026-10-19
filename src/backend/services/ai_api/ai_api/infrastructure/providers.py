@@ -1,5 +1,5 @@
 """Which adapters the process runs: the LLM, decided by `LLM_PROVIDER`, the
-retriever, switched on by `RETRIEVAL_ENABLED`, and the cities the planner
+input guard, on when `BEDROCK_GUARDRAIL_ID` is set, the retriever, switched on by `RETRIEVAL_ENABLED`, and the cities the planner
 covers, read from the packaged manifest and narrowed by `PLANNER_CITIES`,
 and where the traces and the daily token counters go, decided by
 `INTERACTIONS_TABLE` (ADR 0024, ADR 0026).
@@ -11,8 +11,9 @@ knows the concrete adapters.
 from travel_common.dynamodb import dynamodb_client
 
 from ai_api.config import AISettings
-from ai_api.domain.ports import TraceLog, UsageStore
+from ai_api.domain.ports import InputGuard, TraceLog, UsageStore
 from ai_api.infrastructure.bedrock_embedder import TitanEmbedder
+from ai_api.infrastructure.bedrock_guard import BedrockInputGuard, NullInputGuard
 from ai_api.infrastructure.bedrock_provider import BedrockProvider
 from ai_api.infrastructure.cities import City, load_cities, select_cities
 from ai_api.infrastructure.dynamo_traces import DynamoTraceLog, NullTraceLog
@@ -28,6 +29,14 @@ def build_llm_provider(settings: AISettings) -> ChatProvider:
     if settings.LLM_PROVIDER == "bedrock":
         return BedrockProvider.from_settings(settings)
     return NvidiaProvider.from_settings(settings)
+
+
+def build_input_guard(settings: AISettings) -> InputGuard:
+    """The Bedrock Guardrail on the traveller's messages (TRA-292), or one
+    that allows everything when `BEDROCK_GUARDRAIL_ID` is empty."""
+    if not settings.BEDROCK_GUARDRAIL_ID:
+        return NullInputGuard()
+    return BedrockInputGuard.from_settings(settings)
 
 
 def build_retriever(settings: AISettings) -> S3VectorsRetriever | None:

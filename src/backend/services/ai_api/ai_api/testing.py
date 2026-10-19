@@ -26,6 +26,7 @@ from ai_api.domain.agent import (
 from ai_api.domain.models import (
     City,
     Document,
+    GuardVerdict,
     Message,
     Photo,
     RetrievalFilters,
@@ -311,6 +312,21 @@ class KeywordRetriever:
     async def fetch(self, ids: Sequence[str]) -> list[Document]:
         wanted = set(ids)
         return [d for d in self.documents if d.id in wanted]
+
+
+class FakeInputGuard:
+    """Answers the verdicts it is given, in order (then allows), and records
+    every message it was asked about."""
+
+    def __init__(self, verdicts: Sequence[GuardVerdict] = ()) -> None:
+        self.verdicts = list(verdicts)
+        self.checked: list[str] = []
+
+    async def check(self, text: str) -> GuardVerdict:
+        self.checked.append(text)
+        if self.verdicts:
+            return self.verdicts.pop(0)
+        return GuardVerdict(allowed=True)
 
 
 class FakePhotoFinder:

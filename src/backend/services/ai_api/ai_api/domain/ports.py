@@ -11,6 +11,7 @@ from ai_api.domain.agent import AgentEvent, AgentMessage, ToolSpec
 from ai_api.domain.models import (
     DayWeather,
     Document,
+    GuardVerdict,
     Message,
     Photo,
     RetrievalFilters,
@@ -77,6 +78,17 @@ class LLMProvider(Protocol):
         rules as `stream`; a retry happens only before the first item.
         """
         ...
+
+
+class InputGuard(Protocol):
+    """Screens a traveller's message before any model sees it (TRA-292):
+    prompt attacks, harmful content, card numbers, asks unrelated to travel.
+
+    Fails open: an adapter that cannot reach its service logs and allows,
+    so an outage of the guard never takes the planner down.
+    """
+
+    async def check(self, text: str) -> GuardVerdict: ...
 
 
 class Embedder(Protocol):

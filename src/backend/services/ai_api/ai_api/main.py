@@ -13,6 +13,7 @@ from ai_api.infrastructure.core_api_client import CoreApiClient
 from ai_api.infrastructure.dynamo_traces import spec as interactions_spec
 from ai_api.infrastructure.open_meteo import OpenMeteoForecast
 from ai_api.infrastructure.providers import (
+    build_input_guard,
     build_llm_provider,
     build_retriever,
     build_trace_log,
@@ -26,6 +27,9 @@ from ai_api.openapi import register_stream_schemas
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """One provider (NVIDIA or Bedrock, per LLM_PROVIDER) and one client per process.
+
+    The input guard (TRA-292) is the Bedrock Guardrail when
+    BEDROCK_GUARDRAIL_ID is set, else one that allows everything.
 
     The retriever, when RETRIEVAL_ENABLED, is built the same way: once per
     execution environment, with its own clients, never per request. The cities
@@ -49,6 +53,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         SitePreviews.from_settings(settings) if settings.SITE_PREVIEWS_ENABLED else None
     )
     app.state.llm_provider = provider
+    app.state.input_guard = build_input_guard(settings)
     app.state.retriever = retriever
     app.state.weather = weather
     app.state.photos = photos
