@@ -440,6 +440,25 @@ describe("ChatColumn — undo changes (TRA-293)", () => {
     expect(screen.getByText(en.planner.changesUndone)).toBeInTheDocument();
   });
 
+  it.each([
+    ["a fine pointer", true, "textbox"],
+    ["a touch screen", false, "log"],
+  ] as const)("hands focus on after the undo with %s", (_, fine, role) => {
+    const original = window.matchMedia;
+    window.matchMedia = vi.fn().mockReturnValue({
+      matches: fine,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }) as unknown as typeof window.matchMedia;
+    try {
+      renderColumn(undoState("m2"), null, { onUndo: vi.fn() });
+      fireEvent.click(screen.getByRole("button", { name: en.planner.undoChanges }));
+      expect(document.activeElement).toBe(screen.getByRole(role));
+    } finally {
+      window.matchMedia = original;
+    }
+  });
+
   it("speaks the page's language", () => {
     localStorage.setItem("travel_ai_language", "es");
     renderColumn(undoState("m2"), null, { onUndo: vi.fn() });

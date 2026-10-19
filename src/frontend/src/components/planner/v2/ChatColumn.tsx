@@ -132,9 +132,11 @@ export function ChatColumn({
     if (isStreaming || !onUndo) return;
     onUndo();
     setUndoneTurn(state.turn);
-    // The button goes with the undo: the composer keeps the keyboard's place,
-    // except on a touch screen, where a focused composer opens the keyboard.
+    // The button goes with the undo, so focus lands somewhere sensible: the
+    // composer keeps the keyboard's place; on a touch screen, where a focused
+    // composer opens the keyboard, the log takes it instead.
     if (window.matchMedia?.("(pointer: fine)")?.matches) textareaRef.current?.focus();
+    else logRef.current?.focus({ preventScroll: true });
   };
   const undoButton = undo && (
     <button
@@ -259,7 +261,10 @@ export function ChatColumn({
         onScroll={onScroll}
         role="log"
         aria-live="polite"
-        className="flex min-h-0 flex-1 flex-col gap-4 scrollbar-none overflow-y-auto overscroll-y-contain px-1"
+        // Focusable from script only: it takes focus after "Undo changes" on a
+        // touch screen (TRA-293), never a stop in the tab order.
+        tabIndex={-1}
+        className="flex min-h-0 flex-1 flex-col gap-4 scrollbar-none overflow-y-auto overscroll-y-contain px-1 focus:outline-none"
       >
         {packingStatus && turnStart === -1 && packingStatus}
         {messages.map((message, index) => (

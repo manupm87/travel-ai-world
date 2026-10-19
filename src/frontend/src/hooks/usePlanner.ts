@@ -218,14 +218,19 @@ export function usePlanner() {
     [abort, flushText, markDemo]
   );
 
-  /** Free text from the composer, the suggestion chips or the checklist. */
+  /**
+   * Free text from the composer, the suggestion chips or the checklist.
+   *
+   * Only an ask the traveller wrote can be undone: what Kiri changes in it is
+   * hers (TRA-293). The page's own buttons ("Generate the trip", the stay's
+   * "Change") send their canned sentence with `undoable: false`.
+   */
   const sendMessage = useCallback(
-    (text: string) => {
+    (text: string, { undoable = true }: { undoable?: boolean } = {}) => {
       const trimmed = text.trim();
       if (!trimmed) return;
-      // Only a typed turn can be undone: what Kiri changes in it is hers (TRA-293).
       void runTurn(
-        { type: "turn_started", message: trimmed, undoable: true },
+        { type: "turn_started", message: trimmed, undoable },
         { message: trimmed, action: null }
       );
     },

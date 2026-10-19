@@ -178,6 +178,26 @@ describe("usePlanner — sendMessage", () => {
     expect(result.current.state.brief).toEqual(BRIEF_AFTER_FIRST_MESSAGE);
     expect(result.current.state.missing).toEqual(["dates"]);
   });
+
+  it.each([
+    ["a typed ask can be undone", {}, true],
+    ["the page's own buttons cannot", { undoable: false }, false],
+  ] as const)("%s (TRA-293)", async (_, options, undoable) => {
+    streamPlannerTurnMock.mockImplementationOnce(
+      streamOf([
+        { type: "itinerary_patch", ops: [{ op: "set_day_title", day: 1, title: "Day one" }] },
+        { type: "done" },
+      ])
+    );
+    const { result } = renderHook(() => usePlanner(), { wrapper });
+
+    act(() => {
+      result.current.sendMessage("Make day 1 quieter", options);
+    });
+
+    await waitFor(() => expect(result.current.state.status).toBe("idle"));
+    expect(result.current.state.undo !== null).toBe(undoable);
+  });
 });
 
 describe("usePlanner — answer", () => {
