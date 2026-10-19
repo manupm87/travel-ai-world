@@ -18,6 +18,13 @@ resource "aws_s3vectors_vector_bucket" "main" {
 # the index is created: changing any of them replaces the index and needs a
 # full reindex (~10 minutes and about 0.01 USD of embeddings). 1024 dimensions
 # and cosine are what Titan Text Embeddings V2 produces normalised.
+#
+# The index runs in ENHANCED mode (filter first, then search; ADR 0033), set
+# with the CLI because the provider has no `index_mode` argument: a plan does
+# not touch it, but an index this resource *recreates* comes back in the
+# bucket's default mode. After a replacement, before `just index`:
+#   aws s3vectors update-index-mode --vector-bucket-name <bucket> \
+#     --index-name <index> --index-mode ENHANCED
 resource "aws_s3vectors_index" "city_kb" {
   vector_bucket_name = aws_s3vectors_vector_bucket.main.vector_bucket_name
   index_name         = var.vector_index_name

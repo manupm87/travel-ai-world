@@ -126,10 +126,23 @@ by hand. The old and the new corpus were loaded one after the other into the sam
 ### Accepting a change: improvement and loss range
 
 A change to a corpus, the index or the retriever ships only when it improves something and loses
-nothing, with one narrow exception. Measure before and after **in the same temporary index**, per
-city, per metric (R@5, R@10, MRR) and per kind of question (named place, descriptive, airport,
-tickets, climate, food or drink, intent, tour; the mix of "The question set" above). One question is
-0.05 of a city's R@10, and one expected id of a question is 0.0125 to 0.025.
+nothing, with one narrow exception. Measure per city, per metric (R@5, R@10, MRR) and per kind of
+question (named place, descriptive, airport, tickets, climate, food or drink, intent, tour; the mix of
+"The question set" above). One question is 0.05 of a city's R@10, and one expected id of a question is
+0.0125 to 0.025.
+
+**Which instrument.** S3 Vectors searches approximately, and the noise is larger than the rule's
+thresholds (see "Index noise" below):
+
+- **A corpus change** is measured with **exact search over the embeddings**: brute-force cosine over
+  the city's vectors, before and after, with the same query vectors. Unchanged documents keep their
+  embeddings, so only the changed ones are embedded (cents). This is deterministic, so the thresholds
+  apply as written. Comparing two index builds, or rewriting the changed vectors in one index, mixes
+  the corpus effect with the index's re-partitioning, and cannot pass or fail a change.
+- **A retriever or index change** (topK, mode, filters) is measured on one index, both variants back
+  to back, never across two builds.
+- **After reindexing production**, `eval-retrieval` is a check that nothing broke, read against the
+  noise floor below, not a second gate.
 
 1. **No loss, by default.**
    - No city's R@10 or MRR goes down.
@@ -146,6 +159,26 @@ tickets, climate, food or drink, intent, tour; the mix of "The question set" abo
 
 The PR quotes the before and after table and the per-question misses that changed. A change that
 fails the rule is not "an improvement with a regression": it waits until the regression is gone.
+
+### Index noise and ENHANCED mode, 2026-10-19 (TRA-308)
+
+Measured with the 120 questions, comparing S3 Vectors with exact search over the same vectors:
+
+- The approximate search misses **5–9 %** of a question's exact top 10, and which neighbours it misses
+  is fixed when the index is built. Within one index, results are deterministic. Across builds of
+  the same vectors, a city moves by up to **±0.075 R@10 and ±0.11 MRR**, with **5–9 expected ids**
+  leaving the top 10. That is the noise floor of any comparison between two builds.
+- Exact search is the ceiling: R@10 **0.783**, MRR **0.690**.
+- `city-kb` switched from CLASSIC to **ENHANCED** (filter first; [ADR 0033](adr/0033-city-kb-enhanced-index-mode.md)).
+  Production baseline, as `ai_api` queries it:
+
+| Mode | R@10 | MRR | Berlin | Bologna | Budapest | Los Angeles | Madrid | Miami |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| CLASSIC | 0.767 | 0.687 | 0.704 | 0.838 | 0.675 | 0.908 | 0.721 | 0.758 |
+| **ENHANCED (baseline)** | **0.776** | **0.695** | 0.704 | 0.838 | **0.725** | 0.908 | 0.721 | 0.758 |
+
+  No city loses and no expected id leaves its top 10. Budapest's January climate question goes from
+  missing to #1. It was the index, not the climate text (TRA-304, cancelled).
 
 ### Misses, 2026-10-01
 

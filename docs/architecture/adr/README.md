@@ -36,6 +36,7 @@ One file per decision, numbered, never deleted (superseded ones get a new status
 | [0030](0030-local-business-metrics.md) | Local trip creation business metric | Accepted |
 | [0031](0031-production-business-events.md) | Production business statistics from existing application logs | Accepted |
 | [0032](0032-kiri-is-a-tool-using-agent.md) | Kiri is a tool-using agent in `ai_api` | Accepted (amends 0015) |
+| [0033](0033-city-kb-enhanced-index-mode.md) | `city-kb` filters before it searches (S3 Vectors ENHANCED mode) | Accepted (amends 0014) |
 
 ## Inputs
 
