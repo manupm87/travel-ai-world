@@ -31,6 +31,10 @@ the decisions are in the ADRs linked below, and nothing here narrates history.
   then sends the visitor home) and hands the UI an `ApiError` whose `code` picks translated copy,
   never the server's text. Logic that can be pure stays out of React (`hooks/plannerReducer.ts`,
   `components/planner/v2/mapStops.ts`, `components/admin/**/*.ts`) and is tested there.
+- **Planner undo** (TRA-293): `plannerReducer`'s `undo` holds a copy of the itinerary from before
+  the last typed turn (`turn_started` with `undoable: true`, set only by `sendMessage`), kept when
+  an `itinerary_patch` arrived during it; `undo_changes` restores it, and any later turn, pick,
+  removal, `reset` or `hydrated` drops it. It is not part of `PlannerDraft`.
 - **Lint and the compiler hold the boundaries** ([`eslint.config.mjs`](eslint.config.mjs)): no
   `fetch` outside `src/services/`, `@/types/generated/*` only from `src/services/` and
   `src/types/`, imports first, `console` warns. `noUncheckedIndexedAccess` is on: look values up
