@@ -108,6 +108,8 @@ become a second card of a place.
    English and Spanish, then the first other Wikipedia: Italian for Bologna's quartieri) becomes the
    district's `neighbourhood` prose, named after the district. Only a district that is exactly one
    boundary mapped to exactly one guide qualifies; Budapest's groupings keep their Wikivoyage pages.
+   A district made of several boundaries can name its item in `[district_wikidata]` instead: Los
+   Angeles's San Fernando Valley is 31 Neighborhood Councils and `Q816843` (TRA-307).
 6. **Tours**: listings from any source that are things you *join* move to `category=tour` with a
    `tour_type` (`walking`, `bike`, `boat`, `bus`, `cave`, `food`, `other`). The automatic rule looks
    for a tour heading (*Tours*, *Guided tours*, *Cave tours*, *Boating*, *Cruises*, *Sightseeing*) or a

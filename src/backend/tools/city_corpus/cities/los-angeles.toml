@@ -3,7 +3,7 @@
 # mostly in the San Fernando Valley, not a complete partition of the city's
 # Wikivoyage travel districts. Los Feliz maps to Northwest; the Valley's councils
 # make the San Fernando Valley district, which Wikivoyage covers as a region
-# article, not a district page, so it has no neighbourhood document (TRA-307).
+# article, not a district page: `[district_wikidata]` names its Wikipedia article (TRA-307).
 
 slug = "los-angeles"
 name = "Los Angeles"
@@ -144,6 +144,11 @@ name = "Cemeteries in Los Angeles"
 # 91 pages
 [[wikipedia.categories]]
 name = "Art museums and galleries in Los Angeles"
+
+# The Valley is 31 council boundaries and no Wikivoyage district page: its
+# neighbourhood document is the Wikipedia article of its Wikidata item (TRA-307).
+[district_wikidata]
+"San Fernando Valley" = "Q816843"
 
 # OSM district name (the boundaries carry no `ref` tag) → the Wikivoyage guide(s) covering it.
 [district_guides]

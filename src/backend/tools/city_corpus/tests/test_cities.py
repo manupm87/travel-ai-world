@@ -86,6 +86,7 @@ def test_minimal_file_fills_defaults(tmp_path: Path) -> None:
     assert city.wikivoyage[0].include_subpages is True
     assert city.wikipedia_categories[0].require_coordinates is True
     assert city.district_guides == {"1": ("Old Town",)}
+    assert city.district_wikidata == {}
     assert city.curated_tours is None
     assert city.curated_hotels is None
     assert city.hero is None  # the photo is optional; the gate does not ask for one
@@ -199,3 +200,24 @@ def test_wikipedia_exclusions_and_leads_are_read(tmp_path: Path) -> None:
     city = load_city(_write(tmp_path, text))
     assert city.wikipedia_exclude == ("Embassy of Testland",)
     assert city.wikipedia_leads == ("es",)
+
+
+DISTRICT_WIKIDATA = "\n[district_wikidata]\n"
+
+
+def test_a_district_names_its_wikidata_item(tmp_path: Path) -> None:
+    text = MINIMAL + DISTRICT_WIKIDATA + '"Old Town" = "Q816843"\n'
+    city = load_city(_write(tmp_path, text))
+    assert city.district_wikidata == {"Old Town": "Q816843"}
+
+
+@pytest.mark.parametrize(
+    ("line", "message"),
+    [
+        ('"New Town" = "Q1"', "New Town: not in districts"),
+        ('"Old Town" = "816843"', "is not a Wikidata id"),
+    ],
+)
+def test_district_wikidata_is_checked(tmp_path: Path, line: str, message: str) -> None:
+    with pytest.raises(CityConfigError, match=message):
+        load_city(_write(tmp_path, MINIMAL + DISTRICT_WIKIDATA + line + "\n"))

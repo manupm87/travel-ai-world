@@ -1,9 +1,9 @@
 {
   "city": "los-angeles",
-  "built_at": "2026-10-19T19:16:24Z",
-  "documents": 6777,
+  "built_at": "2026-10-19T19:26:50Z",
+  "documents": 6778,
   "listings": 3376,
-  "prose": 3401,
+  "prose": 3402,
   "sources": [
     "curated",
     "open-meteo",
@@ -46,6 +46,7 @@
       "wikivoyage": 10
     },
     "neighbourhood": {
+      "wikipedia": 1,
       "wikivoyage": 10
     },
     "practical": {
@@ -75,6 +76,7 @@
     "drink": 171,
     "eat": 2615,
     "history": 2714,
+    "neighbourhood": 1,
     "practical": 4,
     "see": 831,
     "sleep": 74,
@@ -86,6 +88,7 @@
     "drink": 171,
     "eat": 2612,
     "history": 2473,
+    "neighbourhood": 1,
     "practical": 4,
     "see": 774,
     "sleep": 72,
@@ -97,6 +100,7 @@
     "drink": 6,
     "eat": 24,
     "history": 2098,
+    "neighbourhood": 1,
     "practical": 1,
     "see": 532,
     "sleep": 72
@@ -122,7 +126,7 @@
     "Harbor": 39,
     "Hollywood": 600,
     "Northwest": 689,
-    "San Fernando Valley": 992,
+    "San Fernando Valley": 993,
     "South": 275,
     "West": 654,
     "Wilshire": 585
@@ -136,6 +140,7 @@
     "Harbor",
     "Hollywood",
     "Northwest",
+    "San Fernando Valley",
     "South",
     "West",
     "Wilshire"
@@ -591,7 +596,7 @@
       {
         "name": "Districts with a neighbourhood document",
         "threshold": "≥ 5",
-        "measured": "10",
+        "measured": "11",
         "passed": true
       },
       {

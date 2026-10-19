@@ -77,9 +77,10 @@ def uncovered_districts(
 ) -> dict[str, str]:
     """district → Wikidata id, for districts no neighbourhood document describes.
 
-    Only boundaries that map to exactly one guide, from exactly one boundary,
-    qualify: a district split between guides, or a guide made of several
-    districts (Budapest's `North Pest`), is what Wikivoyage pages are for.
+    The city's `[district_wikidata]` names it outright. Otherwise only boundaries
+    that map to exactly one guide, from exactly one boundary, qualify: a district
+    split between guides, or a guide made of several districts (Budapest's
+    `North Pest`), is what Wikivoyage pages are for.
     """
     covered = {
         d.district
@@ -93,8 +94,13 @@ def uncovered_districts(
             guide_boundaries.setdefault(guides[0], []).append(boundary)
     found: dict[str, str] = {}
     for guide in city.districts:
+        if guide in covered:
+            continue
+        if guide in city.district_wikidata:
+            found[guide] = city.district_wikidata[guide]
+            continue
         owners = guide_boundaries.get(guide, [])
-        if guide in covered or len(owners) != 1 or not owners[0].wikidata:
+        if len(owners) != 1 or not owners[0].wikidata:
             continue
         found[guide] = owners[0].wikidata
     return found

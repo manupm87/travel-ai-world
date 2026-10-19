@@ -1,22 +1,22 @@
 {
   "city": "los-angeles",
-  "built_at": "2026-10-19T19:16:24Z",
-  "documents": 6777,
+  "built_at": "2026-10-19T19:26:50Z",
+  "documents": 6778,
   "listings": 3376,
   "listings_with_coordinates": 3362,
   "by_source": {
     "curated": 3,
     "open-meteo": 12,
     "openstreetmap": 3047,
-    "wikipedia": 3313,
+    "wikipedia": 3314,
     "wikivoyage": 402
   },
   "by_lang": {
-    "en": 6777
+    "en": 6778
   },
   "by_kind": {
     "listing": 3376,
-    "prose": 3401
+    "prose": 3402
   },
   "by_category": {
     "climate": 13,
@@ -24,7 +24,7 @@
     "drink": 173,
     "eat": 2618,
     "history": 2724,
-    "neighbourhood": 10,
+    "neighbourhood": 11,
     "practical": 7,
     "see": 838,
     "sleep": 80,
@@ -40,16 +40,14 @@
     "Harbor": 42,
     "Hollywood": 612,
     "Northwest": 699,
-    "San Fernando Valley": 992,
+    "San Fernando Valley": 993,
     "South": 286,
     "West": 664,
     "Wilshire": 597
   },
-  "districts_missing": [
-    "San Fernando Valley"
-  ],
+  "districts_missing": [],
   "images": {
-    "with_image": 2860,
+    "with_image": 2861,
     "see_documents": 838,
     "see_with_image": 543,
     "see_image_coverage": 0.648
@@ -104,11 +102,19 @@
       "skipped_too_short": 30,
       "chain_outlets": 397
     },
+    "neighbourhoods": {
+      "districts_without_guide": [
+        "San Fernando Valley"
+      ],
+      "described_by_wikipedia": {
+        "San Fernando Valley": "en:San Fernando Valley"
+      }
+    },
     "wikidata": {
-      "ids": 955,
-      "entities": 955,
-      "image_files_checked": 620,
-      "image_files_free": 620,
+      "ids": 956,
+      "entities": 956,
+      "image_files_checked": 621,
+      "image_files_free": 621,
       "document_images_skipped_non_free": 0
     },
     "districts_assigned_by_boundary": 2313,
@@ -733,6 +739,7 @@
     "wikipedia:en:Saint John's Episcopal Church (Wilmington, California)": 1365392097,
     "wikipedia:en:San Fernando Mission Cemetery": 1365559805,
     "wikipedia:en:San Fernando Pioneer Memorial Cemetery": 1366412065,
+    "wikipedia:en:San Fernando Valley": 1376511337,
     "wikipedia:en:San Gabriel Mission Playhouse": 1302361121,
     "wikipedia:en:San Pedro Municipal Ferry Building": 1372522002,
     "wikipedia:en:Santa Monica Mountains National Recreation Area": 1371639053,

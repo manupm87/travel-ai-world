@@ -90,6 +90,11 @@ class CityConfig:
     # District `ref` → the Wikivoyage guide(s) covering it. A district split between
     # several guides is resolved by the nearest Wikivoyage listing of those guides.
     district_guides: dict[str, tuple[str, ...]] = field(default_factory=dict)
+    # District → the Wikidata item whose Wikipedia article describes it, for a
+    # district with no Wikivoyage page made of several boundaries (Los Angeles's
+    # San Fernando Valley is 31 Neighborhood Councils), where no single boundary's
+    # `wikidata` tag can name it.
+    district_wikidata: dict[str, str] = field(default_factory=dict)
     # Point for climate normals (city centre).
     centre: tuple[float, float] = (0.0, 0.0)
     timezone: str = "UTC"
@@ -128,6 +133,7 @@ _TOP_LEVEL_KEYS = {
     "districts",
     "district_admin_level",
     "district_guides",
+    "district_wikidata",
     "centre",
     "timezone",
     "curated_tours",
@@ -230,6 +236,18 @@ def parse_city(data: dict[str, Any], where: str = "<city>") -> CityConfig:
                 f"{where} [district_guides] {ref}: {', '.join(unknown)} not in districts"
             )
 
+    district_wikidata: dict[str, str] = {}
+    for district, qid in data.get("district_wikidata", {}).items():
+        if district not in districts:
+            raise CityConfigError(
+                f"{where} [district_wikidata] {district}: not in districts"
+            )
+        if not isinstance(qid, str) or not re.fullmatch(r"Q[1-9][0-9]*", qid):
+            raise CityConfigError(
+                f"{where} [district_wikidata] {district}: {qid!r} is not a Wikidata id"
+            )
+        district_wikidata[district] = qid
+
     relation = data.get("osm_relation")
     if relation is not None and (
         isinstance(relation, bool) or not isinstance(relation, int) or relation <= 0
@@ -290,6 +308,7 @@ def parse_city(data: dict[str, Any], where: str = "<city>") -> CityConfig:
         districts=districts,
         district_admin_level=int(data.get("district_admin_level", 9)),
         district_guides=guides,
+        district_wikidata=district_wikidata,
         centre=centre,
         timezone=data.get("timezone", "UTC"),
         curated_tours=curated_tours,

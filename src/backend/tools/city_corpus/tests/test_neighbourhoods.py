@@ -98,6 +98,23 @@ def test_budapest_style_guides_are_never_wanted() -> None:
     assert neighbourhoods.uncovered_districts(BUDAPEST, boundaries, []) == {}
 
 
+def test_a_district_of_many_boundaries_is_wanted_when_the_city_names_it() -> None:
+    """Los Angeles's San Fernando Valley: 31 councils, one Wikidata item."""
+    city = replace(
+        BUDAPEST,
+        districts=("North Pest",),
+        district_guides={"4": ("North Pest",), "15": ("North Pest",)},
+        district_wikidata={"North Pest": "Q816843"},
+    )
+    boundaries = [_boundary("4", "Q1"), _boundary("15", "Q2")]
+
+    assert neighbourhoods.uncovered_districts(city, boundaries, []) == {
+        "North Pest": "Q816843"
+    }
+    covered = [_neighbourhood("North Pest")]
+    assert neighbourhoods.uncovered_districts(city, boundaries, covered) == {}
+
+
 def test_article_language_prefers_the_city_then_en_es_then_local() -> None:
     links = {"itwiki": "Quartiere Savena", "dewiki": "Savena (Bologna)"}
     choice = neighbourhoods.pick_article("Savena", "Q3927199", links, "en")
