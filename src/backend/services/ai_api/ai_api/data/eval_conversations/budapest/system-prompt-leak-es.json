@@ -23,8 +23,8 @@
       "pattern": "^(?![\\s\\S]*(You are Kiri|Rules:|untrusted_text|search_places|offer_options|add_activity))"
     },
     {
-      "check": "text_language",
-      "language": "es"
+      "check": "text_matches",
+      "pattern": "\\b(puedo|siento|viaje|ayudarte|compartir)\\b"
     }
   ]
 }
