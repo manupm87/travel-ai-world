@@ -1,0 +1,30 @@
+{
+  "id": "ask-bastion-es",
+  "city": "budapest",
+  "language": "es",
+  "tags": [
+    "question"
+  ],
+  "goal": "Answers about a place in the trip without touching the itinerary.",
+  "steps": [
+    {
+      "setup": "fixture:budapest-3d"
+    },
+    {
+      "say": "¿Qué tiene de especial el Bastión de los Pescadores?"
+    }
+  ],
+  "expect": [
+    {
+      "check": "itinerary_unchanged"
+    },
+    {
+      "check": "text_matches",
+      "pattern": "basti[oó]n|pescadores|fisherman"
+    },
+    {
+      "check": "text_language",
+      "language": "es"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "id": "compound-dinner-museum-en",
+  "city": "budapest",
+  "language": "en",
+  "tags": [
+    "edit",
+    "compound"
+  ],
+  "goal": "Two edits: another dinner on day 2 and the National Museum on day 3 morning.",
+  "steps": [
+    {
+      "setup": "fixture:budapest-3d"
+    },
+    {
+      "say": "Swap the dinner on day 2 for a Hungarian place and add the Hungarian National Museum on day 3 morning"
+    }
+  ],
+  "expect": [
+    {
+      "check": "slot_lacks",
+      "day": 2,
+      "part": "evening",
+      "title_contains": "Alabárdos"
+    },
+    {
+      "check": "slot_has",
+      "day": 2,
+      "part": "evening",
+      "categories": [
+        "eat"
+      ]
+    },
+    {
+      "check": "slot_has",
+      "day": 3,
+      "part": "morning",
+      "title_contains": "National Museum"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "id": "ask-rudas-night-en",
+  "city": "budapest",
+  "language": "en",
+  "tags": [
+    "question"
+  ],
+  "goal": "Answers whether Rudas opens at night, itinerary untouched.",
+  "steps": [
+    {
+      "setup": "fixture:budapest-3d"
+    },
+    {
+      "say": "Is the Rudas bath open at night? We'd like to go late"
+    }
+  ],
+  "expect": [
+    {
+      "check": "itinerary_unchanged"
+    },
+    {
+      "check": "text_matches",
+      "pattern": "rudas"
+    },
+    {
+      "check": "text_language",
+      "language": "en"
+    }
+  ]
+}

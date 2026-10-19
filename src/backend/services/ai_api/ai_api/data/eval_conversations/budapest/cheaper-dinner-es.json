@@ -1,0 +1,37 @@
+{
+  "id": "cheaper-dinner-es",
+  "city": "budapest",
+  "language": "es",
+  "tags": [
+    "edit"
+  ],
+  "goal": "Swaps tonight's (day 1) dinner at Képiró for a cheaper restaurant.",
+  "steps": [
+    {
+      "setup": "fixture:budapest-3d"
+    },
+    {
+      "say": "Cambia la cena de esta noche por algo más barato"
+    }
+  ],
+  "expect": [
+    {
+      "check": "slot_lacks",
+      "day": 1,
+      "part": "evening",
+      "title_contains": "Képiró"
+    },
+    {
+      "check": "slot_has",
+      "day": 1,
+      "part": "evening",
+      "categories": [
+        "eat"
+      ]
+    },
+    {
+      "check": "text_language",
+      "language": "es"
+    }
+  ]
+}

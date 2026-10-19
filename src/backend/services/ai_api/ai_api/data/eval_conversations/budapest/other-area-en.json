@@ -1,0 +1,27 @@
+{
+  "id": "other-area-en",
+  "city": "budapest",
+  "language": "en",
+  "tags": [
+    "stay"
+  ],
+  "goal": "Offers the neighbourhoods again when the traveller wants another area.",
+  "steps": [
+    {
+      "setup": "fixture:budapest-3d"
+    },
+    {
+      "say": "I'd rather stay in another neighbourhood, somewhere quieter than the centre"
+    }
+  ],
+  "expect": [
+    {
+      "check": "options_offered",
+      "kind": "neighbourhood"
+    },
+    {
+      "check": "text_language",
+      "language": "en"
+    }
+  ]
+}

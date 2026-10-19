@@ -1,0 +1,30 @@
+{
+  "id": "remove-asinelli-en",
+  "city": "bologna",
+  "language": "en",
+  "tags": [
+    "edit"
+  ],
+  "goal": "Takes the Asinelli tower off day 1, keeps the rest of the day.",
+  "steps": [
+    {
+      "setup": "fixture:bologna-2d"
+    },
+    {
+      "say": "Remove the Asinelli tower from day 1, my knees can't take 500 steps"
+    }
+  ],
+  "expect": [
+    {
+      "check": "slot_lacks",
+      "day": 1,
+      "title_contains": "Asinelli"
+    },
+    {
+      "check": "slot_has",
+      "day": 1,
+      "part": "morning",
+      "title_contains": "Petronio"
+    }
+  ]
+}

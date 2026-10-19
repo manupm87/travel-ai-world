@@ -1,0 +1,42 @@
+{
+  "city": "bologna",
+  "start_in_days": 3,
+  "brief": {
+    "destination": "Bologna",
+    "origin": "Madrid",
+    "adults": 2,
+    "children": 0,
+    "budget_tier": 2,
+    "interests": ["history", "food"],
+    "pace": "balanced"
+  },
+  "stay": "osm:node/6033822101",
+  "days": [
+    {
+      "day": 1,
+      "title": "Piazza Maggiore and the towers",
+      "slots": {
+        "morning": [
+          "wv:en:Bologna#see:basilica-di-san-petronio",
+          "wv:en:Bologna#see:fontana-di-nettuno"
+        ],
+        "afternoon": ["wv:en:Bologna#see:torre-degli-asinelli"],
+        "evening": ["wv:en:Bologna#eat:ristorante-al-pappagallo"],
+        "night": []
+      }
+    },
+    {
+      "day": 2,
+      "title": "Museums and the old market",
+      "slots": {
+        "morning": ["wv:en:Bologna#see:pinacoteca-nazionale-di-bologna"],
+        "afternoon": [
+          "wv:en:Bologna#see:museo-civico-archeologico",
+          "wv:en:Bologna#eat:mercato-di-mezzo"
+        ],
+        "evening": ["wv:en:Bologna#eat:trattoria-da-gianni"],
+        "night": []
+      }
+    }
+  ]
+}

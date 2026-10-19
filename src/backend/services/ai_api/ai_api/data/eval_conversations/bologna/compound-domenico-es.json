@@ -1,0 +1,31 @@
+{
+  "id": "compound-domenico-es",
+  "city": "bologna",
+  "language": "es",
+  "tags": [
+    "edit",
+    "compound"
+  ],
+  "goal": "Two edits: the Pinacoteca off day 2, San Domenico on day 2 morning.",
+  "steps": [
+    {
+      "setup": "fixture:bologna-2d"
+    },
+    {
+      "say": "Quita la Pinacoteca del día 2 y añade la Basílica de San Domenico por la mañana"
+    }
+  ],
+  "expect": [
+    {
+      "check": "slot_lacks",
+      "day": 2,
+      "title_contains": "Pinacoteca"
+    },
+    {
+      "check": "slot_has",
+      "day": 2,
+      "part": "morning",
+      "title_contains": "Domenico"
+    }
+  ]
+}

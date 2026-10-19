@@ -1,0 +1,30 @@
+{
+  "id": "prestay-full-draft-en",
+  "city": "budapest",
+  "language": "en",
+  "tags": [
+    "prestay"
+  ],
+  "goal": "From the opening message to a drafted trip: neighbourhood, hotel, three days.",
+  "steps": [
+    {
+      "setup": "draft"
+    }
+  ],
+  "expect": [
+    {
+      "check": "day_count_at_least",
+      "day": 1,
+      "n": 2
+    },
+    {
+      "check": "day_count_at_least",
+      "day": 3,
+      "n": 2
+    },
+    {
+      "check": "max_seconds",
+      "n": 120
+    }
+  ]
+}

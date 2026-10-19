@@ -1,0 +1,31 @@
+{
+  "id": "add-gellert-en",
+  "city": "budapest",
+  "language": "en",
+  "tags": [
+    "edit"
+  ],
+  "goal": "Puts the Gellért Baths on day 1 afternoon, next to the Basilica.",
+  "steps": [
+    {
+      "setup": "fixture:budapest-3d"
+    },
+    {
+      "say": "Add the Gellért Baths to the afternoon of day 1"
+    }
+  ],
+  "expect": [
+    {
+      "check": "slot_has",
+      "day": 1,
+      "part": "afternoon",
+      "title_contains": "Gellert"
+    },
+    {
+      "check": "slot_has",
+      "day": 1,
+      "part": "afternoon",
+      "title_contains": "Basilica"
+    }
+  ]
+}

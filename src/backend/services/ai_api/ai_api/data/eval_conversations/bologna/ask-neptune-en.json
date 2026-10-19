@@ -1,0 +1,30 @@
+{
+  "id": "ask-neptune-en",
+  "city": "bologna",
+  "language": "en",
+  "tags": [
+    "question"
+  ],
+  "goal": "Answers about the Neptune fountain on day 1 without changing the trip.",
+  "steps": [
+    {
+      "setup": "fixture:bologna-2d"
+    },
+    {
+      "say": "What is the Neptune fountain famous for?"
+    }
+  ],
+  "expect": [
+    {
+      "check": "itinerary_unchanged"
+    },
+    {
+      "check": "text_matches",
+      "pattern": "neptun|nettuno"
+    },
+    {
+      "check": "text_language",
+      "language": "en"
+    }
+  ]
+}

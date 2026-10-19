@@ -1,0 +1,36 @@
+{
+  "id": "prestay-back-to-nb-en",
+  "city": "budapest",
+  "language": "en",
+  "tags": [
+    "prestay",
+    "stay"
+  ],
+  "goal": "Before choosing a hotel, the traveller goes back: the neighbourhoods again.",
+  "steps": [
+    {
+      "setup": "brief"
+    },
+    {
+      "select": {
+        "group": "nb",
+        "index": 0
+      },
+      "expect": [
+        {
+          "check": "options_offered",
+          "kind": "hotel"
+        }
+      ]
+    },
+    {
+      "say": "Actually, show me the other neighbourhoods again before I pick a hotel"
+    }
+  ],
+  "expect": [
+    {
+      "check": "options_offered",
+      "kind": "neighbourhood"
+    }
+  ]
+}

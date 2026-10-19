@@ -1,0 +1,51 @@
+{
+  "city": "budapest",
+  "start_in_days": 3,
+  "brief": {
+    "destination": "Budapest",
+    "origin": "Madrid",
+    "adults": 2,
+    "children": 0,
+    "budget_tier": 2,
+    "interests": ["history", "food", "thermal_baths"],
+    "pace": "balanced"
+  },
+  "stay": "wv:en:Budapest/Belváros#sleep:danubius-hotel-astoria",
+  "days": [
+    {
+      "day": 1,
+      "title": "Pest's grand landmarks",
+      "slots": {
+        "morning": ["wv:en:Budapest/Belváros#see:parliament"],
+        "afternoon": ["wv:en:Budapest/Belváros#see:st-stephen-istvan-basilica"],
+        "evening": ["wv:en:Budapest/Belváros#eat:kepiro"],
+        "night": ["wv:en:Budapest/Erzsébetváros#drink:szimpla-kert-mozi"]
+      }
+    },
+    {
+      "day": 2,
+      "title": "Castle Hill and the Buda baths",
+      "slots": {
+        "morning": [
+          "wv:en:Budapest/Budavár#see:fisherman-s-bastion",
+          "wv:en:Budapest/Budavár#see:matthias-church"
+        ],
+        "afternoon": ["wv:en:Budapest/Víziváros#do:rudas-thermal-bath"],
+        "evening": ["wv:en:Budapest/Budavár#eat:alabardos-restaurant"],
+        "night": []
+      }
+    },
+    {
+      "day": 3,
+      "title": "City Park and Andrássy Avenue",
+      "slots": {
+        "morning": ["wv:en:Budapest/Városliget#do:szechenyi-thermal-bath"],
+        "afternoon": [
+          "wv:en:Budapest/Terézváros#see:museum-of-terror-s-house-or-house-of-terror"
+        ],
+        "evening": ["wv:en:Budapest/Erzsébetváros#eat:magdalena-merlo-restaurant"],
+        "night": []
+      }
+    }
+  ]
+}

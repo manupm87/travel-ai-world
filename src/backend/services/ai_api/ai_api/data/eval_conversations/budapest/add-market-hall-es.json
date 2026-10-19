@@ -1,0 +1,31 @@
+{
+  "id": "add-market-hall-es",
+  "city": "budapest",
+  "language": "es",
+  "tags": [
+    "edit"
+  ],
+  "goal": "Puts the Great Market Hall, named by the traveller, on day 2 afternoon.",
+  "steps": [
+    {
+      "setup": "fixture:budapest-3d"
+    },
+    {
+      "say": "Añade el Great Market Hall (el mercado central) al día 2 por la tarde"
+    }
+  ],
+  "expect": [
+    {
+      "check": "slot_has",
+      "day": 2,
+      "part": "afternoon",
+      "title_contains": "Market Hall"
+    },
+    {
+      "check": "slot_has",
+      "day": 2,
+      "part": "morning",
+      "title_contains": "Bastion"
+    }
+  ]
+}

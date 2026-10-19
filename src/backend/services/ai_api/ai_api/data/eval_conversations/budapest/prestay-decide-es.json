@@ -1,0 +1,32 @@
+{
+  "id": "prestay-decide-es",
+  "city": "budapest",
+  "language": "es",
+  "tags": [
+    "prestay"
+  ],
+  "goal": "'Decide tú' at the neighbourhoods: it chooses a stay and fills the three days.",
+  "steps": [
+    {
+      "setup": "brief"
+    },
+    {
+      "say": "Decide tú"
+    }
+  ],
+  "expect": [
+    {
+      "check": "stay_changed"
+    },
+    {
+      "check": "day_count_at_least",
+      "day": 1,
+      "n": 2
+    },
+    {
+      "check": "day_count_at_least",
+      "day": 3,
+      "n": 2
+    }
+  ]
+}

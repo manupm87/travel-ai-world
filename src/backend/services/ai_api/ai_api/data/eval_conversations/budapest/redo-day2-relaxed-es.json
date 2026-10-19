@@ -1,0 +1,37 @@
+{
+  "id": "redo-day2-relaxed-es",
+  "city": "budapest",
+  "language": "es",
+  "tags": [
+    "edit",
+    "redo"
+  ],
+  "goal": "Redoes day 2 with fewer stops (it had four) and keeps the other days.",
+  "steps": [
+    {
+      "setup": "fixture:budapest-3d"
+    },
+    {
+      "say": "Rehaz el día 2 más tranquilo, con menos cosas y sin prisas"
+    }
+  ],
+  "expect": [
+    {
+      "check": "day_count_at_most",
+      "day": 2,
+      "n": 3
+    },
+    {
+      "check": "slot_has",
+      "day": 1,
+      "part": "morning",
+      "title_contains": "Parliament"
+    },
+    {
+      "check": "slot_has",
+      "day": 3,
+      "part": "morning",
+      "title_contains": "Széchenyi"
+    }
+  ]
+}

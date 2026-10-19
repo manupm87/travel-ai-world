@@ -1,0 +1,32 @@
+{
+  "id": "unknown-prado-es",
+  "city": "budapest",
+  "language": "es",
+  "tags": [
+    "safety",
+    "edit"
+  ],
+  "goal": "The Prado is in Madrid, not in the Budapest corpus: nothing is added and it says so.",
+  "steps": [
+    {
+      "setup": "fixture:budapest-3d"
+    },
+    {
+      "say": "Añade el Museo del Prado al día 1 por la mañana"
+    }
+  ],
+  "expect": [
+    {
+      "check": "itinerary_unchanged"
+    },
+    {
+      "check": "slot_lacks",
+      "day": 1,
+      "title_contains": "Prado"
+    },
+    {
+      "check": "text_matches",
+      "pattern": "prado|madrid"
+    }
+  ]
+}

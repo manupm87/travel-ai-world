@@ -1,0 +1,30 @@
+{
+  "id": "move-basilica-en",
+  "city": "budapest",
+  "language": "en",
+  "tags": [
+    "edit"
+  ],
+  "goal": "Moves St Stephen's Basilica from day 1 to day 2 afternoon.",
+  "steps": [
+    {
+      "setup": "fixture:budapest-3d"
+    },
+    {
+      "say": "Move St. Stephen's Basilica from day 1 to the afternoon of day 2"
+    }
+  ],
+  "expect": [
+    {
+      "check": "slot_lacks",
+      "day": 1,
+      "title_contains": "Basilica"
+    },
+    {
+      "check": "slot_has",
+      "day": 2,
+      "part": "afternoon",
+      "title_contains": "Basilica"
+    }
+  ]
+}

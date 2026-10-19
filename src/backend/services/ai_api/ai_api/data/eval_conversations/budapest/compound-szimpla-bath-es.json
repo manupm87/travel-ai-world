@@ -1,0 +1,31 @@
+{
+  "id": "compound-szimpla-bath-es",
+  "city": "budapest",
+  "language": "es",
+  "tags": [
+    "edit",
+    "compound"
+  ],
+  "goal": "Two edits in one message: Szimpla off day 1, a thermal bath on day 3 afternoon.",
+  "steps": [
+    {
+      "setup": "fixture:budapest-3d"
+    },
+    {
+      "say": "Quita el Szimpla del día 1 y pon un baño termal el día 3 por la tarde"
+    }
+  ],
+  "expect": [
+    {
+      "check": "slot_lacks",
+      "day": 1,
+      "title_contains": "Szimpla"
+    },
+    {
+      "check": "slot_has",
+      "day": 3,
+      "part": "afternoon",
+      "title_contains": "bath"
+    }
+  ]
+}

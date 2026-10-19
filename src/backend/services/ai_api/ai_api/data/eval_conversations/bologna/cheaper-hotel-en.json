@@ -1,0 +1,23 @@
+{
+  "id": "cheaper-hotel-en",
+  "city": "bologna",
+  "language": "en",
+  "tags": [
+    "stay"
+  ],
+  "goal": "Offers cheaper hotels than the Art Hotel Commercianti.",
+  "steps": [
+    {
+      "setup": "fixture:bologna-2d"
+    },
+    {
+      "say": "Can you find us a cheaper hotel? This one is over our budget"
+    }
+  ],
+  "expect": [
+    {
+      "check": "options_offered",
+      "kind": "hotel"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "id": "prestay-change-dates-es",
+  "city": "budapest",
+  "language": "es",
+  "tags": [
+    "prestay"
+  ],
+  "goal": "New dates from the checklist end up in the brief.",
+  "steps": [
+    {
+      "setup": "brief"
+    },
+    {
+      "patch_brief": {
+        "start_date": "{date:+10}",
+        "end_date": "{date:+12}"
+      },
+      "say": "Fechas: {date:+10} · {date:+12}"
+    }
+  ],
+  "expect": [
+    {
+      "check": "brief_field",
+      "field": "start_date",
+      "value": "{date:+10}"
+    },
+    {
+      "check": "brief_field",
+      "field": "end_date",
+      "value": "{date:+12}"
+    }
+  ]
+}

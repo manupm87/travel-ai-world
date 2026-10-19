@@ -1,0 +1,26 @@
+{
+  "id": "ask-weather-es",
+  "city": "budapest",
+  "language": "es",
+  "tags": [
+    "question"
+  ],
+  "goal": "Talks about the weather of day 2 and changes nothing.",
+  "steps": [
+    {
+      "setup": "fixture:budapest-3d"
+    },
+    {
+      "say": "¿Qué tiempo hará el día 2?"
+    }
+  ],
+  "expect": [
+    {
+      "check": "itinerary_unchanged"
+    },
+    {
+      "check": "text_matches",
+      "pattern": "°|grados|lluvi|sol|nubl|temperatura|tiempo|clima|fr[ií]o|calor"
+    }
+  ]
+}

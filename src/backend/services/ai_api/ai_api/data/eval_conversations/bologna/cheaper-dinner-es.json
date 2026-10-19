@@ -1,0 +1,33 @@
+{
+  "id": "cheaper-dinner-es",
+  "city": "bologna",
+  "language": "es",
+  "tags": [
+    "edit"
+  ],
+  "goal": "Swaps the day 1 dinner at Al Pappagallo for a cheaper trattoria.",
+  "steps": [
+    {
+      "setup": "fixture:bologna-2d"
+    },
+    {
+      "say": "La cena del día 1 es muy cara, cámbiala por una trattoria más barata"
+    }
+  ],
+  "expect": [
+    {
+      "check": "slot_lacks",
+      "day": 1,
+      "part": "evening",
+      "title_contains": "Pappagallo"
+    },
+    {
+      "check": "slot_has",
+      "day": 1,
+      "part": "evening",
+      "categories": [
+        "eat"
+      ]
+    }
+  ]
+}

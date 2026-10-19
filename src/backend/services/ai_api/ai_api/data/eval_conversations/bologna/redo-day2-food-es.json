@@ -1,0 +1,39 @@
+{
+  "id": "redo-day2-food-es",
+  "city": "bologna",
+  "language": "es",
+  "tags": [
+    "edit",
+    "redo"
+  ],
+  "goal": "Redoes day 2 around food: more eating places, day 1 untouched.",
+  "steps": [
+    {
+      "setup": "fixture:bologna-2d"
+    },
+    {
+      "say": "Rehaz el día 2 alrededor de la comida: mercados, pasta fresca y tradición boloñesa"
+    }
+  ],
+  "expect": [
+    {
+      "check": "slot_lacks",
+      "day": 2,
+      "title_contains": "Pinacoteca"
+    },
+    {
+      "check": "slot_has",
+      "day": 2,
+      "part": "evening",
+      "categories": [
+        "eat"
+      ]
+    },
+    {
+      "check": "slot_has",
+      "day": 1,
+      "part": "morning",
+      "title_contains": "Petronio"
+    }
+  ]
+}

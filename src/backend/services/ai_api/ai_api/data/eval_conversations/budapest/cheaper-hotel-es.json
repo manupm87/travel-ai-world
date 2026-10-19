@@ -1,0 +1,40 @@
+{
+  "id": "cheaper-hotel-es",
+  "city": "budapest",
+  "language": "es",
+  "tags": [
+    "stay"
+  ],
+  "goal": "Offers cheaper hotels; picking one changes the stay.",
+  "steps": [
+    {
+      "setup": "fixture:budapest-3d"
+    },
+    {
+      "say": "El hotel se nos va de presupuesto, ¿hay algo más barato?",
+      "expect": [
+        {
+          "check": "options_offered",
+          "kind": "hotel"
+        }
+      ]
+    },
+    {
+      "select": {
+        "group": "hotels",
+        "index": 0
+      }
+    }
+  ],
+  "expect": [
+    {
+      "check": "stay_changed"
+    },
+    {
+      "check": "slot_has",
+      "day": 1,
+      "part": "morning",
+      "title_contains": "Parliament"
+    }
+  ]
+}
