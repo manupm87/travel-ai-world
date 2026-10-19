@@ -572,4 +572,5 @@ async def test_converse_refuses_when_the_provider_is_not_configured():
 def test_tool_use_is_limited_to_the_verified_models():
     handler = lambda request: httpx.Response(200)  # noqa: E731
     assert _provider(handler).supports_tools is False
-    assert _provider(handler, model="z-ai/glm-5.3-flash").supports_tools
+    # GLM is unverified (the probe timed out), so it does not call tools yet.
+    assert _provider(handler, model="z-ai/glm-5.3-flash").supports_tools is False

@@ -96,5 +96,7 @@ lower the pass rate of the safety checks.
 - Known gap: day-level warnings can go stale after an edit, since there is no op to clear them
   (TRA-290).
 - Only verified models call tools: Bedrock's Haiku 4.5 EU profile and the NVIDIA models listed in
-  `TOOL_USE_MODELS`, each checked by `tests/manual/converse_probe.py` (NVIDIA). A Bedrock run by a
-  human after `just aws-login` is required before the deploy that ships the agent.
+  `TOOL_USE_MODELS`, each checked by `tests/manual/converse_probe.py` (NVIDIA). That NVIDIA set
+  ships empty: the probe of GLM-5.3-Flash, the default local model, read-timed out on every run, so
+  local dev on NVIDIA keeps the state machine until a probe passes and GLM is added. A Bedrock run
+  by a human after `just aws-login` is required before the deploy that ships the agent.

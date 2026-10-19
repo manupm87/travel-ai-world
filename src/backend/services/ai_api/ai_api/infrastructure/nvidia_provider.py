@@ -35,8 +35,9 @@ logger = logging.getLogger(__name__)
 UPSTREAM_ERROR_MESSAGE = "AI provider error"
 STRUCTURED_OUTPUT_MODEL = "z-ai/glm-5.3-flash"
 # Models verified to stream `tool_calls` (ADR 0032; tests/manual/converse_probe.py).
-# minimaxai/minimax-m3 is retired upstream (HTTP 410 since 2026-09-09).
-TOOL_USE_MODELS = {"z-ai/glm-5.3-flash"}
+# Empty until a probe run passes: z-ai/glm-5.3-flash read-timed out on every probe
+# (2026-10-19); minimaxai/minimax-m3 is retired upstream (HTTP 410 since 2026-09-09).
+TOOL_USE_MODELS: frozenset[str] = frozenset()
 _FINISH_REASONS: dict[str, StopReason] = {
     "stop": "end_turn",
     "tool_calls": "tool_use",
