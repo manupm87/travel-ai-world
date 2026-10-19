@@ -64,6 +64,8 @@ type TurnInput = Omit<
  *   as `trip_id`), so the backend's traces of one draft read together.
  * - Every turn also sends the page's language: Kiri answers in it unless the
  *   traveller clearly writes in the other one (TRA-246).
+ * - `undoChanges` puts back the itinerary the last typed turn started from,
+ *   when Kiri changed it during that turn (TRA-293).
  * - `hydrate` opens a saved trip in its place and `startNew` empties it; both
  *   move the id of the trip "Save trip" writes to along with the draft.
  */
@@ -221,7 +223,11 @@ export function usePlanner() {
     (text: string) => {
       const trimmed = text.trim();
       if (!trimmed) return;
-      void runTurn({ type: "turn_started", message: trimmed }, { message: trimmed, action: null });
+      // Only a typed turn can be undone: what Kiri changes in it is hers (TRA-293).
+      void runTurn(
+        { type: "turn_started", message: trimmed, undoable: true },
+        { message: trimmed, action: null }
+      );
     },
     [runTurn]
   );
@@ -343,6 +349,15 @@ export function usePlanner() {
     void runTurn({ type: "turn_started", message: turn.message }, turn);
   }, [runTurn]);
 
+  /**
+   * "Undo changes" (TRA-293): the itinerary as it was before the last typed
+   * turn. It is an ordinary state change, so the persist effect stores the
+   * draft and "Save trip" sees an itinerary that moved, as after any op.
+   */
+  const undoChanges = useCallback(() => {
+    dispatch({ type: "undo_changes" });
+  }, []);
+
   /** "Start over": an empty planner, a new session, and no trip to update any more. */
   const startNew = useCallback(() => {
     abort();
@@ -364,6 +379,7 @@ export function usePlanner() {
     hydrate,
     startNew,
     retry,
+    undoChanges,
     abort,
   };
 }

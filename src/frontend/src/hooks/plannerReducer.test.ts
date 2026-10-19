@@ -20,6 +20,7 @@ import {
   plannerReducer,
   toHistory,
   toItinerarySnapshot,
+  toPlannerDraft,
   type OptionGroupState,
   type PlannerDraft,
   type PlannerMessage,
@@ -1087,5 +1088,134 @@ describe("plannerReducer — packing", () => {
     const prepared = plannerReducer(failed, { type: "retry_prepared" });
     expect(prepared.messages).toEqual([]);
     expect(prepared).toMatchObject({ status: "idle", error: null, packing: null });
+  });
+});
+
+// ─── Undo changes (TRA-293) ─────────────────────────────────────────────────
+
+describe("plannerReducer — undo changes", () => {
+  const MORNING: Slot = { day: 1, part: "morning" };
+  /** A planner with a first itinerary, idle between turns. */
+  const planned = (): PlannerState =>
+    plannerReducer(initialPlannerState(), {
+      type: "event",
+      event: { type: "itinerary_patch", ops: FIRST_ITINERARY_OPS },
+    });
+  const patchEvent = (ops: ItineraryOp[]) =>
+    ({ type: "event", event: { type: "itinerary_patch", ops } }) as const;
+  const textEvent = (delta: string) => ({ type: "event", event: { type: "text", delta } }) as const;
+
+  /** A typed turn where Kiri takes the morning's market out and says so. */
+  function typedTurnWithOps(state: PlannerState, message = "Drop the market"): PlannerState {
+    let next = plannerReducer(state, { type: "turn_started", message, undoable: true });
+    next = plannerReducer(next, textEvent("Done: "));
+    const cardId = next.itinerary.days[0]!.slots.morning[0]!.id;
+    next = plannerReducer(next, patchEvent([{ op: "remove_activity", slot: MORNING, card_id: cardId }]));
+    next = plannerReducer(next, textEvent("the morning is free."));
+    return plannerReducer(next, { type: "turn_finished" });
+  }
+
+  it("starts with nothing to undo", () => {
+    expect(initialPlannerState().undo).toBeNull();
+  });
+
+  it("a typed turn that changed the itinerary can be undone, deep-equal to before", () => {
+    const before = planned();
+    const marketId = before.itinerary.days[0]!.slots.morning[0]!.id;
+    let state = plannerReducer(before, { type: "turn_started", message: "Drop it", undoable: true });
+    state = plannerReducer(state, textEvent("Done."));
+    state = plannerReducer(state, patchEvent([{ op: "remove_activity", slot: MORNING, card_id: marketId }]));
+    state = plannerReducer(state, { type: "turn_finished" });
+
+    expect(state.itinerary.days[0]?.slots.morning).toEqual([]);
+    // Anchored under the turn's own text bubble.
+    const assistant = state.messages[state.messages.length - 1]!;
+    expect(state.undo).toMatchObject({ settled: true, changed: true, messageId: assistant.id });
+
+    const undone = plannerReducer(state, { type: "undo_changes" });
+    expect(undone.itinerary).toEqual(before.itinerary);
+    expect(undone.undo).toBeNull();
+    // The snapshot is a copy: nothing of the turn's state is shared with it.
+    expect(state.undo?.itinerary).not.toBe(before.itinerary);
+  });
+
+  it("keeps nothing when the typed turn changed nothing", () => {
+    let state = plannerReducer(planned(), { type: "turn_started", message: "Hi", undoable: true });
+    expect(state.undo).toMatchObject({ settled: false, changed: false });
+    state = plannerReducer(state, textEvent("Hello!"));
+    state = plannerReducer(state, { type: "turn_finished" });
+    expect(state.undo).toBeNull();
+  });
+
+  it("a turn that is not typed (a pick, a removal) is never undoable", () => {
+    let state = plannerReducer(planned(), { type: "turn_started", message: null });
+    state = plannerReducer(state, patchEvent([{ op: "set_day_title", day: 1, title: "Pest" }]));
+    state = plannerReducer(state, { type: "turn_finished" });
+    expect(state.undo).toBeNull();
+  });
+
+  it("a second typed turn replaces the first one's undo", () => {
+    const first = typedTurnWithOps(planned());
+    const afterFirst = first.itinerary;
+    let state = plannerReducer(first, { type: "turn_started", message: "Retitle", undoable: true });
+    expect(state.undo?.itinerary).toEqual(afterFirst);
+    state = plannerReducer(state, patchEvent([{ op: "set_day_title", day: 1, title: "Pest" }]));
+    state = plannerReducer(state, { type: "turn_finished" });
+
+    const undone = plannerReducer(state, { type: "undo_changes" });
+    expect(undone.itinerary).toEqual(afterFirst);
+  });
+
+  it("anchors at the foot of the log when the turn wrote no text", () => {
+    let state = plannerReducer(planned(), { type: "turn_started", message: "Retitle", undoable: true });
+    state = plannerReducer(state, patchEvent([{ op: "set_day_title", day: 1, title: "Pest" }]));
+    state = plannerReducer(state, { type: "turn_finished" });
+    expect(state.undo).toMatchObject({ settled: true, messageId: null });
+  });
+
+  it("keeps the snapshot of a turn that failed after changing the itinerary", () => {
+    const before = planned();
+    let state = plannerReducer(before, { type: "turn_started", message: "Retitle", undoable: true });
+    state = plannerReducer(state, patchEvent([{ op: "set_day_title", day: 1, title: "Pest" }]));
+    state = plannerReducer(state, { type: "turn_failed", error: "generic" });
+    expect(state.undo?.settled).toBe(true);
+    expect(plannerReducer(state, { type: "undo_changes" }).itinerary).toEqual(before.itinerary);
+  });
+
+  it("does nothing while the turn is still on its way", () => {
+    let state = plannerReducer(planned(), { type: "turn_started", message: "Retitle", undoable: true });
+    state = plannerReducer(state, patchEvent([{ op: "set_day_title", day: 1, title: "Pest" }]));
+    expect(plannerReducer(state, { type: "undo_changes" })).toBe(state);
+  });
+
+  it("any later turn, a removal, a reset or a saved trip opened drops it", () => {
+    const undoable = typedTurnWithOps(planned());
+    expect(undoable.undo).not.toBeNull();
+
+    expect(plannerReducer(undoable, { type: "turn_started", message: null }).undo).toBeNull();
+    expect(
+      plannerReducer(undoable, {
+        type: "removed",
+        slot: { day: 1, part: "afternoon" },
+        cardId: undoable.itinerary.days[0]!.slots.afternoon[0]!.id,
+      }).undo
+    ).toBeNull();
+    expect(plannerReducer(undoable, { type: "reset" }).undo).toBeNull();
+    expect(
+      plannerReducer(undoable, { type: "hydrated", draft: toPlannerDraft(undoable) }).undo
+    ).toBeNull();
+  });
+
+  it("a pick in a carousel drops it", () => {
+    const offered = plannerReducer(hotelGroupState(), patchEvent(FIRST_ITINERARY_OPS));
+    let state = typedTurnWithOps(offered);
+    expect(state.undo).not.toBeNull();
+    state = plannerReducer(state, {
+      type: "selected",
+      groupId: GROUP_IDS.hotels,
+      cardIds: [HOTELS.mercure.id],
+      slot: null,
+    });
+    expect(state.undo).toBeNull();
   });
 });

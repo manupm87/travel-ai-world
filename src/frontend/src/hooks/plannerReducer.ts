@@ -114,6 +114,30 @@ export interface PackingState {
   daysBefore: number;
 }
 
+/**
+ * "Undo changes" (TRA-293): the itinerary as it was before the last turn the
+ * traveller started by typing, kept only when Kiri changed it during that
+ * turn. Their own edits (a pick, a removal, the "Change" sheet) are never
+ * undoable this way, and any later turn, pick, removal, reset or saved trip
+ * opened drops it. Not part of `PlannerDraft`: it does not survive a reload.
+ */
+export interface UndoState {
+  /** A deep copy of the itinerary when the turn left. */
+  itinerary: ItineraryDraft;
+  /** An itinerary op arrived during the turn: there is something to undo. */
+  changed: boolean;
+  /** The turn has ended (well or not): the button may show. */
+  settled: boolean;
+  /**
+   * The assistant text bubble the button sits under, fixed when the turn
+   * ends; `null` while it streams, or when the turn wrote no text (the button
+   * then sits at the foot of the log).
+   */
+  messageId: string | null;
+  /** Messages of this turn have ids numbered from here on. */
+  since: number;
+}
+
 export interface PlannerState extends PlannerDraft {
   status: PlannerStatus;
   /** The last turn's packing, or `null` before any turn of this page. */
@@ -125,6 +149,8 @@ export interface PlannerState extends PlannerDraft {
   pendingGroupIds: string[];
   /** Counts turns; the transcript re-pins to the bottom when it changes. */
   turn: number;
+  /** What "Undo changes" restores, or `null` when there is nothing to undo. */
+  undo: UndoState | null;
 }
 
 export const EMPTY_ITINERARY: ItineraryDraft = { stay: null, days: [], route: null, warnings: [] };
@@ -143,6 +169,7 @@ export function initialPlannerState(draft: PlannerDraft | null = null): PlannerS
     quotaResetsAt: null,
     pendingGroupIds: draft ? Object.values(draft.groups).filter((g) => g.selectedIds.length === 0).map((g) => g.group_id) : [],
     turn: 0,
+    undo: null,
   };
 }
 
@@ -154,8 +181,12 @@ export function toPlannerDraft(state: PlannerState): PlannerDraft {
 // ─── Actions ──────────────────────────────────────────────────────────────────
 
 export type PlannerAction =
-  /** A turn leaves for ai_api: the user's text (if any) and a pending assistant bubble. */
-  | { type: "turn_started"; message: string | null }
+  /**
+   * A turn leaves for ai_api: the user's text (if any) and a pending assistant
+   * bubble. `undoable` only for a message the traveller typed (`sendMessage`):
+   * what Kiri changes during that turn can be undone (TRA-293).
+   */
+  | { type: "turn_started"; message: string | null; undoable?: boolean }
   | { type: "event"; event: PlannerEvent }
   | { type: "turn_finished" }
   | { type: "turn_failed"; error: PlannerErrorKind; resetsAt?: string | null }
@@ -182,6 +213,8 @@ export type PlannerAction =
    * leaves the transcript, since the retried turn writes it again.
    */
   | { type: "retry_prepared" }
+  /** "Undo changes": the itinerary goes back to before the last typed turn (TRA-293). */
+  | { type: "undo_changes" }
   | { type: "reset" };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -349,14 +382,21 @@ export function toHistory(messages: PlannerMessage[], limit = 20): ChatMessage[]
     .map(({ role, content }) => ({ role, content }));
 }
 
+/** The number in a message id (`m7` → 7), or 0 for an id of another shape. */
+function idNumber(id: string): number {
+  const n = Number(id.slice(1));
+  return Number.isFinite(n) ? n : 0;
+}
+
 /** One past the highest id, so an id is never reused once a bubble moves (TRA-247). */
-function nextId(messages: PlannerMessage[]): string {
+function nextIdNumber(messages: PlannerMessage[]): number {
   let highest = 0;
-  for (const message of messages) {
-    const n = Number(message.id.slice(1));
-    if (Number.isFinite(n) && n > highest) highest = n;
-  }
-  return `m${Math.max(highest, messages.length) + 1}`;
+  for (const message of messages) highest = Math.max(highest, idNumber(message.id));
+  return Math.max(highest, messages.length) + 1;
+}
+
+function nextId(messages: PlannerMessage[]): string {
+  return `m${nextIdNumber(messages)}`;
 }
 
 function appendText(
@@ -376,6 +416,26 @@ function dropEmptyTail(messages: PlannerMessage[]): PlannerMessage[] {
 }
 
 // ─── Reducer ──────────────────────────────────────────────────────────────────
+
+/**
+ * The undo once its turn has ended: dropped when Kiri changed nothing, else
+ * anchored under the last assistant text bubble the turn wrote (the bubble
+ * opened at the start may have been dropped as empty, so it is looked up now).
+ */
+function settleUndo(undo: UndoState | null, messages: PlannerMessage[]): UndoState | null {
+  if (!undo || undo.settled) return undo;
+  if (!undo.changed) return null;
+  let messageId: string | null = null;
+  for (let i = messages.length - 1; i >= 0; i -= 1) {
+    const message = messages[i]!;
+    if (idNumber(message.id) < undo.since) continue;
+    if (message.kind === "text" && message.role === "assistant" && message.content) {
+      messageId = message.id;
+      break;
+    }
+  }
+  return { ...undo, settled: true, messageId };
+}
 
 /** Moves the packing forward to `step`, never back. */
 function packedTo(packing: PackingState | null, step: PackingStep): PackingState | null {
@@ -505,11 +565,22 @@ export function plannerReducer(state: PlannerState, action: PlannerAction): Plan
   switch (action.type) {
     case "turn_started": {
       let messages = dropEmptyTail(state.messages);
+      // Any turn drops the last undo; a typed one keeps the itinerary it starts from.
+      const undo: UndoState | null = action.undoable
+        ? {
+            itinerary: structuredClone(state.itinerary),
+            changed: false,
+            settled: false,
+            messageId: null,
+            since: nextIdNumber(messages),
+          }
+        : null;
       if (action.message) messages = appendText(messages, "user", action.message);
       messages = appendText(messages, "assistant", "");
       return {
         ...state,
         messages,
+        undo,
         status: "streaming",
         error: null,
         quotaResetsAt: null,
@@ -526,27 +597,44 @@ export function plannerReducer(state: PlannerState, action: PlannerAction): Plan
         },
       };
     }
-    case "event":
-      return applyEvent(state, action.event);
-    case "turn_finished":
+    case "event": {
+      const next = applyEvent(state, action.event);
+      return action.event.type === "itinerary_patch" &&
+        action.event.ops.length > 0 &&
+        next.undo &&
+        !next.undo.settled
+        ? { ...next, undo: { ...next.undo, changed: true } }
+        : next;
+    }
+    case "turn_finished": {
+      const messages = dropEmptyTail(state.messages);
       return {
         ...state,
-        messages: dropEmptyTail(state.messages),
+        messages,
+        undo: settleUndo(state.undo, messages),
         status: state.status === "error" ? "error" : "idle",
         packing:
           state.status === "error" || !state.packing
             ? state.packing
             : { ...state.packing, step: "zip" },
       };
-    case "turn_failed":
+    }
+    case "turn_failed": {
+      // Partial edits are exactly what to undo: the snapshot stays if any op came.
+      const messages = dropEmptyTail(state.messages);
       return {
         ...state,
-        messages: dropEmptyTail(state.messages),
+        messages,
+        undo: settleUndo(state.undo, messages),
         status: "error",
         error: action.error,
         quotaResetsAt: action.error === "quota" ? (action.resetsAt ?? null) : null,
         packing: state.packing ? { ...state.packing, failed: true } : state.packing,
       };
+    }
+    case "undo_changes":
+      if (!state.undo?.settled || state.status === "streaming") return state;
+      return { ...state, itinerary: state.undo.itinerary, undo: null };
     case "retry_prepared": {
       const messages = dropEmptyTail(state.messages);
       const last = messages[messages.length - 1];
@@ -602,6 +690,7 @@ export function plannerReducer(state: PlannerState, action: PlannerAction): Plan
       return {
         ...state,
         itinerary,
+        undo: null,
         groups: {
           ...state.groups,
           [group.group_id]: { ...group, selectedIds: picked.map((c) => c.id) },
@@ -634,6 +723,7 @@ export function plannerReducer(state: PlannerState, action: PlannerAction): Plan
     case "removed":
       return {
         ...state,
+        undo: null,
         itinerary: applyItineraryOp(state.itinerary, {
           op: "remove_activity",
           slot: action.slot,
