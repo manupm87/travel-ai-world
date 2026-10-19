@@ -109,8 +109,8 @@ testing.py      FakeProvider, FakeEmbedder, FakeRetriever, KeywordRetriever (tf-
   clear hidden thinking to leave room for the answer.
   **Tool use (ADR 0032)**: `converse(system, messages, tools, *, usage)` streams `TextDelta`s, one
   `ToolCallReady` per complete call and exactly one `StepEnd`; `supports_tools` is a verified model
-  set (`TOOL_USE_MODELS`: Bedrock's Haiku 4.5 EU profile; NVIDIA's is empty until
-  `tests/manual/converse_probe.py` passes for a model, GLM-5.3-Flash timed out). Bedrock sends
+  set (`TOOL_USE_MODELS`: Bedrock's Haiku 4.5 EU profile; NVIDIA's Nemotron 3 Super, the one
+  model `tests/manual/converse_probe.py` passed for, GLM-5.3-Flash timed out). Bedrock sends
   `toolConfig` on every step and never a blank text block; NVIDIA sends OpenAI `tools` and assembles
   `tool_calls` fragments by index. Input that is not a JSON object becomes `{"_raw": text}`
   (`domain.agent.parse_tool_call`), empty input `{}`. Adding tool use to a provider: map

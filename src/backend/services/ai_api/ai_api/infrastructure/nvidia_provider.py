@@ -35,9 +35,10 @@ logger = logging.getLogger(__name__)
 UPSTREAM_ERROR_MESSAGE = "AI provider error"
 STRUCTURED_OUTPUT_MODEL = "z-ai/glm-5.3-flash"
 # Models verified to stream `tool_calls` (ADR 0032; tests/manual/converse_probe.py).
-# Empty until a probe run passes: z-ai/glm-5.3-flash read-timed out on every probe
-# (2026-10-19); minimaxai/minimax-m3 is retired upstream (HTTP 410 since 2026-09-09).
-TOOL_USE_MODELS: frozenset[str] = frozenset()
+# nvidia/nemotron-3-super-120b-a12b streamed a correct `get_weather` call on
+# 2026-10-19 (TRA-290); z-ai/glm-5.3-flash read-timed out on every probe that day and
+# minimaxai/minimax-m3 is retired upstream (HTTP 410 since 2026-09-09).
+TOOL_USE_MODELS: frozenset[str] = frozenset({"nvidia/nemotron-3-super-120b-a12b"})
 _FINISH_REASONS: dict[str, StopReason] = {
     "stop": "end_turn",
     "tool_calls": "tool_use",

@@ -94,9 +94,13 @@ lower the pass rate of the safety checks.
 - Rollback: until TRA-291 removes the old path, `PLANNER_AGENT=false` restores the state machine
   without a Terraform change. After TRA-291, the rollback is redeploying the previous image.
 - Known gap: day-level warnings can go stale after an edit, since there is no op to clear them
-  (TRA-290).
+  (TRA-290). The agent re-validates every day a write tool touched and sends that day's warnings
+  again, but a warning an edit made untrue (an overloaded day that is lighter now, a closed venue
+  that was removed) stays on the page until the trip is drafted again. Accepted rather than a
+  contract change.
 - Only verified models call tools: Bedrock's Haiku 4.5 EU profile and the NVIDIA models listed in
-  `TOOL_USE_MODELS`, each checked by `tests/manual/converse_probe.py` (NVIDIA). That NVIDIA set
-  ships empty: the probe of GLM-5.3-Flash, the default local model, read-timed out on every run, so
-  local dev on NVIDIA keeps the state machine until a probe passes and GLM is added. A Bedrock run
-  by a human after `just aws-login` is required before the deploy that ships the agent.
+  `TOOL_USE_MODELS`, each checked by `tests/manual/converse_probe.py` (NVIDIA). The NVIDIA set holds
+  Nemotron 3 Super (`nvidia/nemotron-3-super-120b-a12b`, probed 2026-10-19 in TRA-290, the
+  Terraform default `nvidia_chat_model`); GLM-5.3-Flash read-timed out on every probe, so a local
+  run on GLM keeps the state machine until its probe passes. A Bedrock run by a human after
+  `just aws-login` is required before the deploy that ships the agent.

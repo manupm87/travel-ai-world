@@ -574,3 +574,6 @@ def test_tool_use_is_limited_to_the_verified_models():
     assert _provider(handler).supports_tools is False
     # GLM is unverified (the probe timed out), so it does not call tools yet.
     assert _provider(handler, model="z-ai/glm-5.3-flash").supports_tools is False
+    # Nemotron streamed a real call through the probe (TRA-290).
+    model = "nvidia/nemotron-3-super-120b-a12b"
+    assert _provider(handler, model=model).supports_tools is True
