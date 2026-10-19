@@ -123,7 +123,10 @@ traveller's message is embedded, not the history.
 - **Search**: `s3vectors_retriever.S3VectorsRetriever`, dense only, cosine. `RetrievalFilters`
   (city, districts, categories, kinds, maximum price tier, bounding box) become a metadata filter;
   S3 Vectors rejects two keys side by side, so several conditions travel inside `$and`, and it has
-  no radius search, so an area is four comparisons on `lat`/`lon`.
+  no radius search, so an area is four comparisons on `lat`/`lon`. It asks the store for 30
+  candidates (or `limit`, if more, up to 100) and keeps the first `limit`: a city's deleted vectors
+  take candidate slots right after a reindex and would leave the page short (TRA-310). The index
+  runs in ENHANCED mode, filtering before it searches (ADR 0033).
 - **Failure**: a store or embeddings error is logged; where the planner can go on without the
   documents (its chat turn, the named places, photos, climate normals) it does, otherwise the turn
   ends with an in-band `error` event. The flag off (the default) makes the planner and the card

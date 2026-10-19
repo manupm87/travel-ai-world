@@ -67,7 +67,9 @@ eat and drink; bounding box) was dry-run with `queryMode=ENHANCED` and answered 
 **Not done, and when to revisit:**
 
 - Over-fetching `topK = 30` and keeping the first 10 adds Miami +0.017 R@10 (+0.002 overall). It needs a
-  code change and a deploy, which was not worth it a week before the TFM delivery.
+  code change and a deploy, which was not worth it a week before the TFM delivery. **Done in TRA-310**
+  after all: right after the Los Angeles reindex, the rewritten city's deleted vectors gave short lists
+  (Downtown sights 7 of 10, 6 of LA's 20 questions with 8 or 9 passages), and 30 candidates refill them.
 - Exact in-process search (one float32 matrix per city, about 137 MB for the six cities, ~1 ms per query)
   is the only way to make retrieval deterministic and reach the exact ceiling (R@10 0.783). It would turn
   S3 Vectors into the document store rather than the search, and would amend 0014. Revisit when the

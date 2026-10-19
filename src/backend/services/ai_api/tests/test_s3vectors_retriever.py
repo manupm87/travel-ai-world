@@ -71,10 +71,32 @@ async def test_embeds_the_question_and_queries_the_index():
         "vectorBucketName": "bucket",
         "indexName": "index",
         "queryVector": {"float32": await FakeEmbedder().embed_query("baths in Buda")},
-        "topK": 3,
+        "topK": 30,
         "returnMetadata": True,
         "returnDistance": True,
     }
+
+
+def _match(n: int) -> dict[str, Any]:
+    return {
+        **GELLERT,
+        "key": f"k{n}",
+        "distance": n / 100,
+        "metadata": {**GELLERT["metadata"], "doc_id": f"doc-{n}"},
+    }
+
+
+@pytest.mark.parametrize(("limit", "top_k"), [(3, 30), (30, 30), (60, 60), (500, 100)])
+async def test_asks_for_extra_candidates_and_keeps_the_first_limit(
+    limit: int, top_k: int
+):
+    """A rewritten city's deleted vectors take candidate slots (TRA-310)."""
+    client = FakeClient([_match(n) for n in range(top_k)])
+
+    found = await _retriever(client).search("museums", limit=limit)
+
+    assert client.queries[0]["topK"] == top_k
+    assert [d.id for d in found] == [f"doc-{n}" for n in range(min(limit, top_k))]
 
 
 async def test_a_match_becomes_a_document_with_its_metadata_and_distance():

@@ -34,6 +34,14 @@ UPSTREAM_ERROR_MESSAGE = "Vector store error"
 # Keys per GetVectors call, the API's maximum.
 FETCH_BATCH_SIZE = 100
 
+# Candidates asked of the store per search, of which the first `limit` are kept.
+# Right after a city is rewritten, its deleted vectors still take candidate slots
+# and a filtered search returns short (TRA-310: Downtown Los Angeles gave 7 of 10);
+# 30 refills the page. QueryVectors returns at most 100; 30 stays under the free
+# returned-data allowance and costs no latency.
+CANDIDATES = 30
+MAX_TOP_K = 100
+
 
 class S3VectorsRetriever:
     def __init__(
@@ -76,7 +84,7 @@ class S3VectorsRetriever:
             "vectorBucketName": self._bucket,
             "indexName": self._index,
             "queryVector": {"float32": vector},
-            "topK": limit,
+            "topK": min(max(limit, CANDIDATES), MAX_TOP_K),
             "returnMetadata": True,
             "returnDistance": True,
         }
@@ -90,7 +98,9 @@ class S3VectorsRetriever:
             logger.error("Vector search failed: %s", exc)
             raise ProviderUnavailable(UPSTREAM_ERROR_MESSAGE) from exc
 
-        documents = [_document(vector) for vector in response.get("vectors", [])]
+        documents = [_document(vector) for vector in response.get("vectors", [])][
+            :limit
+        ]
         # The ids and how close they matched, never the question itself: enough
         # to tell a bad answer from a bad retrieval in CloudWatch.
         logger.info(
