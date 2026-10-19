@@ -210,7 +210,14 @@ just eval-retrieval <slug>          # recall@5/10 and MRR of the new city, right
 The evaluation runs the city's 20 questions against the index just filled. Every expected id must
 be in the index (the report lists the missing ones first), and R@10 should reach the 0.75 of the
 other cities ([rag-evaluation.md](../architecture/rag-evaluation.md)); below that, open an issue with
-the misses it prints. Add the city's row to the baseline there. Once the deploy of step 9 is out,
+the misses it prints. Add the city's row to the baseline there.
+
+**Rebuilding a city that is already live** is a change to production, and it has to pass the
+acceptance rule of [rag-evaluation.md](../architecture/rag-evaluation.md#accepting-a-change-improvement-and-loss-range)
+before it is indexed into `city-kb`. Create a temporary index with `city-kb`'s metadata
+configuration (`infra/aws/vectors.tf`), load the old file and run `eval-retrieval` with
+`VECTOR_INDEX=<temporary>`, then load the new file into the same index and run it again. Compare
+the two runs, quote both in the PR, and delete the temporary index. Once the deploy of step 9 is out,
 **Run evaluation** in `/admin/quality/` shows the same figures for every city.
 
 One S3 Vectors index holds every city. A run reads one city's file (a mixed file is refused),

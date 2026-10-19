@@ -102,6 +102,51 @@ with the same 20 questions and expected ids as the production index that day:
 - One regression: July's climate in Spanish drops from 1.00 to 0.50. The DDR Museum question
   still misses.
 
+Under the acceptance rule below, this change would not ship: MRR drops by more than the tolerance
+and the July question leaves the top 10.
+
+### Bologna and Miami after TRA-303, 2026-10-19
+
+Both corpora rebuilt through the hotel photo stage (ADR 0022) with the doubtful pictures curated
+by hand. The old and the new corpus were loaded one after the other into the same temporary index
+(`city-kb-tmp-photos`, deleted afterwards):
+
+| City | R@5 | R@10 | MRR |
+|---|---|---|---|
+| Bologna, old → new | 0.713 → 0.725 | 0.838 → 0.838 | 0.881 → 0.881 |
+| Miami, old → new | 0.683 → 0.683 | 0.775 → 0.775 | 0.738 → 0.738 |
+
+- No question loses an expected id. The one change is one Bologna id moving up from #6 to #5 (San
+  Luca).
+- **The shared index costs recall.** The same old corpus scored lower in `city-kb` that day
+  (Bologna R@10 0.762, Miami 0.725) than in the two-city temporary index. Filtered approximate
+  search over six cities drops candidates, so compare a change only against a measurement taken in
+  the same index.
+
+### Accepting a change: improvement and loss range
+
+A change to a corpus, the index or the retriever ships only when it improves something and loses
+nothing, with one narrow exception. Measure before and after **in the same temporary index**, per
+city, per metric (R@5, R@10, MRR) and per kind of question (named place, descriptive, airport,
+tickets, climate, food or drink, intent, tour; the mix of "The question set" above). One question is
+0.05 of a city's R@10, and one expected id of a question is 0.0125 to 0.025.
+
+1. **No loss, by default.**
+   - No city's R@10 or MRR goes down.
+   - No expected id that was in a question's top 10 leaves it.
+   - Nothing a traveller uses shrinks in the readiness report: pictured hotels, located places,
+     districts, the pictured share of sights. Documents nobody could be offered may go, for
+     example a hotel without a photo.
+2. **The exception, only when all three hold:**
+   - the loss is at most one expected id per city (≤ 0.025 of R@10 and ≤ 0.03 of MRR);
+   - no kind of question in any city drops by more than 0.05;
+   - a kind of question that scored under 0.50 rises by at least 0.15.
+3. **Worth shipping:** the change gains at least 0.025 of R@10 or MRR in some city, or makes usable
+   what was not (a hotel the planner can now offer, a district it can now fill).
+
+The PR quotes the before and after table and the per-question misses that changed. A change that
+fails the rule is not "an improvement with a regression": it waits until the regression is gone.
+
 ### Misses, 2026-10-01
 
 Questions with an expected id outside the top 10, with the rank of each expected id (— = not in
