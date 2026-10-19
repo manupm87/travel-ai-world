@@ -5,6 +5,17 @@ from typing import Any
 
 import pytest
 from ai_api.config import AISettings
+from ai_api.domain.agent import (
+    AgentEvent,
+    AgentMessage,
+    StepEnd,
+    StopReason,
+    TextDelta,
+    ToolCall,
+    ToolCallReady,
+    ToolResult,
+    ToolSpec,
+)
 from ai_api.domain.models import GenerationParams, Message, Usage
 from ai_api.infrastructure.bedrock_provider import (
     UPSTREAM_ERROR_MESSAGE,
@@ -307,3 +318,308 @@ async def test_complete_refuses_when_the_provider_is_not_configured():
 
     with pytest.raises(ProviderUnavailable):
         await provider.complete([Message("user", "x")])
+
+
+# ─── Tool use (converse, ADR 0032) ──────────────────────────────────────────
+
+WEATHER = ToolSpec(
+    name="get_weather",
+    description="The forecast of a city.",
+    input_schema={
+        "type": "object",
+        "properties": {"city": {"type": "string"}},
+        "required": ["city"],
+        "additionalProperties": False,
+    },
+)
+
+# A step that says something, then calls a tool whose input arrives in pieces.
+TOOL_EVENTS: list[dict[str, Any]] = [
+    {"messageStart": {"role": "assistant"}},
+    {"contentBlockDelta": {"contentBlockIndex": 0, "delta": {"text": "Let me "}}},
+    {"contentBlockDelta": {"contentBlockIndex": 0, "delta": {"text": "check."}}},
+    {"contentBlockStop": {"contentBlockIndex": 0}},
+    {
+        "contentBlockStart": {
+            "contentBlockIndex": 1,
+            "start": {"toolUse": {"toolUseId": "tu-1", "name": "get_weather"}},
+        }
+    },
+    {
+        "contentBlockDelta": {
+            "contentBlockIndex": 1,
+            "delta": {"toolUse": {"input": '{"ci'}},
+        }
+    },
+    {
+        "contentBlockDelta": {
+            "contentBlockIndex": 1,
+            "delta": {"toolUse": {"input": 'ty": "Budapest"}'}},
+        }
+    },
+    {"contentBlockStop": {"contentBlockIndex": 1}},
+    {"messageStop": {"stopReason": "tool_use"}},
+    {"metadata": {"usage": {"inputTokens": 40, "outputTokens": 9}}},
+]
+
+
+def _tool_block(index: int, tool_id: str, *inputs: str) -> list[dict[str, Any]]:
+    events: list[dict[str, Any]] = [
+        {
+            "contentBlockStart": {
+                "contentBlockIndex": index,
+                "start": {"toolUse": {"toolUseId": tool_id, "name": "get_weather"}},
+            }
+        }
+    ]
+    events += [
+        {
+            "contentBlockDelta": {
+                "contentBlockIndex": index,
+                "delta": {"toolUse": {"input": piece}},
+            }
+        }
+        for piece in inputs
+    ]
+    return events
+
+
+async def _converse(
+    provider: BedrockProvider,
+    messages: list[AgentMessage] | None = None,
+    usage: Usage | None = None,
+) -> list[AgentEvent]:
+    turns = messages or [AgentMessage("user", "weather?")]
+    return [
+        item
+        async for item in provider.converse(["be brief"], turns, [WEATHER], usage=usage)
+    ]
+
+
+async def test_converse_streams_text_then_the_complete_tool_call():
+    usage = Usage()
+    items = await _converse(_provider(FakeClient(TOOL_EVENTS)), usage=usage)
+
+    assert items == [
+        TextDelta("Let me "),
+        TextDelta("check."),
+        ToolCallReady(ToolCall("tu-1", "get_weather", {"city": "Budapest"})),
+        StepEnd("tool_use"),
+    ]
+    assert usage == Usage(model="eu.anthropic.test", input_tokens=40, output_tokens=9)
+
+
+async def test_converse_request_carries_system_inference_and_tool_config():
+    client = FakeClient(TOOL_EVENTS)
+    provider = _provider(
+        client, params=GenerationParams(max_tokens=64, temperature=0.1)
+    )
+
+    await _converse(provider)
+
+    request = client.calls[0]
+    assert request["modelId"] == "eu.anthropic.test"
+    assert request["system"] == [{"text": "be brief"}]
+    assert request["inferenceConfig"] == {"maxTokens": 64, "temperature": 0.1}
+    assert request["toolConfig"] == {
+        "tools": [
+            {
+                "toolSpec": {
+                    "name": "get_weather",
+                    "description": "The forecast of a city.",
+                    # A dict, not a JSON string.
+                    "inputSchema": {"json": WEATHER.input_schema},
+                }
+            }
+        ],
+        "toolChoice": {"auto": {}},
+    }
+    assert request["messages"] == [{"role": "user", "content": [{"text": "weather?"}]}]
+
+
+async def test_converse_maps_calls_and_results_to_content_blocks():
+    client = FakeClient(STREAM_EVENTS)
+    call = ToolCall("tu-1", "get_weather", {"city": "Budapest"})
+    other = ToolCall("tu-2", "get_weather", {"city": "Bologna"})
+
+    await _converse(
+        _provider(client),
+        [
+            AgentMessage("assistant", "dropped: a leading assistant turn"),
+            AgentMessage("user", "weather in both?"),
+            AgentMessage("assistant", "Checking.", tool_calls=(call,)),
+            AgentMessage("assistant", "  ", tool_calls=(other,)),
+            AgentMessage(
+                "user",
+                tool_results=(
+                    ToolResult("tu-1", '{"temp": 20}'),
+                    ToolResult("tu-2", '{"error": "down"}', is_error=True),
+                ),
+            ),
+        ],
+    )
+
+    assert client.calls[0]["messages"] == [
+        {"role": "user", "content": [{"text": "weather in both?"}]},
+        {
+            "role": "assistant",
+            # Text first; the blank text before the second call is never sent.
+            "content": [
+                {"text": "Checking."},
+                {
+                    "toolUse": {
+                        "toolUseId": "tu-1",
+                        "name": "get_weather",
+                        "input": {"city": "Budapest"},
+                    }
+                },
+                {
+                    "toolUse": {
+                        "toolUseId": "tu-2",
+                        "name": "get_weather",
+                        "input": {"city": "Bologna"},
+                    }
+                },
+            ],
+        },
+        {
+            "role": "user",
+            "content": [
+                {
+                    "toolResult": {
+                        "toolUseId": "tu-1",
+                        "content": [{"text": '{"temp": 20}'}],
+                    }
+                },
+                {
+                    "toolResult": {
+                        "toolUseId": "tu-2",
+                        "content": [{"text": '{"error": "down"}'}],
+                        "status": "error",
+                    }
+                },
+            ],
+        },
+    ]
+
+
+async def test_converse_without_tools_sends_no_tool_config():
+    client = FakeClient(STREAM_EVENTS)
+
+    items = [
+        item
+        async for item in _provider(client).converse(
+            [], [AgentMessage("user", "hi")], []
+        )
+    ]
+
+    assert items == [TextDelta("Ho"), TextDelta("la"), StepEnd("end_turn")]
+    assert "toolConfig" not in client.calls[0]
+    assert "system" not in client.calls[0]
+
+
+async def test_converse_empty_tool_input_is_an_empty_object():
+    events = [
+        *_tool_block(0, "tu-1"),
+        {"contentBlockStop": {"contentBlockIndex": 0}},
+        {"messageStop": {"stopReason": "tool_use"}},
+    ]
+
+    items = await _converse(_provider(FakeClient(events)))
+
+    assert items == [
+        ToolCallReady(ToolCall("tu-1", "get_weather", {})),
+        StepEnd("tool_use"),
+    ]
+
+
+async def test_converse_input_cut_by_max_tokens_is_kept_raw():
+    # The block never stops: the answer ran out of tokens mid-input.
+    events = [
+        *_tool_block(0, "tu-1", '{"city": "Bud'),
+        {"messageStop": {"stopReason": "max_tokens"}},
+    ]
+
+    items = await _converse(_provider(FakeClient(events)))
+
+    assert items == [
+        ToolCallReady(ToolCall("tu-1", "get_weather", {"_raw": '{"city": "Bud'})),
+        StepEnd("max_tokens"),
+    ]
+
+
+async def test_converse_input_that_is_not_an_object_is_kept_raw():
+    events = [
+        *_tool_block(0, "tu-1", "[1, 2]"),
+        {"contentBlockStop": {"contentBlockIndex": 0}},
+        {"messageStop": {"stopReason": "tool_use"}},
+    ]
+
+    items = await _converse(_provider(FakeClient(events)))
+
+    assert items[0] == ToolCallReady(
+        ToolCall("tu-1", "get_weather", {"_raw": "[1, 2]"})
+    )
+
+
+@pytest.mark.parametrize(
+    ("reason", "expected"),
+    [
+        ("end_turn", "end_turn"),
+        ("tool_use", "tool_use"),
+        ("max_tokens", "max_tokens"),
+        ("stop_sequence", "other"),
+        ("guardrail_intervened", "other"),
+        ("content_filtered", "other"),
+    ],
+)
+async def test_converse_maps_stop_reasons(reason: str, expected: StopReason):
+    events = [
+        {"contentBlockDelta": {"contentBlockIndex": 0, "delta": {"text": "ok"}}},
+        {"messageStop": {"stopReason": reason}},
+    ]
+
+    items = await _converse(_provider(FakeClient(events)))
+
+    assert items == [TextDelta("ok"), StepEnd(expected)]
+
+
+async def test_converse_retries_before_the_first_item():
+    client = FakeClient(_client_error("ThrottlingException"), TOOL_EVENTS)
+
+    items = await _converse(_provider(client, retries=1))
+
+    assert items[-1] == StepEnd("tool_use")
+    assert len(client.calls) == 2
+
+
+async def test_converse_does_not_retry_after_the_first_item():
+    def events_then_failure() -> Iterator[dict[str, Any]]:
+        yield TOOL_EVENTS[1]
+        raise _client_error("ThrottlingException")
+
+    client = FakeClient(events_then_failure(), TOOL_EVENTS)
+    seen: list[AgentEvent] = []
+
+    with pytest.raises(ProviderUnavailable):
+        async for item in _provider(client, retries=1).converse(
+            [], [AgentMessage("user", "hi")], [WEATHER]
+        ):
+            seen.append(item)
+
+    assert seen == [TextDelta("Let me ")]
+    assert len(client.calls) == 1
+
+
+async def test_converse_refuses_when_the_provider_is_not_configured():
+    provider = BedrockProvider(client=FakeClient(), model="")
+
+    with pytest.raises(ProviderUnavailable):
+        await _converse(provider)
+
+
+def test_tool_use_is_limited_to_the_verified_profile():
+    assert _provider(FakeClient()).supports_tools is False
+    assert BedrockProvider(
+        client=FakeClient(), model="eu.anthropic.claude-haiku-4-5-20251001-v1:0"
+    ).supports_tools
