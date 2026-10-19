@@ -1,8 +1,9 @@
 # Los Angeles, California (Wikidata Q65), discovered and reviewed on 2026-09-26.
 # Wikidata has no P150 districts. OSM has 32 level-10 Neighborhood Council areas,
 # mostly in the San Fernando Valley, not a complete partition of the city's
-# Wikivoyage travel districts. Only Los Feliz maps clearly to Northwest; the
-# other boundaries remain unassigned rather than receiving misleading guides.
+# Wikivoyage travel districts. Los Feliz maps to Northwest; the Valley's councils
+# make the San Fernando Valley district, which Wikivoyage covers as a region
+# article, not a district page, so it has no neighbourhood document (TRA-307).
 
 slug = "los-angeles"
 name = "Los Angeles"
@@ -20,10 +21,14 @@ district_admin_level = 10
 centre = [34.0522, -118.2437]
 timezone = "America/Los_Angeles"
 districts = [
+    "Bunker Hill",
+    "Chinatown",
     "Downtown",
     "Eastside",
     "Hollywood",
     "Northwest",
+    "Harbor",
+    "San Fernando Valley",
     "South",
     "West",
     "Wilshire",
@@ -41,6 +46,19 @@ east = -118.15
 file = "Los Angeles with Mount Baldy.jpg"
 credit = "Alek Leckszas (CC BY-SA 4.0) · Wikimedia Commons"
 
+# Wikivoyage split Downtown on 2026-10-11: Bunker Hill (Angels Flight, The Broad,
+# Disney Hall, MOCA) and Chinatown (Union Station, Olvera Street, Philippe's) are
+# district pages of their own now (TRA-307).
+[[wikivoyage]]
+lang = "en"
+root = "Los Angeles/Bunker Hill"
+include_subpages = false
+
+[[wikivoyage]]
+lang = "en"
+root = "Los Angeles/Chinatown"
+include_subpages = false
+
 [[wikivoyage]]
 lang = "en"
 root = "Los Angeles/Downtown"
@@ -49,6 +67,11 @@ include_subpages = false
 [[wikivoyage]]
 lang = "en"
 root = "Los Angeles/Eastside"
+include_subpages = false
+
+[[wikivoyage]]
+lang = "en"
+root = "Los Angeles/Harbor"
 include_subpages = false
 
 [[wikivoyage]]
@@ -124,35 +147,35 @@ name = "Art museums and galleries in Los Angeles"
 
 # OSM district name (the boundaries carry no `ref` tag) → the Wikivoyage guide(s) covering it.
 [district_guides]
-"Arleta Neighborhood Council District" = []
-"Canoga Park Neighborhood Council District" = []
-"Chatsworth Neighborhood Council District" = []
-"Encino Neighborhood Council District" = []
-"Granada Hills North Neighborhood Council District" = []
-"Granada Hills South Neighborhood Council District" = []
-"Greater Toluca Lake Neighborhood Council District" = []
-"Greater Valley Glen Neighborhood Council District" = []
-"Lake Balboa Neighborhood Council District" = []
+"Arleta Neighborhood Council District" = ["San Fernando Valley"]
+"Canoga Park Neighborhood Council District" = ["San Fernando Valley"]
+"Chatsworth Neighborhood Council District" = ["San Fernando Valley"]
+"Encino Neighborhood Council District" = ["San Fernando Valley"]
+"Granada Hills North Neighborhood Council District" = ["San Fernando Valley"]
+"Granada Hills South Neighborhood Council District" = ["San Fernando Valley"]
+"Greater Toluca Lake Neighborhood Council District" = ["San Fernando Valley"]
+"Greater Valley Glen Neighborhood Council District" = ["San Fernando Valley"]
+"Lake Balboa Neighborhood Council District" = ["San Fernando Valley"]
 "Los Feliz Neighborhood Council District" = ["Northwest"]
-"Mission Hills Neighborhood Council District" = []
-"North Hills East Neighborhood Council District" = []
-"North Hills West Neighborhood Council District" = []
-"North Hollywood Neighborhood Council District" = []
-"North Hollywood Northeast Neighborhood Council District" = []
-"North Hollywood West Neighborhood Council District" = []
-"Northridge East Neighborhood Council District" = []
-"Northridge South Neighborhood Council District" = []
-"Northridge West Neighborhood Council District" = []
-"Pacoima Neighborhood Council" = []
-"Panorama City Neighborhood Council District" = []
-"Porter Ranch Neighborhood Council District" = []
-"Reseda" = []
-"Sherman Oaks Neighborhood Council District" = []
-"Studio City Neighborhood Council District" = []
-"Sylmar Neighborhood Council District" = []
-"Tarzana Neighborhood Council District" = []
-"Valley Village Neighborhood Council District" = []
-"Van Nuys Neighborhood Council District" = []
-"West Hills Neighborhood Council District" = []
-"Winnetka Neighborhood Council District" = []
-"Woodland Hills-Warner Center Neighborhood Council District" = []
+"Mission Hills Neighborhood Council District" = ["San Fernando Valley"]
+"North Hills East Neighborhood Council District" = ["San Fernando Valley"]
+"North Hills West Neighborhood Council District" = ["San Fernando Valley"]
+"North Hollywood Neighborhood Council District" = ["San Fernando Valley"]
+"North Hollywood Northeast Neighborhood Council District" = ["San Fernando Valley"]
+"North Hollywood West Neighborhood Council District" = ["San Fernando Valley"]
+"Northridge East Neighborhood Council District" = ["San Fernando Valley"]
+"Northridge South Neighborhood Council District" = ["San Fernando Valley"]
+"Northridge West Neighborhood Council District" = ["San Fernando Valley"]
+"Pacoima Neighborhood Council" = ["San Fernando Valley"]
+"Panorama City Neighborhood Council District" = ["San Fernando Valley"]
+"Porter Ranch Neighborhood Council District" = ["San Fernando Valley"]
+"Reseda" = ["San Fernando Valley"]
+"Sherman Oaks Neighborhood Council District" = ["San Fernando Valley"]
+"Studio City Neighborhood Council District" = ["San Fernando Valley"]
+"Sylmar Neighborhood Council District" = ["San Fernando Valley"]
+"Tarzana Neighborhood Council District" = ["San Fernando Valley"]
+"Valley Village Neighborhood Council District" = ["San Fernando Valley"]
+"Van Nuys Neighborhood Council District" = ["San Fernando Valley"]
+"West Hills Neighborhood Council District" = ["San Fernando Valley"]
+"Winnetka Neighborhood Council District" = ["San Fernando Valley"]
+"Woodland Hills-Warner Center Neighborhood Council District" = ["San Fernando Valley"]

@@ -1,9 +1,9 @@
 {
   "city": "los-angeles",
-  "built_at": "2026-09-26T22:06:06Z",
-  "documents": 7050,
-  "listings": 3711,
-  "prose": 3339,
+  "built_at": "2026-10-19T19:16:24Z",
+  "documents": 6777,
+  "listings": 3376,
+  "prose": 3401,
   "sources": [
     "curated",
     "open-meteo",
@@ -30,35 +30,35 @@
       "wikivoyage": 1
     },
     "do": {
-      "openstreetmap": 182,
-      "wikivoyage": 74
+      "openstreetmap": 204,
+      "wikivoyage": 75
     },
     "drink": {
-      "openstreetmap": 129,
+      "openstreetmap": 132,
       "wikivoyage": 41
     },
     "eat": {
-      "openstreetmap": 2889,
+      "openstreetmap": 2524,
       "wikivoyage": 94
     },
     "history": {
-      "wikipedia": 2662,
-      "wikivoyage": 9
+      "wikipedia": 2714,
+      "wikivoyage": 10
     },
     "neighbourhood": {
-      "wikivoyage": 7
+      "wikivoyage": 10
     },
     "practical": {
       "wikivoyage": 7
     },
     "see": {
-      "openstreetmap": 130,
-      "wikipedia": 594,
-      "wikivoyage": 107
+      "openstreetmap": 131,
+      "wikipedia": 599,
+      "wikivoyage": 108
     },
     "sleep": {
-      "openstreetmap": 54,
-      "wikivoyage": 24
+      "openstreetmap": 55,
+      "wikivoyage": 25
     },
     "tour": {
       "curated": 3,
@@ -66,63 +66,74 @@
       "wikivoyage": 1
     },
     "transport": {
-      "wikivoyage": 29
+      "wikivoyage": 30
     }
   },
   "named_by_category": {
     "climate": 12,
-    "do": 251,
-    "drink": 168,
-    "eat": 2980,
-    "history": 2662,
+    "do": 274,
+    "drink": 171,
+    "eat": 2615,
+    "history": 2714,
     "practical": 4,
-    "see": 824,
-    "sleep": 72,
+    "see": 831,
+    "sleep": 74,
     "tour": 5,
     "transport": 1
   },
   "located_by_category": {
-    "do": 244,
-    "drink": 168,
-    "eat": 2977,
-    "history": 2421,
+    "do": 267,
+    "drink": 171,
+    "eat": 2612,
+    "history": 2473,
     "practical": 4,
-    "see": 767,
-    "sleep": 70,
+    "see": 774,
+    "sleep": 72,
     "tour": 5,
     "transport": 1
   },
   "pictured_by_category": {
-    "do": 61,
+    "do": 64,
     "drink": 6,
     "eat": 24,
-    "history": 2058,
+    "history": 2098,
     "practical": 1,
-    "see": 529,
-    "sleep": 70
+    "see": 532,
+    "sleep": 72
   },
   "districts": [
+    "Bunker Hill",
+    "Chinatown",
     "Downtown",
     "Eastside",
+    "Harbor",
     "Hollywood",
     "Northwest",
+    "San Fernando Valley",
     "South",
     "West",
     "Wilshire"
   ],
   "places_by_district": {
-    "Downtown": 1037,
-    "Eastside": 221,
-    "Hollywood": 616,
-    "Northwest": 703,
-    "South": 278,
-    "West": 692,
-    "Wilshire": 611
+    "Bunker Hill": 171,
+    "Chinatown": 249,
+    "Downtown": 599,
+    "Eastside": 213,
+    "Harbor": 39,
+    "Hollywood": 600,
+    "Northwest": 689,
+    "San Fernando Valley": 992,
+    "South": 275,
+    "West": 654,
+    "Wilshire": 585
   },
   "small_districts": [],
   "described_districts": [
+    "Bunker Hill",
+    "Chinatown",
     "Downtown",
     "Eastside",
+    "Harbor",
     "Hollywood",
     "Northwest",
     "South",
@@ -134,13 +145,13 @@
       "1": 32,
       "2": 39,
       "3": 12,
-      "untiered": 2900
+      "untiered": 2535
     },
     "sleep": {
       "1": 0,
       "2": 2,
       "3": 8,
-      "untiered": 68
+      "untiered": 70
     }
   },
   "climate_months": [
@@ -180,7 +191,7 @@
         },
         {
           "name": "Valley Relics Museum",
-          "district": null,
+          "district": "San Fernando Valley",
           "score": 12.71
         },
         {
@@ -197,12 +208,12 @@
         },
         {
           "name": "St. Anne Melkite Catholic Cathedral (North Hollywood, California)",
-          "district": null,
+          "district": "San Fernando Valley",
           "score": 12.08
         },
         {
           "name": "Cathedral of Our Lady of the Angels",
-          "district": "Downtown",
+          "district": "Bunker Hill",
           "score": 11.95
         }
       ],
@@ -264,7 +275,7 @@
         },
         {
           "name": "Box Thai Street Food",
-          "district": null,
+          "district": "San Fernando Valley",
           "score": 23.22
         },
         {
@@ -278,7 +289,7 @@
       "craft beer bar": [
         {
           "name": "Library Bar",
-          "district": "Downtown",
+          "district": "Bunker Hill",
           "score": 22.48
         },
         {
@@ -295,7 +306,7 @@
       "cocktail bar": [
         {
           "name": "Gallery Bar",
-          "district": "Downtown",
+          "district": "Bunker Hill",
           "score": 22.71
         },
         {
@@ -324,7 +335,7 @@
         },
         {
           "name": "Conrad Los Angeles Hotel",
-          "district": "Downtown",
+          "district": "Bunker Hill",
           "score": 11.79
         }
       ],
@@ -371,21 +382,21 @@
     "site": 27,
     "facebook": 0,
     "commons": 6,
-    "wikidata": 4,
-    "page": 15,
-    "dropped": 81,
-    "shared": 2,
+    "wikidata": 5,
+    "page": 16,
+    "dropped": 88,
+    "shared": 4,
     "dropped_examples": [
       "AC Hotel Beverly Hills",
       "Ace Hotel DTLA",
+      "Aiden Los Angeles Downtown Dragon Gate Inn",
       "BLVD Hotel & SPA",
       "Banana Bungalow Hollywood",
       "Best Western",
       "Best Western Burbank Airport Inn",
       "Best Western Hollywood Plaza Inn",
       "Best Western Los Angeles World Port Hotel",
-      "Best Western Plus Carriage Inn",
-      "Best Western Plus Dragon Gate Inn"
+      "Best Western Los Angeles Worldport Hotel"
     ],
     "notable_without_photo": [
       {
@@ -394,7 +405,7 @@
       },
       {
         "name": "Best Western",
-        "reason": "403"
+        "reason": "no picture"
       },
       {
         "name": "Best Western Burbank Airport Inn",
@@ -402,15 +413,19 @@
       },
       {
         "name": "Best Western Hollywood Plaza Inn",
-        "reason": "403"
+        "reason": "no picture"
       },
       {
         "name": "Best Western Los Angeles World Port Hotel",
         "reason": "403"
       },
       {
+        "name": "Best Western Los Angeles Worldport Hotel",
+        "reason": "no picture"
+      },
+      {
         "name": "Best Western Plus Carriage Inn",
-        "reason": "403"
+        "reason": "no picture"
       },
       {
         "name": "Best Western Plus Dragon Gate Inn",
@@ -418,19 +433,19 @@
       },
       {
         "name": "Best Western Plus Glendale",
-        "reason": "403"
+        "reason": "no picture"
       },
       {
         "name": "Best Western Plus La Mid-Town Hotel",
-        "reason": "403"
+        "reason": "no picture"
       },
       {
         "name": "Best Western Royal Palace Inn & Suites",
-        "reason": "403"
+        "reason": "no picture"
       },
       {
         "name": "Best Western Woodland Hills Inn",
-        "reason": "403"
+        "reason": "no picture"
       },
       {
         "name": "Courtyard",
@@ -525,6 +540,10 @@
         "reason": "dead"
       },
       {
+        "name": "Travelodge by Wyndham Harbor City",
+        "reason": "shared picture"
+      },
+      {
         "name": "Warner Center Marriott",
         "reason": "dead"
       }
@@ -536,43 +555,43 @@
       {
         "name": "Located see + history + do places",
         "threshold": "≥ 150",
-        "measured": "3432",
+        "measured": "3514",
         "passed": true
       },
       {
         "name": "Located eat places",
         "threshold": "≥ 100",
-        "measured": "2977",
+        "measured": "2612",
         "passed": true
       },
       {
         "name": "Sleep documents",
         "threshold": "≥ 20",
-        "measured": "78",
+        "measured": "80",
         "passed": true
       },
       {
         "name": "Located sleep places",
         "threshold": "≥ 10",
-        "measured": "70",
+        "measured": "72",
         "passed": true
       },
       {
         "name": "Pictured located sleep places",
         "threshold": "≥ 10",
-        "measured": "70",
+        "measured": "72",
         "passed": true
       },
       {
         "name": "Districts",
         "threshold": "≥ 5",
-        "measured": "7",
+        "measured": "11",
         "passed": true
       },
       {
         "name": "Districts with a neighbourhood document",
         "threshold": "≥ 5",
-        "measured": "7",
+        "measured": "10",
         "passed": true
       },
       {
