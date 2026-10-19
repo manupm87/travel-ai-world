@@ -496,7 +496,8 @@ class ClientState:
             self.day_titles[op.day] = op.title
         else:
             # Route, weather and warnings change nothing the snapshot sends,
-            # but a weather or warning op still opens its day, as `withDay` does.
+            # but a weather op still opens its day, as `withDay` does (a warn op
+            # carries a slot, not a day, and the reducer leaves its days alone).
             day_of = getattr(op, "day", None)
             if isinstance(day_of, int):
                 self.days.setdefault(day_of, _empty_day())
