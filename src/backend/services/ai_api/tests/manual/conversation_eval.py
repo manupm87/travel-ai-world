@@ -16,6 +16,8 @@ as `planner_smoke.py` builds it: the provider of the settings
 Bedrock with `LLM_PROVIDER=bedrock` after `just aws-login`), a
 `KeywordRetriever` over the city's committed `documents.jsonl`, the real
 Open-Meteo forecast; Commons photos and site previews only with `--photos`.
+The input guard is `providers.build_input_guard`'s: the Bedrock Guardrail when
+`BEDROCK_GUARDRAIL_ID` is set (TRA-292), else none.
 `--judge` adds an LLM verdict per run (`--judge-model`, the same provider).
 
 Prints the Markdown report (`--out` also writes it, and the transcripts as JSON
@@ -39,7 +41,7 @@ from ai_api.domain.ports import Retriever
 from ai_api.infrastructure.cities import load_cities
 from ai_api.infrastructure.commons_photos import CommonsPhotos
 from ai_api.infrastructure.open_meteo import OpenMeteoForecast
-from ai_api.infrastructure.providers import build_llm_provider
+from ai_api.infrastructure.providers import build_input_guard, build_llm_provider
 from ai_api.infrastructure.site_previews import SitePreviews
 from ai_api.testing import KeywordRetriever, city_for, documents_from_corpus
 
@@ -156,6 +158,7 @@ async def run(args: argparse.Namespace, out: TextIO) -> int:
     weather = OpenMeteoForecast.from_settings(settings)
     photos = CommonsPhotos.from_settings(settings) if args.photos else None
     previews = SitePreviews.from_settings(settings) if args.photos else None
+    guard = build_input_guard(settings)
     retrievers: dict[str, Retriever] = {}
     planners: dict[str, PlanTrip] = {}
 
@@ -176,6 +179,7 @@ async def run(args: argparse.Namespace, out: TextIO) -> int:
                 cities=[city_of(slug, manifest)],
                 agent_max_steps=settings.AGENT_MAX_STEPS,
                 agent_max_tool_calls=settings.AGENT_MAX_TOOL_CALLS,
+                guard=guard,
             )
         return planners[slug]
 

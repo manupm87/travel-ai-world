@@ -17,6 +17,10 @@ Kiri, one tool-using agent (`application/agent/`, ADR 0032), runs the
 conversation, before the stay and after it (TRA-291). Selections, removals
 and the page's own asks ("Alternatives for day N · part", "Generate the
 trip") stay deterministic.
+
+Every message goes through the input guard first (TRA-292, a Bedrock
+Guardrail when configured): one it stops is answered with a fixed sentence
+and reaches no model.
 """
 
 import asyncio
@@ -61,6 +65,7 @@ from ai_api.domain.models import (
     RetrievalFilters,
 )
 from ai_api.domain.ports import (
+    InputGuard,
     LLMProvider,
     PhotoFinder,
     Retriever,
@@ -68,6 +73,7 @@ from ai_api.domain.ports import (
     WeatherForecast,
 )
 from ai_api.domain.tracing import Phase
+from ai_api.infrastructure.bedrock_guard import NullInputGuard
 from ai_api.infrastructure.static_flight_search import route_for
 from ai_api.prompts import (
     AGENT_PRE_STAY_PROMPT,
@@ -608,8 +614,10 @@ class PlanTrip:
         today: Callable[[], date] = date.today,
         agent_max_steps: int = 6,
         agent_max_tool_calls: int = 12,
+        guard: InputGuard | None = None,
     ) -> None:
         self._provider = provider
+        self._guard: InputGuard = guard if guard is not None else NullInputGuard()
         self._retriever = retriever
         self._weather = weather
         self._photos = photos
@@ -640,7 +648,7 @@ class PlanTrip:
         elif isinstance(action, RemoveAction):
             events = self._on_remove(turn, action)
         else:
-            events = self._on_message(turn)
+            events = self._guarded(turn)
         try:
             async for event in self._with_progress(turn, events):
                 yield event
@@ -702,6 +710,31 @@ class PlanTrip:
                     await task
 
     # ── Messages ─────────────────────────────────────────────────────────
+
+    async def _guarded(self, turn: Turn) -> AsyncIterator[PlannerEvent]:
+        """A message reaches a model only past the input guard (TRA-292).
+
+        A stopped message is answered with one fixed sentence and the brief
+        as it was; the turn's status stays `ok`. Selections and removals are
+        never checked: they carry no traveller text.
+        """
+        if turn.message:
+            async with turn.tracer.span("chain", "guard") as span:
+                verdict = await self._guard.check(turn.message)
+                span.payload["details"] = {
+                    "reason": verdict.reason,
+                    "allowed": verdict.allowed,
+                    "usage_units": verdict.usage_units,
+                }
+            if not verdict.allowed:
+                turn.phase("zip")
+                if turn.request.brief is not None:
+                    yield brief_event(turn.brief)
+                reason = "other" if verdict.reason == "ok" else verdict.reason
+                yield text(planner_text(turn.language, f"guard_{reason}"))
+                return
+        async for event in self._on_message(turn):
+            yield event
 
     async def _on_message(self, turn: Turn) -> AsyncIterator[PlannerEvent]:
         """One agent runs the conversation (ADR 0032, TRA-291); what stays

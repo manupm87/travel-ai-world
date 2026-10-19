@@ -20,6 +20,7 @@ from ai_api.config import AISettings, get_settings
 from ai_api.domain.models import City, GenerationParams
 from ai_api.domain.ports import (
     AccessGateway,
+    InputGuard,
     LLMProvider,
     PhotoFinder,
     Retriever,
@@ -30,6 +31,7 @@ from ai_api.domain.ports import (
 )
 from ai_api.domain.tracing import Kind
 from ai_api.domain.usage import Entitlement
+from ai_api.infrastructure.bedrock_guard import NullInputGuard
 from ai_api.infrastructure.core_api_client import CoreApiClient
 from ai_api.infrastructure.dynamo_traces import NullTraceLog
 from ai_api.infrastructure.dynamo_usage import NullUsageStore
@@ -52,6 +54,13 @@ def get_llm_provider(request: Request) -> LLMProvider:
     if provider is None or not provider.is_configured:
         raise ProviderUnavailable("AI chat service not configured")
     return provider
+
+
+def get_input_guard(request: Request) -> InputGuard:
+    """The guard built in `lifespan` (TRA-292); one that allows everything
+    when there is none (tests drive the app without a lifespan)."""
+    guard: InputGuard | None = getattr(request.app.state, "input_guard", None)
+    return guard if guard is not None else NullInputGuard()
 
 
 def get_retriever(request: Request) -> Retriever | None:
@@ -102,6 +111,7 @@ def get_plan_trip(
     photos: PhotoFinder | None = Depends(get_photos),
     previews: SitePreviewFinder | None = Depends(get_previews),
     cities: tuple[City, ...] = Depends(get_cities),
+    guard: InputGuard = Depends(get_input_guard),
     settings: AISettings = Depends(get_settings),
 ) -> PlanTrip:
     """The planner needs the corpus: without retrieval it cannot show a card."""
@@ -118,6 +128,7 @@ def get_plan_trip(
         candidates=settings.PLANNER_CANDIDATES,
         agent_max_steps=settings.AGENT_MAX_STEPS,
         agent_max_tool_calls=settings.AGENT_MAX_TOOL_CALLS,
+        guard=guard,
     )
 
 
