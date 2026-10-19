@@ -7,6 +7,7 @@
 | [architecture/code-quality-review-2026-09-27.md](architecture/code-quality-review-2026-09-27.md) | The latest code and architecture audit (Spanish): findings, fixes applied, decisions pending; the [2026-09-07 review](architecture/code-quality-review.md) is historical |
 | [architecture/vector-store-spike.md](architecture/vector-store-spike.md) | Qdrant vs S3 Vectors, measured (TRA-151): the input to ADR 0014 |
 | [architecture/rag-evaluation.md](architecture/rag-evaluation.md) | Recall@k and MRR of the deployed index, how to run them, the baseline and its misses (TRA-148) |
+| [architecture/agent-evaluation.md](architecture/agent-evaluation.md) | Scripted conversations against the planner: checks, how to run them, the gate for planner changes and the baseline (TRA-288) |
 | [runbooks/](runbooks/local-dev.md) | How to run, ship and release: [local-dev](runbooks/local-dev.md), [docker](runbooks/docker.md), [deploy](runbooks/deploy.md), [release](runbooks/release.md), [add-city](runbooks/add-city.md), [access](runbooks/access.md), [agent-delivery](runbooks/agent-delivery.md); [frontend-https-aws](runbooks/frontend-https-aws.md) is historical |
 | [api/](api/) | Generated OpenAPI documents (`core-api`, `ai-api`) — source of the frontend's types |
 | [design/](design/) | [`kyrian-world.md`](design/kyrian-world.md), the design reference (palette, type, Kiri); `ideas.pen`, the Pencil design file |

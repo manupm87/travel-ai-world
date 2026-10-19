@@ -76,7 +76,7 @@ ai_api/
 ├── openapi.py      registers the planner's stream models in the OpenAPI document (no route declares them)
 ├── indexing.py     python -m ai_api.indexing <documents.jsonl>: fills the vector index (just index)
 ├── domain/         models.py (Message, Document, RetrievalFilters, GenerationParams, Usage, DayWeather, RouteSuggestion) · ports.py (LLMProvider, Embedder, Retriever, WeatherForecast, PhotoFinder, SitePreviewFinder, TraceLog, UsageStore, AccessGateway) · tracing.py (the turn trace, ADR 0024) · usage.py (DailyUsage, Entitlement, ADR 0026)
-├── application/    plan_trip.py, card_detail.py, access.py (CheckAccess: the access list and the daily limit) — the use cases, depend only on ports · structured.py (provider-constrained JSON with validation) · cards.py · photos.py · validate.py · language.py
+├── application/    plan_trip.py, card_detail.py, access.py (CheckAccess: the access list and the daily limit) — the use cases, depend only on ports · structured.py (provider-constrained JSON with validation) · cards.py · photos.py · validate.py · language.py · retrieval_eval.py, answer_eval.py, conversation_eval.py (the evaluations run by hand: `just eval-*`)
 ├── infrastructure/ nvidia_provider.py · bedrock_provider.py · bedrock_embedder.py · bedrock.py (client config and retry rules both Bedrock adapters share) · s3vectors.py (client, keys, metadata split) · s3vectors_retriever.py · providers.py (settings → adapters) · open_meteo.py · static_flight_search.py (+ data/airports.json) · cities.py (+ data/cities.json, the cities manifest the corpus tool writes) · commons_photos.py · site_previews.py (the image a venue publishes on its own site, ADR 0021; the corpus does the same for hotels at build time, ADR 0022) · sse.py · retry.py · core_api_client.py (the caller's access) · dynamo_traces.py · dynamo_usage.py (the daily token counters)
 ├── api/            deps.py (wiring) · v1/endpoints/planner.py, usage.py, admin.py (trace and usage reads, the retrieval evaluation; admins only), health.py
 ├── schemas/        chat.py (ChatMessage, the transcript's limits) · planner.py (PlannerTurn, PlannerCity, CardDetail) · planner_events.py (SSE v2 events and ops) · admin.py (trace pages, detail, stats, retrieval evaluation) · usage.py (the caller's usage, a day's counters)
@@ -350,5 +350,32 @@ with their unsupported claims, the failures, and tokens and USD per model (`pric
 the judge prompt's version: scores of two versions are not compared. `--out` writes every answer
 and verdict as JSON lines, to read the judge's work (keep it out of the repo). Needs an AWS session;
 not in CI.
+
+### Conversation eval (scripted conversations, real model)
+
+```bash
+just eval-conversations                              # every scenario, once
+just eval-conversations budapest --tag safety        # one city, one tag
+just eval-conversations --repeat 3 --out eval.md     # the gate's run; eval.json holds the transcripts
+uv run python tests/manual/conversation_eval.py --scenario prices-en --judge
+```
+
+`application/conversation_eval.py` plays the scenarios of `ai_api/data/eval_conversations/<city>/`
+(one JSON file each: `id`, `city`, `language`, `tags`, `goal`, `steps`, `expect`) against `PlanTrip`
+and plays the page too: `ClientState` applies every event as `plannerReducer.ts` does (puts are
+idempotent and move a card across the parts of its day, a picked hotel sets the stay at once, an
+answered neighbourhood carousel starts over) and sends each turn as `usePlanner.runTurn` does
+(snapshot, the last 20 text bubbles). Edit, question and safety scenarios start from a frozen trip
+(`setup: fixture:budapest-3d` / `bologna-2d`, hydrated from the corpus, no model call); the pre-stay
+ones from `setup: draft` (opening message, checklist answers, first neighbourhood, first hotel) or
+`setup: brief` (up to the neighbourhoods). Checks: `slot_has`, `slot_lacks`, `day_count_at_least`,
+`day_count_at_most`, `stay_changed`, `options_offered`, `itinerary_unchanged`, `text_matches`,
+`text_language`, `brief_field`, `max_seconds`, plus three that always run (`all_ids_in_corpus`,
+`no_prices`, `no_error_events`). The script builds the planner like the smoke session — the provider
+of `.env` (`providers.build_llm_provider`), `KeywordRetriever` over the committed corpus, real
+Open-Meteo, photos only with `--photos` — and prints a row per scenario (checks, runs passed,
+seconds, tokens, model calls; `--judge` adds an LLM verdict on each conversation), the totals and
+every failed check. Exit 1 when a safety check fails. The gate and the baseline:
+[`docs/architecture/agent-evaluation.md`](../../../../docs/architecture/agent-evaluation.md).
 
 For agents: [`AGENTS.md`](AGENTS.md).
