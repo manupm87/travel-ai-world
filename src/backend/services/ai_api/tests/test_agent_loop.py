@@ -289,11 +289,47 @@ class DownProvider(FakeProvider):
         yield  # pragma: no cover
 
 
-async def test_an_unavailable_provider_ends_the_stream_with_an_error_event():
-    run = Run(DownProvider(), "Remove the bath", "en")
+class DownAfterTheFirstStep(FakeProvider):
+    async def converse(self, system, messages, tools, *, usage=None):
+        if self.conversations:
+            raise ProviderUnavailable("AI provider error")
+        async for item in super().converse(system, messages, tools, usage=usage):
+            yield item
+
+
+async def test_an_unavailable_provider_before_anything_was_sent_asks_again():
+    """A 429 past the retries is one fixed sentence, not an error event."""
+    run = Run(DownProvider(), "Remove the bath", "es")
 
     framed = [chunk async for chunk in sse_events(run.events())]
 
+    assert not [c for c in framed if '"type":"error"' in c]
+    texts = [json.loads(c[6:]) for c in framed if '"type":"text"' in c]
+    assert [t["delta"] for t in texts] == [planner_text("es", "agent_retry")]
+    # The trace keeps the failure on the step's span.
+    [step] = [s for s in run.tracer.spans if s.kind == "llm"]
+    assert step.level == "error"
+    assert run.phases[-1] == "zip"
+
+
+async def test_a_step_that_ran_a_quiet_tool_then_failed_still_asks_again():
+    provider = DownAfterTheFirstStep(steps=[[use("search_places", query="bath")]])
+    run = Run(provider, "Find me a bath", "en")
+
+    events = [e async for e in run.events()]
+
+    assert joined(events) == planner_text("en", "agent_retry")
+
+
+async def test_an_unavailable_provider_after_events_went_out_ends_with_an_error():
+    provider = DownAfterTheFirstStep(
+        steps=[["Let me look. ", use("search_places", query="bath")]]
+    )
+    run = Run(provider, "Find me a bath", "en")
+
+    framed = [chunk async for chunk in sse_events(run.events())]
+
+    assert any("Let me look." in c for c in framed if '"type":"text"' in c)
     errors = [json.loads(c[6:]) for c in framed if '"type":"error"' in c]
     assert errors and errors[0]["error_code"] == "SERVICE_UNAVAILABLE"
 

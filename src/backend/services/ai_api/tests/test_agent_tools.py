@@ -11,8 +11,20 @@ from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
-from ai_api.application.agent.context import build_context, transcript
-from ai_api.application.agent.tools import UNKNOWN_ID, AgentContext, Toolbox
+import pytest
+from ai_api.application.agent.context import (
+    build_context,
+    build_pre_stay_context,
+    last_hotels_district,
+    neighbourhoods_offered,
+    transcript,
+)
+from ai_api.application.agent.tools import (
+    PRE_STAY_TOOLS,
+    UNKNOWN_ID,
+    AgentContext,
+    Toolbox,
+)
 from ai_api.application.plan_trip import PlanTrip, Turn, _read_turn
 from ai_api.application.tracing import TurnTracer
 from ai_api.domain.agent import ToolCall
@@ -497,6 +509,166 @@ async def test_offer_stays_forwards_the_hotel_carousel():
     assert group.group_id.startswith("hotels:") and group.kind == "hotel"
     assert ASTORIA not in [c.id for c in group.cards]
     assert result(offered)["offered"] == [c.title for c in group.cards]
+
+
+# ─── Before the stay (TRA-291) ───────────────────────────────────────────────
+
+NEIGHBOURHOODS_EN = "These neighbourhoods fit your trip. Where would you like to stay?"
+
+
+async def pre_stay(
+    message: str = "Show me other hotels",
+    *,
+    history: Sequence[tuple[str, str]] = (),
+    language: str = "en",
+) -> Setup:
+    plan, provider, retriever = make_planner()
+    request = planner_turn(
+        message, days=[], stay=None, history=history, language=language
+    )
+    turn = _read_turn(request)
+    tracer = TurnTracer("planner", "/planner", "1")
+    turn.tracer = tracer
+    context = await build_pre_stay_context(turn, plan)
+    toolbox = Toolbox(context, PRE_STAY_TOOLS)
+    return Setup(turn, plan, provider, retriever, context, toolbox, tracer)
+
+
+def test_the_neighbourhoods_offered_are_read_in_either_language_anywhere():
+    def said(*texts: str) -> list[Message]:
+        return [Message("assistant", t) for t in texts]
+
+    assert neighbourhoods_offered(said(NEIGHBOURHOODS_EN))
+    assert neighbourhoods_offered(
+        said(
+            "¡Genial! Estos barrios encajan con tu viaje. ¿Dónde te gustaría alojarte?"
+        )
+    )
+    assert not neighbourhoods_offered(said("Which dates?"))
+    # The traveller quoting the sentence is not an offer.
+    assert not neighbourhoods_offered([Message("user", NEIGHBOURHOODS_EN)])
+
+
+@pytest.mark.parametrize(
+    ("texts", "district"),
+    [
+        (["These places to stay are in or near Belváros:"], "Belváros"),
+        (
+            ["Good pick!\n\nEstos alojamientos están en Terézváros o muy cerca:"],
+            "Terézváros",
+        ),
+        (
+            [
+                "These places to stay are in or near Belváros:",
+                "Sure. These places to stay are in or near Budavár:",
+            ],
+            "Budavár",
+        ),
+        ([NEIGHBOURHOODS_EN], None),
+        ([], None),
+    ],
+)
+def test_the_last_hotels_district_is_the_latest_sentence_that_offered_them(
+    texts: list[str], district: str | None
+):
+    history = [Message("assistant", t) for t in texts]
+
+    assert last_hotels_district(history) == district
+
+
+async def test_the_pre_stay_context_has_no_trip_and_names_the_last_hotels():
+    s = await pre_stay(
+        history=[
+            ("assistant", NEIGHBOURHOODS_EN),
+            ("assistant", "These places to stay are in or near Belváros:"),
+        ]
+    )
+
+    assert s.context.days == {} and s.context.stay_id is None
+    assert s.context.hotels_district == "Belváros"
+    [system] = s.context.system
+    assert "The hotels last offered were in: Belváros" in system
+    assert "plan_for_me" in system and "Budapest" in system
+    assert [spec.name for spec in s.toolbox.specs] == [
+        "search_places",
+        "get_place",
+        "list_districts",
+        "offer_neighbourhoods",
+        "offer_hotels",
+        "plan_for_me",
+    ]
+    assert s.retriever.fetches == []  # no itinerary to read
+
+
+async def test_offer_neighbourhoods_forwards_the_nb_carousel():
+    s = await pre_stay("other areas, please")
+    s.toolbox.note_text()
+
+    offered, events = await s.toolbox.call(call("offer_neighbourhoods"))
+
+    [lead] = [e for e in events if isinstance(e, TextEvent)]
+    [group] = [e for e in events if isinstance(e, OptionsEvent)]
+    assert lead.delta.startswith("\n\n")  # after Kiri's own words
+    assert group.group_id == "nb" and group.kind == "neighbourhood"
+    assert result(offered)["offered"] == [c.title for c in group.cards]
+    assert not offered.is_error
+
+
+async def test_offer_hotels_without_a_district_reoffers_the_last_one_cheaper():
+    s = await pre_stay(
+        "cheaper ones",
+        history=[("assistant", "These places to stay are in or near Belváros:")],
+    )
+
+    offered, events = await s.toolbox.call(call("offer_hotels", cheaper=True))
+
+    [group] = [e for e in events if isinstance(e, OptionsEvent)]
+    assert group.group_id == "hotels:Belváros" and group.kind == "hotel"
+    first = s.retriever.searches[0][2]
+    assert first is not None and first.districts == ("Belváros",)
+    assert first.price_tier_max == 1
+    assert result(offered)["district"] == "Belváros"
+
+
+async def test_offer_hotels_takes_a_district_the_city_has_and_refuses_the_rest():
+    s = await pre_stay("hotels in belvaros")
+
+    offered, events = await s.toolbox.call(call("offer_hotels", district="belvaros"))
+    refused, nothing = await s.toolbox.call(call("offer_hotels", district="Soho"))
+
+    [group] = [e for e in events if isinstance(e, OptionsEvent)]
+    assert group.group_id == "hotels:Belváros"
+    assert result(offered)["district"] == "Belváros"
+    assert refused.is_error and "Belváros" in result(refused)["districts"]
+    assert nothing == []
+
+
+async def test_plan_for_me_picks_the_stay_and_drafts_every_day():
+    s = await pre_stay("decide tú", language="es")
+
+    planned, events = await s.toolbox.call(call("plan_for_me"))
+
+    [stay] = [op for op in ops_of(events) if op.op == "set_stay"]
+    titles = [op for op in ops_of(events) if op.op == "set_day_title"]
+    assert stay.card.category == "sleep"
+    assert len(titles) == 2  # the brief's two days
+    assert [op for op in ops_of(events) if op.op == "put_activity"]
+    assert result(planned) == {"stay": stay.card.title, "days": 2}
+    assert s.turn.stay_id == stay.card.id
+
+    again, more = await s.toolbox.call(call("plan_for_me"))
+
+    assert again.is_error and more == []
+
+
+async def test_a_streaming_tool_is_a_traced_tool_span():
+    s = await pre_stay()
+
+    await s.toolbox.call(call("offer_neighbourhoods"))
+
+    [span] = [sp for sp in s.tracer.spans if sp.kind == "tool"]
+    assert span.name == "tool:offer_neighbourhoods"
+    assert span.payload["status"] == "ok" and span.payload["count"] == 3
 
 
 # ─── The turn's end ──────────────────────────────────────────────────────────

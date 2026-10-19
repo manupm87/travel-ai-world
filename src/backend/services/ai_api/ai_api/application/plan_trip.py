@@ -1606,9 +1606,7 @@ class PlanTrip:
         placed = Slot(day=slot.day, part=part)
         turn.phase("zip")
         yield text(prompt_text)
-        yield options(
-            f"slot:{slot.day}:{part}", kind, prompt_text, cards, slot=placed
-        )
+        yield options(f"slot:{slot.day}:{part}", kind, prompt_text, cards, slot=placed)
 
     # ── Shared helpers ───────────────────────────────────────────────────
 
@@ -1841,4 +1839,3 @@ def chat_messages(
     messages.extend(history)
     messages.append(Message("user", message))
     return messages
-

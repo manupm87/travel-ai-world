@@ -8,14 +8,12 @@ retrieved, what the model was shown, and which events came out.
 
 import asyncio
 import json
-import re
 from collections.abc import AsyncIterator, Sequence
 from datetime import date, timedelta
 from pathlib import Path
 
 import pytest
 from ai_api.application.plan_trip import (
-    GENERATE_WORDS,
     PlanTrip,
     _alternatives_slot,
     city_key,
@@ -23,6 +21,7 @@ from ai_api.application.plan_trip import (
 )
 from ai_api.domain.agent import ToolCall
 from ai_api.domain.models import City, DayWeather, Document, Photo
+from ai_api.prompts import planner_text
 from ai_api.schemas.planner import PlannerTurn
 from ai_api.schemas.planner_events import (
     BriefEvent,
@@ -672,57 +671,6 @@ async def test_a_model_that_never_answers_json_still_yields_a_complete_draft():
     assert all(a.card.why == "" for a in activities)
 
 
-async def test_generate_in_the_message_chooses_the_stay_itself():
-    use_case, _, _ = planner([json.dumps({}), picks(BELVAROS), skeleton(1)])
-
-    events = await run(
-        use_case(
-            turn(
-                "Just generate the trip",
-                brief=brief(start_date=date(2026, 10, 20), end_date=date(2026, 10, 20)),
-            )
-        )
-    )
-
-    [stay] = ops_of(events, "set_stay")
-    assert stay.card.category == "sleep" and stay.card.district == "Belváros"
-    assert ops_of(events, "put_activity")
-    assert not only(events, OptionsEvent)
-
-
-@pytest.mark.parametrize(
-    "message",
-    [
-        "Just generate the trip",
-        "Generate the trip",  # the page's button (en.ts)
-        "Genera el viaje",  # the page's button (es.ts)
-        "¿Puedes generar el viaje?",
-        "Choose for me",
-        "You decide",
-        "Elige tú el hotel",
-        "Sorpréndeme",
-    ],
-)
-def test_asking_for_the_whole_trip_is_read_as_generate(message: str):
-    assert GENERATE_WORDS.search(message)
-
-
-@pytest.mark.parametrize(
-    "message",
-    [
-        "Is Erzsebetvaros generally quiet at night?",
-        "In general, which one is best?",
-        "I cannot decide, which is quieter?",
-        "No me decido, ¿cuál eliges tú?",
-        "Decidedly not the loud one",
-    ],
-)
-def test_a_question_is_not_a_request_to_draft_the_whole_trip(message: str):
-    """A word that merely starts like one of the phrases drafted the whole trip
-    (about ten model calls) instead of answering."""
-    assert not GENERATE_WORDS.search(message)
-
-
 async def test_changing_the_hotel_after_the_draft_keeps_the_days():
     use_case, _, _ = planner()
 
@@ -874,264 +822,7 @@ async def test_more_options_never_offers_a_card_the_ask_already_showed():
     assert ids and len(ids) == len(set(ids))
 
 
-async def test_other_stays_skip_the_hotels_the_ask_already_showed():
-    use_case, _, _ = planner(
-        [json.dumps({"intent": "change_stay", "cheaper": False}), picks(IBIS)]
-    )
-
-    events = await run(
-        use_case(
-            turn(
-                "Other hotels, please",
-                brief=brief(),
-                stay=ASTORIA,
-                days=[{"morning": [PARLIAMENT]}],
-                exclude=[ACE_HOSTEL, MARCO_POLO],
-            )
-        )
-    )
-
-    [group] = only(events, OptionsEvent)
-    ids = [c.id for c in group.cards]
-    assert group.kind == "hotel" and IBIS in ids
-    assert ACE_HOSTEL not in ids and MARCO_POLO not in ids  # already offered
-    assert ASTORIA not in ids  # the stay itself
-
-
-async def test_free_text_after_the_draft_goes_through_the_intent_classifier():
-    use_case, _, retriever = planner(
-        [
-            json.dumps(
-                {
-                    "intent": "find_options",
-                    "kind": "restaurant",
-                    "day": 2,
-                    "part": None,
-                    "query": "Hungarian restaurant",
-                }
-            ),
-            picks(ANNA_CAFE),
-        ]
-    )
-
-    events = await run(
-        use_case(
-            turn(
-                "restaurantes húngaros cerca del día 2",
-                brief=brief(),
-                stay=ASTORIA,
-                days=[{}, {}],
-            )
-        )
-    )
-
-    [group] = only(events, OptionsEvent)
-    assert group.kind == "restaurant" and group.group_id == "slot:2:evening"
-    assert all(c.category == "eat" for c in group.cards)
-    # The name lookup runs on the traveller's own words (TRA-186); the model's
-    # query is what the candidate search asks for.
-    assert retriever.searches[0][0] == "restaurantes húngaros cerca del día 2"
-    query, _, filters = next(s for s in retriever.searches if s[2] and s[2].categories)
-    assert query == "Hungarian restaurant"
-    assert filters is not None and filters.price_tier_max == 2
-
-
-async def test_invalid_intent_falls_back_to_grounded_chat():
-    use_case, provider, _ = planner(
-        ["not json"], deltas=("I can answer from the guide.",)
-    )
-
-    events = await run(
-        use_case(
-            turn(
-                "What is nearby?",
-                brief=brief(),
-                stay=ASTORIA,
-                days=[{}],
-            )
-        )
-    )
-
-    assert joined_text(events) == "I can answer from the guide."
-    assert not only(events, OptionsEvent)
-    assert len(provider.completions) == 1
-
-
-async def test_cheaper_stay_lists_hotels_a_tier_down_near_the_current_one():
-    use_case, _, retriever = planner(
-        [json.dumps({"intent": "change_stay", "cheaper": True}), picks()]
-    )
-
-    events = await run(
-        use_case(
-            turn(
-                "something cheaper", brief=brief(budget_tier=2), stay=ASTORIA, days=[{}]
-            )
-        )
-    )
-
-    [group] = only(events, OptionsEvent)
-    assert group.kind == "hotel" and ASTORIA not in [c.id for c in group.cards]
-    first = retriever.searches[0][2]
-    assert first is not None and first.price_tier_max == 1
-    assert first.districts == ("Belváros",)
-
-
-async def test_a_question_is_answered_as_grounded_chat():
-    use_case, provider, retriever = planner(
-        [json.dumps({"intent": "chat"})], deltas=("The Rudas ", "bath is medieval.")
-    )
-
-    events = await run(
-        use_case(turn("Is Rudas old?", brief=brief(), stay=ASTORIA, days=[{}]))
-    )
-
-    assert joined_text(events) == "The Rudas bath is medieval."
-    assert not only(events, OptionsEvent) and not only(events, ItineraryPatchEvent)
-    assert retriever.searches[0][0] == "Is Rudas old?"
-    system_turns = [m.content for m in provider.calls[0] if m.role == "system"]
-    assert any("Background information" in s for s in system_turns)
-
-
-# ─── Cards out of a chat answer, placed by the traveller (TRA-185) ───────────
-
-
-async def test_the_places_a_chat_answer_names_come_back_as_unplaced_cards():
-    use_case, _, _ = planner(
-        [json.dumps({"intent": "chat"})],
-        deltas=("The Rudas baths are medieval, ", "and the Gellért Baths are bigger."),
-        documents=[BY_ID[PARLIAMENT], BY_ID[GELLERT], BY_ID[RUDAS]],
-    )
-
-    events = await run(
-        use_case(turn("Where can I bathe?", brief=brief(), stay=ASTORIA, days=[{}, {}]))
-    )
-
-    assert joined_text(events).startswith("The Rudas baths are medieval")
-    [group] = only(events, OptionsEvent)
-    assert re.fullmatch(r"found:[0-9a-f]{8}", group.group_id)
-    # Unplaced: the page asks the traveller for the day and the part.
-    assert group.slot is None and group.kind == "experience"
-    # In the order the answer named them; Parliament was retrieved, never named.
-    assert [c.title for c in group.cards] == ["Rudas Thermal Bath", "Gellért Baths"]
-    # The prose above already explains them.
-    assert all(c.why == "" for c in group.cards)
-    assert group.prompt == "Add any of these to your trip:"
-
-
-async def test_a_place_already_in_the_trip_is_named_but_not_offered_again():
-    use_case, _, _ = planner(
-        [json.dumps({"intent": "chat"})],
-        deltas=("The Rudas baths are medieval, ", "the Gellért Baths are bigger."),
-        documents=[BY_ID[GELLERT], BY_ID[RUDAS]],
-    )
-
-    events = await run(
-        use_case(
-            turn(
-                "Which bath?",
-                brief=brief(),
-                stay=ASTORIA,
-                days=[{"morning": [RUDAS]}, {}],
-            )
-        )
-    )
-
-    [group] = only(events, OptionsEvent)
-    assert [c.title for c in group.cards] == ["Gellért Baths"]
-
-
-async def test_an_answer_naming_no_place_of_its_own_carries_no_cards():
-    """Words a title shares are not a mention: `title_words` drops the noise."""
-    use_case, _, _ = planner(
-        [json.dumps({"intent": "chat"})],
-        deltas=("The baths are warm ", "and the museums are free."),
-        documents=[BY_ID[RUDAS], BY_ID[GELLERT]],
-    )
-
-    events = await run(
-        use_case(turn("Anything else?", brief=brief(), stay=ASTORIA, days=[{}]))
-    )
-
-    assert not only(events, OptionsEvent)
-
-
-async def test_an_eat_and_drink_answer_offers_restaurant_cards():
-    use_case, _, _ = planner(
-        [json.dumps({"intent": "chat"})],
-        deltas=("Anna Cafe for cake, ", "then Szimpla Kert/Mozi for a drink."),
-        documents=[BY_ID[ANNA_CAFE], BY_ID[SZIMPLA]],
-    )
-
-    events = await run(
-        use_case(turn("Where do I eat?", brief=brief(), stay=ASTORIA, days=[{}]))
-    )
-
-    [group] = only(events, OptionsEvent)
-    assert group.kind == "restaurant"
-    assert [c.title for c in group.cards] == ["Anna Cafe", "Szimpla Kert/Mozi"]
-
-
-async def test_before_a_stay_a_chat_answer_stays_prose():
-    use_case, _, _ = planner(
-        [json.dumps({})],
-        deltas=("The Rudas baths ", "are medieval."),
-        documents=[BY_ID[RUDAS], BY_ID[GELLERT]],
-    )
-
-    events = await run(
-        use_case(
-            turn(
-                "is Rudas old?",
-                brief=brief(),
-                history=[
-                    (
-                        "assistant",
-                        "These neighbourhoods fit your trip. "
-                        "Where would you like to stay?",
-                    )
-                ],
-            )
-        )
-    )
-
-    # No day exists yet, so there is nowhere to add a card to.
-    assert not only(events, OptionsEvent)
-    assert joined_text(events) == "The Rudas baths are medieval."
-
-
-async def test_options_without_a_day_arrive_unplaced_instead_of_on_day_one():
-    use_case, _, _ = planner(
-        [
-            json.dumps(
-                {
-                    "intent": "find_options",
-                    "kind": "experience",
-                    "day": None,
-                    "part": None,
-                    "query": "Margaret Island",
-                }
-            ),
-            picks(RUDAS),
-        ]
-    )
-
-    events = await run(
-        use_case(
-            turn(
-                "is there something to do at Margaret Island?",
-                brief=brief(),
-                stay=ASTORIA,
-                days=[{}, {}],
-            )
-        )
-    )
-
-    [group] = only(events, OptionsEvent)
-    assert re.fullmatch(r"found:[0-9a-f]{8}", group.group_id)
-    assert group.slot is None and group.kind == "experience"
-    # Sights, not the evening's restaurants: no day and no part were named.
-    assert group.cards and all(c.category in SIGHTS for c in group.cards)
+# ─── Unplaced cards, placed by the traveller (TRA-185) ───────────────────────
 
 
 async def test_the_slot_the_traveller_picked_places_an_unplaced_card():
@@ -1312,303 +1003,6 @@ async def test_the_same_place_from_two_sources_is_not_placed_twice():
 
     titles = [a.card.title for a in ops_of(events, "put_activity")]
     assert sum("Rudas" in t for t in titles) == 1
-
-
-async def test_free_text_options_are_introduced_as_findings_not_alternatives():
-    use_case, _, _ = planner(
-        [
-            json.dumps({"intent": "find_options", "kind": "restaurant", "day": 2}),
-            picks(),
-        ]
-    )
-
-    events = await run(
-        use_case(
-            turn(
-                "Hungarian restaurants near day 2",
-                brief=brief(),
-                stay=ASTORIA,
-                days=[{}, {}],
-            )
-        )
-    )
-
-    assert joined_text(events).startswith("Here is what I found")
-
-
-# ─── A place the ask names (TRA-186) ─────────────────────────────────────────
-
-
-async def test_an_unplaced_restaurant_ask_also_searches_the_bars():
-    """No day means no part, so a `restaurant` ask covers eating and drinking."""
-    use_case, _, retriever = planner(
-        [
-            json.dumps(
-                {
-                    "intent": "find_options",
-                    "kind": "restaurant",
-                    "day": None,
-                    "part": None,
-                    "query": "wine bar near the Basilica",
-                }
-            ),
-            picks(SZIMPLA),
-        ],
-        documents=[BY_ID[PARLIAMENT], BY_ID[ANNA_CAFE], BY_ID[SZIMPLA]],
-    )
-
-    events = await run(
-        use_case(
-            turn(
-                "a wine bar near the Basilica",
-                brief=brief(),
-                stay=ASTORIA,
-                days=[{}, {}],
-            )
-        )
-    )
-
-    [group] = only(events, OptionsEvent)
-    assert group.slot is None and group.kind == "restaurant"
-    assert group.cards[0].id == SZIMPLA and group.cards[0].category == "drink"
-    # The candidate search takes both categories, the bars included.
-    candidates = next(
-        f for _, _, f in retriever.searches if f is not None and f.categories
-    )
-    assert candidates.categories == ("eat", "drink")
-
-
-async def test_the_place_the_ask_names_is_offered_first():
-    """The DiVino case: a two-line OSM bar the model did not pick is still the
-    first card, because the traveller named it."""
-    use_case, _, retriever = planner(
-        [
-            json.dumps(
-                {
-                    "intent": "find_options",
-                    "kind": "restaurant",
-                    "day": None,
-                    "part": None,
-                    "query": "wine bar Gozsdu Udvar",
-                }
-            ),
-            picks(ANNA_CAFE, SZIMPLA),
-        ],
-        documents=[BY_ID[ANNA_CAFE], BY_ID[SZIMPLA], DIVINO_GOZSDU, DIVINO],
-    )
-
-    events = await run(
-        use_case(
-            turn(
-                "divino at gozsdu udvar",
-                brief=brief(),
-                stay=ASTORIA,
-                days=[{}, {}],
-            )
-        )
-    )
-
-    [group] = only(events, OptionsEvent)
-    # Both listings of the name lead; what the model picked follows.
-    assert [c.id for c in group.cards] == [DIVINO_GOZSDU.id, DIVINO.id, ANNA_CAFE]
-    assert group.cards[0].title == "Divino Gozsdu"
-    # One unfiltered search on the traveller's own words finds them.
-    query, limit, filters = retriever.searches[0]
-    assert query == "divino at gozsdu udvar" and limit == 10
-    assert filters is not None and filters.categories == ()
-
-
-async def test_a_named_place_the_answer_never_spelled_is_still_offered():
-    use_case, _, _ = planner(
-        [json.dumps({"intent": "chat"})],
-        deltas=("It is a wine bar ", "in a courtyard off Király utca."),
-        documents=[BY_ID[BELVAROS], DIVINO_GOZSDU],
-    )
-
-    events = await run(
-        use_case(
-            turn(
-                "is divino at gozsdu udvar any good?",
-                brief=brief(),
-                stay=ASTORIA,
-                days=[{}],
-            )
-        )
-    )
-
-    [group] = only(events, OptionsEvent)
-    assert group.slot is None and group.kind == "restaurant"
-    assert [c.title for c in group.cards] == ["Divino Gozsdu"]
-
-
-async def test_an_ask_naming_no_place_is_answered_by_the_model_alone():
-    use_case, _, _ = planner(
-        [
-            json.dumps(
-                {
-                    "intent": "find_options",
-                    "kind": "experience",
-                    "day": None,
-                    "part": None,
-                    "query": "something to do",
-                }
-            ),
-            picks(RUDAS),
-        ],
-        documents=[BY_ID[PARLIAMENT], BY_ID[RUDAS], DIVINO_GOZSDU],
-    )
-
-    events = await run(
-        use_case(
-            turn(
-                "anything nice to do in the afternoon?",
-                brief=brief(),
-                stay=ASTORIA,
-                days=[{}],
-            )
-        )
-    )
-
-    [group] = only(events, OptionsEvent)
-    # Nothing pinned: the model's pick leads, then the top candidate.
-    assert [c.id for c in group.cards] == [RUDAS, PARLIAMENT]
-
-
-# ─── Talking before a stay is chosen ─────────────────────────────────────────
-
-
-async def test_a_question_after_the_neighbourhoods_were_offered_is_answered_not_repeated():
-    use_case, provider, _ = planner(
-        [json.dumps({}), json.dumps({"intent": "chat"})],
-        deltas=("Belváros ", "is quieter."),
-    )
-
-    events = await run(
-        use_case(
-            turn(
-                "which one is quieter?",
-                brief=brief(),
-                history=[
-                    ("user", "Dates: 2026-10-20 · 2026-10-24"),
-                    (
-                        "assistant",
-                        "These neighbourhoods fit your trip. Where would you like to stay?",
-                    ),
-                ],
-            )
-        )
-    )
-
-    assert not only(events, OptionsEvent) and not only(events, BriefEvent)
-    assert joined_text(events) == "Belváros is quieter."
-    # The extraction (unchanged brief) and the intent, then the streamed
-    # answer: no ranking call.
-    assert len(provider.completions) == 2 and len(provider.calls) == 1
-
-
-NEIGHBOURHOODS_OFFERED = (
-    "assistant",
-    "These neighbourhoods fit your trip. Where would you like to stay?",
-)
-
-
-async def test_another_neighbourhood_before_the_stay_offers_them_again():
-    """A step back from the hotels to the neighbourhoods (TRA-247)."""
-    use_case, _, _ = planner(
-        [
-            json.dumps({}),
-            json.dumps({"intent": "change_stay", "area": True}),
-            picks(BELVAROS),
-        ]
-    )
-
-    events = await run(
-        use_case(
-            turn(
-                "prefiero otro barrio",
-                brief=brief(),
-                history=[
-                    NEIGHBOURHOODS_OFFERED,
-                    ("assistant", "These places to stay are in or near Belváros:"),
-                ],
-            )
-        )
-    )
-
-    [group] = only(events, OptionsEvent)
-    assert group.group_id == "nb" and group.kind == "neighbourhood"
-
-
-async def test_cheaper_hotels_before_the_stay_stay_in_the_chosen_neighbourhood():
-    use_case, _, retriever = planner(
-        [
-            json.dumps({}),
-            json.dumps({"intent": "change_stay", "cheaper": True}),
-            picks(),
-        ]
-    )
-
-    events = await run(
-        use_case(
-            turn(
-                "algo más barato",
-                brief=brief(budget_tier=2),
-                history=[
-                    NEIGHBOURHOODS_OFFERED,
-                    ("assistant", "Estos alojamientos están en Belváros o muy cerca:"),
-                ],
-            )
-        )
-    )
-
-    [group] = only(events, OptionsEvent)
-    assert group.kind == "hotel"
-    first = retriever.searches[0][2]
-    assert first is not None and first.districts == ("Belváros",)
-    assert first.price_tier_max == 1
-
-
-async def test_another_neighbourhood_after_the_draft_offers_them_again():
-    use_case, _, _ = planner(
-        [json.dumps({"intent": "change_stay", "area": True}), picks(BELVAROS)]
-    )
-
-    events = await run(
-        use_case(
-            turn(
-                "I'd rather stay in another neighbourhood",
-                brief=brief(),
-                stay=ASTORIA,
-                days=[{"morning": [PARLIAMENT]}],
-            )
-        )
-    )
-
-    [group] = only(events, OptionsEvent)
-    assert group.group_id == "nb" and group.kind == "neighbourhood"
-
-
-async def test_a_change_of_brief_after_the_offer_ranks_neighbourhoods_again():
-    use_case, _, _ = planner([json.dumps({"budget_tier": 3}), picks(BELVAROS)])
-
-    events = await run(
-        use_case(
-            turn(
-                "actually make it high-end",
-                brief=brief(budget_tier=2),
-                history=[
-                    (
-                        "assistant",
-                        "These neighbourhoods fit your trip. Where would you like to stay?",
-                    )
-                ],
-            )
-        )
-    )
-
-    [brief_event] = only(events, BriefEvent)
-    assert brief_event.brief.budget_tier == 3
-    assert only(events, OptionsEvent)
 
 
 async def test_the_day_title_is_streamed_before_the_days_activities():
@@ -1990,73 +1384,74 @@ async def test_dates_ahead_are_kept():
     assert event.brief.start_date == ahead
 
 
-# ─── The agent after the draft (TRA-290) ─────────────────────────────────────
+# ─── Kiri, the agent of the whole conversation (TRA-290, TRA-291) ──────────
 
 
 def agent_planner(
     steps: Sequence[Sequence[object]] = (),
     replies: Sequence[str] = (),
     *,
-    enabled: bool = True,
     supports_tools: bool = True,
-) -> tuple[PlanTrip, FakeProvider]:
+    documents: Sequence[Document] = CORPUS,
+) -> tuple[PlanTrip, FakeProvider, FakeRetriever]:
     provider = FakeProvider(
         replies=replies,
         steps=steps,  # type: ignore[arg-type]
         supports_tools=supports_tools,
         deltas=("From the guide.",),
     )
+    retriever = FakeRetriever(documents)
     use_case = PlanTrip(
         provider,
-        FakeRetriever(CORPUS),
+        retriever,
         cities=(BUDAPEST,),
         today=lambda: TODAY,
-        agent_enabled=enabled,
     )
-    return use_case, provider
+    return use_case, provider, retriever
 
 
-def drafted(message: str) -> PlannerTurn:
-    return turn(
-        message, brief=brief(), stay=ASTORIA, days=[{"morning": [PARLIAMENT]}, {}]
-    )
+def drafted(message: str, **overrides: object) -> PlannerTurn:
+    values: dict[str, object] = {
+        "brief": brief(),
+        "stay": ASTORIA,
+        "days": [{"morning": [PARLIAMENT]}, {}],
+    }
+    values.update(overrides)
+    return turn(message, **values)  # type: ignore[arg-type]
 
 
-async def test_a_message_after_the_draft_goes_to_the_agent_when_it_is_on():
-    use_case, provider = agent_planner([["Parliament is lovely at dusk."]])
+def use(name: str, **arguments: object) -> ToolCall:
+    return ToolCall(id=f"call-{name}", name=name, arguments=arguments)
+
+
+def tool_names(provider: FakeProvider) -> set[str]:
+    _, _, tools = provider.conversations[0]
+    return {tool.name for tool in tools}
+
+
+NEIGHBOURHOODS_OFFERED = (
+    "assistant",
+    "These neighbourhoods fit your trip. Where would you like to stay?",
+)
+HOTELS_OFFERED_ES = (
+    "assistant",
+    "Buena elección. Estos alojamientos están en Belváros o muy cerca:",
+)
+
+
+async def test_a_message_after_the_draft_goes_to_the_agent():
+    use_case, provider, _ = agent_planner([["Parliament is lovely at dusk."]])
 
     events = await run(use_case(drafted("Is the Parliament worth it?")))
 
     assert joined_text(events) == "Parliament is lovely at dusk."
     assert len(provider.conversations) == 1
-    assert provider.completions == []  # no intent classifier
+    assert provider.completions == []  # no intent classifier, no brief extraction
+    assert "add_activity" in tool_names(provider)
 
 
-async def test_with_the_agent_off_the_intent_classifier_answers():
-    use_case, provider = agent_planner(
-        replies=[json.dumps({"intent": "chat"})], enabled=False
-    )
-
-    events = await run(use_case(drafted("Is the Parliament worth it?")))
-
-    assert provider.conversations == []
-    assert len(provider.completions) == 1  # the classifier
-    assert joined_text(events) == "From the guide."
-
-
-async def test_a_model_that_calls_no_tools_keeps_the_intent_classifier():
-    use_case, provider = agent_planner(
-        replies=[json.dumps({"intent": "chat"})], supports_tools=False
-    )
-
-    await run(use_case(drafted("Is the Parliament worth it?")))
-
-    assert provider.conversations == []
-    assert len(provider.completions) == 1
-
-
-async def test_the_pages_alternatives_ask_keeps_its_fast_path_with_the_agent_on():
-    use_case, provider = agent_planner(replies=[picks(BASILICA, GELLERT)])
+async def test_the_pages_alternatives_ask_keeps_its_fast_path():
+    use_case, provider, _ = agent_planner(replies=[picks(BASILICA, GELLERT)])
 
     events = await run(use_case(drafted("Alternatives for day 2 · afternoon")))
 
@@ -2065,16 +1460,29 @@ async def test_the_pages_alternatives_ask_keeps_its_fast_path_with_the_agent_on(
     assert provider.conversations == []
 
 
-async def test_before_the_stay_the_agent_is_not_asked():
-    use_case, provider = agent_planner(replies=[json.dumps({})])
+async def test_the_place_a_guided_alternatives_ask_names_is_offered_first():
+    """The DiVino case (TRA-186): a two-line OSM bar the model did not pick
+    is still the first card, because the traveller named it."""
+    use_case, _, retriever = agent_planner(
+        replies=[picks(SZIMPLA)],
+        documents=[BY_ID[ANNA_CAFE], BY_ID[SZIMPLA], DIVINO_GOZSDU, DIVINO],
+    )
 
-    await run(use_case(turn("A trip to Budapest", brief=brief())))
+    ask = "Alternatives for day 1 · night: divino at gozsdu udvar"
+    events = await run(use_case(drafted(ask, days=[{}, {}])))
 
-    assert provider.conversations == []
+    [group] = only(events, OptionsEvent)
+    # Both listings of the name lead; what the model picked follows.
+    ids = [c.id for c in group.cards]
+    assert set(ids[:2]) == {DIVINO_GOZSDU.id, DIVINO.id} and ids[2] == SZIMPLA
+    # One unfiltered search on the traveller's own words finds them.
+    query, limit, filters = retriever.searches[0]
+    assert query == ask and limit == 10
+    assert filters is not None and filters.categories == ()
 
 
 async def test_the_agents_edit_ends_with_the_touched_days_warnings():
-    use_case, _ = agent_planner(
+    use_case, _, _ = agent_planner(
         [
             [use("search_places", query="baths", kind="sight")],
             [use("add_activity", id=GELLERT, day=1, part="afternoon")],
@@ -2100,5 +1508,276 @@ async def test_the_agents_edit_ends_with_the_touched_days_warnings():
     assert isinstance(events[-1], ItineraryPatchEvent)
 
 
-def use(name: str, **arguments: object) -> ToolCall:
-    return ToolCall(id=f"call-{name}", name=name, arguments=arguments)
+async def test_cheaper_stays_after_the_draft_are_a_tier_down_near_the_stay():
+    use_case, _, retriever = agent_planner(
+        [[use("offer_stays", mode="cheaper")], ["Cheaper ones near you."]],
+        replies=[picks()],
+    )
+
+    events = await run(
+        use_case(drafted("something cheaper", brief=brief(budget_tier=2)))
+    )
+
+    [group] = only(events, OptionsEvent)
+    assert group.kind == "hotel" and ASTORIA not in [c.id for c in group.cards]
+    first = retriever.searches[0][2]
+    assert first is not None and first.price_tier_max == 1
+    assert first.districts == ("Belváros",)
+
+
+async def test_other_stays_skip_the_hotels_the_ask_already_showed():
+    use_case, _, _ = agent_planner(
+        [[use("offer_stays", mode="other_hotels")], ["Here are others."]],
+        replies=[picks(IBIS)],
+    )
+
+    events = await run(
+        use_case(drafted("Other hotels, please", exclude=[ACE_HOSTEL, MARCO_POLO]))
+    )
+
+    [group] = only(events, OptionsEvent)
+    ids = [c.id for c in group.cards]
+    assert group.kind == "hotel" and IBIS in ids
+    assert ACE_HOSTEL not in ids and MARCO_POLO not in ids  # already offered
+    assert ASTORIA not in ids  # the stay itself
+
+
+async def test_another_neighbourhood_after_the_draft_offers_them_again():
+    use_case, _, _ = agent_planner(
+        [[use("offer_stays", mode="other_neighbourhood")], ["Pick one."]],
+        replies=[picks(BELVAROS)],
+    )
+
+    events = await run(use_case(drafted("I'd rather stay in another neighbourhood")))
+
+    [group] = only(events, OptionsEvent)
+    assert group.group_id == "nb" and group.kind == "neighbourhood"
+
+
+# ── Before the stay ──────────────────────────────────────────────────────────
+
+
+async def test_the_message_that_completes_the_brief_offers_neighbourhoods_at_once():
+    """The first offer needs no model step (TRA-291, amendment 3)."""
+    use_case, provider, _ = agent_planner(
+        replies=[json.dumps({"budget_tier": 2}), picks(BELVAROS)]
+    )
+
+    events = await run(use_case(turn("Mid-range, please", brief=brief())))
+
+    assert only(events, BriefEvent)
+    [group] = only(events, OptionsEvent)
+    assert group.group_id == "nb"
+    assert provider.conversations == []
+
+
+async def test_free_wording_before_the_first_offer_still_offers_neighbourhoods():
+    """Only the page's own button drafts without a choice; "just generate it"
+    as the brief completes gets the neighbourhoods first."""
+    use_case, provider, _ = agent_planner(replies=[json.dumps({}), picks(BELVAROS)])
+
+    events = await run(use_case(turn("Just generate the trip", brief=brief())))
+
+    [group] = only(events, OptionsEvent)
+    assert group.group_id == "nb"
+    assert not ops_of(events, "set_stay") and provider.conversations == []
+
+
+@pytest.mark.parametrize("message", ["Generate the trip", "Genera el viaje"])
+async def test_the_pages_generate_button_chooses_the_stay_itself(message: str):
+    use_case, provider, _ = agent_planner(
+        replies=[json.dumps({}), picks(BELVAROS), skeleton(1)]
+    )
+    one_day = brief(start_date=date(2026, 10, 20), end_date=date(2026, 10, 20))
+
+    events = await run(
+        use_case(turn(message, brief=one_day, history=[NEIGHBOURHOODS_OFFERED]))
+    )
+
+    [stay] = ops_of(events, "set_stay")
+    assert stay.card.category == "sleep" and stay.card.district == "Belváros"
+    assert ops_of(events, "put_activity")
+    assert not only(events, OptionsEvent)
+    assert provider.conversations == []  # an exact match, no model step
+
+
+async def test_decide_for_me_after_the_offer_plans_the_whole_trip():
+    use_case, provider, _ = agent_planner(
+        [[use("plan_for_me")], ["¡Listo! Mira el viaje."]],
+        replies=[json.dumps({}), picks(BELVAROS), skeleton(1)],
+    )
+    one_day = brief(start_date=date(2026, 10, 20), end_date=date(2026, 10, 20))
+
+    events = await run(
+        use_case(
+            turn(
+                "Decide tú",
+                brief=one_day,
+                history=[NEIGHBOURHOODS_OFFERED],
+                language="es",
+            )
+        )
+    )
+
+    [stay] = ops_of(events, "set_stay")
+    assert stay.card.district == "Belváros"
+    assert ops_of(events, "set_day_title") and ops_of(events, "put_activity")
+    assert not only(events, OptionsEvent)
+    # The model read what plan_for_me did, then closed the turn.
+    _, messages, _ = provider.conversations[1]
+    [answer] = messages[-1].tool_results
+    assert json.loads(answer.content) == {"stay": stay.card.title, "days": 1}
+    assert joined_text(events).endswith("¡Listo! Mira el viaje.")
+    assert {"offer_neighbourhoods", "offer_hotels", "plan_for_me"} <= tool_names(
+        provider
+    )
+
+
+async def test_before_the_stay_the_agent_has_no_write_tool():
+    use_case, provider, _ = agent_planner(
+        [["Belváros is the quieter one."]], replies=[json.dumps({})]
+    )
+
+    await run(
+        use_case(
+            turn(
+                "which one is quieter?", brief=brief(), history=[NEIGHBOURHOODS_OFFERED]
+            )
+        )
+    )
+
+    names = tool_names(provider)
+    assert names.isdisjoint(
+        {
+            "add_activity",
+            "remove_activity",
+            "move_activity",
+            "set_day_title",
+            "redraft_day",
+            "check_day",
+        }
+    )
+    [system] = provider.conversations[0][0]
+    assert "no hotels offered yet" in system
+
+
+async def test_a_question_before_the_stay_is_answered_without_a_carousel():
+    use_case, provider, _ = agent_planner(
+        [
+            [use("search_places", query="Rudas")],
+            ["The Rudas baths are medieval."],
+        ],
+        replies=[json.dumps({})],
+        documents=[BY_ID[RUDAS], BY_ID[GELLERT], BY_ID[BELVAROS]],
+    )
+
+    events = await run(
+        use_case(turn("is Rudas old?", brief=brief(), history=[NEIGHBOURHOODS_OFFERED]))
+    )
+
+    # No day exists yet, so there is nowhere to add a card to.
+    assert not only(events, OptionsEvent) and not only(events, ItineraryPatchEvent)
+    assert joined_text(events) == "The Rudas baths are medieval."
+    # The brief still goes out first, as on every message before the stay.
+    assert isinstance(next(e for e in events if e.type != "progress"), BriefEvent)
+    # The extraction, then the agent: no ranking call.
+    assert len(provider.completions) == 1 and len(provider.conversations) == 2
+
+
+async def test_going_back_to_the_neighbourhoods_after_the_hotels_offers_them_again():
+    """A step back from the hotels to the neighbourhoods (TRA-247)."""
+    use_case, _, _ = agent_planner(
+        [[use("offer_neighbourhoods")], ["Aquí tienes otra vez los barrios."]],
+        replies=[json.dumps({}), picks(BELVAROS)],
+    )
+
+    events = await run(
+        use_case(
+            turn(
+                "prefiero otro barrio",
+                brief=brief(),
+                history=[NEIGHBOURHOODS_OFFERED, HOTELS_OFFERED_ES],
+                language="es",
+            )
+        )
+    )
+
+    [group] = only(events, OptionsEvent)
+    assert group.group_id == "nb" and group.kind == "neighbourhood"
+
+
+async def test_cheaper_hotels_before_the_stay_stay_in_the_chosen_neighbourhood():
+    use_case, provider, retriever = agent_planner(
+        [[use("offer_hotels", cheaper=True)], ["Más baratos."]],
+        replies=[json.dumps({}), picks()],
+    )
+
+    events = await run(
+        use_case(
+            turn(
+                "algo más barato",
+                brief=brief(budget_tier=2),
+                history=[NEIGHBOURHOODS_OFFERED, HOTELS_OFFERED_ES],
+                language="es",
+            )
+        )
+    )
+
+    [group] = only(events, OptionsEvent)
+    assert group.kind == "hotel" and group.group_id == "hotels:Belváros"
+    first = retriever.searches[0][2]
+    assert first is not None and first.districts == ("Belváros",)
+    assert first.price_tier_max == 1
+    # The district is context the model reads, not a route.
+    [system] = provider.conversations[0][0]
+    assert "The hotels last offered were in: Belváros" in system
+
+
+async def test_a_change_of_brief_after_the_offer_goes_out_and_the_agent_offers_again():
+    use_case, _, _ = agent_planner(
+        [[use("offer_neighbourhoods")], ["High-end it is."]],
+        replies=[json.dumps({"budget_tier": 3}), picks(BELVAROS)],
+    )
+
+    events = await run(
+        use_case(
+            turn(
+                "actually make it high-end",
+                brief=brief(budget_tier=2),
+                history=[NEIGHBOURHOODS_OFFERED],
+            )
+        )
+    )
+
+    [brief_event] = only(events, BriefEvent)
+    assert brief_event.brief.budget_tier == 3
+    [group] = only(events, OptionsEvent)
+    assert group.group_id == "nb"
+
+
+@pytest.mark.parametrize(
+    ("request_", "language"),
+    [
+        (drafted("Is the Parliament worth it?"), "en"),
+        (
+            turn(
+                "¿Cuál es más tranquilo?",
+                brief=brief(),
+                history=[NEIGHBOURHOODS_OFFERED],
+                language="es",
+            ),
+            "es",
+        ),
+    ],
+)
+async def test_a_model_that_calls_no_tools_answers_a_fixed_sentence(
+    request_: PlannerTurn, language: str
+):
+    use_case, provider, _ = agent_planner(
+        replies=[json.dumps({})], supports_tools=False
+    )
+
+    events = await run(use_case(request_))
+
+    assert provider.conversations == []
+    assert joined_text(events) == planner_text(language, "agent_unavailable")

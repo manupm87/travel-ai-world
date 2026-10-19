@@ -870,9 +870,7 @@ class PlanForMe:
             return
         stay: str | None = None
         days = 0
-        async for event in _forwarded(
-            ctx, ctx.planner._auto_stay_and_draft(ctx.turn)
-        ):
+        async for event in _forwarded(ctx, ctx.planner._auto_stay_and_draft(ctx.turn)):
             if isinstance(event, ItineraryPatchEvent):
                 for op in event.ops:
                     if isinstance(op, SetStayOp):
@@ -929,9 +927,7 @@ class Toolbox:
     """The tools of one turn over one context: specs for the model, calls
     run with their span and phase, and the turn's closing warnings."""
 
-    def __init__(
-        self, context: AgentContext, tools: Sequence[AnyTool] = TOOLS
-    ) -> None:
+    def __init__(self, context: AgentContext, tools: Sequence[AnyTool] = TOOLS) -> None:
         self.context = context
         self._tools = {tool.name: tool for tool in tools}
         self.specs = [
