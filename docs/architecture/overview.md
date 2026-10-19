@@ -162,32 +162,38 @@ sequenceDiagram
     participant N as LLM (Bedrock or NVIDIA)
     participant W as Open-Meteo
     B->>A: POST /api/v1/ai/planner {message | action, history, brief, itinerary} + Bearer
+    Note over A: before the stay, deterministic: the checklist
     A->>N: extract/merge the brief (JSON) → data: {"type":"brief", missing}
     A->>N: one short question while a field is missing → data: {"type":"text"}
-    A->>V: neighbourhoods · stays (district, tier) · places per part of the day (filters)
+    A->>V: the first time the brief is complete: neighbourhoods (no agent step)
     A->>N: rank / pick ids among the retrieved documents + one-line "why"
-    A-->>B: data: {"type":"options", group_id, cards} (cards hydrated from the corpus)
+    A-->>B: data: {"type":"options", group_id: nb, cards} (cards hydrated from the corpus)
     B->>A: {action: {type: "select", group_id, card_ids}} (applied optimistically)
+    A-->>B: data: options hotels:<district> → select → the draft
     A->>W: daily forecast (≤ 16 days) — else the corpus's climate normals
     A-->>B: data: {"type":"itinerary_patch", ops: set_stay · set_route · set_day_title · put_activity · set_weather · warn}
     Note over A: stateless: the group id says what a selection means (nb, hotels:<district>, slot:<day>:<part>)
-    B->>A: after the draft: {message, itinerary snapshot}
-    loop agent steps (≤ AGENT_MAX_STEPS, ≤ AGENT_MAX_TOOL_CALLS)
-        A->>N: converse: system prompt (the trip with titles), transcript, tool results, tools
+    B->>A: any other message once the neighbourhoods were offered, or after the draft
+    loop Kiri's steps (≤ AGENT_MAX_STEPS, ≤ AGENT_MAX_TOOL_CALLS)
+        A->>N: converse: system prompt (the brief, or the trip with titles), transcript, tool results, tools
         N-->>A: text (streamed, prices stripped) and tool calls
-        A->>V: the tools' own searches (search_places, get_place, list_districts, redraft_day)
-        A-->>B: data: itinerary_patch (put_activity · remove_activity · set_day_title) · options (found:, hotels:, nb)
+        A->>V: the tools' own searches (search_places, get_place, list_districts, the offers, redraft_day)
+        A-->>B: before the stay: options (nb, hotels:) · plan_for_me's whole draft
+        A-->>B: after it: itinerary_patch (put_activity · remove_activity · set_day_title) · options (found:, hotels:, nb)
     end
     A-->>B: data: {"type":"itinerary_patch", ops: warn} for every day an edit touched
 ```
 
-After the draft, a message goes to Kiri as a tool-using agent
-([ADR 0032](adr/0032-kiri-is-a-tool-using-agent.md), `ai_api/application/agent/`): the model
-chooses tools (search, read a place, the weather, check a day, add, remove, move, retitle or
-redraft a day, offer cards or other stays), and the write tools accept only ids the server fetched
-in that turn, so the guarantee below holds. The page's own "Alternatives for day N" ask and the
-`select` / `remove` actions stay deterministic; `PLANNER_AGENT=false`, or a model that cannot call
-tools, keeps the intent classifier.
+Kiri, one tool-using agent ([ADR 0032](adr/0032-kiri-is-a-tool-using-agent.md),
+`ai_api/application/agent/`), runs the conversation. What stays deterministic: the brief's
+extraction and its one question at a time, the first offer of the neighbourhoods, the page's own
+"Generate the trip" and "Alternatives for day N · part" asks, and the `select` / `remove` actions.
+Before the stay the model chooses among reading the guide, offering the neighbourhoods or the
+hotels again, and `plan_for_me` when the traveller delegates the choice (TRA-291); after the draft
+it searches, reads a place, the weather, checks a day, adds, removes, moves, retitles or redrafts a
+day, and offers cards or other stays (TRA-290). The write tools accept only ids the server fetched
+in that turn, so the guarantee below holds. A model that cannot call tools answers a fixed
+sentence; there is no other fallback, and rolling back is redeploying the previous image.
 
 The turn's trace (its model calls, retrievals with their top-k, tools, the SSE timeline) is
 written to `<prefix>-interactions` before `[DONE]`, keyed by the page's `session_id` (ADR 0024).

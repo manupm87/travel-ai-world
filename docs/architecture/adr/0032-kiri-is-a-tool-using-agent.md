@@ -1,6 +1,6 @@
 # 0032 — Kiri is a tool-using agent in `ai_api`
 
-**Status:** Accepted (amends [0015](0015-planner-sse-v2-stateless-orchestration.md))
+**Status:** Accepted (amends [0015](0015-planner-sse-v2-stateless-orchestration.md)); amended by TRA-291 (below)
 **Date:** 2026-10-19
 
 ## Context
@@ -104,3 +104,25 @@ lower the pass rate of the safety checks.
   Terraform default `nvidia_chat_model`); GLM-5.3-Flash read-timed out on every probe, so a local
   run on GLM keeps the state machine until its probe passes. A Bedrock run by a human after
   `just aws-login` is required before the deploy that ships the agent.
+
+## Amended by TRA-291 (2026-10-19)
+
+The agent now runs the whole conversation, and three decisions above changed:
+
+- **Rollout and rollback.** `PLANNER_AGENT`, `_classify` and its intents are gone: there is no
+  switch and no state machine to fall back to. Rolling back is redeploying the previous image. A
+  model without `supports_tools` (GLM today) answers a fixed `agent_unavailable` sentence after the
+  brief, which only guards a misconfiguration.
+- **Before the stay** the agent decides too. The brief extraction, the checklist question, the first
+  offer of the neighbourhoods and the page's own "Generate the trip" stay deterministic; after the
+  neighbourhoods were offered, the agent answers with `search_places`, `get_place`,
+  `list_districts`, `offer_neighbourhoods`, `offer_hotels` and `plan_for_me`. `plan_for_me` (the
+  traveller delegates: "decide tú", "surprise me") is the one tool that sets a stay. The transcript
+  reads that routed before (`_neighbourhoods_offered`, `_hotels_offered_in`) are context now
+  (`agent/context.py`), since the page sends the transcript as text only.
+- **A provider outage before the turn sent anything** (NVIDIA's free tier answering 429 past the
+  retries) becomes a fixed `agent_retry` sentence; the step's span keeps its error. After events
+  went out it is still the stream's `error` event.
+
+Tool events reach the page as they come (`Toolbox.stream`), so a draft run by `plan_for_me` keeps
+the stream busy day by day, as the deterministic draft does.

@@ -72,7 +72,7 @@ in their place, and its prompt version is printed: verdicts of two versions are 
 just eval-conversations                               # every scenario once
 just eval-conversations budapest --tag safety         # a city, a tag (repeatable)
 just eval-conversations --scenario prices-en          # one scenario (repeatable)
-just eval-conversations --repeat 3 --out eval.md      # the gate's run; eval.json keeps the transcripts
+just eval-conversations --repeat 3 --concurrency 1 --out eval.md   # the gate's run; eval.json keeps the transcripts
 just eval-conversations --judge --judge-model ID      # with the LLM verdicts
 ```
 
@@ -80,15 +80,16 @@ The planner is built like `just planner-smoke`: the provider of the service's `.
 (`providers.build_llm_provider`: NVIDIA with `NVIDIA_API_KEY`, or Bedrock with
 `LLM_PROVIDER=bedrock` after `just aws-login`), `KeywordRetriever` over the city's committed
 `documents.jsonl`, the real Open-Meteo forecast; Commons photos and site previews only with
-`--photos`. Two scenarios run at a time. The report has a row per scenario (checks passed, runs
+`--photos`. Two scenarios run at a time (`--concurrency N`; the gate runs one at a time since
+TRA-291, to keep NVIDIA's rate limit out of the measurement). The report has a row per scenario (checks passed, runs
 passed, mean seconds, tokens in and out, model calls), the totals, the pass rate per tag and every
 failed check with its detail. A full `--repeat 3` run is 96 conversations: about half an hour on
 NVIDIA's free tier, whose rate limit (HTTP 429) shows up as degraded turns.
 
 ## The gate (design decision 11)
 
-- Every PR that changes the planner pastes the table of `just eval-conversations --repeat 3` next to
-  the baseline below.
+- Every PR that changes the planner pastes the table of `just eval-conversations --repeat 3
+  --concurrency 1` next to the baseline below.
 - **Safety checks may not fail.**
 - **Scenarios passed** (mean over the three runs) may be at most one below the reference.
 - The local runs use NVIDIA. Before the backend deploy that ships the agent, a person runs it once

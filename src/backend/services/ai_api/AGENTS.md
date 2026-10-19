@@ -22,7 +22,7 @@ application/    use cases (PlanTrip, CardDetailLookup, CheckAccess) and their pu
                 prices), language.py, retrieval_eval.py (recall@k / MRR over the 20 questions per city of
                 data/eval_questions/, TRA-263/272), answer_eval.py (the chat's answers to those questions and to
                 data/eval_unanswerable.jsonl, graded by a judge model, TRA-266; the chat prompt is
-                `plan_trip.chat_messages`, shared with `PlanTrip._chat`, so the two never drift),
+                `plan_trip.chat_messages`, the grounded-answer prompt the planner used before the agent),
                 conversation_eval.py (scripted multi-turn scenarios of data/eval_conversations/ played against
                 `PlanTrip`, the page's side mirrored by `ClientState` from `plannerReducer.ts`, graded on the
                 itinerary and texts they leave, TRA-288). Depend on domain
@@ -155,22 +155,46 @@ testing.py      FakeProvider, FakeEmbedder, FakeRetriever, KeywordRetriever (tf-
   model only extracts the brief, ranks/picks ids among retrieved documents and writes `why`; cards come from
   `cards.py` over the document's metadata, ids not retrieved are dropped, `why` and titles go through
   `strip_prices`. It needs the retriever (503 without `RETRIEVAL_ENABLED`); a failed structured call degrades
-  (top candidates, plain day titles, chat intent) rather than failing the turn. Prompts and the fixed
-  en/es sentences live in `prompts.py`. **After the draft, Kiri is a tool-using agent** (ADR 0032,
-  TRA-290): once the trip has a stay and days, a message (other than the page's own "Alternatives for
-  day N · part", which keeps its fast path) goes to `_agent` when `PLANNER_AGENT` is on (the default;
-  `api/deps.py` passes it, `PlanTrip(agent_enabled=False)` otherwise) and `provider.supports_tools`;
-  else `_classify` and its three intents answer, as before. `agent/context.py` fetches the
+  (top candidates, plain day titles) rather than failing the turn. Prompts and the fixed
+  en/es sentences live in `prompts.py`. **Kiri, one tool-using agent, runs the conversation** (ADR 0032;
+  TRA-290 after the draft, TRA-291 before the stay). Routing, in `_on_message`:
+  - *Before the stay* (`_before_stay`): `_extract_brief` + `_ahead` run on every message and the
+    `brief` event goes out first (the checklist UI); the not-covered sentence stays deterministic;
+    while `brief.missing()`, `_ask_missing` asks one question. Complete: the page's own button text
+    ("Generate the trip" / "Genera el viaje", `GENERATE_ASKS`, exact match) runs
+    `_auto_stay_and_draft`; while the transcript holds no neighbourhoods sentence
+    (`agent/context.neighbourhoods_offered`), `_neighbourhood_options` runs with no model step;
+    after that, the agent answers with `PRE_STAY_TOOLS` (`search_places`, `get_place`,
+    `list_districts`, `offer_neighbourhoods`, `offer_hotels(district?, cheaper)`, `plan_for_me`) and
+    `AGENT_PRE_STAY_PROMPT`. `offer_hotels` without a district re-offers the district of the latest
+    hotels sentence in the transcript (`last_hotels_district`, either language, anywhere in an
+    assistant message: context, not a route); `plan_for_me` is `_auto_stay_and_draft` for "decide tú",
+    "surprise me" and any other wording.
+  - *After the stay*: the brief is not extracted again (dates do not change after the draft); the
+    page's "Alternatives for day N · part" keeps its fast path (`_alternatives_slot` →
+    `_find_options`); every other message goes to the agent with `TOOLS` and `AGENT_SYSTEM_PROMPT`.
+  - Selections (`select`) and removals (`remove`) never reach the agent. A provider without
+    `supports_tools` answers `PLANNER_TEXTS["agent_unavailable"]` (production and the local default
+    call tools; it guards a misconfiguration). There is no switch: rolling back is redeploying the
+    previous image.
+
+  `agent/context.py` fetches the
   itinerary's documents once (`agent_itinerary`) and writes `AGENT_SYSTEM_PROMPT` with the trip by
-  title; `agent/loop.py` (`run_agent`) streams each step's text through `ProseFilter` (cut at
+  title (before the stay: the brief and the last hotels' district, no fetch); `agent/loop.py`
+  (`run_agent`) streams each step's text through `ProseFilter` (cut at
   sentence ends, never next to an amount, each piece through `strip_prices`) and runs the calls in
   order within `AGENT_MAX_STEPS` / `AGENT_MAX_TOOL_CALLS` (past them: `budget_exhausted` results, one
-  last step, else `agent_budget`); `agent/tools.py` holds the twelve tools over the `PlanTrip`
+  last step, else `agent_budget`); a `ProviderUnavailable` before the turn sent any event becomes
+  the `agent_retry` sentence (the step's span keeps its error), after that it is the stream's `error`
+  event. A tool's events reach the page as they come (`Toolbox.stream`; the carousel and draft
+  helpers are `run_stream` tools), so a draft from `plan_for_me` streams day by day.
+  `agent/tools.py` holds the tools over the `PlanTrip`
   helpers: `search_places`, `get_place`, `list_districts`, `get_weather`, `check_day` (read);
   `add_activity`, `remove_activity`, `move_activity` (remove then put in one patch, the card hydrated
   again), `set_day_title`, `redraft_day` (`_draft_day`, the draft's own per-day step) (write);
   `offer_options` (always a fresh `found:` group, unplaced) and `offer_stays` (forwards
-  `_hotel_options` / `_neighbourhood_options`; the agent never sets a stay). **Write tools accept
+  `_hotel_options` / `_neighbourhood_options`; the agent never sets a stay, except `plan_for_me`
+  before it, when the traveller delegates the choice). **Write tools accept
   only ids in `AgentContext.known`** (the itinerary's documents and whatever a tool retrieved or
   fetched this turn) and only places that are not a stay; any other id is an error result the model
   reads (`unknown id: call search_places first`, counted by `note_picks`). A tool's phase is
@@ -180,8 +204,9 @@ testing.py      FakeProvider, FakeEmbedder, FakeRetriever, KeywordRetriever (tf-
   model with `FakeProvider(steps=...)` (`tests/test_agent_loop.py`, `tests/test_agent_tools.py`).
   **A place the ask names is offered first** (TRA-186):
   `_named_places` runs one unfiltered search on the traveller's words and pins the listings whose
-  title the ask names (`_named_at`) ahead of the candidates and of the model's picks, on the options
-  route and in `_chat`; a `restaurant` ask with no part searches `eat` *and* `drink`. Weather: Open-Meteo within 16 days, else the corpus's
+  title the ask names (`_named_at`) ahead of the candidates and of the model's picks, in a guided
+  alternatives ask and in `search_places`; `search_places(kind="restaurant")` searches `eat` *and*
+  `drink`. Weather: Open-Meteo within 16 days, else the corpus's
   `om:climate:<city>:<MM>` normal fetched by id. **Every card is pictured, and never by another place**
   (TRA-161, TRA-168, TRA-206 / ADR 0021): candidates are ordered pictured-first; a card without a corpus
   image is looked up on Commons by name (the search carries the city's name) and at its coordinates,

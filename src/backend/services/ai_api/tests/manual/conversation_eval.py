@@ -3,7 +3,7 @@
     uv run python tests/manual/conversation_eval.py                 # every scenario
     uv run python tests/manual/conversation_eval.py budapest --tag safety
     uv run python tests/manual/conversation_eval.py --scenario prices-en --repeat 3
-    just eval-conversations "" --repeat 3 --concurrency 1   # the gate (ADR 0032)
+    just eval-conversations --repeat 3 --concurrency 1     # the gate (ADR 0032)
     just eval-conversations budapest --judge --out eval.md
 
 Run by path, not as a module (see `planner_smoke.py`).
