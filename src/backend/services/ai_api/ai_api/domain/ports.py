@@ -7,6 +7,7 @@ from collections.abc import AsyncIterator, Sequence
 from datetime import date
 from typing import Protocol
 
+from ai_api.domain.agent import AgentEvent, AgentMessage, ToolSpec
 from ai_api.domain.models import (
     DayWeather,
     Document,
@@ -53,6 +54,27 @@ class LLMProvider(Protocol):
 
         When supported, `response_schema` constrains the provider's output.
         Same failure and `usage` rules as `stream`.
+        """
+        ...
+
+    @property
+    def supports_tools(self) -> bool:
+        """Whether the active model is verified to call tools (ADR 0032)."""
+        ...
+
+    def converse(
+        self,
+        system: Sequence[str],
+        messages: Sequence[AgentMessage],
+        tools: Sequence[ToolSpec],
+        *,
+        usage: Usage | None = None,
+    ) -> AsyncIterator[AgentEvent]:
+        """One step of a tool-using conversation.
+
+        Yield `TextDelta`s as they come, a `ToolCallReady` once a call's input
+        is complete, and exactly one `StepEnd` last. Same failure and `usage`
+        rules as `stream`; a retry happens only before the first item.
         """
         ...
 

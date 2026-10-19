@@ -9,12 +9,22 @@ from ai_api.application.tracing import (
     TurnTracer,
     clip,
     current_tracer,
+    tool_span,
+    traced_converse,
     traced_llm_stream,
     use_tracer,
 )
+from ai_api.domain.agent import (
+    AgentMessage,
+    StepEnd,
+    TextDelta,
+    ToolResult,
+    ToolSpec,
+)
 from ai_api.domain.models import Document, Message, Usage
 from ai_api.domain.tracing import MAX_EVENT_MARKS, MAX_SOURCES, MAX_SPANS
-from ai_api.testing import FakeProvider
+from ai_api.prompts import prompt_version
+from ai_api.testing import FakeProvider, tool_call
 from pydantic import BaseModel, Field
 from travel_common.exceptions import ProviderUnavailable
 
@@ -400,3 +410,147 @@ async def test_provider_schema_omits_unsupported_constraints_and_requires_all_fi
     assert schema["additionalProperties"] is False
     assert "default" not in schema["properties"]["value"]
     assert "maxLength" not in schema["properties"]["label"]
+
+
+# ─── Tool-using steps (ADR 0032) ────────────────────────────────────────────
+
+WEATHER = ToolSpec("get_weather", "The forecast.", {"type": "object"})
+
+
+async def test_traced_converse_records_an_agent_span():
+    clock = FakeClock()
+    t = tracer(clock)
+    provider = FakeProvider(
+        steps=[["Let me ", "check.", tool_call("get_weather", id="c-1", city="Bp")]],
+        usage=Usage(model="fake-model", input_tokens=30, output_tokens=7),
+    )
+    messages = [
+        AgentMessage("user", "weather in Budapest?"),
+        AgentMessage("assistant", tool_calls=(tool_call("x", id="c-0"),)),
+        AgentMessage("user", tool_results=(ToolResult("c-0", '{"a": 1}'),)),
+    ]
+
+    items = [
+        item
+        async for item in traced_converse(
+            provider,
+            ["system"],
+            messages,
+            [WEATHER],
+            name="agent_step",
+            traveller_message="weather in Budapest?",
+            tracer=t,
+            template="the template",
+        )
+    ]
+
+    assert items[-1] == StepEnd("tool_use")
+    assert provider.conversations == [(["system"], messages, [WEATHER])]
+    (span,) = t.spans
+    assert span.kind == "llm"
+    assert span.name == "agent_step"
+    p = span.payload
+    assert p["operation"] == "agent"
+    assert p["provider"] == "fake"
+    # The traveller's words, not the last tool result.
+    assert p["input"] == "weather in Budapest?"
+    assert p["prompt_version"] == prompt_version("the template")
+    assert p["tools"] == ["get_weather"]
+    assert p["tool_calls"] == ["get_weather"]
+    assert p["stop_reason"] == "tool_use"
+    assert p["output"] == "Let me check."
+    assert p["model"] == "fake-model"
+    assert (p["input_tokens"], p["output_tokens"]) == (30, 7)
+    assert p["ttfc_ms"] == 0
+    assert t.llm_calls == 1
+    assert (t.input_tokens, t.output_tokens) == (30, 7)
+
+
+async def test_traced_converse_closes_the_span_when_the_provider_fails():
+    class Failing(FakeProvider):
+        async def converse(self, system, messages, tools, *, usage=None):
+            yield TextDelta("half")
+            raise ProviderUnavailable("down")
+
+    t = tracer()
+
+    with pytest.raises(ProviderUnavailable):
+        async for _ in traced_converse(
+            Failing(),
+            [],
+            [AgentMessage("user", "hi")],
+            [],
+            name="agent_step",
+            traveller_message="hi",
+            tracer=t,
+        ):
+            pass
+
+    (span,) = t.spans
+    assert span.level == "error"
+    assert span.payload["output"] == "half"
+    assert span.payload["stop_reason"] is None
+    assert span.payload["tool_calls"] == []
+
+
+async def test_tool_span_records_arguments_status_and_count():
+    clock = FakeClock()
+    t = tracer(clock)
+
+    async with tool_span(t, "search_places", {"query": "baths", "limit": 3}) as span:
+        clock.advance(40)
+        span.payload["count"] = 3
+
+    (recorded,) = t.spans
+    assert recorded.kind == "tool"
+    assert recorded.name == "tool:search_places"
+    assert recorded.dur_ms == 40
+    assert recorded.payload["service"] == "planner"
+    assert recorded.payload["arguments"] == '{"query": "baths", "limit": 3}'
+    assert recorded.payload["status"] == "ok"
+    assert recorded.payload["count"] == 3
+
+
+async def test_tool_span_keeps_an_error_status_the_caller_sets():
+    t = tracer()
+
+    async with tool_span(t, "get_place", {"id": "nope"}) as span:
+        span.payload["status"] = "error"
+
+    assert t.spans[0].payload["status"] == "error"
+    assert t.spans[0].level == "default"
+
+
+async def test_tool_span_marks_an_exception_as_an_error():
+    t = tracer()
+
+    with pytest.raises(RuntimeError):
+        async with tool_span(t, "get_place", {}):
+            raise RuntimeError("boom")
+
+    assert t.spans[0].payload["status"] == "error"
+    assert t.spans[0].level == "error"
+
+
+async def test_tool_span_clips_long_arguments():
+    t = TurnTracer("planner", "/x", "sub", clock=FakeClock(), payload_bytes=16)
+
+    async with tool_span(t, "search_places", {"query": "x" * 100}):
+        pass
+
+    assert len(t.spans[0].payload["arguments"].encode()) <= 16
+
+
+async def test_every_llm_and_tool_span_carries_the_agent_keys():
+    t = tracer()
+
+    async with t.span("llm", "pick"):
+        pass
+    async with t.span("tool", "weather"):
+        pass
+
+    llm, tool = t.spans
+    assert llm.payload["tool_calls"] == []
+    assert llm.payload["tools"] == []
+    assert llm.payload["stop_reason"] is None
+    assert tool.payload["arguments"] is None

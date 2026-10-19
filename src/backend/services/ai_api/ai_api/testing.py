@@ -2,6 +2,7 @@
 tests (and this service's own) can run without a network or an API key."""
 
 import hashlib
+import itertools
 import math
 import re
 from collections import Counter
@@ -13,6 +14,15 @@ from typing import Any
 from travel_common.exceptions import BadRequest, DomainError
 
 from ai_api.config import AISettings
+from ai_api.domain.agent import (
+    AgentEvent,
+    AgentMessage,
+    StepEnd,
+    TextDelta,
+    ToolCall,
+    ToolCallReady,
+    ToolSpec,
+)
 from ai_api.domain.models import (
     City,
     Document,
@@ -61,6 +71,16 @@ def city_for(
 
 BUDAPEST = city_for("budapest", name="Budapest")
 
+_call_ids = itertools.count(1)
+
+
+def tool_call(name: str, id: str | None = None, **arguments: object) -> ToolCall:
+    """A `ToolCall` for a `FakeProvider` step: `tool_call("search_places",
+    query="baths")`; the id is made up when not given."""
+    return ToolCall(
+        id=id or f"call_{next(_call_ids)}", name=name, arguments=dict(arguments)
+    )
+
 
 class FakeProvider:
     """Records what it was asked and answers from a script.
@@ -69,10 +89,18 @@ class FakeProvider:
     (a JSON string for structured output) and falls back to the joined
     deltas when the script runs out. Every call is kept in `calls` /
     `completions`, so a test can assert what the model was shown.
+
+    `converse` pops the next entry of `steps`: its strings stream as
+    `TextDelta`s, its `ToolCall`s (see `tool_call`) as `ToolCallReady`s, and
+    it ends with `StepEnd("tool_use")` when it held a call, else
+    `StepEnd("end_turn")`. With no step left it streams `deltas` and ends
+    the turn. Each call is kept in `conversations` as
+    `(system, messages, tools)`.
     """
 
     name = "fake"
     supports_structured_outputs = True
+    supports_tools = True
 
     def __init__(
         self,
@@ -80,8 +108,15 @@ class FakeProvider:
         usage: Usage | None = None,
         replies: Sequence[str] = (),
         supports_structured_outputs: bool = False,
+        steps: Sequence[Sequence[str | ToolCall]] = (),
+        supports_tools: bool = True,
     ) -> None:
         self.supports_structured_outputs = supports_structured_outputs
+        self.supports_tools = supports_tools
+        self.steps = [list(step) for step in steps]
+        self.conversations: list[
+            tuple[list[str], list[AgentMessage], list[ToolSpec]]
+        ] = []
         self.deltas = list(deltas)
         self.usage = usage or Usage(model="fake-model", input_tokens=3, output_tokens=2)
         self.calls: list[list[Message]] = []
@@ -111,6 +146,28 @@ class FakeProvider:
         if self.replies:
             return self.replies.pop(0)
         return "".join(self.deltas)
+
+    async def converse(
+        self,
+        system: Sequence[str],
+        messages: Sequence[AgentMessage],
+        tools: Sequence[ToolSpec],
+        *,
+        usage: Usage | None = None,
+    ) -> AsyncIterator[AgentEvent]:
+        self.conversations.append((list(system), list(messages), list(tools)))
+        step: list[str | ToolCall] = (
+            self.steps.pop(0) if self.steps else list(self.deltas)
+        )
+        called = False
+        for item in step:
+            if isinstance(item, ToolCall):
+                called = True
+                yield ToolCallReady(item)
+            else:
+                yield TextDelta(item)
+        self._fill(usage)
+        yield StepEnd("tool_use" if called else "end_turn")
 
     def _fill(self, usage: Usage | None) -> None:
         if usage is not None:

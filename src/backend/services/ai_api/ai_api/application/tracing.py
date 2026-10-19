@@ -8,8 +8,11 @@ fixture or an `if`.
 
 Rules the use cases follow:
 
-- every model call goes through `complete_json(name=...)` or
-  `traced_llm_stream(...)`: one `llm` span each, with tokens and timings;
+- every model call goes through `complete_json(name=...)`,
+  `traced_llm_stream(...)` or, for a tool-using step, `traced_converse(...)`:
+  one `llm` span each, with tokens and timings;
+- every tool an agent runs goes through `tool_span(...)`: one `tool` span
+  named `tool:<name>` with its arguments, status and count (ADR 0032);
 - every search goes through a `retriever` span whose results are recorded
   with `retrieved`, and the ids a pick keeps are marked with `mark_used`;
 - `phase` is set before the steps of each of the five phases (`open`,
@@ -17,6 +20,7 @@ Rules the use cases follow:
 """
 
 import asyncio
+import json
 import logging
 import time
 import uuid
@@ -28,6 +32,14 @@ from datetime import UTC, datetime
 from typing import Any
 
 from ai_api.application import pricing
+from ai_api.domain.agent import (
+    AgentEvent,
+    AgentMessage,
+    StepEnd,
+    TextDelta,
+    ToolCallReady,
+    ToolSpec,
+)
 from ai_api.domain.models import Document, GenerationParams, Message, Usage
 from ai_api.domain.ports import LLMProvider
 from ai_api.domain.tracing import (
@@ -89,6 +101,9 @@ def _payload_defaults(kind: SpanKind) -> dict[str, Any]:
             "validation_error": None,
             "picked_ids": [],
             "dropped_ids": [],
+            "tools": [],
+            "tool_calls": [],
+            "stop_reason": None,
             "input": None,
             "output": None,
             "input_truncated": False,
@@ -107,7 +122,13 @@ def _payload_defaults(kind: SpanKind) -> dict[str, Any]:
             "no_hit": None,
         }
     if kind == "tool":
-        return {"service": None, "host": None, "status": None, "count": None}
+        return {
+            "service": None,
+            "host": None,
+            "status": None,
+            "count": None,
+            "arguments": None,
+        }
     return {"details": {}}
 
 
@@ -567,6 +588,88 @@ async def traced_llm_stream(
             output, cut = tracer.clip("".join(parts))
             span.payload["output"] = output
             span.payload["output_truncated"] = cut
+
+
+async def traced_converse(
+    provider: LLMProvider,
+    system: Sequence[str],
+    messages: Sequence[AgentMessage],
+    tools: Sequence[ToolSpec],
+    *,
+    name: str,
+    traveller_message: str,
+    tracer: TurnTracer | None = None,
+    template: str | None = None,
+    usage: Usage | None = None,
+) -> AsyncIterator[AgentEvent]:
+    """`provider.converse` inside an `llm` span (`operation="agent"`).
+
+    The span's `input` is the traveller's message (not the last tool
+    result, which is what `messages` ends with after the first step); it
+    records the tools offered, the names of the calls made, the stop reason,
+    the text (truncated), tokens and the time to the first item.
+    """
+    tracer = tracer or current_tracer()
+    usage = usage if usage is not None else Usage()
+    text, cut = tracer.clip(traveller_message)
+    params = tracer.params
+    payload = {
+        "provider": getattr(provider, "name", None),
+        "operation": "agent",
+        "prompt_version": prompt_version(template) if template else None,
+        "temperature": params.temperature if params else None,
+        "max_tokens": params.max_tokens if params else None,
+        "tools": [tool.name for tool in tools],
+        "input": text,
+        "input_truncated": cut,
+    }
+    async with tracer.span("llm", name, **payload) as span:
+        span.payload["attempts"] = 1
+        parts: list[str] = []
+        calls: list[str] = []
+        first = True
+        try:
+            async for item in provider.converse(system, messages, tools, usage=usage):
+                if first:
+                    span.payload["ttfc_ms"] = tracer.elapsed_ms() - span.t0_ms
+                    first = False
+                if isinstance(item, TextDelta):
+                    parts.append(item.text)
+                elif isinstance(item, ToolCallReady):
+                    calls.append(item.call.name)
+                elif isinstance(item, StepEnd):
+                    span.payload["stop_reason"] = item.stop_reason
+                yield item
+        finally:
+            fill_usage(span, usage)
+            span.payload["tool_calls"] = calls
+            output, cut = tracer.clip("".join(parts))
+            span.payload["output"] = output
+            span.payload["output_truncated"] = cut
+
+
+@asynccontextmanager
+async def tool_span(
+    tracer: TurnTracer, name: str, arguments: dict[str, Any]
+) -> AsyncIterator[Span]:
+    """One tool an agent runs: a `tool` span named `tool:<name>` with
+    `service="planner"` and its arguments as JSON (clipped like `input`).
+
+    The caller sets `span.payload["status"]` (`ok` / `error`) and
+    `span.payload["count"]` (items returned); a block that ends without a
+    status is `ok`, one that raises is `error`.
+    """
+    encoded, _ = tracer.clip(json.dumps(arguments, ensure_ascii=False, default=str))
+    async with tracer.span(
+        "tool", f"tool:{name}", service="planner", arguments=encoded
+    ) as span:
+        try:
+            yield span
+        except BaseException:
+            span.payload["status"] = "error"
+            raise
+        if span.payload.get("status") is None:
+            span.payload["status"] = "ok"
 
 
 # ─── Small helpers ──────────────────────────────────────────────────────────

@@ -84,6 +84,11 @@ class AISettings(CommonSettings, DynamoSettings):
     # documents the model chooses from per part of a day.
     PLANNER_MAX_DAYS: int = 7
     PLANNER_CANDIDATES: int = 8
+    # The agent's budget per turn (ADR 0032): model steps and tool calls.
+    # Past either, every further call is answered "budget exhausted" and one
+    # last step must answer the traveller.
+    AGENT_MAX_STEPS: int = 6
+    AGENT_MAX_TOOL_CALLS: int = 12
     # Daily forecast for dates within reach; beyond it the corpus's climate
     # normals are used. A failure never fails a plan.
     OPEN_METEO_URL: str = "https://api.open-meteo.com/v1/forecast"
