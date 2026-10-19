@@ -80,6 +80,10 @@ export interface Translations {
     sendHint: string;
     /** Shown when no ai_api URL is configured (static preview builds). */
     unavailable: string;
+    /** Under Kiri's answer: puts the itinerary back as it was before it (TRA-293). */
+    undoChanges: string;
+    /** Read out once the itinerary is back. */
+    changesUndone: string;
   };
 
   /** The signed-in home (`/dashboard/`): the ask, then the account's trips (TRA-199). */

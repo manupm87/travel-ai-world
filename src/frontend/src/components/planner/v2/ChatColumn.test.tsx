@@ -2,6 +2,7 @@ import type { ComponentProps } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { act, fireEvent, renderWithProviders, screen } from "@/test/render";
 import en from "@/i18n/en";
+import es from "@/i18n/es";
 import { interpolate } from "@/i18n";
 import {
   initialPlannerState,
@@ -402,5 +403,77 @@ describe("ChatColumn — Kiri's answer (TRA-239)", () => {
       onRetry: vi.fn(),
     });
     expect(screen.queryByRole("button", { name: p.packing.lost.retry })).not.toBeInTheDocument();
+  });
+});
+
+describe("ChatColumn — undo changes (TRA-293)", () => {
+  const itinerary = applyItineraryOps(EMPTY_ITINERARY, FIRST_ITINERARY_OPS);
+  const UNDO_MESSAGES: PlannerMessage[] = [
+    { id: "m1", kind: "text", role: "user", content: "Make day 1 quieter" },
+    { id: "m2", kind: "text", role: "assistant", content: "Done: day 1 is quieter." },
+    { id: "m3", kind: "text", role: "user", content: "Thanks" },
+    { id: "m4", kind: "text", role: "assistant", content: "Enjoy!" },
+  ];
+  const undoState = (messageId: string | null): Partial<PlannerState> => ({
+    messages: UNDO_MESSAGES,
+    groups: {},
+    missing: [],
+    itinerary,
+    undo: { itinerary: EMPTY_ITINERARY, changed: true, settled: true, messageId, since: 1 },
+  });
+
+  it("offers the button under the matching message only, and undoes on a tap", () => {
+    const onUndo = vi.fn();
+    renderColumn(undoState("m2"), null, { onUndo });
+
+    const buttons = screen.getAllByRole("button", { name: en.planner.undoChanges });
+    expect(buttons).toHaveLength(1);
+    const button = buttons[0]!;
+    // Right after the bubble it belongs to, not under the later one.
+    const bubble = screen.getByText("Done: day 1 is quieter.");
+    const later = screen.getByText("Enjoy!");
+    expect(bubble.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(button.compareDocumentPosition(later) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    fireEvent.click(button);
+    expect(onUndo).toHaveBeenCalledTimes(1);
+    expect(screen.getByText(en.planner.changesUndone)).toBeInTheDocument();
+  });
+
+  it("speaks the page's language", () => {
+    localStorage.setItem("travel_ai_language", "es");
+    renderColumn(undoState("m2"), null, { onUndo: vi.fn() });
+
+    fireEvent.click(screen.getByRole("button", { name: es.planner.undoChanges }));
+    expect(es.planner.undoChanges).toBe("Deshacer cambios");
+    expect(screen.getByText(es.planner.changesUndone)).toBeInTheDocument();
+  });
+
+  it("sits at the foot of the log when the turn wrote no text", () => {
+    renderColumn(undoState(null), null, { onUndo: vi.fn() });
+    const button = screen.getByRole("button", { name: en.planner.undoChanges });
+    const later = screen.getByText("Enjoy!");
+    expect(later.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("is not offered with nothing to undo, nor while the turn streams, nor on a locked trip", () => {
+    const { unmount } = renderColumn({ ...undoState("m2"), undo: null }, null, { onUndo: vi.fn() });
+    expect(screen.queryByRole("button", { name: en.planner.undoChanges })).toBeNull();
+    unmount();
+
+    const streaming = renderColumn(
+      {
+        ...undoState("m2"),
+        status: "streaming",
+        undo: { itinerary: EMPTY_ITINERARY, changed: true, settled: false, messageId: null, since: 5 },
+      },
+      null,
+      { onUndo: vi.fn() }
+    );
+    expect(screen.queryByRole("button", { name: en.planner.undoChanges })).toBeNull();
+    streaming.unmount();
+
+    renderColumn(undoState("m2"), null, { onUndo: vi.fn(), lockedPhase: "past" });
+    expect(screen.queryByRole("button", { name: en.planner.undoChanges })).toBeNull();
   });
 });

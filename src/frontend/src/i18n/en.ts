@@ -63,6 +63,8 @@ const en: Translations = {
     sendHint: "↵ Send · ⇧↵ Newline",
     unavailable:
       "The AI planner needs a connected backend, so it is not available on this static preview.",
+    undoChanges: "Undo changes",
+    changesUndone: "Changes undone",
   },
   dashboard: {
     /** Quiet and forward-looking: the reader already has an account and, often, trips. */

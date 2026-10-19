@@ -83,6 +83,7 @@ export default function PlannerClientPage() {
     hydrate,
     startNew,
     retry,
+    undoChanges,
   } = usePlanner();
   // The itinerary opens on the trip overview (`null`, TRA-177) and is then
   // browsed one day at a time: the panel's strip picks the day and the map
@@ -254,6 +255,7 @@ export default function PlannerClientPage() {
           lockedPhase={lockedPhase}
           onNewTrip={newTrip}
           onRetry={retry}
+          onUndo={undoChanges}
           // The panel shows the trip's notice meanwhile; the column shows no
           // transcript until the trip is in the planner, so the draft of a
           // deleted trip is never painted before the effect above drops it.

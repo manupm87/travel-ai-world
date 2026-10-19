@@ -56,6 +56,8 @@ const es: Translations = {
     sendHint: "↵ Enviar · ⇧↵ Salto de línea",
     unavailable:
       "El planificador con IA necesita un backend conectado, así que no está disponible en esta vista estática.",
+    undoChanges: "Deshacer cambios",
+    changesUndone: "Cambios deshechos",
   },
   dashboard: {
     /** Tranquila y hacia delante: quien lee ya tiene cuenta y, a menudo, viajes. */
