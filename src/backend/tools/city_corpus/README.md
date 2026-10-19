@@ -298,6 +298,12 @@ checked = 2026-09-22                    # the day a person looked at it
 note = "…"                              # for maintainers; not published
 ```
 
+When the hotel publishes no picture of itself — the site is gone, or only a reseller lists it —
+and the build would otherwise take someone else's (a logo, a promotion, the skyline), the entry
+takes the hotel out instead: `drop = true` with `match`, `source_url`, `checked` and a `note`
+saying why, and no `image_url` or `credit`. The report lists a dropped chain hotel as "left out
+by a curator".
+
 `image_url` may be a Wikimedia Commons file (`Special:FilePath`, with the file's author and licence
 as the `credit`): a curator points at one on purpose, which no automatic source may, and for a chain
 whose own site answers 403 to every client it is the only licence-clean photograph of the building

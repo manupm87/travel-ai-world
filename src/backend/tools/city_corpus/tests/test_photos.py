@@ -1413,6 +1413,26 @@ def test_a_curated_photo_that_no_longer_answers_falls_through(
     assert "no longer answers as a picture" in caplog.text
 
 
+def test_a_curated_drop_removes_the_hotel_before_any_source_is_asked(
+    tmp_path: Path,
+) -> None:
+    """The site would answer with a picture, but a person said it is not this hotel's."""
+    recorder = Recorder(_site_and_curated_image())
+    entry = _curated(image_url=None, credit=None, drop=True)
+    with _client(recorder, tmp_path) as client:
+        kept, stats = photos.resolve(
+            client,
+            BUDAPEST,
+            [_hotel(name="Hilton Budapest", url="https://hotelgellert.hu/")],
+            [entry.model_copy(update={"match": "Hilton Budapest"})],
+        )
+
+    assert kept == []
+    assert (stats.dropped, stats.site, stats.curated) == (1, 0, 0)
+    assert stats.notable == [("Hilton Budapest", photos.CURATED_DROP)]
+    assert recorder.urls == []
+
+
 def test_a_curated_entry_matches_by_osm_id(tmp_path: Path) -> None:
     recorder = Recorder(_site_and_curated_image())
     entry = _curated(match="osm:node/4553094489")

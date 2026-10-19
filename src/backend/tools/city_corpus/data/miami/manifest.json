@@ -1,53 +1,53 @@
 {
   "city": "miami",
-  "built_at": "2026-09-21T18:47:27Z",
-  "documents": 1252,
-  "listings": 636,
-  "listings_with_coordinates": 524,
+  "built_at": "2026-10-19T17:29:55Z",
+  "documents": 1199,
+  "listings": 579,
+  "listings_with_coordinates": 467,
   "by_source": {
     "curated": 3,
     "open-meteo": 12,
-    "openstreetmap": 453,
-    "wikipedia": 520,
-    "wikivoyage": 264
+    "openstreetmap": 407,
+    "wikipedia": 524,
+    "wikivoyage": 253
   },
   "by_lang": {
-    "en": 1215,
+    "en": 1162,
     "es": 37
   },
   "by_kind": {
-    "listing": 636,
-    "prose": 616
+    "listing": 579,
+    "prose": 620
   },
   "by_category": {
     "climate": 13,
     "do": 121,
-    "drink": 24,
-    "eat": 310,
-    "history": 399,
+    "drink": 27,
+    "eat": 298,
+    "history": 403,
     "neighbourhood": 8,
     "practical": 77,
-    "see": 184,
-    "sleep": 74,
+    "see": 183,
+    "sleep": 27,
     "tour": 4,
     "transport": 38
   },
   "by_district": {
     "(city-wide)": 283,
-    "Coconut Grove": 142,
-    "Design District": 66,
-    "Downtown": 394,
-    "Little Havana": 150,
-    "MiMo Boulevard": 66,
-    "Midtown": 107,
-    "Overtown": 44
+    "Coconut Grove": 136,
+    "Design District": 65,
+    "Downtown": 374,
+    "Little Havana": 136,
+    "MiMo Boulevard": 63,
+    "Midtown": 102,
+    "Overtown": 40
   },
   "districts_missing": [],
   "images": {
-    "with_image": 418,
-    "see_documents": 184,
+    "with_image": 436,
+    "see_documents": 183,
     "see_with_image": 122,
-    "see_image_coverage": 0.663
+    "see_image_coverage": 0.667
   },
   "sleep_without_district": [
     "wv:en:Miami#section:sleep:c1",
@@ -61,24 +61,26 @@
         "Buildings and structures in Miami": 111,
         "Churches in Miami": 28,
         "Museums in Miami": 87,
-        "Parks in Miami": 37,
+        "Parks in Miami": 38,
         "Theatres in Miami": 18,
-        "Tourist attractions in Miami": 239
+        "Tourist attractions in Miami": 242
       },
       "skipped_without_coordinates": {
         "Buildings and structures in Miami": 9
-      }
+      },
+      "excluded": 0
     },
     "openstreetmap": {
-      "as_of": "2026-09-21T18:41:36Z",
+      "as_of": "2026-10-19T17:23:03Z",
       "district_boundaries": 3,
       "documents_linked_to_wikidata": 13,
-      "elements": 736,
-      "candidates": 495,
+      "elements": 742,
+      "candidates": 485,
       "merged_into_existing": 36,
-      "new_documents": 453,
+      "new_documents": 443,
       "outside_bbox": 1,
-      "skipped_too_short": 6
+      "skipped_too_short": 6,
+      "chain_outlets": 19
     },
     "wikidata": {
       "ids": 242,
@@ -87,7 +89,143 @@
       "image_files_free": 128,
       "document_images_skipped_non_free": 0
     },
-    "districts_assigned_by_boundary": 393,
+    "districts_assigned_by_boundary": 397,
+    "photos": {
+      "curated": 0,
+      "site": 8,
+      "facebook": 0,
+      "commons": 2,
+      "wikidata": 0,
+      "page": 4,
+      "dropped": 47,
+      "shared": 0,
+      "dropped_examples": [
+        "AC Hotel Miami Wynwood",
+        "AC Hotel by Marriott",
+        "Best Western Premier Miami International Airport Hotel & Suites Coral Gables",
+        "Brickell Arch, a Luxury Collection Hotel, Miami",
+        "Claude Pepper",
+        "Claude Pepper Tower",
+        "Comfort Inn & Suites",
+        "Courtyard Miami Airport",
+        "Courtyard Miami Coconut Grove",
+        "Courtyard Miami Downtown/Brickell Area"
+      ],
+      "notable_without_photo": [
+        {
+          "name": "AC Hotel Miami Wynwood",
+          "reason": "403"
+        },
+        {
+          "name": "AC Hotel by Marriott",
+          "reason": "403"
+        },
+        {
+          "name": "Best Western Premier Miami International Airport Hotel & Suites Coral Gables",
+          "reason": "403"
+        },
+        {
+          "name": "Courtyard Miami Airport",
+          "reason": "403"
+        },
+        {
+          "name": "Courtyard Miami Coconut Grove",
+          "reason": "403"
+        },
+        {
+          "name": "Courtyard Miami Downtown/Brickell Area",
+          "reason": "403"
+        },
+        {
+          "name": "DUA Miami, Autograph Collection",
+          "reason": "403"
+        },
+        {
+          "name": "Hampton",
+          "reason": "403"
+        },
+        {
+          "name": "Hampton Inn & Suites Miami Midtown",
+          "reason": "403"
+        },
+        {
+          "name": "Hampton Inn & Suites by Hilton - Miami/Brickell-Downtown",
+          "reason": "403"
+        },
+        {
+          "name": "Hampton Inn & Suites by Hilton Miami Airport South Blue Lagoon",
+          "reason": "403"
+        },
+        {
+          "name": "Hampton Inn & Suites — Miami Wynwood Design District",
+          "reason": "403"
+        },
+        {
+          "name": "Hilton Garden Inn Miami Brickell South",
+          "reason": "403"
+        },
+        {
+          "name": "Hilton Miami Downtown",
+          "reason": "403"
+        },
+        {
+          "name": "Holiday Inn Port of Miami Downtown",
+          "reason": "no picture"
+        },
+        {
+          "name": "Homewood Suites by Hilton Miami Downtown/Brickell",
+          "reason": "403"
+        },
+        {
+          "name": "Hotel AKA Brickell (formerly The Conrad)",
+          "reason": "left out by a curator"
+        },
+        {
+          "name": "Hyatt Regency Miami",
+          "reason": "403"
+        },
+        {
+          "name": "JW Marriott",
+          "reason": "403"
+        },
+        {
+          "name": "JW Marriott Marquis Miami",
+          "reason": "403"
+        },
+        {
+          "name": "JW Marriott Miami",
+          "reason": "no url"
+        },
+        {
+          "name": "Miami Airport Marriott",
+          "reason": "no url"
+        },
+        {
+          "name": "Miami Marriott Biscayne Bay",
+          "reason": "403"
+        },
+        {
+          "name": "Miami Marriott Biscayne Bay",
+          "reason": "no url"
+        },
+        {
+          "name": "Novotel Miami Brickell",
+          "reason": "no url"
+        },
+        {
+          "name": "The Gabriel Miami Downtown, Curio Collection by Hilton",
+          "reason": "no url"
+        },
+        {
+          "name": "The Ritz-Carlton",
+          "reason": "no picture"
+        },
+        {
+          "name": "Travelodge Miami Biscayne Bay",
+          "reason": "dead"
+        }
+      ]
+    },
     "tours": {
       "curated": 3,
       "reclassified_as_tour": 1,
@@ -102,17 +240,17 @@
     "wikipedia:en:Alice Wainwright Park": 1355272222,
     "wikipedia:en:American Museum of the Cuban Diaspora": 1375774271,
     "wikipedia:en:Arts & Entertainment District": 1374752264,
-    "wikipedia:en:Bakehouse Art Complex": 1372065965,
+    "wikipedia:en:Bakehouse Art Complex": 1376151469,
     "wikipedia:en:Bay of Pigs Monument": 1310714634,
     "wikipedia:en:Bay of Pigs Museum": 1375183358,
-    "wikipedia:en:Bayfront Park": 1358809703,
-    "wikipedia:en:Bayside Marketplace": 1375595633,
+    "wikipedia:en:Bayfront Park": 1378401188,
+    "wikipedia:en:Bayside Marketplace": 1378850819,
     "wikipedia:en:Bethany Seventh-day Adventist Church": 1371700672,
-    "wikipedia:en:Borscht Film Festival": 1374882590,
-    "wikipedia:en:Boulevard Theater (Miami)": 1372069591,
+    "wikipedia:en:Borscht Film Festival": 1379064936,
+    "wikipedia:en:Boulevard Theater (Miami)": 1378505634,
     "wikipedia:en:Brickell City Centre": 1363040887,
     "wikipedia:en:Brickell Mausoleum": 1372752450,
-    "wikipedia:en:Caballero Rivero Woodlawn Park North Cemetery and Mausoleum": 1368500870,
+    "wikipedia:en:Caballero Rivero Woodlawn Park North Cemetery and Mausoleum": 1380865697,
     "wikipedia:en:Camp Biscayne": 1308218328,
     "wikipedia:en:Central Baptist Church (Miami)": 1372924225,
     "wikipedia:en:Charlotte Jane Memorial Park Cemetery": 1308865092,
@@ -124,7 +262,7 @@
     "wikipedia:en:E. G. Sewell Park": 1355279383,
     "wikipedia:en:Edison Courts": 1330547278,
     "wikipedia:en:El Jardin": 1373120897,
-    "wikipedia:en:El Rey Jesús": 1371629649,
+    "wikipedia:en:El Rey Jesús": 1377293278,
     "wikipedia:en:Fair Expo Center": 1308330079,
     "wikipedia:en:Federal Detention Center, Miami": 1372018688,
     "wikipedia:en:Fire Station No. 2 (Miami, Florida)": 1373268105,
@@ -143,15 +281,15 @@
     "wikipedia:en:Herald Hunt": 1224509169,
     "wikipedia:en:Huntington Building": 1373407360,
     "wikipedia:en:Ingraham Building": 1373411144,
-    "wikipedia:en:Institute of Contemporary Art (Miami)": 1374315200,
+    "wikipedia:en:Institute of Contemporary Art (Miami)": 1380550760,
     "wikipedia:en:J & S Building": 1373427290,
     "wikipedia:en:Jungle Island": 1369274920,
-    "wikipedia:en:Kaseya Center": 1372209509,
+    "wikipedia:en:Kaseya Center": 1379398233,
     "wikipedia:en:King Mango Strut": 1342517289,
     "wikipedia:en:Knight Center Complex": 1374628523,
     "wikipedia:en:Lincoln Memorial Park": 1364378827,
-    "wikipedia:en:Little Haiti": 1372320653,
-    "wikipedia:en:Little Havana": 1373481699,
+    "wikipedia:en:Little Haiti": 1380114392,
+    "wikipedia:en:Little Havana": 1380114441,
     "wikipedia:en:Lolita (orca)": 1369936032,
     "wikipedia:en:Lummus Park, Miami": 1355282218,
     "wikipedia:en:Lyric Theater (Miami)": 1373540602,
@@ -162,10 +300,10 @@
     "wikipedia:en:Miami Circle": 1373390084,
     "wikipedia:en:Miami City Ballet": 1328519647,
     "wikipedia:en:Miami City Cemetery": 1373390096,
-    "wikipedia:en:Miami Design District": 1374389673,
+    "wikipedia:en:Miami Design District": 1380600259,
     "wikipedia:en:Miami Edison Middle School": 1373390162,
     "wikipedia:en:Miami International Boat Show": 1303829069,
-    "wikipedia:en:Miami International University of Art & Design": 1368325488,
+    "wikipedia:en:Miami International University of Art & Design": 1378514855,
     "wikipedia:en:Miami River Greenway": 1286945429,
     "wikipedia:en:Miami Riverwalk": 1335336118,
     "wikipedia:en:Miami Seaquarium": 1374019725,
@@ -174,9 +312,9 @@
     "wikipedia:en:Midtown Miami Residences": 1364542512,
     "wikipedia:en:Mount Zion Baptist Church (Miami)": 1373430005,
     "wikipedia:en:Museum Park (Miami)": 1363348517,
-    "wikipedia:en:Museum of Miami": 1375157796,
+    "wikipedia:en:Museum of Miami": 1378516818,
     "wikipedia:en:Máximo Gómez Park": 1355264705,
-    "wikipedia:en:NAP of the Americas": 1361336654,
+    "wikipedia:en:NAP of the Americas": 1380518068,
     "wikipedia:en:Naval Air Station Richmond Headquarters Building": 1372914994,
     "wikipedia:en:New Covenant Presbyterian Church (Miami)": 1346295009,
     "wikipedia:en:Old United States Post Office and Courthouse (Miami, Florida)": 1372954223,
@@ -189,14 +327,14 @@
     "wikipedia:en:Pérez Art Museum Miami": 1363574735,
     "wikipedia:en:Ralston Building": 1372286251,
     "wikipedia:en:Ransom School \"Pagoda\"": 1372287116,
-    "wikipedia:en:Rubell Museum": 1356129010,
+    "wikipedia:en:Rubell Museum": 1377819239,
     "wikipedia:en:S & S Sandwich Shop": 1372504586,
     "wikipedia:en:SLS Brickell": 1345062066,
     "wikipedia:en:Sears, Roebuck and Company Department Store (Miami, Florida)": 1373110152,
     "wikipedia:en:Segadores de Vida": 1356265207,
     "wikipedia:en:Shoreland Arcade": 1373115800,
     "wikipedia:en:Simpson Park Hammock": 1355270954,
-    "wikipedia:en:South Pointe Park": 1356866706,
+    "wikipedia:en:South Pointe Park": 1378921852,
     "wikipedia:en:St. John's Baptist Church (Miami)": 1373130360,
     "wikipedia:en:St. Jude Melkite Catholic Church": 1368973613,
     "wikipedia:en:Statue of Christopher Columbus (Miami)": 1361383747,
@@ -212,14 +350,14 @@
     "wikipedia:en:Torch of Friendship": 1367914460,
     "wikipedia:en:Tower Theater (Miami, Florida)": 1372244867,
     "wikipedia:en:Trinity Episcopal Cathedral (Miami)": 1374901253,
-    "wikipedia:en:Tropical Park": 1371187524,
+    "wikipedia:en:Tropical Park": 1379330074,
     "wikipedia:en:Ultra Music Festival": 1374800449,
     "wikipedia:en:Villa Paula (Miami)": 1358237312,
     "wikipedia:en:Vizcaya Museum and Gardens": 1373469880,
-    "wikipedia:en:Walgreen Drug Store (Miami, Florida)": 1373471608,
-    "wikipedia:en:Woman's Club of Coconut Grove": 1369559098,
+    "wikipedia:en:Walgreen Drug Store (Miami, Florida)": 1379497851,
+    "wikipedia:en:Woman's Club of Coconut Grove": 1380712661,
     "wikipedia:en:Wynwood Art District": 1340867875,
-    "wikivoyage:en:Miami": 5353687,
+    "wikivoyage:en:Miami": 5391417,
     "wikivoyage:en:Miami/Coconut Grove": 5353688,
     "wikivoyage:en:Miami/Design District": 5353689,
     "wikivoyage:en:Miami/Downtown": 5353690,

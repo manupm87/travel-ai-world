@@ -200,7 +200,11 @@ def resolve(
                 )
             kept.append(doc)
             continue
-        found = find(client, city, doc, bound.get(index))
+        entry = bound.get(index)
+        if entry is not None and entry.drop:
+            _drop(client, stats, doc, "curated drop", notable_reason=CURATED_DROP)
+            continue
+        found = find(client, city, doc, entry)
         if found is None:
             _drop(client, stats, doc, "no photo anywhere")
             continue
@@ -212,6 +216,7 @@ def resolve(
 
 
 SHARED_REASON = "shared picture"
+CURATED_DROP = "left out by a curator"
 
 
 def _drop(
@@ -328,6 +333,8 @@ def _from_curated(
     hotel goes on to the other sources, and the report says whether it is still
     unpictured.
     """
+    if entry.image_url is None:  # a `drop` entry, handled by `resolve`
+        return None
     image = absolute_image(entry.image_url, entry.image_url)  # http → https
     if (
         image is None

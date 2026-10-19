@@ -48,6 +48,7 @@ tests/                   fixtures only; never hit the network
   holds the URL of the picture the hotel publishes of itself, never a reseller's
   (booking.com, Expedia, Tripadvisor, Google) and never a file copied anywhere. `match` names one
   hotel, `checked` is the day someone looked, and the header lists the hotels left out and why.
+  `drop = true` takes out a hotel whose only automatic picture is not its own.
   The report's "Notable hotels without a photo" is the worklist; the chain names behind it live in
   `config/hotel_groups.py`, never in a source module.
 - **Licence-clean sources only**: Wikivoyage, Wikipedia, OpenStreetMap, Wikidata/Commons, Open-Meteo, curated files.

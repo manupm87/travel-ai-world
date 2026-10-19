@@ -143,7 +143,11 @@ photos file") with `match`, `image_url`, `credit` = the group's bare domain, `so
 page you read it on and `checked` = today. Never booking.com, Expedia, Tripadvisor or Google:
 those are resellers, their pictures are not the hotel's to give, and their terms forbid it. A hotel
 whose page shows only brand imagery gets no entry — write it in the file's header comment with the
-reason, so the next curator does not open it again. Work top down: five-star and well-known brands
+reason, so the next curator does not open it again. The other way round, a hotel the build *did*
+picture can carry the wrong picture — a logo, a promotion, a screenshot, the skyline. Look over the
+`sleep` documents' `image_url`s once per build; replace a wrong one with an entry, or, when the
+hotel publishes no picture of its own (dead site, reseller only), take it out with `drop = true`.
+Work top down: five-star and well-known brands
 before budget chains, and stop when the list stops being names a traveller knows.
 
 Rebuild afterwards; the entries are applied before every other source, counted as `curated` in the

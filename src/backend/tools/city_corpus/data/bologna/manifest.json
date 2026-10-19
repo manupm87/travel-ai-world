@@ -1,54 +1,54 @@
 {
   "city": "bologna",
-  "built_at": "2026-09-19T19:15:20Z",
-  "documents": 1597,
-  "listings": 1124,
-  "listings_with_coordinates": 1070,
+  "built_at": "2026-10-19T17:40:50Z",
+  "documents": 1536,
+  "listings": 1060,
+  "listings_with_coordinates": 1006,
   "by_source": {
     "curated": 4,
     "open-meteo": 12,
-    "openstreetmap": 954,
-    "wikipedia": 384,
+    "openstreetmap": 890,
+    "wikipedia": 387,
     "wikivoyage": 243
   },
   "by_lang": {
     "eml": 1,
-    "en": 1532,
+    "en": 1471,
     "es": 59,
     "it": 5
   },
   "by_kind": {
-    "listing": 1124,
-    "prose": 473
+    "listing": 1060,
+    "prose": 476
   },
   "by_category": {
     "climate": 12,
     "do": 62,
-    "drink": 117,
-    "eat": 670,
-    "history": 251,
+    "drink": 120,
+    "eat": 663,
+    "history": 253,
     "neighbourhood": 7,
     "practical": 5,
-    "see": 325,
-    "sleep": 118,
+    "see": 322,
+    "sleep": 62,
     "tour": 4,
     "transport": 26
   },
   "by_district": {
     "(city-wide)": 154,
-    "Borgo Panigale-Reno": 109,
-    "Porto-Saragozza": 368,
-    "Quartiere Navile": 128,
-    "San Donato-San Vitale": 126,
-    "Santo Stefano": 661,
+    "Borgo Panigale-Reno": 105,
+    "Porto-Saragozza": 354,
+    "Quartiere Navile": 111,
+    "San Donato-San Vitale": 112,
+    "Santo Stefano": 649,
     "Savena": 51
   },
   "districts_missing": [],
   "images": {
-    "with_image": 510,
-    "see_documents": 325,
-    "see_with_image": 239,
-    "see_image_coverage": 0.735
+    "with_image": 547,
+    "see_documents": 322,
+    "see_with_image": 238,
+    "see_image_coverage": 0.739
   },
   "sleep_without_district": [
     "wv:en:Bologna#section:sleep:c1",
@@ -78,11 +78,11 @@
   "sleep_listings_with_coordinates_without_district": 0,
   "enrichment": {
     "wikipedia": {
-      "articles": 127,
+      "articles": 128,
       "documents_per_category": {
         "Baroque architecture in Bologna": 2,
         "Basilica churches in Bologna": 63,
-        "Buildings and structures in Bologna": 49,
+        "Buildings and structures in Bologna": 52,
         "Gates of Bologna": 10,
         "Gothic architecture in Bologna": 6,
         "Libraries in Bologna": 5,
@@ -97,21 +97,23 @@
         "Villas in Bologna": 6
       },
       "skipped_without_coordinates": {
-        "Buildings and structures in Bologna": 6,
+        "Buildings and structures in Bologna": 5,
         "Gothic architecture in Bologna": 1,
         "Renaissance architecture in Bologna": 1
-      }
+      },
+      "excluded": 0
     },
     "openstreetmap": {
-      "as_of": "2026-09-19T19:13:34Z",
+      "as_of": "2026-10-19T17:08:49Z",
       "district_boundaries": 6,
       "documents_linked_to_wikidata": 30,
-      "elements": 2194,
-      "candidates": 1037,
+      "elements": 2220,
+      "candidates": 1031,
       "merged_into_existing": 82,
-      "new_documents": 954,
+      "new_documents": 948,
       "outside_bbox": 0,
-      "skipped_too_short": 1
+      "skipped_too_short": 1,
+      "chain_outlets": 9
     },
     "neighbourhoods": {
       "districts_without_guide": [
@@ -132,13 +134,49 @@
       }
     },
     "wikidata": {
-      "ids": 308,
-      "entities": 308,
-      "image_files_checked": 285,
-      "image_files_free": 285,
+      "ids": 306,
+      "entities": 306,
+      "image_files_checked": 283,
+      "image_files_free": 283,
       "document_images_skipped_non_free": 0
     },
-    "districts_assigned_by_boundary": 480,
+    "districts_assigned_by_boundary": 483,
+    "photos": {
+      "curated": 7,
+      "site": 12,
+      "facebook": 0,
+      "commons": 1,
+      "wikidata": 0,
+      "page": 16,
+      "dropped": 58,
+      "shared": 2,
+      "dropped_examples": [
+        "AC Hotel Bologna",
+        "Aemilia Hotel Bologna",
+        "Agriturismo Locanda Belfiore",
+        "Albergo Centrale",
+        "Albergo Garisenda",
+        "Albergo Pallone",
+        "Albergo S. Vitale",
+        "Alle Torri",
+        "B&B Bentivogli",
+        "B&B Corticella 24"
+      ],
+      "notable_without_photo": [
+        {
+          "name": "AC Hotel Bologna",
+          "reason": "no url"
+        },
+        {
+          "name": "Best Western City Hotel",
+          "reason": "no url"
+        },
+        {
+          "name": "Holiday Inn Bologna Fiera",
+          "reason": "left out by a curator"
+        }
+      ]
+    },
     "tours": {
       "curated": 4,
       "reclassified_as_tour": 0,
@@ -168,7 +206,7 @@
     "wikipedia:en:Ducati Museum": 1363273305,
     "wikipedia:en:Fiera di Bologna": 1322926382,
     "wikipedia:en:Fountain of Neptune, Bologna": 1362116828,
-    "wikipedia:en:Il Cinema Ritrovato": 1368409247,
+    "wikipedia:en:Il Cinema Ritrovato": 1379201349,
     "wikipedia:en:Madonna del Baraccano, Bologna": 1324743266,
     "wikipedia:en:Madonna di Galliera": 1363808139,
     "wikipedia:en:Madonna di San Luca, Bologna": 1367271529,
@@ -179,7 +217,7 @@
     "wikipedia:en:Museo internazionale e biblioteca della musica": 1363658317,
     "wikipedia:en:Museum of San Giuseppe Sposo, Bologna": 1259843332,
     "wikipedia:en:Museum of the Risorgimento, Bologna": 1286520461,
-    "wikipedia:en:Observatory of Bologna": 1364208499,
+    "wikipedia:en:Observatory of Bologna": 1376990186,
     "wikipedia:en:Oratory of San Colombano, Bologna": 1343992281,
     "wikipedia:en:Oratory of San Filippo Neri, Bologna": 1324743357,
     "wikipedia:en:Orto Botanico dell'Università di Bologna": 1366882259,
@@ -235,7 +273,7 @@
     "wikipedia:en:Palazzo della Compagnia dell'Arte dei Brentatori, Bologna": 1341131186,
     "wikipedia:en:Palazzo di Residenza della Cassa di Risparmio in Bologna": 1343834240,
     "wikipedia:en:Piazza Galvani": 1366814809,
-    "wikipedia:en:Piazza Maggiore": 1358927979,
+    "wikipedia:en:Piazza Maggiore": 1378762467,
     "wikipedia:en:Piazza Santo Stefano": 1289091438,
     "wikipedia:en:Piazza di Porta Ravegnana, Bologna": 1339026319,
     "wikipedia:en:Pinacoteca Nazionale di Bologna": 1356141434,
@@ -248,8 +286,8 @@
     "wikipedia:en:Porta San Vitale, Bologna": 1338077479,
     "wikipedia:en:Porta Saragozza, Bologna": 1358928522,
     "wikipedia:en:Porta delle Lame, Bologna": 1135685581,
-    "wikipedia:en:San Barbaziano, Bologna": 1324743215,
-    "wikipedia:en:San Domenico, Bologna": 1364140802,
+    "wikipedia:en:San Barbaziano, Bologna": 1378582183,
+    "wikipedia:en:San Domenico, Bologna": 1380969293,
     "wikipedia:en:San Francesco, Bologna": 1354896869,
     "wikipedia:en:San Giacomo Maggiore, Bologna": 1367273236,
     "wikipedia:en:San Giovanni Battista dei Celestini": 1356033417,
@@ -258,7 +296,7 @@
     "wikipedia:en:San Martino, Bologna": 1372394336,
     "wikipedia:en:San Michele in Bosco": 1372289591,
     "wikipedia:en:San Paolo Maggiore, Bologna": 1306634907,
-    "wikipedia:en:San Petronio, Bologna": 1367242487,
+    "wikipedia:en:San Petronio, Bologna": 1376092914,
     "wikipedia:en:San Vittore Observatory": 1329328958,
     "wikipedia:en:Santa Maria dei Servi, Bologna": 1286834023,
     "wikipedia:en:Santa Maria della Carità, Bologna": 1324743279,
@@ -266,22 +304,23 @@
     "wikipedia:en:Santi Bartolomeo e Gaetano": 1367274100,
     "wikipedia:en:Santo Stefano, Bologna": 1359999913,
     "wikipedia:en:State Archives of Bologna": 1358757691,
+    "wikipedia:en:Synagogue of Bologna": 1377850378,
     "wikipedia:en:Teatro Comunale di Bologna": 1372240142,
     "wikipedia:en:Teatro Contavalli, Bologna": 1343864352,
     "wikipedia:en:Teatro Duse": 1230036538,
-    "wikipedia:en:Towers of Bologna": 1374013963,
+    "wikipedia:en:Towers of Bologna": 1377216837,
     "wikipedia:en:Two Towers, Bologna": 1334781729,
     "wikipedia:en:Unipol Tower": 1345453300,
-    "wikipedia:en:University of Bologna": 1375514491,
+    "wikipedia:en:University of Bologna": 1380796972,
     "wikipedia:en:Villa Aldini": 1352502937,
     "wikipedia:en:Villa Gandolfi Pallavicini": 1334304665,
     "wikipedia:en:Villa Spada": 1350894931,
     "wikipedia:it:Quartiere Borgo Panigale-Reno": 149277643,
-    "wikipedia:it:Quartiere Porto-Saragozza": 144067743,
-    "wikipedia:it:Quartiere San Donato-San Vitale": 151102286,
+    "wikipedia:it:Quartiere Porto-Saragozza": 152775762,
+    "wikipedia:it:Quartiere San Donato-San Vitale": 152969754,
     "wikipedia:it:Quartiere Santo Stefano": 149489721,
     "wikipedia:it:Quartiere Savena": 149672775,
-    "wikivoyage:en:Bologna": 5359377,
+    "wikivoyage:en:Bologna": 5395537,
     "wikivoyage:es:Bolonia": 233795
   }
 }

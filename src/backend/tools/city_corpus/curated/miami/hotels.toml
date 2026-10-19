@@ -1,0 +1,24 @@
+# Miami — hotel photos read by hand.
+#
+# On 2026-10-19 every hotel whose automatic picture looked wrong was opened in a
+# browser. Looked at and kept as the build finds them: New Yorker Miami (pool deck),
+# Executive Tropic Garden (a suite), YVE (the building), The Elser (lobby, with its
+# name over it), Fortune House (the tower) and Vagabond Hotel (a Commons file taken
+# at 7301 Biscayne Boulevard, its address).
+#
+# Left out by the build, not looked at again: the Marriott, Hilton and Best Western
+# houses (their platforms answer 403, as in Berlin).
+
+[[hotel]]
+match = "Claude Pepper Tower"
+source_url = "http://www.miamidade.gov/housing"
+checked = 2026-10-19
+drop = true
+note = "Public housing run by Miami-Dade County, not a hotel; the picture was the county's skyline banner."
+
+[[hotel]]
+match = "Hotel AKA Brickell (formerly The Conrad)"
+source_url = "https://www.stayaka.com/hotel-aka-brickell"
+checked = 2026-10-19
+drop = true
+note = "The page redirects to AKA's Miami city guide, which lists no Brickell house; the picture was the bay's skyline."

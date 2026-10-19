@@ -1,0 +1,128 @@
+# Bologna — hotel photos read by hand.
+#
+# On 2026-10-19 every hotel whose automatic picture looked wrong (a screenshot, a logo,
+# a promotion, the city instead of the hotel) was opened in a browser. The entries
+# below replace the picture with one the hotel shows of itself on its own site, or
+# take the hotel out when no such picture exists.
+#
+# Looked at and kept as the build finds them: Hotel Michelino (lounge), The Sydney
+# Hotel (façade), Hotel Palace (entrance), Hotel Marconi Express (lobby, with the
+# site's caption over it), B&B Il Moscondoro (a collage of its room and portico) and
+# Grand Hotel Majestic (the Carracci room, a Commons file by the hotel's account).
+#
+# Left out by the build, not looked at again: AC Hotel Bologna and Best Western City
+# Hotel have no website tag in OpenStreetMap.
+
+[[hotel]]
+match = "Combo Bologna"
+image_url = "https://cdn.sanity.io/images/8tpq0e4r/production/3f326ad316a46675564188686c539beb3da86bfc-5354x2588.jpg?w=1920&q=60&auto=format"
+credit = "thisiscombo.com"
+source_url = "https://thisiscombo.com/it/citta/bologna"
+checked = 2026-10-19
+note = "The garden, first picture of the Bologna page; the site preview is the brand's banner."
+
+[[hotel]]
+match = "Dopa Hostel"
+image_url = "https://www.dopahostel.com/wp-content/uploads/2015/06/IMG_6414.jpg"
+credit = "dopahostel.com"
+source_url = "https://www.dopahostel.com/rooms-dormitories-dopa-hostel-bologna/"
+checked = 2026-10-19
+note = "A room; the home page shows only streets of Bologna."
+
+[[hotel]]
+match = "Hotel Holiday"
+image_url = "https://www.hotelholiday-bo.com/wp-content/uploads/2022/07/01c-1024x555.jpg"
+credit = "hotelholiday-bo.com"
+source_url = "https://www.hotelholiday-bo.com/hotel/"
+checked = 2026-10-19
+note = "Reception and breakfast room; the site preview is a concert crowd."
+
+[[hotel]]
+match = "Hotel La Pioppa"
+image_url = "https://hotelpioppa.com/wp-content/uploads/2022/11/hotel_la_pioppa_bologna11.jpg"
+credit = "hotelpioppa.com"
+source_url = "https://hotelpioppa.com/"
+checked = 2026-10-19
+note = "The façade; the site preview is Google's logo."
+
+[[hotel]]
+match = "Ospitalita San Tomasso D'Aquino"
+image_url = "https://www.ospitalitasantommaso.com/wp-content/uploads/2026/03/photo-ospitalita-san-tommaso-d-aquino-bologna-6-1024x683.jpeg"
+credit = "ospitalitasantommaso.com"
+source_url = "https://www.ospitalitasantommaso.com/"
+checked = 2026-10-19
+note = "The entrance at night; the site preview is its letterhead."
+
+[[hotel]]
+match = "Starhotels Excelsior"
+image_url = "https://x3jh6o6w.cdn.imgeng.in/assets/uploads/hotels/excelsior/2048x1363/gallery/starhotels-excelsior-hotel-in-bologna.jpg?imgeng=/w_1440"
+credit = "starhotels.com"
+source_url = "https://www.starhotels.com/en/our-hotels/excelsior-bologna/"
+checked = 2026-10-19
+note = "The lounge; OpenStreetMap points at the group's home page, whose picture is the Savoia Excelsior in Trieste."
+
+[[hotel]]
+match = "The Social Hub"
+image_url = "https://www.thesocialhub.co/4a9bb0/globalassets/03.-property-pages/bologna/00-images/01-landing-page/01-hero/desktop/bologna_interior_courtyard_1920x840.jpeg?width=1280&height=560&rmode=max&scale=both&quality=99"
+credit = "thesocialhub.co"
+source_url = "https://www.thesocialhub.co/bologna/"
+checked = 2026-10-19
+note = "The courtyard; OpenStreetMap points at the group's home page, whose picture is a sale."
+
+# ── Left out: no picture of the hotel that is its own ───────────────────────
+
+[[hotel]]
+match = "B&B Corticella 24"
+source_url = "https://www.hotelsitalian.com/bed-and-breakfast-corticella-24/"
+checked = 2026-10-19
+drop = true
+note = "No site of its own; OpenStreetMap points at a listings site."
+
+[[hotel]]
+match = "Buonhotel Bologna"
+source_url = "https://www.buonhotelbologna.it/"
+checked = 2026-10-19
+drop = true
+note = "The domain is an online casino now; the picture was its logo."
+
+[[hotel]]
+match = "Casa de Pegi"
+source_url = "https://www.adormo.com/en/Casa-De-Pegi/7190"
+checked = 2026-10-19
+drop = true
+note = "Only a reseller lists it; the picture was a portrait from that reseller's site."
+
+[[hotel]]
+match = "CVB :: Battibecco"
+source_url = "https://www.airbnb.com/h/battibecco"
+checked = 2026-10-19
+drop = true
+note = "Only on Airbnb, a reseller."
+
+[[hotel]]
+match = "CVB :: Cairoli"
+source_url = "https://www.airbnb.com/h/cairoli"
+checked = 2026-10-19
+drop = true
+note = "Only on Airbnb, a reseller."
+
+[[hotel]]
+match = "Holiday Inn Bologna Fiera"
+source_url = "https://www.hiexpress.com/hotels/it/it/"
+checked = 2026-10-19
+drop = true
+note = "OpenStreetMap points at the brand's home page (a coffee machine); ihg.com answers 403 and Commons has nothing."
+
+[[hotel]]
+match = "Joivy Campus Bologna Mover"
+source_url = "https://studenthousing.joivy.com/it/bologna-mover/index.php"
+checked = 2026-10-19
+drop = true
+note = "The residence page redirects to the city page, whose picture is the Two Towers."
+
+[[hotel]]
+match = "UNAHOTELS Bologna Fiera"
+source_url = "https://www.gruppouna.it/unahotels/unahotels-bologna-fiera"
+checked = 2026-10-19
+drop = true
+note = "The group's page is gone (pagina non trovata); the picture was a grey strip, and Commons has nothing."

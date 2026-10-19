@@ -26,7 +26,14 @@ import tomllib
 from pathlib import Path
 from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    ValidationError,
+    field_validator,
+    model_validator,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -54,21 +61,33 @@ class CuratedHotel(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     match: NonEmpty
-    image_url: NonEmpty
-    credit: NonEmpty
+    image_url: NonEmpty | None = None
+    credit: NonEmpty | None = None
     """What the card prints beside the photo: the bare domain it was read from
     (`marriott.com`), or a Commons credit line for a file from Commons."""
     source_url: NonEmpty
     """The page the picture was read on, in a browser, by a person."""
     checked: dt.date
+    drop: bool = False
+    """The hotel leaves the corpus: a person looked and found no picture of it
+    that is its own (the site is gone, or only a reseller shows it), so the
+    picture a rule would find is someone else's. `note` says why."""
     note: str | None = None  # for maintainers; never published
 
     @field_validator("image_url", "source_url")
     @classmethod
-    def _http(cls, value: str) -> str:
-        if not value.startswith(("https://", "http://")):
+    def _http(cls, value: str | None) -> str | None:
+        if value is not None and not value.startswith(("https://", "http://")):
             raise ValueError("must be an http(s) URL")
         return value
+
+    @model_validator(mode="after")
+    def _photo_or_drop(self) -> "CuratedHotel":
+        if self.drop and (self.image_url or self.credit):
+            raise ValueError("a dropped hotel takes no image_url or credit")
+        if not self.drop and not (self.image_url and self.credit):
+            raise ValueError("image_url and credit are required unless drop = true")
+        return self
 
     @property
     def osm_id(self) -> str | None:

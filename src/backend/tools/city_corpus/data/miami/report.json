@@ -1,9 +1,9 @@
 {
   "city": "miami",
-  "built_at": "2026-09-21T18:47:27Z",
-  "documents": 1252,
-  "listings": 636,
-  "prose": 616,
+  "built_at": "2026-10-19T17:29:55Z",
+  "documents": 1199,
+  "listings": 579,
+  "prose": 620,
   "sources": [
     "curated",
     "open-meteo",
@@ -34,15 +34,15 @@
       "wikivoyage": 42
     },
     "drink": {
-      "openstreetmap": 14,
+      "openstreetmap": 17,
       "wikivoyage": 10
     },
     "eat": {
-      "openstreetmap": 287,
+      "openstreetmap": 275,
       "wikivoyage": 23
     },
     "history": {
-      "wikipedia": 392,
+      "wikipedia": 396,
       "wikivoyage": 7
     },
     "neighbourhood": {
@@ -52,13 +52,13 @@
       "wikivoyage": 77
     },
     "see": {
-      "openstreetmap": 20,
+      "openstreetmap": 19,
       "wikipedia": 128,
       "wikivoyage": 36
     },
     "sleep": {
-      "openstreetmap": 53,
-      "wikivoyage": 21
+      "openstreetmap": 17,
+      "wikivoyage": 10
     },
     "tour": {
       "curated": 3,
@@ -71,32 +71,32 @@
   "named_by_category": {
     "climate": 12,
     "do": 110,
-    "drink": 23,
-    "eat": 304,
-    "history": 393,
+    "drink": 26,
+    "eat": 292,
+    "history": 397,
     "practical": 60,
-    "see": 182,
-    "sleep": 69,
+    "see": 181,
+    "sleep": 22,
     "tour": 4,
     "transport": 11
   },
   "located_by_category": {
     "do": 92,
-    "drink": 14,
-    "eat": 296,
-    "history": 291,
+    "drink": 17,
+    "eat": 284,
+    "history": 295,
     "practical": 1,
-    "see": 152,
-    "sleep": 68,
+    "see": 151,
+    "sleep": 21,
     "tour": 3,
     "transport": 5
   },
   "pictured_by_category": {
     "do": 10,
     "eat": 1,
-    "history": 235,
+    "history": 239,
     "see": 109,
-    "sleep": 7,
+    "sleep": 21,
     "transport": 3
   },
   "districts": [
@@ -109,13 +109,13 @@
     "Overtown"
   ],
   "places_by_district": {
-    "Coconut Grove": 129,
-    "Design District": 50,
-    "Downtown": 383,
-    "Little Havana": 139,
-    "MiMo Boulevard": 62,
-    "Midtown": 105,
-    "Overtown": 38
+    "Coconut Grove": 123,
+    "Design District": 49,
+    "Downtown": 363,
+    "Little Havana": 125,
+    "MiMo Boulevard": 59,
+    "Midtown": 100,
+    "Overtown": 34
   },
   "small_districts": [],
   "described_districts": [
@@ -132,13 +132,13 @@
       "1": 1,
       "2": 2,
       "3": 1,
-      "untiered": 306
+      "untiered": 294
     },
     "sleep": {
       "1": 0,
-      "2": 2,
-      "3": 2,
-      "untiered": 70
+      "2": 0,
+      "3": 1,
+      "untiered": 26
     }
   },
   "climate_months": [
@@ -279,19 +279,19 @@
     "sleep": {
       "boutique hotel": [
         {
-          "name": "New Yorker Boutique Hotel",
-          "district": "MiMo Boulevard",
-          "score": 23.58
-        },
-        {
-          "name": "The Ritz-Carlton",
+          "name": "The Mutiny Hotel",
           "district": "Coconut Grove",
-          "score": 22.2
+          "score": 12.08
         },
         {
-          "name": "Hilton Garden Inn Miami Brickell South",
+          "name": "Doubletree by Hilton Grand Hotel Biscayne Bay",
           "district": "Downtown",
-          "score": 21.39
+          "score": 11.79
+        },
+        {
+          "name": "Executive Tropic Garden Hotel",
+          "district": "Little Havana",
+          "score": 11.79
         }
       ],
       "hostel": [
@@ -322,31 +322,173 @@
       ]
     }
   },
+  "hotel_photos": {
+    "curated": 0,
+    "site": 8,
+    "facebook": 0,
+    "commons": 2,
+    "wikidata": 0,
+    "page": 4,
+    "dropped": 47,
+    "shared": 0,
+    "dropped_examples": [
+      "AC Hotel Miami Wynwood",
+      "AC Hotel by Marriott",
+      "Best Western Premier Miami International Airport Hotel & Suites Coral Gables",
+      "Brickell Arch, a Luxury Collection Hotel, Miami",
+      "Claude Pepper",
+      "Claude Pepper Tower",
+      "Comfort Inn & Suites",
+      "Courtyard Miami Airport",
+      "Courtyard Miami Coconut Grove",
+      "Courtyard Miami Downtown/Brickell Area"
+    ],
+    "notable_without_photo": [
+      {
+        "name": "AC Hotel Miami Wynwood",
+        "reason": "403"
+      },
+      {
+        "name": "AC Hotel by Marriott",
+        "reason": "403"
+      },
+      {
+        "name": "Best Western Premier Miami International Airport Hotel & Suites Coral Gables",
+        "reason": "403"
+      },
+      {
+        "name": "Courtyard Miami Airport",
+        "reason": "403"
+      },
+      {
+        "name": "Courtyard Miami Coconut Grove",
+        "reason": "403"
+      },
+      {
+        "name": "Courtyard Miami Downtown/Brickell Area",
+        "reason": "403"
+      },
+      {
+        "name": "DUA Miami, Autograph Collection",
+        "reason": "403"
+      },
+      {
+        "name": "Hampton",
+        "reason": "403"
+      },
+      {
+        "name": "Hampton Inn & Suites Miami Midtown",
+        "reason": "403"
+      },
+      {
+        "name": "Hampton Inn & Suites by Hilton - Miami/Brickell-Downtown",
+        "reason": "403"
+      },
+      {
+        "name": "Hampton Inn & Suites by Hilton Miami Airport South Blue Lagoon",
+        "reason": "403"
+      },
+      {
+        "name": "Hampton Inn & Suites — Miami Wynwood Design District",
+        "reason": "403"
+      },
+      {
+        "name": "Hilton Garden Inn Miami Brickell South",
+        "reason": "403"
+      },
+      {
+        "name": "Hilton Miami Downtown",
+        "reason": "403"
+      },
+      {
+        "name": "Holiday Inn Port of Miami Downtown",
+        "reason": "no picture"
+      },
+      {
+        "name": "Homewood Suites by Hilton Miami Downtown/Brickell",
+        "reason": "403"
+      },
+      {
+        "name": "Hotel AKA Brickell (formerly The Conrad)",
+        "reason": "left out by a curator"
+      },
+      {
+        "name": "Hyatt Regency Miami",
+        "reason": "403"
+      },
+      {
+        "name": "JW Marriott",
+        "reason": "403"
+      },
+      {
+        "name": "JW Marriott Marquis Miami",
+        "reason": "403"
+      },
+      {
+        "name": "JW Marriott Miami",
+        "reason": "no url"
+      },
+      {
+        "name": "Miami Airport Marriott",
+        "reason": "no url"
+      },
+      {
+        "name": "Miami Marriott Biscayne Bay",
+        "reason": "403"
+      },
+      {
+        "name": "Miami Marriott Biscayne Bay",
+        "reason": "no url"
+      },
+      {
+        "name": "Novotel Miami Brickell",
+        "reason": "no url"
+      },
+      {
+        "name": "The Gabriel Miami Downtown, Curio Collection by Hilton",
+        "reason": "no url"
+      },
+      {
+        "name": "The Ritz-Carlton",
+        "reason": "no picture"
+      },
+      {
+        "name": "Travelodge Miami Biscayne Bay",
+        "reason": "dead"
+      }
+    ]
+  },
   "readiness": {
     "passed": true,
     "checks": [
       {
         "name": "Located see + history + do places",
         "threshold": "≥ 150",
-        "measured": "535",
+        "measured": "538",
         "passed": true
       },
       {
         "name": "Located eat places",
         "threshold": "≥ 100",
-        "measured": "296",
+        "measured": "284",
         "passed": true
       },
       {
         "name": "Sleep documents",
         "threshold": "≥ 20",
-        "measured": "74",
+        "measured": "27",
         "passed": true
       },
       {
         "name": "Located sleep places",
         "threshold": "≥ 10",
-        "measured": "68",
+        "measured": "21",
+        "passed": true
+      },
+      {
+        "name": "Pictured located sleep places",
+        "threshold": "≥ 10",
+        "measured": "21",
         "passed": true
       },
       {
@@ -391,6 +533,7 @@
       "located_eat": 100,
       "sleep": 20,
       "located_sleep": 10,
+      "pictured_sleep": 10,
       "districts": 5,
       "described_districts": 5,
       "pictured_sights_share": 0.5,

@@ -1,9 +1,9 @@
 {
   "city": "bologna",
-  "built_at": "2026-09-19T19:15:20Z",
-  "documents": 1597,
-  "listings": 1124,
-  "prose": 473,
+  "built_at": "2026-10-19T17:40:50Z",
+  "documents": 1536,
+  "listings": 1060,
+  "prose": 476,
   "sources": [
     "curated",
     "open-meteo",
@@ -33,15 +33,15 @@
       "wikivoyage": 22
     },
     "drink": {
-      "openstreetmap": 113,
+      "openstreetmap": 116,
       "wikivoyage": 4
     },
     "eat": {
-      "openstreetmap": 608,
+      "openstreetmap": 601,
       "wikivoyage": 62
     },
     "history": {
-      "wikipedia": 245,
+      "wikipedia": 247,
       "wikivoyage": 6
     },
     "neighbourhood": {
@@ -52,12 +52,12 @@
       "wikivoyage": 5
     },
     "see": {
-      "openstreetmap": 99,
-      "wikipedia": 124,
+      "openstreetmap": 95,
+      "wikipedia": 125,
       "wikivoyage": 102
     },
     "sleep": {
-      "openstreetmap": 94,
+      "openstreetmap": 38,
       "wikivoyage": 24
     },
     "tour": {
@@ -71,34 +71,34 @@
   "named_by_category": {
     "climate": 12,
     "do": 50,
-    "drink": 115,
-    "eat": 648,
-    "history": 246,
+    "drink": 118,
+    "eat": 641,
+    "history": 248,
     "neighbourhood": 6,
     "practical": 1,
-    "see": 308,
-    "sleep": 115,
+    "see": 305,
+    "sleep": 59,
     "tour": 4,
     "transport": 15
   },
   "located_by_category": {
     "do": 41,
-    "drink": 113,
-    "eat": 648,
-    "history": 240,
+    "drink": 116,
+    "eat": 641,
+    "history": 242,
     "neighbourhood": 6,
-    "see": 284,
-    "sleep": 95,
+    "see": 281,
+    "sleep": 39,
     "tour": 4,
     "transport": 13
   },
   "pictured_by_category": {
     "do": 22,
     "eat": 3,
-    "history": 228,
+    "history": 230,
     "neighbourhood": 2,
-    "see": 237,
-    "sleep": 3,
+    "see": 236,
+    "sleep": 39,
     "transport": 11
   },
   "districts": [
@@ -110,11 +110,11 @@
     "Savena"
   ],
   "places_by_district": {
-    "Borgo Panigale-Reno": 109,
-    "Porto-Saragozza": 368,
-    "Quartiere Navile": 128,
-    "San Donato-San Vitale": 126,
-    "Santo Stefano": 661,
+    "Borgo Panigale-Reno": 105,
+    "Porto-Saragozza": 354,
+    "Quartiere Navile": 111,
+    "San Donato-San Vitale": 112,
+    "Santo Stefano": 649,
     "Savena": 51
   },
   "small_districts": [],
@@ -131,13 +131,13 @@
       "1": 9,
       "2": 21,
       "3": 1,
-      "untiered": 639
+      "untiered": 632
     },
     "sleep": {
-      "1": 3,
-      "2": 29,
-      "3": 18,
-      "untiered": 68
+      "1": 2,
+      "2": 21,
+      "3": 11,
+      "untiered": 28
     }
   },
   "climate_months": [
@@ -306,13 +306,13 @@
           "score": 22.3
         },
         {
-          "name": "AC Hotel Bologna",
-          "district": "Quartiere Navile",
+          "name": "Amadeus Hotel",
+          "district": null,
           "score": 11.79
         },
         {
-          "name": "Aemilia Hotel Bologna",
-          "district": "San Donato-San Vitale",
+          "name": "Art Hotel Commercianti",
+          "district": "Santo Stefano",
           "score": 11.79
         }
       ],
@@ -323,14 +323,14 @@
           "score": 11.79
         },
         {
-          "name": "Hostel Il Nosadillo",
-          "district": "Porto-Saragozza",
-          "score": 11.79
-        },
-        {
           "name": "Il Castello Hostel Boutique",
           "district": "Porto-Saragozza",
           "score": 11.61
+        },
+        {
+          "name": "Combo Bologna",
+          "district": "Quartiere Navile",
+          "score": 10.69
         }
       ]
     },
@@ -354,31 +354,73 @@
       ]
     }
   },
+  "hotel_photos": {
+    "curated": 7,
+    "site": 12,
+    "facebook": 0,
+    "commons": 1,
+    "wikidata": 0,
+    "page": 16,
+    "dropped": 58,
+    "shared": 2,
+    "dropped_examples": [
+      "AC Hotel Bologna",
+      "Aemilia Hotel Bologna",
+      "Agriturismo Locanda Belfiore",
+      "Albergo Centrale",
+      "Albergo Garisenda",
+      "Albergo Pallone",
+      "Albergo S. Vitale",
+      "Alle Torri",
+      "B&B Bentivogli",
+      "B&B Corticella 24"
+    ],
+    "notable_without_photo": [
+      {
+        "name": "AC Hotel Bologna",
+        "reason": "no url"
+      },
+      {
+        "name": "Best Western City Hotel",
+        "reason": "no url"
+      },
+      {
+        "name": "Holiday Inn Bologna Fiera",
+        "reason": "left out by a curator"
+      }
+    ]
+  },
   "readiness": {
     "passed": true,
     "checks": [
       {
         "name": "Located see + history + do places",
         "threshold": "≥ 150",
-        "measured": "565",
+        "measured": "564",
         "passed": true
       },
       {
         "name": "Located eat places",
         "threshold": "≥ 100",
-        "measured": "648",
+        "measured": "641",
         "passed": true
       },
       {
         "name": "Sleep documents",
         "threshold": "≥ 20",
-        "measured": "118",
+        "measured": "62",
         "passed": true
       },
       {
         "name": "Located sleep places",
         "threshold": "≥ 10",
-        "measured": "95",
+        "measured": "39",
+        "passed": true
+      },
+      {
+        "name": "Pictured located sleep places",
+        "threshold": "≥ 10",
+        "measured": "39",
         "passed": true
       },
       {
@@ -423,6 +465,7 @@
       "located_eat": 100,
       "sleep": 20,
       "located_sleep": 10,
+      "pictured_sleep": 10,
       "districts": 5,
       "described_districts": 5,
       "pictured_sights_share": 0.5,

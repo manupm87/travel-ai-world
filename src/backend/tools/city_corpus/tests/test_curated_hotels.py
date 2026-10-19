@@ -123,7 +123,33 @@ def test_every_problem_is_listed_at_once(tmp_path: Path) -> None:
     with pytest.raises(curated_hotels.HotelDataError) as error:
         curated_hotels.load(_write(tmp_path, text))
 
-    assert str(error.value).count("Field required") == 2
+    assert str(error.value).count("required unless drop = true") == 2
+
+
+DROPPED = """
+[[hotel]]
+match = "Hotel Nowhere"
+source_url = "https://www.airbnb.com/h/nowhere"
+checked = 2026-10-19
+drop = true
+note = "Only a reseller shows it."
+"""
+
+
+def test_a_dropped_hotel_needs_no_picture(tmp_path: Path) -> None:
+    (hotel,) = curated_hotels.load(_write(tmp_path, DROPPED))
+
+    assert hotel.drop
+    assert (hotel.image_url, hotel.credit) == (None, None)
+
+
+def test_a_dropped_hotel_with_a_picture_is_refused(tmp_path: Path) -> None:
+    """Either the picture is the hotel's or the hotel goes: not both."""
+    text = DROPPED.replace(
+        "drop = true", 'drop = true\nimage_url = "https://x.it/a.jpg"\ncredit = "x.it"'
+    )
+    with pytest.raises(curated_hotels.HotelDataError, match="takes no image_url"):
+        curated_hotels.load(_write(tmp_path, text))
 
 
 def test_a_photo_nobody_has_looked_at_for_a_year_is_a_warning(
