@@ -160,6 +160,9 @@ async def run_agent(
                 toolbox.note_text()
             if not calls:
                 return
+            if "".join(parts).strip():
+                # What the next step says is a new paragraph, not a run-on.
+                lead = "\n\n"
             if last_step:
                 turn.phase("zip")
                 lead = "\n\n" if streamed else ""

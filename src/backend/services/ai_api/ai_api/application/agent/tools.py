@@ -261,8 +261,7 @@ class SearchPlacesInput(BaseModel):
     kind: Literal["sight", "restaurant", "bar", "any"] = Field(
         default="any",
         description="sight: sights, museums, baths, activities, tours; "
-        "restaurant: places to "
-        "eat or drink; bar: drinks only; any: no filter.",
+        "restaurant: places to eat or drink; bar: drinks only; any: no filter.",
     )
     district: str | None = Field(
         default=None, description="A district name from list_districts."

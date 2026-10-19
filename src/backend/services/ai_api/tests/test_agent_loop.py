@@ -329,6 +329,14 @@ async def test_a_tool_announces_its_phase_and_the_answer_zips():
     assert run.phases[0] == "wardrobe" and run.phases[-1] == "zip"
 
 
+async def test_the_next_steps_words_are_a_new_paragraph():
+    events, _ = await agent(
+        [["Looking for baths.", use("list_districts")], ["Here they are."]]
+    )
+
+    assert joined(events) == "Looking for baths.\n\nHere they are."
+
+
 async def test_text_after_a_tools_own_sentence_starts_apart():
     events, _ = await agent(
         [[use("offer_stays", mode="other_hotels")], ["Pick one you like."]]
