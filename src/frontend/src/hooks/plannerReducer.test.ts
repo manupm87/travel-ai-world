@@ -617,7 +617,7 @@ describe("plannerReducer — turn_finished packing", () => {
   const progress = (step: "open" | "list" | "wardrobe" | "zip") =>
     ({
       type: "event",
-      event: { type: "progress", step, detail: "", sources: [] },
+      event: { type: "progress", step, detail: "", sources: [] as string[] },
     }) as const;
 
   it("zips a turn the server zipped", () => {
