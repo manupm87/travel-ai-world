@@ -21,6 +21,7 @@ import sys
 from ai_api.config import AISettings
 from ai_api.domain.agent import (
     AgentMessage,
+    TextDelta,
     ToolCall,
     ToolCallReady,
     ToolResult,
@@ -54,7 +55,7 @@ async def _step(
         print(f"  {item!r}")
         if isinstance(item, ToolCallReady):
             calls.append(item.call)
-        elif hasattr(item, "text"):
+        elif isinstance(item, TextDelta):
             text.append(item.text)
     print(f"  usage: {usage}")
     return "".join(text), calls
@@ -97,7 +98,7 @@ async def run(model: str) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(description="Probe a model's tool calls.")
     parser.add_argument("--model", default="z-ai/glm-5.3-flash")
     return asyncio.run(run(parser.parse_args(argv).model))
 
