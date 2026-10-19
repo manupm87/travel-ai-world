@@ -119,7 +119,6 @@ def make_planner(
         retriever,
         cities=[BUDAPEST],
         today=lambda: TODAY,
-        agent_enabled=True,
         **kwargs,  # type: ignore[arg-type]
     )
     return plan, provider, retriever

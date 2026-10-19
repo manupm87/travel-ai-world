@@ -5,10 +5,20 @@ the trip with titles in the system prompt, seed `AgentContext.known` (so the
 write tools can move or remove what the trip holds) and the names the
 searches skip. The transcript becomes `AgentMessage`s, in the alternating
 order every provider asks for, ending with the traveller's message.
+
+Before the stay (TRA-291) there is no itinerary: the context is the brief and
+what the transcript says of the offers so far. The server keeps no state and
+the page sends text only (`PlannerTurn.history`), so whether the
+neighbourhoods were offered and which district the hotels were offered for
+are read from the fixed sentences that introduced them, in either language,
+anywhere in an assistant message (agent prose may come first). They are
+context — the first offer and `offer_hotels` without a district — never a
+route.
 """
 
-from collections.abc import Sequence
-from typing import TYPE_CHECKING
+import re
+from collections.abc import Iterable, Sequence
+from typing import TYPE_CHECKING, Protocol
 
 from travel_common.exceptions import DomainError
 
@@ -17,7 +27,12 @@ from ai_api.application.cards import title_of
 from ai_api.application.plan_trip import Turn, _brief_json, title_words
 from ai_api.domain.agent import AgentMessage
 from ai_api.domain.models import Document, Message
-from ai_api.prompts import AGENT_SYSTEM_PROMPT, LANGUAGE_NAMES
+from ai_api.prompts import (
+    AGENT_PRE_STAY_PROMPT,
+    AGENT_SYSTEM_PROMPT,
+    LANGUAGE_NAMES,
+    PLANNER_TEXTS,
+)
 from ai_api.schemas.planner_events import DAY_PARTS
 
 if TYPE_CHECKING:
@@ -48,6 +63,75 @@ async def build_context(turn: Turn, planner: "PlanTrip") -> AgentContext:
     context.system = [system_prompt(turn, planner, days, known)]
     context.messages = transcript(turn.history(HISTORY_MESSAGES), turn.message)
     return context
+
+
+async def build_pre_stay_context(turn: Turn, planner: "PlanTrip") -> AgentContext:
+    """Before the stay: no itinerary, the brief and the last hotels' district."""
+    hotels = last_hotels_district(turn.request.history)
+    context = AgentContext(
+        turn=turn,
+        planner=planner,
+        known={},
+        days={},
+        stay_id=None,
+        hotels_district=hotels,
+    )
+    context.system = [
+        AGENT_PRE_STAY_PROMPT.format(
+            language=LANGUAGE_NAMES[turn.language],
+            today=planner._today().isoformat(),
+            city=planner._city(turn).name,
+            brief=_brief_json(turn.brief),
+            hotels=hotels or "(no hotels offered yet)",
+        )
+    ]
+    context.messages = transcript(turn.history(HISTORY_MESSAGES), turn.message)
+    return context
+
+
+class Said(Protocol):
+    """A transcript entry: `Message` or the request's `ChatMessage`."""
+
+    @property
+    def role(self) -> str: ...
+
+    @property
+    def content(self) -> str: ...
+
+
+def _sentence(template: str) -> re.Pattern[str]:
+    """A `PLANNER_TEXTS` sentence as a pattern; its one `{field}`, if any,
+    becomes the group `value` (one line, as short as it can be)."""
+    head, brace, rest = template.partition("{")
+    if not brace:
+        return re.compile(re.escape(template))
+    _, _, tail = rest.partition("}")
+    return re.compile(re.escape(head) + r"(?P<value>[^\n]+?)" + re.escape(tail))
+
+
+_NEIGHBOURHOODS = [_sentence(t["neighbourhoods"]) for t in PLANNER_TEXTS.values()]
+_HOTELS = [_sentence(t["hotels"]) for t in PLANNER_TEXTS.values()]
+
+
+def neighbourhoods_offered(history: Iterable[Said]) -> bool:
+    """Whether an assistant message introduced the neighbourhoods."""
+    return any(
+        m.role == "assistant" and any(p.search(m.content) for p in _NEIGHBOURHOODS)
+        for m in history
+    )
+
+
+def last_hotels_district(history: Sequence[Said]) -> str | None:
+    """The district the latest hotel carousel was offered for, from the
+    sentence that introduced it; `None` when no hotels were offered."""
+    for message in reversed(history):
+        if message.role != "assistant":
+            continue
+        found = [m for p in _HOTELS for m in p.finditer(message.content)]
+        if found:
+            latest = max(found, key=lambda m: m.start())
+            return latest.group("value").strip() or None
+    return None
 
 
 def snapshot_days(turn: Turn) -> Days:

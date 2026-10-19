@@ -11,6 +11,12 @@ retriever found, picks ids and explains its picks; every card is hydrated
 from the corpus document behind the id (`cards.py`), and an id that was not
 retrieved is dropped. Prices are tiers, flights a prefilled search link,
 weather a forecast or the corpus's climate normals.
+
+A message is the brief's checklist until the brief is complete; from there
+Kiri, one tool-using agent (`application/agent/`, ADR 0032), runs the
+conversation, before the stay and after it (TRA-291). Selections, removals
+and the page's own asks ("Alternatives for day N · part", "Generate the
+trip") stay deterministic.
 """
 
 import asyncio
@@ -64,17 +70,17 @@ from ai_api.domain.ports import (
 from ai_api.domain.tracing import Phase
 from ai_api.infrastructure.static_flight_search import route_for
 from ai_api.prompts import (
+    AGENT_PRE_STAY_PROMPT,
+    AGENT_SYSTEM_PROMPT,
     ASK_MISSING_PROMPT,
     BRIEF_EXTRACTION_PROMPT,
     CHAT_INTRO,
     DAY_PICKS_PROMPT,
-    INTENT_PROMPT,
     LANGUAGE_NAMES,
     PART_NAMES,
     PICK_HOTELS_PROMPT,
     PICK_OPTIONS_PROMPT,
     PLANNER_PERSONA,
-    PLANNER_TEXTS,
     RAG_CONTEXT_PROMPT,
     RANK_NEIGHBOURHOODS_PROMPT,
     SKELETON_PROMPT,
@@ -120,17 +126,11 @@ EAT_DRINK_CATEGORIES = (*EAT_CATEGORIES, *DRINK_CATEGORIES)
 """A place to eat *or* to drink: what a `restaurant` ask means when no part of
 the day narrows it, so a wine bar or a ruin bar is reachable too (TRA-186)."""
 
-DRINK_EAT_CATEGORIES = (*DRINK_CATEGORIES, *EAT_CATEGORIES)
-"""The same, drinks first: a night slot is for a bar, with a late kitchen next."""
-
 OPTIONS_COUNT = 3
 """Cards per carousel: enough to choose from, few enough to read."""
 
-MENTIONED_COUNT = 5
-"""Most cards an answer's own places may become (TRA-185)."""
-
 CHAT_PASSAGES = 6
-"""Passages a question's answer is grounded on."""
+"""Passages a question's answer is grounded on (`chat_messages`, the answer eval)."""
 
 EMPTY_ITINERARY = "(empty)"
 """What the chat intro says of a trip with no itinerary yet."""
@@ -149,14 +149,10 @@ PART_PLAN: dict[Pace, dict[DayPart, int]] = {
     "intense": {"morning": 2, "afternoon": 2, "evening": 1, "night": 1},
 }
 
-# Whole phrases only (the closing `\b`): "generally", "in general" or "I cannot
-# decide" are questions to answer, not a request to draft the whole trip. The
-# page's button sends "Generate the trip" / "Genera el viaje".
-GENERATE_WORDS = re.compile(
-    r"\b(?:generate|generar|genera|choose for me|you decide|decide for me"
-    r"|decide t[uú]|elige t[uú]|elige por m[ií]|sorpr[eé]nde(?:me|nos))\b",
-    re.IGNORECASE,
-)
+GENERATE_ASKS = frozenset({"generate the trip", "genera el viaje"})
+"""What the page's own button sends (`generateMessage` in `i18n/en.ts` and
+`es.ts`), matched exactly: it drafts the whole trip with no model step. Any
+other wording ("decide tú", "surprise me") is the agent's `plan_for_me`."""
 ALTERNATIVES_ASK = re.compile(
     r"^\s*(?:alternatives for day|alternativas para el d[ií]a)\s+(\d+)\s*·\s*(\w+)"
     # What the traveller wants instead, after a colon (TRA-184); absent when
@@ -251,17 +247,6 @@ class DayPicks(BaseModel):
     afternoon: list[Pick] = Field(default_factory=list)
     evening: list[Pick] = Field(default_factory=list)
     night: list[Pick] = Field(default_factory=list)
-
-
-class Intent(BaseModel):
-    intent: Literal["find_options", "change_stay", "chat"] = "chat"
-    kind: Literal["experience", "restaurant"] | None = None
-    day: int | None = None
-    part: DayPart | None = None
-    query: str | None = None
-    cheaper: bool = False
-    # Another neighbourhood rather than another hotel in this one (TRA-247).
-    area: bool = False
 
 
 # ─── Turn context ────────────────────────────────────────────────────────────
@@ -470,16 +455,6 @@ def _places_named_in(text: str, documents: Sequence[Document]) -> list[Document]
     return [d for _, d in found]
 
 
-def _mentioned_places(answer: str, passages: Sequence[Document]) -> list[Document]:
-    """The places an answer named, in the order it named them (TRA-185).
-
-    Only the passages the answer was grounded on can become cards, so nothing
-    the model invented is ever offered; one card per place, whichever source
-    it came from.
-    """
-    return _dedupe_by_title(_places_named_in(answer, passages))[:MENTIONED_COUNT]
-
-
 def _keep_known(picks: Sequence[Pick], known: Mapping[str, Document]) -> list[Pick]:
     """Ids the model returned that were retrieved, once each, in its order."""
     kept: list[Pick] = []
@@ -631,7 +606,6 @@ class PlanTrip:
         max_days: int = 7,
         candidates: int = 8,
         today: Callable[[], date] = date.today,
-        agent_enabled: bool = False,
         agent_max_steps: int = 6,
         agent_max_tool_calls: int = 12,
     ) -> None:
@@ -646,10 +620,6 @@ class PlanTrip:
         self._max_days = max_days
         self._candidate_count = candidates
         self._today = today
-        # After the draft a message goes to the tool-using agent (ADR 0032)
-        # when this is on and the model calls tools; `api/deps.py` passes
-        # `PLANNER_AGENT`, so a test that does not ask keeps the state machine.
-        self._agent_enabled = agent_enabled
         self._agent_max_steps = agent_max_steps
         self._agent_max_tool_calls = agent_max_tool_calls
 
@@ -734,6 +704,8 @@ class PlanTrip:
     # ── Messages ─────────────────────────────────────────────────────────
 
     async def _on_message(self, turn: Turn) -> AsyncIterator[PlannerEvent]:
+        """One agent runs the conversation (ADR 0032, TRA-291); what stays
+        deterministic is the checklist before it and the page's own asks."""
         if turn.stay_id is None:
             async for event in self._before_stay(turn):
                 yield event
@@ -741,60 +713,44 @@ class PlanTrip:
 
         slot, guidance = _alternatives_slot(turn.message)
         if slot is not None:
-            kind: OptionKind = "restaurant" if slot.part == "evening" else "experience"
             # Guided ask: the traveller's own words are the search (TRA-184).
             query = guidance or " ".join(
                 [*turn.brief.interests, slot.part or "morning", "things to do"]
             )
-            async for event in self._find_options(
-                turn, kind, slot, query, heading="alternatives"
-            ):
+            async for event in self._find_options(turn, slot, query):
                 yield event
             return
 
-        if self._uses_agent(turn):
-            async for event in self._agent(turn):
-                yield event
-            return
-
-        intent = await self._classify(turn)
-        if intent.intent == "find_options":
-            kind: OptionKind = intent.kind or "experience"
-            part = intent.part or ("evening" if kind == "restaurant" else None)
-            # No day in the ask: the cards arrive unplaced rather than landing
-            # on day 1 by assumption, and the traveller picks (TRA-185).
-            day = intent.day or 0
-            slot = Slot(day=day, part=part) if day >= 1 else None
-            async for event in self._find_options(turn, kind, slot, intent.query):
-                yield event
-        elif intent.intent == "change_stay":
-            async for event in self._change_stay(turn, intent, district=None):
-                yield event
-        else:
-            async for event in self._chat(turn):
-                yield event
-
-    def _uses_agent(self, turn: Turn) -> bool:
-        """Whether this message goes to the agent: the trip has a stay and
-        days, the switch is on and the model calls tools (ADR 0032)."""
-        return (
-            self._agent_enabled
-            and turn.stay_id is not None
-            and turn.has_days
-            and self._provider.supports_tools
-        )
+        async for event in self._agent(turn):
+            yield event
 
     async def _agent(self, turn: Turn) -> AsyncIterator[PlannerEvent]:
-        """Kiri edits the drafted trip with tools (ADR 0032, TRA-290)."""
+        """Kiri answers with tools (ADR 0032): the drafted trip's toolbox
+        after the stay (TRA-290), the stay's choice before it (TRA-291)."""
+        if not self._provider.supports_tools:
+            # Production and the local default call tools: this only guards
+            # a misconfigured model.
+            turn.phase("zip")
+            yield text(planner_text(turn.language, "agent_unavailable"))
+            return
         # The agent's modules build on this one's helpers, so they are
         # imported here rather than at the top (an import cycle otherwise).
-        from ai_api.application.agent.context import build_context
+        from ai_api.application.agent.context import (
+            build_context,
+            build_pre_stay_context,
+        )
         from ai_api.application.agent.loop import run_agent
-        from ai_api.application.agent.tools import Toolbox
+        from ai_api.application.agent.tools import PRE_STAY_TOOLS, TOOLS, Toolbox
 
         turn.phase("wardrobe")
-        context = await build_context(turn, self)
-        toolbox = Toolbox(context)
+        if turn.stay_id is None:
+            context = await build_pre_stay_context(turn, self)
+            toolbox = Toolbox(context, PRE_STAY_TOOLS)
+            template = AGENT_PRE_STAY_PROMPT
+        else:
+            context = await build_context(turn, self)
+            toolbox = Toolbox(context, TOOLS)
+            template = AGENT_SYSTEM_PROMPT
         async for event in run_agent(
             turn,
             self._provider,
@@ -803,54 +759,26 @@ class PlanTrip:
             messages=context.messages,
             max_steps=self._agent_max_steps,
             max_tool_calls=self._agent_max_tool_calls,
+            template=template,
         ):
             yield event
         for event in toolbox.finish():
             yield event
 
-    async def _change_stay(
-        self, turn: Turn, intent: Intent, *, district: str | None
-    ) -> AsyncIterator[PlannerEvent]:
-        """A step back to the stay (TRA-247): the neighbourhoods again when the
-        traveller wants another area, else other hotels in the one they chose
-        (`district`, or the current stay's)."""
-        if intent.area:
-            async for event in self._neighbourhood_options(turn):
-                yield event
-            return
-        async for event in self._hotel_options(turn, district, cheaper=intent.cheaper):
-            yield event
-
     async def _before_stay(self, turn: Turn) -> AsyncIterator[PlannerEvent]:
-        """Brief first; then neighbourhoods, or the whole draft on request.
+        """The checklist first, then the stay.
 
-        Once the neighbourhoods have been offered (the transcript holds the
-        sentence that introduced them) and the message changes nothing in the
-        brief, the user is talking, not answering the checklist. It may be a
-        step back — another neighbourhood, other hotels (TRA-247) — which
-        offers that carousel again; anything else is answered as chat.
+        The brief is extracted on every message and goes out as its event,
+        whatever comes next; while it lacks something, one question is asked.
+        Complete, the page's own "Generate the trip" drafts everything, and
+        the first time the neighbourhoods are offered without a model step.
+        Once they have been offered (the transcript holds their sentence),
+        the agent answers: a question, a step back to the neighbourhoods or
+        the hotels, or "decide for me" (TRA-291).
         """
-        offered = _neighbourhoods_offered(turn)
-        if (
-            offered
-            and not turn.brief.missing()
-            and not GENERATE_WORDS.search(turn.message)
-        ):
-            brief = await self._extract_brief(turn)
-            if brief == turn.brief:
-                intent = await self._classify(turn)
-                if intent.intent == "change_stay":
-                    events = self._change_stay(
-                        turn, intent, district=_hotels_offered_in(turn)
-                    )
-                else:
-                    events = self._chat(turn)
-                async for event in events:
-                    yield event
-                return
-            turn.brief = brief
-        else:
-            brief = await self._extract_brief(turn)
+        from ai_api.application.agent.context import neighbourhoods_offered
+
+        brief = await self._extract_brief(turn)
         not_covered: str | None = None
         if brief.destination and resolve_city(brief.destination, self._cities) is None:
             not_covered = planner_text(
@@ -871,11 +799,13 @@ class PlanTrip:
                 yield event
             return
 
-        if GENERATE_WORDS.search(turn.message):
-            async for event in self._auto_stay_and_draft(turn):
-                yield event
-            return
-        async for event in self._neighbourhood_options(turn):
+        if turn.message.casefold() in GENERATE_ASKS:
+            events = self._auto_stay_and_draft(turn)
+        elif not neighbourhoods_offered(turn.request.history):
+            events = self._neighbourhood_options(turn)
+        else:
+            events = self._agent(turn)
+        async for event in events:
             yield event
 
     async def _extract_brief(self, turn: Turn) -> TripBrief:
@@ -1622,69 +1552,22 @@ class PlanTrip:
     ) -> AsyncIterator[PlannerEvent]:
         yield text(planner_text(turn.language, "removed", day=action.slot.day))
 
-    # ── After the draft ──────────────────────────────────────────────────
-
-    async def _classify(self, turn: Turn) -> Intent:
-        prompt = INTENT_PROMPT.format(
-            city=self._city(turn).name,
-            itinerary=_itinerary_summary(turn),
-        )
-        try:
-            return await complete_json(
-                self._provider,
-                [
-                    Message("system", self._persona(turn)),
-                    Message("system", prompt),
-                    *turn.history(6),
-                    Message("user", turn.message),
-                ],
-                Intent,
-                name="classify",
-                template=INTENT_PROMPT,
-                fallback_on_error=True,
-            )
-        except DomainError as exc:
-            logger.warning("Intent unavailable, answering as chat: %s", exc.message)
-            return Intent(intent="chat")
+    # ── The page's alternatives ──────────────────────────────────────────
 
     async def _find_options(
-        self,
-        turn: Turn,
-        kind: OptionKind,
-        slot: Slot | None,
-        query: str | None,
-        *,
-        heading: str = "options",
+        self, turn: Turn, slot: Slot, query: str
     ) -> AsyncIterator[PlannerEvent]:
-        """Cards for a slot, or unplaced when no day was named (TRA-185).
-
-        Unplaced, the group is a fresh `found:` id with `slot=None`: the page
-        asks the traveller for the day and the part and sends them back in the
-        `select` action (ADR 0018).
-        """
-        part = slot.part if slot is not None else None
-        if kind == "restaurant" and part is None:
-            # An ask with no day names no part, so a bar must be reachable
-            # too: "a wine bar near the Basilica" is a restaurant intent
-            # whose answer is a `drink` place (TRA-186).
-            categories, tier = EAT_DRINK_CATEGORIES, turn.brief.budget_tier
-        elif part == "night":
-            categories = (
-                DRINK_EAT_CATEGORIES if kind == "restaurant" else DRINK_CATEGORIES
-            )
-            tier = None
-        elif kind == "restaurant" or part == "evening":
-            categories, tier = EAT_CATEGORIES, turn.brief.budget_tier
-        else:
-            categories, tier = SIGHT_CATEGORIES, None
-        request = query or turn.message or " ".join(turn.brief.interests)
+        """Alternatives for one slot, asked by the page's own "Alternatives for
+        day N · part" (`_alternatives_slot`): a `slot:<day>:<part>` group."""
+        part: DayPart = slot.part or "morning"
+        kind: OptionKind = "restaurant" if part == "evening" else "experience"
+        categories, tier = self._part_categories(turn, part)
         await self._seed_used_titles(turn)
         turn.phase("wardrobe")
-        pinned = await self._named_places(turn, turn.message or request)
+        pinned = await self._named_places(turn, turn.message or query)
         turn.phase("fold")
-        where = f"{slot.day}:{part or 'any'}" if slot is not None else "any"
         candidates = await self._candidates(
-            turn, request, categories, (), tier, purpose=f"candidates:{where}"
+            turn, query, categories, (), tier, purpose=f"candidates:{slot.day}:{part}"
         )
         candidates = _pin_candidates(
             pinned, [d for d in candidates if d.id not in turn.used_ids]
@@ -1693,14 +1576,11 @@ class PlanTrip:
             yield text(planner_text(turn.language, "no_options"))
             return
         known = {d.id: d for d in candidates}
-        part_name = PART_NAMES[turn.language][part or "morning"]
-        context = (
-            "any day of the trip" if slot is None else f"day {slot.day}, {part_name}"
-        )
+        part_name = PART_NAMES[turn.language][part]
         prompt = PICK_OPTIONS_PROMPT.format(
             brief=_brief_json(turn.brief),
-            request=request,
-            context=context,
+            request=query,
+            context=f"day {slot.day}, {part_name}",
             candidates="\n".join(_line(d) for d in candidates),
             count=OPTIONS_COUNT,
             language=LANGUAGE_NAMES[turn.language],
@@ -1720,81 +1600,14 @@ class PlanTrip:
             turn,
             [card_from_document(known[p.id], self._clean(turn, p.why)) for p in picks],
         )
-        if slot is None:
-            prompt_text = planner_text(turn.language, heading)
-            group_id, placed = _new_found_group(), None
-        else:
-            prompt_text = planner_text(
-                turn.language, heading, day=slot.day, part=part_name
-            )
-            group_id = f"slot:{slot.day}:{part or 'morning'}"
-            placed = Slot(day=slot.day, part=part or "morning")
+        prompt_text = planner_text(
+            turn.language, "alternatives", day=slot.day, part=part_name
+        )
+        placed = Slot(day=slot.day, part=part)
         turn.phase("zip")
         yield text(prompt_text)
-        yield options(group_id, kind, prompt_text, cards, slot=placed)
-
-    async def _chat(self, turn: Turn) -> AsyncIterator[PlannerEvent]:
-        turn.phase("wardrobe")
-        try:
-            passages = await self._search(
-                turn,
-                turn.message,
-                (),
-                limit=CHAT_PASSAGES,
-                districts=(),
-                tier=None,
-                purpose="chat",
-            )
-        except DomainError as exc:
-            logger.warning("Answering without retrieval: %s", exc.message)
-            passages = []
-        messages = chat_messages(
-            turn.language,
-            _itinerary_summary(turn),
-            passages,
-            turn.history(),
-            turn.message,
-        )
-        answer: list[str] = []
-        turn.phase("zip")
-        async for delta in traced_llm_stream(
-            self._provider,
-            messages,
-            name="chat",
-            tracer=turn.tracer,
-            template=CHAT_INTRO,
-        ):
-            answer.append(delta)
-            yield text(delta)
-        # The places the prose just named are cards the traveller can add
-        # (TRA-185). Not before a stay: there is no day to add them to yet.
-        if turn.stay_id is None:
-            return
-        # What the trip already holds is not offered again, as everywhere else.
-        mentioned = _mentioned_places(
-            "".join(answer), [d for d in passages if d.id not in turn.used_ids]
-        )
-        # A place the traveller named is offered first even when the answer
-        # never spelled it out — the six passages of an answer rarely hold a
-        # two-line listing (TRA-186).
-        named = await self._named_places(turn, turn.message)
-        offered = _dedupe_by_title([*named, *mentioned])[:MENTIONED_COUNT]
-        if not offered:
-            return
-        kind: OptionKind = (
-            "restaurant"
-            if all(d.metadata.get("category") in EAT_DRINK for d in offered)
-            else "experience"
-        )
-        turn.tracer.mark_used(d.id for d in offered)
-        # `why` stays empty: the answer above already explains every one of them.
-        cards = await self._with_photos(turn, cards_for(offered, {}))
         yield options(
-            _new_found_group(),
-            kind,
-            planner_text(turn.language, "mentioned"),
-            cards,
-            slot=None,
+            f"slot:{slot.day}:{part}", kind, prompt_text, cards, slot=placed
         )
 
     # ── Shared helpers ───────────────────────────────────────────────────
@@ -1994,34 +1807,10 @@ def _alternatives_slot(message: str) -> tuple[Slot | None, str | None]:
         return None, None
     part = PART_WORDS.get(match.group(2).lower())
     if part is None:
-        # A wording this build does not know: let the model classify.
+        # A wording this build does not know: the agent reads it.
         return None, None
     guidance = (match.group(3) or "").strip()
     return Slot(day=int(match.group(1)), part=part), guidance or None
-
-
-def _neighbourhoods_offered(turn: Turn) -> bool:
-    """Whether an earlier turn introduced the neighbourhood carousel."""
-    intros = {texts["neighbourhoods"] for texts in PLANNER_TEXTS.values()}
-    return any(
-        m.role == "assistant" and any(m.content.startswith(i) for i in intros)
-        for m in turn.request.history
-    )
-
-
-def _hotels_offered_in(turn: Turn) -> str | None:
-    """The district the latest hotel carousel was for, read back from the
-    sentence that introduced it: the server keeps no state, and the page's
-    transcript is where the neighbourhood the traveller chose is written."""
-    for message in reversed(turn.request.history):
-        if message.role != "assistant":
-            continue
-        for texts in PLANNER_TEXTS.values():
-            head, _, tail = texts["hotels"].partition("{district}")
-            if message.content.startswith(head) and message.content.endswith(tail):
-                district = message.content[len(head) : len(message.content) - len(tail)]
-                return district.strip() or None
-    return None
 
 
 def chat_messages(
@@ -2033,8 +1822,9 @@ def chat_messages(
 ) -> list[Message]:
     """What the model reads to answer a traveller's question: the persona, the
     chat intro with the itinerary so far, the retrieved passages (when there
-    are any), the conversation and the question. The planner's chat turn and
-    the answer evaluation (`application/answer_eval.py`) both build it here."""
+    are any), the conversation and the question: the grounded answer the
+    answer evaluation (`application/answer_eval.py`) measures. The planner
+    itself answers through the agent since TRA-291."""
     messages = [
         Message("system", PLANNER_PERSONA.format(language=LANGUAGE_NAMES[language])),
         Message(
@@ -2052,17 +1842,3 @@ def chat_messages(
     messages.append(Message("user", message))
     return messages
 
-
-def _itinerary_summary(turn: Turn) -> str:
-    itinerary = turn.request.itinerary
-    if itinerary is None:
-        return EMPTY_ITINERARY
-    lines = [f"stay: {itinerary.stay_card_id or '-'}"]
-    for day in itinerary.days:
-        parts = ", ".join(
-            f"{part}: {len(getattr(day.slots, part))}"
-            for part in DAY_PARTS
-            if getattr(day.slots, part)
-        )
-        lines.append(f"day {day.day}: {parts or 'empty'}")
-    return "\n".join(lines)

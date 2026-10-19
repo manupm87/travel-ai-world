@@ -3,6 +3,7 @@
     uv run python tests/manual/conversation_eval.py                 # every scenario
     uv run python tests/manual/conversation_eval.py budapest --tag safety
     uv run python tests/manual/conversation_eval.py --scenario prices-en --repeat 3
+    just eval-conversations "" --repeat 3 --concurrency 1   # the gate (ADR 0032)
     just eval-conversations budapest --judge --out eval.md
 
 Run by path, not as a module (see `planner_smoke.py`).
@@ -69,6 +70,13 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--repeat", type=int, default=1, help="runs per scenario (the gate uses 3)"
+    )
+    parser.add_argument(
+        "--concurrency",
+        type=int,
+        default=ev.CONCURRENCY,
+        help="scenario runs in flight at once (the gate uses 1: no rate limits "
+        "in the measurement)",
     )
     parser.add_argument(
         "--judge", action="store_true", help="an LLM verdict on each conversation"
@@ -166,7 +174,6 @@ async def run(args: argparse.Namespace, out: TextIO) -> int:
                 photos=photos,
                 previews=previews,
                 cities=[city_of(slug, manifest)],
-                agent_enabled=settings.PLANNER_AGENT,
                 agent_max_steps=settings.AGENT_MAX_STEPS,
                 agent_max_tool_calls=settings.AGENT_MAX_TOOL_CALLS,
             )
@@ -180,6 +187,7 @@ async def run(args: argparse.Namespace, out: TextIO) -> int:
             retriever_for,
             city_names=names,
             repeat=args.repeat,
+            concurrency=max(1, args.concurrency),
             judge=judge,
         )
     finally:

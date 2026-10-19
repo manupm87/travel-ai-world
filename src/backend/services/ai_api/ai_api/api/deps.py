@@ -116,7 +116,6 @@ def get_plan_trip(
         cities=cities,
         max_days=settings.PLANNER_MAX_DAYS,
         candidates=settings.PLANNER_CANDIDATES,
-        agent_enabled=settings.PLANNER_AGENT,
         agent_max_steps=settings.AGENT_MAX_STEPS,
         agent_max_tool_calls=settings.AGENT_MAX_TOOL_CALLS,
     )

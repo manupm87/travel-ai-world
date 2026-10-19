@@ -92,7 +92,6 @@ class Run:
             FakeRetriever(CORPUS),
             cities=[BUDAPEST],
             today=lambda: date(2026, 9, 18),
-            agent_enabled=True,
         )
         self.turn: Turn = _read_turn(request(message, language))
         self.tracer = TurnTracer("planner", "/planner", "1")

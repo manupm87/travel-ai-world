@@ -6,14 +6,21 @@ tool calls run one at a time, in order, each yielding its planner events at
 once. The loop ends with the first step that calls no tool. Past the budget
 (`max_steps` steps, `max_tool_calls` calls) every further call is answered
 `budget_exhausted` and one last step must answer; if it still calls tools the
-turn ends with the fixed `agent_budget` sentence. `ProviderUnavailable`
-propagates: the stream sends its `error` event, as for every other turn.
+turn ends with the fixed `agent_budget` sentence.
+
+A `ProviderUnavailable` (the model's API down, or rate-limited past its
+retries) before the turn sent anything becomes the fixed `agent_retry`
+sentence, the failed step's span keeping its error; once events went out it
+propagates and the stream sends its `error` event, as for every other turn.
 """
 
 import json
+import logging
 import re
 from collections.abc import AsyncIterator, Sequence
 from typing import Protocol
+
+from travel_common.exceptions import ProviderUnavailable
 
 from ai_api.application.plan_trip import Turn
 from ai_api.application.tracing import traced_converse
@@ -30,6 +37,8 @@ from ai_api.domain.agent import (
 from ai_api.domain.ports import LLMProvider
 from ai_api.prompts import AGENT_SYSTEM_PROMPT, planner_text
 from ai_api.schemas.planner_events import PlannerEvent, TextEvent, text
+
+logger = logging.getLogger(__name__)
 
 BUDGET_EXHAUSTED = json.dumps(
     {"error": "budget_exhausted", "say": "answer the traveller now"}
@@ -52,7 +61,7 @@ class Toolbox(Protocol):
 
     def note_text(self) -> None: ...
 
-    async def call(self, call: ToolCall) -> tuple[ToolResult, list[PlannerEvent]]: ...
+    def stream(self, call: ToolCall) -> AsyncIterator[PlannerEvent | ToolResult]: ...
 
 
 class ProseFilter:
@@ -121,6 +130,43 @@ async def run_agent(
     messages: Sequence[AgentMessage],
     max_steps: int,
     max_tool_calls: int,
+    template: str = AGENT_SYSTEM_PROMPT,
+) -> AsyncIterator[PlannerEvent]:
+    """Kiri's turn as planner events; `template` is the system prompt's
+    template, for the trace's prompt version."""
+    sent = False
+    try:
+        async for event in _steps(
+            turn,
+            provider,
+            toolbox,
+            system=system,
+            messages=messages,
+            max_steps=max_steps,
+            max_tool_calls=max_tool_calls,
+            template=template,
+        ):
+            sent = True
+            yield event
+    except ProviderUnavailable as exc:
+        if sent:
+            raise
+        # Nothing reached the page: one fixed sentence instead of an error.
+        logger.warning("Agent step unavailable, asking again: %s", exc.message)
+        turn.phase("zip")
+        yield text(planner_text(turn.language, "agent_retry"))
+
+
+async def _steps(
+    turn: Turn,
+    provider: LLMProvider,
+    toolbox: Toolbox,
+    *,
+    system: Sequence[str],
+    messages: Sequence[AgentMessage],
+    max_steps: int,
+    max_tool_calls: int,
+    template: str,
 ) -> AsyncIterator[PlannerEvent]:
     conversation = list(messages)
     steps = 0
@@ -142,7 +188,7 @@ async def run_agent(
                 name=f"agent:{steps}",
                 traveller_message=turn.message,
                 tracer=turn.tracer,
-                template=AGENT_SYSTEM_PROMPT,
+                template=template,
             ):
                 if isinstance(item, TextDelta):
                     parts.append(item.text)
@@ -180,14 +226,15 @@ async def run_agent(
                     )
                     continue
                 calls_run += 1
-                result, events = await toolbox.call(call)
-                results.append(result)
-                for event in events:
-                    if isinstance(event, TextEvent):
+                async for item in toolbox.stream(call):
+                    if isinstance(item, ToolResult):
+                        results.append(item)
+                        continue
+                    if isinstance(item, TextEvent):
                         # A tool's own sentence: Kiri's next words start apart.
                         lead, streamed = "\n\n", True
                         toolbox.note_text()
-                    yield event
+                    yield item
             conversation.append(
                 AgentMessage(
                     role="assistant", text="".join(parts), tool_calls=tuple(calls)

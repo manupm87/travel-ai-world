@@ -262,7 +262,6 @@ async def run(args: argparse.Namespace, out: Any) -> int:
         photos=photos,
         previews=previews,
         cities=[city_of(args.city)],
-        agent_enabled=settings.PLANNER_AGENT,
         agent_max_steps=settings.AGENT_MAX_STEPS,
         agent_max_tool_calls=settings.AGENT_MAX_TOOL_CALLS,
     )

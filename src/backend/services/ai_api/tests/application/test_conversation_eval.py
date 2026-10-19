@@ -596,7 +596,6 @@ async def test_a_scenario_plays_against_plan_trip(tmp_path: Path) -> None:
     root = write_fixture(tmp_path)
     provider = FakeProvider(
         deltas=["The Parliament ", "is the grandest building on the Danube."],
-        replies=['{"intent": "chat"}'],
     )
     retriever = FakeRetriever(CORPUS)
 
@@ -621,11 +620,11 @@ async def test_a_scenario_plays_against_plan_trip(tmp_path: Path) -> None:
     ]
     assert run.passed
     assert run.turns == 1
-    # The planner saw the fixture as the page would send it.
-    [classify] = provider.completions
-    assert "Parliament" in "\n".join(m.content for m in classify)
-    assert run.llm_calls == 2
-    assert run.input_tokens == 6 and run.output_tokens == 4
+    # The planner (the agent, TRA-291) saw the fixture as the page would send it.
+    [(system, _, _)] = provider.conversations
+    assert "Parliament" in "\n".join(system)
+    assert run.llm_calls == 1
+    assert run.input_tokens == 3 and run.output_tokens == 2
     assert "Planner: The Parliament is the grandest" in run.transcript
     assert "Day 2 — Buda" in run.itinerary
 

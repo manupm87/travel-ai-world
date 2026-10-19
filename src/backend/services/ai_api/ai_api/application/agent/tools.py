@@ -16,9 +16,9 @@ fetched (ADR 0015). Edits reuse the existing ops: no wire contract change.
 
 import json
 import logging
-from collections.abc import Sequence
+from collections.abc import AsyncIterator, Sequence
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, Literal, Protocol
+from typing import TYPE_CHECKING, Any, Literal, Protocol, runtime_checkable
 
 from pydantic import BaseModel, Field, ValidationError
 from travel_common.exceptions import DomainError
@@ -54,11 +54,14 @@ from ai_api.domain.tracing import Phase
 from ai_api.schemas.planner_events import (
     DAY_PARTS,
     DayPart,
+    ItineraryPatchEvent,
     OptionKind,
     OptionsEvent,
     Pace,
     PlannerEvent,
     PutActivityOp,
+    SetDayTitleOp,
+    SetStayOp,
     Slot,
     TextEvent,
     options,
@@ -114,6 +117,10 @@ class AgentContext:
     validated: set[int] = field(default_factory=set)
     districts: dict[str, str] | None = None
     """District name → one-line summary, read once by `list_districts`."""
+    hotels_district: str | None = None
+    """Before the stay: the district the hotels were last offered for, read
+    from the transcript (`context.last_hotels_district`); `offer_hotels`
+    without a district offers it again."""
     streamed_text: bool = False
     """Whether the loop already sent text this turn (set by `run_agent`)."""
 
@@ -158,8 +165,8 @@ def failure(message: str, **extra: Any) -> ToolOutcome:
     return ToolOutcome(result={"error": message, **extra}, is_error=True)
 
 
-class Tool(Protocol):
-    """A tool: its class attributes say what it is, `run` does it."""
+class _ToolInfo(Protocol):
+    """What a tool is: its class attributes."""
 
     @property
     def name(self) -> str: ...
@@ -173,7 +180,24 @@ class Tool(Protocol):
     @property
     def phase(self) -> Phase: ...
 
+
+class Tool(_ToolInfo, Protocol):
+    """A tool that answers at once: `run` returns its outcome and events."""
+
     async def run(self, ctx: AgentContext, args: Any) -> ToolOutcome: ...
+
+
+@runtime_checkable
+class StreamingTool(_ToolInfo, Protocol):
+    """A tool that forwards a `PlanTrip` helper's events as they come — a
+    carousel, the whole draft — and yields its `ToolOutcome` last."""
+
+    def run_stream(
+        self, ctx: AgentContext, args: Any
+    ) -> AsyncIterator["PlannerEvent | ToolOutcome"]: ...
+
+
+AnyTool = Tool | StreamingTool
 
 
 # ─── Shared helpers ──────────────────────────────────────────────────────────
@@ -727,6 +751,31 @@ class OfferStaysInput(BaseModel):
     mode: Literal["cheaper", "other_hotels", "other_neighbourhood"]
 
 
+async def _forwarded(
+    ctx: AgentContext, stream: AsyncIterator[PlannerEvent]
+) -> AsyncIterator[PlannerEvent]:
+    """A `PlanTrip` helper's events as they come; its fixed sentence starts a
+    new paragraph when Kiri already said something this turn."""
+    lead = ctx.streamed_text
+    async for event in stream:
+        if isinstance(event, TextEvent) and lead:
+            event = text("\n\n" + event.delta)
+            lead = False
+        yield event
+
+
+async def _offered(
+    ctx: AgentContext, stream: AsyncIterator[PlannerEvent], result: dict[str, Any]
+) -> AsyncIterator[PlannerEvent | ToolOutcome]:
+    """Forward a carousel helper, then answer the titles it offered."""
+    offered: list[str] = []
+    async for event in _forwarded(ctx, stream):
+        if isinstance(event, OptionsEvent):
+            offered.extend(card.title for card in event.cards)
+        yield event
+    yield ToolOutcome(result={**result, "offered": offered}, count=len(offered))
+
+
 class OfferStays:
     name = "offer_stays"
     description = (
@@ -737,32 +786,107 @@ class OfferStays:
     Input = OfferStaysInput
     phase: Phase = "fold"
 
-    async def run(self, ctx: AgentContext, args: OfferStaysInput) -> ToolOutcome:
+    def run_stream(
+        self, ctx: AgentContext, args: OfferStaysInput
+    ) -> AsyncIterator[PlannerEvent | ToolOutcome]:
         planner, turn = ctx.planner, ctx.turn
         stream = (
             planner._neighbourhood_options(turn)
             if args.mode == "other_neighbourhood"
             else planner._hotel_options(turn, None, cheaper=args.mode == "cheaper")
         )
-        events: list[PlannerEvent] = []
-        offered: list[str] = []
-        lead = ctx.streamed_text
-        async for event in stream:
-            if isinstance(event, TextEvent) and lead:
-                # The helper's fixed sentence after Kiri's own words.
-                event = text("\n\n" + event.delta)
-                lead = False
-            if isinstance(event, OptionsEvent):
-                offered.extend(card.title for card in event.cards)
-            events.append(event)
-        return ToolOutcome(
-            result={"mode": args.mode, "offered": offered},
-            events=events,
-            count=len(offered),
-        )
+        return _offered(ctx, stream, {"mode": args.mode})
 
 
-TOOLS: tuple[Tool, ...] = (
+# ─── Before the stay (TRA-291) ───────────────────────────────────────────────
+
+
+class OfferNeighbourhoods:
+    name = "offer_neighbourhoods"
+    description = (
+        "Offer the neighbourhoods that fit the brief as cards; the traveller "
+        "picks one and is then offered its hotels. The default next step "
+        "before the stay, and the way back to the neighbourhoods."
+    )
+    Input = NoInput
+    phase: Phase = "fold"
+
+    def run_stream(
+        self, ctx: AgentContext, args: NoInput
+    ) -> AsyncIterator[PlannerEvent | ToolOutcome]:
+        return _offered(ctx, ctx.planner._neighbourhood_options(ctx.turn), {})
+
+
+class OfferHotelsInput(BaseModel):
+    district: str | None = Field(
+        default=None,
+        description="A district name from list_districts; none for the area "
+        "of the hotels last offered.",
+    )
+    cheaper: bool = Field(
+        default=False, description="One price tier below the brief's budget."
+    )
+
+
+class OfferHotels:
+    name = "offer_hotels"
+    description = (
+        "Offer places to stay in a district as cards (other hotels, cheaper "
+        "ones, another district's); the traveller picks and the trip is "
+        "drafted around it."
+    )
+    Input = OfferHotelsInput
+    phase: Phase = "fold"
+
+    async def run_stream(
+        self, ctx: AgentContext, args: OfferHotelsInput
+    ) -> AsyncIterator[PlannerEvent | ToolOutcome]:
+        if args.district:
+            [district] = await _district_names(ctx, [args.district])
+        else:
+            district = ctx.hotels_district
+        stream = ctx.planner._hotel_options(ctx.turn, district, cheaper=args.cheaper)
+        async for item in _offered(
+            ctx, stream, {"district": district, "cheaper": args.cheaper}
+        ):
+            yield item
+
+
+class PlanForMe:
+    name = "plan_for_me"
+    description = (
+        "The traveller leaves the choice to you: pick the best neighbourhood "
+        "and stay for the brief and draft the whole trip. Only when they "
+        "delegate the choice; once per turn."
+    )
+    Input = NoInput
+    phase: Phase = "fold"
+
+    async def run_stream(
+        self, ctx: AgentContext, args: NoInput
+    ) -> AsyncIterator[PlannerEvent | ToolOutcome]:
+        if ctx.turn.stay_id is not None:
+            yield failure("the stay is already chosen: the trip is drafted")
+            return
+        stay: str | None = None
+        days = 0
+        async for event in _forwarded(
+            ctx, ctx.planner._auto_stay_and_draft(ctx.turn)
+        ):
+            if isinstance(event, ItineraryPatchEvent):
+                for op in event.ops:
+                    if isinstance(op, SetStayOp):
+                        stay = op.card.title
+                    elif isinstance(op, SetDayTitleOp):
+                        days += 1
+            yield event
+        if stay is None:
+            yield failure("no place to stay matches the brief")
+            return
+        yield ToolOutcome(result={"stay": stay, "days": days}, count=days)
+
+
+TOOLS: tuple[AnyTool, ...] = (
     SearchPlaces(),
     GetPlace(),
     ListDistricts(),
@@ -776,6 +900,19 @@ TOOLS: tuple[Tool, ...] = (
     OfferOptions(),
     OfferStays(),
 )
+"""After the stay: the drafted trip's toolbox (TRA-290)."""
+
+PRE_STAY_TOOLS: tuple[AnyTool, ...] = (
+    SearchPlaces(),
+    GetPlace(),
+    ListDistricts(),
+    OfferNeighbourhoods(),
+    OfferHotels(),
+    PlanForMe(),
+)
+"""Before the stay (TRA-291): reading the guide and choosing the stay. No
+write tool, no weather (it reads the stay) and no unplaced carousel: there
+is no day to put a place on yet."""
 
 
 # ─── The toolbox ─────────────────────────────────────────────────────────────
@@ -792,7 +929,9 @@ class Toolbox:
     """The tools of one turn over one context: specs for the model, calls
     run with their span and phase, and the turn's closing warnings."""
 
-    def __init__(self, context: AgentContext, tools: Sequence[Tool] = TOOLS) -> None:
+    def __init__(
+        self, context: AgentContext, tools: Sequence[AnyTool] = TOOLS
+    ) -> None:
         self.context = context
         self._tools = {tool.name: tool for tool in tools}
         self.specs = [
@@ -808,40 +947,66 @@ class Toolbox:
         """The loop streamed text to the traveller."""
         self.context.streamed_text = True
 
-    async def call(self, call: ToolCall) -> tuple[ToolResult, list[PlannerEvent]]:
-        """Run one call; whatever goes wrong becomes an error result."""
+    async def stream(self, call: ToolCall) -> AsyncIterator[PlannerEvent | ToolResult]:
+        """Run one call: its planner events as they come, then its result.
+        Whatever goes wrong becomes an error result."""
         turn = self.context.turn
         tool = self._tools.get(call.name)
+        outcome = failure("internal")
         async with tool_span(turn.tracer, call.name, call.arguments) as span:
-            outcome = await self._run(tool, call)
+            async for item in self._run(tool, call):
+                if isinstance(item, ToolOutcome):
+                    outcome = item
+                else:
+                    yield item
             span.payload["status"] = "error" if outcome.is_error else "ok"
             span.payload["count"] = outcome.count
             if outcome.is_error:
                 span.level = "warning"
                 span.message = str(outcome.result.get("error"))[:200]
         content = json.dumps(outcome.result, ensure_ascii=False, default=str)
-        return (
-            ToolResult(call_id=call.id, content=content, is_error=outcome.is_error),
-            outcome.events,
-        )
+        yield ToolResult(call_id=call.id, content=content, is_error=outcome.is_error)
 
-    async def _run(self, tool: Tool | None, call: ToolCall) -> ToolOutcome:
+    async def call(self, call: ToolCall) -> tuple[ToolResult, list[PlannerEvent]]:
+        """`stream` gathered: the result and every event of the call."""
+        events: list[PlannerEvent] = []
+        result = ToolResult(call_id=call.id, content="{}", is_error=True)
+        async for item in self.stream(call):
+            if isinstance(item, ToolResult):
+                result = item
+            else:
+                events.append(item)
+        return result, events
+
+    async def _run(
+        self, tool: AnyTool | None, call: ToolCall
+    ) -> AsyncIterator[PlannerEvent | ToolOutcome]:
         if tool is None:
-            return failure(f"unknown tool {call.name!r}", tools=sorted(self._tools))
+            yield failure(f"unknown tool {call.name!r}", tools=sorted(self._tools))
+            return
         if "_raw" in call.arguments:
-            return failure("invalid arguments: not a JSON object")
+            yield failure("invalid arguments: not a JSON object")
+            return
         try:
             args = tool.Input.model_validate(call.arguments)
         except ValidationError as exc:
-            return failure("invalid arguments", details=_validation_errors(exc))
+            yield failure("invalid arguments", details=_validation_errors(exc))
+            return
         self.context.turn.phase(tool.phase)
         try:
-            return await tool.run(self.context, args)
+            if isinstance(tool, StreamingTool):
+                async for item in tool.run_stream(self.context, args):
+                    yield item
+            else:
+                outcome = await tool.run(self.context, args)
+                for event in outcome.events:
+                    yield event
+                yield outcome
         except DomainError as exc:
-            return failure(exc.message, **_jsonable(exc.extras))
+            yield failure(exc.message, **_jsonable(exc.extras))
         except Exception:
             logger.exception("Tool %s failed", call.name)
-            return failure("internal")
+            yield failure("internal")
 
     def finish(self) -> list[PlannerEvent]:
         """The warnings of every day a write tool changed, one patch per day,
