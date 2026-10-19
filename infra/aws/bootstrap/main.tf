@@ -169,3 +169,52 @@ resource "aws_iam_role_policy" "github_deploy_iam" {
   role   = aws_iam_role.github_deploy.id
   policy = data.aws_iam_policy_document.github_deploy_iam.json
 }
+
+# ── ECR Public pulls for the image builds (TRA-309) ──────────────────────────
+# The image builds pull the Lambda adapter layer from public.ecr.aws. Anonymous
+# pulls are rate-limited per source IP and GitHub's runners share their IPs, so
+# builds failed with 429. This role lets any job of the repository (PRs
+# included) log in to ECR Public, and nothing else: it can only ask for the
+# registry's pull token. Repository variable AWS_ECR_PUBLIC_ROLE holds its ARN.
+data "aws_iam_policy_document" "github_ecr_public_trust" {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+    principals {
+      type        = "Federated"
+      identifiers = [aws_iam_openid_connect_provider.github.arn]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "token.actions.githubusercontent.com:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+    condition {
+      test     = "StringLike"
+      variable = "token.actions.githubusercontent.com:sub"
+      values   = ["repo:${var.github_repository}:*"]
+    }
+  }
+}
+
+resource "aws_iam_role" "github_ecr_public_pull" {
+  name                 = "${var.name_prefix}-github-ecr-public-pull"
+  description          = "Assumed by the image builds through GitHub OIDC; only logs in to ECR Public."
+  assume_role_policy   = data.aws_iam_policy_document.github_ecr_public_trust.json
+  max_session_duration = 3600
+}
+
+data "aws_iam_policy_document" "github_ecr_public_pull" {
+  statement {
+    sid       = "EcrPublicPullToken"
+    effect    = "Allow"
+    actions   = ["ecr-public:GetAuthorizationToken", "sts:GetServiceBearerToken"]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role_policy" "github_ecr_public_pull" {
+  name   = "ecr-public-pull-token"
+  role   = aws_iam_role.github_ecr_public_pull.id
+  policy = data.aws_iam_policy_document.github_ecr_public_pull.json
+}

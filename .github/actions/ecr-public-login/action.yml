@@ -1,0 +1,27 @@
+name: Log in to Amazon ECR Public
+description: >
+  Authenticated pulls from public.ecr.aws (the aws-lambda-adapter base layer).
+  Anonymous pulls are rate-limited per source IP, and GitHub's runners share
+  their IPs, so builds hit 429 Too Many Requests (TRA-309). Authenticated pulls
+  count against the account instead. The role only grants the ECR Public token
+  (infra/aws/bootstrap, output ecr_public_pull_role_arn). Without the role (the
+  variable unset, Dependabot, forks) the caller's continue-on-error keeps the
+  build on anonymous pulls.
+
+inputs:
+  role-to-assume:
+    description: ARN of the ECR Public pull role (repository variable AWS_ECR_PUBLIC_ROLE)
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: aws-actions/configure-aws-credentials@v6
+      with:
+        role-to-assume: ${{ inputs.role-to-assume }}
+        # ECR Public's token is issued only in us-east-1.
+        aws-region: us-east-1
+        role-session-name: ecr-public-pull
+    - uses: aws-actions/amazon-ecr-login@v2
+      with:
+        registry-type: public

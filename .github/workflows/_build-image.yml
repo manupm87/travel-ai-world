@@ -17,7 +17,8 @@ on:
         default: false
 
 # Permissions are inherited from the caller: pr.yml grants read-only (the
-# image is only loaded), backend-images.yml grants packages: write.
+# image is only loaded), backend-images.yml grants packages: write. Both grant
+# id-token: write for the ECR Public login (TRA-309).
 jobs:
   image:
     name: ${{ inputs.service }}
@@ -26,6 +27,15 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: docker/setup-buildx-action@v4
+
+      # Authenticated pulls of the Lambda adapter layer: anonymous ones hit
+      # ECR Public's per-IP rate limit on shared runners (TRA-309).
+      - name: Log in to ECR Public
+        if: vars.AWS_ECR_PUBLIC_ROLE != ''
+        continue-on-error: true
+        uses: ./.github/actions/ecr-public-login
+        with:
+          role-to-assume: ${{ vars.AWS_ECR_PUBLIC_ROLE }}
 
       - name: Log in to GHCR
         if: inputs.push

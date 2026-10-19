@@ -8,6 +8,7 @@ on:
 permissions:
   contents: read
   pull-requests: read
+  id-token: write # ECR Public login of the image builds (TRA-309)
 
 concurrency:
   group: pr-${{ github.ref }}
@@ -226,6 +227,13 @@ jobs:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-frontend
       - uses: extractions/setup-just@v4
+
+      - name: Log in to ECR Public
+        if: vars.AWS_ECR_PUBLIC_ROLE != ''
+        continue-on-error: true
+        uses: ./.github/actions/ecr-public-login
+        with:
+          role-to-assume: ${{ vars.AWS_ECR_PUBLIC_ROLE }}
 
       - name: Service .env files from the templates (throwaway values)
         working-directory: src/backend/services

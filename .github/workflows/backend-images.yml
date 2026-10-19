@@ -16,6 +16,7 @@ on:
 permissions:
   contents: read
   packages: write
+  id-token: write # ECR Public login (TRA-309)
 
 concurrency:
   group: backend-images-${{ github.ref }}
