@@ -478,7 +478,8 @@ def test_fill_writes_dates_and_the_city() -> None:
 
 def test_every_scenario_file_loads() -> None:
     scenarios = ev.load_scenarios()
-    ids = [(s.city, s.id) for s in scenarios]
+    # Ids are unique across cities too: `--scenario` names one.
+    ids = [s.id for s in scenarios]
     assert len(ids) == len(set(ids))
     assert len(scenarios) >= 24
     by_city = {

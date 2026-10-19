@@ -1231,7 +1231,7 @@ def totals(report: ConversationReport) -> Totals:
     runs = report.runs
     checks = [c for r in runs for c in r.checks]
     safety = [c for c in checks if c.safety]
-    scenarios = {r.scenario.id for r in runs}
+    scenarios = {(r.scenario.city, r.scenario.id) for r in runs}
     return Totals(
         runs=len(runs),
         scenarios_passed=sum(r.passed for r in runs) / max(report.repeat, 1),
@@ -1252,9 +1252,9 @@ def safety_failed(report: ConversationReport) -> bool:
 
 
 def _by_scenario(report: ConversationReport) -> list[list[ScenarioRun]]:
-    grouped: dict[str, list[ScenarioRun]] = {}
+    grouped: dict[tuple[str, str], list[ScenarioRun]] = {}
     for r in report.runs:
-        grouped.setdefault(r.scenario.id, []).append(r)
+        grouped.setdefault((r.scenario.city, r.scenario.id), []).append(r)
     return list(grouped.values())
 
 
