@@ -1,0 +1,805 @@
+{
+  "start": "-PT3H",
+  "periodOverride": "inherit",
+  "widgets": [
+    {
+      "type": "text",
+      "x": 0,
+      "y": 0,
+      "width": 24,
+      "height": 3,
+      "properties": {
+        "markdown": "# Kyrian World · Infraestructura\n**DynamoDB · CloudFront · Lambda** · Últimas 3 horas · Períodos de 1 minuto · Actualización manual."
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 3,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "title": "DynamoDB · unidades de lectura consumidas/min",
+        "region": "${region}",
+        "view": "timeSeries",
+        "stacked": false,
+        "period": 60,
+        "stat": "Sum",
+        "metrics": [
+          [
+            "AWS/DynamoDB",
+            "ConsumedReadCapacityUnits",
+            "TableName",
+            "${core_table}",
+            {
+              "label": "core"
+            }
+          ],
+          [
+            "AWS/DynamoDB",
+            "ConsumedReadCapacityUnits",
+            "TableName",
+            "${traces_table}",
+            {
+              "label": "interactions"
+            }
+          ]
+        ],
+        "legend": {
+          "position": "bottom"
+        },
+        "yAxis": {
+          "left": {
+            "min": 0,
+            "label": "unidades/min",
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "x": 12,
+      "y": 3,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "title": "DynamoDB · unidades de escritura consumidas/min",
+        "region": "${region}",
+        "view": "timeSeries",
+        "stacked": false,
+        "period": 60,
+        "stat": "Sum",
+        "metrics": [
+          [
+            "AWS/DynamoDB",
+            "ConsumedWriteCapacityUnits",
+            "TableName",
+            "${core_table}",
+            {
+              "label": "core"
+            }
+          ],
+          [
+            "AWS/DynamoDB",
+            "ConsumedWriteCapacityUnits",
+            "TableName",
+            "${traces_table}",
+            {
+              "label": "interactions"
+            }
+          ]
+        ],
+        "legend": {
+          "position": "bottom"
+        },
+        "yAxis": {
+          "left": {
+            "min": 0,
+            "label": "unidades/min",
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 9,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "title": "DynamoDB · eventos de lectura limitados/min",
+        "region": "${region}",
+        "view": "timeSeries",
+        "stacked": false,
+        "period": 60,
+        "stat": "Sum",
+        "metrics": [
+          [
+            "AWS/DynamoDB",
+            "ReadThrottleEvents",
+            "TableName",
+            "${core_table}",
+            {
+              "label": "core · tabla"
+            }
+          ],
+          [
+            "AWS/DynamoDB",
+            "ReadThrottleEvents",
+            "TableName",
+            "${core_table}",
+            "GlobalSecondaryIndexName",
+            "GSI1",
+            {
+              "label": "core · GSI1"
+            }
+          ],
+          [
+            "AWS/DynamoDB",
+            "ReadThrottleEvents",
+            "TableName",
+            "${core_table}",
+            "GlobalSecondaryIndexName",
+            "GSI2",
+            {
+              "label": "core · GSI2"
+            }
+          ],
+          [
+            "AWS/DynamoDB",
+            "ReadThrottleEvents",
+            "TableName",
+            "${traces_table}",
+            {
+              "label": "interactions · tabla"
+            }
+          ],
+          [
+            "AWS/DynamoDB",
+            "ReadThrottleEvents",
+            "TableName",
+            "${traces_table}",
+            "GlobalSecondaryIndexName",
+            "GSI1",
+            {
+              "label": "interactions · GSI1"
+            }
+          ],
+          [
+            "AWS/DynamoDB",
+            "ReadThrottleEvents",
+            "TableName",
+            "${traces_table}",
+            "GlobalSecondaryIndexName",
+            "GSI2",
+            {
+              "label": "interactions · GSI2"
+            }
+          ]
+        ],
+        "legend": {
+          "position": "bottom"
+        },
+        "yAxis": {
+          "left": {
+            "min": 0,
+            "label": "eventos/min",
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "x": 12,
+      "y": 9,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "title": "DynamoDB · eventos de escritura limitados/min",
+        "region": "${region}",
+        "view": "timeSeries",
+        "stacked": false,
+        "period": 60,
+        "stat": "Sum",
+        "metrics": [
+          [
+            "AWS/DynamoDB",
+            "WriteThrottleEvents",
+            "TableName",
+            "${core_table}",
+            {
+              "label": "core · tabla"
+            }
+          ],
+          [
+            "AWS/DynamoDB",
+            "WriteThrottleEvents",
+            "TableName",
+            "${core_table}",
+            "GlobalSecondaryIndexName",
+            "GSI1",
+            {
+              "label": "core · GSI1"
+            }
+          ],
+          [
+            "AWS/DynamoDB",
+            "WriteThrottleEvents",
+            "TableName",
+            "${core_table}",
+            "GlobalSecondaryIndexName",
+            "GSI2",
+            {
+              "label": "core · GSI2"
+            }
+          ],
+          [
+            "AWS/DynamoDB",
+            "WriteThrottleEvents",
+            "TableName",
+            "${traces_table}",
+            {
+              "label": "interactions · tabla"
+            }
+          ],
+          [
+            "AWS/DynamoDB",
+            "WriteThrottleEvents",
+            "TableName",
+            "${traces_table}",
+            "GlobalSecondaryIndexName",
+            "GSI1",
+            {
+              "label": "interactions · GSI1"
+            }
+          ],
+          [
+            "AWS/DynamoDB",
+            "WriteThrottleEvents",
+            "TableName",
+            "${traces_table}",
+            "GlobalSecondaryIndexName",
+            "GSI2",
+            {
+              "label": "interactions · GSI2"
+            }
+          ]
+        ],
+        "legend": {
+          "position": "bottom"
+        },
+        "yAxis": {
+          "left": {
+            "min": 0,
+            "label": "eventos/min",
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 15,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "title": "DynamoDB · peticiones limitadas/min · core",
+        "region": "${region}",
+        "view": "timeSeries",
+        "stacked": false,
+        "period": 60,
+        "stat": "Sum",
+        "metrics": [
+          [
+            "AWS/DynamoDB",
+            "ThrottledRequests",
+            "TableName",
+            "${core_table}",
+            "Operation",
+            "GetItem",
+            {
+              "label": "GetItem"
+            }
+          ],
+          [
+            "AWS/DynamoDB",
+            "ThrottledRequests",
+            "TableName",
+            "${core_table}",
+            "Operation",
+            "PutItem",
+            {
+              "label": "PutItem"
+            }
+          ],
+          [
+            "AWS/DynamoDB",
+            "ThrottledRequests",
+            "TableName",
+            "${core_table}",
+            "Operation",
+            "UpdateItem",
+            {
+              "label": "UpdateItem"
+            }
+          ],
+          [
+            "AWS/DynamoDB",
+            "ThrottledRequests",
+            "TableName",
+            "${core_table}",
+            "Operation",
+            "DeleteItem",
+            {
+              "label": "DeleteItem"
+            }
+          ],
+          [
+            "AWS/DynamoDB",
+            "ThrottledRequests",
+            "TableName",
+            "${core_table}",
+            "Operation",
+            "Query",
+            {
+              "label": "Query"
+            }
+          ],
+          [
+            "AWS/DynamoDB",
+            "ThrottledRequests",
+            "TableName",
+            "${core_table}",
+            "Operation",
+            "Scan",
+            {
+              "label": "Scan"
+            }
+          ],
+          [
+            "AWS/DynamoDB",
+            "ThrottledRequests",
+            "TableName",
+            "${core_table}",
+            "Operation",
+            "BatchGetItem",
+            {
+              "label": "BatchGetItem"
+            }
+          ],
+          [
+            "AWS/DynamoDB",
+            "ThrottledRequests",
+            "TableName",
+            "${core_table}",
+            "Operation",
+            "BatchWriteItem",
+            {
+              "label": "BatchWriteItem"
+            }
+          ],
+          [
+            "AWS/DynamoDB",
+            "ThrottledRequests",
+            "TableName",
+            "${core_table}",
+            "Operation",
+            "TransactGetItems",
+            {
+              "label": "TransactGetItems"
+            }
+          ],
+          [
+            "AWS/DynamoDB",
+            "ThrottledRequests",
+            "TableName",
+            "${core_table}",
+            "Operation",
+            "TransactWriteItems",
+            {
+              "label": "TransactWriteItems"
+            }
+          ]
+        ],
+        "legend": {
+          "position": "bottom"
+        },
+        "yAxis": {
+          "left": {
+            "min": 0,
+            "label": "peticiones/min",
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "x": 12,
+      "y": 15,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "title": "DynamoDB · peticiones limitadas/min · interactions",
+        "region": "${region}",
+        "view": "timeSeries",
+        "stacked": false,
+        "period": 60,
+        "stat": "Sum",
+        "metrics": [
+          [
+            "AWS/DynamoDB",
+            "ThrottledRequests",
+            "TableName",
+            "${traces_table}",
+            "Operation",
+            "GetItem",
+            {
+              "label": "GetItem"
+            }
+          ],
+          [
+            "AWS/DynamoDB",
+            "ThrottledRequests",
+            "TableName",
+            "${traces_table}",
+            "Operation",
+            "PutItem",
+            {
+              "label": "PutItem"
+            }
+          ],
+          [
+            "AWS/DynamoDB",
+            "ThrottledRequests",
+            "TableName",
+            "${traces_table}",
+            "Operation",
+            "UpdateItem",
+            {
+              "label": "UpdateItem"
+            }
+          ],
+          [
+            "AWS/DynamoDB",
+            "ThrottledRequests",
+            "TableName",
+            "${traces_table}",
+            "Operation",
+            "DeleteItem",
+            {
+              "label": "DeleteItem"
+            }
+          ],
+          [
+            "AWS/DynamoDB",
+            "ThrottledRequests",
+            "TableName",
+            "${traces_table}",
+            "Operation",
+            "Query",
+            {
+              "label": "Query"
+            }
+          ],
+          [
+            "AWS/DynamoDB",
+            "ThrottledRequests",
+            "TableName",
+            "${traces_table}",
+            "Operation",
+            "Scan",
+            {
+              "label": "Scan"
+            }
+          ],
+          [
+            "AWS/DynamoDB",
+            "ThrottledRequests",
+            "TableName",
+            "${traces_table}",
+            "Operation",
+            "BatchGetItem",
+            {
+              "label": "BatchGetItem"
+            }
+          ],
+          [
+            "AWS/DynamoDB",
+            "ThrottledRequests",
+            "TableName",
+            "${traces_table}",
+            "Operation",
+            "BatchWriteItem",
+            {
+              "label": "BatchWriteItem"
+            }
+          ],
+          [
+            "AWS/DynamoDB",
+            "ThrottledRequests",
+            "TableName",
+            "${traces_table}",
+            "Operation",
+            "TransactGetItems",
+            {
+              "label": "TransactGetItems"
+            }
+          ],
+          [
+            "AWS/DynamoDB",
+            "ThrottledRequests",
+            "TableName",
+            "${traces_table}",
+            "Operation",
+            "TransactWriteItems",
+            {
+              "label": "TransactWriteItems"
+            }
+          ]
+        ],
+        "legend": {
+          "position": "bottom"
+        },
+        "yAxis": {
+          "left": {
+            "min": 0,
+            "label": "peticiones/min",
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "x": 0,
+      "y": 21,
+      "width": 24,
+      "height": 2,
+      "properties": {
+        "markdown": "# CloudFront · distribución web\nMétricas globales consultadas en us-east-1. Los porcentajes 4xx/5xx ya vienen expresados en %. Transferencia de entrada y salida por minuto."
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 23,
+      "width": 8,
+      "height": 6,
+      "properties": {
+        "title": "CloudFront · peticiones/min",
+        "region": "us-east-1",
+        "view": "timeSeries",
+        "stacked": false,
+        "period": 60,
+        "stat": "Sum",
+        "metrics": [
+          [
+            "AWS/CloudFront",
+            "Requests",
+            "DistributionId",
+            "${distribution_id}",
+            "Region",
+            "Global",
+            {
+              "label": "Peticiones"
+            }
+          ]
+        ],
+        "legend": {
+          "position": "bottom"
+        },
+        "yAxis": {
+          "left": {
+            "min": 0,
+            "label": "peticiones/min",
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "x": 8,
+      "y": 23,
+      "width": 8,
+      "height": 6,
+      "properties": {
+        "title": "CloudFront · transferencia/min",
+        "region": "us-east-1",
+        "view": "timeSeries",
+        "stacked": false,
+        "period": 60,
+        "stat": "Sum",
+        "metrics": [
+          [
+            "AWS/CloudFront",
+            "BytesDownloaded",
+            "DistributionId",
+            "${distribution_id}",
+            "Region",
+            "Global",
+            {
+              "label": "Salida a visitantes"
+            }
+          ],
+          [
+            "AWS/CloudFront",
+            "BytesUploaded",
+            "DistributionId",
+            "${distribution_id}",
+            "Region",
+            "Global",
+            {
+              "label": "Entrada desde visitantes"
+            }
+          ]
+        ],
+        "legend": {
+          "position": "bottom"
+        },
+        "yAxis": {
+          "left": {
+            "min": 0,
+            "label": "bytes/min",
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "x": 16,
+      "y": 23,
+      "width": 8,
+      "height": 6,
+      "properties": {
+        "title": "CloudFront · errores HTTP (%)",
+        "region": "us-east-1",
+        "view": "timeSeries",
+        "stacked": false,
+        "period": 60,
+        "stat": "Average",
+        "metrics": [
+          [
+            "AWS/CloudFront",
+            "4xxErrorRate",
+            "DistributionId",
+            "${distribution_id}",
+            "Region",
+            "Global",
+            {
+              "label": "HTTP 4xx"
+            }
+          ],
+          [
+            "AWS/CloudFront",
+            "5xxErrorRate",
+            "DistributionId",
+            "${distribution_id}",
+            "Region",
+            "Global",
+            {
+              "label": "HTTP 5xx"
+            }
+          ]
+        ],
+        "legend": {
+          "position": "bottom"
+        },
+        "yAxis": {
+          "left": {
+            "min": 0,
+            "label": "%",
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "x": 0,
+      "y": 29,
+      "width": 24,
+      "height": 2,
+      "properties": {
+        "markdown": "# Lambda · porcentaje de errores de ejecución\nErrores de ejecución / invocaciones de cada función por minuto. Las respuestas HTTP 5xx se consultan en el dashboard de servicio."
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 31,
+      "width": 24,
+      "height": 6,
+      "properties": {
+        "title": "Lambda · errores de ejecución (%)",
+        "region": "${region}",
+        "view": "timeSeries",
+        "stacked": false,
+        "period": 60,
+        "stat": "Sum",
+        "metrics": [
+          [
+            "AWS/Lambda",
+            "Invocations",
+            "FunctionName",
+            "${core_function}",
+            {
+              "id": "i1",
+              "visible": false
+            }
+          ],
+          [
+            "AWS/Lambda",
+            "Errors",
+            "FunctionName",
+            "${core_function}",
+            {
+              "id": "e1",
+              "visible": false
+            }
+          ],
+          [
+            {
+              "expression": "IF(i1>0,100*e1/i1)",
+              "id": "r1",
+              "label": "core_api"
+            }
+          ],
+          [
+            "AWS/Lambda",
+            "Invocations",
+            "FunctionName",
+            "${ai_function}",
+            {
+              "id": "i2",
+              "visible": false
+            }
+          ],
+          [
+            "AWS/Lambda",
+            "Errors",
+            "FunctionName",
+            "${ai_function}",
+            {
+              "id": "e2",
+              "visible": false
+            }
+          ],
+          [
+            {
+              "expression": "IF(i2>0,100*e2/i2)",
+              "id": "r2",
+              "label": "ai_api"
+            }
+          ]
+        ],
+        "legend": {
+          "position": "bottom"
+        },
+        "yAxis": {
+          "left": {
+            "min": 0,
+            "label": "%",
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "x": 0,
+      "y": 37,
+      "width": 24,
+      "height": 5,
+      "properties": {
+        "markdown": "# Lectura de las métricas\n**DynamoDB:** consumo de las tablas base, sin sumar capacidad de sus índices. Las tablas usan pago por petición: no se muestra un porcentaje de capacidad provisionada. Los eventos limitados incluyen tabla y GSI1/GSI2; no equivalen a peticiones únicas. ThrottledRequests distingue diez operaciones de API; en lotes solo se incrementa si todas sus operaciones son limitadas.\n\n**Sin actividad:** pueden faltar series, especialmente las de throttling. Un porcentaje Lambda sin invocaciones no se convierte en 0 %. **Coste:** se reutilizan métricas nativas; no se activan métricas adicionales de CloudFront, alarmas ni consultas de logs."
+      }
+    }
+  ]
+}

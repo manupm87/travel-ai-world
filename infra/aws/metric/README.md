@@ -4,6 +4,10 @@ For the native AWS service dashboard used in the presentation, see the
 [CloudWatch service runbook](../../../docs/runbooks/service-dashboard-cloudwatch.md).
 It uses the existing Lambda and API Gateway metrics, independently of Grafana.
 
+The [infrastructure dashboard](../../../docs/runbooks/infrastructure-dashboard-cloudwatch.md)
+adds DynamoDB, CloudFront and per-service Lambda error percentages using native
+CloudWatch metrics, with no additional metric subscriptions.
+
 `trips_created_total{city_slug="budapest"}` counts a new trip only after
 `TripService.create` successfully persists it. Updates, child changes and deletes
 do not increment it. Other destinations share `city_slug="other"`; change

@@ -20,6 +20,13 @@ periods, with no automatic log queries or additional application instrumentation
 
 ## Consequences
 
+The same pattern also supports a separate infrastructure dashboard for DynamoDB
+consumption/throttling, CloudFront default traffic/error metrics, and per-function
+Lambda error percentages. It has 45 native metric references; CloudFront widgets
+use us-east-1 and Region=Global. It enables no additional metrics or log queries.
+The operational details and budget assumptions are in the
+[infrastructure runbook](../../runbooks/infrastructure-dashboard-cloudwatch.md).
+
 The dashboard can show existing production metrics without a service deployment.
 It may incur standard dashboard charges. Lambda failures differ from HTTP 5xx;
 duration excludes cold starts, and concurrency is not an exact HTTP in-flight
