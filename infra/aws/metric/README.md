@@ -1,5 +1,9 @@
 # Local trip business metrics (TRA-281, TRA-282)
 
+For the native AWS service dashboard used in the presentation, see the
+[CloudWatch service runbook](../../../docs/runbooks/service-dashboard-cloudwatch.md).
+It uses the existing Lambda and API Gateway metrics, independently of Grafana.
+
 `trips_created_total{city_slug="budapest"}` counts a new trip only after
 `TripService.create` successfully persists it. Updates, child changes and deletes
 do not increment it. Other destinations share `city_slug="other"`; change

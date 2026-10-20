@@ -1,0 +1,523 @@
+{
+  "start": "-PT3H",
+  "periodOverride": "inherit",
+  "widgets": [
+    {
+      "type": "text",
+      "x": 0,
+      "y": 0,
+      "width": 24,
+      "height": 3,
+      "properties": {
+        "markdown": "# Kyrian World · Estado de los servicios\n**Producción · AWS Lambda + API Gateway** · Ventana inicial: 3 horas · Resolución: 1 minuto.\n\nTráfico, rendimiento y capacidad de core_api y ai_api. Usa la actualización manual durante la presentación."
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 3,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "title": "Invocaciones Lambda por minuto",
+        "region": "${region}",
+        "view": "timeSeries",
+        "stacked": false,
+        "period": 60,
+        "stat": "Sum",
+        "metrics": [
+          [
+            "AWS/Lambda",
+            "Invocations",
+            "FunctionName",
+            "${core_function}",
+            {
+              "label": "core_api"
+            }
+          ],
+          [
+            "AWS/Lambda",
+            "Invocations",
+            "FunctionName",
+            "${ai_function}",
+            {
+              "label": "ai_api"
+            }
+          ]
+        ],
+        "legend": {
+          "position": "bottom"
+        },
+        "yAxis": {
+          "left": {
+            "label": "invocaciones/min",
+            "showUnits": false,
+            "min": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "x": 12,
+      "y": 3,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "title": "Duración de ejecución · core_api · p50 / p95",
+        "region": "${region}",
+        "view": "timeSeries",
+        "stacked": false,
+        "period": 60,
+        "stat": "Sum",
+        "metrics": [
+          [
+            "AWS/Lambda",
+            "Duration",
+            "FunctionName",
+            "${core_function}",
+            {
+              "stat": "p50",
+              "label": "core_api p50"
+            }
+          ],
+          [
+            "AWS/Lambda",
+            "Duration",
+            "FunctionName",
+            "${core_function}",
+            {
+              "stat": "p95",
+              "label": "core_api p95"
+            }
+          ]
+        ],
+        "legend": {
+          "position": "bottom"
+        },
+        "yAxis": {
+          "left": {
+            "label": "ms",
+            "showUnits": false,
+            "min": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 9,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "title": "Duración de ejecución · ai_api · p50 / p95",
+        "region": "${region}",
+        "view": "timeSeries",
+        "stacked": false,
+        "period": 60,
+        "stat": "Sum",
+        "metrics": [
+          [
+            "AWS/Lambda",
+            "Duration",
+            "FunctionName",
+            "${ai_function}",
+            {
+              "stat": "p50",
+              "label": "ai_api p50"
+            }
+          ],
+          [
+            "AWS/Lambda",
+            "Duration",
+            "FunctionName",
+            "${ai_function}",
+            {
+              "stat": "p95",
+              "label": "ai_api p95"
+            }
+          ]
+        ],
+        "legend": {
+          "position": "bottom"
+        },
+        "yAxis": {
+          "left": {
+            "label": "ms",
+            "showUnits": false,
+            "min": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "x": 12,
+      "y": 9,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "title": "Errores de ejecución Lambda por minuto",
+        "region": "${region}",
+        "view": "timeSeries",
+        "stacked": false,
+        "period": 60,
+        "stat": "Sum",
+        "metrics": [
+          [
+            "AWS/Lambda",
+            "Errors",
+            "FunctionName",
+            "${core_function}",
+            {
+              "label": "core_api"
+            }
+          ],
+          [
+            "AWS/Lambda",
+            "Errors",
+            "FunctionName",
+            "${ai_function}",
+            {
+              "label": "ai_api"
+            }
+          ]
+        ],
+        "legend": {
+          "position": "bottom"
+        },
+        "yAxis": {
+          "left": {
+            "label": "errores/min",
+            "showUnits": false,
+            "min": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 15,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "title": "Invocaciones rechazadas · throttles por minuto",
+        "region": "${region}",
+        "view": "timeSeries",
+        "stacked": false,
+        "period": 60,
+        "stat": "Sum",
+        "metrics": [
+          [
+            "AWS/Lambda",
+            "Throttles",
+            "FunctionName",
+            "${core_function}",
+            {
+              "label": "core_api"
+            }
+          ],
+          [
+            "AWS/Lambda",
+            "Throttles",
+            "FunctionName",
+            "${ai_function}",
+            {
+              "label": "ai_api"
+            }
+          ]
+        ],
+        "legend": {
+          "position": "bottom"
+        },
+        "yAxis": {
+          "left": {
+            "label": "rechazos/min",
+            "showUnits": false,
+            "min": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "x": 12,
+      "y": 15,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "title": "Concurrencia Lambda · máximo por minuto",
+        "region": "${region}",
+        "view": "timeSeries",
+        "stacked": false,
+        "period": 60,
+        "stat": "Maximum",
+        "metrics": [
+          [
+            "AWS/Lambda",
+            "ConcurrentExecutions",
+            "FunctionName",
+            "${core_function}",
+            {
+              "label": "core_api"
+            }
+          ],
+          [
+            "AWS/Lambda",
+            "ConcurrentExecutions",
+            "FunctionName",
+            "${ai_function}",
+            {
+              "label": "ai_api"
+            }
+          ]
+        ],
+        "legend": {
+          "position": "bottom"
+        },
+        "yAxis": {
+          "left": {
+            "label": "ejecuciones simultáneas",
+            "showUnits": false,
+            "min": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "x": 0,
+      "y": 21,
+      "width": 24,
+      "height": 2,
+      "properties": {
+        "markdown": "# Entrada HTTP · API Gateway\nMétricas agregadas de ambos servicios en el stage de producción. Los errores HTTP y los errores de ejecución Lambda son señales diferentes."
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 23,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "title": "Tráfico HTTP · peticiones por segundo",
+        "region": "${region}",
+        "view": "timeSeries",
+        "stacked": false,
+        "period": 60,
+        "stat": "Sum",
+        "metrics": [
+          [
+            "AWS/ApiGateway",
+            "Count",
+            "ApiName",
+            "${api_name}",
+            "Stage",
+            "${stage}",
+            {
+              "label": "Peticiones por minuto",
+              "visible": false,
+              "id": "requests",
+              "stat": "SampleCount"
+            }
+          ],
+          [
+            {
+              "expression": "requests/PERIOD(requests)",
+              "label": "Peticiones/s",
+              "id": "rps"
+            }
+          ]
+        ],
+        "legend": {
+          "position": "bottom"
+        },
+        "yAxis": {
+          "left": {
+            "label": "peticiones/s",
+            "showUnits": false,
+            "min": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "x": 12,
+      "y": 23,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "title": "Errores HTTP por minuto · 4xx / 5xx",
+        "region": "${region}",
+        "view": "timeSeries",
+        "stacked": false,
+        "period": 60,
+        "stat": "Sum",
+        "metrics": [
+          [
+            "AWS/ApiGateway",
+            "4XXError",
+            "ApiName",
+            "${api_name}",
+            "Stage",
+            "${stage}",
+            {
+              "label": "HTTP 4xx",
+              "visible": true
+            }
+          ],
+          [
+            "AWS/ApiGateway",
+            "5XXError",
+            "ApiName",
+            "${api_name}",
+            "Stage",
+            "${stage}",
+            {
+              "label": "HTTP 5xx",
+              "visible": true
+            }
+          ]
+        ],
+        "legend": {
+          "position": "bottom"
+        },
+        "yAxis": {
+          "left": {
+            "label": "respuestas/min",
+            "showUnits": false,
+            "min": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 29,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "title": "Latencia API Gateway · p50 / p95",
+        "region": "${region}",
+        "view": "timeSeries",
+        "stacked": false,
+        "period": 60,
+        "stat": "Sum",
+        "metrics": [
+          [
+            "AWS/ApiGateway",
+            "Latency",
+            "ApiName",
+            "${api_name}",
+            "Stage",
+            "${stage}",
+            {
+              "label": "API Gateway p50",
+              "visible": true,
+              "stat": "p50"
+            }
+          ],
+          [
+            "AWS/ApiGateway",
+            "Latency",
+            "ApiName",
+            "${api_name}",
+            "Stage",
+            "${stage}",
+            {
+              "label": "API Gateway p95",
+              "visible": true,
+              "stat": "p95"
+            }
+          ]
+        ],
+        "legend": {
+          "position": "bottom"
+        },
+        "yAxis": {
+          "left": {
+            "label": "ms",
+            "showUnits": false,
+            "min": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "x": 12,
+      "y": 29,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "title": "Respuestas HTTP 5xx · porcentaje por minuto",
+        "region": "${region}",
+        "view": "timeSeries",
+        "stacked": false,
+        "period": 60,
+        "stat": "Sum",
+        "metrics": [
+          [
+            "AWS/ApiGateway",
+            "Count",
+            "ApiName",
+            "${api_name}",
+            "Stage",
+            "${stage}",
+            {
+              "label": "Peticiones",
+              "visible": false,
+              "id": "requests",
+              "stat": "SampleCount"
+            }
+          ],
+          [
+            "AWS/ApiGateway",
+            "5XXError",
+            "ApiName",
+            "${api_name}",
+            "Stage",
+            "${stage}",
+            {
+              "label": "5xx",
+              "visible": false,
+              "id": "server_errors"
+            }
+          ],
+          [
+            {
+              "expression": "IF(requests>0,100*server_errors/requests)",
+              "label": "HTTP 5xx (%)",
+              "id": "error_rate"
+            }
+          ]
+        ],
+        "legend": {
+          "position": "bottom"
+        },
+        "yAxis": {
+          "left": {
+            "label": "%",
+            "showUnits": false,
+            "min": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "x": 0,
+      "y": 35,
+      "width": 24,
+      "height": 5,
+      "properties": {
+        "markdown": "# Cómo interpretar la demo\n**Sin datos no significa servicio caído ni cero errores.** Las métricas aparecen cuando existe actividad y pueden tardar varios minutos en publicarse. Las tarjetas muestran series por minuto, no totales del período.\n\n**Lambda:** Duration no incluye el arranque en frío; Errors refleja fallos de ejecución, no todas las respuestas HTTP 5xx. ConcurrentExecutions es concurrencia de funciones, no una medición exacta de peticiones en vuelo. Una ejecución SSE puede durar todo el stream.\n\n**API Gateway:** tráfico y errores agregados del stage, sin desglose por ruta ni servicio. La latencia no mide el tiempo hasta el primer token del planner ni el tiempo total percibido en el navegador. Este dashboard no ejecuta sondeos de disponibilidad.\n\n**Presentación:** abre la web, consulta viajes y genera un itinerario; espera unos minutos y actualiza el dashboard. No provoques fallos deliberados en producción."
+      }
+    }
+  ]
+}

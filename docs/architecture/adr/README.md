@@ -37,6 +37,7 @@ One file per decision, numbered, never deleted (superseded ones get a new status
 | [0031](0031-production-business-events.md) | Production business statistics from existing application logs | Accepted |
 | [0032](0032-kiri-is-a-tool-using-agent.md) | Kiri is a tool-using agent in `ai_api` | Accepted (amends 0015) |
 | [0033](0033-city-kb-enhanced-index-mode.md) | `city-kb` filters before it searches (S3 Vectors ENHANCED mode) | Accepted (amends 0014) |
+| [0034](0034-native-service-dashboard.md) | Native CloudWatch service dashboard | Accepted |
 
 ## Inputs
 

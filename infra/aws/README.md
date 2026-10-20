@@ -1,5 +1,9 @@
 # AWS (Lambda + API Gateway + Cognito + DynamoDB, behind CloudFront)
 
+Native operational metrics for the presentation are available through the
+[CloudWatch service dashboard](../../docs/runbooks/service-dashboard-cloudwatch.md).
+Terraform creates it by default; set `service_dashboard_enabled=false` to opt out.
+
 Read [`infra/README.md`](../README.md) first: images, secrets and state are the same for both
 clouds. This folder is the **v3 shape** of [ADR 0009](../../docs/architecture/adr/0009-lambda-cognito-budget.md)
 (drawn in [`docs/architecture/aws-architecture.drawio.svg`](../../docs/architecture/aws-architecture.drawio.svg)):
