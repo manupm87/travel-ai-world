@@ -17,6 +17,20 @@ DynamoDB (ADR 0023), and the tables are each service's own.
 | `http/error_handlers.py` | Maps domain errors to `{"detail": {"message", "error_code", "extras"}}` |
 | `http/app_factory.py` | `create_app(settings, routers, lifespan=...)`: logging + CORS + error handlers + versioned prefix; process resources live on `app.state` |
 | `http/logging.py` | `configure_logging(level)`: root handler and format for the app's own loggers (`LOG_LEVEL`) |
+| `http/access_log.py` | Optional `ACCESS_LOG_ENABLED` ASGI access events, written synchronously before the final body/trailer message; route templates only |
+
+Access events use `access_log={json}` with version, route template, bounded method,
+HTTP status, duration_ms, Lambda invocation UUID (otherwise null), cold_start and
+outcome (`response_ready` or `interrupted`). No path parameters, query strings,
+bodies, credentials or raw request contexts are included. Duration ends immediately
+before the final ASGI body/trailer is sent, including stream production but not
+final network delivery; `response_ready` does not prove client receipt. Interrupted
+streams retain the status already sent. Lambda readiness requests without a valid
+invocation UUID are omitted. The first genuine invocation in each middleware/app
+instance is marked cold: this lifecycle bit does not measure initialization time
+or aggregate traffic. Local requests are never marked cold. Events remain INFO
+when explicitly enabled even if LOG_LEVEL is WARNING; logging failures do not
+change the response.
 
 Rule of thumb: if only one service uses it, it does not belong here.
 

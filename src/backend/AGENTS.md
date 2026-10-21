@@ -105,3 +105,9 @@ uv run python scripts/export_openapi.py  # → docs/api/*.openapi.json (then `np
   live in it.
 - **Logging**: `create_app` calls `travel_common.http.logging.configure_logging(settings.LOG_LEVEL)`
   once; modules use `logging.getLogger(__name__)`, never `print`.
+  With `ACCESS_LOG_ENABLED`, the shared pure-ASGI observer emits `access_log={json}`
+  synchronously before sending the terminal response message. Keep route templates,
+  method/status/duration and bounded invocation metadata only: no concrete URL,
+  query, body, token or identity. A first-invocation lifecycle flag is permitted for
+  `cold_start`; it is not an aggregate counter. Do not move the observer into a
+  background task or log after the final send. See ADR 0035 and the access-log runbook.

@@ -9,4 +9,10 @@
 set -e
 
 echo "==> [${SERVICE}] Starting uvicorn on :8000"
-exec uvicorn "${SERVICE}.main:app" --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips="*"
+# Structured logs use route templates. Avoid duplicate Uvicorn access lines,
+# which include concrete paths and query strings, when this observer is enabled.
+case "${ACCESS_LOG_ENABLED:-false}" in
+  1|true|True|TRUE|yes|Yes|YES|on|On|ON) set -- --no-access-log ;;
+  *) set -- ;;
+esac
+exec uvicorn "${SERVICE}.main:app" --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips="*" "$@"

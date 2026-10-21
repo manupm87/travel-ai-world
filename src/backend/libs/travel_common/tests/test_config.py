@@ -33,4 +33,5 @@ def test_common_settings_have_no_unused_fields():
         "COGNITO_CLIENT_ID",
         "COGNITO_JWKS",
         "LOG_LEVEL",
+        "ACCESS_LOG_ENABLED",
     }

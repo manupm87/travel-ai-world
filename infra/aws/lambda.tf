@@ -9,6 +9,7 @@ locals {
   # Both functions in Cognito mode (cognito.tf), CORS for any extra origin.
   backend_env = merge(local.cognito_backend_env, {
     BACKEND_CORS_ORIGINS = var.backend_cors_origins
+    ACCESS_LOG_ENABLED   = tostring(var.access_logs_enabled)
   })
 }
 

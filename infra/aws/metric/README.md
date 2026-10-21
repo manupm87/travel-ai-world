@@ -8,6 +8,10 @@ The [infrastructure dashboard](../../../docs/runbooks/infrastructure-dashboard-c
 adds DynamoDB, CloudFront and per-service Lambda error percentages using native
 CloudWatch metrics, with no additional metric subscriptions.
 
+The [access-log dashboard](../../../docs/runbooks/access-logs-cloudwatch.md) uses
+manual Logs Insights queries over structured HTTP records and runtime REPORT
+lines. It requires deploying the new backend images; each open/refresh scans logs.
+
 `trips_created_total{city_slug="budapest"}` counts a new trip only after
 `TripService.create` successfully persists it. Updates, child changes and deletes
 do not increment it. Other destinations share `city_slug="other"`; change

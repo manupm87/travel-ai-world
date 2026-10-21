@@ -8,6 +8,11 @@ The separate [infrastructure dashboard](../../docs/runbooks/infrastructure-dashb
 shows DynamoDB, CloudFront and Lambda error rates from existing native metrics.
 Set `infrastructure_dashboard_enabled=false` to opt out.
 
+The [HTTP access-log dashboard](../../docs/runbooks/access-logs-cloudwatch.md)
+adds per-route latency and 5xx summaries plus Lambda initialization reports.
+It requires the updated backend images and `access_logs_enabled`; opening or
+refreshing it runs six scoped Logs Insights queries and may incur scan charges.
+
 Read [`infra/README.md`](../README.md) first: images, secrets and state are the same for both
 clouds. This folder is the **v3 shape** of [ADR 0009](../../docs/architecture/adr/0009-lambda-cognito-budget.md)
 (drawn in [`docs/architecture/aws-architecture.drawio.svg`](../../docs/architecture/aws-architecture.drawio.svg)):

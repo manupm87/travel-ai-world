@@ -1,0 +1,104 @@
+{
+  "start": "-PT3H",
+  "periodOverride": "inherit",
+  "widgets": [
+    {
+      "type": "text",
+      "x": 0,
+      "y": 0,
+      "width": 24,
+      "height": 3,
+      "properties": {
+        "markdown": "# Kyrian World · Acceso HTTP\n**Logs Insights · core_api / ai_api** · Últimas 3 horas · Actualización manual. Abrir o actualizar este dashboard ejecuta seis consultas sobre los logs del intervalo y puede generar coste."
+      }
+    },
+    {
+      "type": "log",
+      "x": 0,
+      "y": 3,
+      "width": 12,
+      "height": 8,
+      "properties": {
+        "title": "core_api · resumen por ruta · intervalo visible",
+        "region": "${region}",
+        "query": "SOURCE '${core_log_group}'\n| filter @message like /access_log=/\n| parse @message \"access_log=*\" as payload\n| fields jsonParse(payload) as a\n| filter a.version = 1\n| stats count(*) as peticiones, sum(if(a.status >= 500 and a.status < 600, 1, 0)) as respuestas_5xx, pct(a.duration_ms, 50) as p50_ms, pct(a.duration_ms, 95) as p95_ms, sum(if(a.outcome = \"interrupted\", 1, 0)) as interrumpidas by a.method, a.route\n| sort peticiones desc\n| limit 50",
+        "view": "table"
+      }
+    },
+    {
+      "type": "log",
+      "x": 0,
+      "y": 11,
+      "width": 12,
+      "height": 8,
+      "properties": {
+        "title": "core_api · peticiones y 5xx por 5 minutos",
+        "region": "${region}",
+        "query": "SOURCE '${core_log_group}'\n| filter @message like /access_log=/\n| parse @message \"access_log=*\" as payload\n| fields jsonParse(payload) as a\n| filter a.version = 1\n| stats count(*) as peticiones, sum(if(a.status >= 500 and a.status < 600, 1, 0)) as respuestas_5xx by bin(5m)",
+        "view": "timeSeries"
+      }
+    },
+    {
+      "type": "log",
+      "x": 0,
+      "y": 19,
+      "width": 12,
+      "height": 8,
+      "properties": {
+        "title": "core_api · inicialización Lambda · REPORT",
+        "region": "${region}",
+        "query": "SOURCE '${core_log_group}'\n| filter @type = \"REPORT\"\n| stats count(*) as invocaciones_reportadas, count(@initDuration) as arranques_con_init, pct(@initDuration, 95) as init_p95_ms, max(@initDuration) as init_max_ms",
+        "view": "table"
+      }
+    },
+    {
+      "type": "log",
+      "x": 12,
+      "y": 3,
+      "width": 12,
+      "height": 8,
+      "properties": {
+        "title": "ai_api · resumen por ruta · intervalo visible",
+        "region": "${region}",
+        "query": "SOURCE '${ai_log_group}'\n| filter @message like /access_log=/\n| parse @message \"access_log=*\" as payload\n| fields jsonParse(payload) as a\n| filter a.version = 1\n| stats count(*) as peticiones, sum(if(a.status >= 500 and a.status < 600, 1, 0)) as respuestas_5xx, pct(a.duration_ms, 50) as p50_ms, pct(a.duration_ms, 95) as p95_ms, sum(if(a.outcome = \"interrupted\", 1, 0)) as interrumpidas by a.method, a.route\n| sort peticiones desc\n| limit 50",
+        "view": "table"
+      }
+    },
+    {
+      "type": "log",
+      "x": 12,
+      "y": 11,
+      "width": 12,
+      "height": 8,
+      "properties": {
+        "title": "ai_api · peticiones y 5xx por 5 minutos",
+        "region": "${region}",
+        "query": "SOURCE '${ai_log_group}'\n| filter @message like /access_log=/\n| parse @message \"access_log=*\" as payload\n| fields jsonParse(payload) as a\n| filter a.version = 1\n| stats count(*) as peticiones, sum(if(a.status >= 500 and a.status < 600, 1, 0)) as respuestas_5xx by bin(5m)",
+        "view": "timeSeries"
+      }
+    },
+    {
+      "type": "log",
+      "x": 12,
+      "y": 19,
+      "width": 12,
+      "height": 8,
+      "properties": {
+        "title": "ai_api · inicialización Lambda · REPORT",
+        "region": "${region}",
+        "query": "SOURCE '${ai_log_group}'\n| filter @type = \"REPORT\"\n| stats count(*) as invocaciones_reportadas, count(@initDuration) as arranques_con_init, pct(@initDuration, 95) as init_p95_ms, max(@initDuration) as init_max_ms",
+        "view": "table"
+      }
+    },
+    {
+      "type": "text",
+      "x": 0,
+      "y": 27,
+      "width": 24,
+      "height": 7,
+      "properties": {
+        "markdown": "# Interpretación y coste\n**Datos nuevos:** las tablas HTTP se llenan tras desplegar la nueva imagen y activar ACCESS_LOG_ENABLED. No reconstruyen peticiones anteriores. Las rutas son plantillas; __unmatched__ agrupa rutas desconocidas. Los resultados se limitan a 50 rutas ordenadas por volumen.\n\n**Duración HTTP:** hasta que el último mensaje ASGI está preparado para enviarse, antes de entregarlo al servidor. En SSE incluye la generación del stream; no mide la red del navegador ni el primer token. Una interrupción conserva el estado HTTP ya enviado y se cuenta aparte; una respuesta 200 interrumpida no se convierte en 5xx.\n\n**Arranque:** el marcador cold_start del acceso indica la primera petición Lambda observada por el proceso. Init Duration proviene de REPORT y es una señal distinta; no siempre existe. Sin muestras, los percentiles pueden estar vacíos.\n\n**Consultas:** actualización manual y rango de 3 horas. El filtro access_log no evita escanear otros registros del mismo grupo en esa ventana. No habilitar refresco automático ni ampliar grupos sin revisar coste."
+      }
+    }
+  ]
+}

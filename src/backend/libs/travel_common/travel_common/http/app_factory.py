@@ -13,6 +13,7 @@ from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from travel_common.config import CommonSettings
+from travel_common.http.access_log import AccessLogMiddleware
 from travel_common.http.error_handlers import register_error_handlers
 from travel_common.http.logging import configure_logging
 
@@ -70,6 +71,8 @@ def create_app(
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    if settings.ACCESS_LOG_ENABLED:
+        app.add_middleware(AccessLogMiddleware)
 
     register_error_handlers(app)
     for router in routers:

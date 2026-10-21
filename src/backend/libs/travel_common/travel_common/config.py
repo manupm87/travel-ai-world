@@ -39,6 +39,7 @@ class CommonSettings(BaseSettings):
 
     # Root log level for the application's own loggers (uvicorn keeps its own).
     LOG_LEVEL: str = "INFO"
+    ACCESS_LOG_ENABLED: bool = False
 
     model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", case_sensitive=True, extra="ignore"
