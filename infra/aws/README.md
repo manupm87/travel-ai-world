@@ -285,7 +285,11 @@ own role, so a question never leaves the account.
 
 - **Service dashboard** ([runbook](../../docs/runbooks/service-dashboard-cloudwatch.md)): native
   CloudWatch metrics of the gateway, the functions and Cognito (Google federation and token
-  refresh; ADR 0036). Created by default; `service_dashboard_enabled=false` opts out.
+  refresh; ADR 0036), plus Bedrock calls, tokens, latency, streaming first-token latency,
+  errors and throttling for the configured models (ADR 0037). It stays within three
+  dashboards, with 41 native references / 46 entries including math, and enables no
+  model invocation logging or additional model calls. Created by default;
+  `service_dashboard_enabled=false` opts out.
 - **Infrastructure dashboard** ([runbook](../../docs/runbooks/infrastructure-dashboard-cloudwatch.md)):
   DynamoDB, CloudFront and Lambda error rates from existing native metrics;
   `infrastructure_dashboard_enabled=false` opts out.

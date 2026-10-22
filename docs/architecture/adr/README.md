@@ -40,6 +40,7 @@ One file per decision, numbered, never deleted (superseded ones get a new status
 | [0034](0034-native-service-dashboard.md) | Native CloudWatch service dashboard | Accepted |
 | [0035](0035-structured-http-access-logs.md) | Structured HTTP access logs before response completion | Accepted |
 | [0036](0036-cognito-in-existing-dashboard.md) | Cognito metrics in the existing service dashboard | Accepted |
+| [0037](0037-bedrock-in-existing-dashboard.md) | Bedrock metrics in the existing service dashboard | Accepted |
 
 ## Inputs
 

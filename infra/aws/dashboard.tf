@@ -11,6 +11,8 @@ resource "aws_cloudwatch_dashboard" "service" {
     cognito_user_pool         = aws_cognito_user_pool.main.id
     cognito_client            = aws_cognito_user_pool_client.web.id
     cognito_identity_provider = aws_cognito_identity_provider.google.provider_name
+    bedrock_chat_model        = var.bedrock_chat_model
+    embeddings_model          = var.embeddings_model
   })
 }
 

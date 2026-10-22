@@ -9,7 +9,7 @@
       "width": 24,
       "height": 3,
       "properties": {
-        "markdown": "# Kyrian World · Estado de los servicios\n**Producción · AWS Lambda + API Gateway + Cognito** · Ventana inicial: 3 horas · Resolución: 1 minuto.\n\nTráfico, rendimiento y capacidad de core_api y ai_api; autenticación Google y renovación de tokens. Usa la actualización manual durante la presentación."
+        "markdown": "# Kyrian World · Estado de los servicios\n**Producción · AWS Lambda + API Gateway + Cognito + Bedrock** · Ventana inicial: 3 horas · Resolución: 1 minuto.\n\nTráfico, rendimiento y capacidad de core_api y ai_api; autenticación Google, renovación de tokens y rendimiento de los modelos Bedrock. Usa la actualización manual durante la presentación."
       }
     },
     {
@@ -677,6 +677,348 @@
           "left": {
             "min": 0,
             "label": "peticiones/min",
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "x": 0,
+      "y": 58,
+      "width": 24,
+      "height": 6,
+      "properties": {
+        "markdown": "# Bedrock · rendimiento de chat y embeddings\nMétricas nativas por ModelId en la cuenta y región: incluyen otras cargas que usen los mismos modelos (evaluaciones, CLI e indexación), no solo ai_api. Se seleccionan los modelos configurados, sin sumar modelos históricos.\n\n**Latencia:** hasta el último token del modelo; no es la duración completa del planner. **TTFT:** hasta el primer token del modelo en streaming; no es el primer evento SSE ni la espera del navegador. Invocations cuenta llamadas aceptadas, incluidos fallos de procesamiento; excluye throttling y rechazos previos de validación. Los reintentos del SDK pueden producir varias llamadas por turno.\n\n**Límites:** sin datos no equivale a cero. Los errores anteriores a identificar el modelo pueden quedar fuera de estas series. No se deducen usuarios, calidad, coste, timeouts ni tokens/s por petición. Las trazas de herramientas y RAG siguen en /admin. No se activan logs de prompts o respuestas, métricas personalizadas ni alarmas."
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 64,
+      "width": 24,
+      "height": 6,
+      "properties": {
+        "title": "Bedrock · llamadas aceptadas/min · modelos configurados",
+        "region": "${region}",
+        "view": "timeSeries",
+        "stacked": false,
+        "period": 60,
+        "stat": "Sum",
+        "metrics": [
+          [
+            "AWS/Bedrock",
+            "Invocations",
+            "ModelId",
+            "${bedrock_chat_model}",
+            {
+              "stat": "Sum",
+              "label": "Chat · llamadas aceptadas"
+            }
+          ],
+          [
+            "AWS/Bedrock",
+            "Invocations",
+            "ModelId",
+            "${embeddings_model}",
+            {
+              "stat": "Sum",
+              "label": "Embeddings · llamadas aceptadas"
+            }
+          ]
+        ],
+        "legend": {
+          "position": "bottom"
+        },
+        "yAxis": {
+          "left": {
+            "min": 0,
+            "label": "llamadas/min",
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 70,
+      "width": 24,
+      "height": 6,
+      "properties": {
+        "title": "Bedrock · tokens de entrada/salida por minuto",
+        "region": "${region}",
+        "view": "timeSeries",
+        "stacked": false,
+        "period": 60,
+        "stat": "Sum",
+        "metrics": [
+          [
+            "AWS/Bedrock",
+            "InputTokenCount",
+            "ModelId",
+            "${bedrock_chat_model}",
+            {
+              "stat": "Sum",
+              "label": "Chat · entrada"
+            }
+          ],
+          [
+            "AWS/Bedrock",
+            "OutputTokenCount",
+            "ModelId",
+            "${bedrock_chat_model}",
+            {
+              "stat": "Sum",
+              "label": "Chat · salida"
+            }
+          ],
+          [
+            "AWS/Bedrock",
+            "InputTokenCount",
+            "ModelId",
+            "${embeddings_model}",
+            {
+              "stat": "Sum",
+              "label": "Embeddings · entrada"
+            }
+          ]
+        ],
+        "legend": {
+          "position": "bottom"
+        },
+        "yAxis": {
+          "left": {
+            "min": 0,
+            "label": "tokens/min",
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 76,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "title": "Bedrock · chat · hasta último token · p50/p95",
+        "region": "${region}",
+        "view": "timeSeries",
+        "stacked": false,
+        "period": 60,
+        "stat": "p50",
+        "metrics": [
+          [
+            "AWS/Bedrock",
+            "InvocationLatency",
+            "ModelId",
+            "${bedrock_chat_model}",
+            {
+              "stat": "p50",
+              "label": "Chat · p50"
+            }
+          ],
+          [
+            "AWS/Bedrock",
+            "InvocationLatency",
+            "ModelId",
+            "${bedrock_chat_model}",
+            {
+              "stat": "p95",
+              "label": "Chat · p95"
+            }
+          ]
+        ],
+        "legend": {
+          "position": "bottom"
+        },
+        "yAxis": {
+          "left": {
+            "min": 0,
+            "label": "ms",
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "x": 12,
+      "y": 76,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "title": "Bedrock · embeddings · latencia p50/p95",
+        "region": "${region}",
+        "view": "timeSeries",
+        "stacked": false,
+        "period": 60,
+        "stat": "p50",
+        "metrics": [
+          [
+            "AWS/Bedrock",
+            "InvocationLatency",
+            "ModelId",
+            "${embeddings_model}",
+            {
+              "stat": "p50",
+              "label": "Embeddings · p50"
+            }
+          ],
+          [
+            "AWS/Bedrock",
+            "InvocationLatency",
+            "ModelId",
+            "${embeddings_model}",
+            {
+              "stat": "p95",
+              "label": "Embeddings · p95"
+            }
+          ]
+        ],
+        "legend": {
+          "position": "bottom"
+        },
+        "yAxis": {
+          "left": {
+            "min": 0,
+            "label": "ms",
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 82,
+      "width": 24,
+      "height": 6,
+      "properties": {
+        "title": "Bedrock · chat streaming · primer token (TTFT) · p50/p95",
+        "region": "${region}",
+        "view": "timeSeries",
+        "stacked": false,
+        "period": 60,
+        "stat": "p50",
+        "metrics": [
+          [
+            "AWS/Bedrock",
+            "TimeToFirstToken",
+            "ModelId",
+            "${bedrock_chat_model}",
+            {
+              "stat": "p50",
+              "label": "Primer token · p50"
+            }
+          ],
+          [
+            "AWS/Bedrock",
+            "TimeToFirstToken",
+            "ModelId",
+            "${bedrock_chat_model}",
+            {
+              "stat": "p95",
+              "label": "Primer token · p95"
+            }
+          ]
+        ],
+        "legend": {
+          "position": "bottom"
+        },
+        "yAxis": {
+          "left": {
+            "min": 0,
+            "label": "ms",
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 88,
+      "width": 24,
+      "height": 6,
+      "properties": {
+        "title": "Bedrock · errores y throttling por minuto · modelos configurados",
+        "region": "${region}",
+        "view": "timeSeries",
+        "stacked": false,
+        "period": 60,
+        "stat": "Sum",
+        "metrics": [
+          [
+            "AWS/Bedrock",
+            "InvocationClientErrors",
+            "ModelId",
+            "${bedrock_chat_model}",
+            {
+              "stat": "Sum",
+              "label": "Chat · errores cliente"
+            }
+          ],
+          [
+            "AWS/Bedrock",
+            "InvocationServerErrors",
+            "ModelId",
+            "${bedrock_chat_model}",
+            {
+              "stat": "Sum",
+              "label": "Chat · errores AWS"
+            }
+          ],
+          [
+            "AWS/Bedrock",
+            "InvocationThrottles",
+            "ModelId",
+            "${bedrock_chat_model}",
+            {
+              "stat": "Sum",
+              "label": "Chat · throttling"
+            }
+          ],
+          [
+            "AWS/Bedrock",
+            "InvocationClientErrors",
+            "ModelId",
+            "${embeddings_model}",
+            {
+              "stat": "Sum",
+              "label": "Embeddings · errores cliente"
+            }
+          ],
+          [
+            "AWS/Bedrock",
+            "InvocationServerErrors",
+            "ModelId",
+            "${embeddings_model}",
+            {
+              "stat": "Sum",
+              "label": "Embeddings · errores AWS"
+            }
+          ],
+          [
+            "AWS/Bedrock",
+            "InvocationThrottles",
+            "ModelId",
+            "${embeddings_model}",
+            {
+              "stat": "Sum",
+              "label": "Embeddings · throttling"
+            }
+          ]
+        ],
+        "legend": {
+          "position": "bottom"
+        },
+        "yAxis": {
+          "left": {
+            "min": 0,
+            "label": "eventos/min",
             "showUnits": false
           }
         }
