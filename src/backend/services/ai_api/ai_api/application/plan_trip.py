@@ -828,7 +828,11 @@ class PlanTrip:
         # not on it (TRA-243): the page packs in the same order either way.
         yield brief_event(brief)
         if not_covered is not None:
+            # That sentence already asks for the destination: a model asking
+            # again only sees the uncovered city and praises it.
             yield text(not_covered)
+            turn.phase("zip")
+            return
         if brief.missing():
             async for event in self._ask_missing(turn):
                 yield event

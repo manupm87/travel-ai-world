@@ -306,6 +306,20 @@ async def test_a_city_the_corpus_does_not_cover_is_declined_not_invented():
     assert retriever.searches == []
 
 
+async def test_the_not_covered_text_is_the_whole_answer():
+    """No model question follows it: one would praise the uncovered city."""
+    use_case, provider, _ = planner(
+        [json.dumps({"destination": "Helsinki"})], deltas=("¡Excelente elección!",)
+    )
+
+    events = await run(use_case(turn("quiero viajar a helsinki", language="es")))
+
+    assert "Helsinki" in joined_text(events)
+    assert "Excelente" not in joined_text(events)
+    assert len(provider.completions) == 1  # the brief extraction only
+    assert provider.calls == []
+
+
 def test_city_key_normalises_what_the_model_writes():
     assert city_key("Budapest, Hungary") == "budapest"
     assert city_key(" BUDAPEST ") == "budapest"
