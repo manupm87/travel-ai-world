@@ -9,7 +9,7 @@
       "width": 24,
       "height": 3,
       "properties": {
-        "markdown": "# Kyrian World · Estado de los servicios\n**Producción · AWS Lambda + API Gateway** · Ventana inicial: 3 horas · Resolución: 1 minuto.\n\nTráfico, rendimiento y capacidad de core_api y ai_api. Usa la actualización manual durante la presentación."
+        "markdown": "# Kyrian World · Estado de los servicios\n**Producción · AWS Lambda + API Gateway + Cognito** · Ventana inicial: 3 horas · Resolución: 1 minuto.\n\nTráfico, rendimiento y capacidad de core_api y ai_api; autenticación Google y renovación de tokens. Usa la actualización manual durante la presentación."
       }
     },
     {
@@ -517,6 +517,169 @@
       "height": 5,
       "properties": {
         "markdown": "# Cómo interpretar la demo\n**Sin datos no significa servicio caído ni cero errores.** Las métricas aparecen cuando existe actividad y pueden tardar varios minutos en publicarse. Las tarjetas muestran series por minuto, no totales del período.\n\n**Lambda:** Duration no incluye el arranque en frío; Errors refleja fallos de ejecución, no todas las respuestas HTTP 5xx. ConcurrentExecutions es concurrencia de funciones, no una medición exacta de peticiones en vuelo. Una ejecución SSE puede durar todo el stream.\n\n**API Gateway:** tráfico y errores agregados del stage, sin desglose por ruta ni servicio. La latencia no mide el tiempo hasta el primer token del planner ni el tiempo total percibido en el navegador. Este dashboard no ejecuta sondeos de disponibilidad.\n\n**Presentación:** abre la web, consulta viajes y genera un itinerario; espera unos minutos y actualiza el dashboard. No provoques fallos deliberados en producción."
+      }
+    },
+    {
+      "type": "text",
+      "x": 0,
+      "y": 40,
+      "width": 24,
+      "height": 4,
+      "properties": {
+        "markdown": "# Cognito · autenticación Google y renovación de tokens\nMétricas nativas agregadas del pool y cliente web. Una federación tiene éxito cuando Cognito emite los tokens; no equivale a un usuario único ni a una sesión de la aplicación. Los intentos contabilizados sin emisión de tokens (incluidos throttling y códigos de autorización sin canje) se consideran fallos. No es un registro de auditoría individual.\n\n**Sin datos no significa cero fallos.** Se muestran solo las muestras publicadas; el porcentaje de éxito queda vacío sin intentos. La renovación de tokens se mide aparte de la federación. No se activan logs de Cognito, protección avanzada ni alarmas."
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 44,
+      "width": 24,
+      "height": 7,
+      "properties": {
+        "title": "Cognito · Google · intentos, resultados y throttling/min; éxito (%)",
+        "region": "${region}",
+        "view": "timeSeries",
+        "stacked": false,
+        "period": 60,
+        "stat": "Sum",
+        "metrics": [
+          [
+            "AWS/Cognito",
+            "FederationSuccesses",
+            "UserPool",
+            "${cognito_user_pool}",
+            "UserPoolClient",
+            "${cognito_client}",
+            "IdentityProvider",
+            "${cognito_identity_provider}",
+            {
+              "id": "fa",
+              "stat": "SampleCount",
+              "label": "Intentos Google"
+            }
+          ],
+          [
+            "AWS/Cognito",
+            "FederationSuccesses",
+            "UserPool",
+            "${cognito_user_pool}",
+            "UserPoolClient",
+            "${cognito_client}",
+            "IdentityProvider",
+            "${cognito_identity_provider}",
+            {
+              "id": "fs",
+              "stat": "Sum",
+              "label": "Éxitos Google"
+            }
+          ],
+          [
+            {
+              "expression": "fa-fs",
+              "id": "ff",
+              "label": "Sin emisión de tokens"
+            }
+          ],
+          [
+            "AWS/Cognito",
+            "FederationThrottles",
+            "UserPool",
+            "${cognito_user_pool}",
+            "UserPoolClient",
+            "${cognito_client}",
+            "IdentityProvider",
+            "${cognito_identity_provider}",
+            {
+              "id": "ft",
+              "stat": "Sum",
+              "label": "Limitadas Google (incluidas en fallos)"
+            }
+          ],
+          [
+            {
+              "expression": "IF(fa>0,100*fs/fa)",
+              "id": "fr",
+              "label": "Éxito Google (%)",
+              "yAxis": "right"
+            }
+          ]
+        ],
+        "legend": {
+          "position": "bottom"
+        },
+        "yAxis": {
+          "left": {
+            "min": 0,
+            "label": "peticiones/min",
+            "showUnits": false
+          },
+          "right": {
+            "min": 0,
+            "max": 100,
+            "label": "éxito (%)",
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 51,
+      "width": 24,
+      "height": 7,
+      "properties": {
+        "title": "Cognito · renovación de tokens · intentos y resultados/min",
+        "region": "${region}",
+        "view": "timeSeries",
+        "stacked": false,
+        "period": 60,
+        "stat": "Sum",
+        "metrics": [
+          [
+            "AWS/Cognito",
+            "TokenRefreshSuccesses",
+            "UserPool",
+            "${cognito_user_pool}",
+            "UserPoolClient",
+            "${cognito_client}",
+            {
+              "id": "ra",
+              "stat": "SampleCount",
+              "label": "Intentos de renovación"
+            }
+          ],
+          [
+            "AWS/Cognito",
+            "TokenRefreshSuccesses",
+            "UserPool",
+            "${cognito_user_pool}",
+            "UserPoolClient",
+            "${cognito_client}",
+            {
+              "id": "rs",
+              "stat": "Sum",
+              "label": "Renovaciones correctas"
+            }
+          ],
+          [
+            {
+              "expression": "ra-rs",
+              "id": "rf",
+              "label": "Renovaciones fallidas (incluye throttling)"
+            }
+          ]
+        ],
+        "legend": {
+          "position": "bottom"
+        },
+        "yAxis": {
+          "left": {
+            "min": 0,
+            "label": "peticiones/min",
+            "showUnits": false
+          }
+        }
       }
     }
   ]

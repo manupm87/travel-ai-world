@@ -3,6 +3,9 @@
 Native operational metrics for the presentation are available through the
 [CloudWatch service dashboard](../../docs/runbooks/service-dashboard-cloudwatch.md).
 Terraform creates it by default; set `service_dashboard_enabled=false` to opt out.
+It also shows Cognito Google federation and token-refresh activity from native
+metrics: 24 raw metric references and 29 entries including math. Cognito reuses
+this dashboard; no fourth dashboard, Cognito log export or paid security is enabled.
 
 The separate [infrastructure dashboard](../../docs/runbooks/infrastructure-dashboard-cloudwatch.md)
 shows DynamoDB, CloudFront and Lambda error rates from existing native metrics.
