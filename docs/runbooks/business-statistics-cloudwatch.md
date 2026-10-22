@@ -100,10 +100,23 @@ identifiers. Set **Grupo core_api** to the exact `core_api_log_group_name` outpu
 and **Región** to the deployed region (default `eu-west-1`). The textbox avoids
 an automatic query enumerating every log group.
 
-All panels summarize the selected window; start with the default last hour.
-Refresh manually. Null/unknown durations show **Sin datos**, never an invented
-zero. Known duration averages include explicit zero and exclude null. There is
-no scrape-UP panel because production uses application logs, not an exporter.
+All panels summarize the selected window; the default is the last 24 hours.
+Refresh manually and choose one hour when a smaller scan is sufficient. Six
+cards show creations, mean explicit duration, creations with duration, duration
+coverage, recorded destination groups and the last observed creation. The
+visible **Resumen del periodo · detalle** source panel feeds these cards through
+the built-in Dashboard datasource. Keep source panel ID `100` and its expanded
+row intact when editing; the cards do not issue independent CloudWatch queries.
+
+An empty event window shows **Sin eventos**. If events exist but none include a
+duration, mean duration shows **Sin duración**, while count/coverage show zero.
+Known duration averages include explicit zero and exclude null; missing duration
+is never inferred from dates. Destination groups include `other`; their count
+is not a count of distinct real cities. Categories retain the frontend's budget
+labels (Económico, Medio, Alto) and readable pace labels. The hourly activity
+chart leaves missing buckets empty rather than inventing zero observations.
+There is no scrape-UP panel because production uses application logs, not an
+exporter.
 
 The queries parse the shared formatter's prefix, extract JSON, filter the event
 version and deduplicate before aggregating. To inspect events manually:
@@ -118,19 +131,33 @@ parse @message "business_event=*" as payload
 | sort ts desc
 ```
 
-Dashboard totals/category panels add a second `stats` aggregation. The duration
-panels filter `ispresent(duration_days)` and `duration_days >= 0`, so null is
-excluded and zero survives. The time series preserves `max(@timestamp)` as `ts`
-and groups it with `datefloor(ts, 5m)` after deduplication; using `bin(5m)` on
-the original timestamp after the first `stats` would lose that field. Duplicate
-events are assigned to the latest observed log timestamp inside the window.
+Summary and category panels add a second `stats` aggregation. The summary
+uses `count(duration_days)` for known durations and `avg(duration_days)` for
+their mean; the event contract allows only non-negative explicit values or null.
+After aggregation, it calculates duration coverage and converts the last
+observation timestamp to milliseconds for Grafana date display. The `viajes > 0`
+filter avoids a false zero summary or a division by zero on an empty window.
+Do not project an aggregate alias with a new `fields <alias>` command: Logs
+Insights can reject it as an already-defined ephemeral field. Derived aliases
+use new names instead.
+
+The time series preserves `max(@timestamp)` as `ts` and groups it with
+`datefloor(ts, 1h)` after deduplication; using `bin(1h)` on the original timestamp
+after the first `stats` would lose that field. Duplicate events are assigned to
+the latest observed log timestamp inside the window. Grafana renders unknown
+categories explicitly; it cannot reconstruct the destinations folded into `other`.
 
 ## Cost control and rollback
 
-Each refresh runs seven Logs Insights queries across the selected range.
+A complete dashboard load or refresh runs **five** Logs Insights queries:
+one summary, three category distributions and one hourly series. The six
+summary cards reuse source panel `100` without new backend queries. The shared
+source remains expanded and visible. Five queries reduce the number of scans
+compared with seven over the same window, but the 24-hour default scans a wider
+window than one hour; fewer queries alone do not guarantee lower cost.
 Filtering to business events does not prevent scanning other lines in the group.
 Ingestion and retained bytes also contribute AWS charges. Keep manual refresh,
-short windows and the existing `log_retention_days` policy. The default retention
+the smallest useful window and the existing `log_retention_days` policy. The default retention
 is **14 days**, so older creation events expire and drop out of the counts.
 Inspect query statistics (bytes scanned), AWS billing and Grafana Cloud plan limits. Avoid
 automatic refresh, dashboard alerts or broad-range queries until budgeted.
@@ -149,3 +176,5 @@ review the role-removal plan before apply. Do not delete the application group.
 - [AWS Logs IAM action/resource support](https://docs.aws.amazon.com/service-authorization/latest/reference/list_logs.html)
 - [Logs Insights stats and repeated aggregations](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CWL_QuerySyntax-Stats.html)
 - [CloudWatch query editor](https://grafana.com/docs/grafana/latest/datasources/aws-cloudwatch/query-editor/)
+
+The shared-summary mechanism follows [Grafana query sharing](https://grafana.com/docs/grafana/latest/visualizations/panels-visualizations/query-transform-data/share-query/).

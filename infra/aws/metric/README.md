@@ -25,7 +25,15 @@ logs and the separate importable dashboard at
 [production runbook](../../../docs/runbooks/business-statistics-cloudwatch.md).
 It is intentionally outside `grafana/dashboards`, so local Grafana never
 automatically provisions it. Production uses Logs Insights and manual refresh,
-not a Prometheus scrape or the local dashboard's counters.
+not a Prometheus scrape or the local dashboard's counters. The production dashboard defaults
+to 24 hours and combines six summary cards, hourly activity, destination,
+budget and pace distributions, and a visible summary table. Its six cards
+share one result through Grafana's Dashboard datasource, keeping a complete
+refresh to five CloudWatch queries. The cards distinguish no events from
+missing duration; destination groups include `other`, not distinct real cities.
+Use a shorter range when sufficient: the wider default can scan more bytes
+even with fewer queries. Keep manual refresh and the summary source panel
+(ID `100`) expanded; no new service, permission or database scan is needed.
 
 Use Docker Compose 2.24.4 or newer (`!override` support). From the repository
 root, prepare the service `.env` files as described in the backend README and
