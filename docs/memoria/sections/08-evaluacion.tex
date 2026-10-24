@@ -35,9 +35,11 @@ Inicios de sesión y renovaciones & Negocio & Federaciones con Google con éxito
 La Tabla~\ref{tab:metricas} recoge las métricas elegidas. Las de IA se calculan fuera de línea sobre
 conjuntos de prueba versionados en el repositorio; las técnicas y de negocio, en producción a partir
 de las trazas, los registros y las métricas nativas de AWS. Se han preferido \emph{recall}@$k$ y
-MRR a nDCG (ganancia acumulada descontada normalizada) porque cada pregunta tiene pocos documentos esperados (de 1 a 4) sin grados de relevancia, y un
-juez LLM al estilo de RAGAS~\cite{es2023ragas,zheng2023judge} porque no existen respuestas de
-referencia con las que comparar.
+MRR a nDCG (ganancia acumulada descontada normalizada) porque cada pregunta tiene pocos documentos esperados (de 1 a 4) sin grados de relevancia, y, para las respuestas, un juez LLM al estilo de
+RAGAS~\cite{es2023ragas,zheng2023judge}: el conjunto de prueba define qué documentos deben
+recuperarse, pero no una respuesta ideal para cada pregunta, así que el juez no compara con una
+respuesta modelo, sino que contrasta cada respuesta con los pasajes recuperados (fundamentación) y
+con la pregunta (relevancia).
 
 \subsection{Recuperación}\label{sec:evalrag}
 
