@@ -2,7 +2,7 @@
 
 | Where | What |
 |---|---|
-| [architecture/overview.md](architecture/overview.md) | System diagram, request flows, service boundaries, [AWS target diagram](architecture/aws-architecture.drawio.svg) (draw.io, editable in VS Code) |
+| [architecture/overview.md](architecture/overview.md) | System diagram, request flows, service boundaries, [AWS target diagram](architecture/aws-architecture.drawio.svg) (draw.io, editable in VS Code), [target production diagram](architecture/aws-target-architecture.drawio.svg) (EKS, Aurora, AgentCore; not deployed) |
 | [architecture/adr/](architecture/adr/README.md) | Architecture Decision Records (why things are the way they are) |
 | [architecture/vector-store-spike.md](architecture/vector-store-spike.md) | Qdrant vs S3 Vectors, measured: the input to ADR 0014 |
 | [architecture/rag-evaluation.md](architecture/rag-evaluation.md) | Recall@k and MRR of the deployed index, how to run them, the baseline and its misses |

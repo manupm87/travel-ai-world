@@ -290,6 +290,29 @@ frontend deploy syncs the export to S3 and invalidates CloudFront. CloudFront
 has a **WAF web ACL** (AWS managed rules: IP reputation, common rule set, known bad inputs),
 created from the console and not managed by Terraform.
 
+### Target production architecture
+
+![Target production architecture on AWS](aws-target-architecture.drawio.svg)
+
+[`aws-target-architecture.drawio.svg`](aws-target-architecture.drawio.svg) (draw.io, edited like
+the diagram above) is a **target design, not deployed**: the shape the platform would take for
+production traffic. What changes, and why:
+
+- **EKS in private subnets behind an ALB** replaces Lambda and the Lambda Web Adapter: no cold
+  starts on the streaming planner, and scaling by replicas (HPA, pods spread across three
+  Availability Zones); VPC endpoints keep AWS traffic off the single NAT gateway.
+- **Aurora PostgreSQL** in isolated subnets replaces DynamoDB for users, trips and the access list,
+  so reporting can use relational queries.
+- **The agent runs in Bedrock AgentCore Runtime**; its tools are exposed over MCP through
+  AgentCore Gateway. `ai-api` keeps orchestration and SSE streaming.
+- **One AWS account per environment** (development, staging, production): images are built once,
+  scanned in ECR and promoted by digest; GitHub Actions deploys with OIDC, Terraform and Helm.
+- **Locally, a kind cluster** mirrors the namespaces and network policies.
+
+The trade-off is cost: roughly 560 USD/month of fixed list-price cost in production, against
+about 5 €/month for the current design. For demo traffic the serverless shape above stays the
+right one.
+
 ## Known gaps
 
 - No request rate limiting: the daily token quota ([ADR 0026](adr/0026-access-list-and-daily-token-quota.md))
