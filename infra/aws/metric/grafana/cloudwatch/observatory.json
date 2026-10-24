@@ -1,0 +1,1862 @@
+{
+  "uid": "kyrian-tfm-observatory",
+  "title": "Kyrian World · Observatorio del proyecto",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "refresh": "",
+  "timezone": "browser",
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "tags": [
+    "kyrian",
+    "tfm",
+    "cloudwatch",
+    "core-api"
+  ],
+  "__inputs": [
+    {
+      "name": "DS_CLOUDWATCH",
+      "label": "CloudWatch de core_api",
+      "description": "Datasource con Grafana Assume Role y acceso revisado al grupo core_api.",
+      "type": "datasource",
+      "pluginId": "cloudwatch",
+      "pluginName": "CloudWatch"
+    }
+  ],
+  "__requires": [
+    {
+      "type": "datasource",
+      "id": "cloudwatch",
+      "name": "CloudWatch",
+      "version": "1.0.0"
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "region",
+        "label": "Región",
+        "type": "textbox",
+        "query": "eu-west-1",
+        "current": {
+          "text": "eu-west-1",
+          "value": "eu-west-1"
+        },
+        "options": [],
+        "multi": false,
+        "includeAll": false
+      },
+      {
+        "name": "core_log_group",
+        "label": "Grupo core_api (obligatorio)",
+        "type": "textbox",
+        "query": "",
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "options": [],
+        "description": "Introduce el output core_api_log_group_name; no se enumeran grupos automáticamente."
+      }
+    ]
+  },
+  "annotations": {
+    "list": []
+  },
+  "description": "Observatorio del TFM: ocho indicadores compartidos, actividad de negocio, operación HTTP de core_api y evidencias académicas estáticas. Seis consultas CloudWatch, actualización manual.",
+  "timepicker": {
+    "refresh_intervals": [],
+    "time_options": [
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d"
+    ]
+  },
+  "graphTooltip": 1,
+  "panels": [
+    {
+      "id": 1,
+      "title": "",
+      "type": "text",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 4
+      },
+      "transparent": true,
+      "options": {
+        "mode": "markdown",
+        "content": "## Kyrian World · Observatorio\nNegocio · Operación core · Evidencia de IA\n\n**EN VIVO:** registros del periodo · **MEMORIA:** evaluación estática · Actualización manual"
+      }
+    },
+    {
+      "id": 10,
+      "title": "01 · Actividad de negocio | EN VIVO",
+      "type": "row",
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 11,
+      "title": "Viajes creados",
+      "type": "stat",
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 6,
+        "h": 5
+      },
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 101,
+          "withTransforms": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "viajes"
+              ]
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Sin muestras",
+          "decimals": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          }
+        },
+        "overrides": []
+      },
+      "description": "Creaciones deduplicadas; no es el inventario de viajes de DynamoDB.",
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "graphMode": "none",
+        "textMode": "value",
+        "colorMode": "value",
+        "wideLayout": true,
+        "orientation": "horizontal",
+        "text": {
+          "titleSize": 13,
+          "valueSize": 30
+        }
+      }
+    },
+    {
+      "id": 12,
+      "title": "Duración media",
+      "type": "stat",
+      "gridPos": {
+        "x": 6,
+        "y": 5,
+        "w": 6,
+        "h": 5
+      },
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 101,
+          "withTransforms": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "duracion_media"
+              ]
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix: días",
+          "noValue": "Sin muestras",
+          "decimals": 1,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "purple"
+          }
+        },
+        "overrides": []
+      },
+      "description": "Incluye cero explícito y excluye duración ausente. No es la duración de una petición.",
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "graphMode": "none",
+        "textMode": "value",
+        "colorMode": "value",
+        "wideLayout": true,
+        "orientation": "horizontal",
+        "text": {
+          "titleSize": 13,
+          "valueSize": 30
+        }
+      }
+    },
+    {
+      "id": 13,
+      "title": "Con duración",
+      "type": "stat",
+      "gridPos": {
+        "x": 12,
+        "y": 5,
+        "w": 6,
+        "h": 5
+      },
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 101,
+          "withTransforms": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "cobertura_duracion"
+              ]
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "noValue": "Sin muestras",
+          "decimals": 1,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          }
+        },
+        "overrides": []
+      },
+      "description": "Porcentaje de creaciones observadas con duración explícita; no es cobertura del total de viajes.",
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "graphMode": "none",
+        "textMode": "value",
+        "colorMode": "value",
+        "wideLayout": true,
+        "orientation": "horizontal",
+        "text": {
+          "titleSize": 13,
+          "valueSize": 30
+        }
+      }
+    },
+    {
+      "id": 14,
+      "title": "Último viaje",
+      "type": "stat",
+      "gridPos": {
+        "x": 18,
+        "y": 5,
+        "w": 6,
+        "h": 5
+      },
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 101,
+          "withTransforms": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "ultima_creacion_ms"
+              ]
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "dateTimeAsIso",
+          "noValue": "Sin muestras",
+          "decimals": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          }
+        },
+        "overrides": []
+      },
+      "description": "Última observación de un evento dentro del intervalo y retención seleccionados.",
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "graphMode": "none",
+        "textMode": "value",
+        "colorMode": "value",
+        "wideLayout": true,
+        "orientation": "horizontal",
+        "text": {
+          "titleSize": 13,
+          "valueSize": 30
+        }
+      }
+    },
+    {
+      "id": 20,
+      "title": "02 · Operación HTTP | SOLO CORE API · EN VIVO",
+      "type": "row",
+      "gridPos": {
+        "x": 0,
+        "y": 10,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 21,
+      "title": "Peticiones API",
+      "type": "stat",
+      "gridPos": {
+        "x": 0,
+        "y": 11,
+        "w": 6,
+        "h": 5
+      },
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 102,
+          "withTransforms": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "peticiones"
+              ]
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Sin muestras",
+          "decimals": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          }
+        },
+        "overrides": []
+      },
+      "description": "Registros access_log v1; no incluye ai_api ni peticiones anteriores a su activación.",
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "graphMode": "none",
+        "textMode": "value",
+        "colorMode": "value",
+        "wideLayout": true,
+        "orientation": "horizontal",
+        "text": {
+          "titleSize": 13,
+          "valueSize": 30
+        }
+      }
+    },
+    {
+      "id": 22,
+      "title": "HTTP 5xx",
+      "type": "stat",
+      "gridPos": {
+        "x": 6,
+        "y": 11,
+        "w": 6,
+        "h": 5
+      },
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 102,
+          "withTransforms": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "tasa_5xx"
+              ]
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "noValue": "Sin muestras",
+          "decimals": 2,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "red"
+          }
+        },
+        "overrides": []
+      },
+      "description": "5xx / peticiones registradas. No es disponibilidad ni un SLA.",
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "graphMode": "none",
+        "textMode": "value",
+        "colorMode": "value",
+        "wideLayout": true,
+        "orientation": "horizontal",
+        "text": {
+          "titleSize": 13,
+          "valueSize": 30
+        }
+      }
+    },
+    {
+      "id": 23,
+      "title": "HTTP p95",
+      "type": "stat",
+      "gridPos": {
+        "x": 12,
+        "y": 11,
+        "w": 6,
+        "h": 5
+      },
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 102,
+          "withTransforms": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "p95_ms"
+              ]
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "noValue": "Sin muestras",
+          "decimals": 1,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "purple"
+          }
+        },
+        "overrides": []
+      },
+      "description": "Hasta que el último mensaje ASGI está preparado; no mide red del navegador ni tiempo al primer token.",
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "graphMode": "none",
+        "textMode": "value",
+        "colorMode": "value",
+        "wideLayout": true,
+        "orientation": "horizontal",
+        "text": {
+          "titleSize": 13,
+          "valueSize": 30
+        }
+      }
+    },
+    {
+      "id": 24,
+      "title": "Interrumpidas",
+      "type": "stat",
+      "gridPos": {
+        "x": 18,
+        "y": 11,
+        "w": 6,
+        "h": 5
+      },
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 102,
+          "withTransforms": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "interrumpidas"
+              ]
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Sin muestras",
+          "decimals": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "orange"
+          }
+        },
+        "overrides": []
+      },
+      "description": "Señal independiente del estado HTTP: una respuesta 200 puede quedar interrumpida.",
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "graphMode": "none",
+        "textMode": "value",
+        "colorMode": "value",
+        "wideLayout": true,
+        "orientation": "horizontal",
+        "text": {
+          "titleSize": 13,
+          "valueSize": 30
+        }
+      }
+    },
+    {
+      "id": 30,
+      "title": "03 · Evolución del periodo | EN VIVO",
+      "type": "row",
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 103,
+      "title": "Creaciones observadas · por hora",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 17,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "${DS_CLOUDWATCH}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "id": "",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "${DS_CLOUDWATCH}"
+          },
+          "queryMode": "Logs",
+          "logsMode": "Insights",
+          "queryLanguage": "CWLI",
+          "logsQueryScope": "logGroupName",
+          "region": "$region",
+          "logGroups": [
+            {
+              "arn": "$core_log_group",
+              "name": "$core_log_group"
+            }
+          ],
+          "expression": "parse @message \"business_event=*\" as payload\n| fields jsonParse(payload) as e\n| filter e.event = \"trip_created\" and e.version = 1 and ispresent(e.event_id)\n| stats latest(e.city_slug) as city_slug, latest(e.budget_tier) as budget_tier, latest(e.pace_preference) as pace_preference, latest(e.duration_days) as duration_days, max(@timestamp) as ts by e.event_id\n| stats count(*) as viajes by datefloor(ts, 1h) as intervalo\n| sort intervalo asc",
+          "statsGroups": []
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Sin muestras",
+          "decimals": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 65,
+            "showPoints": "never",
+            "axisCenteredZero": false
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "viajes"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Viajes observados"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "conversions": [
+              {
+                "targetField": "intervalo",
+                "destinationType": "time"
+              }
+            ],
+            "fields": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": 104,
+      "title": "Tráfico y errores de core_api · cada 5 min",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 17,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "${DS_CLOUDWATCH}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "id": "",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "${DS_CLOUDWATCH}"
+          },
+          "queryMode": "Logs",
+          "logsMode": "Insights",
+          "queryLanguage": "CWLI",
+          "logsQueryScope": "logGroupName",
+          "region": "$region",
+          "logGroups": [
+            {
+              "arn": "$core_log_group",
+              "name": "$core_log_group"
+            }
+          ],
+          "expression": "parse @message \"access_log=*\" as payload\n| fields jsonParse(payload) as a\n| filter a.version = 1 and ispresent(a.status) and ispresent(a.duration_ms)\n| stats count(*) as peticiones, sum(if(a.status >= 500 and a.status < 600, 1, 0)) as respuestas_5xx by bin(5m) as intervalo\n| sort intervalo asc",
+          "statsGroups": []
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Sin muestras",
+          "decimals": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 65,
+            "showPoints": "never",
+            "axisCenteredZero": false
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "peticiones"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Peticiones"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "respuestas_5xx"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Respuestas 5xx"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "conversions": [
+              {
+                "targetField": "intervalo",
+                "destinationType": "time"
+              }
+            ],
+            "fields": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": 40,
+      "title": "04 · Perfil y rutas | EN VIVO",
+      "type": "row",
+      "gridPos": {
+        "x": 0,
+        "y": 25,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 105,
+      "title": "Perfil al crear · combinaciones observadas",
+      "type": "table",
+      "gridPos": {
+        "x": 0,
+        "y": 26,
+        "w": 12,
+        "h": 9
+      },
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "${DS_CLOUDWATCH}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "id": "",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "${DS_CLOUDWATCH}"
+          },
+          "queryMode": "Logs",
+          "logsMode": "Insights",
+          "queryLanguage": "CWLI",
+          "logsQueryScope": "logGroupName",
+          "region": "$region",
+          "logGroups": [
+            {
+              "arn": "$core_log_group",
+              "name": "$core_log_group"
+            }
+          ],
+          "expression": "parse @message \"business_event=*\" as payload\n| fields jsonParse(payload) as e\n| filter e.event = \"trip_created\" and e.version = 1 and ispresent(e.event_id)\n| stats latest(e.city_slug) as city_slug, latest(e.budget_tier) as budget_tier, latest(e.pace_preference) as pace_preference, latest(e.duration_days) as duration_days, max(@timestamp) as ts by e.event_id\n| stats count(*) as viajes, avg(duration_days) as duracion_media by city_slug, budget_tier, pace_preference\n| sort viajes desc\n| limit 100",
+          "statsGroups": []
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Sin muestras",
+          "decimals": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "city_slug"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Grupo de destino"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "budget_tier"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Presupuesto"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "pace_preference"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Ritmo"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "viajes"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Viajes"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "duracion_media"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Duración media"
+              },
+              {
+                "id": "unit",
+                "value": "suffix: días"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "city_slug"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "budapest": {
+                        "text": "Budapest"
+                      },
+                      "other": {
+                        "text": "Otros destinos"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "budget_tier"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "1": {
+                        "text": "Económico"
+                      },
+                      "2": {
+                        "text": "Medio"
+                      },
+                      "3": {
+                        "text": "Alto"
+                      },
+                      "unspecified": {
+                        "text": "Sin especificar"
+                      },
+                      "other": {
+                        "text": "Otro"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "pace_preference"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "relaxed": {
+                        "text": "Tranquilo"
+                      },
+                      "balanced": {
+                        "text": "Equilibrado"
+                      },
+                      "intense": {
+                        "text": "Intenso"
+                      },
+                      "unspecified": {
+                        "text": "Sin especificar"
+                      },
+                      "other": {
+                        "text": "Otro"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "md",
+        "footer": {
+          "show": false
+        },
+        "sortBy": []
+      },
+      "description": "Hasta 100 combinaciones, ordenadas por volumen. Otros destinos no permite recuperar la ciudad original. Presupuesto 1/2/3: categorías, no importes monetarios."
+    },
+    {
+      "id": 106,
+      "title": "Rutas de core_api · volumen y duración",
+      "type": "table",
+      "gridPos": {
+        "x": 12,
+        "y": 26,
+        "w": 12,
+        "h": 9
+      },
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "${DS_CLOUDWATCH}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "id": "",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "${DS_CLOUDWATCH}"
+          },
+          "queryMode": "Logs",
+          "logsMode": "Insights",
+          "queryLanguage": "CWLI",
+          "logsQueryScope": "logGroupName",
+          "region": "$region",
+          "logGroups": [
+            {
+              "arn": "$core_log_group",
+              "name": "$core_log_group"
+            }
+          ],
+          "expression": "parse @message \"access_log=*\" as payload\n| fields jsonParse(payload) as a\n| filter a.version = 1 and ispresent(a.status) and ispresent(a.duration_ms)\n| stats count(*) as peticiones, sum(if(a.status >= 500 and a.status < 600, 1, 0)) as respuestas_5xx, pct(a.duration_ms, 95) as p95_ms, sum(if(a.outcome = \"interrupted\", 1, 0)) as interrumpidas by a.method, a.route\n| sort peticiones desc\n| limit 25",
+          "statsGroups": []
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Sin muestras",
+          "decimals": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "a.method"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Método"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "a.route"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Ruta plantilla"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "peticiones"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Peticiones"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "respuestas_5xx"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "5xx"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "interrumpidas"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Interrumpidas"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "p95_ms"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "p95 HTTP"
+              },
+              {
+                "id": "unit",
+                "value": "ms"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "md",
+        "footer": {
+          "show": false
+        },
+        "sortBy": []
+      },
+      "description": "Top 25 rutas por volumen. Las rutas son plantillas, nunca identificadores concretos. No representa ai_api."
+    },
+    {
+      "id": 50,
+      "title": "05 · Transparencia de los datos | EN VIVO",
+      "type": "row",
+      "gridPos": {
+        "x": 0,
+        "y": 35,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 101,
+      "title": "Negocio · resumen compartido de eventos",
+      "type": "table",
+      "gridPos": {
+        "x": 0,
+        "y": 36,
+        "w": 12,
+        "h": 6
+      },
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "${DS_CLOUDWATCH}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "id": "",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "${DS_CLOUDWATCH}"
+          },
+          "queryMode": "Logs",
+          "logsMode": "Insights",
+          "queryLanguage": "CWLI",
+          "logsQueryScope": "logGroupName",
+          "region": "$region",
+          "logGroups": [
+            {
+              "arn": "$core_log_group",
+              "name": "$core_log_group"
+            }
+          ],
+          "expression": "parse @message \"business_event=*\" as payload\n| fields jsonParse(payload) as e\n| filter e.event = \"trip_created\" and e.version = 1 and ispresent(e.event_id)\n| stats latest(e.city_slug) as city_slug, latest(e.budget_tier) as budget_tier, latest(e.pace_preference) as pace_preference, latest(e.duration_days) as duration_days, max(@timestamp) as ts by e.event_id\n| stats count(*) as viajes, avg(duration_days) as duracion_media, count(duration_days) as con_duracion, max(ts) as ultima_creacion\n| filter viajes > 0\n| fields 100 * con_duracion / viajes as cobertura_duracion, toMillis(ultima_creacion) as ultima_creacion_ms",
+          "statsGroups": []
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Sin muestras",
+          "decimals": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "viajes"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Viajes"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "duracion_media"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Media declarada"
+              },
+              {
+                "id": "unit",
+                "value": "suffix: días"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "con_duracion"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Con duración"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "cobertura_duracion"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Con duración %"
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ultima_creacion_ms"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Último evento"
+              },
+              {
+                "id": "unit",
+                "value": "dateTimeAsIso"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "md",
+        "footer": {
+          "show": false
+        },
+        "sortBy": []
+      },
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "viajes",
+                "duracion_media",
+                "con_duracion",
+                "cobertura_duracion",
+                "ultima_creacion_ms"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 102,
+      "title": "HTTP · resumen compartido y primera invocación",
+      "type": "table",
+      "gridPos": {
+        "x": 12,
+        "y": 36,
+        "w": 12,
+        "h": 6
+      },
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "${DS_CLOUDWATCH}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "id": "",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "${DS_CLOUDWATCH}"
+          },
+          "queryMode": "Logs",
+          "logsMode": "Insights",
+          "queryLanguage": "CWLI",
+          "logsQueryScope": "logGroupName",
+          "region": "$region",
+          "logGroups": [
+            {
+              "arn": "$core_log_group",
+              "name": "$core_log_group"
+            }
+          ],
+          "expression": "parse @message \"access_log=*\" as payload\n| fields jsonParse(payload) as a\n| filter a.version = 1 and ispresent(a.status) and ispresent(a.duration_ms)\n| stats count(*) as peticiones, sum(if(a.status >= 500 and a.status < 600, 1, 0)) as respuestas_5xx, pct(a.duration_ms, 95) as p95_ms, sum(if(a.outcome = \"interrupted\", 1, 0)) as interrumpidas, sum(if(a.cold_start = true, 1, 0)) as primeras_invocaciones\n| filter peticiones > 0\n| fields 100 * respuestas_5xx / peticiones as tasa_5xx, 100 * primeras_invocaciones / peticiones as primeras_invocaciones_pct",
+          "statsGroups": []
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Sin muestras",
+          "decimals": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "peticiones"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Peticiones"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "respuestas_5xx"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "5xx"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "p95_ms"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "p95 HTTP"
+              },
+              {
+                "id": "unit",
+                "value": "ms"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "interrumpidas"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Interrumpidas"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "primeras_invocaciones"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Primeras invocaciones"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "primeras_invocaciones_pct"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Primeras invocaciones %"
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "tasa_5xx"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "5xx %"
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "md",
+        "footer": {
+          "show": false
+        },
+        "sortBy": []
+      },
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "peticiones",
+                "tasa_5xx",
+                "p95_ms",
+                "interrumpidas",
+                "primeras_invocaciones_pct"
+              ]
+            }
+          }
+        }
+      ],
+      "description": "cold_start marca la primera petición Lambda reconocida por el proceso. No equivale a Init Duration de REPORT, ni incluye ai_api."
+    },
+    {
+      "id": 60,
+      "title": "06 · Evidencias del TFM | ESTÁTICO · NO ES TELEMETRÍA EN VIVO",
+      "type": "row",
+      "gridPos": {
+        "x": 0,
+        "y": 42,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 61,
+      "title": "Calidad del sistema · evaluación publicada",
+      "type": "text",
+      "gridPos": {
+        "x": 0,
+        "y": 43,
+        "w": 12,
+        "h": 10
+      },
+      "transparent": true,
+      "options": {
+        "mode": "markdown",
+        "content": "### Resultados de la memoria\n**ESTÁTICO · Memoria del TFM, corte 24/10/2026 · §§ 8.2–8.4**\n\n| Evidencia | Resultado | Alcance |\n|---|---:|---|\n| Recuperación R@10 / MRR | **0,768 / 0,686** | 120 preguntas |\n| Fundamentación / relevancia | **4,72 / 4,98 sobre 5** | Evaluación con modelo juez |\n| Éxito del agente | **92,6 %** | 36 escenarios × 3 ejecuciones |\n| Comprobaciones de seguridad | **324 / 324** | Suite de evaluación |\n| Corpus | **6 ciudades · 33.264 documentos** | Base vectorial evaluada |\n\nEstos resultados no cambian al seleccionar fechas ni al pulsar Refresh."
+      }
+    },
+    {
+      "id": 62,
+      "title": "Producción · fotografía histórica de la memoria",
+      "type": "text",
+      "gridPos": {
+        "x": 12,
+        "y": 43,
+        "w": 12,
+        "h": 10
+      },
+      "transparent": true,
+      "options": {
+        "mode": "markdown",
+        "content": "### Evidencia publicada, no datos actuales\n**ESTÁTICO · Tabla 34 · 30 días, 24/09–24/10/2026**\n\n| Indicador histórico | Resultado |\n|---|---:|\n| Turnos: planificador / fichas | **623: 320 / 303** |\n| Usuarios distintos / días activos | **7 / 22** |\n| Viajes creados | **20** |\n| Coste de IA del periodo | **2,05 USD** |\n| p95 turno: planificador / ficha | **37,2 s / 3,7 s** |\n\nFuente: trazas de turnos, CloudWatch y tabla de viajes, reunidas en la memoria. El coste de IA **no es la factura total de AWS**. Estas cifras no se reconstruyen con el lector de core_api."
+      }
+    },
+    {
+      "id": 70,
+      "title": "07 · Alcance, interpretación y control del coste",
+      "type": "row",
+      "gridPos": {
+        "x": 0,
+        "y": 53,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 71,
+      "title": "",
+      "type": "text",
+      "gridPos": {
+        "x": 0,
+        "y": 54,
+        "w": 24,
+        "h": 12
+      },
+      "transparent": true,
+      "options": {
+        "mode": "markdown",
+        "content": "### Cómo leer el observatorio\n**EN VIVO** significa consulta a registros retenidos del intervalo, no monitorización continua. Si aparece «Sin muestras», comprueba rango, captura, permisos y errores: no significa cero viajes, API caída ni disponibilidad del 100 %. No se muestran datos inventados.\n\n**Negocio:** solo nuevas creaciones registradas tras activar los eventos. Deduplicación por `event_id` dentro del rango; no es inventario, auditoría contable ni backfill de DynamoDB. La duración admite cero y excluye valores ausentes. La lista permitida registra Budapest por nombre; el resto se agrupa en `other`. Los perfiles son fotografías de la creación y no cambian con ediciones o borrados.\n\n**HTTP:** solo `core_api`, formato `access_log` v1. La duración termina antes de entregar el último mensaje ASGI al servidor; no mide latencia del navegador, TTFT ni turnos de IA. Interrupción y 5xx son señales diferentes. La primera invocación observada no equivale a `Init Duration`. Sin SLO ni disponibilidad inferida.\n\n**Coste y acceso:** 6 consultas de CloudWatch por carga completa; las tarjetas reutilizan dos resúmenes. Actualización manual, 24 h iniciales. Los filtros no evitan escanear otros registros del grupo; ampliar el rango puede aumentar el coste. Grafana Free no elimina cargos AWS. Sin nuevos servicios, alarmas, permisos ni consultas a la base de datos. La retención (14 días por defecto) limita el historial. El lector tiene acceso al grupo completo.\n\n**Fuente académica:** `docs/memoria/main.pdf`, memoria facilitada el 24/10/2026; resultados estáticos separados y etiquetados. No se presentan como telemetría ni cambian con el intervalo."
+      }
+    }
+  ],
+  "links": [
+    {
+      "title": "Detalle de negocio",
+      "type": "link",
+      "url": "/d/kyrian-business-cloudwatch",
+      "targetBlank": false,
+      "keepTime": true,
+      "includeVars": true,
+      "asDropdown": false,
+      "icon": "dashboard"
+    }
+  ]
+}

@@ -23,6 +23,10 @@ The stack below is local. For production, use existing CloudWatch application
 logs and the separate importable dashboard at
 `grafana/cloudwatch/business.json`, described in the
 [production runbook](../../../docs/runbooks/business-statistics-cloudwatch.md).
+The independent `grafana/cloudwatch/observatory.json` combines creation events,
+core HTTP operations and clearly separated static TFM evaluation evidence. Its
+[import and interpretation guide](grafana/cloudwatch/README.md) documents the
+six shared queries and the limits of each data source.
 It is intentionally outside `grafana/dashboards`, so local Grafana never
 automatically provisions it. Production uses Logs Insights and manual refresh,
 not a Prometheus scrape or the local dashboard's counters.
