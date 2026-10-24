@@ -945,8 +945,8 @@
       "gridPos": {
         "x": 0,
         "y": 26,
-        "w": 12,
-        "h": 9
+        "w": 24,
+        "h": 8
       },
       "datasource": {
         "type": "cloudwatch",
@@ -1193,10 +1193,10 @@
       "title": "Rutas de core_api · volumen y duración",
       "type": "table",
       "gridPos": {
-        "x": 12,
-        "y": 26,
-        "w": 12,
-        "h": 9
+        "x": 0,
+        "y": 34,
+        "w": 24,
+        "h": 8
       },
       "datasource": {
         "type": "cloudwatch",
@@ -1374,7 +1374,7 @@
       "type": "row",
       "gridPos": {
         "x": 0,
-        "y": 35,
+        "y": 42,
         "w": 24,
         "h": 1
       },
@@ -1387,9 +1387,9 @@
       "type": "table",
       "gridPos": {
         "x": 0,
-        "y": 36,
-        "w": 12,
-        "h": 6
+        "y": 43,
+        "w": 24,
+        "h": 4
       },
       "datasource": {
         "type": "cloudwatch",
@@ -1561,10 +1561,10 @@
       "title": "HTTP · resumen compartido y primera invocación",
       "type": "table",
       "gridPos": {
-        "x": 12,
-        "y": 36,
-        "w": 12,
-        "h": 6
+        "x": 0,
+        "y": 47,
+        "w": 24,
+        "h": 4
       },
       "datasource": {
         "type": "cloudwatch",
@@ -1778,7 +1778,7 @@
       "type": "row",
       "gridPos": {
         "x": 0,
-        "y": 42,
+        "y": 51,
         "w": 24,
         "h": 1
       },
@@ -1791,8 +1791,8 @@
       "type": "text",
       "gridPos": {
         "x": 0,
-        "y": 43,
-        "w": 12,
+        "y": 52,
+        "w": 24,
         "h": 10
       },
       "transparent": true,
@@ -1806,9 +1806,9 @@
       "title": "Producción · fotografía histórica de la memoria",
       "type": "text",
       "gridPos": {
-        "x": 12,
-        "y": 43,
-        "w": 12,
+        "x": 0,
+        "y": 62,
+        "w": 24,
         "h": 10
       },
       "transparent": true,
@@ -1823,7 +1823,7 @@
       "type": "row",
       "gridPos": {
         "x": 0,
-        "y": 53,
+        "y": 72,
         "w": 24,
         "h": 1
       },
@@ -1836,7 +1836,7 @@
       "type": "text",
       "gridPos": {
         "x": 0,
-        "y": 54,
+        "y": 73,
         "w": 24,
         "h": 12
       },
