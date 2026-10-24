@@ -22,12 +22,18 @@ organization does not use it.
 
 The default range is 24 hours and refresh is manual. Six Logs Insights queries
 run per complete load. Eight executive cards use Grafana's Dashboard datasource
-to reuse the raw results of tables 101 and 102. Keep these source tables present
+to reuse the raw results of tables 101 and 102. Three additional profile charts
+reuse table 105: destination and pace horizontal bars, and a budget donut. Each
+groups the raw category and sums `viajes`; counting combination rows would
+misstate the distribution. All shared targets use `withTransforms: false`.
+Keep all three source tables present
 and expanded: removing them or placing them in a collapsed row can prevent the
 cards from obtaining data. The other four queries provide business history,
 HTTP history, creation profile combinations and the 25 busiest HTTP routes.
-Profile combinations are limited to the top 100 rows; this is not a complete
-inventory export. Grafana's time range still bounds every live query.
+Profile combinations are limited to the top 100 rows. Derived distributions
+therefore describe those combinations and can omit others; they are not a
+complete distribution or inventory export. Category mappings preserve `other`
+and `unspecified`; empty results remain empty rather than synthetic zeros. Grafana's time range still bounds every live query.
 
 Business events use the persisted creation snapshot and deduplicate by
 `event_id` within the selected window. Duration includes explicit zero and
@@ -49,7 +55,7 @@ The shared cards select raw field names before applying display names; keep
 
 ## Academic evidence is static
 
-Section 6 quotes the supplied TFM memory, cutoff 24 October 2026, sections
+The collapsed academic appendix quotes the supplied TFM memory, cutoff 24 October 2026, sections
 8.2–8.4 and table 34. The source is `docs/memoria/main.pdf`; values are native
 Markdown text, deliberately disconnected from the time picker and datasource.
 The corpus has 33,264 documents across six cities; this does not mean the live
@@ -57,6 +63,13 @@ city allowlist exposes all six destinations. The 623 historical AI turns and
 USD 2.05 AI cost have a different scope from live core HTTP requests and total
 AWS billing. Update or remove static evidence if the memory is revised; never
 present it as a current measurement.
+
+The overview uses eight compact cards, two trends and three profile charts.
+Expanded profile, route and summary tables keep the live results auditable.
+Only static memory evidence and the interpretation guide are in collapsed rows;
+no shared datasource lives in those rows. Access to the same Grafana organization
+is independent of AWS identity: this JSON does not configure AWS SSO, invite
+users or change the organization subscription.
 
 ## Validation and cost
 

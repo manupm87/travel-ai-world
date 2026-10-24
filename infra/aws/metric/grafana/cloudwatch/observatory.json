@@ -66,7 +66,7 @@
   "annotations": {
     "list": []
   },
-  "description": "Observatorio del TFM: ocho indicadores compartidos, actividad de negocio, operación HTTP de core_api y evidencias académicas estáticas. Seis consultas CloudWatch, actualización manual.",
+  "description": "Observatorio de equipo: ocho indicadores, tendencias de negocio y HTTP, perfiles compartidos y fuentes auditables. Seis consultas CloudWatch, actualización manual; memoria estática en anexo.",
   "timepicker": {
     "refresh_intervals": [],
     "time_options": [
@@ -88,21 +88,21 @@
         "x": 0,
         "y": 0,
         "w": 24,
-        "h": 4
+        "h": 3
       },
       "transparent": true,
       "options": {
         "mode": "markdown",
-        "content": "## Kyrian World · Observatorio\nNegocio · Operación core · Evidencia de IA\n\n**EN VIVO:** registros del periodo · **MEMORIA:** evaluación estática · Actualización manual"
+        "content": "## KYRIAN WORLD · Observatorio del proyecto\n**NEGOCIO Y OPERACIÓN** · Producción AWS · core_api\n\nDatos del intervalo seleccionado · Actualización manual · Evidencias del TFM en el anexo"
       }
     },
     {
       "id": 10,
-      "title": "01 · Actividad de negocio | EN VIVO",
+      "title": "01 · Negocio | Creaciones observadas",
       "type": "row",
       "gridPos": {
         "x": 0,
-        "y": 4,
+        "y": 3,
         "w": 24,
         "h": 1
       },
@@ -115,9 +115,9 @@
       "type": "stat",
       "gridPos": {
         "x": 0,
-        "y": 5,
+        "y": 4,
         "w": 6,
-        "h": 5
+        "h": 4
       },
       "datasource": {
         "type": "datasource",
@@ -174,7 +174,7 @@
         "orientation": "horizontal",
         "text": {
           "titleSize": 13,
-          "valueSize": 30
+          "valueSize": 32
         }
       }
     },
@@ -184,9 +184,9 @@
       "type": "stat",
       "gridPos": {
         "x": 6,
-        "y": 5,
+        "y": 4,
         "w": 6,
-        "h": 5
+        "h": 4
       },
       "datasource": {
         "type": "datasource",
@@ -243,7 +243,7 @@
         "orientation": "horizontal",
         "text": {
           "titleSize": 13,
-          "valueSize": 30
+          "valueSize": 32
         }
       }
     },
@@ -253,9 +253,9 @@
       "type": "stat",
       "gridPos": {
         "x": 12,
-        "y": 5,
+        "y": 4,
         "w": 6,
-        "h": 5
+        "h": 4
       },
       "datasource": {
         "type": "datasource",
@@ -291,7 +291,7 @@
           "decimals": 1,
           "color": {
             "mode": "fixed",
-            "fixedColor": "blue"
+            "fixedColor": "cyan"
           }
         },
         "overrides": []
@@ -312,7 +312,7 @@
         "orientation": "horizontal",
         "text": {
           "titleSize": 13,
-          "valueSize": 30
+          "valueSize": 32
         }
       }
     },
@@ -322,9 +322,9 @@
       "type": "stat",
       "gridPos": {
         "x": 18,
-        "y": 5,
+        "y": 4,
         "w": 6,
-        "h": 5
+        "h": 4
       },
       "datasource": {
         "type": "datasource",
@@ -381,17 +381,17 @@
         "orientation": "horizontal",
         "text": {
           "titleSize": 13,
-          "valueSize": 30
+          "valueSize": 18
         }
       }
     },
     {
       "id": 20,
-      "title": "02 · Operación HTTP | SOLO CORE API · EN VIVO",
+      "title": "02 · Operación | HTTP de core_api",
       "type": "row",
       "gridPos": {
         "x": 0,
-        "y": 10,
+        "y": 8,
         "w": 24,
         "h": 1
       },
@@ -404,9 +404,9 @@
       "type": "stat",
       "gridPos": {
         "x": 0,
-        "y": 11,
+        "y": 9,
         "w": 6,
-        "h": 5
+        "h": 4
       },
       "datasource": {
         "type": "datasource",
@@ -463,7 +463,7 @@
         "orientation": "horizontal",
         "text": {
           "titleSize": 13,
-          "valueSize": 30
+          "valueSize": 32
         }
       }
     },
@@ -473,9 +473,9 @@
       "type": "stat",
       "gridPos": {
         "x": 6,
-        "y": 11,
+        "y": 9,
         "w": 6,
-        "h": 5
+        "h": 4
       },
       "datasource": {
         "type": "datasource",
@@ -511,7 +511,7 @@
           "decimals": 2,
           "color": {
             "mode": "fixed",
-            "fixedColor": "red"
+            "fixedColor": "purple"
           }
         },
         "overrides": []
@@ -532,7 +532,7 @@
         "orientation": "horizontal",
         "text": {
           "titleSize": 13,
-          "valueSize": 30
+          "valueSize": 32
         }
       }
     },
@@ -542,9 +542,9 @@
       "type": "stat",
       "gridPos": {
         "x": 12,
-        "y": 11,
+        "y": 9,
         "w": 6,
-        "h": 5
+        "h": 4
       },
       "datasource": {
         "type": "datasource",
@@ -580,7 +580,7 @@
           "decimals": 1,
           "color": {
             "mode": "fixed",
-            "fixedColor": "purple"
+            "fixedColor": "cyan"
           }
         },
         "overrides": []
@@ -601,7 +601,7 @@
         "orientation": "horizontal",
         "text": {
           "titleSize": 13,
-          "valueSize": 30
+          "valueSize": 32
         }
       }
     },
@@ -611,9 +611,9 @@
       "type": "stat",
       "gridPos": {
         "x": 18,
-        "y": 11,
+        "y": 9,
         "w": 6,
-        "h": 5
+        "h": 4
       },
       "datasource": {
         "type": "datasource",
@@ -649,7 +649,7 @@
           "decimals": 0,
           "color": {
             "mode": "fixed",
-            "fixedColor": "orange"
+            "fixedColor": "purple"
           }
         },
         "overrides": []
@@ -670,17 +670,17 @@
         "orientation": "horizontal",
         "text": {
           "titleSize": 13,
-          "valueSize": 30
+          "valueSize": 32
         }
       }
     },
     {
       "id": 30,
-      "title": "03 · Evolución del periodo | EN VIVO",
+      "title": "03 · Evolución | Actividad del periodo",
       "type": "row",
       "gridPos": {
         "x": 0,
-        "y": 16,
+        "y": 13,
         "w": 24,
         "h": 1
       },
@@ -693,9 +693,9 @@
       "type": "timeseries",
       "gridPos": {
         "x": 0,
-        "y": 17,
+        "y": 14,
         "w": 12,
-        "h": 8
+        "h": 9
       },
       "datasource": {
         "type": "cloudwatch",
@@ -730,8 +730,7 @@
           "noValue": "Sin muestras",
           "decimals": 0,
           "color": {
-            "mode": "fixed",
-            "fixedColor": "blue"
+            "mode": "palette-classic"
           },
           "custom": {
             "drawStyle": "bars",
@@ -766,8 +765,10 @@
       },
       "options": {
         "legend": {
+          "showLegend": true,
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": []
         },
         "tooltip": {
           "mode": "multi",
@@ -795,9 +796,9 @@
       "type": "timeseries",
       "gridPos": {
         "x": 12,
-        "y": 17,
+        "y": 14,
         "w": 12,
-        "h": 8
+        "h": 9
       },
       "datasource": {
         "type": "cloudwatch",
@@ -832,8 +833,7 @@
           "noValue": "Sin muestras",
           "decimals": 0,
           "color": {
-            "mode": "fixed",
-            "fixedColor": "blue"
+            "mode": "palette-classic"
           },
           "custom": {
             "drawStyle": "bars",
@@ -902,8 +902,10 @@
       },
       "options": {
         "legend": {
+          "showLegend": true,
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "calcs": []
         },
         "tooltip": {
           "mode": "multi",
@@ -927,11 +929,11 @@
     },
     {
       "id": 40,
-      "title": "04 · Perfil y rutas | EN VIVO",
+      "title": "04 · Viajeros | Perfil en el momento de crear",
       "type": "row",
       "gridPos": {
         "x": 0,
-        "y": 25,
+        "y": 23,
         "w": 24,
         "h": 1
       },
@@ -939,12 +941,426 @@
       "panels": []
     },
     {
-      "id": 105,
-      "title": "Perfil al crear · combinaciones observadas",
-      "type": "table",
+      "id": 44,
+      "title": "",
+      "type": "text",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "w": 24,
+        "h": 2
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "**Muestra de perfiles:** 100 combinaciones más frecuentes; las distribuciones pueden omitir viajes. «Otros destinos» agrupa ciudades sin nombre disponible."
+      }
+    },
+    {
+      "id": 41,
+      "title": "Destinos",
+      "type": "barchart",
       "gridPos": {
         "x": 0,
         "y": 26,
+        "w": 8,
+        "h": 9
+      },
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 105,
+          "withTransforms": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "city_slug": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "viajes": {
+                "aggregations": [
+                  "sum"
+                ],
+                "operation": "aggregate"
+              }
+            }
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "city_slug",
+                "viajes (sum)"
+              ]
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "Sin muestras",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "city_slug"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Destino"
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "budapest": {
+                        "text": "Budapest"
+                      },
+                      "other": {
+                        "text": "Otros destinos"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "viajes (sum)"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Viajes"
+              }
+            ]
+          }
+        ]
+      },
+      "description": "Suma de viajes por grupo de destino. Reutiliza las 100 combinaciones de perfil con más viajes; puede omitir combinaciones fuera del límite. Fotografía de creación, no inventario. Sin filas significa sin muestras; no se añaden ceros.",
+      "options": {
+        "orientation": "horizontal",
+        "xField": "city_slug",
+        "showValue": "always",
+        "stacking": "none",
+        "groupWidth": 0.7,
+        "barWidth": 0.7,
+        "barRadius": 0.12,
+        "legend": {
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0,
+        "fullHighlight": true
+      }
+    },
+    {
+      "id": 42,
+      "title": "Presupuesto declarado",
+      "type": "piechart",
+      "gridPos": {
+        "x": 8,
+        "y": 26,
+        "w": 8,
+        "h": 9
+      },
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 105,
+          "withTransforms": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "budget_tier": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "viajes": {
+                "aggregations": [
+                  "sum"
+                ],
+                "operation": "aggregate"
+              }
+            }
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "budget_tier",
+                "viajes (sum)"
+              ]
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "Sin muestras",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "budget_tier"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Presupuesto"
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "1": {
+                        "text": "Económico"
+                      },
+                      "2": {
+                        "text": "Medio"
+                      },
+                      "3": {
+                        "text": "Alto"
+                      },
+                      "unspecified": {
+                        "text": "Sin especificar"
+                      },
+                      "other": {
+                        "text": "Otro"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "description": "Suma de viajes por categoría de presupuesto (no importe monetario). Reutiliza las 100 combinaciones de perfil con más viajes; puede omitir combinaciones fuera del límite. Fotografía de creación, no inventario. Sin filas significa sin muestras; no se añaden ceros.",
+      "options": {
+        "pieType": "donut",
+        "displayLabels": [
+          "percent"
+        ],
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "values": [
+            "value"
+          ]
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 43,
+      "title": "Ritmo de viaje",
+      "type": "barchart",
+      "gridPos": {
+        "x": 16,
+        "y": 26,
+        "w": 8,
+        "h": 9
+      },
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 105,
+          "withTransforms": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "pace_preference": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "viajes": {
+                "aggregations": [
+                  "sum"
+                ],
+                "operation": "aggregate"
+              }
+            }
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "pace_preference",
+                "viajes (sum)"
+              ]
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "Sin muestras",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "cyan"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "pace_preference"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Ritmo"
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "relaxed": {
+                        "text": "Tranquilo"
+                      },
+                      "balanced": {
+                        "text": "Equilibrado"
+                      },
+                      "intense": {
+                        "text": "Intenso"
+                      },
+                      "unspecified": {
+                        "text": "Sin especificar"
+                      },
+                      "other": {
+                        "text": "Otro"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "viajes (sum)"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Viajes"
+              }
+            ]
+          }
+        ]
+      },
+      "description": "Suma de viajes por ritmo declarado. Reutiliza las 100 combinaciones de perfil con más viajes; puede omitir combinaciones fuera del límite. Fotografía de creación, no inventario. Sin filas significa sin muestras; no se añaden ceros.",
+      "options": {
+        "orientation": "horizontal",
+        "xField": "pace_preference",
+        "showValue": "always",
+        "stacking": "none",
+        "groupWidth": 0.7,
+        "barWidth": 0.7,
+        "barRadius": 0.12,
+        "legend": {
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0,
+        "fullHighlight": true
+      }
+    },
+    {
+      "id": 105,
+      "title": "Perfil de creación · detalle de las combinaciones",
+      "type": "table",
+      "gridPos": {
+        "x": 0,
+        "y": 35,
         "w": 24,
         "h": 8
       },
@@ -1175,6 +1591,62 @@
                 ]
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "city_slug"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 160
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "budget_tier"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 130
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "pace_preference"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 145
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "viajes"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 120
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "gauge",
+                  "mode": "gradient",
+                  "valueDisplayMode": "text"
+                }
+              }
+            ]
           }
         ]
       },
@@ -1184,9 +1656,27 @@
         "footer": {
           "show": false
         },
-        "sortBy": []
+        "sortBy": [
+          {
+            "displayName": "Viajes",
+            "desc": true
+          }
+        ]
       },
       "description": "Hasta 100 combinaciones, ordenadas por volumen. Otros destinos no permite recuperar la ciudad original. Presupuesto 1/2/3: categorías, no importes monetarios."
+    },
+    {
+      "id": 50,
+      "title": "05 · Trazabilidad | Fuentes y detalle HTTP",
+      "type": "row",
+      "gridPos": {
+        "x": 0,
+        "y": 43,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
     },
     {
       "id": 106,
@@ -1194,7 +1684,7 @@
       "type": "table",
       "gridPos": {
         "x": 0,
-        "y": 34,
+        "y": 44,
         "w": 24,
         "h": 8
       },
@@ -1355,6 +1845,86 @@
                 "value": 1
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "a.method"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 80
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "a.route"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 280
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "peticiones"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 110
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "gauge",
+                  "mode": "gradient",
+                  "valueDisplayMode": "text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "respuestas_5xx"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 70
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "interrumpidas"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "p95_ms"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
           }
         ]
       },
@@ -1364,22 +1934,14 @@
         "footer": {
           "show": false
         },
-        "sortBy": []
+        "sortBy": [
+          {
+            "displayName": "Peticiones",
+            "desc": true
+          }
+        ]
       },
       "description": "Top 25 rutas por volumen. Las rutas son plantillas, nunca identificadores concretos. No representa ai_api."
-    },
-    {
-      "id": 50,
-      "title": "05 · Transparencia de los datos | EN VIVO",
-      "type": "row",
-      "gridPos": {
-        "x": 0,
-        "y": 42,
-        "w": 24,
-        "h": 1
-      },
-      "collapsed": false,
-      "panels": []
     },
     {
       "id": 101,
@@ -1387,7 +1949,7 @@
       "type": "table",
       "gridPos": {
         "x": 0,
-        "y": 43,
+        "y": 52,
         "w": 24,
         "h": 4
       },
@@ -1562,7 +2124,7 @@
       "type": "table",
       "gridPos": {
         "x": 0,
-        "y": 47,
+        "y": 56,
         "w": 24,
         "h": 4
       },
@@ -1774,77 +2336,79 @@
     },
     {
       "id": 60,
-      "title": "06 · Evidencias del TFM | ESTÁTICO · NO ES TELEMETRÍA EN VIVO",
+      "title": "Anexo · Evidencias de la memoria | ESTÁTICO",
       "type": "row",
       "gridPos": {
         "x": 0,
-        "y": 51,
+        "y": 60,
         "w": 24,
         "h": 1
       },
-      "collapsed": false,
-      "panels": []
-    },
-    {
-      "id": 61,
-      "title": "Calidad del sistema · evaluación publicada",
-      "type": "text",
-      "gridPos": {
-        "x": 0,
-        "y": 52,
-        "w": 24,
-        "h": 10
-      },
-      "transparent": true,
-      "options": {
-        "mode": "markdown",
-        "content": "### Resultados de la memoria\n**ESTÁTICO · Memoria del TFM, corte 24/10/2026 · §§ 8.2–8.4**\n\n| Evidencia | Resultado | Alcance |\n|---|---:|---|\n| Recuperación R@10 / MRR | **0,768 / 0,686** | 120 preguntas |\n| Fundamentación / relevancia | **4,72 / 4,98 sobre 5** | Evaluación con modelo juez |\n| Éxito del agente | **92,6 %** | 36 escenarios × 3 ejecuciones |\n| Comprobaciones de seguridad | **324 / 324** | Suite de evaluación |\n| Corpus | **6 ciudades · 33.264 documentos** | Base vectorial evaluada |\n\nEstos resultados no cambian al seleccionar fechas ni al pulsar Refresh."
-      }
-    },
-    {
-      "id": 62,
-      "title": "Producción · fotografía histórica de la memoria",
-      "type": "text",
-      "gridPos": {
-        "x": 0,
-        "y": 62,
-        "w": 24,
-        "h": 10
-      },
-      "transparent": true,
-      "options": {
-        "mode": "markdown",
-        "content": "### Evidencia publicada, no datos actuales\n**ESTÁTICO · Tabla 34 · 30 días, 24/09–24/10/2026**\n\n| Indicador histórico | Resultado |\n|---|---:|\n| Turnos: planificador / fichas | **623: 320 / 303** |\n| Usuarios distintos / días activos | **7 / 22** |\n| Viajes creados | **20** |\n| Coste de IA del periodo | **2,05 USD** |\n| p95 turno: planificador / ficha | **37,2 s / 3,7 s** |\n\nFuente: trazas de turnos, CloudWatch y tabla de viajes, reunidas en la memoria. El coste de IA **no es la factura total de AWS**. Estas cifras no se reconstruyen con el lector de core_api."
-      }
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 61,
+          "title": "Calidad del sistema · evaluación publicada",
+          "type": "text",
+          "gridPos": {
+            "x": 0,
+            "y": 61,
+            "w": 24,
+            "h": 10
+          },
+          "transparent": true,
+          "options": {
+            "mode": "markdown",
+            "content": "### Resultados de la memoria\n**ESTÁTICO · Memoria del TFM, corte 24/10/2026 · §§ 8.2–8.4**\n\n| Evidencia | Resultado | Alcance |\n|---|---:|---|\n| Recuperación R@10 / MRR | **0,768 / 0,686** | 120 preguntas |\n| Fundamentación / relevancia | **4,72 / 4,98 sobre 5** | Evaluación con modelo juez |\n| Éxito del agente | **92,6 %** | 36 escenarios × 3 ejecuciones |\n| Comprobaciones de seguridad | **324 / 324** | Suite de evaluación |\n| Corpus | **6 ciudades · 33.264 documentos** | Base vectorial evaluada |\n\nEstos resultados no cambian al seleccionar fechas ni al pulsar Refresh."
+          }
+        },
+        {
+          "id": 62,
+          "title": "Producción · fotografía histórica de la memoria",
+          "type": "text",
+          "gridPos": {
+            "x": 0,
+            "y": 71,
+            "w": 24,
+            "h": 10
+          },
+          "transparent": true,
+          "options": {
+            "mode": "markdown",
+            "content": "### Evidencia publicada, no datos actuales\n**ESTÁTICO · Tabla 34 · 30 días, 24/09–24/10/2026**\n\n| Indicador histórico | Resultado |\n|---|---:|\n| Turnos: planificador / fichas | **623: 320 / 303** |\n| Usuarios distintos / días activos | **7 / 22** |\n| Viajes creados | **20** |\n| Coste de IA del periodo | **2,05 USD** |\n| p95 turno: planificador / ficha | **37,2 s / 3,7 s** |\n\nFuente: trazas de turnos, CloudWatch y tabla de viajes, reunidas en la memoria. El coste de IA **no es la factura total de AWS**. Estas cifras no se reconstruyen con el lector de core_api."
+          }
+        }
+      ]
     },
     {
       "id": 70,
-      "title": "07 · Alcance, interpretación y control del coste",
+      "title": "Guía · Alcance, interpretación y coste",
       "type": "row",
       "gridPos": {
         "x": 0,
-        "y": 72,
+        "y": 61,
         "w": 24,
         "h": 1
       },
-      "collapsed": false,
-      "panels": []
-    },
-    {
-      "id": 71,
-      "title": "",
-      "type": "text",
-      "gridPos": {
-        "x": 0,
-        "y": 73,
-        "w": 24,
-        "h": 12
-      },
-      "transparent": true,
-      "options": {
-        "mode": "markdown",
-        "content": "### Cómo leer el observatorio\n**EN VIVO** significa consulta a registros retenidos del intervalo, no monitorización continua. Si aparece «Sin muestras», comprueba rango, captura, permisos y errores: no significa cero viajes, API caída ni disponibilidad del 100 %. No se muestran datos inventados.\n\n**Negocio:** solo nuevas creaciones registradas tras activar los eventos. Deduplicación por `event_id` dentro del rango; no es inventario, auditoría contable ni backfill de DynamoDB. La duración admite cero y excluye valores ausentes. La lista permitida registra Budapest por nombre; el resto se agrupa en `other`. Los perfiles son fotografías de la creación y no cambian con ediciones o borrados.\n\n**HTTP:** solo `core_api`, formato `access_log` v1. La duración termina antes de entregar el último mensaje ASGI al servidor; no mide latencia del navegador, TTFT ni turnos de IA. Interrupción y 5xx son señales diferentes. La primera invocación observada no equivale a `Init Duration`. Sin SLO ni disponibilidad inferida.\n\n**Coste y acceso:** 6 consultas de CloudWatch por carga completa; las tarjetas reutilizan dos resúmenes. Actualización manual, 24 h iniciales. Los filtros no evitan escanear otros registros del grupo; ampliar el rango puede aumentar el coste. Grafana Free no elimina cargos AWS. Sin nuevos servicios, alarmas, permisos ni consultas a la base de datos. La retención (14 días por defecto) limita el historial. El lector tiene acceso al grupo completo.\n\n**Fuente académica:** `docs/memoria/main.pdf`, memoria facilitada el 24/10/2026; resultados estáticos separados y etiquetados. No se presentan como telemetría ni cambian con el intervalo."
-      }
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 71,
+          "title": "",
+          "type": "text",
+          "gridPos": {
+            "x": 0,
+            "y": 62,
+            "w": 24,
+            "h": 12
+          },
+          "transparent": true,
+          "options": {
+            "mode": "markdown",
+            "content": "### Cómo leer el observatorio\n**EN VIVO** significa consulta a registros retenidos del intervalo, no monitorización continua. Si aparece «Sin muestras», comprueba rango, captura, permisos y errores: no significa cero viajes, API caída ni disponibilidad del 100 %. No se muestran datos inventados.\n\n**Negocio:** solo nuevas creaciones registradas tras activar los eventos. Deduplicación por `event_id` dentro del rango; no es inventario, auditoría contable ni backfill de DynamoDB. La duración admite cero y excluye valores ausentes. La lista permitida registra Budapest por nombre; el resto se agrupa en `other`. Los perfiles son fotografías de la creación y no cambian con ediciones o borrados.\n\n**HTTP:** solo `core_api`, formato `access_log` v1. La duración termina antes de entregar el último mensaje ASGI al servidor; no mide latencia del navegador, TTFT ni turnos de IA. Interrupción y 5xx son señales diferentes. La primera invocación observada no equivale a `Init Duration`. Sin SLO ni disponibilidad inferida.\n\n**Coste y acceso:** 6 consultas de CloudWatch por carga completa; las tarjetas reutilizan dos resúmenes y los gráficos de perfil reutilizan las 100 combinaciones principales. Estas distribuciones pueden ser parciales; suman viajes, no filas de combinaciones. Actualización manual, 24 h iniciales. Los filtros no evitan escanear otros registros del grupo; ampliar el rango puede aumentar el coste. Grafana Free no elimina cargos AWS. Sin nuevos servicios, alarmas, permisos ni consultas a la base de datos. La retención (14 días por defecto) limita el historial. El lector tiene acceso al grupo completo.\n\n**Fuente académica:** `docs/memoria/main.pdf`, memoria facilitada el 24/10/2026; resultados estáticos separados y etiquetados. No se presentan como telemetría ni cambian con el intervalo."
+          }
+        }
+      ]
     }
   ],
   "links": [
