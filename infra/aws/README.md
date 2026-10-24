@@ -40,6 +40,8 @@ a Cognito ID token, health endpoints included.
 | `vectors.tf` | S3 Vectors bucket and the `city-kb` index (1024 dimensions, cosine), plus the read-only `s3vectors` and Titan embeddings permissions of the `ai-api` role, see [Vector store](#vector-store-s3-vectors) |
 | `apigateway.tf` | REST API (regional), Cognito authorizer, the two proxy resources, deployment and `prod` stage |
 | `frontend.tf` | Private S3 bucket (OAC), CloudFront with the S3 default behaviour, the `/api/*` behaviour to the gateway and a directory-index function, S3's 403 for a missing page served as the export's `404.html` with status 404, Route 53 aliases; the public hosted zone and the ACM certificate (us-east-1, apex + wildcard, DNS-validated), both `prevent_destroy` (ADR 0010) |
+| `dashboard.tf`, `infrastructure_dashboard.tf`, `access_logs.tf` | The three CloudWatch dashboards (service, infrastructure, HTTP access logs), each behind its own switch, see [Observability](#observability) |
+| `business_logs.tf` | The optional read-only role Grafana assumes to read `core_api`'s logs, see [Observability](#observability) |
 
 The images bake the Lambda Web Adapter and their `AWS_LWA_*` settings
 ([Docker runbook](../../docs/runbooks/docker.md#the-same-image-on-aws-lambda)); the functions
@@ -129,8 +131,9 @@ terraform validate
    `NEXT_PUBLIC_API_URL=https://<domain>`, syncs `out/` to the bucket and invalidates CloudFront.
 
 Later backend deploys: the "Deploy backend" workflow with `cloud=aws`. It assumes the bootstrap's
-role through OIDC, initialises the same S3 backend, pins the functions to the new image digests,
-and applies; there is no migrate step. It needs the secrets `AWS_REGION`, `AWS_ROLE_TO_ASSUME`, the
+role through OIDC, copies the images that "Backend images" pushed to GHCR into ECR with `crane`
+(same digest, nothing rebuilt), initialises the same S3 backend, pins the functions to the new
+image digests, and applies; there is no migrate step. It needs the secrets `AWS_REGION`, `AWS_ROLE_TO_ASSUME`, the
 variables `AWS_TF_STATE_BUCKET`, `FRONTEND_DOMAIN` and the `TF_VAR_*` listed in the workflow header.
 
 ## Sign-in (Cognito)
@@ -263,7 +266,7 @@ guardrail's ARN. A change to the guardrail makes a new version; old versions are
 
 ## Vector store (S3 Vectors)
 
-The chat grounds its answers in a corpus of city documents kept in **Amazon S3 Vectors**
+The planner grounds its answers in a corpus of city documents kept in **Amazon S3 Vectors**
 ([ADR 0014](../../docs/architecture/adr/0014-vector-store-s3-vectors.md)): `vectors.tf` creates the
 vector bucket `${name_prefix}-vectors` and one index, `city-kb`, of 1024 dimensions and cosine
 distance. Same account, same Region, no endpoint and no key — the function searches it with its
@@ -324,7 +327,7 @@ curl -H "Authorization: Bearer $TOKEN" "$(terraform output -raw api_gateway_invo
   retries the init inside the invoke), but raise `core_api_memory_mb` for more CPU.
 - `Distributions with the Free pricing plan can't have the following features: Price class` →
   keep `cloudfront_price_class = "PriceClass_All"` (the default).
-- The chat arrives all at once → the `/api/*` behaviour must keep `compress = false` and the
+- The planner's stream arrives all at once → the `/api/*` behaviour must keep `compress = false` and the
   `ai` integration `response_transfer_mode = "STREAM"`.
 - A page under a subfolder shows an S3 `AccessDenied` XML → the CloudFront function that maps
   `/x/` to `/x/index.html` is not attached, or the export was not synced. An unknown path

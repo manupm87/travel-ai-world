@@ -9,13 +9,15 @@ runtime except the way they verify bearer tokens. See [ADR 0001](adr/0001-backen
 flowchart LR
     Browser["Browser<br/>Next.js static export"]
     Proxy["Reverse proxy<br/>(nginx in Compose / CloudFront)<br/>optional"]
-    Core["core_api<br/>FastAPI · boto3<br/>auth · users · trips"]
-    AI["ai_api<br/>FastAPI · httpx · boto3<br/>planner streaming · RAG"]
-    DDB[("DynamoDB<br/>one table, travel-ai-core<br/>(owned by core_api)")]
-    Cognito["Cognito user pool<br/>(Google IdP) · deployed"]
+    Core["core_api<br/>FastAPI · boto3<br/>auth · users · trips · access list"]
+    AI["ai_api<br/>FastAPI · httpx · boto3<br/>planner (SSE) · card details · admin traces · RAG"]
+    DDB[("DynamoDB<br/>travel-ai-core<br/>(owned by core_api)")]
+    Traces[("DynamoDB<br/>travel-ai-interactions<br/>turn traces · daily token counters<br/>(owned by ai_api)")]
+    Cognito["Cognito user pool<br/>(Google as social IdP) · deployed"]
     Google["Google OAuth<br/>tokeninfo · local"]
-    NVIDIA["LLM provider<br/>Bedrock (deployed) · NVIDIA (local)"]
+    NVIDIA["LLM provider<br/>Bedrock + Guardrail (deployed) · NVIDIA (local)"]
     Vec[("Vector store<br/>S3 Vectors + Titan embeddings<br/>(owned by ai_api)")]
+    Web["Public web<br/>Open-Meteo · Wikimedia Commons<br/>venue sites"]
 
     Browser -->|"/ (static export) and /api/*"| Proxy
     Proxy -->|"/api/v1/ai/*"| AI
@@ -27,7 +29,9 @@ flowchart LR
     Core -. "local mode only" .-> Google
     AI --> NVIDIA
     AI -->|"IAM, RETRIEVAL_ENABLED"| Vec
-    AI -->|"HTTP, caller's bearer token"| Core
+    AI -->|"IAM"| Traces
+    AI -->|"HTTPS"| Web
+    AI -->|"CORE_API_URL (deployed: the public domain, through CloudFront),<br/>caller's bearer token"| Core
 ```
 
 | Component | Owns | Never touches |
@@ -266,8 +270,9 @@ it as is, and it is edited in place with the VS Code draw.io extension (installe
 devcontainer) or at app.diagrams.net (File → Open). No build step. Decisions, cost estimate and
 the order of work: [ADR 0009](adr/0009-lambda-cognito-budget.md) (Lambda, Cognito, no NAT; the
 edge and gateway decisions come from [ADR 0008](adr/0008-aws-architecture-v2-edge-and-gateway.md)).
-`infra/aws/` is this shape ([README](../../infra/aws/README.md)), with the chat on Bedrock
-(`LLM_PROVIDER`) and the vector store on **Amazon S3 Vectors**
+`infra/aws/` is this shape ([README](../../infra/aws/README.md)), with the planner on Bedrock
+(`LLM_PROVIDER`: Claude Haiku 4.5 through an EU cross-Region inference profile, every traveller
+message checked first by a Bedrock Guardrail) and the vector store on **Amazon S3 Vectors**
 ([ADR 0014](adr/0014-vector-store-s3-vectors.md)): a `pgvector` database inside a VPC could not be
 reached from `ai_api`, which runs outside any VPC, and S3 Vectors needs no endpoint of its own. The
 [vector store spike](vector-store-spike.md) measured Qdrant against it and kept S3 Vectors.
@@ -275,8 +280,13 @@ reached from `ai_api`, which runs outside any VPC, and S3 Vectors needs no endpo
 `core_api` stores its data in the DynamoDB
 table `travel-ai-core` (on-demand, `PK`/`SK` + `GSI1` + `GSI2`, point-in-time recovery, deletion
 protection; [ADR 0023](adr/0023-dynamodb-data-store.md)). Like `ai_api`, the function runs outside any VPC and reaches the table over
-DynamoDB's public HTTPS endpoint, authorised by its IAM role. There is no VPC in the account's
-shape. CloudFront
+DynamoDB's public HTTPS endpoint, authorised by its IAM role. `ai_api` writes its turn traces and
+the daily token counters to its own table, `travel-ai-interactions` (on-demand, `GSI1` + `GSI2`,
+items expire after 90 days; [ADR 0024](adr/0024-turn-traces-and-admin-access.md)), and reaches
+`core_api` through the public domain, so through CloudFront and the gateway like the browser.
+There is no VPC in the account's shape. Images are built once by GitHub Actions and pushed to
+GHCR; the backend deploy copies them to ECR with `crane` and runs `terraform apply`, and the
+frontend deploy syncs the export to S3 and invalidates CloudFront. CloudFront
 has a **WAF web ACL** (AWS managed rules: IP reputation, common rule set, known bad inputs),
 created from the console and not managed by Terraform.
 
