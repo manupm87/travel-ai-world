@@ -3,7 +3,9 @@
 \kyrian{} es el trabajo de cuatro personas que se repartieron el proyecto por bloques: cada
 miembro lideró al menos uno de principio a fin y colaboró en los de los demás. La
 Tabla~\ref{tab:raci} detalla quién fue responsable de cada componente y quién contribuyó, agrupando
-los componentes por área, y la Fig.~\ref{fig:fases} muestra cómo se fue repartiendo el trabajo a lo
+los componentes por área; su última fila resume la participación de cada miembro como la
+proporción de componentes en los que intervino, contando igual la responsabilidad y la
+contribución, y la Fig.~\ref{fig:fases} muestra cómo se fue repartiendo el trabajo a lo
 largo del proyecto. Todo el equipo se apoyó en asistentes de programación (sobre todo Claude Code,
 el asistente de programación de Anthropic); la autoría que se recoge aquí refleja quién especificó,
 dirigió, revisó e integró cada parte.
@@ -17,7 +19,7 @@ dirigió, revisó e integró cada parte.
 \midrule
 \multicolumn{5}{@{}l}{\textit{Producto y negocio}} \\
 Idea del producto y estudio de mercado & & & & R \\
-Planificador web: interfaz, mapa y administración & R & C & & C \\
+Planificador web: interfaz, mapa y administración & R & C & & \\
 Diseño visual en torno a Kiri & & R & & \\
 \midrule
 \multicolumn{5}{@{}l}{\textit{Inteligencia artificial}} \\
@@ -27,16 +29,17 @@ Ingesta de datos: corpus, puerta de calidad y ciudades & R & C & C & C \\
 Evaluación: recuperación, respuestas y agente & C & R & & \\
 \midrule
 \multicolumn{5}{@{}l}{\textit{Arquitectura y nube}} \\
-Arquitectura de software y repositorio & R & & & \\
+Arquitectura de software y nube & R & & & \\
 Servicio de datos: usuarios, viajes, acceso y cuota & R & C & & \\
 Infraestructura en AWS con Terraform & R & & C & C \\
 Borde HTTPS del frontend & & & & R \\
 \midrule
 \multicolumn{5}{@{}l}{\textit{DevOps y operación}} \\
 Entorno de desarrollo local en contenedor & C & & & R \\
-CI/CD & R & C & & \\
+Monorepo y CI/CD & R & C & & \\
 Observabilidad: trazas, registros, cuadros de mando y alertas & & & R & C \\
-Proceso de entrega con agentes & R & & & \\
+\midrule
+\textbf{Participación} & \textbf{37\,\%} & \textbf{26\,\%} & \textbf{11\,\%} & \textbf{26\,\%} \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -66,8 +69,8 @@ Cada miembro lideró un bloque del proyecto:
         usan el agente y los pasos deterministas del planificador, y alertas de CloudWatch
         configuradas en la consola.
   \item \textbf{Manuel Pérez}: la arquitectura de software y de nube y su infraestructura como
-        código, el agente Kiri con sus herramientas y \emph{guardrails}, la ingesta de datos con su
-        puerta de calidad y \code{/add-city}, y el proceso de entrega con agentes.
+        código, el agente Kiri con sus herramientas y \emph{guardrails} y la ingesta de datos con su
+        puerta de calidad y \code{/add-city}.
   \item \textbf{Joaquín Castro Salas}: la recuperación aumentada (integración con Bedrock y
         S3 Vectors), la evaluación de la recuperación y de las respuestas con un juez LLM (un
         modelo de lenguaje que puntúa las respuestas), la evaluación del agente y el diseño visual
