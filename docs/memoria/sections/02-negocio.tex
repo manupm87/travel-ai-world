@@ -150,21 +150,6 @@ dependen de viajes y turnos ya se miden con los eventos de negocio y las trazas
 (§\ref{sec:metricas}), y los valores de los primeros 30 días con usuarios de prueba
 (Tabla~\ref{tab:produccion}) ya cumplen los tres objetivos que se pueden medir.
 
-\begin{table*}[!t]
-\centering\scriptsize
-\caption{Contribución individual medida sobre el historial (de marzo a octubre de 2026; 242 entregas integradas en la rama principal). El $\approx$2\,\% restante del código actual (firmado por cuentas automáticas: agentes y Dependabot) queda sin asignar.}\label{tab:equipo}
-\begin{tabularx}{\textwidth}{@{}L{2.3cm}Yrrr@{}}
-\toprule
-\textbf{Miembro} & \textbf{Responsabilidad y entregables principales} & \textbf{Entregas} & \textbf{Líneas +/--} & \textbf{Código actual} \\
-\midrule
-Manuel Pérez & Arquitectura y dirección técnica. División en dos servicios y estructura del repositorio; arquitectura AWS \emph{serverless} con Cognito, Lambda y API Gateway con \emph{streaming}; frontend base y planificador; caso de uso del planificador y flujo SSE tipado; constructor de corpus \code{city\_corpus}, puerta de calidad y \code{/add-city}; experimento de base vectorial; DynamoDB; trazas y consola de administración; lista de acceso y cuota; agente Kiri con herramientas, \emph{guardrails} y evaluación de conversaciones; proceso de entrega con agentes. & 158 & 132.409 / 37.394 & 78,3\,\% \\
-Joaquín Castro Salas & Backend inicial (FastAPI, modelos, capas); primer \emph{chatbot}; adaptador de Bedrock; recuperador RAG sobre S3 Vectors con Titan y su infraestructura; rediseño del frontend en torno a Kiri; evaluación RAG con \emph{recall}@$k$ y MRR, 120 preguntas y juez LLM; corpus de Berlín y fotos de Bolonia y Miami; retirada de componentes obsoletos; normalización de comentarios y documentación. & 47 & 28.394 / 17.915 & 14,2\,\% \\
-David Baos & Observabilidad y métricas de negocio: eventos de negocio y métricas de creación de viajes, panel Grafana local, estadística de negocio en producción con CloudWatch Logs Insights, cuadros de mando de servicio e infraestructura y registros de acceso estructurados, métricas de Cognito y Bedrock; corpus de Miami. & 11 & 4.746 / 72 & 3,7\,\% \\
-Alexander De Sousa & Primera fuente de datos: \emph{scraper} de Madrid (abril--mayo; sustituido después por \code{city\_corpus}); primer \emph{devcontainer}; primera infraestructura como código sobre ECS y Cloud Run; infraestructura HTTPS del frontend: S3, CloudFront, Route~53 y ACM; salidas estructuradas nativas del proveedor; configuración de Madrid y Los Ángeles. & 23 & 9.570 / 4.036 & 1,4\,\% \\
-\bottomrule
-\end{tabularx}
-\end{table*}
-
 \par\medskip\noindent\begin{minipage}{\columnwidth}
 \centering\scriptsize
 \captionof{table}{Indicadores de negocio, objetivos iniciales y valor medido en producción (30 días, 7 usuarios de prueba; --: se medirá tras el lanzamiento).}\label{tab:kpinegocio}

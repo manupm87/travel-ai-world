@@ -1,40 +1,40 @@
 \section{Equipo y contribución individual}\label{sec:equipo}
 
-La atribución se ha obtenido del historial de Git y de GitHub, no de declaraciones. Se usan tres
-medidas complementarias: las entregas (conjuntos de cambios integrados en la rama principal), las líneas escritas y la parte
-del código actual de \code{main} que firma cada persona según \code{git blame}. Se excluyen los
-ficheros generados o de datos (corpus JSONL, \emph{lockfiles}, tipos y OpenAPI generados,
-imágenes), que inflarían la aportación de quien los incorpora, y los alias de una misma persona se
-agrupan. La Tabla~\ref{tab:equipo} recoge las tres medidas y la Tabla~\ref{tab:raci}, quién es
-responsable de cada componente. La tercera medida solo cuenta lo que sigue en el producto, así que
-no refleja el trabajo exploratorio que se sustituyó al madurar la arquitectura; por eso la
-Fig.~\ref{fig:fases} añade la cronología. Todo el equipo trabajó con asistentes de programación (el
-75\,\% de las entregas se escribieron con Claude Code, el asistente de programación de Anthropic);
-la autoría refleja quién especificó, dirigió, revisó e integró cada cambio.
+\kyrian{} es el trabajo de cuatro personas que se repartieron el proyecto por bloques: cada
+miembro lideró al menos uno de principio a fin y colaboró en los de los demás. La
+Tabla~\ref{tab:raci} detalla quién fue responsable de cada componente y quién contribuyó, agrupando
+los componentes por área, y la Fig.~\ref{fig:fases} muestra cómo se fue repartiendo el trabajo a lo
+largo del proyecto. Todo el equipo se apoyó en asistentes de programación (sobre todo Claude Code,
+el asistente de programación de Anthropic); la autoría que se recoge aquí refleja quién especificó,
+dirigió, revisó e integró cada parte.
 
-\begin{table}[!t]
+\begin{table}[!h]
 \centering\scriptsize
-\caption{Matriz de responsabilidad por componente (R: responsable; C: contribuye), según la autoría de las entregas. MP: Manuel Pérez; JC: Joaquín Castro Salas; DB: David Baos; AD: Alexander De Sousa.}\label{tab:raci}
+\caption{Matriz de responsabilidad por componente, agrupada por área (R: responsable; C: contribuye). MP: Manuel Pérez; JC: Joaquín Castro Salas; DB: David Baos; AD: Alexander De Sousa.}\label{tab:raci}
 \begin{tabularx}{\columnwidth}{@{}Ycccc@{}}
 \toprule
 \textbf{Componente} & \textbf{MP} & \textbf{JC} & \textbf{DB} & \textbf{AD} \\
 \midrule
-Arquitectura y estructura del repositorio & R & & & \\
-Frontend: planificador, mapa, administración & R & C & & C \\
-Rediseño visual en torno a Kiri & & R & & \\
-\code{core\_api}, DynamoDB, acceso y cuota & R & C & & \\
-Agente Kiri, herramientas y \emph{guardrails} & R & & & \\
-Salidas estructuradas nativas & C & & & R \\
-Integración con Bedrock y recuperador RAG & C & R & & \\
-Constructor de corpus y \code{/add-city} & R & & & \\
-Configuración de ciudades & R & C & C & C \\
-Evaluación RAG y juez LLM & & R & & \\
-Evaluación del agente & R & & & \\
-Infraestructura AWS (Terraform) & R & & C & C \\
+\multicolumn{5}{@{}l}{\textit{Producto y negocio}} \\
+Idea del producto y estudio de mercado & C & & & R \\
+Planificador web: interfaz, mapa y administración & R & C & & C \\
+Diseño visual en torno a Kiri & & R & & \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Inteligencia artificial}} \\
+Agente Kiri: herramientas, \emph{guardrails} y salidas estructuradas & R & & & C \\
+Recuperación (RAG) con Bedrock y S3 Vectors & C & R & & \\
+Ingesta de datos: corpus, puerta de calidad y ciudades & R & C & C & C \\
+Evaluación: recuperación, respuestas y agente & R & R & & \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Arquitectura y nube}} \\
+Arquitectura de software y repositorio & R & & & \\
+Servicio de datos: usuarios, viajes, acceso y cuota & R & C & & \\
+Infraestructura en AWS con Terraform & R & & C & C \\
 Borde HTTPS del frontend & C & & & R \\
-CI/CD y \emph{devcontainer} & R & C & & C \\
-Trazas de IA y consola de administración & R & & & \\
-Métricas de negocio, registros de acceso y cuadros de mando & & & R & \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{DevOps y operación}} \\
+CI/CD y entorno de desarrollo & R & C & & C \\
+Observabilidad: trazas, registros y cuadros de mando & R & & C & \\
 Proceso de entrega con agentes & R & & & \\
 \bottomrule
 \end{tabularx}
@@ -49,26 +49,28 @@ Proceso de entrega con agentes & R & & & \\
 \node[ph] (p1) at (0,0) {\textbf{Exploración}\\marzo--6 sep.};
 \node[ph] (p2) at (2.8,0) {\textbf{Nueva arquitectura}\\7--20 sep.};
 \node[ph] (p3) at (5.6,0) {\textbf{Producto}\\21 sep.--octubre};
-\node[tx] at (0,-0.5) {MP: web y frontend\\JC: backend inicial y primer \emph{chatbot}\\AD: \emph{scraper}, \emph{devcontainer} y primera IaC};
-\node[tx] at (2.8,-0.5) {MP: dos servicios, \emph{serverless}, corpus y planificador\\JC: Bedrock y recuperador RAG\\AD: HTTPS del frontend};
-\node[tx] at (5.6,-0.5) {MP: datos, trazas, acceso y agente\\JC: rediseño y evaluación RAG\\AD: salidas estructuradas\\DB: observabilidad y negocio};
+\node[tx] at (0,-0.5) {AD: idea, estudio de mercado, primera fuente de datos, \emph{devcontainer} e IaC\\MP: web y frontend\\JC: backend inicial y primer \emph{chatbot}};
+\node[tx] at (2.8,-0.5) {MP: dos servicios, \emph{serverless}, corpus y planificador\\JC: Bedrock y recuperación RAG\\AD: HTTPS del frontend};
+\node[tx] at (5.6,-0.5) {MP: datos, trazas, acceso y agente\\JC: diseño visual y evaluación\\AD: salidas estructuradas\\DB: cuadros de mando};
 \end{tikzpicture}}
 \caption{Fases del proyecto y bloques liderados por cada miembro. Las dos decisiones que más cambiaron el sistema fueron pasar de contenedores a \emph{serverless} y de un planificador por intenciones a un agente con herramientas (§\ref{sec:evalagente}).}\label{fig:fases}
 \end{figure}
 
-Cada miembro es responsable de un bloque completo que defenderá en la presentación:
+Cada miembro lideró un bloque del proyecto:
 \begin{itemize}
-  \item \textbf{Manuel Pérez}: la arquitectura (servicios, nube e IaC), el agente Kiri y sus
-        \emph{guardrails}, el \emph{pipeline} de datos y \code{/add-city}, y el proceso de entrega con
-        agentes.
-  \item \textbf{Joaquín Castro Salas}: la recuperación (integración con Bedrock y S3 Vectors), la
-        evaluación de la recuperación y de las respuestas con un juez LLM (un modelo de lenguaje que puntúa las respuestas), y el rediseño de la
-        interfaz en torno a Kiri.
-  \item \textbf{David Baos}: la capa de observabilidad y negocio (eventos de negocio, registros de
-        acceso estructurados y los cuadros de mando de servicio ---con Cognito y Bedrock---,
-        infraestructura y acceso).
-        Defenderá cómo se mide el producto en producción y qué responde cada cuadro de mando.
-  \item \textbf{Alexander De Sousa}: el borde HTTPS del frontend (S3, CloudFront, Route~53 y ACM),
-        las salidas estructuradas nativas que usan todos los pasos deterministas, la primera
-        fuente de datos y la primera infraestructura como código.
+  \item \textbf{Alexander De Sousa}: la idea de \kyrian{} y el estudio de mercado que la sitúa
+        frente a la competencia (§\ref{sec:negocio}); la primera fuente de datos, el primer
+        entorno de desarrollo en contenedor y la primera infraestructura como código; el borde HTTPS
+        del frontend (S3, CloudFront, Route~53 y ACM), y las salidas estructuradas nativas que usan
+        el agente y los pasos deterministas del planificador.
+  \item \textbf{Manuel Pérez}: la arquitectura de software y de nube y su infraestructura como
+        código, el agente Kiri con sus herramientas y \emph{guardrails}, la ingesta de datos con su
+        puerta de calidad y \code{/add-city}, la evaluación del agente, la observabilidad de la IA y
+        el proceso de entrega con agentes.
+  \item \textbf{Joaquín Castro Salas}: la recuperación aumentada (integración con Bedrock y
+        S3 Vectors), la evaluación de la recuperación y de las respuestas con un juez LLM (un
+        modelo de lenguaje que puntúa las respuestas) y el diseño visual de la interfaz en torno a
+        Kiri.
+  \item \textbf{David Baos}: los cuadros de mando de CloudWatch y las métricas de negocio sobre los
+        registros de producción, y la configuración de una de las ciudades del corpus.
 \end{itemize}
