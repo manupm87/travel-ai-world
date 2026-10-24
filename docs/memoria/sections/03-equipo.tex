@@ -16,7 +16,7 @@ dirigió, revisó e integró cada parte.
 \textbf{Componente} & \textbf{MP} & \textbf{JC} & \textbf{DB} & \textbf{AD} \\
 \midrule
 \multicolumn{5}{@{}l}{\textit{Producto y negocio}} \\
-Idea del producto y estudio de mercado & C & & & R \\
+Idea del producto y estudio de mercado & & & & R \\
 Planificador web: interfaz, mapa y administración & R & C & & C \\
 Diseño visual en torno a Kiri & & R & & \\
 \midrule
@@ -24,17 +24,18 @@ Diseño visual en torno a Kiri & & R & & \\
 Agente Kiri: herramientas, \emph{guardrails} y salidas estructuradas & R & & & C \\
 Recuperación (RAG) con Bedrock y S3 Vectors & C & R & & \\
 Ingesta de datos: corpus, puerta de calidad y ciudades & R & C & C & C \\
-Evaluación: recuperación, respuestas y agente & R & R & & \\
+Evaluación: recuperación, respuestas y agente & C & R & & \\
 \midrule
 \multicolumn{5}{@{}l}{\textit{Arquitectura y nube}} \\
 Arquitectura de software y repositorio & R & & & \\
 Servicio de datos: usuarios, viajes, acceso y cuota & R & C & & \\
 Infraestructura en AWS con Terraform & R & & C & C \\
-Borde HTTPS del frontend & C & & & R \\
+Borde HTTPS del frontend & & & & R \\
 \midrule
 \multicolumn{5}{@{}l}{\textit{DevOps y operación}} \\
-CI/CD y entorno de desarrollo & R & C & & C \\
-Observabilidad: trazas, registros y cuadros de mando & R & & C & \\
+Entorno de desarrollo local en contenedor & C & & & R \\
+CI/CD & R & C & & \\
+Observabilidad: trazas, registros, cuadros de mando y alertas & & & R & C \\
 Proceso de entrega con agentes & R & & & \\
 \bottomrule
 \end{tabularx}
@@ -51,7 +52,7 @@ Proceso de entrega con agentes & R & & & \\
 \node[ph] (p3) at (5.6,0) {\textbf{Producto}\\21 sep.--octubre};
 \node[tx] at (0,-0.5) {AD: idea, estudio de mercado, primera fuente de datos, \emph{devcontainer} e IaC\\MP: web y frontend\\JC: backend inicial y primer \emph{chatbot}};
 \node[tx] at (2.8,-0.5) {MP: dos servicios, \emph{serverless}, corpus y planificador\\JC: Bedrock y recuperación RAG\\AD: HTTPS del frontend};
-\node[tx] at (5.6,-0.5) {MP: datos, trazas, acceso y agente\\JC: diseño visual y evaluación\\AD: salidas estructuradas\\DB: cuadros de mando};
+\node[tx] at (5.6,-0.5) {MP: datos, trazas, acceso y agente\\JC: diseño visual y evaluación\\AD: salidas estructuradas y alertas\\DB: observabilidad};
 \end{tikzpicture}}
 \caption{Fases del proyecto y bloques liderados por cada miembro. Las dos decisiones que más cambiaron el sistema fueron pasar de contenedores a \emph{serverless} y de un planificador por intenciones a un agente con herramientas (§\ref{sec:evalagente}).}\label{fig:fases}
 \end{figure}
@@ -59,18 +60,19 @@ Proceso de entrega con agentes & R & & & \\
 Cada miembro lideró un bloque del proyecto:
 \begin{itemize}
   \item \textbf{Alexander De Sousa}: la idea de \kyrian{} y el estudio de mercado que la sitúa
-        frente a la competencia (§\ref{sec:negocio}); la primera fuente de datos, el primer
-        entorno de desarrollo en contenedor y la primera infraestructura como código; el borde HTTPS
-        del frontend (S3, CloudFront, Route~53 y ACM), y las salidas estructuradas nativas que usan
-        el agente y los pasos deterministas del planificador.
+        frente a la competencia (§\ref{sec:negocio}); el entorno de desarrollo local en
+        contenedor, la primera fuente de datos y la primera infraestructura como código; el borde
+        HTTPS del frontend (S3, CloudFront, Route~53 y ACM); las salidas estructuradas nativas que
+        usan el agente y los pasos deterministas del planificador, y alertas de CloudWatch
+        configuradas en la consola.
   \item \textbf{Manuel Pérez}: la arquitectura de software y de nube y su infraestructura como
         código, el agente Kiri con sus herramientas y \emph{guardrails}, la ingesta de datos con su
-        puerta de calidad y \code{/add-city}, la evaluación del agente, la observabilidad de la IA y
-        el proceso de entrega con agentes.
+        puerta de calidad y \code{/add-city}, y el proceso de entrega con agentes.
   \item \textbf{Joaquín Castro Salas}: la recuperación aumentada (integración con Bedrock y
         S3 Vectors), la evaluación de la recuperación y de las respuestas con un juez LLM (un
-        modelo de lenguaje que puntúa las respuestas) y el diseño visual de la interfaz en torno a
-        Kiri.
-  \item \textbf{David Baos}: los cuadros de mando de CloudWatch y las métricas de negocio sobre los
-        registros de producción, y la configuración de una de las ciudades del corpus.
+        modelo de lenguaje que puntúa las respuestas), la evaluación del agente y el diseño visual
+        de la interfaz en torno a Kiri.
+  \item \textbf{David Baos}: la observabilidad de la plataforma (cuadros de mando de
+        CloudWatch, registros de acceso estructurados y métricas de negocio sobre los registros de
+        producción) y la configuración de una de las ciudades del corpus.
 \end{itemize}

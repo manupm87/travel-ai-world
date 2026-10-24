@@ -174,7 +174,7 @@ DynamoDB & Aurora PostgreSQL multizona & Modelo relacional para usuarios, viajes
 Agente en el contenedor & Bedrock AgentCore Runtime + Gateway (MCP) & Agente gestionado con sesiones aisladas; herramientas extraídas como Lambdas o servicios internos, reutilizables desde otros canales \\
 Una cuenta & Organizations: desarrollo, preproducción y producción & Probar cada cambio en un entorno idéntico antes de publicarlo \\
 Variables de entorno & Secrets Manager + KMS & Rotación de secretos y claves propias \\
-Cuadros de mando & Alarmas, SNS, Budgets, X-Ray/OpenTelemetry & Avisar en lugar de vigilar; trazas distribuidas entre servicios \\
+Cuadros de mando y alertas en consola & Alarmas en código, SNS, Budgets, X-Ray/OpenTelemetry & Avisos versionados y reproducibles en cada entorno; trazas distribuidas entre servicios \\
 Indexación manual & EventBridge + Step Functions & Corpus reconstruido, validado e indexado de forma programada \\
 \bottomrule
 \end{tabularx}
