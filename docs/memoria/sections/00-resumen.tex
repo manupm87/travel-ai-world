@@ -1,13 +1,20 @@
-Kyrian World es un planificador de viajes conversacional, Trabajo de Fin de Máster de un equipo de
-cuatro personas apoyado en agentes de IA, que construye itinerarios de una
-ciudad a partir de un corpus abierto con licencia limpia (Wikivoyage, Wikipedia, OpenStreetMap)
-mediante generación aumentada por recuperación. El MVP está desplegado en AWS en
-\code{https://kyrian-world.com}. La memoria plantea: ¿puede un RAG con anclaje
-estructural dar itinerarios verificables por poco más de 10~€/mes de coste fijo? En coste, sí; la
-calidad del itinerario y la aceptación por usuarios no están medidas. Toda tarjeta procede de un
-documento recuperado y los ids no recuperados se descartan; la prosa libre del modelo no está
-verificada. El coste fijo estimado es de 12--13~€/mes ($\approx$5~€ en Terraform más un WAF
-creado a mano; sin factura real todavía). S3 Vectors se eligió frente a Qdrant por simplicidad
-operativa y un \emph{spike} lo confirmó. La viabilidad B2C es marginal; se recomienda el B2B para
-oficinas de turismo. La deuda principal es la falta de evaluación extremo a extremo, de alarmas y
-de límites de uso.
+\noindent\colorbox{klight}{\parbox{\dimexpr\textwidth-2\fboxsep}{\small
+\textbf{Resumen.} Los asistentes de IA ya planifican viajes, pero lo hacen de memoria: inventan
+lugares, mezclan datos desactualizados y entregan listas sin geografía. \kyrian{} es un
+planificador conversacional que parte de otra idea: \emph{el modelo decide, el corpus describe}. El
+viajero cuenta qué quiere y un agente de IA, Kiri, construye un itinerario día a día sobre un mapa
+y lo edita a petición («cambia la cena del día 2 por un restaurante húngaro»). Kiri es un agente con
+herramientas (Claude Haiku~4.5 en Amazon Bedrock) que solo puede colocar en el itinerario lugares
+devueltos por una búsqueda en una base de datos vectorial (Amazon S3 Vectors). Esa base la
+alimenta un \emph{pipeline} propio que construye, a partir de fuentes abiertas (Wikivoyage, Wikipedia,
+OpenStreetMap, Wikidata y Open-Meteo), un corpus validado con una puerta de calidad automática: hoy, 33.264
+documentos de seis ciudades. Añadir una ciudad es un flujo agéntico (\code{/add-city}), y el propio
+desarrollo se apoya en agentes de IA que implementan, revisan y corrigen cada cambio bajo
+supervisión humana. La solución se
+despliega 100\,\% \emph{serverless} en AWS con Terraform, por unos 5\,€/mes estimados en reposo (más un cortafuegos web, WAF, opcional),
+con CI/CD en GitHub Actions, contenedores y tres niveles de observabilidad. La evaluación mide por
+separado la recuperación (\emph{recall}@10 = 0,768 sobre 120 preguntas), la calidad de las respuestas
+fundamentadas (4,72/5 según un modelo de lenguaje que actúa como juez) y el agente (92,6\,\% de 36 escenarios multiturno y el
+100\,\% de las comprobaciones de seguridad).\\[2pt]
+\textbf{Palabras clave:} IA generativa, agentes con herramientas, RAG, base de datos vectorial,
+\emph{guardrails}, evaluación de LLM, \emph{serverless}, AWS, IaC, CI/CD, DevOps.}}

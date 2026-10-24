@@ -1,0 +1,86 @@
+\section{Equipo y contribución individual}\label{sec:equipo}
+
+La atribución se ha obtenido del historial de Git y de GitHub, no de declaraciones. Se usan tres
+medidas complementarias: las entregas (conjuntos de cambios integrados en la rama principal), las líneas escritas y la parte
+del código actual de \code{main} que firma cada persona según \code{git blame}. Se excluyen los
+ficheros generados o de datos (corpus JSONL, \emph{lockfiles}, tipos y OpenAPI generados,
+imágenes), que inflarían la aportación de quien los incorpora, y los alias de una misma persona se agrupan. La
+tercera medida solo cuenta lo que sigue en el producto, así que no refleja el trabajo exploratorio
+que se sustituyó al madurar la arquitectura; por eso la Fig.~\ref{fig:fases} añade la cronología.
+Todo el equipo trabajó con asistentes de programación (el 75\,\% de las entregas se generaron con Claude Code); la autoría refleja quién
+especificó, dirigió, revisó e integró cada cambio.
+
+\begin{table*}[t]
+\centering\scriptsize
+\caption{Contribución individual medida sobre el historial (de marzo a octubre de 2026; 242 entregas integradas en la rama principal). El $\approx$2\,\% restante del código actual (escrito por el agente o por Dependabot) queda sin asignar.}\label{tab:equipo}
+\begin{tabularx}{\textwidth}{@{}L{2.3cm}Yrrr@{}}
+\toprule
+\textbf{Miembro} & \textbf{Responsabilidad y entregables principales} & \textbf{Entregas} & \textbf{Líneas +/--} & \textbf{Código actual} \\
+\midrule
+Manuel Pérez & Arquitectura y dirección técnica. División en dos servicios y estructura del repositorio; arquitectura AWS \emph{serverless} con Cognito, Lambda y API Gateway con \emph{streaming}; frontend base y planificador; caso de uso del planificador y flujo SSE tipado; constructor de corpus \code{city\_corpus}, puerta de calidad y \code{/add-city}; experimento de base vectorial; DynamoDB; trazas y consola de administración; lista de acceso y cuota; agente Kiri con herramientas, \emph{guardrails} y evaluación de conversaciones; proceso de entrega con agentes. & 158 & 132.409 / 37.394 & 78,3\,\% \\
+Joaquín Castro Salas & Backend inicial (FastAPI, modelos, capas); primer \emph{chatbot}; adaptador de Bedrock; recuperador RAG sobre S3 Vectors con Titan y su infraestructura; rediseño del frontend en torno a Kiri; evaluación RAG con \emph{recall}@$k$ y MRR, 120 preguntas y juez LLM; corpus de Berlín y fotos de Bolonia y Miami; retirada de componentes obsoletos; normalización de comentarios y documentación. & 47 & 28.394 / 17.915 & 14,2\,\% \\
+David Baos & Observabilidad y métricas de negocio: eventos de negocio y métricas de creación de viajes, panel Grafana local, estadística de negocio en producción con CloudWatch Logs Insights, cuadros de mando de servicio e infraestructura y registros de acceso estructurados, métricas de Cognito y Bedrock; corpus de Miami. & 11 & 4.746 / 72 & 3,7\,\% \\
+Alexander De Sousa & Primera fuente de datos: \emph{scraper} de Madrid (abril--mayo; sustituido después por \code{city\_corpus}); primer \emph{devcontainer}; primera infraestructura como código sobre ECS y Cloud Run; infraestructura HTTPS del frontend: S3, CloudFront, Route~53 y ACM; salidas estructuradas nativas del proveedor; configuración de Madrid y Los Ángeles. & 23 & 9.570 / 4.036 & 1,4\,\% \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+\begin{table}[t]
+\centering\scriptsize
+\caption{Matriz de responsabilidad por componente (R: responsable; C: contribuye), según la autoría de las entregas. MP: Manuel Pérez; JC: Joaquín Castro Salas; DB: David Baos; AD: Alexander De Sousa.}\label{tab:raci}
+\begin{tabularx}{\columnwidth}{@{}Ycccc@{}}
+\toprule
+\textbf{Componente} & \textbf{MP} & \textbf{JC} & \textbf{DB} & \textbf{AD} \\
+\midrule
+Arquitectura y estructura del repositorio & R & & & \\
+Frontend: planificador, mapa, administración & R & C & & C \\
+Rediseño visual en torno a Kiri & & R & & \\
+\code{core\_api}, DynamoDB, acceso y cuota & R & C & & \\
+Agente Kiri, herramientas y \emph{guardrails} & R & & & \\
+Salidas estructuradas nativas & C & & & R \\
+Integración con Bedrock y recuperador RAG & C & R & & \\
+Constructor de corpus y \code{/add-city} & R & & & \\
+Configuración de ciudades & R & C & C & C \\
+Evaluación RAG y juez LLM & & R & & \\
+Evaluación del agente & R & & & \\
+Infraestructura AWS (Terraform) & R & & C & C \\
+Borde HTTPS del frontend & C & & & R \\
+CI/CD y \emph{devcontainer} & R & C & & C \\
+Trazas de IA y consola de administración & R & & & \\
+Métricas de negocio, registros de acceso y cuadros de mando & & & R & \\
+Proceso de entrega con agentes & R & & & \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\resizebox{\linewidth}{!}{\begin{tikzpicture}[x=1cm,y=1cm,
+  ph/.style={box,font=\scriptsize,text width=2.45cm,minimum height=0.55cm,fill=klight},
+  tx/.style={font=\scriptsize,text width=2.5cm,align=left,anchor=north}]
+\draw[arr,line width=1pt] (-1.4,0) -- (7.0,0);
+\node[ph] (p1) at (0,0) {\textbf{Exploración}\\marzo--6 de septiembre};
+\node[ph] (p2) at (2.8,0) {\textbf{Rearquitectura}\\7--20 de septiembre};
+\node[ph] (p3) at (5.6,0) {\textbf{Producto}\\21 sep.--octubre};
+\node[tx] at (0,-0.5) {MP: web y frontend\\JC: backend inicial y primer \emph{chatbot}\\AD: \emph{scraper}, \emph{devcontainer} y primera IaC};
+\node[tx] at (2.8,-0.5) {MP: dos servicios, \emph{serverless}, corpus y planificador\\JC: Bedrock y recuperador RAG\\AD: HTTPS del frontend};
+\node[tx] at (5.6,-0.5) {MP: datos, trazas, acceso y agente\\JC: rediseño y evaluación RAG\\AD: salidas estructuradas\\DB: observabilidad y negocio};
+\end{tikzpicture}}
+\caption{Fases del proyecto y bloques liderados por cada miembro. Las dos decisiones que más cambiaron el sistema fueron pasar de contenedores a \emph{serverless} y de un clasificador de intenciones a un agente con herramientas.}\label{fig:fases}
+\end{figure}
+
+Cada miembro es responsable de un bloque completo que defenderá en la presentación:
+\begin{itemize}
+  \item \textbf{Manuel Pérez}: la arquitectura (servicios, nube e IaC), el agente Kiri y sus
+        \emph{guardrails}, el \emph{pipeline} de datos y \code{/add-city}, y el proceso de entrega con
+        agentes. Concentra la mayor parte del sistema actual y de las entregas.
+  \item \textbf{Joaquín Castro Salas}: la recuperación (integración con Bedrock y S3 Vectors), la
+        evaluación de la recuperación y de las respuestas con un juez LLM (un modelo de lenguaje que puntúa las respuestas), y el rediseño de la
+        interfaz en torno a Kiri.
+  \item \textbf{David Baos}: la capa de observabilidad y negocio: eventos de negocio, registros de acceso
+        estructurados y los cuadros de mando de servicio, infraestructura, Cognito y Bedrock.
+        Defenderá cómo se mide el producto en producción y qué responde cada cuadro de mando.
+  \item \textbf{Alexander De Sousa}: el borde HTTPS del frontend (S3, CloudFront, Route~53 y ACM),
+        las salidas estructuradas nativas que usan todos los pasos deterministas, la primera
+        fuente de datos y la primera infraestructura como código.
+\end{itemize}

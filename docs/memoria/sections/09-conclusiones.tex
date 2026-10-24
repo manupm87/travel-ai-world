@@ -1,0 +1,56 @@
+\section{Conclusiones y trabajo futuro}\label{sec:conclusiones}
+
+\kyrian{} demuestra que un planificador de viajes con IA generativa puede ser
+\textbf{conversacional y verificable a la vez}. Los cinco objetivos se cumplen con evidencia
+medible:
+
+\begin{itemize}
+  \item \textbf{O1, fundamentación}: ningún lugar llega al itinerario sin un documento del corpus
+        detrás. Está garantizado por construcción (herramientas que solo aceptan ids conocidos y
+        tarjetas reconstruidas desde el corpus) y verificado en las 324 comprobaciones de seguridad
+        de la evaluación del agente; las respuestas fundamentadas en el corpus obtienen además un
+        4,72/5 del juez.
+  \item \textbf{O2, edición conversacional}: con el mismo modelo y los mismos escenarios, el agente
+        con herramientas supera el 91,7\,\% de las conversaciones frente al 44,8\,\% del diseño
+        basado en intenciones al que sustituyó; con el modelo de producción, el 92,6\,\%.
+  \item \textbf{O3, corpus abierto y medido}: seis ciudades y 33.264 documentos de texto con
+        licencia comprobada, puerta de calidad de 11 umbrales, R@10 de 0,768 a solo 0,015 del techo exacto,
+        y un procedimiento agéntico (\code{/add-city}) para añadir ciudades.
+  \item \textbf{O4, siempre en línea al menor coste}: arquitectura 100\,\% \emph{serverless} en
+        AWS por unos 5\,€/mes estimados en reposo (más el WAF opcional) y alrededor de un céntimo por
+        turno de conversación, con una cuota diaria por usuario.
+  \item \textbf{O5, ingeniería medible}: IaC, CI con 13 trabajos y más de 2.000 pruebas automáticas,
+        contenedores, tres niveles de observabilidad y un proceso de entrega con agentes
+        documentado y automatizado.
+\end{itemize}
+
+Más allá del producto, el proyecto aporta un método: \textbf{las decisiones se apoyan en
+mediciones} (el experimento que validó la base vectorial, el cambio de modo del índice medido antes
+y después, la regla de no regresión del corpus y la evaluación del agente como requisito de cada
+cambio del planificador) y \textbf{los agentes de IA trabajan dentro de límites explícitos}: \emph{briefs} escritos,
+puertas automáticas y decisiones irreversibles reservadas a personas.
+
+\subsection{Oportunidades de mejora}
+
+\begin{enumerate}[label=\textbf{M\arabic*}]
+  \item \textbf{Recuperación híbrida y reescritura de consultas}: las intenciones sin palabras
+        clave («niños y lluvia») son el principal margen de mejora; combinar búsqueda léxica y
+        vectorial, o reformular la consulta con el modelo, es el siguiente paso, ya previsto en la
+        arquitectura objetivo para cuando se superen unos 50.000 documentos.
+  \item \textbf{Evaluación continua y más amplia}: llevar la evaluación del agente y la del juez a
+        la CI con un presupuesto acotado; extender el juez de fundamentación a las respuestas del
+        propio agente y repetir la evaluación sobre la pila completa (base de datos vectorial y
+        Bedrock Guardrails); y ampliar la validación humana del juez (kappa de Cohen, 50 respuestas).
+  \item \textbf{Evaluación con usuarios}: un estudio con usuarios reales (tasa de éxito, tiempo y
+        cuestionario de usabilidad SUS, \emph{System Usability Scale}) completaría las métricas automáticas.
+  \item \textbf{Frescura del corpus}: reconstrucción programada y detección de cambios en las
+        fuentes, con la misma puerta (Fig.~\ref{fig:objetivo}).
+  \item \textbf{Más ciudades e idiomas}: con \code{/add-city}, un destino nuevo cuesta horas de
+        agente y céntimos de cómputo.
+  \item \textbf{Operación de producción}: evolución a la arquitectura objetivo: EKS en subredes
+        privadas, Aurora PostgreSQL, agente en Bedrock AgentCore, tres entornos y alarmas
+        (§\ref{sec:prod}).
+  \item \textbf{Monetización}: enlaces de afiliación en las tarjetas, fotos con licencia para la
+        oferta B2B y exposición del planificador como aplicación dentro de asistentes generalistas
+        (MCP), un canal que ya usan las grandes agencias en línea~\cite{lee2025chatgptapps}.
+\end{enumerate}

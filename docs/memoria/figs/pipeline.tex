@@ -1,0 +1,20 @@
+\begin{tikzpicture}[x=1cm,y=1cm,
+  st/.style={data,font=\tiny,text width=1.6cm,minimum height=1.0cm,inner sep=2pt},
+  sg/.style={box,draw=korange,fill=orange!10,font=\tiny,text width=1.6cm,minimum height=1.0cm,inner sep=2pt},
+  sx/.style={ext,font=\tiny,text width=1.6cm,minimum height=1.0cm,inner sep=2pt}]
+\node[sx] (src) at (0,0) {\textbf{Fuentes}\\Wikivoyage, Wikipedia, OSM, Wikidata, Open-Meteo};
+\node[st] (dl) at (2.05,0) {\textbf{Descarga}\\en serie, con reintentos y caché};
+\node[st] (cl) at (4.1,0) {\textbf{Limpieza}\\wikitexto a texto; secciones vacías fuera};
+\node[st] (mg) at (6.15,0) {\textbf{Fusión}\\misma entidad o nombre a $<$75\,m; sin cadenas};
+\node[st] (en) at (6.15,-1.35) {\textbf{Enriquecer}\\barrio por polígono; foto libre; nombre en español};
+\node[st] (ch) at (4.1,-1.35) {\textbf{Trocear}\\fichas: 1 doc; prosa: $\leq$500 tokens con solape};
+\node[sg] (va) at (2.05,-1.35) {\textbf{Validar}\\9 reglas: si falla, no se escribe};
+\node[sg] (gt) at (0,-1.35) {\textbf{Informe}\\puerta de 11 umbrales};
+\node[st] (js) at (0,-2.7) {\code{documents.jsonl}\\en Git (fuente de verdad)};
+\node[st] (em) at (2.05,-2.7) {\textbf{Embeddings}\\Titan V2 (lotes de 200)};
+\node[st] (ix) at (4.1,-2.7) {\textbf{S3 Vectors}\\inserta, actualiza y poda solo esa ciudad};
+\node[st] (ev) at (6.15,-2.7) {\textbf{Evaluación}\\20 preguntas; objetivo R@10 0,75};
+\draw[arr] (src)--(dl); \draw[arr] (dl)--(cl); \draw[arr] (cl)--(mg); \draw[arr] (mg)--(en);
+\draw[arr] (en)--(ch); \draw[arr] (ch)--(va); \draw[arr] (va)--(gt); \draw[arr] (gt)--(js);
+\draw[arr] (js)--(em); \draw[arr] (em)--(ix); \draw[arr] (ix)--(ev);
+\end{tikzpicture}

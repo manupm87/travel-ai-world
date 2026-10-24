@@ -1,0 +1,38 @@
+\begin{tikzpicture}[x=1cm,y=1cm,
+  lbl/.style={font=\fontsize{6}{7}\selectfont,color=kgray,align=center},
+  p/.style={box,font=\scriptsize,text width=1.85cm,minimum height=0.5cm,inner sep=2pt},
+  ad/.style={data,font=\scriptsize,text width=1.85cm,minimum height=0.5cm,inner sep=2pt},
+  aa/.style={ai,font=\scriptsize,text width=1.85cm,minimum height=0.5cm,inner sep=2pt}]
+\node[ext,font=\scriptsize,text width=8.1cm,minimum height=0.7cm] (fe) at (4.2,3.45) {\textbf{Navegador}: planificador con mapa, viajes y administración; guarda el estado del turno};
+% core_api
+\node[p,text width=2.5cm] (uc) at (1.45,2.2) {Casos de uso: usuarios, viajes, acceso};
+\node[p,text width=2.5cm] (rp) at (1.45,1.35) {Puerto: repositorio};
+\node[ad,text width=2.5cm] (ddb) at (1.45,0.5) {DynamoDB};
+\draw[arr] (uc) -- (rp); \draw[arr] (rp) -- (ddb);
+% ai_api
+\node[aa,text width=4.1cm] (pt) at (6.3,2.2) {\code{PlanTrip}: pasos deterministas + agente Kiri};
+\node[p] (llm) at (5.25,1.35) {\code{LLMProvider}};
+\node[p] (ret) at (7.35,1.35) {\code{Retriever}};
+\node[aa] (llma) at (5.25,0.5) {Bedrock | NVIDIA};
+\node[ad] (reta) at (7.35,0.5) {S3 Vectors | léxico};
+\node[p] (grd) at (5.25,-0.3) {\code{InputGuard}: \emph{Guardrail}};
+\node[p] (trc) at (7.35,-0.3) {\code{Tracer}: DynamoDB};
+\draw[arr] (pt.south -| llm) -- (llm); \draw[arr] (pt.south -| ret) -- (ret);
+\draw[arr] (llm) -- (llma); \draw[arr] (ret) -- (reta);
+\begin{scope}[on background layer]
+\node[draw=kblue,rounded corners=3pt,fill=blue!2,fit=(uc)(rp)(ddb),inner sep=5pt,inner ysep=9pt,yshift=3pt] (corebox) {};
+\node[draw=kpurple,rounded corners=3pt,fill=violet!2,fit=(pt)(llm)(ret)(llma)(reta)(grd)(trc),inner sep=5pt,inner ysep=9pt,yshift=3pt] (aibox) {};
+\end{scope}
+\node[font=\scriptsize\bfseries,color=kblue,anchor=north] at (corebox.north) {core\_api};
+\node[font=\scriptsize\bfseries,color=kpurple,anchor=north] at (aibox.north) {ai\_api};
+\draw[arr] (fe.south -| corebox.north) -- node[lbl,right]{REST} (corebox.north);
+\draw[arr] (fe.south -| aibox.north) -- node[lbl,right]{SSE} (aibox.north);
+\draw[arr] (aibox.west |- rp) -- node[lbl,above]{HTTP} node[lbl,below]{acceso} (corebox.east |- rp);
+% común y datos
+\node[box,font=\scriptsize,text width=8.1cm,minimum height=0.45cm] (common) at (4.2,-1.25) {\textbf{travel\_common}: identidad, errores de dominio, verificación de tokens, logs de acceso};
+\draw[darr] (common.north -| corebox.south) -- (corebox.south);
+\draw[darr] (common.north -| aibox.south) -- (aibox.south);
+\node[data,font=\scriptsize,text width=3.1cm,minimum height=0.6cm] (corpus) at (1.8,-2.15) {\textbf{city\_corpus} (sin conexión): fuentes abiertas $\rightarrow$ JSONL};
+\node[data,font=\scriptsize,text width=3.1cm,minimum height=0.6cm] (idx) at (6.3,-2.15) {\textbf{indexador}: Titan V2 $\rightarrow$ S3 Vectors};
+\draw[arr] (corpus) -- node[lbl,above]{Git} (idx);
+\end{tikzpicture}

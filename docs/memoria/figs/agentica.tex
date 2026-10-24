@@ -1,0 +1,24 @@
+\begin{tikzpicture}[x=1cm,y=1cm,
+  ag/.style={ai,font=\tiny,text width=2.25cm,minimum height=1.25cm,inner sep=2pt},
+  gt/.style={box,draw=korange,fill=orange!10,font=\tiny,text width=2.25cm,minimum height=0.6cm,inner sep=2pt},
+  hm/.style={human,font=\tiny,text width=2.25cm,minimum height=0.6cm,inner sep=2pt},
+  res/.style={data,font=\tiny,text width=2.25cm,minimum height=0.5cm,inner sep=2pt}]
+\node[font=\scriptsize\bfseries,color=kgray] at (0,1.2) {1. Desarrollo};
+\node[font=\scriptsize\bfseries,color=kgray] at (2.85,1.2) {2. Datos};
+\node[font=\scriptsize\bfseries,color=kgray] at (5.7,1.2) {3. Producto};
+\node[ag] (w) at (0,0.2) {\textbf{Ola de entrega}\\brief $\rightarrow$ implementa $\rightarrow$ 3 revisores $\rightarrow$ corrige};
+\node[ag] (c) at (2.85,0.2) {\textbf{\code{/add-city}}\\configura, construye, cura tours, prueba, abre la propuesta de cambio};
+\node[ag] (k) at (5.7,0.2) {\textbf{Kiri}\\busca, consulta y edita el itinerario con herramientas};
+\node[gt] (wg) at (0,-0.95) {CI (13 trabajos)};
+\node[gt] (cg) at (2.85,-0.95) {Puerta de calidad + \emph{smoke}};
+\node[gt] (kg) at (5.7,-0.95) {\emph{Guardrails} + ids conocidos};
+\node[hm] (wh) at (0,-1.8) {Persona: aprueba el \emph{merge}; \code{apply}};
+\node[hm] (ch) at (2.85,-1.8) {Persona: indexa y despliega};
+\node[hm] (kh) at (5.7,-1.8) {Viajero: acepta o pide cambios};
+\node[res] (wo) at (0,-2.65) {código en producción};
+\node[res] (co) at (2.85,-2.65) {ciudad en la base vectorial};
+\node[res] (ko) at (5.7,-2.65) {itinerario fundamentado};
+\foreach \a/\b in {w/wg,wg/wh,wh/wo,c/cg,cg/ch,ch/co,k/kg,kg/kh,kh/ko} \draw[arr] (\a) -- (\b);
+\draw[arr] (wo.east) -- (co.west);
+\draw[arr] (co.east) -- (ko.west);
+\end{tikzpicture}

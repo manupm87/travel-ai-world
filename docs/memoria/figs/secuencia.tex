@@ -1,0 +1,29 @@
+\begin{tikzpicture}[x=1cm,y=1cm,
+  ll/.style={box,font=\scriptsize\bfseries,text width=1.45cm,minimum height=0.5cm,inner sep=2pt},
+  m/.style={-{Stealth[length=1.6mm]},thick,color=kgray},
+  r/.style={m,dashed},
+  ev/.style={-{Stealth[length=1.6mm]},thick,color=kpurple},
+  t/.style={font=\fontsize{6}{7}\selectfont,color=black,align=center,fill=white,inner sep=1pt}]
+\foreach \x/\n/\l in {0/nav/Navegador,2/ai/ai\_api (Kiri),4/bed/Bedrock,5.9/vec/S3 Vectors,7.6/ddb/DynamoDB}{
+  \node[ll] (\n) at (\x,0) {\l};
+  \draw[kgray!60,dashed] (\x,-0.3) -- (\x,-7.6);
+}
+\draw[m] (0,-0.6) -- node[t,above]{POST: mensaje + estado} (2,-0.6);
+\draw[ev] (2,-1.05) -- node[t,above]{\code{progress}} (0,-1.05);
+\draw[m] (2,-1.5) -- node[t,above]{ApplyGuardrail} (4,-1.5);
+\draw[r] (4,-1.8) -- node[t,below]{permitido} (2,-1.8);
+\draw[m] (2,-2.4) -- node[t,above]{Converse (paso 1)} (4,-2.4);
+\draw[r] (4,-2.7) -- node[t,below]{2 $\times$ \code{search\_places}} (2,-2.7);
+\draw[m] (2,-3.3) -- node[t,above]{Titan (\emph{embedding})} (4,-3.3);
+\draw[r] (4,-3.6) -- node[t,below]{vector} (2,-3.6);
+\draw[m] (2,-4.2) -- node[t,above,pos=0.75]{QueryVectors} (5.9,-4.2);
+\draw[r] (5.9,-4.5) -- node[t,below,pos=0.25]{candidatos} (2,-4.5);
+\draw[m] (2,-4.85) -- node[t,above]{Converse (paso 2)} (4,-4.85);
+\draw[r] (4,-5.15) -- node[t,below]{\code{remove} + 2 \code{add}} (2,-5.15);
+\draw[ev] (2,-5.65) -- node[t,above]{3 $\times$ \code{itinerary\_patch}} (0,-5.65);
+\draw[m] (2,-6.05) -- node[t,above]{Converse (paso 3)} (4,-6.05);
+\draw[r] (4,-6.35) -- node[t,below]{texto en \emph{streaming}} (2,-6.35);
+\draw[ev] (2,-6.85) -- node[t,above]{\code{text} (por frases)} (0,-6.85);
+\draw[m] (2,-7.15) -- node[t,above,pos=0.75]{traza y tokens} (7.6,-7.15);
+\draw[ev] (2,-7.5) -- node[t,above]{\code{[DONE]}} (0,-7.5);
+\end{tikzpicture}

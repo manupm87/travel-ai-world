@@ -1,0 +1,213 @@
+\section{Integración DevOps}\label{sec:devops}
+
+\subsection{Entorno de desarrollo reproducible}
+
+Todo el equipo trabaja en el mismo \textbf{contenedor de desarrollo} (\emph{devcontainer}), una pila de Docker
+Compose con dos servicios: el terminal y DynamoDB Local en memoria. La imagen trae las versiones que usa la CI (Node~24,
+Python~3.12 con \code{uv}, Terraform~1.16, AWS CLI, \code{gh}, \code{just}, \code{crane}),
+Claude Code y, opcionalmente, otros agentes de terminal; nueve volúmenes con nombre conservan
+dependencias, sesiones de los agentes y la caché de SSO entre reconstrucciones. El
+guion \emph{post-create} ejecuta \code{just setup} (ficheros \code{.env}, dependencias de Python y Node)
+e instala Chromium para Playwright. El acceso a AWS es solo por \textbf{IAM Identity Center}
+(\code{just aws-login}): ni las personas ni los agentes del contenedor manejan claves de larga
+duración (Fig.~\ref{fig:devcontainer}).
+
+\begin{figure}[h]
+\centering
+\resizebox{\columnwidth}{!}{\input{figs/devcontainer}}
+\caption{Entorno de desarrollo: el mismo contenedor para personas y agentes, con las herramientas de la CI y credenciales de AWS temporales.}\label{fig:devcontainer}
+\end{figure}
+
+\textbf{Una sola interfaz: \code{just}.} Personas, agentes y CI ejecutan las mismas recetas
+(\code{just lint}, \code{just test}, \code{just contracts}, \code{just corpus}, \code{just index},
+\code{just stack-up}\ldots). Un único repositorio (\emph{monorepo}) con un espacio de trabajo de \code{uv} (y un único
+fichero de bloqueo de dependencias, \emph{lockfile}) agrupa los servicios, la biblioteca común y
+las herramientas.
+
+\subsection{Contenedores}\label{sec:contenedores}
+
+Un único \code{Dockerfile} multietapa genera las dos imágenes del backend (argumento
+\code{SERVICE}): una etapa instala las dependencias con \code{uv} a partir del \emph{lockfile}, sin
+paquetes de desarrollo, y la final parte de \code{python:3.12-slim}, se ejecuta con un usuario sin
+privilegios e incluye una comprobación de salud. La misma imagen funciona en Docker Compose y en
+Lambda gracias a AWS Lambda Web Adapter, una extensión que traduce cada invocación a una petición
+HTTP local y que fuera de Lambda no hace nada. Hay dos pilas locales: \code{just docker-up}
+(solo backend: Nginx, ambos servicios y DynamoDB Local) y \code{just stack-up}, que añade el sitio
+estático y reproduce el despliegue con un único origen en el puerto 8080; Nginx replica las reglas
+de CloudFront, incluido no almacenar en búfer el flujo SSE. En cada propuesta de cambio que toca el backend, la CI construye ambas
+imágenes y comprueba que la aplicación importa, que el adaptador está presente y que el servicio de
+IA responde a la comprobación de salud dentro del contenedor.
+
+\subsection{Integración y despliegue continuos}\label{sec:cicd}
+
+\begin{figure*}[t]
+\centering
+\resizebox{\linewidth}{!}{\begin{tikzpicture}[x=1cm,y=1cm,
+  a/.style={ai,text width=2.05cm,minimum height=0.8cm},
+  c/.style={box,text width=2.05cm,minimum height=0.8cm},
+  h/.style={human,text width=2.05cm,minimum height=0.8cm},
+  w/.style={aws,text width=2.05cm,minimum height=0.8cm}]
+\node[c] (lin) at (0,0) {\textbf{Tarea} en Linear\\y rama};
+\node[a] (brief) at (2.55,0) {\textbf{Auditoría y \emph{brief}}\\modelo más capaz};
+\node[a] (impl) at (5.1,0) {\textbf{Implementa}\\Opus en \emph{worktree}};
+\node[c] (pr) at (7.65,0) {\textbf{Propuesta de cambio}\\enlazada a la tarea};
+\node[a,text width=2.4cm] (rev) at (10.35,0) {\textbf{3 revisores} Sonnet\\corrección · contratos y pruebas · UX y accesibilidad};
+\node[a] (fix) at (13.05,0) {\textbf{Corrige} y vigila la CI (Opus)};
+\node[h] (merge) at (15.6,0) {\textbf{\emph{Merge}}\\(\emph{squash})};
+\node[c,text width=7.2cm,minimum height=0.9cm,align=left] (ci) at (7.65,-1.55) {\textbf{Comprobaciones de la CI} (por rutas): ruff + pyright · pytest por paquete · ESLint + Vitest · Playwright (estático y pila Compose) · deriva de contratos OpenAPI$\rightarrow$TS · imagen Docker + prueba de humo · \code{terraform validate} · \code{docs-check}};
+\node[w] (fe) at (15.6,-1.55) {\textbf{Frontend}: \code{s3 sync} + invalidación (auto)};
+\node[c] (img) at (13.05,-2.95) {\textbf{Imágenes} en GHCR (automático)};
+\node[h] (dep) at (15.6,-2.95) {\textbf{Despliegue del backend}: copia a ECR, \code{plan}, \code{apply}};
+\draw[arr] (lin)--(brief); \draw[arr] (brief)--(impl); \draw[arr] (impl)--(pr); \draw[arr] (pr)--(rev);
+\draw[arr] (rev)--(fix); \draw[arr] (fix)--(merge);
+\draw[arr] (pr.south) -- (ci.north -| pr.south);
+\draw[darr] (ci.east) -| node[lbl,pos=0.25,above]{estado de la CI} (fix.south);
+\draw[arr] (merge) -- (fe);
+\draw[arr] (merge.south west) -- (img.north);
+\draw[arr] (img) -- (dep);
+\node[lbl,anchor=north] at (2.55,-0.55) {\emph{decisiones cerradas,}\\\emph{pruebas y documentación}};
+\end{tikzpicture}}
+\caption{De la tarea de Linear a producción. En morado, agentes de IA; en verde, aprobación de una persona (el \emph{merge} la requiere cuando el sistema de permisos lo exige); en naranja, despliegues en AWS. La CI se ejecuta en cada propuesta de cambio y bloquea la integración si falla.}\label{fig:cicd}
+\end{figure*}
+
+La CI tiene 13 trabajos filtrados por rutas: un cambio solo en el frontend no
+ejecuta las pruebas de Python. Además del análisis estático (\emph{lint}), la comprobación de
+tipos y las pruebas, verifica tres cosas propias de
+este proyecto: (1) \textbf{deriva de contratos}: si un esquema Pydantic cambia sin regenerar el
+OpenAPI y los tipos TypeScript del frontend, la CI falla; (2) la \textbf{pila completa} (Nginx,
+ambos servicios y DynamoDB Local en Compose) se levanta y se recorre con Playwright con sesión
+iniciada; y (3) la \textbf{documentación}: ficheros obligatorios, índice de decisiones de arquitectura, enlaces y que
+toda receta \code{just} citada en las instrucciones de los agentes exista. Hay 1.092 pruebas en
+el backend (665 en \code{ai\_api} y 191 en el constructor de corpus), unas 900 de Vitest en el
+frontend y unas 75 de Playwright.
+
+
+\begin{table}[h]
+\centering\scriptsize
+\caption{Pruebas automáticas por paquete (funciones o casos de prueba; los parametrizados cuentan una vez).}\label{tab:tests}
+\begin{tabularx}{\columnwidth}{@{}L{2.2cm}rY@{}}
+\toprule
+\textbf{Paquete} & \textbf{Pruebas} & \textbf{Qué cubren} \\
+\midrule
+\code{ai\_api} & 665 & Agente, herramientas, recuperación, \emph{guardrails}, SSE, trazas (con dobles de modelo y de base vectorial) \\
+\code{city\_corpus} & 191 & Limpieza, fusión, troceo, validación y puerta, con \emph{fixtures} sin red \\
+\code{core\_api} & 175 & Viajes, usuarios, acceso y cuota sobre DynamoDB simulado (moto) \\
+\code{travel\_common} & 40 & JWT, errores, registros de acceso \\
+\code{vector\_store\_bench} & 21 & Métricas y búsqueda del experimento \\
+Frontend (Vitest) & $\approx$900 & Componentes, reductor del planificador, i18n completo \\
+Frontend (Playwright) & $\approx$75 & Flujos en desarrollo, sitio estático y pila completa \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+El despliegue separa construir de promover: cada \emph{merge} que toca el backend construye imágenes en GHCR (el registro de
+contenedores de GitHub); el despliegue del backend (manual) las copia a ECR (el de AWS) con \code{crane}, fija el \emph{digest} en
+Terraform y aplica el plan solo si se pide. El frontend se publica automáticamente. Es una
+decisión deliberada: el frontend practica despliegue continuo, porque publicarlo no cambia
+infraestructura; el backend practica \emph{entrega} continua, porque cada \emph{merge} deja una
+imagen lista para promover, pero aplicarla modifica recursos de pago y la decide una persona
+después de revisar el plan de Terraform, la misma puerta humana que fija el proceso de entrega. GitHub Actions
+se autentica en AWS por \textbf{OIDC} con un rol restringido al entorno \code{aws}. Dependabot
+actualiza dependencias semanalmente y \code{just release} asigna la versión y etiqueta cada publicación.
+
+\subsection{Infraestructura como código}
+
+La infraestructura de AWS está en Terraform (\code{infra/aws}): CloudFront, S3, Route~53,
+ACM, API Gateway, Lambda, Cognito, DynamoDB, S3 Vectors, Bedrock Guardrails, ECR, IAM
+y los cuadros de mando de CloudWatch. Quedan fuera, a propósito, el WAF de CloudFront (opcional,
+asociado desde la consola e ignorado de forma explícita por Terraform para no deshacerlo; llevarlo
+a código es parte de la arquitectura objetivo, §\ref{sec:prod}) y el modo \code{ENHANCED} del
+índice vectorial, que se fija con la CLI porque el proveedor aún no lo admite. El estado de Terraform se guarda en un \emph{bucket} de S3 cifrado
+y versionado con bloqueo nativo, creado por una configuración raíz de arranque (\emph{bootstrap}) que también da de alta el proveedor
+OIDC de GitHub y los roles de CI. Se conserva además una variante anterior para Google Cloud
+(Cloud Run y Cloud SQL) que la CI valida sintácticamente; no está al día con DynamoDB ni con la
+base vectorial, y se mantiene como punto de partida para una futura portabilidad.
+
+\subsection{Entrega con agentes de IA}\label{sec:entrega}
+
+Desde el 21 de septiembre, el proceso por defecto para todo cambio de más de unas pocas líneas tiene cuatro roles
+(Fig.~\ref{fig:cicd}), orquestado por un \emph{workflow} de Claude Code
+(\code{kyrian-wave.js}):
+\begin{enumerate}
+  \item \textbf{Auditoría y \emph{brief}}: el modelo más capaz lee el código, \emph{toma} las decisiones
+        y escribe un \emph{brief} (especificación para el agente) con el resultado esperado, las
+        decisiones cerradas, los ficheros, las pruebas, la documentación y los criterios de
+        aceptación. La tarea de Linear guarda el resultado y la lista de aceptación.
+  \item \textbf{Implementación}: un agente Opus trabaja en su propia copia de trabajo aislada
+        (\emph{git worktree}), ejecuta las comprobaciones y abre la propuesta de cambio.
+  \item \textbf{Revisión}: tres agentes Sonnet, en paralelo y cada uno con un enfoque (corrección;
+        contratos y pruebas; UX, textos y accesibilidad), devuelven hallazgos estructurados con
+        fichero, línea y severidad.
+  \item \textbf{Corrección y entrega}: Opus aplica los hallazgos confirmados (o justifica por qué
+        no), vigila la CI durante un máximo de dos rondas y nunca integra: lo hace la sesión
+        principal con la CI en verde. La persona aprueba el \emph{merge} si el sistema de permisos
+        lo exige, lanza \code{terraform apply} y prueba en producción.
+\end{enumerate}
+El principio es que el modelo más capaz decide y los más económicos implementan y revisan, y que
+cada cambio llegue a una persona con un \emph{brief} escrito, tres revisiones y la CI en verde. Las
+reglas se aplican con herramientas, no con buena voluntad: un \emph{hook} (comprobación automática
+de Claude Code) impide crear ramas cuyo nombre no indique el tipo de cambio y la tarea de Linear
+a la que responde, \code{AGENTS.md} es la fuente única de instrucciones para cualquier
+agente (Claude Code, Codex, Gemini\ldots) y diez comandos encapsulan tareas repetidas
+(empezar una tarea, entregarla con agentes, \code{/add-city}, \code{/check-site}\ldots). En cifras:
+242 entregas integradas en la rama principal (92 de ellas desde la adopción del proceso); el
+75\,\% de las entregas se generaron con Claude Code.
+
+\subsection{Monitorización y registro}\label{sec:monitorizacion}
+
+La observabilidad tiene tres niveles, todos sin servidores adicionales:
+\begin{itemize}
+  \item \textbf{Trazas de IA por turno} en DynamoDB, con el vocabulario de OpenInference
+        y OpenTelemetry GenAI: tramos (\emph{spans}) de modelo (tokens, primer fragmento, esquema, ids
+        elegidos y descartados), recuperación (consulta, filtros, distancias, escalón de
+        ampliación), herramienta y cadena, más la línea temporal SSE y el coste. Se escriben antes
+        de cerrar el flujo, caducan a los 90 días y se exploran en la consola \code{/admin}, que
+        incluye un inspector de turnos con vista en cascada.
+  \item \textbf{Registros (\emph{logs}) estructurados}: una línea \code{access\_log=} JSON por petición (ruta como
+        plantilla, estado, duración, arranque en frío) sin datos personales, y eventos de negocio
+        \code{business\_event=} seudonimizados al crear un viaje.
+  \item \textbf{Cuadros de mando de CloudWatch} definidos en Terraform: servicio (Lambda, API
+        Gateway, Cognito, Bedrock), infraestructura (DynamoDB, CloudFront) y registros de acceso con
+        Logs Insights, más un panel de negocio en Grafana sobre los eventos.
+\end{itemize}
+La Tabla~\ref{tab:spans} muestra la anatomía de la traza del turno de la Tabla~\ref{tab:traza}:
+basta abrirla en el inspector para saber qué buscó el agente, con qué filtros, qué documentos
+devolvió la base vectorial (con su distancia), cuáles acabaron en el itinerario y cuánto costó.
+Con ello la trazabilidad del dato es completa: \textbf{fuente} (URL y licencia en el documento)
+$\rightarrow$ \textbf{documento} (\code{doc\_id} en Git) $\rightarrow$ \textbf{vector} (clave derivada
+del id) $\rightarrow$ \textbf{búsqueda} (id y distancia en la traza) $\rightarrow$ \textbf{tarjeta}
+del itinerario (mismo id, con su fuente visible para el viajero).
+Las métricas concretas se describen en la §\ref{sec:metricas}.
+
+\begin{table}[h]
+\centering\scriptsize
+\caption{\emph{Spans} de la traza de un turno de edición, en orden.}\label{tab:spans}
+\begin{tabularx}{\columnwidth}{@{}L{2.35cm}L{1.1cm}Y@{}}
+\toprule
+\textbf{\emph{Span}} & \textbf{Tipo} & \textbf{Qué registra} \\
+\midrule
+\code{read\_turn}, \code{guard} & cadena & Idioma, ids ya usados; veredicto de Bedrock Guardrails \\
+\code{agent:1} & modelo & Tokens, tiempo al primer fragmento, herramientas pedidas, motivo de parada \\
+\code{tool:search\_places} & herram. & Argumentos; dentro, un \emph{span} de recuperación con consulta, filtros, $k$, escalón y distancias \\
+\code{agent:2} & modelo & Tres llamadas de escritura \\
+\code{tool:add\_activity} & herram. & Id, día y franja; búsqueda de foto \\
+\code{agent:3} & modelo & Respuesta final (\code{end\_turn}) \\
+\code{validate\_day}, \code{strip\_prices} & cadena & Avisos emitidos; importes eliminados \\
+Resumen & -- & Tokens, coste, latencia, documentos recuperados y usados, ids descartados \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Reproducibilidad}
+
+Todo resultado de esta memoria se puede regenerar desde el repositorio con las mismas recetas
+(\code{index} y las evaluaciones requieren una sesión de AWS; la del agente, Bedrock o una clave de NVIDIA):
+
+\noindent\colorbox{klight}{\parbox{\dimexpr\columnwidth-2\fboxsep}{\ttfamily\scriptsize
+just setup \&\& just lint \&\& just test \hfill\rmfamily\emph{comprobaciones de la CI}\ttfamily\\
+just corpus budapest \hfill\rmfamily\emph{corpus + puerta de calidad}\ttfamily\\
+just index budapest \hfill\rmfamily\emph{embeddings e índice}\ttfamily\\
+just eval-retrieval \hfill\rmfamily\emph{recall@k y MRR}\ttfamily\\
+just eval-answers \hfill\rmfamily\emph{juez LLM}\ttfamily\\
+just eval-conversations "" -{}-repeat 3 -{}-concurrency 2 \hfill\rmfamily\emph{agente}\ttfamily\\
+just stack-up \hfill\rmfamily\emph{pila completa en :8080}}}

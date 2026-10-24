@@ -1,0 +1,13 @@
+\begin{tikzpicture}[x=1cm,y=1cm]
+\node[draw=kgray,rounded corners=4pt,dashed,minimum width=6.35cm,minimum height=2.75cm] (host) at (3.05,0.05) {};
+\node[font=\tiny\bfseries,color=kgray,anchor=north west] at (-0.1,1.42) {Docker Compose (\code{.devcontainer})};
+\node[box,font=\tiny,text width=3.45cm,minimum height=1.45cm,align=left] (dc) at (1.85,0.4) {\textbf{devcontainer} (Ubuntu)\\Node 24 · Python 3.12 + uv\\Terraform · AWS CLI · gh · just\\crane · Chromium (Playwright)\\Claude Code (+ Codex, Gemini)};
+\node[data,font=\tiny,text width=1.75cm,minimum height=1.45cm] (dyn) at (5.0,0.4) {\textbf{DynamoDB Local}\\en memoria};
+\node[box,font=\tiny,text width=5.95cm,minimum height=0.45cm,fill=gray!8] (vol) at (3.05,-0.85) {9 volúmenes: \code{.venv}, \code{node\_modules}, sesiones de agentes, caché SSO};
+\node[aws,font=\tiny,text width=1.3cm,minimum height=1.45cm] (sso) at (7.25,0.4) {\textbf{IAM Identity Center} (SSO)};
+\node[box,font=\tiny,text width=7.9cm,minimum height=0.45cm] (run) at (3.85,1.95) {\code{just dev-core} :8000 · \code{just dev-ai} :8001 · \code{just dev-frontend} :3000 (recarga en caliente)};
+\draw[arr] (dc) -- (dyn);
+\draw[arr] (dc.north) -- (dc.north |- run.south);
+\draw[darr] (sso.south) |- node[lbl,pos=0.75,below]{credenciales temporales (\code{just aws-login})} (3.3,-1.35) -- (3.3,-1.08);
+\draw[darr] (vol.north -| 3.3,0) -- (dc.south -| 3.3,0);
+\end{tikzpicture}
