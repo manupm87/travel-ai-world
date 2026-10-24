@@ -16,10 +16,12 @@
 \usepackage{fancyhdr}
 \usepackage{amsmath}
 \usepackage{dblfloatfix}
+\usepackage{balance}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning,fit,backgrounds,shapes.geometric,calc,shadows}
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.18}
+\usepackage[spanish=spanish]{csquotes}
 \usepackage[backend=biber,style=ieee,maxnames=3]{biblatex}
 \addbibresource{referencias.bib}
 \usepackage[hidelinks]{hyperref}
@@ -121,6 +123,7 @@
 \input{sections/09-conclusiones}
 
 {\footnotesize
+\balance
 \printbibliography[heading=bibintoc,title={Referencias}]
 }
 

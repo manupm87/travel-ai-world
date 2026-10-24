@@ -17,7 +17,7 @@ Tabla~\ref{tab:modelos} resume, al estilo de una ficha de modelo
 \textbf{Modelo} & \textbf{Uso y configuración} \\
 \midrule
 Claude Haiku 4.5 (Bedrock, perfil de inferencia UE) & Agente, extracción del resumen y elecciones estructuradas. Temperatura 0,7; máximo de 4.096 tokens de salida. Elegido por admitir herramientas y salida estructurada nativa con JSON Schema, por su latencia y por su precio (1 y 5\,\$ por millón de tokens de entrada y salida) \\
-Titan Text Embeddings V2 (Bedrock, misma región) & Vectores de 1.024 dimensiones normalizados para documentos y consultas; multilingüe: una pregunta en español encuentra texto en inglés \\
+Titan Text Embeddings V2 (Bedrock, misma región) & Vectores normalizados de 1.024 dimensiones para documentos y consultas \\
 Bedrock Guardrails & Clasificadores gestionados de ataques de \emph{prompt}, contenido dañino, datos de pago y temas denegados \\
 Amazon Nova Pro (Bedrock) & Juez de la evaluación, temperatura 0; de otra familia de modelos, para evitar el sesgo de autoevaluación \\
 Nemotron 3 Super 120B (NVIDIA) & Alternativa para desarrollo local y referencia de la evaluación del agente \\
@@ -25,22 +25,23 @@ Nemotron 3 Super 120B (NVIDIA) & Alternativa para desarrollo local y referencia 
 \end{tabularx}
 \end{table}
 
-\textbf{Selección del modelo del agente.} Haiku~4.5 es el modelo de Bedrock desde la integración
-con este servicio (septiembre), por precio, latencia y soporte de herramientas y JSON Schema nativo,
-y se sirve desde la UE (RGPD). La evaluación de conversaciones (§\ref{sec:evalagente}) confirmó
+\textbf{Selección del modelo del agente.} Haiku~4.5 se adoptó al integrar Bedrock, en septiembre,
+por su precio, su latencia, su soporte de herramientas y de JSON Schema nativo, y porque se sirve
+desde la UE (RGPD). La evaluación de conversaciones (§\ref{sec:evalagente}) confirmó
 después la elección (Tabla~\ref{tab:modelcomp}): iguala a Nemotron dentro de la tolerancia (33,3
 frente a 32,7 escenarios) con un 17\,\% menos de tokens y un 13\,\% menos de llamadas. Un modelo
-mayor multiplicaría el coste por turno para ganar, como mucho, los tres escenarios que aún fallan
-(ediciones en español cuya segunda mitad queda sin hacer), algo que se aborda antes en el
-\emph{prompt}. GLM-5.3-Flash quedó descartado porque su prueba de herramientas agotaba siempre el
+mayor multiplicaría el coste por turno para ganar, como mucho, los tres escenarios restantes
+(ediciones en español que se completan a medias), un tipo de fallo que se corrige antes y más
+barato ajustando el \emph{prompt}. GLM-5.3-Flash quedó descartado porque su prueba de herramientas agotaba siempre el
 tiempo de espera, aunque sigue siendo útil en local
 para los pasos estructurados. La temperatura de 0,7 da una prosa natural y variada; la forma de
-la respuesta no depende de ella, porque la fijan los esquemas y las herramientas. El juez, en
+la respuesta no depende de ella, porque la fijan los esquemas y las herramientas; el juez, en
 cambio, usa temperatura 0 para ser reproducible.
 
 \textbf{Selección del modelo de \emph{embeddings}.} Titan Text Embeddings V2 es multilingüe (una
-pregunta en español encuentra texto en inglés sin traducir), se ejecuta en la misma región que los
-datos y cuesta 0,02\,\$ por millón de tokens, de modo que indexar una ciudad cuesta céntimos.
+pregunta en español encuentra texto en inglés sin traducir, como confirma la evaluación por
+idiomas, §\ref{sec:evalrag}), se ejecuta en la misma región que los datos y cuesta 0,02\,\$ por
+millón de tokens, de modo que indexar una ciudad cuesta céntimos.
 
 \begin{table}[h]
 \centering\scriptsize
@@ -64,8 +65,8 @@ Coste de la evaluación & 1,15\,\$ & sin precio público & -- \\
 El acceso a los modelos pasa por un puerto (\code{LLMProvider}) con adaptadores para Bedrock y
 para la API compatible con OpenAI de NVIDIA, por lo que cambiar de modelo es una cuestión de configuración. Las
 salidas estructuradas usan el modo nativo del proveedor cuando el modelo está verificado
-y, si no, el esquema como instrucción con validación posterior; ante una salida inválida
-no se reintenta a ciegas, sino que se recurre a una alternativa determinista (los mejores
-candidatos de la búsqueda). Cada \emph{prompt} se versiona con el \emph{hash} de su plantilla, que se
+y, si no, el esquema como instrucción con validación posterior; ante una salida inválida no se
+reintenta a ciegas, sino que se recurre a la misma alternativa determinista de §\ref{sec:prompts}.
+Cada \emph{prompt} se versiona con el \emph{hash} de su plantilla, que se
 guarda en las trazas y en los resultados de evaluación para no comparar ejecuciones con
 \emph{prompts} distintos.

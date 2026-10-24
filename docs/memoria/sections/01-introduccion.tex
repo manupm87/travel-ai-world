@@ -4,8 +4,8 @@ Planificar unos días en una ciudad que no se conoce exige cruzar guías, mapas,
 reseñas. Los asistentes de IA generalistas resuelven la parte tediosa, pero lo hacen
 \emph{de memoria}: proponen lugares que no existen, horarios desfasados o recorridos que obligan a
 cruzar la ciudad dos veces (§\ref{sec:negocio}). \kyrian{} parte de una idea sencilla:
-\textbf{el modelo decide, pero el corpus describe}. El modelo de lenguaje elige qué lugares encajan
-con el viajero, pero cada tarjeta que aparece en pantalla (nombre, barrio, horario, coordenadas,
+\textbf{el modelo decide, pero el corpus describe}. El modelo de lenguaje, a través de un agente
+conversacional llamado Kiri, elige qué lugares encajan con el viajero, pero cada tarjeta que aparece en pantalla (nombre, barrio, horario, coordenadas,
 fuente y licencia) se reconstruye a partir de un documento real del corpus; la foto sale del
 corpus o, si falta, de Wikimedia Commons o de la web del propio local.
 
@@ -33,7 +33,7 @@ La Tabla~\ref{tab:kpis} resume el estado del producto, desplegado en
 \toprule
 \textbf{Indicador} & \textbf{Valor} & \textbf{§} \\
 \midrule
-Ciudades / documentos en la base vectorial & 6 / 33.264 & \ref{sec:ingesta} \\
+Ciudades / documentos en la base vectorial & 6 / 33.264 & \ref{sec:evalrag} \\
 \emph{Recall}@10 / MRR de la recuperación (120 preguntas) & 0,768 / 0,686 & \ref{sec:evalrag} \\
 Respuestas fundamentadas: fundamentación / relevancia (juez LLM, 1--5) & 4,72 / 4,98 & \ref{sec:evalresp} \\
 Escenarios del agente superados (36, media de 3 ejecuciones) & 92,6\,\% & \ref{sec:evalagente} \\
@@ -42,15 +42,15 @@ Bedrock Guardrails: falsos positivos / ataques frenados & 0/67 · 7/8 & \ref{sec
 Coste estimado de la plataforma en reposo (sin WAF) & $\approx$5\,€/mes & \ref{sec:coste} \\
 Coste de un turno (edición / borrador de 3 días) & 1 / 2--3 céntimos & \ref{sec:evalagente} \\
 Pruebas automáticas (backend / Vitest / Playwright) & 1.092 / $\approx$900 / $\approx$75 & \ref{sec:cicd} \\
-Entregas integradas / decisiones de arquitectura documentadas & 242 / 36 & \ref{sec:devops} \\
+Entregas integradas / decisiones de arquitectura documentadas & 242 / 36 & \ref{sec:entrega}, \ref{sec:decisiones} \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
 
 \subsection{El producto en uso}
-La Fig.~\ref{fig:producto} muestra el recorrido del viajero: Kiri completa la lista de datos del
-viaje y ofrece hoteles del barrio elegido (a); el borrador aparece día a día, con las paradas
+La Fig.~\ref{fig:producto} muestra el recorrido del viajero: Kiri completa los datos del viaje
+(destino, fechas, viajeros e intereses) y ofrece hoteles del barrio elegido (a); el borrador aparece día a día, con las paradas
 numeradas y la ruta sobre el mapa (b); y cada actividad abre una ficha con su barrio, su horario, su fuente y
 su licencia, situada en el mapa (c). Desde el cuadro de conversación se puede pedir cualquier
 cambio, que se aplica sobre el itinerario.
@@ -58,21 +58,25 @@ cambio, que se aplica sobre el itinerario.
 \begin{figure*}[t]
 \centering
 \begin{tabular}{@{}c@{\hspace{4pt}}c@{\hspace{4pt}}c@{}}
-\includegraphics[width=0.329\textwidth]{figs/prod_a.jpg} &
-\includegraphics[width=0.329\textwidth]{figs/prod_b2.jpg} &
-\includegraphics[width=0.329\textwidth]{figs/prod_c.jpg} \\[-1pt]
-\scriptsize (a) Lista de datos completa y hoteles propuestos &
+\includegraphics[width=0.3265\textwidth]{figs/prod_a.jpg} &
+\includegraphics[width=0.3265\textwidth]{figs/prod_b2.jpg} &
+\includegraphics[width=0.3265\textwidth]{figs/prod_c.jpg} \\[-1pt]
+\scriptsize (a) Datos del viaje completos y hoteles propuestos &
 \scriptsize (b) Un día del itinerario con su ruta en el mapa &
 \scriptsize (c) Ficha de una actividad con fuente y licencia
 \end{tabular}
-\caption{Interfaz de \kyrian{} durante la planificación de tres días en Budapest (capturas tomadas en local con la sesión de demostración grabada, que reproduce respuestas reales del planificador; los textos de Kiri y de las tarjetas están en inglés porque esa sesión se grabó en inglés). A la izquierda, la conversación con Kiri; en el centro, el itinerario; a la derecha, el mapa.}\label{fig:producto}
+\caption{Kiri planificando tres días en Budapest (sesión de demostración en inglés con respuestas reales del planificador). A la izquierda, la conversación; en el centro, el itinerario; a la derecha, el mapa.}\label{fig:producto}
 \end{figure*}
 
 \subsection{Cumplimiento del guion y estructura}
 La Tabla~\ref{tab:cumplimiento} relaciona cada requisito del guion del Proyecto Júpiter con la
 forma en que se cumple y la sección que lo justifica. Las decisiones de diseño, con sus
-alternativas descartadas, están documentadas además en el repositorio~\cite{kyrianrepo}. La Tabla~\ref{tab:glosario} define los términos técnicos que más se
-repiten.
+alternativas descartadas, están documentadas además en el repositorio~\cite{kyrianrepo}, y la
+Tabla~\ref{tab:glosario} define los términos que más se repiten. El documento sigue el recorrido
+del producto: el caso de negocio (§\ref{sec:negocio}) y el equipo (§\ref{sec:equipo}); la
+arquitectura (§\ref{sec:arquitectura}); la solución de IA (§\ref{sec:ia}); su operación DevOps
+(§\ref{sec:devops}) y los modelos (§\ref{sec:modelos}); la evaluación (§\ref{sec:evaluacion}) y
+las conclusiones (§\ref{sec:conclusiones}).
 
 \begin{table}[h]
 \centering\scriptsize
@@ -84,13 +88,13 @@ repiten.
 IA generativa & Agente Kiri sobre Claude Haiku~4.5 y salidas estructuradas & \ref{sec:ia} \\
 Base de datos vectorial & Amazon S3 Vectors: 33.264 vectores con filtros por metadatos & \ref{sec:ingesta} \\
 API de modelo fundacional & Amazon Bedrock (Anthropic y Amazon); NVIDIA en local & \ref{sec:modelos} \\
-MVP funcional & Desplegado en \url{kyrian-world.com} con seis ciudades & \ref{sec:arquitectura} \\
+MVP funcional & Desplegado en \url{https://kyrian-world.com} con seis ciudades & \ref{sec:arquitectura} \\
 CI/CD automatizado & GitHub Actions: 13 trabajos de comprobación y despliegues con OIDC & \ref{sec:cicd} \\
 Monitorización y \emph{logging} & Trazas por turno, registros estructurados y 3 cuadros de mando & \ref{sec:monitorizacion} \\
 Trazabilidad del dato & Fuente $\rightarrow$ documento $\rightarrow$ vector $\rightarrow$ búsqueda $\rightarrow$ tarjeta & \ref{sec:monitorizacion} \\
 Arquitectura documentada & Figuras \ref{fig:software}--\ref{fig:objetivo} y 36 decisiones documentadas & \ref{sec:arquitectura} \\
 Docker y despliegue & Dos imágenes, pila Compose y Terraform & \ref{sec:contenedores} \\
-Pruebas & 1.092 pruebas de backend; $\approx$900 de Vitest y unas 75 de Playwright & \ref{sec:cicd} \\
+Pruebas & Más de 2.000 pruebas automáticas, de backend, Vitest y Playwright & \ref{sec:cicd} \\
 Valor de negocio & Problema, mercado, competencia, modelo y costes & \ref{sec:negocio} \\
 Contribución individual & Entregas, líneas y matriz de responsabilidades & \ref{sec:equipo} \\
 \bottomrule
@@ -104,8 +108,15 @@ Contribución individual & Entregas, líneas y matriz de responsabilidades & \re
 \toprule
 \textbf{Término} & \textbf{Significado} \\
 \midrule
-Agente & Programa en el que un modelo de lenguaje decide qué herramientas usar y en qué orden \\
+LLM & Modelo de lenguaje de gran tamaño (\emph{Large Language Model}) \\
+Agente & Programa en el que un LLM decide qué herramientas usar y en qué orden \\
 Herramienta & Función del sistema que el modelo puede invocar (buscar, editar\ldots) \\
+Turno & Un mensaje del viajero y toda la respuesta del sistema \\
+Tarjeta & Ficha de un lugar del corpus (nombre, barrio, foto, fuente y licencia) \\
+Franja & Hueco de un día del itinerario: mañana, tarde, cena o noche \\
+Estancia & Hotel elegido por el viajero; antes, Kiri ayuda a elegir barrio y hotel; después, edita el itinerario \\
+Corpus & Documentos de una ciudad construidos a partir de fuentes abiertas \\
+Puerta de calidad & Umbrales mínimos que un corpus debe superar para publicarse \\
 RAG & Generación aumentada por recuperación: el modelo responde a partir de documentos buscados \\
 \emph{Embedding} & Vector numérico que representa el significado de un texto \\
 Base vectorial & Base de datos que busca por cercanía entre vectores \\
@@ -114,8 +125,7 @@ SSE & \emph{Server-Sent Events}: el servidor envía eventos al navegador según 
 \emph{Recall}@$k$, MRR & Métricas de búsqueda: cuánto de lo esperado aparece y en qué posición \\
 p50 / p95 & Mediana y percentil 95 de una medida (p.\,ej., latencia) \\
 \emph{Serverless} & Servicios gestionados que se pagan por uso y escalan a cero \\
-IaC & Infraestructura como código (Terraform) \\
-OIDC / SSO & Acceso con credenciales temporales, sin claves permanentes \\
+OIDC / SSO & Federación de identidad e inicio de sesión único: credenciales temporales, sin claves permanentes \\
 \bottomrule
 \end{tabularx}
 \end{table}

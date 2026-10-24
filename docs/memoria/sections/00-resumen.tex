@@ -11,10 +11,10 @@ OpenStreetMap, Wikidata y Open-Meteo), un corpus validado con una puerta de cali
 documentos de seis ciudades. Añadir una ciudad es un flujo agéntico (\code{/add-city}), y el propio
 desarrollo se apoya en agentes de IA que implementan, revisan y corrigen cada cambio bajo
 supervisión humana. La solución se
-despliega 100\,\% \emph{serverless} en AWS con Terraform, por unos 5\,€/mes estimados en reposo (más un cortafuegos web, WAF, opcional),
+despliega 100\,\% \emph{serverless} en AWS con Terraform por unos 5\,€/mes estimados en reposo (sin contar el cortafuegos web opcional),
 con CI/CD en GitHub Actions, contenedores y tres niveles de observabilidad. La evaluación mide por
 separado la recuperación (\emph{recall}@10 = 0,768 sobre 120 preguntas), la calidad de las respuestas
-fundamentadas (4,72/5 según un modelo de lenguaje que actúa como juez) y el agente (92,6\,\% de 36 escenarios multiturno y el
-100\,\% de las comprobaciones de seguridad).\\[2pt]
+fundamentadas (4,72/5 según un modelo de lenguaje que actúa como juez) y el agente, que supera el 92,6\,\% de 36 escenarios multiturno y el
+100\,\% de las comprobaciones de seguridad.\\[2pt]
 \textbf{Palabras clave:} IA generativa, agentes con herramientas, RAG, base de datos vectorial,
 \emph{guardrails}, evaluación de LLM, \emph{serverless}, AWS, IaC, CI/CD, DevOps.}}

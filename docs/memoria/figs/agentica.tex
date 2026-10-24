@@ -6,13 +6,13 @@
 \node[font=\scriptsize\bfseries,color=kgray] at (0,1.2) {1. Desarrollo};
 \node[font=\scriptsize\bfseries,color=kgray] at (2.85,1.2) {2. Datos};
 \node[font=\scriptsize\bfseries,color=kgray] at (5.7,1.2) {3. Producto};
-\node[ag] (w) at (0,0.2) {\textbf{Ola de entrega}\\brief $\rightarrow$ implementa $\rightarrow$ 3 revisores $\rightarrow$ corrige};
-\node[ag] (c) at (2.85,0.2) {\textbf{\code{/add-city}}\\configura, construye, cura tours, prueba, abre la propuesta de cambio};
+\node[ag] (w) at (0,0.2) {\textbf{Proceso de entrega}\\\emph{brief} $\rightarrow$ implementa $\rightarrow$ 3 revisores $\rightarrow$ corrige};
+\node[ag] (c) at (2.85,0.2) {\textbf{\code{/add-city}}\\configura, construye, selecciona tours, prueba, abre la propuesta de cambio};
 \node[ag] (k) at (5.7,0.2) {\textbf{Kiri}\\busca, consulta y edita el itinerario con herramientas};
 \node[gt] (wg) at (0,-0.95) {CI (13 trabajos)};
-\node[gt] (cg) at (2.85,-0.95) {Puerta de calidad + \emph{smoke}};
+\node[gt] (cg) at (2.85,-0.95) {Puerta de calidad + prueba del planificador};
 \node[gt] (kg) at (5.7,-0.95) {\emph{Guardrails} + ids conocidos};
-\node[hm] (wh) at (0,-1.8) {Persona: aprueba el \emph{merge}; \code{apply}};
+\node[hm] (wh) at (0,-1.8) {Persona: aprueba el \emph{merge} y el \code{terraform apply}};
 \node[hm] (ch) at (2.85,-1.8) {Persona: indexa y despliega};
 \node[hm] (kh) at (5.7,-1.8) {Viajero: acepta o pide cambios};
 \node[res] (wo) at (0,-2.65) {código en producción};

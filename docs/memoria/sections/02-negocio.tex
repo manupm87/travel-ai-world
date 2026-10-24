@@ -7,10 +7,9 @@ tiempo. En Estados Unidos, el porcentaje de viajeros que usó IA para planificar
 moverse en destino subió del 33\,\% (primer semestre de 2025) al 56\,\% (febrero de
 2026)~\cite{phocuswright2026aisurge}. El cuello de botella ya no es la adopción, sino la
 \textbf{confianza}: solo el 8\,\% considera suficiente la respuesta de la IA y el 51\,\% acaba
-abriendo las fuentes para comprobarla~\cite{phocuswright2026aisurge}; uno de cada cuatro viajeros
-ha recibido información desactualizada o incorrecta (25\,\% en el estudio de Amadeus, que incluye
-España~\cite{amadeus2025connected}; 27\,\% según Global Rescue~\cite{globalrescue2026}), y cerca
-del 60\,\% solo se fía tras comprobarla en otra fuente~\cite{globalrescue2026}. El caso extremo está
+abriendo las fuentes para comprobarla~\cite{phocuswright2026aisurge}. Además, uno de cada cuatro
+viajeros ha recibido información desactualizada o incorrecta (25\,\% en el estudio de Amadeus, que
+incluye España~\cite{amadeus2025connected}; 27\,\% según Global Rescue~\cite{globalrescue2026}). El caso extremo está
 documentado: dos turistas recorrieron Perú en busca de un «Cañón Sagrado de Humantay» que un
 \emph{chatbot} había inventado mezclando dos topónimos reales~\cite{aiid2025humantay}.
 
@@ -29,7 +28,7 @@ De ahí salen los tres problemas que aborda \kyrian{}:
 El turismo internacional registró 1.520 millones de llegadas en 2025 (+4\,\%) y unos ingresos por
 exportaciones de 2,2 billones de dólares~\cite{untourism2026barometer}. El mercado de viajes en
 línea supera los 700.000 millones de dólares~\cite{statista2026onlinetravel}, y el segmento
-específico de IA aplicada al turismo se estima en 4.300 millones en 2025, con un crecimiento anual
+específico de IA aplicada al turismo se estima en 4.300 millones de dólares en 2025, con un crecimiento anual
 compuesto del 18,2\,\% hasta 17.300 millones en 2033~\cite{grandview2025aitourism}. Los usuarios
 que planifican con IA, además, son el cliente de mayor valor: renta y gasto en viajes claramente
 superiores a la media~\cite{phocuswright2026aisurge}.
@@ -37,8 +36,8 @@ superiores a la media~\cite{phocuswright2026aisurge}.
 \subsection{Competencia y diferenciación}
 
 La Tabla~\ref{tab:competencia} resume los competidores más relevantes. Los grandes actores parten
-de su inventario (hoteles, vuelos, reseñas) o de un modelo general; ninguno publica de dónde sale
-cada recomendación ni permite comprobarla.
+de su inventario (hoteles, vuelos, reseñas) o de un modelo general; ninguno muestra, para cada
+recomendación, la fuente y la licencia del dato que la respalda.
 
 \begin{table}[t]
 \centering\scriptsize
@@ -47,7 +46,7 @@ cada recomendación ni permite comprobarla.
 \toprule
 \textbf{Producto} & \textbf{Fuente del plan} & \textbf{Hueco que deja} \\
 \midrule
-Mindtrip~\cite{mindtrip2025bvi} & Datos propietarios, mapa interactivo; versión B2B para oficinas de turismo & Corpus cerrado: no se puede auditar ni ceder \\
+Mindtrip~\cite{mindtrip2025bvi} & Datos propietarios, mapa interactivo; versión para empresas (B2B) dirigida a oficinas de turismo & Corpus cerrado: no se puede auditar ni ceder \\
 Google AI Mode (Canvas)~\cite{androidauthority2025canvas} & Datos de Maps, Flights y Hotels & Experimento en EE.\,UU.; asistente generalista \\
 ChatGPT + apps de Expedia y Booking~\cite{lee2025chatgptapps} & Modelo general + inventario de la agencia en línea (OTA) & Orientado a vender alojamiento, no a conocer la ciudad \\
 Tripadvisor AI~\cite{tripadvisor2023ai} & Reseñas de usuarios & Popularidad, no geografía; edición limitada \\
@@ -65,10 +64,10 @@ La propuesta de valor de \kyrian{} se apoya en cuatro elementos diferenciadores:
         descarta antes de llegar al usuario (§\ref{sec:guardrails}).
   \item \textbf{Mapa como interfaz}: el itinerario se construye día a día sobre un mapa
         (MapLibre sobre OpenFreeMap), con barrios, hoteles y actividades geolocalizados.
-  \item \textbf{Edición conversacional}: «cambia la cena» modifica una franja concreta mediante
+  \item \textbf{Edición conversacional}: «cambia la cena» modifica una franja concreta del día mediante
         herramientas, sin rehacer el plan (§\ref{sec:agente}).
-  \item \textbf{Coste marginal casi nulo}: la arquitectura 100\,\% \emph{serverless} cuesta unos
-        5\,€/mes estimados en reposo (sin el WAF opcional) y añadir una ciudad cuesta céntimos de cómputo (§\ref{sec:coste}).
+  \item \textbf{Coste marginal casi nulo}: la arquitectura 100\,\% \emph{serverless} no paga
+        servidores en reposo y añadir una ciudad cuesta céntimos de cómputo (§\ref{sec:coste}).
 \end{enumerate}
 
 \subsection{Modelo de negocio y viabilidad}
@@ -79,18 +78,18 @@ valora poder comprobar lo que se le recomienda. El cliente que paga, en la líne
 destino: oficinas de turismo, ayuntamientos y consorcios turísticos que quieren ofrecer en su web
 un planificador con información fiable de su ciudad. Se contemplan dos líneas complementarias:
 \begin{itemize}
-  \item \textbf{B2B (venta a empresas) de marca blanca para destinos}. El mercado ya paga por ella (Mindtrip ya la vende
-        a oficinas de turismo~\cite{mindtrip2025bvi}). Los textos y datos del corpus
+  \item \textbf{B2B (venta a empresas) de marca blanca para destinos}. El mercado ya paga por ella: Mindtrip la vende a
+        oficinas de turismo~\cite{mindtrip2025bvi}. Los textos y datos del corpus
         tienen licencia abierta y trazable, de modo que el destino puede auditar de dónde sale cada
         recomendación y enriquecer el corpus con su propia información; las fotos de alojamientos
         que proceden de la web de cada hotel se sustituirían por material del destino. Como
         hipótesis de precio, una licencia de unos 300--500\,€/mes por destino (alta, mantenimiento
-        del corpus e inferencia incluidos) se recupera con márgenes altos, porque el alta es un
-        procedimiento automatizado (§\ref{sec:addcity}) y el coste de inferencia es variable: con dos
-        sesiones al mes por usuario (0,24\,\$), una licencia de 400\,€/mes cubre el gasto en IA de
-        unos 1.800 usuarios activos mensuales. La entrada al mercado sería un piloto con una
-        ciudad española de tamaño medio, cuyo corpus se genera con \code{/add-city} en un día,
-        gratuito tres meses para medir activación y conversión.
+        del corpus e inferencia incluidos) deja márgenes altos: el alta es un procedimiento
+        automatizado (§\ref{sec:addcity}) y la inferencia es un coste variable. Con dos sesiones
+        al mes por usuario (0,24\,\$), una licencia de 400\,€/mes cubre el gasto en IA de unos
+        1.800 usuarios activos mensuales. La entrada al mercado sería un piloto gratuito de tres
+        meses con una ciudad española de tamaño medio (su corpus se genera con \code{/add-city}
+        en unas horas) para medir activación y conversión.
   \item \textbf{B2C (venta al consumidor) \emph{freemium} con afiliación}: el plan es gratuito y la monetización llega
         por comisión sobre actividades y alojamiento reservados desde las tarjetas; los programas
         de afiliación de actividades pagan en torno a un 8\,\%~\cite{track3602026} (cifra
@@ -103,11 +102,12 @@ tokens de entrada y 109 de salida, es decir, \textbf{unos 0,4 céntimos de dóla
 modelo}; un turno usa entre una y diez llamadas\footnote{Media
 sobre las 295 llamadas de la evaluación de conversaciones de referencia (§\ref{sec:evalagente});
 precios de la tabla versionada del repositorio.}. Un borrador completo de tres días cuesta 2--3
-céntimos y cada edición alrededor de uno (Tabla~\ref{tab:turnos}), de modo que una sesión típica
+céntimos y cada edición alrededor de uno, de modo que una sesión típica
 (borrador y una decena de ediciones) se queda en 10--18 céntimos de dólar, frente a unos 3\,€ de comisión
 por una sola actividad de 40\,€ reservada. La cuota diaria por usuario (300.000 tokens por
-defecto; es un límite blando, porque el turno que la sobrepasa se completa) limita el gasto a unos
-0,35\,\$ por persona y día: el gasto en IA crece con el uso, pero siempre dentro de un límite.
+defecto) acota el gasto a unos 0,35\,\$ por persona y día: el coste de IA crece con el uso, pero
+nunca sin control. Los precios de AWS y de los modelos se dan en dólares, como se publican; el
+coste de la infraestructura en reposo, en euros.
 
 \begin{table}[h]
 \centering\scriptsize
@@ -126,8 +126,7 @@ defecto; es un límite blando, porque el turno que la sobrepasa se completa) lim
 La Tabla~\ref{tab:escalado} muestra que el coste es casi enteramente variable y proporcional al
 uso: no hay escalones de capacidad que comprar. El umbral de rentabilidad en B2C es bajo:
 \textbf{basta con que una de cada 25 sesiones acabe en la reserva de una actividad de 40\,€} para
-cubrir el gasto en IA. En B2B, la licencia por destino cubre el coste de inferencia de sus
-usuarios con un margen amplio.
+cubrir el gasto en IA. La Tabla~\ref{tab:dafo} resume la posición estratégica del producto.
 
 \begin{table}[h]
 \centering\scriptsize
@@ -136,7 +135,7 @@ usuarios con un margen amplio.
 \toprule
 \textbf{Fortalezas} & \textbf{Debilidades} \\
 \midrule
-Fundamentación verificable por construcción; datos con licencia abierta y trazable; coste marginal mínimo; alta de ciudades automatizada; bilingüe. & Seis ciudades (mitigado: alta automatizada en horas); sin reserva integrada (prevista con afiliación); riqueza de OSM y Wikivoyage desigual por ciudad (mitigado: puerta de calidad). \\
+Fundamentación verificable por construcción; datos con licencia abierta y trazable; coste marginal mínimo; alta de ciudades automatizada; bilingüe. & Seis ciudades (mitigado: alta automatizada en horas); sin reserva integrada (prevista con afiliación); riqueza de OpenStreetMap y Wikivoyage desigual por ciudad (mitigado: puerta de calidad). \\
 \midrule
 \textbf{Oportunidades} & \textbf{Amenazas} \\
 \midrule
@@ -147,21 +146,48 @@ Adopción de la IA en EE.\,UU. del 33 al 56\,\%; demanda de fuentes fiables; des
 
 \textbf{Indicadores de negocio.} La Tabla~\ref{tab:kpinegocio} fija los indicadores con los que se
 gestionaría el producto y su objetivo inicial (hipótesis para la fase de lanzamiento). Los que
-dependen de viajes y turnos ya se miden con los eventos de negocio y las trazas (§\ref{sec:metricas}).
+dependen de viajes y turnos ya se miden con los eventos de negocio y las trazas
+(§\ref{sec:metricas}), y los valores de los primeros 30 días con usuarios de prueba
+(Tabla~\ref{tab:produccion}) ya cumplen los tres objetivos que se pueden medir.
 
-\begin{table}[h]
+% La tabla del equipo (§3) se declara aquí, en la página anterior a la §3, para que flote al
+% principio de la página de esa sección; los contadores mantienen la numeración en orden de lectura
+% (esta es la Tabla 8 y la de indicadores, que sigue, la 7).
+\addtocounter{table}{1}
+\begin{table*}[!t]
 \centering\scriptsize
-\caption{Indicadores de negocio y objetivos iniciales.}\label{tab:kpinegocio}
-\begin{tabularx}{\columnwidth}{@{}L{2.35cm}Yr@{}}
+\caption{Contribución individual medida sobre el historial (de marzo a octubre de 2026; 242 entregas integradas en la rama principal). El $\approx$2\,\% restante del código actual (firmado por cuentas automáticas: agentes y Dependabot) queda sin asignar.}\label{tab:equipo}
+\begin{tabularx}{\textwidth}{@{}L{2.3cm}Yrrr@{}}
 \toprule
-\textbf{Indicador} & \textbf{Definición} & \textbf{Objetivo} \\
+\textbf{Miembro} & \textbf{Responsabilidad y entregables principales} & \textbf{Entregas} & \textbf{Líneas +/--} & \textbf{Código actual} \\
 \midrule
-Activación & Sesiones que generan un borrador / sesiones iniciadas & $\geq$40\,\% \\
-Viajes guardados & Viajes creados por usuario activo y mes & $\geq$1 \\
-Implicación & Ediciones conversacionales por sesión & 3--10 \\
-Conversión & Clics de afiliación por tarjeta mostrada & $\geq$3\,\% \\
-Coste de IA & Gasto en modelos por usuario activo y mes & $\leq$0,30\,\$ \\
-Calidad percibida & Turnos sin error ni reintento & $\geq$99\,\% \\
+Manuel Pérez & Arquitectura y dirección técnica. División en dos servicios y estructura del repositorio; arquitectura AWS \emph{serverless} con Cognito, Lambda y API Gateway con \emph{streaming}; frontend base y planificador; caso de uso del planificador y flujo SSE tipado; constructor de corpus \code{city\_corpus}, puerta de calidad y \code{/add-city}; experimento de base vectorial; DynamoDB; trazas y consola de administración; lista de acceso y cuota; agente Kiri con herramientas, \emph{guardrails} y evaluación de conversaciones; proceso de entrega con agentes. & 158 & 132.409 / 37.394 & 78,3\,\% \\
+Joaquín Castro Salas & Backend inicial (FastAPI, modelos, capas); primer \emph{chatbot}; adaptador de Bedrock; recuperador RAG sobre S3 Vectors con Titan y su infraestructura; rediseño del frontend en torno a Kiri; evaluación RAG con \emph{recall}@$k$ y MRR, 120 preguntas y juez LLM; corpus de Berlín y fotos de Bolonia y Miami; retirada de componentes obsoletos; normalización de comentarios y documentación. & 47 & 28.394 / 17.915 & 14,2\,\% \\
+David Baos & Observabilidad y métricas de negocio: eventos de negocio y métricas de creación de viajes, panel Grafana local, estadística de negocio en producción con CloudWatch Logs Insights, cuadros de mando de servicio e infraestructura y registros de acceso estructurados, métricas de Cognito y Bedrock; corpus de Miami. & 11 & 4.746 / 72 & 3,7\,\% \\
+Alexander De Sousa & Primera fuente de datos: \emph{scraper} de Madrid (abril--mayo; sustituido después por \code{city\_corpus}); primer \emph{devcontainer}; primera infraestructura como código sobre ECS y Cloud Run; infraestructura HTTPS del frontend: S3, CloudFront, Route~53 y ACM; salidas estructuradas nativas del proveedor; configuración de Madrid y Los Ángeles. & 23 & 9.570 / 4.036 & 1,4\,\% \\
 \bottomrule
 \end{tabularx}
-\end{table}
+\end{table*}
+\addtocounter{table}{-2}
+
+\par\medskip\noindent\begin{minipage}{\columnwidth}
+\centering\scriptsize
+\captionof{table}{Indicadores de negocio, objetivos iniciales y valor medido en producción (30 días, 7 usuarios de prueba; --: se medirá tras el lanzamiento).}\label{tab:kpinegocio}
+\begin{tabularx}{\columnwidth}{@{}L{1.75cm}Yrr@{}}
+\toprule
+\textbf{Indicador} & \textbf{Definición} & \textbf{Objetivo} & \textbf{Medido} \\
+\midrule
+Activación & Sesiones que generan un borrador / sesiones iniciadas & $\geq$40\,\% & -- \\
+Viajes guardados & Viajes creados por usuario activo y mes & $\geq$1 & 2,9 \\
+Implicación & Ediciones conversacionales por sesión & 3--10 & -- \\
+Conversión & Clics de afiliación por tarjeta mostrada & $\geq$3\,\% & -- \\
+Coste de IA & Gasto en modelos por usuario activo y mes & $\leq$0,30\,\$ & 0,29\,\$ \\
+Calidad percibida & Turnos sin error ni reintento & $\geq$99\,\% & 99,7\,\%$^{*}$ \\
+\bottomrule
+\multicolumn{4}{@{}l@{}}{\tiny $^{*}$Sin las fichas pedidas con identificadores anteriores a una reindexación; con ellas, 97,1\,\% (§\ref{sec:produccion}).}
+\end{tabularx}
+\end{minipage}\par\medskip
+\addtocounter{table}{1}
+
+En resumen, el mercado ya usa la IA para planificar; lo que falta es poder fiarse de ella, y ese
+es el hueco que ocupa \kyrian{}.

@@ -3,7 +3,7 @@
 \subsection{Entorno de desarrollo reproducible}
 
 Todo el equipo trabaja en el mismo \textbf{contenedor de desarrollo} (\emph{devcontainer}), una pila de Docker
-Compose con dos servicios: el terminal y DynamoDB Local en memoria. La imagen trae las versiones que usa la CI (Node~24,
+Compose con dos servicios: el contenedor de trabajo y DynamoDB Local en memoria. La imagen trae las versiones que usa la CI (Node~24,
 Python~3.12 con \code{uv}, Terraform~1.16, AWS CLI, \code{gh}, \code{just}, \code{crane}),
 Claude Code y, opcionalmente, otros agentes de terminal; nueve volúmenes con nombre conservan
 dependencias, sesiones de los agentes y la caché de SSO entre reconstrucciones. El
@@ -29,9 +29,8 @@ las herramientas.
 Un único \code{Dockerfile} multietapa genera las dos imágenes del backend (argumento
 \code{SERVICE}): una etapa instala las dependencias con \code{uv} a partir del \emph{lockfile}, sin
 paquetes de desarrollo, y la final parte de \code{python:3.12-slim}, se ejecuta con un usuario sin
-privilegios e incluye una comprobación de salud. La misma imagen funciona en Docker Compose y en
-Lambda gracias a AWS Lambda Web Adapter, una extensión que traduce cada invocación a una petición
-HTTP local y que fuera de Lambda no hace nada. Hay dos pilas locales: \code{just docker-up}
+privilegios e incluye una comprobación de salud. La misma imagen sirve para Docker Compose y para
+Lambda (§\ref{sec:coste}). Hay dos pilas locales: \code{just docker-up}
 (solo backend: Nginx, ambos servicios y DynamoDB Local) y \code{just stack-up}, que añade el sitio
 estático y reproduce el despliegue con un único origen en el puerto 8080; Nginx replica las reglas
 de CloudFront, incluido no almacenar en búfer el flujo SSE. En cada propuesta de cambio que toca el backend, la CI construye ambas
@@ -48,7 +47,7 @@ IA responde a la comprobación de salud dentro del contenedor.
   h/.style={human,text width=2.05cm,minimum height=0.8cm},
   w/.style={aws,text width=2.05cm,minimum height=0.8cm}]
 \node[c] (lin) at (0,0) {\textbf{Tarea} en Linear\\y rama};
-\node[a] (brief) at (2.55,0) {\textbf{Auditoría y \emph{brief}}\\modelo más capaz};
+\node[a] (brief) at (2.55,0) {\textbf{Auditoría y \emph{brief}}\\modelo de mayor capacidad};
 \node[a] (impl) at (5.1,0) {\textbf{Implementa}\\Opus en \emph{worktree}};
 \node[c] (pr) at (7.65,0) {\textbf{Propuesta de cambio}\\enlazada a la tarea};
 \node[a,text width=2.4cm] (rev) at (10.35,0) {\textbf{3 revisores} Sonnet\\corrección · contratos y pruebas · UX y accesibilidad};
@@ -77,9 +76,8 @@ este proyecto: (1) \textbf{deriva de contratos}: si un esquema Pydantic cambia s
 OpenAPI y los tipos TypeScript del frontend, la CI falla; (2) la \textbf{pila completa} (Nginx,
 ambos servicios y DynamoDB Local en Compose) se levanta y se recorre con Playwright con sesión
 iniciada; y (3) la \textbf{documentación}: ficheros obligatorios, índice de decisiones de arquitectura, enlaces y que
-toda receta \code{just} citada en las instrucciones de los agentes exista. Hay 1.092 pruebas en
-el backend (665 en \code{ai\_api} y 191 en el constructor de corpus), unas 900 de Vitest en el
-frontend y unas 75 de Playwright.
+toda receta \code{just} citada en las instrucciones de los agentes exista. La
+Tabla~\ref{tab:tests} reparte las más de 2.000 pruebas automáticas por paquete.
 
 
 \begin{table}[h]
@@ -100,7 +98,7 @@ Frontend (Playwright) & $\approx$75 & Flujos en desarrollo, sitio estático y pi
 \end{tabularx}
 \end{table}
 
-El despliegue separa construir de promover: cada \emph{merge} que toca el backend construye imágenes en GHCR (el registro de
+El despliegue separa construir de promover (llevar a producción una imagen ya construida): cada \emph{merge} que toca el backend construye imágenes en GHCR (el registro de
 contenedores de GitHub); el despliegue del backend (manual) las copia a ECR (el de AWS) con \code{crane}, fija el \emph{digest} en
 Terraform y aplica el plan solo si se pide. El frontend se publica automáticamente. Es una
 decisión deliberada: el frontend practica despliegue continuo, porque publicarlo no cambia
@@ -114,14 +112,13 @@ actualiza dependencias semanalmente y \code{just release} asigna la versión y e
 
 La infraestructura de AWS está en Terraform (\code{infra/aws}): CloudFront, S3, Route~53,
 ACM, API Gateway, Lambda, Cognito, DynamoDB, S3 Vectors, Bedrock Guardrails, ECR, IAM
-y los cuadros de mando de CloudWatch. Quedan fuera, a propósito, el WAF de CloudFront (opcional,
-asociado desde la consola e ignorado de forma explícita por Terraform para no deshacerlo; llevarlo
-a código es parte de la arquitectura objetivo, §\ref{sec:prod}) y el modo \code{ENHANCED} del
-índice vectorial, que se fija con la CLI porque el proveedor aún no lo admite. El estado de Terraform se guarda en un \emph{bucket} de S3 cifrado
-y versionado con bloqueo nativo, creado por una configuración raíz de arranque (\emph{bootstrap}) que también da de alta el proveedor
-OIDC de GitHub y los roles de CI. Se conserva además una variante anterior para Google Cloud
-(Cloud Run y Cloud SQL) que la CI valida sintácticamente; no está al día con DynamoDB ni con la
-base vectorial, y se mantiene como punto de partida para una futura portabilidad.
+y los cuadros de mando de CloudWatch. Solo dos piezas quedan fuera, a propósito: el WAF de
+CloudFront, opcional y asociado desde la consola (Terraform lo ignora para no deshacerlo, y la
+arquitectura objetivo lo incorpora, §\ref{sec:prod}), y el modo \code{ENHANCED} del índice
+\code{city-kb}, que se fija con la CLI de AWS porque el proveedor de Terraform aún no lo admite.
+El estado de Terraform se guarda en un \emph{bucket} de S3 cifrado y versionado con bloqueo
+nativo, creado por una configuración raíz de arranque (\emph{bootstrap}) que también da de alta el
+proveedor OIDC de GitHub y los roles de CI.
 
 \subsection{Entrega con agentes de IA}\label{sec:entrega}
 
@@ -129,29 +126,62 @@ Desde el 21 de septiembre, el proceso por defecto para todo cambio de más de un
 (Fig.~\ref{fig:cicd}), orquestado por un \emph{workflow} de Claude Code
 (\code{kyrian-wave.js}):
 \begin{enumerate}
-  \item \textbf{Auditoría y \emph{brief}}: el modelo más capaz lee el código, \emph{toma} las decisiones
-        y escribe un \emph{brief} (especificación para el agente) con el resultado esperado, las
+  \item \textbf{Auditoría y \emph{brief}}: el modelo de mayor capacidad disponible, en la sesión de
+        Claude Code que coordina el proceso, lee el código, toma las decisiones de diseño (que ya
+        no se reabren) y escribe un \emph{brief} (especificación para el agente) con el resultado esperado, las
         decisiones cerradas, los ficheros, las pruebas, la documentación y los criterios de
         aceptación. La tarea de Linear guarda el resultado y la lista de aceptación.
-  \item \textbf{Implementación}: un agente Opus trabaja en su propia copia de trabajo aislada
+  \item \textbf{Implementación}: un agente Claude Opus trabaja en su propia copia de trabajo aislada
         (\emph{git worktree}), ejecuta las comprobaciones y abre la propuesta de cambio.
-  \item \textbf{Revisión}: tres agentes Sonnet, en paralelo y cada uno con un enfoque (corrección;
+  \item \textbf{Revisión}: tres agentes Claude Sonnet, en paralelo y cada uno con un enfoque (corrección;
         contratos y pruebas; UX, textos y accesibilidad), devuelven hallazgos estructurados con
         fichero, línea y severidad.
   \item \textbf{Corrección y entrega}: Opus aplica los hallazgos confirmados (o justifica por qué
-        no), vigila la CI durante un máximo de dos rondas y nunca integra: lo hace la sesión
-        principal con la CI en verde. La persona aprueba el \emph{merge} si el sistema de permisos
-        lo exige, lanza \code{terraform apply} y prueba en producción.
+        no), vigila la CI durante un máximo de dos rondas y nunca integra el cambio: lo hace la
+        sesión que coordina el proceso, solo con la CI en verde. La persona aprueba el \emph{merge}
+        si el sistema de permisos lo exige, lanza \code{terraform apply} y prueba en producción.
 \end{enumerate}
-El principio es que el modelo más capaz decide y los más económicos implementan y revisan, y que
-cada cambio llegue a una persona con un \emph{brief} escrito, tres revisiones y la CI en verde. Las
+El principio es que el modelo de mayor capacidad decide y modelos más económicos (Claude Opus y
+Claude Sonnet) implementan y revisan, y que cada cambio llegue a una persona con un \emph{brief}
+escrito, tres revisiones y la CI en verde. Las
 reglas se aplican con herramientas, no con buena voluntad: un \emph{hook} (comprobación automática
 de Claude Code) impide crear ramas cuyo nombre no indique el tipo de cambio y la tarea de Linear
 a la que responde, \code{AGENTS.md} es la fuente única de instrucciones para cualquier
 agente (Claude Code, Codex, Gemini\ldots) y diez comandos encapsulan tareas repetidas
 (empezar una tarea, entregarla con agentes, \code{/add-city}, \code{/check-site}\ldots). En cifras:
-242 entregas integradas en la rama principal (92 de ellas desde la adopción del proceso); el
-75\,\% de las entregas se generaron con Claude Code.
+92 de las 242 entregas del proyecto se han integrado desde que se adoptó este proceso. Personas y agentes trabajan
+con las mismas herramientas y las mismas puertas, y cada cambio llega a producción con su
+evidencia (O5).
+
+\subsection{Tres niveles de IA agéntica}\label{sec:agentica}
+
+El proyecto usa agentes de IA en tres niveles del ciclo de vida, con el mismo principio: el agente
+actúa con herramientas acotadas, se detiene en puertas automáticas y deja a una persona las
+decisiones irreversibles. La Fig.~\ref{fig:agentica} y la Tabla~\ref{tab:agentica} reúnen los tres
+que ya se han descrito: Kiri en el producto (§\ref{sec:agente}), \code{/add-city} en los datos
+(§\ref{sec:addcity}) y el proceso de entrega en el código.
+
+\begin{figure}[!h]
+\centering
+\resizebox{\columnwidth}{!}{\input{figs/agentica}}
+\caption{Los tres agentes del proyecto y sus puertas. Cada nivel produce lo que consume el siguiente: código, datos y, por último, el plan del viajero.}\label{fig:agentica}
+\end{figure}
+
+\begin{table}[!h]
+\centering\scriptsize
+\caption{Comparación de los tres niveles agénticos.}\label{tab:agentica}
+\begin{tabularx}{\columnwidth}{@{}L{1.4cm}YYY@{}}
+\toprule
+& \textbf{Kiri (producto)} & \textbf{\code{/add-city} (datos)} & \textbf{Entrega (código)} \\
+\midrule
+Modelo & Claude Haiku 4.5 & Claude, en una sesión de Claude Code & Claude Opus implementa y corrige; 3 Claude Sonnet revisan \\
+Herramientas & 15 propias sobre corpus, itinerario y clima & Recetas \code{just}, web, Git, Linear & \emph{Worktree}, \code{gh}, comprobaciones, Linear \\
+Límites & 6 pasos del modelo, 12 llamadas a herramientas, solo ids conocidos & Puerta de calidad de 11 umbrales; prueba del planificador & \emph{Brief} con decisiones cerradas; 2 rondas de CI \\
+Persona decide & El viajero: qué pide y qué acepta & Indexar en producción y desplegar & Aprobar el \emph{merge} si se le pide; \code{terraform apply} \\
+Se valida con & 36 escenarios $\times$3 & 20 preguntas por ciudad & CI de 13 trabajos + 3 revisiones \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
 \subsection{Monitorización y registro}\label{sec:monitorizacion}
 
@@ -168,7 +198,7 @@ La observabilidad tiene tres niveles, todos sin servidores adicionales:
         \code{business\_event=} seudonimizados al crear un viaje.
   \item \textbf{Cuadros de mando de CloudWatch} definidos en Terraform: servicio (Lambda, API
         Gateway, Cognito, Bedrock), infraestructura (DynamoDB, CloudFront) y registros de acceso con
-        Logs Insights, más un panel de negocio en Grafana sobre los eventos.
+        Logs Insights; el panel de negocio, en Grafana, se ejecuta en local sobre esos mismos eventos.
 \end{itemize}
 La Tabla~\ref{tab:spans} muestra la anatomía de la traza del turno de la Tabla~\ref{tab:traza}:
 basta abrirla en el inspector para saber qué buscó el agente, con qué filtros, qué documentos
@@ -181,7 +211,7 @@ Las métricas concretas se describen en la §\ref{sec:metricas}.
 
 \begin{table}[h]
 \centering\scriptsize
-\caption{\emph{Spans} de la traza de un turno de edición, en orden.}\label{tab:spans}
+\caption{\emph{Spans} de la traza del turno de la Tabla~\ref{tab:traza}, en orden (una fila por tipo de \emph{span}).}\label{tab:spans}
 \begin{tabularx}{\columnwidth}{@{}L{2.35cm}L{1.1cm}Y@{}}
 \toprule
 \textbf{\emph{Span}} & \textbf{Tipo} & \textbf{Qué registra} \\
@@ -200,7 +230,7 @@ Resumen & -- & Tokens, coste, latencia, documentos recuperados y usados, ids des
 
 \subsection{Reproducibilidad}
 
-Todo resultado de esta memoria se puede regenerar desde el repositorio con las mismas recetas
+Todos los resultados de evaluación de esta memoria se pueden regenerar desde el repositorio con las mismas recetas
 (\code{index} y las evaluaciones requieren una sesión de AWS; la del agente, Bedrock o una clave de NVIDIA):
 
 \noindent\colorbox{klight}{\parbox{\dimexpr\columnwidth-2\fboxsep}{\ttfamily\scriptsize
