@@ -18,7 +18,6 @@ export type TurnStatus = TurnSummary["status"];
 export type AdminUsage = AiComponents["schemas"]["AdminUsageResponse"];
 export type RetrievalEval = AiComponents["schemas"]["RetrievalEvalResponse"];
 export type RetrievalScores = AiComponents["schemas"]["RetrievalScoresResponse"];
-export type RetrievalMiss = AiComponents["schemas"]["RetrievalMissResponse"];
 export type AdminUsageItem = AiComponents["schemas"]["AdminUsageItem"];
 export type AdminUser = CoreComponents["schemas"]["UserResponse"];
 export type AdminUserPage = CoreComponents["schemas"]["AdminUserPage"];

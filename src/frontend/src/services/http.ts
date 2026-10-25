@@ -126,14 +126,6 @@ export async function readErrorBody(res: Response): Promise<ErrorBody> {
   return parseErrorBody(body);
 }
 
-/** The error message from a failed response, or `fallback`. */
-export async function readErrorMessage(
-  res: Response,
-  fallback: string
-): Promise<string> {
-  return (await readErrorBody(res)).message ?? fallback;
-}
-
 export interface RequestOptions extends Omit<RequestInit, "body"> {
   /** JSON-serialised into the body with the matching Content-Type. */
   json?: unknown;

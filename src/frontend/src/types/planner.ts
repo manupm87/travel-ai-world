@@ -98,8 +98,6 @@ export type ItineraryOp = components["schemas"]["ItineraryOp"];
 
 export type PlannerEvent = components["schemas"]["PlannerEvent"];
 
-export type PlannerEventType = PlannerEvent["type"];
-
 export type SelectAction = components["schemas"]["SelectAction"];
 
 export type RemoveAction = components["schemas"]["RemoveAction"];

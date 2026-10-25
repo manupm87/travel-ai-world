@@ -346,5 +346,3 @@ export function usePlanner() {
     abort,
   };
 }
-
-export type UsePlannerResult = ReturnType<typeof usePlanner>;
