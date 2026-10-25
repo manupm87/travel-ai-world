@@ -1,3 +1,5 @@
+"""The FastAPI application: the table opened in the lifespan, routers, metrics."""
+
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 

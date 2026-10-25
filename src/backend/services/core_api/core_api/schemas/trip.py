@@ -1,3 +1,5 @@
+"""Request and response bodies of a trip, its children embedded in the response."""
+
 from datetime import UTC, date, datetime
 from uuid import UUID
 

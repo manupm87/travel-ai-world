@@ -1,3 +1,5 @@
+"""Trip use cases: a user's trips (create, read, update, delete), admin reads."""
+
 import logging
 import uuid
 from collections.abc import Callable

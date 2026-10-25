@@ -1,3 +1,5 @@
+"""The versioned API router: every endpoint module mounted under its prefix."""
+
 from fastapi import APIRouter
 
 from core_api.api.v1.endpoints import admin, auth, health, trips, users

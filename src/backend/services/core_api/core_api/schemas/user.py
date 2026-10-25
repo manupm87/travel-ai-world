@@ -1,3 +1,5 @@
+"""Request and response bodies of accounts and of the local Google sign-in."""
+
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field

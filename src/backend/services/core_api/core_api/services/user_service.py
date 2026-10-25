@@ -1,3 +1,5 @@
+"""Account use cases: resolve the caller, manage a profile, upsert from an identity."""
+
 import builtins
 import uuid
 

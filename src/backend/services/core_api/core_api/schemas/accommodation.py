@@ -1,3 +1,5 @@
+"""Request and response bodies of a trip's accommodations."""
+
 from datetime import date
 from uuid import UUID
 

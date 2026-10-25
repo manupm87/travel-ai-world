@@ -1,3 +1,5 @@
+"""Logging setup: idempotent, and third-party loggers stay quiet."""
+
 import logging
 
 from travel_common.http.logging import configure_logging
