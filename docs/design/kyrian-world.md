@@ -40,6 +40,7 @@ light is "Pizarra clara", the same slate washed out.
 | `--aurora-dots` | 4.5 % | 5.5 % | The dotted paper under them, one dot every 22 px |
 | `--glass-bg` / `--glass-border` | translucent card | translucent white | Surfaces the sky shows through |
 | `--color-sticker-*` | fragile `#D9B98F`, overweight `#D08C73`, book ahead `#9DBDB0` | same | Kiri's warning stickers, with `--color-sticker-ink` text |
+| `--color-scrim` / `--color-sheen` | `#000000` / `#FFFFFF` | same | Constant black and white: the drawer scrim, image shimmer and icon tiles that must not flip with the theme |
 | `--kiri-*` | clay `#C8876E`, light `#DDA58F`, dark `#9C6250`, outline `#24160F`, cream `#E9DED3` … | same | Kiri, the only warm colour in the interface |
 
 **The action is not a colour.** A primary button is `bg-action text-on-action` — white on the slate,
