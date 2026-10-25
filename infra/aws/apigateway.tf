@@ -9,7 +9,7 @@
 
 resource "aws_api_gateway_rest_api" "main" {
   name        = "${var.name_prefix}-api"
-  description = "Travel AI World backend: core_api and ai_api on Lambda"
+  description = "Kyrian World backend: core_api and ai_api on Lambda"
 
   endpoint_configuration {
     types = ["REGIONAL"]
