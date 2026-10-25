@@ -68,7 +68,10 @@ only on ports), `infrastructure/` (the adapters), `api/`, `schemas/`. The module
 [`AGENTS.md`](AGENTS.md#layout-ports-and-adapters).
 
 Swap the model: `NVIDIA_CHAT_MODEL` in `.env` (NVIDIA retires models without notice; a `410` from
-the provider means pick another one on build.nvidia.com). `z-ai/glm-5.3-flash` supports native JSON
+the provider means pick another one on build.nvidia.com). The default,
+`nvidia/nemotron-3-super-120b-a12b`, is the one that calls tools, which Kiri needs (ADR 0032); with
+any model outside `TOOL_USE_MODELS` the planner answers a fixed "unavailable" sentence to free-form
+messages. `z-ai/glm-5.3-flash` supports native JSON
 Schema output; structured calls set `reasoning_effort=low` and `clear_thinking=true` for it.
 Other NVIDIA models receive the schema in the prompt and are parsed tolerantly. Tune sampling with
 `CHAT_*`. Swap the provider: `LLM_PROVIDER=nvidia|bedrock`; a third one is a new class in

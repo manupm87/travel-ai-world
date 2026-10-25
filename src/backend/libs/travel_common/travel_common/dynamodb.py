@@ -29,7 +29,9 @@ _RETRIES = Config(retries={"mode": "standard", "max_attempts": 5})
 class DynamoSettings(BaseSettings):
     """DynamoDB settings a service mixes into its settings class.
 
-    No `model_config`: the service's `CommonSettings` base supplies it.
+    The service class must declare its own `model_config`: pydantic merges the
+    bases' configs left to right, so this base's default (no `env_file`) would
+    override `CommonSettings` and the service would ignore its `.env`.
     """
 
     # empty on AWS; locally moto (http://localhost:8002) or DynamoDB Local
@@ -47,7 +49,13 @@ def dynamodb_client(
     """
     kwargs: dict[str, Any] = {"region_name": region, "config": _RETRIES}
     if endpoint_url:
-        kwargs["endpoint_url"] = endpoint_url
+        # moto and DynamoDB Local accept any signature, but boto3 refuses to send
+        # an unsigned request: fixed keys spare a laptop with no AWS profile
+        kwargs.update(
+            endpoint_url=endpoint_url,
+            aws_access_key_id="local",
+            aws_secret_access_key="local",  # noqa: S106
+        )
     return boto3.client("dynamodb", **kwargs)
 
 

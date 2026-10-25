@@ -130,7 +130,7 @@ terraform validate
    and run the "Deploy frontend" workflow (or push to `main`). It builds with
    `NEXT_PUBLIC_API_URL=https://<domain>`, syncs `out/` to the bucket and invalidates CloudFront.
 
-Later backend deploys: the "Deploy backend" workflow with `cloud=aws`. It assumes the bootstrap's
+Later backend deploys: the "Deploy backend" workflow. It assumes the bootstrap's
 role through OIDC, copies the images that "Backend images" pushed to GHCR into ECR with `crane`
 (same digest, nothing rebuilt), initialises the same S3 backend, pins the functions to the new
 image digests, and applies; there is no migrate step. It needs the secrets `AWS_REGION`, `AWS_ROLE_TO_ASSUME`, the

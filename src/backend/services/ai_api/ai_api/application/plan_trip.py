@@ -312,14 +312,6 @@ def _read_turn(request: PlannerTurn) -> Turn:
     )
 
 
-def city_key(destination: str | None) -> str | None:
-    """`Budapest, Hungary` → `budapest`: how the corpus names a city."""
-    if not destination:
-        return None
-    head = destination.split(",")[0].strip().lower()
-    return re.sub(r"[^a-z0-9]+", "-", head).strip("-") or None
-
-
 def fold(text: str) -> str:
     """Lower-case ASCII: `Bolonia, Italia` → `bolonia, italia`."""
     plain = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode()

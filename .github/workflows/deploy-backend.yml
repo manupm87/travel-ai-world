@@ -1,46 +1,32 @@
 name: Deploy backend
 
-# Promotes the images built by backend-images.yml (GHCR) into the chosen
-# cloud's registry and applies that cloud's Terraform with them. On AWS the
-# functions receive the image *digests* (a mutable tag would not redeploy
-# them). There are no migrations to run after the apply: core_api keeps its
-# data in DynamoDB (ADR 0023), whose table belongs to Terraform.
+# Promotes the images built by backend-images.yml (GHCR) into ECR and applies
+# infra/aws with them. The functions receive the image *digests* (a mutable tag
+# would not redeploy them). There are no migrations to run after the apply:
+# core_api keeps its data in DynamoDB (ADR 0023), whose table belongs to Terraform.
 #
-# Prerequisites (one-off, per cloud):
-#   - A remote Terraform state backend: for AWS, apply infra/aws/bootstrap once
-#     (state bucket + GitHub OIDC provider + CI role); for GCP, a GCS bucket in
-#     infra/gcp/versions.tf. CI cannot own local state.
-#   - The container registry already created (first run only), because the
-#     images are copied before Terraform applies:
-#       terraform apply -target=google_artifact_registry_repository.backend  (GCP)
-#       terraform apply -target=aws_ecr_repository.services                 (AWS)
+# Prerequisites (one-off):
+#   - The remote Terraform state: apply infra/aws/bootstrap once (state bucket +
+#     GitHub OIDC provider + CI role). CI cannot own local state.
+#   - The ECR repositories already created (first run only), because the images
+#     are copied before Terraform applies:
+#       terraform apply -target=aws_ecr_repository.services
 #   - Repository secrets (see docs/runbooks/deploy.md and infra/README.md):
-#       GCP: GCP_PROJECT_ID, GCP_WORKLOAD_IDENTITY_PROVIDER, GCP_SERVICE_ACCOUNT
-#       AWS: AWS_REGION, AWS_ROLE_TO_ASSUME (bootstrap output ci_role_arn)
-#     Repository variables (Settings → Variables): GCP_REGION (e.g. europe-west1),
+#       AWS_REGION, AWS_ROLE_TO_ASSUME (bootstrap output ci_role_arn)
+#     Repository variables (Settings → Variables):
 #       AWS_TF_STATE_BUCKET (bootstrap output state_bucket),
-#       FRONTEND_DOMAIN (AWS: TF_VAR_domain_name; the bucket has the same name)
-#     Environment secrets (Settings → Environments → aws / gcp → Secrets), only
-#     the real secrets:
-#       both: TF_VAR_nvidia_api_key, TF_VAR_google_client_secret;
-#       GCP only: TF_VAR_secret_key, TF_VAR_db_password (Cloud SQL; AWS has no
-#       database password, and Terraform ignores the variable there)
+#       FRONTEND_DOMAIN (TF_VAR_domain_name; the bucket has the same name)
+#     Secrets of the `aws` environment (Settings → Environments → aws), only the
+#     real secrets: TF_VAR_nvidia_api_key, TF_VAR_google_client_secret.
 #     They must match what the state was applied with: a missing one arrives
-#     as an empty string and the plan resets that value. Non-secret
-#     inputs are defaults in infra/aws/variables.tf; GCP, which has none, reads
-#     TF_VAR_google_client_id and TF_VAR_backend_cors_origins from the gcp
-#     environment's variables.
+#     as an empty string and the plan resets that value. Non-secret inputs are
+#     defaults in infra/aws/variables.tf.
 #
 # `apply=false` (default) only plans, so the workflow is safe to try.
 
 on:
   workflow_dispatch:
     inputs:
-      cloud:
-        description: Target cloud
-        type: choice
-        options: [gcp, aws]
-        required: true
       image_tag:
         description: GHCR tag to deploy (a commit SHA from backend-images, or "latest")
         type: string
@@ -56,7 +42,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: deploy-backend-${{ inputs.cloud }}
+  group: deploy-backend
   cancel-in-progress: false
 
 env:
@@ -64,17 +50,15 @@ env:
 
 jobs:
   deploy:
-    name: ${{ inputs.cloud }} (${{ inputs.apply && 'apply' || 'plan' }})
+    name: aws (${{ inputs.apply && 'apply' || 'plan' }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    environment: ${{ inputs.cloud }}
+    environment: aws
     defaults:
       run:
-        working-directory: infra/${{ inputs.cloud }}
+        working-directory: infra/aws
     env:
-      TF_VAR_db_password: ${{ secrets.TF_VAR_db_password }}
       TF_VAR_nvidia_api_key: ${{ secrets.TF_VAR_nvidia_api_key }}
-      TF_VAR_secret_key: ${{ secrets.TF_VAR_secret_key }}
       TF_VAR_google_client_secret: ${{ secrets.TF_VAR_google_client_secret }}
     steps:
       - uses: actions/checkout@v7
@@ -86,40 +70,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Authenticate to Google Cloud
-        if: inputs.cloud == 'gcp'
-        uses: google-github-actions/auth@v3
-        with:
-          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
-
-      - name: Set up gcloud
-        if: inputs.cloud == 'gcp'
-        uses: google-github-actions/setup-gcloud@v3
-
-      - name: Registry target (GCP)
-        if: inputs.cloud == 'gcp'
-        env:
-          REGION: ${{ vars.GCP_REGION }}
-        run: |
-          test -n "$REGION" || { echo "::error::Set the repository variable GCP_REGION"; exit 1; }
-          gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
-          echo "REGISTRY=${REGION}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/travel-ai-images" >> "$GITHUB_ENV"
-          echo "TF_VAR_project_id=${{ secrets.GCP_PROJECT_ID }}" >> "$GITHUB_ENV"
-          echo "TF_VAR_region=${REGION}" >> "$GITHUB_ENV"
-          # Not secrets, and GCP has no defaults for them (AWS does: variables.tf).
-          echo "TF_VAR_google_client_id=${{ vars.TF_VAR_google_client_id }}" >> "$GITHUB_ENV"
-          echo "TF_VAR_backend_cors_origins=${{ vars.TF_VAR_backend_cors_origins }}" >> "$GITHUB_ENV"
-
       - name: Authenticate to AWS
-        if: inputs.cloud == 'aws'
         uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Registry target (AWS)
-        if: inputs.cloud == 'aws'
+      - name: Registry target
         env:
           STATE_BUCKET: ${{ vars.AWS_TF_STATE_BUCKET }}
           GRAFANA_CLOUD_LOGS_READER: ${{ vars.GRAFANA_CLOUDWATCH_READER || 'null' }}
@@ -148,8 +105,8 @@ jobs:
           esac
           echo "TF_VAR_business_events_enabled=$BUSINESS_EVENTS_ENABLED_CONTROL" >> "$GITHUB_ENV"
 
-      # Images are promoted, not rebuilt: crane copies the manifest byte for byte, so the digest in the cloud
-      # registry is the GHCR one. `docker buildx imagetools create` wraps even a
+      # Images are promoted, not rebuilt: crane copies the manifest byte for byte, so
+      # the digest in ECR is the GHCR one. `docker buildx imagetools create` wraps even a
       # single-platform image in an OCI index, which Lambda rejects ("image
       # manifest ... media type is not supported"). crane reads the registry
       # logins above from ~/.docker/config.json.
@@ -158,21 +115,17 @@ jobs:
       - name: Copy images from GHCR
         run: |
           for svc in core-api ai-api; do
-            if [ "${{ inputs.cloud }}" = "aws" ]; then dst="${REGISTRY}/travel-ai-${svc}"; else dst="${REGISTRY}/${svc}"; fi
+            dst="${REGISTRY}/travel-ai-${svc}"
             crane copy "${GHCR_PREFIX}/${svc}:${{ inputs.image_tag }}" "${dst}:${{ inputs.image_tag }}"
-            ref="${dst}:${{ inputs.image_tag }}"
-            if [ "${{ inputs.cloud }}" = "aws" ]; then
-              # Lambda redeploys only when the image URI changes: pin the digest.
-              digest=$(crane digest "$ref")
-              ref="${dst}@${digest}"
-            fi
-            echo "TF_VAR_$(echo $svc | tr - _)_image=${ref}" >> "$GITHUB_ENV"
+            # Lambda redeploys only when the image URI changes: pin the digest.
+            digest=$(crane digest "${dst}:${{ inputs.image_tag }}")
+            echo "TF_VAR_$(echo $svc | tr - _)_image=${dst}@${digest}" >> "$GITHUB_ENV"
           done
 
       - uses: hashicorp/setup-terraform@v4
 
-      # TF_INIT_ARGS: AWS passes its partial S3 backend config; GCP has none.
-      - run: terraform init -input=false ${TF_INIT_ARGS:-}
+      # TF_INIT_ARGS: the partial S3 backend config set above
+      - run: terraform init -input=false ${TF_INIT_ARGS}
       - run: terraform validate
       - run: terraform plan -input=false -out=tfplan
 

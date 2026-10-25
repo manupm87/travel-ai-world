@@ -27,8 +27,21 @@ setup:
     @[ -f {{ai}}/.env ] || cp {{ai}}/.env.example {{ai}}/.env
     @[ -f {{frontend}}/.env.local ] || cp {{frontend}}/.env.example {{frontend}}/.env.local
     cd {{backend}} && uv sync --all-packages
+    @just _secret-key
     cd {{frontend}} && npm install
-    @echo "Setup complete. Fill in SECRET_KEY (same value in both backend .env files), GOOGLE_* and NVIDIA_API_KEY."
+    @echo "Setup complete. Everything else in the .env files is optional: docs/runbooks/local-dev.md."
+
+# Fill an empty SECRET_KEY in the backend .env files with one key, the same in both (they verify the same tokens)
+[private]
+_secret-key:
+    @if grep -q '^SECRET_KEY=""$' {{core}}/.env {{ai}}/.env; then \
+      key=$(grep -h '^SECRET_KEY=".\+"$' {{core}}/.env {{ai}}/.env | head -1 | cut -d'"' -f2 || true); \
+      [ -n "$key" ] || key=$(cd {{backend}} && uv run python -c 'import secrets; print(secrets.token_hex(32))'); \
+      for f in {{core}}/.env {{ai}}/.env; do sed -i.bak "s|^SECRET_KEY=\"\"$|SECRET_KEY=\"$key\"|" "$f" && rm -f "$f.bak"; done; \
+      echo "SECRET_KEY written to both backend .env files"; \
+    elif [ "$(grep -h '^SECRET_KEY=' {{core}}/.env {{ai}}/.env | sort -u | wc -l)" -gt 1 ]; then \
+      echo "warning: SECRET_KEY differs between the backend .env files; tokens from core_api will fail in ai_api" >&2; \
+    fi
 
 # core_api with hot reload on :8000 (needs DynamoDB: `just dynamodb-local` outside the devcontainer)
 dev-core:
@@ -93,10 +106,6 @@ lint-backend:
     cd {{backend}} && uv run ruff check . ../../scripts && uv run ruff format --check . ../../scripts
     cd {{backend}} && uv run pyright
 
-# Static type check of the backend packages (pyright, standard mode)
-typecheck:
-    cd {{backend}} && uv run pyright
-
 # eslint
 lint-frontend:
     cd {{frontend}} && npm run lint
@@ -157,7 +166,7 @@ contracts-check:
 docs-check:
     python3 scripts/check_docs.py
 
-# terraform fmt over both clouds (writes)
+# terraform fmt over infra/ (writes)
 infra-fmt:
     terraform fmt -recursive infra
 
@@ -165,7 +174,7 @@ infra-fmt:
 infra-fmt-check:
     terraform fmt -check -recursive -diff infra
 
-# terraform init (no backend) + validate for one root: just infra-validate gcp|aws|aws/bootstrap
+# terraform init (no backend) + validate for one root: just infra-validate aws|aws/bootstrap
 infra-validate cloud:
     cd infra/{{cloud}} && terraform init -backend=false -input=false >/dev/null && terraform validate
 
@@ -178,7 +187,7 @@ aws-login:
 cognito-username email:
     aws cognito-idp list-users --user-pool-id "$(cd infra/aws && terraform output -raw cognito_user_pool_id)" --filter "email = \"{{email}}\"" --query 'Users[].Username' --output text
 
-# Print a local-mode JWT for an account, created when new (--admin makes it an administrator)
+# Print a local-mode JWT for an account, created when new (--admin: administrator; --browser: a DevTools line that signs the browser in)
 dev-token email *flags="":
     @cd {{core}} && uv run --quiet python -m core_api.devtools token {{email}} {{flags}}
 

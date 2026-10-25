@@ -31,7 +31,8 @@ longer gets anything from it:
   `uv lock` drops `city-scraper` and the packages only it used.
 - The git history keeps the code and its data; nothing is rewritten.
 - **`tools/vector_store_bench` and `infra/gcp` stay**, by team decision (2026-10-03). The same
-  audit proposed removing them too (D3, D4); they are not part of this change.
+  audit proposed removing them too (D3, D4); they are not part of this change. (Both removed
+  later by [ADR 0038](0038-retire-gcp-and-the-vector-store-spike.md).)
 
 ## Consequences
 

@@ -15,14 +15,13 @@ How they fit: [architecture overview](../../docs/architecture/overview.md).
 | `ai-api` | [`services/ai_api/`](services/ai_api/README.md) | Trip planner (typed SSE), card details, admin reads over the turn traces; Bedrock deployed, NVIDIA locally; RAG over S3 Vectors |
 | `travel-common` | [`libs/travel_common/`](libs/travel_common/README.md) | Identity, settings, errors, token verification, DynamoDB access, app factory |
 | `city-corpus` | [`tools/city_corpus/`](tools/city_corpus/README.md) | Licence-clean city knowledge base (Wikivoyage, Wikipedia, OSM, Wikidata, Open-Meteo) as JSONL for RAG (never deployed) |
-| `vector-store-bench` | [`tools/vector_store_bench/`](tools/vector_store_bench/README.md) | Vector store spike: Qdrant vs S3 Vectors (frozen, never deployed) |
 
 ## Quick start
 
 ```bash
 # from the repo root
 just setup          # creates .env files, uv sync, npm install
-just dynamodb-local # DynamoDB on :8002 for core_api (the devcontainer and Compose bring their own)
+just dynamodb-local # DynamoDB on :8002 for both services (the devcontainer and Compose bring their own)
 just dev-core       # http://localhost:8000/docs
 just dev-ai         # http://localhost:8001/api/v1/ai/docs
 ```
@@ -30,7 +29,7 @@ just dev-ai         # http://localhost:8001/api/v1/ai/docs
 Without `just`, from `src/backend/`:
 
 ```bash
-uv sync
+uv sync --all-packages
 cd services/core_api && uv run uvicorn core_api.main:app --reload --port 8000
 cd services/ai_api   && uv run uvicorn ai_api.main:app --reload --port 8001
 ```
@@ -66,7 +65,7 @@ src/backend/
 ├── services/
 │   ├── core_api/   api → services → domain ← infrastructure/dynamo, tests/
 │   └── ai_api/     domain → application → infrastructure → api, tests/
-└── tools/          city_corpus/ (the RAG corpus), vector_store_bench/ (spike); never deployed
+└── tools/          city_corpus/ (the RAG corpus); never deployed
 ```
 
 For agents: [`AGENTS.md`](AGENTS.md).

@@ -221,10 +221,9 @@ Two things the CSS has to say out loud, or the theme stops at the edge of our ow
 - `color-scheme` (`dark` on `:root`, `light` on `[data-theme="light"]`) — without it the native
   date picker, the select's list, the scrollbars and the caret all draw themselves light on the
   dusk sky.
-- Nothing that spans the page paints its own background. The footer is transparent, and
-  `Section`'s `primary` and `secondary` backgrounds are left unused: a new surface does not reach
-  for them. An opaque band cuts the amber horizon off in a straight line, which is exactly what
-  it looks like.
+- Nothing that spans the page paints its own background: the footer is transparent, and a new
+  surface does not reach for an opaque band. An opaque band cuts the amber horizon off in a
+  straight line, which is exactly what it looks like.
 
 The aurora belongs to a layout, never to a page: `(marketing)/layout.tsx` mounts it directly and
 `(app)/layout.tsx` through `components/layout/AppAurora.tsx`, which stands aside on `/plan/` —

@@ -10,7 +10,7 @@ One file per decision, numbered, never deleted (superseded ones get a new status
 | [0004](0004-repository-layout.md) | Source under `src/`, infrastructure under `infra/`, one ignore file | Accepted (updated by 0028) |
 | [0005](0005-trip-aggregate-nested-resources.md) | `Trip` is the aggregate root; child resources are nested and declarative | Accepted (superseded in part by 0019 and 0023) |
 | [0006](0006-frontend-trip-view-model.md) | The frontend renders a view model mapped from the backend contract | Accepted (superseded in part by 0019) |
-| [0007](0007-aws-cloud-and-auth.md) | AWS is the deployment cloud; SSO locally, OIDC in CI, state in S3 | Accepted |
+| [0007](0007-aws-cloud-and-auth.md) | AWS is the deployment cloud; SSO locally, OIDC in CI, state in S3 | Accepted (`infra/gcp` removed by 0038) |
 | [0008](0008-aws-architecture-v2-edge-and-gateway.md) | AWS v2: CloudFront single origin, API Gateway REST with streaming, private Fargate | Superseded by 0009 |
 | [0009](0009-lambda-cognito-budget.md) | AWS v3 on a 30 €/month budget: Lambda instead of Fargate, Cognito for sign-in, no NAT | Accepted (data superseded by 0023; VPC and RDS removed) |
 | [0010](0010-domain-roots-in-terraform.md) | The hosted zone and the ACM certificate are Terraform resources, imported and `prevent_destroy` | Accepted |
@@ -31,7 +31,7 @@ One file per decision, numbered, never deleted (superseded ones get a new status
 | [0025](0025-planner-progress-event.md) | The planner streams its progress: a `progress` event per packing step | Accepted |
 | [0026](0026-access-list-and-daily-token-quota.md) | An access list in `core_api` gates the app; a daily token quota per person | Accepted |
 | [0027](0027-retire-chat-v1.md) | The chat v1 (`POST /ai/chat` and `core_api`'s conversations) is retired; with it the unused title model, and the user PATCH routes narrow | Accepted |
-| [0028](0028-retire-the-legacy-scraper.md) | The legacy scraper leaves the tree; the cities come from `tools/city_corpus` only | Accepted |
+| [0028](0028-retire-the-legacy-scraper.md) | The legacy scraper leaves the tree; the cities come from `tools/city_corpus` only | Accepted (what it kept, removed by 0038) |
 | [0029](0029-provider-native-structured-outputs.md) | Structured planner answers are constrained by the active provider | Accepted |
 | [0030](0030-local-business-metrics.md) | Local trip creation business metric | Accepted |
 | [0031](0031-production-business-events.md) | Production business statistics from existing application logs | Accepted |
@@ -41,6 +41,7 @@ One file per decision, numbered, never deleted (superseded ones get a new status
 | [0035](0035-structured-http-access-logs.md) | Structured HTTP access logs before response completion | Accepted |
 | [0036](0036-cognito-in-existing-dashboard.md) | Cognito metrics in the existing service dashboard | Accepted |
 | [0037](0037-bedrock-in-existing-dashboard.md) | Bedrock metrics in the existing service dashboard | Accepted |
+| [0038](0038-retire-gcp-and-the-vector-store-spike.md) | `infra/gcp` and the vector store spike leave the tree | Accepted (amends 0007 and 0028) |
 
 ## Inputs
 

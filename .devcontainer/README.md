@@ -1,7 +1,7 @@
 # `.devcontainer` — Development Container
 
 A reproducible VS Code environment for the monorepo: Node 24, Python 3.12 (via `uv`), `just`,
-`gh`, ripgrep/fd/jq, AWS CLI v2 + Terraform + `crane` + Session Manager plugin, Claude Code
+`gh`, ripgrep/fd/jq, AWS CLI v2 + Terraform + `crane`, Claude Code
 (plus optional agent CLIs), Playwright's Chromium and DynamoDB Local; there is no SQL database.
 **It does not run the application**: you start the services yourself
 with the same `just` recipes everyone uses.
@@ -24,8 +24,9 @@ migrations: `core_api` creates its DynamoDB table in DynamoDB Local when it star
 
 The `devcontainer` service exports `DYNAMODB_ENDPOINT_URL=http://dynamodb:8000`, which takes
 precedence over the services' `.env` files, so `just dev-core` and `just dev-ai` reach DynamoDB
-Local with no edits. The remaining keys (`SECRET_KEY`, `GOOGLE_*`, `NVIDIA_API_KEY`) still have
-to be filled in the `.env` files, as in the [local-dev runbook](../docs/runbooks/local-dev.md).
+Local with no edits (the client signs local requests with dummy keys, so no `just aws-login` is
+needed for it). `just setup` writes the `SECRET_KEY`; every other key is optional, as in the
+[local-dev runbook](../docs/runbooks/local-dev.md).
 
 ## Use
 
@@ -45,8 +46,7 @@ If you start Chromium by hand, do the same: `env -u WAYLAND_DISPLAY npx playwrig
 
 Closing the VS Code window stops the compose stack (`shutdownAction: stopCompose`); the
 dependency volumes persist between sessions, and DynamoDB Local starts empty each time. To wipe
-the volumes: `docker compose -f .devcontainer/docker-compose.yml down -v` on the host (it also
-removes a stray `postgres_data` volume, which nothing uses).
+the volumes: `docker compose -f .devcontainer/docker-compose.yml down -v` on the host.
 
 ## AWS
 
@@ -58,7 +58,6 @@ else (no Docker daemon, no SAM/CDK):
 | `aws` (CLI v2) | `sts`, `ecr`, `lambda`, `logs`, `cognito-idp`, `s3vectors`, SSO login | latest at build |
 | `terraform` | `infra/aws/` (`just infra-fmt`, `just infra-validate aws`, plan/apply) | `TERRAFORM_VERSION` build arg |
 | `crane` | copy the GHCR images into ECR without a Docker daemon | `CRANE_VERSION` build arg |
-| `session-manager-plugin` | unused: the functions run on Lambda (ADR 0009), with no instance to open a session on | latest at build |
 
 **Authentication is IAM Identity Center (SSO), never access keys.** The compose file sets
 `AWS_PROFILE=travel-ai-world`; `post-create.sh` seeds `~/.aws/config` from

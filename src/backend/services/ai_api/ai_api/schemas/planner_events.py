@@ -252,16 +252,6 @@ PlannerEvent = Annotated[
     Field(discriminator="type"),
 ]
 
-EVENT_MODELS: tuple[type[BaseModel], ...] = (
-    TextEvent,
-    BriefEvent,
-    OptionsEvent,
-    ItineraryPatchEvent,
-    ErrorEvent,
-    DoneEvent,
-    ProgressEvent,
-)
-
 
 # the constructors write the discriminator, so no caller does
 

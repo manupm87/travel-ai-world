@@ -135,7 +135,7 @@ in `services/trips.ts::saveDraftAsTrip` and comes back through `services/tripDra
   `renderWithProviders` (`src/test/render.tsx`: the real language and theme providers); build data
   with the typed builders in `src/test/fixtures.ts` and the shared fixtures in `src/test/fixtures/`
   (checked with `satisfies`). Assert on roles, accessible names, `data-*` state and the `en.ts`
-  copy, never on class names. Do not mock `Card`, `Section`, `Container`, `next/link`, nor
+  copy, never on class names. Do not mock `Card`, `Container`, `next/link`, nor
   `lucide-react` icon by icon.
 - **E2E**: Playwright, three configs over `e2e/`: `just test-e2e` (`next dev` on :3000),
   `just test-e2e-static` (`next build` on :3100, CI's `frontend` job) and `just test-e2e-stack`

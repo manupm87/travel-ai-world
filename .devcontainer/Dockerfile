@@ -43,17 +43,12 @@ RUN curl -fsSL https://apt.releases.hashicorp.com/gpg \
     && apt-get update && apt-get install -y --no-install-recommends "terraform=${TERRAFORM_VERSION}.*" \
     && rm -rf /var/lib/apt/lists/*
 
-# AWS CLI v2 + Session Manager plugin (`aws ecs execute-command` into Fargate tasks)
+# AWS CLI v2
 RUN ARCH="$(uname -m)" \
     && curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-${ARCH}.zip" -o /tmp/awscliv2.zip \
     && unzip -q /tmp/awscliv2.zip -d /tmp \
     && /tmp/aws/install \
-    && rm -rf /tmp/aws /tmp/awscliv2.zip \
-    && case "$(dpkg --print-architecture)" in amd64) SSM=ubuntu_64bit ;; arm64) SSM=ubuntu_arm64 ;; esac \
-    && curl -fsSL "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/${SSM}/session-manager-plugin.deb" \
-         -o /tmp/session-manager-plugin.deb \
-    && dpkg -i /tmp/session-manager-plugin.deb \
-    && rm /tmp/session-manager-plugin.deb
+    && rm -rf /tmp/aws /tmp/awscliv2.zip
 
 # crane (registry-to-registry image copy, no daemon)
 RUN case "$(uname -m)" in x86_64) ARCH=x86_64 ;; aarch64) ARCH=arm64 ;; esac \

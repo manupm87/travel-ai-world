@@ -18,12 +18,9 @@ __pycache__/
 .venv/
 .pytest_cache/
 .ruff_cache/
-.mypy_cache/
 .coverage
 coverage.xml
 *.egg-info/
-*.db
-*.sqlite3
 
 # City corpus drafts (`python -m city_corpus discover`); the reviewed <slug>.toml is committed
 src/backend/tools/city_corpus/cities/*.draft.toml
@@ -43,6 +40,8 @@ npm-debug.log*
 .terraform/
 *.tfstate
 *.tfstate.*
+# plan files embed every variable value, secrets included
+tfplan
 *.tfplan
 crash.log
 crash.*.log
@@ -63,19 +62,6 @@ Thumbs.db
 .superpowers/
 .cursor/
 .debug/
-
-# Terraform plan files embed every variable value, secrets included
-tfplan
-*.tfplan
-# Spike: the packaged bench function and the dependencies build.sh vendors into
-# it are build output (16 MB), never sources.
-src/backend/tools/vector_store_bench/bench_lambda/build/
-src/backend/tools/vector_store_bench/bench_lambda/bench.zip
-
-# Spike artefacts: the 24 MB vector matrix stays out of git (it is deterministic and
-# lives in S3); the manifest and the query vectors are small and are committed.
-src/backend/tools/vector_store_bench/.artifacts/**/vectors.npy
-src/backend/tools/vector_store_bench/.artifacts/**/ids.json
 
 # MapLibre worker copied from node_modules by src/frontend/scripts/copy-maplibre-worker.mjs
 src/frontend/public/maplibre/

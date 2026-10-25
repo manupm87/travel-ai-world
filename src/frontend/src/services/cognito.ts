@@ -17,9 +17,6 @@ import {
 
 const DOMAIN = (process.env.NEXT_PUBLIC_COGNITO_DOMAIN ?? "").replace(/^https?:\/\//, "").replace(/\/$/, "");
 const CLIENT_ID = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID ?? "";
-// mirrors next.config.ts: the export may live under a base path in production
-const BASE_PATH =
-  process.env.NODE_ENV === "production" ? (process.env.NEXT_PUBLIC_BASE_PATH ?? "") : "";
 
 export const CALLBACK_PATH = "/auth/callback/";
 const SCOPES = "openid email profile";
@@ -44,7 +41,7 @@ export function isCognitoAvailable(): boolean {
 
 /** The redirect URI registered on the app client, for this origin. */
 export function callbackUrl(origin: string): string {
-  return `${origin}${BASE_PATH}${CALLBACK_PATH}`;
+  return `${origin}${CALLBACK_PATH}`;
 }
 
 export function base64Url(bytes: Uint8Array): string {
@@ -116,7 +113,7 @@ export function buildAuthorizeUrl({ challenge, state, redirectUri }: AuthorizePa
 export function buildLogoutUrl(origin: string): string {
   const query = new URLSearchParams({
     client_id: CLIENT_ID,
-    logout_uri: `${origin}${BASE_PATH}/`,
+    logout_uri: `${origin}/`,
   });
   return `https://${DOMAIN}/logout?${query.toString()}`;
 }

@@ -2,13 +2,13 @@
 
 ## Prerequisites
 
-- Node.js 24 (`src/frontend/.nvmrc`), Python 3.12 (`src/backend/.python-version`), [uv](https://github.com/astral-sh/uv), [just](https://just.systems)
-- DynamoDB (ADR 0023): `just dynamodb-local` (moto, in memory, no Docker) or the devcontainer's /
-  Compose's DynamoDB Local; nothing else to install. `core_api` needs no SQL database and has no
-  migrations: it creates its table at start against a local endpoint
-- A Google OAuth client ID (the local flow keeps `AUTH_MODE=local`; the deployed Cognito flow is
-  described in [`infra/aws/README.md`](../../infra/aws/README.md#sign-in-cognito)); an NVIDIA API key for the chat
-- For the planner: an AWS SSO session (`just aws-login`), see [below](#the-planner-needs-the-corpus)
+- Node.js 24 (`src/frontend/.nvmrc`), Python 3.12 (`src/backend/.python-version`),
+  [uv](https://github.com/astral-sh/uv) and [just](https://just.systems). On Windows:
+  `winget install Casey.Just` and run the recipes from Git Bash or WSL (they are POSIX shell).
+- Nothing else for the app and its tests: no database server (DynamoDB is `just dynamodb-local`,
+  moto in memory), no Google client, no API key and no AWS account. Those are optional and only add
+  the real Google button and the live planner ([below](#optional-the-live-planner)).
+- Docker only for the Compose modes ([which mode](#which-mode)).
 
 ## First run
 
@@ -16,79 +16,79 @@
 just setup
 ```
 
-Then edit the three env files it created:
+It copies the three env files from their templates (`core_api/.env`, `ai_api/.env`,
+`src/frontend/.env.local`), installs every dependency and writes one random `SECRET_KEY` into
+both backend `.env` files: the two services verify the same tokens, so the value must match (the
+recipe warns when it does not). The template values run everything below as they are.
 
-| File | Must set |
-|---|---|
-| `src/backend/services/core_api/.env` | `SECRET_KEY`, `GOOGLE_CLIENT_ID` (`GOOGLE_CLIENT_SECRET` is not read by any code) |
-| `src/backend/services/ai_api/.env` | `SECRET_KEY` (**same value**), `NVIDIA_API_KEY` |
-| `src/frontend/.env.local` | `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, `NEXT_PUBLIC_API_URL=http://localhost:8000`, `NEXT_PUBLIC_AI_API_URL=http://localhost:8001` |
-
-Generate a key: `python -c "import secrets; print(secrets.token_hex(32))"`.
+| Optional variable | File | Adds |
+|---|---|---|
+| `GOOGLE_CLIENT_ID` + `NEXT_PUBLIC_GOOGLE_CLIENT_ID` (the same client id) | `core_api/.env`, `src/frontend/.env.local` | the real "Sign in with Google" button; the client must list `http://localhost:3000` as a JavaScript origin |
+| `NVIDIA_API_KEY`, `RETRIEVAL_ENABLED=true` | `ai_api/.env` | the live planner, with an AWS session ([below](#optional-the-live-planner)) |
+| `INTERACTIONS_TABLE=travel-ai-local-interactions` | `ai_api/.env` | turn traces and token counters in the local DynamoDB (the admin console's turns) |
+| `ACCESS_CONTROL_ENABLED=true`, `ACCESS_MODE=allowlist` | `ai_api/.env`, `core_api/.env` | the access list and the daily quota ([access runbook](access.md)) |
 
 ## Run
 
-Three terminals (also inside the devcontainer):
+Four terminals (three inside the devcontainer, which brings its own DynamoDB Local):
 
 ```bash
-just dev-core      # http://localhost:8000/docs
-just dev-ai        # http://localhost:8001/api/v1/ai/docs
-just dev-frontend  # http://localhost:3000
+just dynamodb-local  # :8002, moto in memory: tables and items vanish when it stops
+just dev-core        # http://localhost:8000/docs (creates its table on the endpoint at start)
+just dev-ai          # http://localhost:8001/api/v1/ai/docs
+just dev-frontend    # http://localhost:3000
 ```
 
-Outside the devcontainer, a fourth terminal gives the services an in-memory DynamoDB on
-`:8002` (`DYNAMODB_ENDPOINT_URL=http://localhost:8002`, the `.env.example` value); `core_api`
-needs it to start, and creates its table (`CORE_TABLE`) there:
+The services reach DynamoDB through `DYNAMODB_ENDPOINT_URL` (the template's
+`http://localhost:8002`; leave it empty only on AWS). Against a local endpoint the client signs
+with fixed dummy keys, so no AWS profile is needed. Tests need none of this: they use
+`travel_common.testing.mock_dynamodb()` (moto in process).
+
+## Signing in without Google
+
+`core_api` runs with `AUTH_MODE=local` and trusts HS256 tokens signed with `SECRET_KEY`, so a
+token can be minted from the shell for any account instead of going through the Google button:
 
 ```bash
-just dynamodb-local  # moto server; tables and items vanish when it stops
+just dev-token you@example.com --browser   # a line to paste in the DevTools console of :3000
+just dev-token you@example.com             # the bare JWT (curl, E2E_TOKEN)
+just dev-token you@example.com --admin     # the same account as an administrator (/admin/)
+just dev-grant you@example.com             # on the access list, for ACCESS_MODE=allowlist (access.md)
 ```
 
-Leave `DYNAMODB_ENDPOINT_URL` empty only on AWS. Tests need none of this: they use
-`travel_common.testing.mock_dynamodb()` (moto in-process).
+The `--browser` line stores the token and the profile under the keys of
+`src/frontend/src/services/session.ts` (`travel_ai_token`, `travel_ai_user`) and reloads: the page
+opens signed in. The account is created when it is new — a later Google sign-in adopts it, because
+both match on the email — and starts with no trips: make one in the planner. The Playwright suite
+signs in the same way with `page.addInitScript` (`src/frontend/e2e/trips.spec.ts`).
+`python -m core_api.devtools` is never imported by the deployed service (it creates accounts), and
+in Cognito mode it refuses, since the pool issues those tokens.
 
-## The planner needs the corpus
+## Optional: the live planner
 
-With the default `RETRIEVAL_ENABLED=false`, `POST /api/v1/ai/planner` and `/planner/card` answer
-**503** (every card is a corpus document). Retrieval has
-no local emulator: it reads the deployed S3 Vectors index and embeds the question with Titan on
-Bedrock, so it needs an AWS session and `RETRIEVAL_ENABLED=true` in
-`src/backend/services/ai_api/.env`. Without AWS, either leave `NEXT_PUBLIC_AI_API_URL` empty (the AI
-calls then go to `core_api`, which answers 404, and the page plays its recorded demo session) or
-run `just planner-smoke <city>` for a backend-only session over the committed corpus.
+With the template's `RETRIEVAL_ENABLED=false`, `POST /api/v1/ai/planner` and `/planner/card` answer
+**503** and the planner page says so (every card is a corpus document). To see the planner without
+AWS, either set `NEXT_PUBLIC_AI_API_URL=` (empty) in `src/frontend/.env.local` — the AI calls then
+go to `core_api`, which answers 404, and the page plays its recorded demo session — or run
+`just planner-smoke <city>` for a backend-only session over the committed corpus (needs
+`NVIDIA_API_KEY`).
+
+The live planner reads the deployed S3 Vectors index and embeds the question with Titan on Bedrock,
+so it needs an AWS session (the course account), `RETRIEVAL_ENABLED=true` and a model that calls
+tools: the template's `NVIDIA_CHAT_MODEL` (`nvidia/nemotron-3-super-120b-a12b`) with an
+`NVIDIA_API_KEY` from build.nvidia.com, or `LLM_PROVIDER=bedrock`.
 
 ```bash
-just aws-login                        # AWS_PROFILE in the environment, as for Bedrock
+just aws-login                  # AWS_PROFILE in the environment, as for Bedrock
 just index budapest --dry-run   # optional: parse and measure the corpus, no AWS
-just index budapest              # only when the corpus changed: reloads the shared index
+just index budapest             # only when the corpus changed: reloads the shared index
 ```
 
 `just index` writes to the **one index the deployment also reads**: run it when the committed corpus
 changes, not to experiment. Each answer then logs `Retrieved N passages: <doc_id>@<distance>, ...`
 ([`ai_api/README.md`](../../src/backend/services/ai_api/README.md#retrieval-retrieval_enabled)).
 
-## Signing in without Google
-
-`core_api` runs with `AUTH_MODE=local` and trusts HS256 tokens signed with `SECRET_KEY`, so a
-token can be minted from the shell for any account instead of going through the Google button
-(which needs a real client id and a browser session):
-
-```bash
-just dev-token you@example.com           # prints the JWT POST /auth/google would issue
-just dev-grant you@example.com           # on the access list, for ACCESS_MODE=allowlist (access.md)
-```
-
-The account is created when it is new — the Google sign-in adopts it later, because both modes
-match on the email — so there is nothing to load first. It starts with no trips: make one in the
-planner.
-
-The browser signs in when the token and the profile are in `localStorage` under the keys of
-`src/frontend/src/services/session.ts`: `travel_ai_token` = the JWT, `travel_ai_user` =
-`{"id": "<the token's sub>", "email": "...", "name": "..."}`. The Playwright suite does this with
-`page.addInitScript` (`src/frontend/e2e/trips.spec.ts`), and a coding agent does it with the
-Playwright MCP's `browser_evaluate` (`.claude/commands/check-site.md`, mode 2). The command is
-`python -m core_api.devtools`, which the deployed service never imports — creating accounts is
-exactly why. In Cognito mode it refuses, since the pool issues those tokens.
+Business metrics in a local Prometheus + Grafana (ADR 0030): [`infra/aws/metric/README.md`](../../infra/aws/metric/README.md).
 
 ## Which mode
 
@@ -104,6 +104,7 @@ checking a change end to end, not for editing.
 
 ## End-to-end tests
 
+Once per machine (the devcontainer does it for you): `cd src/frontend && npx playwright install chromium`.
 Three Playwright configs share `src/frontend/e2e/`:
 
 | Recipe | Serves | Runs | Where |
@@ -117,12 +118,13 @@ The signed-in suite needs a token and creates the trips it works on through the 
 
 ```bash
 just stack-up                                   # needs Docker
-E2E_TOKEN=$(just dev-token you@example.com) just test-e2e-stack
+E2E_TOKEN=$(docker compose -f src/backend/docker-compose.yml exec -T core_api python -m core_api.devtools token you@example.com) just test-e2e-stack
 cd src/frontend && npx playwright show-report   # after a failure
 ```
 
-`E2E_EMAIL` overrides the profile's email (it defaults to the token's `email` claim). The
-devcontainer has no Docker, so there the same spec can be pointed at the dev servers instead:
+The token is minted inside the `core_api` container, which holds the stack's `SECRET_KEY` and
+reaches its DynamoDB Local. `E2E_EMAIL` overrides the profile's email (it defaults to the token's
+`email` claim). Without Docker (the devcontainer has none) the same spec runs against the dev servers:
 `PLAYWRIGHT_BASE_URL=http://localhost:3000 E2E_TOKEN=$(just dev-token you@example.com) just test-e2e-stack`
 with `just dev-core` and `just dev-frontend` running; the Compose origin itself is proven in CI.
 
@@ -130,22 +132,15 @@ with `just dev-core` and `just dev-frontend` running; the Compose origin itself 
 
 ```bash
 just lint
-just test            # DynamoDB on moto; no database server
+just test            # no .env, database or network needed
 just contracts       # only if you changed a schema or a route
 just docs-check
 ```
 
 ## Devcontainer
 
-Open the repo in VS Code → "Reopen in Container". `.devcontainer/` starts **only** a terminal
-container and DynamoDB Local (`dynamodb:8000`, in memory); the services are
-not run for you. On first creation it runs
-`just setup` and installs Playwright's Chromium, then you fill in the secrets and
-run `just dev-core`, `just dev-ai` and `just dev-frontend` exactly as above (ports 3000, 8000
-and 8001 are forwarded). The compose file injects
-`DYNAMODB_ENDPOINT_URL=http://dynamodb:8000` (no dummy AWS keys, so `just aws-login` keeps
-working: the SSO session signs the local requests). The DynamoDB service arrives with the next
-"Rebuild Container".
-That same Chromium backs the Playwright MCP server declared in `.mcp.json`, which lets coding
-agents drive a headless browser against `:3000` (see `.claude/commands/check-site.md`).
-Details: [`.devcontainer/README.md`](../../.devcontainer/README.md).
+Open the repo in VS Code → "Reopen in Container". It starts a terminal container and DynamoDB
+Local, runs `just setup` and installs Playwright's Chromium on first creation, and forwards ports
+3000, 8000 and 8001; you then run `just dev-core`, `just dev-ai` and `just dev-frontend` as above
+(no `just dynamodb-local`: the compose file points `DYNAMODB_ENDPOINT_URL` at its own DynamoDB
+Local). Details: [`.devcontainer/README.md`](../../.devcontainer/README.md).

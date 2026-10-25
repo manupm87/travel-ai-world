@@ -2,7 +2,8 @@
 version: 2
 updates:
   - package-ecosystem: github-actions
-    directory: /
+    # the composite actions pin their own versions: `/` alone does not scan them
+    directories: ["/", "/.github/actions/*"]
     schedule:
       interval: weekly
     groups:

@@ -10,7 +10,7 @@ them and this service upserts the account from the claims.
 ## Run
 
 ```bash
-cp .env.example .env       # AUTH_MODE=local: SECRET_KEY, GOOGLE_* (Cognito mode: COGNITO_*)
+cp .env.example .env       # AUTH_MODE=local: SECRET_KEY (`just setup` writes it), GOOGLE_CLIENT_ID optional
 just dynamodb-local        # from the repo root, in another terminal: DynamoDB on :8002
 uv run python -m core_api.devtools token you@example.com # optional: a local JWT for that account (see below)
 uv run uvicorn core_api.main:app --reload --port 8000    # http://localhost:8000/docs

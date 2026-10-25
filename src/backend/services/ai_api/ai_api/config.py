@@ -27,7 +27,7 @@ class AISettings(CommonSettings, DynamoSettings):
     # Model-agnostic: any chat model on build.nvidia.com works here. Models get
     # retired without notice (they answer 410): check the catalogue when the
     # planner starts answering SERVICE_UNAVAILABLE.
-    NVIDIA_CHAT_MODEL: str = "z-ai/glm-5.3-flash"
+    NVIDIA_CHAT_MODEL: str = "nvidia/nemotron-3-super-120b-a12b"
     # Reasoning models think before answering; hidden reasoning costs tokens
     # and seconds and never reaches the browser, so it is off by default.
     NVIDIA_THINKING: bool = False

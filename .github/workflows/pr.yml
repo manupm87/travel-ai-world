@@ -23,7 +23,6 @@ jobs:
       core: ${{ steps.filter.outputs.core }}
       ai: ${{ steps.filter.outputs.ai }}
       corpus: ${{ steps.filter.outputs.corpus }}
-      bench: ${{ steps.filter.outputs.bench }}
       backend: ${{ steps.filter.outputs.backend }}
       frontend: ${{ steps.filter.outputs.frontend }}
       stack: ${{ steps.filter.outputs.stack }}
@@ -59,12 +58,6 @@ jobs:
               - 'src/backend/tools/city_corpus/**'
               - 'src/backend/services/ai_api/ai_api/infrastructure/commons_photos.py'
               - 'src/backend/services/ai_api/ai_api/infrastructure/site_previews.py'
-              - 'src/backend/pyproject.toml'
-              - 'src/backend/uv.lock'
-              - '.github/**'
-            bench:
-              - 'src/backend/tools/vector_store_bench/**'
-              - 'src/backend/tools/city_corpus/data/budapest/documents.jsonl'
               - 'src/backend/pyproject.toml'
               - 'src/backend/uv.lock'
               - '.github/**'
@@ -125,8 +118,6 @@ jobs:
     defaults:
       run:
         working-directory: src/backend/services/core_api
-    env:
-      SECRET_KEY: ci-test-secret-key-that-is-long-enough-32b
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-uv
@@ -159,20 +150,6 @@ jobs:
     defaults:
       run:
         working-directory: src/backend/tools/city_corpus
-    steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/setup-uv
-      - run: uv run pytest -q
-
-  backend-bench:
-    name: vector_store_bench tests
-    needs: changes
-    if: needs.changes.outputs.bench == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    defaults:
-      run:
-        working-directory: src/backend/tools/vector_store_bench
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-uv
@@ -344,7 +321,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        cloud: [gcp, aws, aws/bootstrap]
+        cloud: [aws, aws/bootstrap]
     steps:
       - uses: actions/checkout@v7
       - uses: hashicorp/setup-terraform@v4
@@ -401,10 +378,3 @@ jobs:
         env:
           NEXT_PUBLIC_GOOGLE_CLIENT_ID: placeholder
         run: just test-e2e-static
-
-      - name: Build as deployed (GitHub Pages base path)
-        env:
-          # Project Pages URL is https://<owner>.github.io/<repo>/: the base path is the repo name.
-          NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
-          NEXT_PUBLIC_GOOGLE_CLIENT_ID: placeholder
-        run: just build

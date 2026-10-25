@@ -45,8 +45,8 @@ services:
       # memory) instead of AWS. No dummy AWS_ACCESS_KEY_ID here on purpose:
       # environment keys beat AWS_PROFILE, which would break `aws`, `terraform`
       # and Bedrock in this container.
-      # DynamoDB Local accepts any signature: the SSO session (`just aws-login`)
-      # signs for it, or export dummy keys in the one shell that runs a service.
+      # DynamoDB Local accepts any signature; travel_common signs local requests
+      # with dummy keys of its own.
       DYNAMODB_ENDPOINT_URL: http://dynamodb:8000
       # The pyright PyPI wrapper nags when a newer pyright exists; the version is
       # pinned by uv.lock, so the notice is noise in `just lint`.

@@ -57,7 +57,7 @@ ENV AWS_LWA_INVOKE_MODE=buffered \
     AWS_LWA_READINESS_CHECK_PATH=/api/v1/health/
 
 FROM python:${PYTHON_VERSION}-slim AS lambda-env-ai_api
-# Response streaming end to end: the SSE chat is not buffered by Lambda.
+# Response streaming end to end: the planner's SSE stream is not buffered by Lambda.
 ENV AWS_LWA_INVOKE_MODE=response_stream \
     AWS_LWA_READINESS_CHECK_PATH=/api/v1/ai/health/
 

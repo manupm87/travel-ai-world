@@ -1,12 +1,17 @@
 from functools import lru_cache
-from typing import Literal
+from typing import ClassVar, Literal
 
 from pydantic import Field
+from pydantic_settings import SettingsConfigDict
 from travel_common.config import CommonSettings
 from travel_common.dynamodb import DynamoSettings
 
 
 class CoreSettings(CommonSettings, DynamoSettings):
+    model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", case_sensitive=True, extra="ignore"
+    )
+
     PROJECT_NAME: str = "Kyrian World — Core API"
 
     # the one table (ADR 0023); the default names no real table, so a laptop without
@@ -22,7 +27,6 @@ class CoreSettings(CommonSettings, DynamoSettings):
     )
 
     GOOGLE_CLIENT_ID: str = ""
-    GOOGLE_CLIENT_SECRET: str = ""
 
     # who may use the app (ADR 0026): "open" is every signed-in account, "allowlist"
     # only admins and invited emails; ai_api asks GET /users/me/access and refuses the same

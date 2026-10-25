@@ -16,5 +16,5 @@ cd src/backend/services/ai_api   && uv run uvicorn ai_api.main:app --reload --po
 
 Notes:
 
-- Each service reads its own `.env` (`src/backend/services/<service>/.env`); `SECRET_KEY` must match.
-- `core_api` needs DynamoDB: run `just dynamodb-local` (in-memory, :8002) first. There are no migrations (ADR 0023).
+- Each service reads its own `.env` (`src/backend/services/<service>/.env`); `SECRET_KEY` must match (`just setup` writes the same one in both).
+- Both services need DynamoDB: run `just dynamodb-local` (in-memory, :8002) first (the devcontainer brings its own). There are no migrations (ADR 0023).

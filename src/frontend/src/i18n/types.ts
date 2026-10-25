@@ -36,8 +36,6 @@ export interface Translations {
     suitcaseCountOne: string;
     /** The phone menu's account row. */
     account: string;
-    /** The header's language button: "Language: {language}" */
-    languageCurrent: string;
   };
   common: {
     loading: string;
@@ -136,12 +134,10 @@ export interface Translations {
         missing: string;
         missingOne: string;
         toDecide: string;
-        budget: string;
       };
       lost: { title: string; safe: string; retry: string };
       /** The open suitcase while the turn packs. */
       suitcase: {
-        label: string;
         list: string;
         wardrobe: string;
         options: string;
@@ -825,19 +821,6 @@ export interface Translations {
       title: string;
       back: string;
       notFound: string;
-      summary: string;
-      id: string;
-      ts: string;
-      kind: string;
-      status: string;
-      city: string;
-      model: string;
-      tokens: string;
-      latency: string;
-      cost: string;
-      context: string;
-      spans: string;
-      timeline: string;
       export: string;
       /** The inspector's left column: what the traveller saw. */
       traveller: {
@@ -861,7 +844,6 @@ export interface Translations {
         /** "{count} cards" and its singular. */
         cards: string;
         cardOne: string;
-        warnings: string;
         noAnswer: string;
       };
       /** The numbered marks: "Go to {section}". */
@@ -1014,8 +996,6 @@ export interface Translations {
   };
   theme: {
     toggle: string;
-    light: string;
-    dark: string;
     /** The menu's heading over the three choices. */
     label: string;
     /** The three choices, short. */

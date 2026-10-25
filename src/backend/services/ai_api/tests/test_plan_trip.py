@@ -16,7 +16,6 @@ import pytest
 from ai_api.application.plan_trip import (
     PlanTrip,
     _alternatives_slot,
-    city_key,
     resolve_city,
 )
 from ai_api.application.tracing import TurnTracer, use_tracer
@@ -315,12 +314,6 @@ async def test_the_not_covered_text_is_the_whole_answer():
     assert "Excelente" not in joined_text(events)
     assert len(provider.completions) == 1  # the brief extraction only
     assert provider.calls == []
-
-
-def test_city_key_normalises_what_the_model_writes():
-    assert city_key("Budapest, Hungary") == "budapest"
-    assert city_key(" BUDAPEST ") == "budapest"
-    assert city_key(None) is None
 
 
 def test_a_destination_resolves_through_any_of_the_citys_spellings():

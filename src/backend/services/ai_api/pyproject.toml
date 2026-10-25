@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "ai-api"
 version = "0.1.1"
-description = "Kyrian World AI API: LLM chat streaming and retrieval"
+description = "Kyrian World AI API: the trip planner, its retrieval and its traces"
 requires-python = ">=3.12"
 dependencies = [
     "travel-common",

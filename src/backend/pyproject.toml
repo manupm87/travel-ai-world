@@ -1,7 +1,7 @@
 # Workspace root. Members: libs/* (shared libraries), services/* (deployable APIs)
 # and tools/* (scripts that share the toolchain but are not deployed, e.g. city_corpus).
-# One lockfile and one virtualenv for the whole backend: `uv sync` at this level
-# installs every member; `uv sync --package core-api` installs only one.
+# One lockfile and one virtualenv for the whole backend: `uv sync --all-packages`
+# (what `just setup` runs) installs every member; `uv sync --package core-api` only one.
 [project]
 name = "travel-backend"
 version = "0.1.1"
@@ -38,8 +38,6 @@ exclude = [
     ".git",
     "__pycache__",
     ".venv",
-    # Build output of the spike's bench zip: a vendored boto3, not our code.
-    "tools/vector_store_bench/bench_lambda/build",
 ]
 # Honour `exclude` even when a path is passed on the command line.
 force-exclude = true
@@ -58,7 +56,6 @@ ignore = [
 "**/tests/**" = ["S101", "S105", "S106"]  # asserts and fake secrets are what tests are made of
 # Corpus tests assert real text: typographic characters (›, –) are expected.
 "tools/city_corpus/tests/**" = ["S101", "RUF001"]
-"tools/vector_store_bench/tests/**" = ["S101", "RUF001"]
 
 [tool.pyright]
 include = [
@@ -68,10 +65,9 @@ include = [
     # Hand-run scripts against real services: typed like the service they drive.
     "services/ai_api/tests/manual",
     "tools/city_corpus/city_corpus",
-    "tools/vector_store_bench/vector_store_bench",
 ]
-# the tools are not installed (`package = false`): resolve them from their folders
-extraPaths = ["tools/city_corpus", "tools/vector_store_bench"]
+# the tool is not installed (`package = false`): resolve them from their folders
+extraPaths = ["tools/city_corpus"]
 pythonVersion = "3.12"
 venvPath = "."
 venv = ".venv"

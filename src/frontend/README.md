@@ -177,7 +177,6 @@ as `route/index.html`; a CloudFront Function maps `/route/` to that key. See the
 |---|---|---|
 | `output` | `'export'` | Generates plain HTML/CSS/JS — no Node.js server needed |
 | `trailingSlash` | `true` | CloudFront's index function and nginx `try_files` serve `path/index.html`, not `path.html` |
-| `basePath` | `""` (the site is served from the domain root) | `NEXT_PUBLIC_BASE_PATH` is set only by CI's PR build; the production build leaves it empty |
 | `images.unoptimized` | `true` | Image optimisation requires a server; disabled for static export |
 
 ### Per-user data on a static export: the planner

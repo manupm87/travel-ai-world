@@ -146,7 +146,7 @@ In both modes:
   `DAILY_TOKEN_LIMIT`, counted in its own table). Locally the mode is `open` and `ai_api` asks
   nobody (`ACCESS_CONTROL_ENABLED=false`); Compose and AWS turn the check on.
 - `ai_api` keeps no accounts: it verifies the token itself and asks `core_api` only for access and
-  the limit, above. A deactivated user can keep chatting until the
+  the limit, above. A deactivated user can keep using the planner until the
   token expires (60 min). See [ADR 0002](adr/0002-auth-between-services.md) (superseded for the
   issuer, the rule for the boundary).
 
@@ -256,11 +256,10 @@ regenerates `src/frontend/src/types/generated/*.ts`; CI fails on drift.
 | Local `just dev-*` | `:8000` core, `:8001` ai | `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_AI_API_URL` |
 | Docker Compose (`just stack-up`) | nginx `:8080`: the export at `/`, the APIs at `/api/*` (same origin, like AWS) | `NEXT_PUBLIC_API_URL=http://localhost:8080` only, set by the recipe |
 | AWS v3 (CloudFront → S3 + API Gateway → Lambda, `infra/aws/`) | one CloudFront domain | `NEXT_PUBLIC_API_URL=https://<domain>` (same origin) + `NEXT_PUBLIC_COGNITO_*` |
-| GCP (two Cloud Run; not ported to DynamoDB, see `infra/gcp/README.md`) | two URLs | both variables |
 
 See [ADR 0003](adr/0003-frontend-two-base-urls.md) and the [deploy runbook](../runbooks/deploy.md).
 
-### AWS target (v3)
+### AWS as deployed (v3)
 
 ![AWS architecture v3](aws-architecture.drawio.svg)
 

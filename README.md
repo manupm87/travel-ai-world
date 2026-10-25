@@ -15,8 +15,7 @@ sign-in come from the same domain: `infra/aws/`, ADR 0009; the data lives in Dyn
 | [`src/backend/services/ai_api/`](src/backend/services/ai_api/README.md) | Trip planner (typed SSE, ADR 0015), card details, admin reads over the turn traces; Bedrock deployed, NVIDIA locally; RAG over S3 Vectors (ADR 0014) | FastAPI · boto3 · httpx · SSE |
 | [`src/backend/libs/travel_common/`](src/backend/libs/travel_common/README.md) | Shared kernel: identity, settings, errors, token verification, DynamoDB access, app factory | Pydantic · PyJWT · boto3 |
 | [`src/backend/tools/city_corpus/`](src/backend/tools/city_corpus/README.md) | The RAG corpus: licence-clean city documents as committed JSONL, one folder per city | httpx · Wikivoyage · Wikipedia · OpenStreetMap · Wikidata |
-| [`src/backend/tools/vector_store_bench/`](src/backend/tools/vector_store_bench/README.md) | Vector store spike (Qdrant vs S3 Vectors); frozen, never deployed | numpy · qdrant-client |
-| [`infra/`](infra/README.md) | Terraform: [`aws/`](infra/aws/README.md) is what is deployed; [`gcp/`](infra/gcp/README.md) still validates but is not ported to DynamoDB | Terraform |
+| [`infra/`](infra/README.md) | Terraform for the AWS deployment ([`aws/`](infra/aws/README.md)) | Terraform |
 | [`docs/`](docs/README.md) | Architecture overview, ADRs, runbooks, generated OpenAPI documents, design file | Markdown · Mermaid |
 
 Why two backend services and how they talk: [architecture overview](docs/architecture/overview.md).
@@ -24,7 +23,7 @@ Why two backend services and how they talk: [architecture overview](docs/archite
 ```text
 travel-ai-world/
 ├── src/             # frontend/ (Next.js) · backend/ (uv workspace: libs, services, tools)
-├── infra/           # Terraform: aws/ (deployed), gcp/ (not ported to DynamoDB)
+├── infra/           # Terraform: aws/ (the deployment) and aws/bootstrap/ (state + CI role)
 ├── docs/            # architecture/, runbooks/, api/ (generated), design/
 ├── scripts/         # check_docs.py (docs CI) · release.py (version bump + GitHub release)
 ├── .github/         # PR checks, image publishing, frontend deploy (S3 + CloudFront), manual backend deploy
@@ -37,23 +36,26 @@ travel-ai-world/
 
 ## Quick start
 
-Prerequisites: Node.js 24 (`.nvmrc`), Python 3.12 (`.python-version`) + [uv](https://github.com/astral-sh/uv),
-[just](https://just.systems), a Google OAuth client ID and an
-NVIDIA API key for the chat.
+Prerequisites: Node.js 24 (`src/frontend/.nvmrc`), Python 3.12 (`src/backend/.python-version`) +
+[uv](https://github.com/astral-sh/uv) and [just](https://just.systems) (Windows: `winget install
+Casey.Just`, then run the recipes from Git Bash). Nothing else is needed to run the app and its
+tests: no Google client, no API key, no AWS account (those only add the real Google button and the
+live planner, see the runbook).
 
 ```bash
 just setup          # .env files from templates + uv sync + npm install
-just dynamodb-local # in-memory DynamoDB :8002 for core_api (the devcontainer brings its own)
-just dev-core       # core_api    http://localhost:8000/docs
-just dev-ai         # ai_api      http://localhost:8001/api/v1/ai/docs
-just dev-frontend   # frontend    http://localhost:3000
+# put the same SECRET_KEY in src/backend/services/{core_api,ai_api}/.env
+just dynamodb-local # terminal 1: in-memory DynamoDB :8002 (the devcontainer brings its own)
+just dev-core       # terminal 2: core_api  http://localhost:8000/docs
+just dev-ai         # terminal 3: ai_api    http://localhost:8001/api/v1/ai/docs
+just dev-frontend   # terminal 4: frontend  http://localhost:3000
+just dev-token you@example.com   # sign in without Google (how: the runbook)
 just lint · just test · just contracts · just docs-check
-just docker-up      # nginx :8080 + core_api + ai_api + DynamoDB Local from built images
-just stack-up       # the same plus the frontend export, on one origin http://localhost:8080 (as in prod)
+just stack-up       # Docker: the frontend export + both APIs on one origin http://localhost:8080 (as in prod)
 ```
 
-`just` alone lists every recipe. Step by step, including the variables to fill in:
-[local development runbook](docs/runbooks/local-dev.md). Windows: `winget install Casey.Just`.
+`just` alone lists every recipe. Step by step, including the optional variables:
+[local development runbook](docs/runbooks/local-dev.md).
 
 ## How it works
 
@@ -73,7 +75,7 @@ just stack-up       # the same plus the frontend export, on one origin http://lo
 | `pr.yml` | pull request | path-filtered jobs: ruff, per-package tests (moto for DynamoDB, no database server), Docker builds, Compose stack e2e (export + APIs on one origin, signed in with a minted token), contract drift, eslint + Vitest + Playwright + `next build`, docs hygiene |
 | `deploy.yml` | push to `main` touching `src/frontend/` | static export → S3 + CloudFront invalidation (AWS) |
 | `backend-images.yml` | push to `main` touching `src/backend/` | publishes `ghcr.io/manupm87/travel-ai-world/{core-api,ai-api}` |
-| `deploy-backend.yml` | manual | copies the images to GCP or AWS and runs Terraform (plan by default) |
+| `deploy-backend.yml` | manual | copies the images into ECR and runs Terraform on `infra/aws` (plan by default) |
 
 Runbooks: [docker](docs/runbooks/docker.md) · [deploy](docs/runbooks/deploy.md) ·
 [release](docs/runbooks/release.md).

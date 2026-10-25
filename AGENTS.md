@@ -19,8 +19,7 @@ AI-powered travel planner. Static Next.js frontend + two FastAPI services:
 | `src/backend/services/ai_api/` | Trip planner (typed SSE, ADR 0015/0025), card details, admin reads over the turn traces; Bedrock deployed, NVIDIA locally; RAG over S3 Vectors (ADR 0014) | `core_api` (with the caller's token), Bedrock, S3 Vectors, its own trace table (ADR 0024), Open-Meteo, Wikimedia Commons |
 | `src/backend/libs/travel_common/` | Shared kernel: Principal, settings, errors, JWT, app factory | — |
 | `src/backend/tools/city_corpus/` | RAG corpus builder: licence-clean city documents as JSONL (committed) | Wikivoyage, Wikipedia, OpenStreetMap, Wikidata, Open-Meteo |
-| `src/backend/tools/vector_store_bench/` | Vector store spike (Qdrant vs S3 Vectors); frozen, never deployed | — |
-| `infra/{gcp,aws}/` | Two-service deployment, one cloud per folder; **AWS is the deployed one** | — |
+| `infra/aws/` | Terraform for the deployment (AWS; Google Cloud only hosts the OAuth client, made by hand) | — |
 | `docs/` | Architecture, ADRs, runbooks, OpenAPI documents, design file | — |
 
 Why two services: [docs/architecture/adr/0001-backend-split.md](docs/architecture/adr/0001-backend-split.md).
@@ -51,8 +50,8 @@ just aws-login      # AWS via IAM Identity Center (devcontainer); never access k
 ```
 
 Windows: `winget install Casey.Just` and run the recipes from Git Bash or WSL (they are POSIX shell).
-`just test-core` needs a non-empty `SECRET_KEY` (see `src/backend/services/core_api/.env.example`) and no
-database: DynamoDB is moto in process.
+Tests need no `.env`, no database and no network: DynamoDB is moto in process and core_api's
+`conftest.py` sets a test `SECRET_KEY`.
 
 ## Non-negotiable rules
 
@@ -76,7 +75,7 @@ database: DynamoDB is moto in process.
 
 - Python 3.12, `uv` workspace at `src/backend/` (one lockfile), ruff (line length 88; rules E4/E7/E9/F +
   I, UP, B, SIM, N, RUF, ASYNC, S — see `src/backend/pyproject.toml`) and pyright (standard mode) over
-  `libs/`, `services/`, `tools/city_corpus` and `tools/vector_store_bench` (`[tool.pyright]`).
+  `libs/`, `services/` and `tools/city_corpus` (`[tool.pyright]`).
 - TypeScript strict, Tailwind v4 (CSS custom properties, no `tailwind.config.js`), Vitest, Playwright.
 - Commits: conventional prefixes (`feat`, `fix`, `refactor`, `build`, `ci`, `docs`, `infra`, `test`, `chore`).
 - Branches: `<type>/TRA-<n>-<short-title>` (e.g. `feat/TRA-123-trip-list`): the same prefixes as

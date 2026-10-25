@@ -6,19 +6,12 @@ import { useLanguage } from "@/context/LanguageContext";
 import { useFormatters } from "@/hooks/useFormatters";
 import { interpolate } from "@/i18n";
 import { partOf, type DayDraft, type ItineraryWarning } from "@/hooks/plannerReducer";
+import { PART_TIME } from "@/services/trips";
 import { DAY_PARTS, type DayPart, type Slot } from "@/types/planner";
 import { cn } from "@/utils/cn";
 import { stopGlyph, stopId, type MapStop } from "./mapStops";
 import { DATE_OPTIONS } from "@/utils/tripDates";
 import { WarningBadge } from "./WarningBadge";
-
-/** The hour shown for each part of the day; the saved trip stores the same. */
-const PART_TIME: Record<DayPart, string> = {
-  morning: "10:00",
-  afternoon: "15:00",
-  evening: "19:00",
-  night: "22:00",
-};
 
 const LONG_DATE: Intl.DateTimeFormatOptions = {
   weekday: "long",

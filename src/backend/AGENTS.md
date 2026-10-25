@@ -21,7 +21,6 @@ src/backend/
 └── tools/
     ├── city_corpus/        RAG corpus builder (Wikivoyage/Wikipedia → JSONL), `package = false`: linted and
     │                       locked here, never in an image; see its AGENTS.md
-    └── vector_store_bench/ vector store spike (Qdrant vs S3 Vectors), frozen; see its AGENTS.md
 ```
 
 ## Commands (from `src/backend/`, or via `just` from the repo root)
@@ -29,7 +28,7 @@ src/backend/
 ```bash
 uv sync --all-packages                   # whole workspace (incl. tools/) into src/backend/.venv
 uv run ruff check . ../../scripts && uv run ruff format --check . ../../scripts
-uv run pyright                           # libs/, services/, city_corpus, vector_store_bench; standard mode (CI: `just lint-backend`)
+uv run pyright                           # libs/, services/, city_corpus; standard mode (CI: `just lint-backend`)
 cd services/core_api && uv run pytest    # moto, in process; no database server
 cd services/ai_api   && uv run pytest    # no external deps
 cd libs/travel_common && uv run pytest
