@@ -53,16 +53,16 @@ src/
 │   │   ├── dashboard/    # page.tsx (static shell) + TripsHome.tsx: the signed-in home, the ask over the trips
 │   │   └── trip/         # page.tsx + TripRedirect.tsx: ?id= → /plan/?trip= (old links)
 │   ├── (admin)/          # The admin console: layout = header + ProtectedRoute + AdminGate, once
-│   │   └── admin/        # page.tsx (overview, ?range=30), turns/, turn/ (?id=), trips/, trip/ (?user=&id=), users/, access/ (the access list): static shells + client pages
+│   │   └── admin/        # page.tsx (overview, ?range=30), turns/, turn/ (?id=), trips/, trip/ (?user=&id=), users/, access/ (the access list), quality/ (the retrieval evaluation): static shells + client pages
 │   └── error.tsx, loading.tsx, not-found.tsx
-├── components/     # UI by feature: ui/, layout/, landing/, planner/, auth/, common/, admin/
+├── components/     # UI by feature: ui/, layout/, landing/, planner/, trips/, kiri/, auth/, common/, admin/
 ├── context/        # Providers: AuthContext, LanguageContext, ThemeContext
-├── hooks/          # admin/ (useAdminStats, useTurns, useTurn, useAdminUsers, useAdminTrips, useAdminTrip, useSessionTurns, useSessionPosition), useTrips, useTrip, useSaveTrip, useTypewriter, useFormatters, useStickToBottom, useAutoResizeTextarea, useScrolled, useClickOutside
+├── hooks/          # admin/ (useAdminStats, useTurns, useTurn, useAdminUsers, useAdminTrips, useAdminTrip, useSessionTurns, useSessionPosition, useAccessGrants, useAdminUsage, useRetrievalEval, useCursorList), usePlanner + plannerReducer, usePlannerCities, useCardDetail, useBriefValues, useSelectedDay, useTrips, useTrip, useSaveTrip, useDialog, useTypewriter, useFormatters, useStickToBottom, useAutoResizeTextarea, useScrolled, useClickOutside
 ├── i18n/           # types.ts (contract), en.ts, es.ts, index.ts (locales + LANGUAGES), interpolate.ts
 ├── services/       # The only place that talks to the network -> [README](src/services/README.md)
 ├── types/          # Hand-written domain types + generated/ (from OpenAPI, never edited)
-├── utils/          # Pure helpers (cn, formatting, country flags, localStorage store, safe redirect)
-└── test/           # Vitest setup + renderWithProviders (render.tsx) + typed fixtures (fixtures.ts, fixtures/trip-budapest.ts, fixtures/planner-city.ts, fixtures/admin.ts, fixtures/admin-turn.ts)
+├── utils/          # Pure helpers: cn, format, localStorageStore, safeRedirect, suitcase, tripDates
+└── test/           # Vitest setup + renderWithProviders (render.tsx) + test JWTs (jwt.ts) + typed fixtures (fixtures.ts, fixtures/trip-budapest.ts, fixtures/planner-city.ts, fixtures/admin.ts, fixtures/admin-turn.ts) + a recorded SSE stream (fixtures/planner-budapest.sse)
 ```
 
 Route groups `(marketing)`, `(app)` and `(admin)` do not appear in URLs; they exist so the header/footer,
@@ -105,7 +105,7 @@ That's it — the compiler flags a missing locale or `LANGUAGES` entry, and no c
 
 Sign-in is Google, two ways. **Deployed** (`NEXT_PUBLIC_COGNITO_*` set): the Cognito managed login
 with code + PKCE (`src/services/cognito.ts`, no SDK), back through `/auth/callback/`, with the
-refresh token kept by `session.ts`. **Locally** (`AUTH_MODE=local`): the Google button and
+refresh token kept by `session.ts`. **Locally** (no `NEXT_PUBLIC_COGNITO_*`): the Google button and
 `core_api`'s `POST /auth/google`, described below. Either way the session lives in `localStorage`
 and React reads it through `AuthContext`.
 
@@ -160,6 +160,9 @@ this file does not repeat them, so they cannot drift.
 | `/trip/?id=<uuid>` | ↪️ Redirect | Kept for old links: `/plan/?trip=<uuid>` when the id is a trip id, `/plan/` otherwise |
 | `/plan/` (`?q=<prompt>`, `?trip=<uuid>`) | ✅ Live | The trip planner. It **lists no trips**: it holds the one trip it was opened with, the empty pane is a quiet placeholder (`plan.panel.emptyTitle` / `emptyDescription`), and the way to the trips is the header pill, "Your trips" → `/dashboard/` from here and "Open the planner" → `/plan/` from there. `?trip=<uuid>` reopens a saved trip in the planner; a bare `/plan/` is always a new trip, never the tab's last saved one, and a saved, still-plannable trip offers "New trip" in the panel header; and a trip that is happening now or is over is read-only (no composer, no Save, no "Change"), because `core_api` refuses every write on it (ADR 0019). Two zones on a laptop — the chat, with quick replies and option-card carousels, and the trip floating over the map (MapLibre GL over OpenFreeMap's keyless tiles, ADR 0016) — and two tabs, Chat and Trip, on a phone. A finished itinerary opens on the **trip overview** (`TripOverview`): the destination's photo and description, a mosaic of the trip's own photos and the list of days. Clicking a stop opens that activity's page (photo, article, address, phone, site and directions, from `GET /ai/planner/card?id=`) and highlights its pin on the map. `usePlanner` streams the SSE v2 events of `ai_api`'s `/planner`; with no AI URL, or when that route answers 404/405, the page plays the recorded Budapest session in `src/data/planner-demo/` and shows a demo banner |
 | `/admin/` (`?range=30`) | ✅ Live | **The admin console** (ADR 0024), for accounts whose `role` is `admin` — anyone else gets a "not allowed" card on every `/admin/` URL, and the services answer 403 regardless. A sidebar (a tab strip on a phone): **Overview** — seven figures, turns per day by status over output tokens per day (hand-drawn SVG), and the breakdowns by model, city and kind, the most used documents and those retrieved but never used, for the last 7 or 30 days; **Turns** (`/admin/turns/?day=&kind=&status=&subject=&city=`) — a day's turns, filters in the URL, "Load more"; **Trips** — every saved trip with its owner; **Users** — every account with its role and token subject. `/admin/turn/?id=` is the **turn inspector**: on the left what the traveller saw with four numbered marks, on the right what they did not — six figures, the trace as a waterfall by phase and step kind, the brief, every model call's output with its validation, the SSE timeline and one city-kb panel per search — with previous / next in the session and "Export JSON"; on a phone the right side is a bottom sheet with four tabs; `/admin/trip/?user=&id=` opens any saved trip **read only**: owner, city, dates, phase and ids, the planner's own overview with a day's cards, and the turns of the planner session that made it, each linking to the turn |
+| `/admin/access/` | ✅ Live | **The access list** (ADR 0026), admins only: who may use the app, by email, with each one's daily token limit and a note; one form invites or updates a grant, a row can be removed, and today's token use per account follows |
+| `/admin/quality/` | ✅ Live | **The retrieval evaluation**, admins only: runs every city's questions against the deployed index on demand and shows recall@5, recall@10 and MRR overall, per city and per language, plus the misses. Nothing is stored |
+| `/auth/callback/` | ✅ Live | Where the Cognito managed login sends the browser back (`?code&state`); it finishes the sign-in and goes on to the page that asked for it, or `/dashboard/` |
 | anything else | ✅ | `not-found.tsx`, exported as `404.html` |
 
 ---
@@ -276,8 +279,8 @@ drive the same headless Chromium (`npx playwright install --with-deps chromium` 
 1. Set `NEXT_PUBLIC_API_URL=http://localhost:8000` and `NEXT_PUBLIC_AI_API_URL=http://localhost:8001`
    in `.env.local` (one URL is enough behind the Docker Compose proxy on `:8080`).
 2. `services/auth.ts` (`loginWithGoogle`) talks to `core_api`; `services/planner.ts`
-   (`streamPlannerTurn`) consumes `ai_api`'s SSE stream; `services/trips.ts` (`listTrips`, `getTrip`) reads the planner's
-   list of trips and the one it reopens from `core_api`, mapped through `toTripSummary` / `toTrip`
+   (`streamPlannerTurn`) consumes `ai_api`'s SSE stream; `services/trips.ts` (`listTrips`, `getTrip`) reads the
+   trips home's list (`/dashboard/`) and the trip the planner reopens from `core_api`, mapped through `toTripSummary` / `toTrip`
    (ADR 0006). There is no fixture fallback: without `core_api` the list shows its error state.
 3. `app/(app)/plan/` streams real answers when `ai_api` is reachable (`usePlanner`, which also
    aborts the stream on a new turn). Without an AI URL (the static preview build) the recorded
