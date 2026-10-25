@@ -394,6 +394,8 @@
         "properties": {
           "afternoon": {
             "items": {
+              "maxLength": 200,
+              "minLength": 1,
               "type": "string"
             },
             "maxItems": 20,
@@ -402,6 +404,8 @@
           },
           "evening": {
             "items": {
+              "maxLength": 200,
+              "minLength": 1,
               "type": "string"
             },
             "maxItems": 20,
@@ -410,6 +414,8 @@
           },
           "morning": {
             "items": {
+              "maxLength": 200,
+              "minLength": 1,
               "type": "string"
             },
             "maxItems": 20,
@@ -418,6 +424,8 @@
           },
           "night": {
             "items": {
+              "maxLength": 200,
+              "minLength": 1,
               "type": "string"
             },
             "maxItems": 20,
@@ -758,6 +766,8 @@
           "stay_card_id": {
             "anyOf": [
               {
+                "maxLength": 200,
+                "minLength": 1,
                 "type": "string"
               },
               {
@@ -1506,6 +1516,7 @@
         "description": "An activity taken out of a slot.",
         "properties": {
           "card_id": {
+            "maxLength": 200,
             "minLength": 1,
             "title": "Card Id",
             "type": "string"
@@ -1763,6 +1774,8 @@
         "properties": {
           "card_ids": {
             "items": {
+              "maxLength": 200,
+              "minLength": 1,
               "type": "string"
             },
             "maxItems": 20,
