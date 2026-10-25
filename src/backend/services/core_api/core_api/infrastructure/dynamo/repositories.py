@@ -2,6 +2,7 @@
 
 Versioned writes are conditional, so a lost race is a `Conflict`, never a silent
 overwrite. With no cascades, deletes walk what an item owns and remove it in batches.
+Any other DynamoDB failure is `ProviderUnavailable` (503).
 """
 
 import asyncio
@@ -9,11 +10,12 @@ import base64
 import binascii
 import builtins
 import json
+import logging
 from collections.abc import Sequence
 from typing import Any
 from uuid import UUID
 
-from botocore.exceptions import ClientError
+from botocore.exceptions import BotoCoreError, ClientError
 from travel_common.dynamodb import call
 from travel_common.exceptions import (
     BadRequest,
@@ -32,6 +34,8 @@ from core_api.infrastructure.dynamo.codec import (
 )
 from core_api.infrastructure.dynamo.table import GSI1, GSI2, DynamoTable
 from core_api.pagination import Page
+
+logger = logging.getLogger(__name__)
 
 STALE = "changed by another request, reload and retry"
 EMAIL_TAKEN = "email already registered"
@@ -146,8 +150,8 @@ class _Store:
         return self.table.client
 
     async def _get(self, pk: str, sk: str) -> Item | None:
-        response = await call(
-            self._client.get_item,
+        response = await self._call(
+            "get_item",
             TableName=self.table.name,
             Key=keys.key(pk, sk),
             ConsistentRead=True,
@@ -177,7 +181,7 @@ class _Store:
     async def _paginate(self, kwargs: dict[str, Any], wanted: int | None) -> list[Item]:
         items: list[Item] = []
         while True:
-            response = await call(self._client.query, **kwargs)
+            response = await self._call("query", **kwargs)
             items.extend(response.get("Items", []))
             last = response.get("LastEvaluatedKey")
             if not last or (wanted is not None and len(items) >= wanted):
@@ -206,10 +210,31 @@ class _Store:
         start = decode_cursor(cursor, index_keys, partition)
         if start is not None:
             kwargs["ExclusiveStartKey"] = start
-        response = await call(self._client.query, **kwargs)
+        response = await self._call("query", **kwargs)
         return response.get("Items", []), encode_cursor(
             response.get("LastEvaluatedKey")
         )
+
+    async def _call(
+        self, operation: str, /, conflicts: Sequence[str] = (), **kwargs: Any
+    ) -> Any:
+        """Run one client operation; every repository call goes through here.
+
+        A failed condition becomes a `Conflict` named by `conflicts` (one message
+        per transaction item); any other client or transport error is
+        `ProviderUnavailable`.
+        """
+        try:
+            return await call(getattr(self._client, operation), **kwargs)
+        except ClientError as error:
+            conflict = _conflict(error, conflicts) if conflicts else None
+            if conflict is not None:
+                raise conflict from error
+            logger.error("DynamoDB %s failed: %s", operation, error)
+            raise ProviderUnavailable("Database unavailable") from error
+        except BotoCoreError as error:
+            logger.error("DynamoDB %s failed: %s", operation, error)
+            raise ProviderUnavailable("Database unavailable") from error
 
     async def _write(self, operation: str, messages: Sequence[str], **kwargs: Any):
         """Run a write; a failed condition becomes a `Conflict`.
@@ -217,10 +242,7 @@ class _Store:
         `messages` names the conflict per transaction item, so a taken email reads
         differently from a stale version.
         """
-        try:
-            return await call(getattr(self._client, operation), **kwargs)
-        except ClientError as error:
-            raise _conflict_or_raise(error, messages) from error
+        return await self._call(operation, conflicts=messages, **kwargs)
 
     async def _batch(self, requests: list[Item]) -> int:
         """`BatchWriteItem` in chunks of 25, retrying unprocessed requests with backoff.
@@ -231,8 +253,8 @@ class _Store:
         for start in range(0, len(requests), BATCH_SIZE):
             pending = requests[start : start + BATCH_SIZE]
             for attempt in range(BATCH_RETRIES):
-                response = await call(
-                    self._client.batch_write_item,
+                response = await self._call(
+                    "batch_write_item",
                     RequestItems={self.table.name: pending},
                 )
                 left = response.get("UnprocessedItems", {}).get(self.table.name, [])
@@ -253,7 +275,8 @@ def _key_of(item: Item) -> Item:
     return {keys.PK: item[keys.PK], keys.SK: item[keys.SK]}
 
 
-def _conflict_or_raise(error: ClientError, messages: Sequence[str]) -> Exception:
+def _conflict(error: ClientError, messages: Sequence[str]) -> Conflict | None:
+    """The `Conflict` a failed condition stands for; None for any other error."""
     code = error.response.get("Error", {}).get("Code")
     if code == "ConditionalCheckFailedException":
         return Conflict(messages[0])
@@ -262,7 +285,7 @@ def _conflict_or_raise(error: ClientError, messages: Sequence[str]) -> Exception
         for index, reason in enumerate(reasons):
             if reason.get("Code") == "ConditionalCheckFailed":
                 return Conflict(messages[min(index, len(messages) - 1)])
-    return error
+    return None
 
 
 def _expected(version: int) -> dict[str, Any]:
@@ -365,8 +388,8 @@ class DynamoUserRepository(_Store):
 
     async def delete(self, user: User) -> None:
         await self._batch_delete(await self._query(keys.user_pk(user.id), None))
-        await call(
-            self._client.delete_item,
+        await self._call(
+            "delete_item",
             TableName=self.table.name,
             Key=keys.key(keys.email_pk(user.email), keys.EMAIL),
         )
@@ -421,8 +444,8 @@ class DynamoTripRepository(_Store):
         return trip
 
     async def delete(self, trip: Trip) -> None:
-        await call(
-            self._client.delete_item,
+        await self._call(
+            "delete_item",
             TableName=self.table.name,
             Key=keys.key(keys.user_pk(trip.user_id), keys.trip_sk(trip.id)),
         )
@@ -451,16 +474,16 @@ class DynamoAccessGrantRepository(_Store):
         if stored is not None:
             grant.created_at = stored.created_at
             grant.added_by = stored.added_by
-        await call(
-            self._client.put_item,
+        await self._call(
+            "put_item",
             TableName=self.table.name,
             Item=access_grant_item(grant),
         )
         return grant
 
     async def delete(self, email: str) -> bool:
-        response = await call(
-            self._client.delete_item,
+        response = await self._call(
+            "delete_item",
             TableName=self.table.name,
             Key=keys.key(keys.access_pk(email), keys.ACCESS),
             ReturnValues="ALL_OLD",
