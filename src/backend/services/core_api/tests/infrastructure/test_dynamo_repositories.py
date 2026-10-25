@@ -443,7 +443,9 @@ async def test_a_batch_that_stays_throttled_is_provider_unavailable(
         return {"UnprocessedItems": kwargs["RequestItems"]}
 
     patched = DynamoUserRepository(
-        DynamoTable(_Client(table.client, batch_write_item=always_throttled), table.name)
+        DynamoTable(
+            _Client(table.client, batch_write_item=always_throttled), table.name
+        )
     )
 
     with pytest.raises(ProviderUnavailable, match="kept throttling"):

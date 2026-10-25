@@ -92,9 +92,7 @@ async def test_child_date_ranges_are_ordered(
     assert response.status_code == 422
 
 
-async def test_journey_times_need_an_offset_on_create(
-    client: AsyncClient, alice: User
-):
+async def test_journey_times_need_an_offset_on_create(client: AsyncClient, alice: User):
     """A naive time next to an aware one could not be compared: 422, not 500."""
     headers = headers_for(alice)
     trip = await _trip(client, headers)

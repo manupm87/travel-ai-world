@@ -42,9 +42,7 @@ def test_token_without_role_claim_is_rejected():
         principal_from_token(token, settings)
 
 
-@pytest.mark.parametrize(
-    "missing", ["exp", "sub"], ids=["no-expiry", "no-subject"]
-)
+@pytest.mark.parametrize("missing", ["exp", "sub"], ids=["no-expiry", "no-subject"])
 def test_token_without_a_required_claim_is_rejected(missing: str):
     claims: dict[str, object] = {
         "sub": "1",
