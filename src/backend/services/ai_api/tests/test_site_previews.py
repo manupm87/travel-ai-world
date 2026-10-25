@@ -289,7 +289,7 @@ async def test_a_redirect_to_another_port_stops_there() -> None:
         ["192.168.1.1"],
         ["169.254.169.254"],
         ["100.64.0.1"],
-        ["0.0.0.0"],
+        ["0.0.0.0"],  # noqa: S104 -- an address the resolver may answer, not a bind
         ["240.0.0.1"],
         ["224.0.0.251"],
         ["::1"],
