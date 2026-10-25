@@ -6,6 +6,7 @@ from typing import ClassVar, Literal
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 AuthMode = Literal["local", "cognito"]
+LocalAlgorithm = Literal["HS256", "HS384", "HS512"]
 
 
 class CommonSettings(BaseSettings):
@@ -22,7 +23,8 @@ class CommonSettings(BaseSettings):
 
     # local mode; SECRET_KEY must match in every service that verifies tokens
     SECRET_KEY: str = ""
-    ALGORITHM: str = "HS256"
+    # HMAC only: anything else ("none" included) is refused at start
+    ALGORITHM: LocalAlgorithm = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
     # cognito mode; COGNITO_JWKS is the pool's jwks.json, inlined by Terraform at

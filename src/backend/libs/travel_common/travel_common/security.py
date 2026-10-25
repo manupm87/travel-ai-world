@@ -27,13 +27,18 @@ def create_access_token(principal: Principal, settings: CommonSettings) -> str:
 
 
 def decode_access_token(token: str, settings: CommonSettings) -> dict:
-    """Decode and verify a local-mode JWT.
+    """Decode and verify a local-mode JWT; it must carry `exp` and `sub`.
 
     Raises:
         Unauthorized: any failure, an empty or invalid `SECRET_KEY` included.
     """
     try:
-        return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        return jwt.decode(
+            token,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM],
+            options={"require": ["exp", "sub"]},
+        )
     except jwt.PyJWTError as exc:
         # PyJWTError also covers InvalidKeyError, which would otherwise be a 500
         raise Unauthorized("Invalid or expired token") from exc
