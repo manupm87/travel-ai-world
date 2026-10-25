@@ -2451,6 +2451,16 @@
       "includeVars": true,
       "asDropdown": false,
       "icon": "dashboard"
+    },
+    {
+      "title": "Histórico recuperado",
+      "type": "link",
+      "url": "/d/kyrian-trip-history",
+      "targetBlank": false,
+      "keepTime": false,
+      "includeVars": false,
+      "asDropdown": false,
+      "icon": "dashboard"
     }
   ]
 }
