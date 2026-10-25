@@ -17,7 +17,7 @@ infrastructure/dynamo/  the only adapter: table.py, keys.py, codec.py, repositor
 ```
 
 - **Only `infrastructure/dynamo/` imports boto3/botocore**, and nothing imports `devtools`
-  or `ops` (`tests/test_import_boundaries.py` checks all three).
+  (`tests/test_import_boundaries.py` checks both).
 - **Settings are injected**, never imported as a singleton: `Depends(get_settings)` in dependables,
   `get_settings()` at the composition root (`main.py`). The app `lifespan` calls
   `infrastructure/dynamo/table.py::open_table`: it builds the client
@@ -48,7 +48,8 @@ infrastructure/dynamo/  the only adapter: table.py, keys.py, codec.py, repositor
   `put` is an upsert that keeps `created_at` and `added_by`; `delete` answers whether there was
   one. Tests switch the mode by overriding `get_settings` (`tests/api/test_access.py`).
 - **Local-mode sign-in is a use case** (`services/auth_service.py::SignIn`) behind the
-  `IdentityVerifier` port (`auth/google.py`); `GoogleTokenInfoVerifier` is its only adapter. The
+  `IdentityVerifier` port (`auth/google.py`); `GoogleTokenInfoVerifier` is its only adapter and
+  refuses a token whose `email_verified` is not true (accounts are matched by email). The
   `/auth` router is mounted only when `AUTH_MODE=local` (`api/v1/api_router.py::build_api_router`);
   with Cognito the pool issues the tokens. So is `users.role_router` (`PATCH /users/{id}/role`):
   with Cognito the pool's `admin` group is the role and the next request would undo a stored
@@ -86,7 +87,8 @@ infrastructure/dynamo/  the only adapter: table.py, keys.py, codec.py, repositor
 - **`User.subject`** is the `sub` of the account's tokens: `upsert_from_identity` writes the
   identity's subject (Cognito) or the account id (`subject_is_account_id=True`, local sign-in;
   `devtools` sets it too), only when it changes. The AI traces name users by it, never by email.
-  `google_id` is kept as it was. **`Trip.planner_session_id`** links a trip to the planner
+  `google_id` follows the identity provider's subject (the Google `sub` locally, the Cognito
+  `sub` deployed). **`Trip.planner_session_id`** links a trip to the planner
   turns that made it; writable like any trip field, and locked with them.
 - Pagination: every list endpoint of the caller's own data takes `Page` via `Depends(page_params)` (`skip`, `limit ≤ 500`); the admin lists go by `cursor` instead;
   a user's trips come from one `Query` and are sorted and sliced in the service.
@@ -98,7 +100,9 @@ infrastructure/dynamo/  the only adapter: table.py, keys.py, codec.py, repositor
   past the schema would fail the response model on every later read.
 - **Entity rules live on the entity** (`domain/models.py`): `check_invariants()` raises
   `travel_common.exceptions.*`. Single-field formats (`TimeOfDay`, `CountryCode`, `Money`, ...) are the
-  `Annotated` types in `schemas/_types.py`; closed vocabularies are `domain/enums.py`.
+  `Annotated` types in `schemas/_types.py`; closed vocabularies are `domain/enums.py`. A
+  journey's `departure_time`/`arrival_time` must carry an offset on create and update
+  (`AwareDatetime`: a naive one is 422), so the ordering rule never compares naive and aware.
 
 ## The table (ADR 0023)
 
@@ -116,6 +120,8 @@ infrastructure/dynamo/  the only adapter: table.py, keys.py, codec.py, repositor
   Index pages go by cursor (`_index_page`: base64url of `LastEvaluatedKey`; a cursor that is not
   one this index issued is `BadRequest`). A trip item without `GSI2PK` is absent from the admin
   list until it is saved again.
+- **Every repository call goes through `_Store._call`**: a failed condition is a `Conflict`
+  (below), any other `ClientError`/`BotoCoreError` is `ProviderUnavailable` (503), never a raw 500.
 - **Optimistic concurrency**: profile and trip carry `version`; creates are conditional on
   `attribute_not_exists(PK)`, changes on `version = :expected`. A failed condition is `Conflict`
   (409, "changed by another request, reload and retry"; a taken email: "email already registered").
