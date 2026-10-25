@@ -89,7 +89,7 @@ missing). Only `CHAT_TEMPERATURE` is sent (Claude 4.5+ refuses `top_p` alongside
 the same `RetryPolicy` as NVIDIA and happen only before the first delta.
 `BedrockProvider.complete()` returns one non-streamed answer (the planner's structured calls);
 it sends native JSON Schema through Converse `outputConfig.textFormat`. Invalid structured answers
-fail once and let the planner's deterministic fallback take over. Its `model=` override is unused. The final stream event's token usage is logged
+fail once and let the planner's deterministic fallback take over. The final stream event's token usage is logged
 (`Bedrock usage ...`) so costs can be reconciled with Cost Explorer.
 
 ## Retrieval (`RETRIEVAL_ENABLED`)
