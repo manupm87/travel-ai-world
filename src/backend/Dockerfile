@@ -21,7 +21,7 @@ ARG SERVICE
 # The adapter binary, as a stage: `COPY --from` does not expand variables.
 FROM public.ecr.aws/awsguru/aws-lambda-adapter:${LWA_VERSION} AS lwa
 
-# ── Stage 1: resolve and install into /opt/venv ─────────────────────────────
+# Stage 1: resolve and install into /opt/venv
 FROM python:${PYTHON_VERSION}-slim AS builder
 ARG SERVICE
 RUN test -n "$SERVICE" || { echo "build-arg SERVICE=core_api|ai_api is required" >&2; exit 1; }
@@ -49,7 +49,7 @@ COPY services/${SERVICE} services/${SERVICE}
 RUN uv sync --frozen --no-dev --no-editable \
     --package "$(echo "$SERVICE" | tr _ -)"
 
-# ── Stage 2a: per-service Lambda Web Adapter settings ───────────────────────
+# Stage 2a: per-service Lambda Web Adapter settings
 # ENV cannot branch on a build arg, so each service has a one-line stage and
 # the runtime stage inherits from the matching one.
 FROM python:${PYTHON_VERSION}-slim AS lambda-env-core_api
@@ -61,7 +61,7 @@ FROM python:${PYTHON_VERSION}-slim AS lambda-env-ai_api
 ENV AWS_LWA_INVOKE_MODE=response_stream \
     AWS_LWA_READINESS_CHECK_PATH=/api/v1/ai/health/
 
-# ── Stage 2: minimal runtime ────────────────────────────────────────────────
+# Stage 2: minimal runtime
 FROM lambda-env-${SERVICE}
 ARG SERVICE
 WORKDIR /app

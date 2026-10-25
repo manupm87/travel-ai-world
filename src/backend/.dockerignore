@@ -1,7 +1,4 @@
-# ==============================================================================
-# Docker Build Ignore File
-# Keeps the Docker image context small and secure.
-# ==============================================================================
+# Build context of src/backend/Dockerfile: keeps the image context small and free of secrets.
 
 # Git
 .git
