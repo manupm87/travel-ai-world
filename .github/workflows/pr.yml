@@ -76,10 +76,13 @@ jobs:
               - '.github/**'
             infra:
               - 'infra/**'
+              - 'justfile'
               - '.github/**'
             docs:
               - '**/*.md'
               - 'scripts/check_docs.py'
+              - '.lychee.toml'
+              - '.markdownlint.yaml'
               - 'justfile'
               - '.github/**'
 
@@ -326,7 +329,8 @@ jobs:
       - uses: actions/checkout@v7
       - uses: hashicorp/setup-terraform@v4
       - uses: extractions/setup-just@v4
-      - run: just infra-fmt-check
+      - run: just infra-fmt-check  # formats the whole of infra/, once
+        if: matrix.cloud == 'aws'
       - run: just infra-validate ${{ matrix.cloud }}
 
   docs:
