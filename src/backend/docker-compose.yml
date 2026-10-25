@@ -21,7 +21,7 @@
 
 services:
   proxy:
-    image: nginx:1.27-alpine
+    image: nginx:1.30-alpine
     ports:
       - "8080:80"
     volumes:
@@ -82,7 +82,7 @@ services:
   # services create their tables here (endpoint override set); on AWS
   # Terraform owns them.
   dynamodb:
-    image: amazon/dynamodb-local:latest
+    image: amazon/dynamodb-local:3.3.2
     command: ["-jar", "DynamoDBLocal.jar", "-sharedDb", "-inMemory"]
     ports:
       - "8002:8000"

@@ -10,7 +10,7 @@ services:
       - "127.0.0.1:8000:8000"
 
   prometheus:
-    image: prom/prometheus:v3.2.1
+    image: prom/prometheus:v3.15.1
     profiles: [metrics]
     command:
       - --config.file=/etc/prometheus/prometheus.yml

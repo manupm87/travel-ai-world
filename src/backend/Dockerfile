@@ -26,7 +26,8 @@ FROM python:${PYTHON_VERSION}-slim AS builder
 ARG SERVICE
 RUN test -n "$SERVICE" || { echo "build-arg SERVICE=core_api|ai_api is required" >&2; exit 1; }
 
-COPY --from=ghcr.io/astral-sh/uv:0.8 /uv /uvx /bin/
+# The uv minor the devcontainer and CI use: the image reads the lock they write.
+COPY --from=ghcr.io/astral-sh/uv:0.13 /uv /uvx /bin/
 
 WORKDIR /app
 ENV UV_COMPILE_BYTECODE=1 \
