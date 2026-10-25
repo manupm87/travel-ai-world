@@ -2,7 +2,7 @@
 """Mechanical documentation checks; the PR template covers the rest.
 
 Required files exist, every ADR has a Status line and an index entry, every `just`
-recipe named in an AGENTS.md or CLAUDE.md exists, relative links resolve (no anchors).
+recipe named in an AGENTS.md, CLAUDE.md, slash command or runbook exists, relative links resolve (no anchors).
 """
 
 import re
@@ -40,6 +40,10 @@ REQUIRED = [
     "docs/api/ai-api.openapi.json",
 ]
 
+# Copies, caches and installs rather than the repository's own docs; `worktrees`
+# covers the agent checkouts under .claude/worktrees/.
+SKIPPED_PARTS = {".git", ".venv", "node_modules", ".terraform", ".cache", "worktrees"}
+
 LINK_RE = re.compile(r"\[[^\]]*\]\(([^)\s#]+)(?:#[^)]*)?\)")
 JUST_RE = re.compile(r"`just ([a-z][a-z0-9-]*)")
 # Recipe header: name, optional parameters (which may carry `=default`), then a
@@ -58,14 +62,17 @@ def main() -> int:
     docs = [
         p
         for p in ROOT.rglob("*.md")
-        if "node_modules" not in p.parts and ".venv" not in p.parts
+        if not SKIPPED_PARTS.intersection(p.relative_to(ROOT).parts)
     ]
 
     for doc in docs:
         text = doc.read_text(encoding="utf-8")
         rel = doc.relative_to(ROOT)
 
-        if doc.name == "AGENTS.md" or doc.name == "CLAUDE.md":
+        if doc.name in {"AGENTS.md", "CLAUDE.md"} or rel.parent.as_posix() in {
+            ".claude/commands",
+            "docs/runbooks",
+        }:
             for recipe in JUST_RE.findall(text):
                 if recipe not in recipes:
                     problems.append(
