@@ -226,7 +226,7 @@ class SitePreviews:
         """
         url = image
         for _ in range(MAX_REDIRECTS + 1):
-            if not await self._resolves_publicly(url):
+            if not await self._may_connect(url):
                 return False
             response = await self._client.head(url)
             if response.is_redirect:
@@ -253,7 +253,7 @@ class SitePreviews:
         """
         url = site_url
         for _ in range(MAX_REDIRECTS + 1):
-            if not await self._resolves_publicly(url):
+            if not await self._may_connect(url):
                 return None
             async with self._client.stream("GET", url) as response:
                 if response.is_redirect:
@@ -271,13 +271,17 @@ class SitePreviews:
                 return str(response.url), body, response.charset_encoding or "utf-8"
         return None
 
-    async def _resolves_publicly(self, url: str) -> bool:
-        """Whether every address the URL's host resolves to is a public one.
+    async def _may_connect(self, url: str) -> bool:
+        """Whether the URL names its scheme's default port and a public host.
 
         Checked right before each request, redirects included: a public-looking
         name may point at the local network, the cloud's metadata service or
-        this machine. A name that does not resolve is refused too.
+        this machine, so every address it resolves to must be public. A name
+        that does not resolve is refused too.
         """
+        if not on_default_port(url):
+            logger.info("Site preview refused %r, on a port of its own", url)
+            return False
         host = urlsplit(url).hostname or ""
         try:
             async with asyncio.timeout(RESOLVE_TIMEOUT_SECONDS):
@@ -310,19 +314,17 @@ class SitePreviews:
 def fetchable(site_url: str) -> bool:
     """Whether this URL may be requested at all — checked before any request.
 
-    Only plain http(s) to a public named host on the scheme's default port: no
-    credentials in the URL, no IP literal, no host of the local network, and
-    none of the encyclopaedias that are never the venue's own site. Where the
-    name resolves is checked separately, right before each request.
+    Only plain http(s) to a public named host: no credentials in the URL, no
+    IP literal, no host of the local network, and none of the encyclopaedias
+    that are never the venue's own site. The port and where the name resolves
+    are checked right before each request (`SitePreviews._may_connect`).
     """
     try:
         parsed = urlsplit(site_url)
         host = (parsed.hostname or "").lower()
-        if parsed.scheme not in DEFAULT_PORTS or not host:
+        if parsed.scheme not in ("http", "https") or not host:
             return False
         if parsed.username or parsed.password:
-            return False
-        if parsed.port not in (None, DEFAULT_PORTS[parsed.scheme]):
             return False
     except ValueError:
         return False
@@ -345,6 +347,15 @@ def fetchable(site_url: str) -> bool:
     return not any(
         host == denied or host.endswith(f".{denied}") for denied in DENIED_HOSTS
     )
+
+
+def on_default_port(url: str) -> bool:
+    """Whether the URL names no port, or its scheme's own (80 for http, 443 for https)."""
+    try:
+        parsed = urlsplit(url)
+        return parsed.port in (None, DEFAULT_PORTS.get(parsed.scheme))
+    except ValueError:
+        return False
 
 
 async def resolve_host(host: str) -> list[str]:

@@ -335,6 +335,8 @@ ASTORIA = "wv:en:Budapest/Belváros#sleep:danubius-hotel-astoria"
 PARLIAMENT = "wv:en:Budapest/Belváros#see:parliament"
 ANNA_CAFE = "wv:en:Budapest/Belváros#eat:anna-cafe"
 SZIMPLA = "wv:en:Budapest/Erzsébetváros#drink:szimpla-kert-mozi"
+
+
 class EmbeddingRetriever(FakeRetriever):
     """Reports one embedding token per word of the query, as an embedder would."""
 

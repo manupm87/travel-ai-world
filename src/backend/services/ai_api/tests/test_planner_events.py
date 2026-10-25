@@ -263,9 +263,7 @@ def _itinerary(stay=None, morning=()) -> dict:
     "turn",
     [
         _turn({"type": "remove", "slot": SLOT, "card_id": LONG_ID}),
-        _turn(
-            {"type": "select", "group_id": "g", "card_ids": [LONG_ID], "slot": None}
-        ),
+        _turn({"type": "select", "group_id": "g", "card_ids": [LONG_ID], "slot": None}),
         _turn(itinerary=_itinerary(stay=LONG_ID)),
         _turn(itinerary=_itinerary(morning=[LONG_ID])),
     ],

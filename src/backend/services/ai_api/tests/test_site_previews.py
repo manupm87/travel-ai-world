@@ -9,7 +9,6 @@ from ai_api.infrastructure.commons_photos import USER_AGENT
 from ai_api.infrastructure.site_previews import (
     MAX_REDIRECTS,
     SitePreviews,
-    fetchable,
     is_public_address,
     registrable_domain,
 )
@@ -261,9 +260,24 @@ async def test_a_port_other_than_the_schemes_own_makes_no_request(url) -> None:
     assert seen == []
 
 
-def test_the_schemes_own_port_may_be_written_out() -> None:
-    assert fetchable("https://samm.example:443/")
-    assert fetchable("http://samm.example:80/")
+@pytest.mark.parametrize(
+    "url", ["https://restaurantesamm.com:443/", "http://restaurantesamm.com:80/"]
+)
+async def test_the_schemes_own_port_may_be_written_out(url) -> None:
+    handler, seen = _serving(_html(f'<meta property="og:image" content="{IMAGE}">'))
+
+    assert await _previews(handler).preview(url) is not None
+    assert len(_gets(seen)) == 1
+
+
+async def test_a_redirect_to_another_port_stops_there() -> None:
+    handler, seen = _serving(
+        _html(f'<meta property="og:image" content="{IMAGE}">'),
+        final_url="https://restaurantesamm.com:8443/",
+    )
+
+    assert await _previews(handler).preview(SITE) is None
+    assert [str(r.url) for r in seen] == [SITE]
 
 
 @pytest.mark.parametrize(
@@ -332,9 +346,7 @@ async def test_an_image_on_a_name_that_resolves_privately_gets_no_head() -> None
     assert [r.method for r in seen] == ["GET"]
 
 
-async def test_an_image_redirect_to_a_name_that_resolves_privately_is_refused() -> (
-    None
-):
+async def test_an_image_redirect_to_a_name_that_resolves_privately_is_refused() -> None:
     seen: list[httpx.Request] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
