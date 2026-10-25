@@ -22,8 +22,8 @@ organization does not use it.
 
 The default range is 24 hours and refresh is manual. Six Logs Insights queries
 run per complete load. Eight executive cards use Grafana's Dashboard datasource
-to reuse the raw results of tables 101 and 102. Three additional profile charts
-reuse table 105: destination and pace horizontal bars, and a budget donut. Each
+to reuse the raw results of tables 101 and 102. Two profile charts
+reuse table 105: pace horizontal bars and a budget donut. Each
 groups the raw category and sums `viajes`; counting combination rows would
 misstate the distribution. All shared targets use `withTransforms: false`.
 Keep all three source tables present
@@ -34,6 +34,17 @@ Profile combinations are limited to the top 100 rows. Derived distributions
 therefore describe those combinations and can omit others; they are not a
 complete distribution or inventory export. Category mappings preserve `other`
 and `unspecified`; empty results remain empty rather than synthetic zeros. Grafana's time range still bounds every live query.
+
+The destination bar instead uses an existing Infinity datasource selected at
+import (`DS_INFINITY`). Its inline CSV has only `city,trips` headers in this
+portable template: no invented counts or production metadata are committed.
+Populate it with reviewed city/count aggregates and update text panel `44` with
+capture time, fixed creation cutoff and source. This is retained inventory at
+capture, excludes deleted trips, and is not a transactional creation history.
+It does not follow the time picker, correct old CloudWatch events or update
+after database changes. Never sum it with event counts: populations can overlap.
+The CSV adds no AWS query when viewed; its original one-off database read has
+its own cost. No scheduled capture is configured.
 
 Business events use the persisted creation snapshot and deduplicate by
 `event_id` within the selected window. Duration includes explicit zero and
@@ -66,7 +77,8 @@ USD 2.05 AI cost have a different scope from live core HTTP requests and total
 AWS billing. Update or remove static evidence if the memory is revised; never
 present it as a current measurement.
 
-The overview uses eight compact cards, two trends and three profile charts.
+The overview uses eight compact cards, two trends, a fixed destination snapshot
+and two profile charts of selected-period events.
 Expanded profile, route and summary tables keep the live results auditable.
 Only static memory evidence and the interpretation guide are in collapsed rows;
 no shared datasource lives in those rows. Access to the same Grafana organization

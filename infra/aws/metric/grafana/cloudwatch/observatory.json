@@ -24,6 +24,14 @@
       "type": "datasource",
       "pluginId": "cloudwatch",
       "pluginName": "CloudWatch"
+    },
+    {
+      "name": "DS_INFINITY",
+      "label": "Infinity existente",
+      "description": "Datasource Infinity para CSV agregado inline; no consulta AWS.",
+      "type": "datasource",
+      "pluginId": "yesoreyeram-infinity-datasource",
+      "pluginName": "Infinity"
     }
   ],
   "__requires": [
@@ -32,6 +40,12 @@
       "id": "cloudwatch",
       "name": "CloudWatch",
       "version": "1.0.0"
+    },
+    {
+      "type": "datasource",
+      "id": "yesoreyeram-infinity-datasource",
+      "name": "Infinity",
+      "version": "3.0.0"
     }
   ],
   "templating": {
@@ -66,7 +80,7 @@
   "annotations": {
     "list": []
   },
-  "description": "Observatorio de equipo: ocho indicadores, tendencias de negocio y HTTP, perfiles compartidos y fuentes auditables. Seis consultas CloudWatch, actualización manual; memoria estática en anexo.",
+  "description": "Observatorio de equipo: ocho indicadores, tendencias de negocio y HTTP, destinos recuperados como instantánea y preferencias del periodo. Seis consultas CloudWatch y un CSV inline sin consulta AWS; actualización manual; memoria estática en anexo.",
   "timepicker": {
     "refresh_intervals": [],
     "time_options": [
@@ -929,7 +943,7 @@
     },
     {
       "id": 40,
-      "title": "04 · Viajeros | Perfil en el momento de crear",
+      "title": "04 · Destinos históricos y preferencias del periodo",
       "type": "row",
       "gridPos": {
         "x": 0,
@@ -949,145 +963,83 @@
         "x": 0,
         "y": 24,
         "w": 24,
-        "h": 2
+        "h": 3
       },
       "options": {
         "mode": "markdown",
-        "content": "**Muestra de perfiles:** 100 combinaciones más frecuentes; las distribuciones pueden omitir viajes. «Otros destinos» incluye ciudades no identificadas y eventos históricos agrupados."
+        "content": "**Destinos · INSTANTÁNEA PENDIENTE DE CARGAR.** Captura, corte de creación y fuente: pendientes. Inventario conservado al capturar, excluye eliminados; no cambia con el intervalo. **Presupuesto y ritmo:** eventos de creación del periodo seleccionado. Son fuentes distintas y no deben sumarse. Presupuesto y ritmo muestran las 100 combinaciones principales y pueden omitir viajes."
       }
     },
     {
       "id": 41,
-      "title": "Destinos",
       "type": "barchart",
+      "title": "Destinos · histórico recuperado",
+      "description": "Instantánea fija de viajes conservados en la captura y creados antes del corte documentado. No cambia con el selector temporal ni debe sumarse a los eventos. Captura, corte y fuente pendientes de cargar en esta plantilla. Lectura no transaccional; excluye eliminados.",
       "gridPos": {
         "x": 0,
-        "y": 26,
+        "y": 27,
         "w": 8,
         "h": 9
       },
       "datasource": {
-        "type": "datasource",
-        "uid": "-- Dashboard --"
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_INFINITY}"
       },
       "targets": [
         {
           "refId": "A",
-          "datasource": {
-            "type": "datasource",
-            "uid": "-- Dashboard --"
-          },
-          "panelId": 105,
-          "withTransforms": false
-        }
-      ],
-      "transformations": [
-        {
-          "id": "groupBy",
-          "options": {
-            "fields": {
-              "city_slug": {
-                "aggregations": [],
-                "operation": "groupby"
-              },
-              "viajes": {
-                "aggregations": [
-                  "sum"
-                ],
-                "operation": "aggregate"
-              }
+          "type": "csv",
+          "source": "inline",
+          "format": "table",
+          "parser": "backend",
+          "data": "city,trips\n",
+          "columns": [
+            {
+              "selector": "city",
+              "text": "Ciudad",
+              "type": "string"
+            },
+            {
+              "selector": "trips",
+              "text": "Viajes",
+              "type": "number"
             }
-          }
-        },
-        {
-          "id": "filterFieldsByName",
-          "options": {
-            "include": {
-              "names": [
-                "city_slug",
-                "viajes (sum)"
-              ]
-            }
-          }
+          ]
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "short",
-          "decimals": 0,
-          "noValue": "Sin muestras",
           "color": {
             "mode": "fixed",
-            "fixedColor": "blue"
+            "fixedColor": "#56C8E8"
+          },
+          "unit": "short",
+          "decimals": 0,
+          "min": 0,
+          "noValue": "Pendiente de cargar",
+          "custom": {
+            "axisLabel": "Viajes conservados",
+            "axisPlacement": "auto",
+            "fillOpacity": 85,
+            "gradientMode": "none",
+            "lineWidth": 0,
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
           }
         },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "city_slug"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Destino"
-              },
-              {
-                "id": "mappings",
-                "value": [
-                  {
-                    "type": "value",
-                    "options": {
-                      "budapest": {
-                        "text": "Budapest"
-                      },
-                      "other": {
-                        "text": "Otros destinos"
-                      },
-                      "berlin": {
-                        "text": "Berlín"
-                      },
-                      "bologna": {
-                        "text": "Bolonia"
-                      },
-                      "los-angeles": {
-                        "text": "Los Ángeles"
-                      },
-                      "madrid": {
-                        "text": "Madrid"
-                      },
-                      "miami": {
-                        "text": "Miami"
-                      }
-                    }
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "viajes (sum)"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Viajes"
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
-      "description": "Suma de viajes por grupo de destino. Reutiliza las 100 combinaciones de perfil con más viajes; puede omitir combinaciones fuera del límite. Fotografía de creación, no inventario. Sin filas significa sin muestras; no se añaden ceros.",
       "options": {
         "orientation": "horizontal",
-        "xField": "city_slug",
+        "xField": "Ciudad",
         "showValue": "always",
-        "stacking": "none",
         "groupWidth": 0.7,
-        "barWidth": 0.7,
+        "barWidth": 0.8,
         "barRadius": 0.12,
+        "fullHighlight": false,
         "legend": {
           "showLegend": false
         },
@@ -1095,9 +1047,7 @@
           "mode": "single",
           "sort": "none"
         },
-        "xTickLabelRotation": 0,
-        "xTickLabelSpacing": 0,
-        "fullHighlight": true
+        "xTickLabelRotation": 0
       }
     },
     {
@@ -1106,7 +1056,7 @@
       "type": "piechart",
       "gridPos": {
         "x": 8,
-        "y": 26,
+        "y": 27,
         "w": 8,
         "h": 9
       },
@@ -1237,7 +1187,7 @@
       "type": "barchart",
       "gridPos": {
         "x": 16,
-        "y": 26,
+        "y": 27,
         "w": 8,
         "h": 9
       },
@@ -1371,11 +1321,11 @@
     },
     {
       "id": 105,
-      "title": "Perfil de creación · detalle de las combinaciones",
+      "title": "Eventos del periodo · detalle original",
       "type": "table",
       "gridPos": {
         "x": 0,
-        "y": 35,
+        "y": 36,
         "w": 24,
         "h": 8
       },
@@ -1693,7 +1643,7 @@
           }
         ]
       },
-      "description": "Hasta 100 combinaciones, ordenadas por volumen. Otros destinos no permite recuperar la ciudad original. Presupuesto 1/2/3: categorías, no importes monetarios."
+      "description": "Hasta 100 combinaciones de eventos originales del periodo. Los antiguos otros destinos permanecen agrupados: esta tabla no es el inventario histórico recuperado. Presupuesto 1/2/3 son categorías, no importes monetarios."
     },
     {
       "id": 50,
@@ -1701,7 +1651,7 @@
       "type": "row",
       "gridPos": {
         "x": 0,
-        "y": 43,
+        "y": 44,
         "w": 24,
         "h": 1
       },
@@ -1714,7 +1664,7 @@
       "type": "table",
       "gridPos": {
         "x": 0,
-        "y": 44,
+        "y": 45,
         "w": 24,
         "h": 8
       },
@@ -1979,7 +1929,7 @@
       "type": "table",
       "gridPos": {
         "x": 0,
-        "y": 52,
+        "y": 53,
         "w": 24,
         "h": 4
       },
@@ -2154,7 +2104,7 @@
       "type": "table",
       "gridPos": {
         "x": 0,
-        "y": 56,
+        "y": 57,
         "w": 24,
         "h": 4
       },
@@ -2370,7 +2320,7 @@
       "type": "row",
       "gridPos": {
         "x": 0,
-        "y": 60,
+        "y": 61,
         "w": 24,
         "h": 1
       },
@@ -2416,7 +2366,7 @@
       "type": "row",
       "gridPos": {
         "x": 0,
-        "y": 61,
+        "y": 62,
         "w": 24,
         "h": 1
       },
@@ -2435,7 +2385,7 @@
           "transparent": true,
           "options": {
             "mode": "markdown",
-            "content": "### Cómo leer el observatorio\n**EN VIVO** significa consulta a registros retenidos del intervalo, no monitorización continua. Si aparece «Sin muestras», comprueba rango, captura, permisos y errores: no significa cero viajes, API caída ni disponibilidad del 100 %. No se muestran datos inventados.\n\n**Negocio:** solo nuevas creaciones registradas tras activar los eventos. Deduplicación por `event_id` dentro del rango; no es inventario, auditoría contable ni backfill de DynamoDB. La duración admite cero y excluye valores ausentes. La ciudad sigue la lista permitida configurada al crear el evento; los valores no reconocidos se agrupan en `other`. La configuración ampliada distingue seis ciudades desde su despliegue; los eventos históricos agrupados no se pueden desglosar. Los perfiles son fotografías de la creación y no cambian con ediciones o borrados.\n\n**HTTP:** solo `core_api`, formato `access_log` v1. La duración termina antes de entregar el último mensaje ASGI al servidor; no mide latencia del navegador, TTFT ni turnos de IA. Interrupción y 5xx son señales diferentes. La primera invocación observada no equivale a `Init Duration`. Sin SLO ni disponibilidad inferida.\n\n**Coste y acceso:** 6 consultas de CloudWatch por carga completa; las tarjetas reutilizan dos resúmenes y los gráficos de perfil reutilizan las 100 combinaciones principales. Estas distribuciones pueden ser parciales; suman viajes, no filas de combinaciones. Actualización manual, 24 h iniciales. Los filtros no evitan escanear otros registros del grupo; ampliar el rango puede aumentar el coste. Grafana Free no elimina cargos AWS. Sin nuevos servicios, alarmas, permisos ni consultas a la base de datos. La retención (14 días por defecto) limita el historial. El lector tiene acceso al grupo completo.\n\n**Fuente académica:** `docs/memoria/main.pdf`, memoria facilitada el 24/10/2026; resultados estáticos separados y etiquetados. No se presentan como telemetría ni cambian con el intervalo."
+            "content": "### Cómo leer el observatorio\n**EN VIVO** significa consulta a registros retenidos del intervalo, no monitorización continua. Si aparece «Sin muestras», comprueba rango, captura, permisos y errores: no significa cero viajes, API caída ni disponibilidad del 100 %. No se muestran datos inventados.\n\n**Negocio:** solo nuevas creaciones registradas tras activar los eventos. Deduplicación por `event_id` dentro del rango; no es inventario, auditoría contable ni backfill de DynamoDB. La duración admite cero y excluye valores ausentes. La ciudad sigue la lista permitida configurada al crear el evento; los valores no reconocidos se agrupan en `other`. La configuración ampliada distingue seis ciudades desde su despliegue; los eventos históricos agrupados no se pueden desglosar. Los perfiles son fotografías de la creación y no cambian con ediciones o borrados.\n\n**HTTP:** solo `core_api`, formato `access_log` v1. La duración termina antes de entregar el último mensaje ASGI al servidor; no mide latencia del navegador, TTFT ni turnos de IA. Interrupción y 5xx son señales diferentes. La primera invocación observada no equivale a `Init Duration`. Sin SLO ni disponibilidad inferida.\n\n**Coste y acceso:** 6 consultas de CloudWatch por carga completa; las tarjetas reutilizan dos resúmenes y presupuesto y ritmo reutilizan las 100 combinaciones principales. Estas distribuciones pueden ser parciales; suman viajes, no filas de combinaciones. Actualización manual, 24 h iniciales. Los filtros no evitan escanear otros registros del grupo; ampliar el rango puede aumentar el coste. Grafana Free no elimina cargos AWS. Sin nuevos servicios, alarmas, permisos ni consultas a la base de datos. La retención (14 días por defecto) limita el historial. El lector tiene acceso al grupo completo.\n\n**Fuente académica:** `docs/memoria/main.pdf`, memoria facilitada el 24/10/2026; resultados estáticos separados y etiquetados. No se presentan como telemetría ni cambian con el intervalo.\n\n**Destinos recuperados:** CSV inline de una captura puntual del inventario conservado, con corte de creación fijo. Excluye eliminados y la lectura no es transaccional. No sigue el selector temporal ni corrige los eventos antiguos. No sumar con los eventos del periodo: pueden solaparse. La visualización añade cero consultas AWS; la lectura original de DynamoDB sí tiene coste. Captura, corte y fuente pendientes en la plantilla portable."
           }
         }
       ]
