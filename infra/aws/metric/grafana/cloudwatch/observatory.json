@@ -953,7 +953,7 @@
       },
       "options": {
         "mode": "markdown",
-        "content": "**Muestra de perfiles:** 100 combinaciones más frecuentes; las distribuciones pueden omitir viajes. «Otros destinos» agrupa ciudades sin nombre disponible."
+        "content": "**Muestra de perfiles:** 100 combinaciones más frecuentes; las distribuciones pueden omitir viajes. «Otros destinos» incluye ciudades no identificadas y eventos históricos agrupados."
       }
     },
     {
@@ -1043,6 +1043,21 @@
                       },
                       "other": {
                         "text": "Otros destinos"
+                      },
+                      "berlin": {
+                        "text": "Berlín"
+                      },
+                      "bologna": {
+                        "text": "Bolonia"
+                      },
+                      "los-angeles": {
+                        "text": "Los Ángeles"
+                      },
+                      "madrid": {
+                        "text": "Madrid"
+                      },
+                      "miami": {
+                        "text": "Miami"
                       }
                     }
                   }
@@ -1519,6 +1534,21 @@
                       },
                       "other": {
                         "text": "Otros destinos"
+                      },
+                      "berlin": {
+                        "text": "Berlín"
+                      },
+                      "bologna": {
+                        "text": "Bolonia"
+                      },
+                      "los-angeles": {
+                        "text": "Los Ángeles"
+                      },
+                      "madrid": {
+                        "text": "Madrid"
+                      },
+                      "miami": {
+                        "text": "Miami"
                       }
                     }
                   }
@@ -2405,7 +2435,7 @@
           "transparent": true,
           "options": {
             "mode": "markdown",
-            "content": "### Cómo leer el observatorio\n**EN VIVO** significa consulta a registros retenidos del intervalo, no monitorización continua. Si aparece «Sin muestras», comprueba rango, captura, permisos y errores: no significa cero viajes, API caída ni disponibilidad del 100 %. No se muestran datos inventados.\n\n**Negocio:** solo nuevas creaciones registradas tras activar los eventos. Deduplicación por `event_id` dentro del rango; no es inventario, auditoría contable ni backfill de DynamoDB. La duración admite cero y excluye valores ausentes. La lista permitida registra Budapest por nombre; el resto se agrupa en `other`. Los perfiles son fotografías de la creación y no cambian con ediciones o borrados.\n\n**HTTP:** solo `core_api`, formato `access_log` v1. La duración termina antes de entregar el último mensaje ASGI al servidor; no mide latencia del navegador, TTFT ni turnos de IA. Interrupción y 5xx son señales diferentes. La primera invocación observada no equivale a `Init Duration`. Sin SLO ni disponibilidad inferida.\n\n**Coste y acceso:** 6 consultas de CloudWatch por carga completa; las tarjetas reutilizan dos resúmenes y los gráficos de perfil reutilizan las 100 combinaciones principales. Estas distribuciones pueden ser parciales; suman viajes, no filas de combinaciones. Actualización manual, 24 h iniciales. Los filtros no evitan escanear otros registros del grupo; ampliar el rango puede aumentar el coste. Grafana Free no elimina cargos AWS. Sin nuevos servicios, alarmas, permisos ni consultas a la base de datos. La retención (14 días por defecto) limita el historial. El lector tiene acceso al grupo completo.\n\n**Fuente académica:** `docs/memoria/main.pdf`, memoria facilitada el 24/10/2026; resultados estáticos separados y etiquetados. No se presentan como telemetría ni cambian con el intervalo."
+            "content": "### Cómo leer el observatorio\n**EN VIVO** significa consulta a registros retenidos del intervalo, no monitorización continua. Si aparece «Sin muestras», comprueba rango, captura, permisos y errores: no significa cero viajes, API caída ni disponibilidad del 100 %. No se muestran datos inventados.\n\n**Negocio:** solo nuevas creaciones registradas tras activar los eventos. Deduplicación por `event_id` dentro del rango; no es inventario, auditoría contable ni backfill de DynamoDB. La duración admite cero y excluye valores ausentes. La ciudad sigue la lista permitida configurada al crear el evento; los valores no reconocidos se agrupan en `other`. La configuración ampliada distingue seis ciudades desde su despliegue; los eventos históricos agrupados no se pueden desglosar. Los perfiles son fotografías de la creación y no cambian con ediciones o borrados.\n\n**HTTP:** solo `core_api`, formato `access_log` v1. La duración termina antes de entregar el último mensaje ASGI al servidor; no mide latencia del navegador, TTFT ni turnos de IA. Interrupción y 5xx son señales diferentes. La primera invocación observada no equivale a `Init Duration`. Sin SLO ni disponibilidad inferida.\n\n**Coste y acceso:** 6 consultas de CloudWatch por carga completa; las tarjetas reutilizan dos resúmenes y los gráficos de perfil reutilizan las 100 combinaciones principales. Estas distribuciones pueden ser parciales; suman viajes, no filas de combinaciones. Actualización manual, 24 h iniciales. Los filtros no evitan escanear otros registros del grupo; ampliar el rango puede aumentar el coste. Grafana Free no elimina cargos AWS. Sin nuevos servicios, alarmas, permisos ni consultas a la base de datos. La retención (14 días por defecto) limita el historial. El lector tiene acceso al grupo completo.\n\n**Fuente académica:** `docs/memoria/main.pdf`, memoria facilitada el 24/10/2026; resultados estáticos separados y etiquetados. No se presentan como telemetría ni cambian con el intervalo."
           }
         }
       ]
