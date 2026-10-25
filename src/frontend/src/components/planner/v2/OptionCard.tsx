@@ -114,7 +114,7 @@ export function OptionCard({
             className="absolute inset-0 bg-gradient-to-br from-accent/30 via-purple/20 to-bg-surface"
           >
             {hasImage && (
-              <div className="h-full w-full animate-shimmer bg-gradient-to-r from-transparent via-white/10 to-transparent bg-[length:200%_100%]" />
+              <div className="h-full w-full animate-shimmer bg-gradient-to-r from-transparent via-sheen/10 to-transparent bg-[length:200%_100%]" />
             )}
           </div>
         )}

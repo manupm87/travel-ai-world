@@ -106,7 +106,7 @@ export function MobileDrawer({ open, onClose, onLogin }: MobileDrawerProps) {
         aria-hidden="true"
         onClick={onClose}
         className={cn(
-          "absolute inset-0 bg-black/55 transition-opacity duration-300",
+          "absolute inset-0 bg-scrim/55 transition-opacity duration-300",
           open ? "opacity-100" : "opacity-0"
         )}
       />
