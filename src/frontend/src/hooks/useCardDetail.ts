@@ -1,5 +1,7 @@
 "use client";
 
+/** One option card in full, cached per id. */
+
 import { useEffect, useState } from "react";
 import { isAbortError } from "@/services/http";
 import { getCardDetail } from "@/services/planner";

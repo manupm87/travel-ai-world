@@ -1,5 +1,7 @@
 "use client";
 
+/** One option card of a carousel. */
+
 import { useRef, useState } from "react";
 import { Check, ExternalLink, Heart, Sparkles } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";

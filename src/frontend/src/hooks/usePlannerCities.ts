@@ -1,5 +1,7 @@
 "use client";
 
+/** The cities the planner covers, and which one a destination names. */
+
 import { useEffect, useState } from "react";
 import { isAbortError, UnauthorizedError } from "@/services/http";
 import { listCities } from "@/services/planner";

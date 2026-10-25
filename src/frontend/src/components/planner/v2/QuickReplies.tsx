@@ -1,5 +1,7 @@
 "use client";
 
+/** Quick-reply widgets for the fields the brief still lacks. */
+
 import { useId, useState } from "react";
 import { Minus, Plus } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";

@@ -1,3 +1,5 @@
+/** The Kyrian World mark and wordmark. */
+
 import { useId } from "react";
 import Link from "next/link";
 import { cn } from "@/utils/cn";

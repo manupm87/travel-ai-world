@@ -1,3 +1,5 @@
+/** The root layout: fonts, metadata and the providers every page shares. */
+
 import type { Metadata, Viewport } from "next";
 import { JetBrains_Mono, Outfit, Pixelify_Sans, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";

@@ -1,3 +1,5 @@
+/** Route `/admin/users/`: the static shell over every account. */
+
 import UsersClientPage from "./UsersClientPage";
 
 /** `/admin/users/` — a static shell over every account; nothing here reads the query. */

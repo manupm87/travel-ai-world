@@ -1,3 +1,5 @@
+/** The card primitive. */
+
 import React from "react";
 import { cn } from "@/utils/cn";
 

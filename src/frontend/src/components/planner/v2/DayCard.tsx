@@ -1,5 +1,7 @@
 "use client";
 
+/** One day of the itinerary. */
+
 import { useId, useState } from "react";
 import { ChevronDown, ChevronRight, Plus } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";

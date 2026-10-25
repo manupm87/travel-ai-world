@@ -1,5 +1,7 @@
 "use client";
 
+/** The phone menu drawer. */
+
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";

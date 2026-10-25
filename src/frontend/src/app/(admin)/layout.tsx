@@ -1,3 +1,5 @@
+/** Layout of the `(admin)` route group: the admin console's shell. */
+
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { AdminGate } from "@/components/admin/AdminGate";
 import Header from "@/components/layout/Header";

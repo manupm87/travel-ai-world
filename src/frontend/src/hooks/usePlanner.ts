@@ -1,5 +1,7 @@
 "use client";
 
+/** The planner's state and its turns against ai_api or the recorded demo. */
+
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { interpolate } from "@/i18n";

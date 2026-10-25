@@ -1,5 +1,7 @@
 "use client";
 
+/** The planner page: the chat, the trip panel and the map around `usePlanner`. */
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChatColumn } from "@/components/planner/v2/ChatColumn";

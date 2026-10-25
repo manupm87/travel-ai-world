@@ -1,5 +1,7 @@
 "use client";
 
+/** The finished trip as a boarding pass. */
+
 import { Plane } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { interpolate } from "@/i18n";

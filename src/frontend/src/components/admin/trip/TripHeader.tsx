@@ -1,5 +1,7 @@
 "use client";
 
+/** The admin trip page's header: owner, city, dates, phase and ids. */
+
 import type { ReactNode } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useFormatters } from "@/hooks/useFormatters";

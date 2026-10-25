@@ -1,5 +1,7 @@
 "use client";
 
+/** The access list page: the grant form, the grants table and today's usage. */
+
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { AdminHeading, AdminLoadState } from "@/components/admin/AdminStates";
 import { ConfirmRemoveAccess } from "@/components/admin/access/ConfirmRemoveAccess";

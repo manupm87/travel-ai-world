@@ -1,5 +1,7 @@
 "use client";
 
+/** A planner warning as a sticker. */
+
 import { CalendarClock, Clock, Footprints, Weight } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import type { ItineraryWarning } from "@/hooks/plannerReducer";

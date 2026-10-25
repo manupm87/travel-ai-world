@@ -1,5 +1,7 @@
 "use client";
 
+/** The strip of the trip's days. */
+
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { ChevronLeft, ChevronRight, LayoutGrid } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";

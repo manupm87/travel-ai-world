@@ -1,3 +1,5 @@
+/** Kiri, the suitcase mascot, drawn from pixel frames. */
+
 import { cn } from "@/utils/cn";
 import { KIRI_FACE, KIRI_FRAMES, type KiriColour, type KiriFrame, type KiriState } from "./frames";
 

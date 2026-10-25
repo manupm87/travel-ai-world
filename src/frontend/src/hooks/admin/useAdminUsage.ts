@@ -1,5 +1,7 @@
 "use client";
 
+/** Today's token counters, for the access list. */
+
 import { useCallback, useEffect, useState } from "react";
 import { getAdminUsage, type AdminUsage } from "@/services/admin";
 import { isAbortError } from "@/services/http";

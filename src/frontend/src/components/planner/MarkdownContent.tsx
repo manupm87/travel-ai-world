@@ -1,5 +1,7 @@
 "use client";
 
+/** Renders the planner's Markdown answers, with a restricted set of tags. */
+
 import Markdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ReactNode } from "react";

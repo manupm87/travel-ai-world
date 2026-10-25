@@ -1,3 +1,5 @@
+/** Kiri's stickers, from the account's trips. */
+
 import type { TripSummary } from "@/types/trip-summary";
 
 /** Kiri's stickers: one per city the account has a trip in, in the order the trips come. */

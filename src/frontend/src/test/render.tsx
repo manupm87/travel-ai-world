@@ -1,3 +1,5 @@
+/** Test render helper with the app's providers. */
+
 import { render, type RenderOptions } from "@testing-library/react";
 import type { ReactElement, ReactNode } from "react";
 import { LanguageProvider } from "@/context/LanguageContext";

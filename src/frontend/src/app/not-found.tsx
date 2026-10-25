@@ -1,5 +1,7 @@
 "use client";
 
+/** The 404 page, exported as `404.html`. */
+
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import LoadingSpinner from "@/components/common/LoadingSpinner";

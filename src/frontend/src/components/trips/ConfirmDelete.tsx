@@ -1,5 +1,7 @@
 "use client";
 
+/** The dialog that confirms deleting a trip. */
+
 import { useEffect, useId, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";

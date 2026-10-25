@@ -1,3 +1,5 @@
+/** Layout of the `(app)` route group: the signed-in shell and its route guard. */
+
 import Header from "@/components/layout/Header";
 import { AppAurora } from "@/components/layout/AppAurora";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";

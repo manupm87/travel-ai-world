@@ -1,5 +1,7 @@
 "use client";
 
+/** The route guard of the signed-in and admin routes. */
+
 import { useEffect, ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";

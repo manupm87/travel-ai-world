@@ -1,5 +1,7 @@
 "use client";
 
+/** Lets only administrators into the admin console. */
+
 import type { ReactNode } from "react";
 import { ShieldAlert } from "lucide-react";
 import LoadingSpinner from "@/components/common/LoadingSpinner";

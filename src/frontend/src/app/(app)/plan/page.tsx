@@ -1,3 +1,5 @@
+/** Route `/plan/`: the static shell over the planner. */
+
 import { Suspense } from "react";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import PlannerClientPage from "./PlannerClientPage";

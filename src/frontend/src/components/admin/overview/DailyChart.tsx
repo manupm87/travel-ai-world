@@ -1,5 +1,7 @@
 "use client";
 
+/** The overview's daily chart: turns by status over output tokens, hand-drawn SVG. */
+
 import { useEffect, useRef, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useFormatters } from "@/hooks/useFormatters";

@@ -1,3 +1,5 @@
+/** The translated copy of a planner failure. */
+
 import type { PlannerState } from "@/hooks/plannerReducer";
 import { interpolate, type Translations } from "@/i18n";
 

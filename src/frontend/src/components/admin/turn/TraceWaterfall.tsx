@@ -1,5 +1,7 @@
 "use client";
 
+/** The turn's trace as a waterfall by phase and step kind. */
+
 import { AlertTriangle, Clock3 } from "lucide-react";
 import { useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";

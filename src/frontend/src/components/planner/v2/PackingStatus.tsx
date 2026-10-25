@@ -1,5 +1,7 @@
 "use client";
 
+/** The planner's progress, told as Kiri packing the suitcase. */
+
 import { useEffect, useId, useState, type ReactNode } from "react";
 import { Briefcase, Check, ChevronDown, AlertTriangle } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";

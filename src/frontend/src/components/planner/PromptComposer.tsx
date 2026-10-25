@@ -1,5 +1,7 @@
 "use client";
 
+/** The planner's message composer. */
+
 import type { KeyboardEvent, RefObject } from "react";
 import { Loader2, Send } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";

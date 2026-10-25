@@ -1,5 +1,7 @@
 "use client";
 
+/** The turns explorer's table. */
+
 import { useLanguage } from "@/context/LanguageContext";
 import { displayName } from "@/hooks/admin/useAdminUsers";
 import { useFormatters } from "@/hooks/useFormatters";

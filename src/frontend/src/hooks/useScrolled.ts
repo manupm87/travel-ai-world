@@ -1,5 +1,7 @@
 "use client";
 
+/** Whether the window has scrolled. */
+
 import { useEffect, useState } from "react";
 
 /** True once the window has scrolled past `threshold` pixels. */

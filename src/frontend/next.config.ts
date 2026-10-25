@@ -1,3 +1,5 @@
+/** Next.js config: a static export with trailing slashes and unoptimised images. */
+
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {

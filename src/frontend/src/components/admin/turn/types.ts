@@ -1,3 +1,5 @@
+/** Short names for the parts of a turn the inspector renders. */
+
 import type { TurnDetail } from "@/services/admin";
 
 /** One step of a turn, as the admin API returns it. */

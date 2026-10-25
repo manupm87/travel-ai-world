@@ -1,5 +1,7 @@
 "use client";
 
+/** The suitcase that holds the trip's days while the planner packs it. */
+
 import { useEffect, useState } from "react";
 import { Check, MapPin } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";

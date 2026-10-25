@@ -1,3 +1,5 @@
+/** A status pill and the tone of each turn status, kind and trip phase. */
+
 import type { ReactNode } from "react";
 import { cn } from "@/utils/cn";
 

@@ -1,5 +1,7 @@
 "use client";
 
+/** The overview's stats for a range of UTC days. */
+
 import { useCallback, useEffect, useState } from "react";
 import { getStats, type TraceStats } from "@/services/admin";
 import { isAbortError } from "@/services/http";

@@ -1,5 +1,7 @@
 "use client";
 
+/** Calls back on a pointer-down outside an element. */
+
 import { useEffect, type RefObject } from "react";
 
 /**

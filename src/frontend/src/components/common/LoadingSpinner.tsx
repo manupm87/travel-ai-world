@@ -1,5 +1,7 @@
 "use client";
 
+/** The shared loading spinner. */
+
 import { useLanguage } from "@/context/LanguageContext";
 
 interface LoadingSpinnerProps {
