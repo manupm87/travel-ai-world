@@ -36,7 +36,7 @@ def test_new_entities_get_ids_timestamps_and_version_zero():
     user = User(email="a@example.com")
 
     assert isinstance(trip.id, uuid.UUID)
-    assert isinstance(user.id, uuid.UUID), "user ids are UUIDs now (ADR 0023)"
+    assert isinstance(user.id, uuid.UUID), "user ids are UUIDs (ADR 0023)"
     assert trip.created_at.tzinfo is not None
     assert (trip.version, user.version) == (0, 0)
     assert (user.role, user.is_active, user.auth_provider) == (

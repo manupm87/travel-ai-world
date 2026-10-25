@@ -23,9 +23,6 @@ class UserService:
             raise EntityNotFound("User", user_id)
         return user
 
-    async def get_by_email(self, email: str) -> User | None:
-        return await self.users.get_by_email(email)
-
     async def get_active(self, user_id: uuid.UUID) -> User:
         """Resolve an authenticated caller. 401 (never 404) so IDs don't leak."""
         user = await self.users.get(user_id)

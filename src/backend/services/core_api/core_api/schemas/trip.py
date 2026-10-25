@@ -87,7 +87,7 @@ class TripResponse(TripBase):
 
     model_config = ConfigDict(from_attributes=True)
 
-    @computed_field  # type: ignore[prop-decorator]
+    @computed_field
     @property
     def phase(self) -> TripPhase:
         """Where the trip stands today, derived from its dates alone."""
