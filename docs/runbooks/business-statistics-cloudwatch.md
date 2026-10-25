@@ -22,10 +22,18 @@ Duration is explicit, nullable and includes zero; dates are never used to infer
 it. No account ID, raw trip UUID, email, title, description, session or itinerary
 is emitted by this event. Updates and deletes emit no creation event.
 
-The current production allowlist defaults to **Budapest only**. Other city slugs
-are grouped into `other`, not displayed separately. Expanding that bounded
-allowlist requires a reviewed service/environment configuration change; the
-dashboard cannot recover individual destinations from existing `other` events.
+The service default allows the six corpus slugs: `berlin`, `bologna`, `budapest`, `los-angeles`, `madrid` and `miami`.
+Core Lambda Terraform derives its sorted allowlist from the filenames in
+`src/backend/tools/city_corpus/cities/*.toml`, rejecting an empty list or more
+than 100 entries during planning. `METRICS_CITY_SLUGS` remains a configurable
+JSON list of at most 100 entries outside that deployment;
+unlisted destinations are grouped into `other`. The six-city configuration
+requires deployment before it affects production, and only new creation events
+then receive the individual city category. Existing `other` events retain that
+category: the dashboard cannot recover their individual destinations. No
+historical backfill or database scan is performed. When adding a city, also
+update the service defaults, local examples and Grafana display names as
+described in the [add-city runbook](add-city.md).
 
 Only new events after activation are available. Existing trips are not
 backfilled. Deleting a trip leaves its creation observation; attributes are

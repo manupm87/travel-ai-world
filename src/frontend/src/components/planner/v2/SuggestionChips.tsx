@@ -1,5 +1,7 @@
 "use client";
 
+/** The planner's suggestion chips. */
+
 import { useLanguage } from "@/context/LanguageContext";
 import { interpolate } from "@/i18n";
 import type { PlannerCity } from "@/types/planner";

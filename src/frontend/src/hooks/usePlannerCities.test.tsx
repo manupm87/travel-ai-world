@@ -1,34 +1,25 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
-import { ApiError } from "@/services/http";
+import { ApiError, UnauthorizedError } from "@/services/http";
 import { listCities } from "@/services/planner";
+import { clearSession } from "@/services/session";
+import { BOLOGNA, BUDAPEST } from "@/test/fixtures/planner-city";
 import { findCity, usePlannerCities } from "./usePlannerCities";
 
 vi.mock("@/services/planner", () => ({
   listCities: vi.fn(),
 }));
 
+vi.mock("@/services/session", () => ({
+  clearSession: vi.fn(),
+}));
+
 const listCitiesMock = vi.mocked(listCities);
-
-const WIKIVOYAGE = "https://en.wikivoyage.org/wiki/Bologna";
-
-const BOLOGNA = {
-  slug: "bologna",
-  name: "Bologna",
-  country: "Italy",
-  country_code: "IT",
-  centre: [44.4939, 11.3428] as [number, number],
-  timezone: "Europe/Rome",
-  intro: {
-    en: { text: "Bologna is a historic city in Emilia-Romagna.", source_url: WIKIVOYAGE },
-  },
-  image_url: "https://commons.wikimedia.org/w/index.php?title=Special:FilePath/B.jpg",
-  image_credit: "Someone (CC BY-SA 3.0) · Wikimedia Commons",
-};
 
 describe("usePlannerCities", () => {
   beforeEach(() => {
     listCitiesMock.mockReset();
+    vi.mocked(clearSession).mockReset();
   });
 
   it("loads the cities once and reports them", async () => {
@@ -50,15 +41,28 @@ describe("usePlannerCities", () => {
     await waitFor(() => expect(result.current.status).toBe("error"));
     expect(result.current.cities).toEqual([]);
   });
-});
 
-const BUDAPEST = {
-  ...BOLOGNA,
-  slug: "budapest",
-  name: "Budapest",
-  centre: [47.4979, 19.0402] as [number, number],
-  timezone: "Europe/Budapest",
-};
+  it("clears the session on a 401 and keeps the default copy", async () => {
+    listCitiesMock.mockRejectedValue(new UnauthorizedError("expired"));
+
+    const { result } = renderHook(() => usePlannerCities());
+
+    await waitFor(() => expect(result.current.status).toBe("error"));
+    expect(clearSession).toHaveBeenCalledTimes(1);
+  });
+
+  it("aborts the request when it unmounts", () => {
+    listCitiesMock.mockReturnValue(new Promise(() => {}));
+
+    const { unmount } = renderHook(() => usePlannerCities());
+    const signal = listCitiesMock.mock.calls[0]?.[0]?.signal;
+    expect(signal?.aborted).toBe(false);
+
+    unmount();
+
+    expect(signal?.aborted).toBe(true);
+  });
+});
 
 const CITIES = [BOLOGNA, BUDAPEST];
 

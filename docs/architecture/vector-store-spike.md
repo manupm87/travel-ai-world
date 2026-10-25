@@ -32,14 +32,15 @@ on Fargate (doubles the monthly bill).
   corpus was embedded once (576,046 input tokens, $0.012) into an artefact carrying the
   sha256 of the corpus and of the vectors; both stores were filled from it.
 - **Evaluation set**: 32 queries, 4 of them in Spanish over English documents, 52 expected
-  `doc_id`s — `src/backend/tools/vector_store_bench/eval/budapest-queries.jsonl`. Several
+  `doc_id`s — `eval/budapest-queries.jsonl` of the bench (`src/backend/tools/vector_store_bench/`, removed by
+  [ADR 0038](adr/0038-retire-gcp-and-the-vector-store-spike.md); the code is in the git history). Several
   are phrased with no keyword overlap on purpose. The
   [RAG evaluation](rag-evaluation.md) quotes it as a reference.
 - **Ground truth**: exhaustive cosine over all 6,082 vectors with numpy.
 - **Latency**: measured by a bench Lambda in `eu-west-1`, outside any VPC, one request per
   execution environment — the same shape `ai_api` runs in. 128 warm queries per candidate
   and memory size; cold starts forced by replacing the execution environment.
-- Raw numbers: `src/backend/tools/vector_store_bench/results/*.csv`.
+- Raw numbers: the bench's `results/*.csv`, in the git history with the rest of its code.
 
 ## Quality (measured)
 
@@ -157,11 +158,10 @@ Revisit A if one of these becomes true:
 
 ## Housekeeping
 
-The throwaway stack (`infra/aws/spikes/vector-store/`) held its own ECR repository, two
+The throwaway stack (`infra/aws/spikes/vector-store/`, now only in the git history) held its own ECR repository, two
 Qdrant functions, two bench functions, an S3 bucket and its own S3 Vectors index, all
 tagged `spike=vector-store`. It never touched the main stack's index, and it is
-**destroyed** (`terraform destroy`). The local state file stays in the working copy and is
-never committed.
+**destroyed** (`terraform destroy`).
 
 The code stays: the Terraform, the image recipe and the bench package are kept so the
 whole measurement can be run again from scratch (`terraform apply`, build, `just corpus`

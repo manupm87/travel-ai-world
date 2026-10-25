@@ -4,10 +4,11 @@ Adapters in `infrastructure/` implement these; tests substitute fakes.
 """
 
 from collections.abc import AsyncIterator, Sequence
-from datetime import date
+from datetime import date, datetime
 from typing import Protocol
 
 from ai_api.domain.agent import AgentEvent, AgentMessage, ToolSpec
+from ai_api.domain.evaluation import EvalItemRecord, EvalRunDetail, EvalRunRecord
 from ai_api.domain.models import (
     DayWeather,
     Document,
@@ -123,7 +124,13 @@ class Retriever(Protocol):
         *,
         limit: int = 5,
         filters: RetrievalFilters | None = None,
-    ) -> list[Document]: ...
+        usage: Usage | None = None,
+    ) -> list[Document]:
+        """The passages closest to `query`, at most `limit`.
+
+        When `usage` is given, the tokens spent embedding the query are added to it.
+        """
+        ...
 
     async def fetch(self, ids: Sequence[str]) -> list[Document]:
         """The documents with these ids, in no particular order.
@@ -243,6 +250,39 @@ class UsageStore(Protocol):
 
     async def list_day(self, day: date) -> list[DailyUsage]:
         """Every subject's counter of one day, in any order."""
+        ...
+
+
+class EvalStore(Protocol):
+    """Where the admin's evaluation runs are kept (ADR 0039).
+
+    May raise `ProviderUnavailable`. A run is written when it starts, its items
+    as they are graded and the run again when it ends.
+    """
+
+    async def save_run(self, run: EvalRunRecord) -> None:
+        """Write the run, replacing what was stored under its id."""
+        ...
+
+    async def add_items(self, run_id: str, items: Sequence[EvalItemRecord]) -> None: ...
+
+    async def list_runs(self, limit: int) -> list[EvalRunRecord]:
+        """The latest runs, newest first."""
+        ...
+
+    async def get(self, run_id: str) -> EvalRunDetail | None:
+        """One run with its items; `None` when there is no such run."""
+        ...
+
+    async def claim(self, run_id: str, now: datetime, stale_before: datetime) -> bool:
+        """Take the one-run-at-a-time lock, atomically.
+
+        `False` while another run holds it, released or not, since `stale_before`.
+        """
+        ...
+
+    async def release(self, run_id: str) -> None:
+        """Give the lock back, if `run_id` still holds it."""
         ...
 
 

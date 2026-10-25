@@ -121,7 +121,7 @@ def test_the_photo_stage_runs_after_wikidata_and_before_climate(
 
     collect(
         BUDAPEST,
-        ApiClient(tmp_path),
+        ApiClient(tmp_path, offline=True),
         stages=(Stage.OPENSTREETMAP, Stage.WIKIDATA, Stage.PHOTOS, Stage.CLIMATE),
     )
 
@@ -158,7 +158,9 @@ def test_leads_in_another_language_come_after_wikidata(
     )
 
     result = collect(
-        city, ApiClient(tmp_path), stages=(Stage.WIKIPEDIA, Stage.WIKIDATA)
+        city,
+        ApiClient(tmp_path, offline=True),
+        stages=(Stage.WIKIPEDIA, Stage.WIKIDATA),
     )
 
     assert order == ["wikipedia", "wikidata", "leads"]
@@ -179,7 +181,9 @@ def test_the_photo_stage_counters_reach_the_manifest(
     )
     result = BuildResult(documents=[hotel, blind])
 
-    _resolve_photos(BUDAPEST, ApiClient(tmp_path), result, tmp_path / "curated")
+    _resolve_photos(
+        BUDAPEST, ApiClient(tmp_path, offline=True), result, tmp_path / "curated"
+    )
     info = write(tmp_path / "out", BUDAPEST, result)
 
     assert result.documents == [hotel]

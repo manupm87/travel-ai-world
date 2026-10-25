@@ -1,5 +1,7 @@
 "use client";
 
+/** The planner's layout: two zones on a laptop, two tabs on a phone. */
+
 import { useId, useState, type KeyboardEvent, type ReactNode } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { cn } from "@/utils/cn";

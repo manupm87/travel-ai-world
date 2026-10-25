@@ -181,7 +181,8 @@ locals {
 }
 
 output "cognito_user_pool_id" {
-  value = aws_cognito_user_pool.main.id
+  description = "Cognito user pool id."
+  value       = aws_cognito_user_pool.main.id
 }
 
 output "cognito_client_id" {

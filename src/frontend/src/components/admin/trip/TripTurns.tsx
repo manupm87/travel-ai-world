@@ -1,5 +1,7 @@
 "use client";
 
+/** The turns of the planner session that made a trip. */
+
 import { useLanguage } from "@/context/LanguageContext";
 import type { SessionTurnsState } from "@/hooks/admin/useSessionTurns";
 import { SESSION_TURNS_LIMIT } from "@/hooks/admin/useSessionTurns";

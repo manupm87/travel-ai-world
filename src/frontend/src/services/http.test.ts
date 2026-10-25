@@ -7,7 +7,6 @@ import {
   isAiAvailable,
   isApiAvailable,
   parseErrorBody,
-  readErrorMessage,
   request,
   requestRaw,
 } from "./http";
@@ -99,18 +98,6 @@ describe("http", () => {
       expect(parseErrorBody({})).toEqual(nothing);
       expect(parseErrorBody({ detail: { message: 42 } })).toEqual(nothing);
       expect(parseErrorBody("oops")).toEqual(nothing);
-    });
-  });
-
-  describe("readErrorMessage", () => {
-    it("falls back when the body is not JSON", async () => {
-      const res = new Response("<html>", { status: 502 });
-      expect(await readErrorMessage(res, "fallback")).toBe("fallback");
-    });
-
-    it("prefers the body's message", async () => {
-      const res = new Response(JSON.stringify({ detail: "Boom" }), { status: 500 });
-      expect(await readErrorMessage(res, "fallback")).toBe("Boom");
     });
   });
 

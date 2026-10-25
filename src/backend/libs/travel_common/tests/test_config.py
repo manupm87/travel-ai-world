@@ -1,3 +1,5 @@
+"""Shared settings: documented keys are parsed and every field is used."""
+
 from travel_common.config import CommonSettings, documented_env_keys
 
 

@@ -1,4 +1,4 @@
-"""Put the planner's stream events into the OpenAPI document.
+"""Put the stream events (planner, evaluation runs) into the OpenAPI document.
 
 A streaming response has no response model, so FastAPI never sees the event types
 and `just contracts` could not generate them for the frontend.
@@ -10,6 +10,7 @@ from fastapi import FastAPI
 from pydantic import TypeAdapter
 from pydantic.json_schema import GenerateJsonSchema
 
+from ai_api.schemas.answer_eval import AnswerEvalEvent
 from ai_api.schemas.planner import PlannerTurn
 from ai_api.schemas.planner_events import ItineraryOp, PlannerEvent
 
@@ -17,17 +18,18 @@ REF_TEMPLATE = "#/components/schemas/{model}"
 
 JsonSchemaMode = Literal["validation", "serialization"]
 
-PLANNER_SCHEMAS: tuple[tuple[str, Any, JsonSchemaMode], ...] = (
+STREAM_SCHEMAS: tuple[tuple[str, Any, JsonSchemaMode], ...] = (
     ("PlannerEvent", PlannerEvent, "serialization"),
     ("ItineraryOp", ItineraryOp, "serialization"),
     ("PlannerTurn", PlannerTurn, "validation"),
+    ("AnswerEvalEvent", AnswerEvalEvent, "serialization"),
 )
 
 
 def stream_components() -> dict[str, Any]:
-    """The planner's `components.schemas`: the unions, the request and their models."""
+    """The streams' `components.schemas`: the unions, the request and their models."""
     components: dict[str, Any] = {}
-    for name, annotation, mode in PLANNER_SCHEMAS:
+    for name, annotation, mode in STREAM_SCHEMAS:
         schema = TypeAdapter(annotation).json_schema(
             mode=mode, ref_template=REF_TEMPLATE, schema_generator=GenerateJsonSchema
         )

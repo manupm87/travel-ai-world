@@ -1,5 +1,7 @@
 "use client";
 
+/** A planner warning as a sticker. */
+
 import { CalendarClock, Clock, Footprints, Weight } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import type { ItineraryWarning } from "@/hooks/plannerReducer";
@@ -32,13 +34,13 @@ export function WarningBadge({ warning }: { warning: ItineraryWarning }) {
       data-warning={warning.code}
       className={cn(
         // the white edge is an inner border: an outer ring would be clipped by the card's edges
-        "inline-flex max-w-full animate-scale-in items-center gap-2.5 self-start rounded-xl border-2 border-[#EFEDE7] py-1.5 pr-3.5 pl-1.5 text-sticker-ink shadow-[0_8px_16px_-10px_rgba(0,0,0,0.7)]",
+        "inline-flex max-w-full animate-scale-in items-center gap-2.5 self-start rounded-xl border-2 border-sticker-paper py-1.5 pr-3.5 pl-1.5 text-sticker-ink shadow-[0_8px_16px_-10px_rgba(0,0,0,0.7)]",
         tone
       )}
     >
       <span
         aria-hidden="true"
-        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-black/10"
+        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-scrim/10"
       >
         <Icon size={14} />
       </span>

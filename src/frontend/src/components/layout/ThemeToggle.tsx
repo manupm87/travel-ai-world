@@ -1,5 +1,7 @@
 "use client";
 
+/** The theme toggle. */
+
 import { Monitor, Moon, Sun } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useTheme, type ThemePreference } from "@/context/ThemeContext";

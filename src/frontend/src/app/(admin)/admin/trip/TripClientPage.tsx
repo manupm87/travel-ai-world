@@ -1,5 +1,7 @@
 "use client";
 
+/** The admin trip page: one saved trip, read only, with the turns that made it. */
+
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";

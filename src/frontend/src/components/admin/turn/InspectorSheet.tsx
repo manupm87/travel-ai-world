@@ -1,5 +1,7 @@
 "use client";
 
+/** The turn inspector's bottom sheet on a phone. */
+
 import { useId, useRef, type KeyboardEvent, type ReactNode } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useFormatters } from "@/hooks/useFormatters";

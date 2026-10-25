@@ -1,5 +1,7 @@
 "use client";
 
+/** The trip map, loaded on demand. */
+
 import dynamic from "next/dynamic";
 import { MapPin } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";

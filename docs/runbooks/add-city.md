@@ -2,7 +2,8 @@
 
 A city is data: one TOML file describes where its documents come from, a build turns the open
 sources into a committed corpus, a report says whether that corpus is good enough to plan with, and
-a manifest tells the service which cities exist. Nothing in the backend or the frontend names a city.
+a manifest tells the planner which cities exist. Business metric defaults and local examples
+maintain a separate bounded city allowlist.
 Claude Code runs the whole sequence with `/add-city <name>`; this page is the same sequence with
 the reasoning, for a person. One step needs an AWS session (indexing) and is done by hand.
 
@@ -46,6 +47,14 @@ interior, a map or a coat of arms. Replace `file` and `credit` with a better Com
 is poor (the credit is `"{author} ({licence}) · Wikimedia Commons"`); drop the table to ship no
 photo — it is optional and the gate ignores it. Rename to `cities/<slug>.toml`; drafts are never committed and never built. The loader refuses unknown keys, a
 guide name missing from `districts`, a slug that differs from the file name.
+
+Core Lambda derives its metrics allowlist from these TOML filenames; Terraform
+rejects zero or more than 100 entries. When adding a city, also update
+`CoreSettings.METRICS_CITY_SLUGS`, core_api's `.env.example`, the local metrics
+Compose overlay and the city display names in Grafana dashboards. Existing
+creation events grouped as `other` keep that category; the new name applies only
+to new creations after deployment. See the
+[business statistics runbook](business-statistics-cloudwatch.md).
 
 ## 3. Build and pass the readiness gate
 

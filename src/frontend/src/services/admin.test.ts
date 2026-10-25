@@ -4,6 +4,9 @@ import {
   ADMIN_USAGE,
   ADMIN_TRIP_PAGE,
   ADMIN_USER_PAGE,
+  EVAL_ITEM,
+  EVAL_RUN_GOLDEN,
+  EVAL_RUN_GOLDEN_DETAIL,
   RETRIEVAL_EVAL,
   TRACE_STATS,
   TURN_DETAIL,
@@ -13,15 +16,18 @@ import {
   deleteAccessGrant,
   getAdminTrip,
   getAdminUsage,
+  getAnswerEval,
   getStats,
   getTurn,
   listAccessGrants,
+  listAnswerEvals,
   listAdminTrips,
   listAdminUsers,
   listSessionTurns,
   listTurns,
   putAccessGrant,
   runRetrievalEval,
+  streamAnswerEval,
 } from "./admin";
 import { ApiError } from "./http";
 import { clearSession, writeSession } from "./session";
@@ -183,5 +189,53 @@ describe("services/admin", () => {
     expect(path).toBe("/api/v1/ai/admin/retrieval-eval");
     expect(init.method).toBe("POST");
     expect((init.headers as Record<string, string>).Authorization).toBe("Bearer tok");
+  });
+
+  it("streams an evaluation run's events and drops anything else", async () => {
+    const lines = [
+      { type: "progress", done: 1, total: 2, item: EVAL_ITEM },
+      { type: "other" },
+      { type: "report", run: EVAL_RUN_GOLDEN },
+    ]
+      .map((event) => `data: ${JSON.stringify(event)}
+
+`)
+      .join("");
+    fetchMock.mockResolvedValue(new Response(`${lines}data: [DONE]
+
+`, { status: 200 }));
+
+    const events = [];
+    for await (const event of streamAnswerEval("golden")) events.push(event.type);
+
+    expect(events).toEqual(["progress", "report"]);
+    const { path, init } = called();
+    expect(path).toBe("/api/v1/ai/admin/answer-eval");
+    expect(init.method).toBe("POST");
+    expect(init.body).toBe(JSON.stringify({ set: "golden" }));
+  });
+
+  it("refuses a run while another is in progress with a 409", async () => {
+    fetchMock.mockResolvedValue(json({ detail: "An evaluation is already running", error_code: "CONFLICT" }, 409));
+
+    const consume = async () => {
+      for await (const event of streamAnswerEval("questions")) void event;
+    };
+
+    await expect(consume()).rejects.toMatchObject({ status: 409 });
+  });
+
+  it("lists the runs and opens one, null when it is gone", async () => {
+    fetchMock
+      .mockResolvedValueOnce(json({ items: [EVAL_RUN_GOLDEN] }))
+      .mockResolvedValueOnce(json(EVAL_RUN_GOLDEN_DETAIL))
+      .mockResolvedValueOnce(json({ detail: "Evaluation run not found" }, 404));
+
+    await expect(listAnswerEvals()).resolves.toEqual({ items: [EVAL_RUN_GOLDEN] });
+    await expect(getAnswerEval("run golden")).resolves.toEqual(EVAL_RUN_GOLDEN_DETAIL);
+    await expect(getAnswerEval("gone")).resolves.toBeNull();
+
+    expect(called(0).path).toBe("/api/v1/ai/admin/answer-evals");
+    expect(called(1).path).toBe("/api/v1/ai/admin/answer-evals/run%20golden");
   });
 });

@@ -1,7 +1,11 @@
 "use client";
 
+/** The cities the planner covers, and which one a destination names. */
+
 import { useEffect, useState } from "react";
+import { isAbortError, UnauthorizedError } from "@/services/http";
 import { listCities } from "@/services/planner";
+import { clearSession } from "@/services/session";
 import type { PlannerCity } from "@/types/planner";
 
 export type PlannerCitiesStatus = "loading" | "ready" | "error";
@@ -59,7 +63,8 @@ export interface UsePlannerCitiesResult {
 
 /**
  * The destinations the planner offers (`GET /ai/planner/cities`), loaded once on mount.
- * A failure shows nothing: the chips and the placeholder keep their default copy.
+ * A failure shows nothing: the chips and the placeholder keep their default copy. A 401 also
+ * clears the session; unmounting aborts the request.
  */
 export function usePlannerCities(): UsePlannerCitiesResult {
   const [result, setResult] = useState<UsePlannerCitiesResult>({
@@ -68,17 +73,17 @@ export function usePlannerCities(): UsePlannerCitiesResult {
   });
 
   useEffect(() => {
-    let cancelled = false;
-    listCities()
+    const controller = new AbortController();
+    listCities({ signal: controller.signal })
       .then((cities) => {
-        if (!cancelled) setResult({ cities, status: "ready" });
+        if (!controller.signal.aborted) setResult({ cities, status: "ready" });
       })
-      .catch(() => {
-        if (!cancelled) setResult({ cities: [], status: "error" });
+      .catch((err: unknown) => {
+        if (controller.signal.aborted || isAbortError(err)) return;
+        if (err instanceof UnauthorizedError) clearSession();
+        setResult({ cities: [], status: "error" });
       });
-    return () => {
-      cancelled = true;
-    };
+    return () => controller.abort();
   }, []);
 
   return result;

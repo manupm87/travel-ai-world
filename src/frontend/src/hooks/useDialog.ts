@@ -1,5 +1,7 @@
 "use client";
 
+/** A modal dialog's focus trap, Escape and focus return. */
+
 import { useEffect, useRef, type RefObject } from "react";
 
 /** Everything that can hold the focus inside a dialog. */

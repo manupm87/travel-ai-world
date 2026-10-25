@@ -1,3 +1,5 @@
+/** One chat message in the planner. */
+
 import type { ChatMessage } from "@/types/planner";
 import { cn } from "@/utils/cn";
 import { KiriTag } from "./v2/PackingStatus";

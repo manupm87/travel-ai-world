@@ -1,5 +1,7 @@
 "use client";
 
+/** The overview's figures as tiles. */
+
 import { useLanguage } from "@/context/LanguageContext";
 import { useFormatters } from "@/hooks/useFormatters";
 import type { TraceStats } from "@/services/admin";

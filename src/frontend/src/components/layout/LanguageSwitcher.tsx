@@ -1,5 +1,7 @@
 "use client";
 
+/** The language switcher. */
+
 import { useCallback, useRef, useState } from "react";
 import { Check, ChevronDown, Globe } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";

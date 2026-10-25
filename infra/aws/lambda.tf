@@ -6,6 +6,11 @@
 # (ADR 0007).
 
 locals {
+  metrics_city_slugs = sort([
+    for city_file in fileset("${path.module}/../../src/backend/tools/city_corpus/cities", "*.toml") :
+    trimsuffix(city_file, ".toml")
+  ])
+
   # Both functions in Cognito mode (cognito.tf), CORS for any extra origin.
   backend_env = merge(local.cognito_backend_env, {
     BACKEND_CORS_ORIGINS = var.backend_cors_origins
@@ -55,10 +60,18 @@ resource "aws_lambda_function" "core_api" {
     variables = merge(local.backend_env, {
       CORE_TABLE              = aws_dynamodb_table.core.name
       BUSINESS_EVENTS_ENABLED = tostring(var.business_events_enabled)
+      METRICS_CITY_SLUGS      = jsonencode(local.metrics_city_slugs)
       # The access list and the default daily quota (ADR 0026).
       ACCESS_MODE               = var.access_mode
       DEFAULT_DAILY_TOKEN_LIMIT = tostring(var.default_daily_token_limit)
     })
+  }
+
+  lifecycle {
+    precondition {
+      condition     = length(local.metrics_city_slugs) > 0 && length(local.metrics_city_slugs) <= 100
+      error_message = "The metrics city allowlist must contain between 1 and 100 corpus cities."
+    }
   }
 
   depends_on = [aws_cloudwatch_log_group.core_api, aws_iam_role_policy_attachment.core_api_basic]
@@ -88,11 +101,11 @@ resource "aws_iam_role_policy_attachment" "ai_api_basic" {
 # routes to. The second grant is pinned to the profile by the
 # bedrock:InferenceProfileArn condition, so the Region wildcard never allows
 # calling the model directly (Bedrock user guide, "IAM policy requirements for
-# Geographic cross-Region inference"). The embeddings model is granted in
-# vectors.tf.
+# Geographic cross-Region inference"). The judge model answers only the admin's
+# answer evaluation (ADR 0039). The embeddings model is granted in vectors.tf.
 locals {
   bedrock_profile_arns = {
-    for profile in toset([var.bedrock_chat_model]) :
+    for profile in toset([var.bedrock_chat_model, var.bedrock_judge_model]) :
     profile => "arn:aws:bedrock:${var.region}:${data.aws_caller_identity.current.account_id}:inference-profile/${profile}"
   }
 }
@@ -157,6 +170,9 @@ resource "aws_lambda_function" "ai_api" {
       BEDROCK_CHAT_MODEL = var.bedrock_chat_model
       NVIDIA_API_KEY     = var.nvidia_api_key
       NVIDIA_CHAT_MODEL  = var.nvidia_chat_model
+      # The admin's answer evaluation grades the chat model's answers with it
+      # (ADR 0039), on Bedrock whatever llm_provider says.
+      JUDGE_MODEL = var.bedrock_judge_model
       # Every traveller message goes through the guardrail of guardrail.tf;
       # empty when `planner_guardrail_enabled` is false.
       BEDROCK_GUARDRAIL_ID      = try(aws_bedrock_guardrail.planner[0].guardrail_id, "")

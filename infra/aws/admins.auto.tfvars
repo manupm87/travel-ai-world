@@ -7,10 +7,11 @@
 # A Google account's username is `Google_<sub>` (capital G, as Cognito prints
 # it), known after the person's first sign-in: `just cognito-username <email>`.
 # After the apply the person signs out and in again so the ID token carries
-# `cognito:groups`.
+# `cognito:groups`. Entries carry a first name, never an email: to match an
+# email to its username, run `just cognito-username <email>`.
 admin_usernames = [
-  "Google_108657555537374578008", # manugijon@gmail.com
-  "Google_103190282319288494474", # alexdesousa@gmail.com
-  "Google_111853055735810265639", # jcastrosalas03@gmail.com
-  "Google_107694207370503807198", # davidbaosr@gmail.com
+  "Google_108657555537374578008", # Manuel
+  "Google_103190282319288494474", # Alexander
+  "Google_111853055735810265639", # Joaquín
+  "Google_107694207370503807198", # David
 ]

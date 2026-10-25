@@ -1,5 +1,7 @@
 "use client";
 
+/** What the traveller saw of a turn, with the numbered marks. */
+
 import { AlertTriangle, Check, CloudSun, Hotel, MapPin, Plane, Trash2, User } from "lucide-react";
 import type { ReactNode } from "react";
 import { MessageBubble } from "@/components/planner/MessageBubble";

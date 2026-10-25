@@ -1,3 +1,5 @@
+/** Layout of the `(marketing)` route group: the public pages' shell. */
+
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Aurora } from "@/components/layout/Aurora";

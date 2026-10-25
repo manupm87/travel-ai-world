@@ -4,10 +4,10 @@
 
 Todo el equipo trabaja en el mismo \textbf{contenedor de desarrollo} (\emph{devcontainer}), una pila de Docker
 Compose con dos servicios: el contenedor de trabajo y DynamoDB Local en memoria. La imagen trae las versiones que usa la CI (Node~24,
-Python~3.12 con \code{uv}, Terraform~1.16, AWS CLI, \code{gh}, \code{just}, \code{crane}),
-Claude Code y, opcionalmente, otros agentes de terminal; nueve volúmenes con nombre conservan
-dependencias, sesiones de los agentes y la caché de SSO entre reconstrucciones. El
-guion \emph{post-create} ejecuta \code{just setup} (ficheros \code{.env}, dependencias de Python y Node)
+Python~3.12 con \code{uv}, Terraform~1.16, AWS CLI, \code{gh}, \code{just}, \code{crane})
+y los agentes de código de terminal; nueve volúmenes con nombre conservan
+dependencias, sesiones de los agentes y la caché de SSO entre reconstrucciones. Al
+crearse, el contenedor ejecuta \code{just setup} (ficheros \code{.env}, dependencias de Python y Node)
 e instala Chromium para Playwright. El acceso a AWS es solo por \textbf{IAM Identity Center}
 (\code{just aws-login}): ni las personas ni los agentes del contenedor manejan claves de larga
 duración (Fig.~\ref{fig:devcontainer}).
@@ -48,10 +48,10 @@ IA responde a la comprobación de salud dentro del contenedor.
   w/.style={aws,text width=2.05cm,minimum height=0.8cm}]
 \node[c] (lin) at (0,0) {\textbf{Tarea} en Linear\\y rama};
 \node[a] (brief) at (2.55,0) {\textbf{Auditoría y \emph{brief}}\\modelo de mayor capacidad};
-\node[a] (impl) at (5.1,0) {\textbf{Implementa}\\Opus en \emph{worktree}};
+\node[a] (impl) at (5.1,0) {\textbf{Implementa}\\agente en \emph{worktree}};
 \node[c] (pr) at (7.65,0) {\textbf{Propuesta de cambio}\\enlazada a la tarea};
-\node[a,text width=2.4cm] (rev) at (10.35,0) {\textbf{3 revisores} Sonnet\\corrección · contratos y pruebas · UX y accesibilidad};
-\node[a] (fix) at (13.05,0) {\textbf{Corrige} y vigila la CI (Opus)};
+\node[a,text width=2.4cm] (rev) at (10.35,0) {\textbf{3 agentes revisores}\\corrección · contratos y pruebas · UX y accesibilidad};
+\node[a] (fix) at (13.05,0) {\textbf{Corrige} y vigila la CI};
 \node[h] (merge) at (15.6,0) {\textbf{\emph{Merge}}\\(\emph{squash})};
 \node[c,text width=7.2cm,minimum height=0.9cm,align=left] (ci) at (7.65,-1.55) {\textbf{Comprobaciones de la CI} (por rutas): ruff + pyright · pytest por paquete · ESLint + Vitest · Playwright (estático y pila Compose) · deriva de contratos OpenAPI$\rightarrow$TS · imagen Docker + prueba de humo · \code{terraform validate} · \code{docs-check}};
 \node[w] (fe) at (15.6,-1.55) {\textbf{Frontend}: \code{s3 sync} + invalidación (auto)};
@@ -87,11 +87,10 @@ Tabla~\ref{tab:tests} reparte las más de 2.000 pruebas automáticas por paquete
 \toprule
 \textbf{Paquete} & \textbf{Pruebas} & \textbf{Qué cubren} \\
 \midrule
-\code{ai\_api} & 665 & Agente, herramientas, recuperación, \emph{guardrails}, SSE, trazas (con dobles de modelo y de base vectorial) \\
-\code{city\_corpus} & 191 & Limpieza, fusión, troceo, validación y puerta, con \emph{fixtures} sin red \\
+\code{ai\_api} & 690 & Agente, herramientas, recuperación, \emph{guardrails}, SSE, trazas (con dobles de modelo y de base vectorial) \\
+\code{city\_corpus} & 193 & Limpieza, fusión, troceo, validación y puerta, con \emph{fixtures} sin red \\
 \code{core\_api} & 175 & Viajes, usuarios, acceso y cuota sobre DynamoDB simulado (moto) \\
-\code{travel\_common} & 40 & JWT, errores, registros de acceso \\
-\code{vector\_store\_bench} & 21 & Métricas y búsqueda del experimento \\
+\code{travel\_common} & 42 & JWT, errores, registros de acceso \\
 Frontend (Vitest) & $\approx$900 & Componentes, reductor del planificador, i18n completo \\
 Frontend (Playwright) & $\approx$75 & Flujos en desarrollo, sitio estático y pila completa \\
 \bottomrule
@@ -103,53 +102,52 @@ contenedores de GitHub); el despliegue del backend (manual) las copia a ECR (el 
 Terraform y aplica el plan solo si se pide. El frontend se publica automáticamente. Es una
 decisión deliberada: el frontend practica despliegue continuo, porque publicarlo no cambia
 infraestructura; el backend practica \emph{entrega} continua, porque cada \emph{merge} deja una
-imagen lista para promover, pero aplicarla modifica recursos de pago y la decide una persona
+imagen lista para promover, pero promoverla modifica recursos de pago y lo decide una persona
 después de revisar el plan de Terraform, la misma puerta humana que fija el proceso de entrega. GitHub Actions
 se autentica en AWS por \textbf{OIDC} con un rol restringido al entorno \code{aws}. Dependabot
 actualiza dependencias semanalmente y \code{just release} asigna la versión y etiqueta cada publicación.
 
 \subsection{Infraestructura como código}
 
-La infraestructura de AWS está en Terraform (\code{infra/aws}): CloudFront, S3, Route~53,
+La infraestructura de AWS está en Terraform: CloudFront, S3, Route~53,
 ACM, API Gateway, Lambda, Cognito, DynamoDB, S3 Vectors, Bedrock Guardrails, ECR, IAM
 y los cuadros de mando de CloudWatch. Solo dos piezas quedan fuera, a propósito: el WAF de
 CloudFront, opcional y asociado desde la consola (Terraform lo ignora para no deshacerlo, y la
 arquitectura objetivo lo incorpora, §\ref{sec:prod}), y el modo \code{ENHANCED} del índice
-\code{city-kb}, que se fija con la CLI de AWS porque el proveedor de Terraform aún no lo admite.
+vectorial, que se fija con la CLI de AWS porque el proveedor de Terraform aún no lo admite.
 El estado de Terraform se guarda en un \emph{bucket} de S3 cifrado y versionado con bloqueo
 nativo, creado por una configuración raíz de arranque (\emph{bootstrap}) que también da de alta el
 proveedor OIDC de GitHub y los roles de CI.
 
 \subsection{Entrega con agentes de IA}\label{sec:entrega}
 
-Desde el 21 de septiembre, el proceso por defecto para todo cambio de más de unas pocas líneas tiene cuatro roles
-(Fig.~\ref{fig:cicd}), orquestado por un \emph{workflow} de Claude Code
-(\code{kyrian-wave.js}):
+Desde el 21 de septiembre, todo cambio de más de unas pocas líneas sigue por defecto un flujo de trabajo de
+agentes orquestado automáticamente, con cuatro roles (Fig.~\ref{fig:cicd}):
 \begin{enumerate}
-  \item \textbf{Auditoría y \emph{brief}}: el modelo de mayor capacidad disponible, en la sesión de
-        Claude Code que coordina el proceso, lee el código, toma las decisiones de diseño (que ya
+  \item \textbf{Auditoría y \emph{brief}}: el modelo de mayor capacidad disponible, en la sesión
+        que coordina el proceso, lee el código, toma las decisiones de diseño (que ya
         no se reabren) y escribe un \emph{brief} (especificación para el agente) con el resultado esperado, las
         decisiones cerradas, los ficheros, las pruebas, la documentación y los criterios de
         aceptación. La tarea de Linear guarda el resultado y la lista de aceptación.
-  \item \textbf{Implementación}: un agente Claude Opus trabaja en su propia copia de trabajo aislada
+  \item \textbf{Implementación}: un agente de código trabaja en su propia copia de trabajo aislada
         (\emph{git worktree}), ejecuta las comprobaciones y abre la propuesta de cambio.
-  \item \textbf{Revisión}: tres agentes Claude Sonnet, en paralelo y cada uno con un enfoque (corrección;
+  \item \textbf{Revisión}: tres agentes, en paralelo y cada uno con un enfoque (corrección;
         contratos y pruebas; UX, textos y accesibilidad), devuelven hallazgos estructurados con
         fichero, línea y severidad.
-  \item \textbf{Corrección y entrega}: Opus aplica los hallazgos confirmados (o justifica por qué
+  \item \textbf{Corrección y entrega}: el agente implementador aplica los hallazgos confirmados (o justifica por qué
         no), vigila la CI durante un máximo de dos rondas y nunca integra el cambio: lo hace la
         sesión que coordina el proceso, solo con la CI en verde. La persona aprueba el \emph{merge}
         si el sistema de permisos lo exige, lanza \code{terraform apply} y prueba en producción.
 \end{enumerate}
-El principio es que el modelo de mayor capacidad decide y modelos más económicos (Claude Opus y
-Claude Sonnet) implementan y revisan, y que cada cambio llegue a una persona con un \emph{brief}
+El principio es que el modelo de mayor capacidad decida y modelos más económicos
+implementen y revisen, y que cada cambio llegue a una persona con un \emph{brief}
 escrito, tres revisiones y la CI en verde. Las
 reglas se aplican con herramientas, no con buena voluntad: un \emph{hook} (comprobación automática
-de Claude Code) impide crear ramas cuyo nombre no indique el tipo de cambio y la tarea de Linear
+del agente) impide crear ramas cuyo nombre no indique el tipo de cambio y la tarea de Linear
 a la que responde, \code{AGENTS.md} es la fuente única de instrucciones para cualquier
-agente (Claude Code, Codex, Gemini\ldots) y diez comandos encapsulan tareas repetidas
-(empezar una tarea, entregarla con agentes, \code{/add-city}, \code{/check-site}\ldots). En cifras:
-92 de las 242 entregas del proyecto se han integrado desde que se adoptó este proceso. Personas y agentes trabajan
+agente de código y nueve comandos encapsulan tareas repetidas
+(empezar una tarea, entregarla con agentes, \code{/add-city}, \code{/check-site}\ldots).
+Personas y agentes trabajan
 con las mismas herramientas y las mismas puertas, y cada cambio llega a producción con su
 evidencia (O5).
 
@@ -174,8 +172,8 @@ que ya se han descrito: Kiri en el producto (§\ref{sec:agente}), \code{/add-cit
 \toprule
 & \textbf{Kiri (producto)} & \textbf{\code{/add-city} (datos)} & \textbf{Entrega (código)} \\
 \midrule
-Modelo & Claude Haiku 4.5 & Claude, en una sesión de Claude Code & Claude Opus implementa y corrige; 3 Claude Sonnet revisan \\
-Herramientas & 15 propias sobre corpus, itinerario y clima & Recetas \code{just}, web, Git, Linear & \emph{Worktree}, \code{gh}, comprobaciones, Linear \\
+Modelo & Claude Haiku 4.5 & Un agente de código & El más capaz decide; modelos más económicos implementan, revisan (3) y corrigen \\
+Herramientas & 15 propias (6 antes de la estancia, 12 después) sobre corpus, itinerario y clima & Recetas \code{just}, web, Git, Linear & \emph{Worktree}, \code{gh}, comprobaciones, Linear \\
 Límites & 6 pasos del modelo, 12 llamadas a herramientas, solo ids conocidos & Puerta de calidad de 11 umbrales; prueba del planificador & \emph{Brief} con decisiones cerradas; 2 rondas de CI \\
 Persona decide & El viajero: qué pide y qué acepta & Indexar en producción y desplegar & Aprobar el \emph{merge} si se le pide; \code{terraform apply} \\
 Se valida con & 36 escenarios $\times$3 & 20 preguntas por ciudad & CI de 13 trabajos + 3 revisiones \\
@@ -193,9 +191,9 @@ La observabilidad tiene tres niveles, todos sin servidores adicionales:
         ampliación), herramienta y cadena, más la línea temporal SSE y el coste. Se escriben antes
         de cerrar el flujo, caducan a los 90 días y se exploran en la consola \code{/admin}, que
         incluye un inspector de turnos con vista en cascada.
-  \item \textbf{Registros (\emph{logs}) estructurados}: una línea \code{access\_log=} JSON por petición (ruta como
+  \item \textbf{Registros (\emph{logs}) estructurados}: una línea JSON por petición (ruta como
         plantilla, estado, duración, arranque en frío) sin datos personales, y eventos de negocio
-        \code{business\_event=} seudonimizados al crear un viaje.
+        seudonimizados al crear un viaje.
   \item \textbf{Cuadros de mando de CloudWatch} definidos en Terraform: servicio (Lambda, API
         Gateway, Cognito, Bedrock), infraestructura (DynamoDB, CloudFront) y registros de acceso con
         Logs Insights; el panel de negocio, en Grafana, se ejecuta en local sobre esos mismos eventos.

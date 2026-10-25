@@ -1,3 +1,5 @@
+/** Playwright config for the static export (`out/`, served on :3100), every spec included. */
+
 import { defineConfig } from "@playwright/test";
 import baseConfig from "./playwright.config";
 

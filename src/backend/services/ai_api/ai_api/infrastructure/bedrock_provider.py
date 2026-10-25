@@ -142,16 +142,11 @@ class BedrockProvider:
         response_schema: dict[str, object] | None = None,
         response_schema_name: str | None = None,
         usage: Usage | None = None,
-        model: str | None = None,
-        max_tokens: int | None = None,
     ) -> str:
-        """One non-streamed answer: structured output, titles, short jobs.
-
-        `model` overrides the chat model (a cheaper one for trivial tasks).
-        """
+        """One non-streamed answer, for structured output."""
         if not self.is_configured:
             raise ProviderUnavailable("AI provider not configured")
-        request = self._request(messages, model=model, max_tokens=max_tokens)
+        request = self._request(messages)
         if response_schema is not None:
             request["outputConfig"] = {
                 "textFormat": {
@@ -207,11 +202,11 @@ class BedrockProvider:
                 logger.warning("Bedrock error (%s); retrying in %.0fs", exc, delay)
                 await asyncio.sleep(delay)
 
-    def _inference_config(self, max_tokens: int | None = None) -> dict[str, Any]:
+    def _inference_config(self) -> dict[str, Any]:
         # Claude 4.5+ rejects a request that sets both temperature and
         # top_p, so only the temperature travels (CHAT_TOP_P is NVIDIA's).
         return {
-            "maxTokens": max_tokens or self._params.max_tokens,
+            "maxTokens": self._params.max_tokens,
             "temperature": self._params.temperature,
         }
 
@@ -279,18 +274,12 @@ class BedrockProvider:
             yield ToolCallReady(_tool_call(*pending[index]))
         yield StepEnd(stop_reason)
 
-    def _request(
-        self,
-        messages: Sequence[Message],
-        *,
-        model: str | None = None,
-        max_tokens: int | None = None,
-    ) -> dict[str, Any]:
+    def _request(self, messages: Sequence[Message]) -> dict[str, Any]:
         system, turns = _converse_messages(messages)
         request: dict[str, Any] = {
-            "modelId": model or self._model,
+            "modelId": self._model,
             "messages": turns,
-            "inferenceConfig": self._inference_config(max_tokens),
+            "inferenceConfig": self._inference_config(),
         }
         if system:
             request["system"] = system

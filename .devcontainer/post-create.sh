@@ -20,7 +20,7 @@ just setup
 (cd src/frontend && npx playwright install --with-deps chromium)
 
 echo
-echo "Devcontainer ready. Fill in SECRET_KEY (same in both backend .env files), GOOGLE_* and NVIDIA_API_KEY, then:"
+echo "Devcontainer ready (optional keys: docs/runbooks/local-dev.md). Then:"
 echo "  just dev-core   # :8000"
 echo "  just dev-ai     # :8001"
 echo "  just dev-frontend  # :3000"

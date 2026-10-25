@@ -1,5 +1,7 @@
 "use client";
 
+/** The retrieval evaluation, run on demand. */
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { runRetrievalEval, type RetrievalEval } from "@/services/admin";
 import { isAbortError } from "@/services/http";

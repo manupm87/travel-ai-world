@@ -42,7 +42,7 @@ class SelectAction(BaseModel):
 
     type: Literal["select"]
     group_id: str = Field(min_length=1, max_length=120)
-    card_ids: list[str] = Field(min_length=1, max_length=MAX_CARD_IDS)
+    card_ids: list[CardId] = Field(min_length=1, max_length=MAX_CARD_IDS)
     slot: Slot | None
 
 
@@ -51,7 +51,7 @@ class RemoveAction(BaseModel):
 
     type: Literal["remove"]
     slot: Slot
-    card_id: str = Field(min_length=1)
+    card_id: CardId
 
 
 PlannerAction = Annotated[SelectAction | RemoveAction, Field(discriminator="type")]
@@ -64,10 +64,10 @@ class DaySlots(BaseModel):
     `Record<DayPart, string[]>`.
     """
 
-    morning: list[str] = Field(max_length=MAX_CARD_IDS)
-    afternoon: list[str] = Field(max_length=MAX_CARD_IDS)
-    evening: list[str] = Field(max_length=MAX_CARD_IDS)
-    night: list[str] = Field(max_length=MAX_CARD_IDS)
+    morning: list[CardId] = Field(max_length=MAX_CARD_IDS)
+    afternoon: list[CardId] = Field(max_length=MAX_CARD_IDS)
+    evening: list[CardId] = Field(max_length=MAX_CARD_IDS)
+    night: list[CardId] = Field(max_length=MAX_CARD_IDS)
 
 
 class DaySnapshot(BaseModel):
@@ -78,7 +78,7 @@ class DaySnapshot(BaseModel):
 class ItinerarySnapshot(BaseModel):
     """What the client holds: the stay and the days, as card ids."""
 
-    stay_card_id: str | None
+    stay_card_id: CardId | None
     days: list[DaySnapshot] = Field(max_length=MAX_DAYS)
 
 

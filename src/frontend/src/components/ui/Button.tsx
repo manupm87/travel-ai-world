@@ -1,3 +1,5 @@
+/** The button primitive. */
+
 import React from "react";
 import Link from "next/link";
 import { cn } from "@/utils/cn";
@@ -38,7 +40,7 @@ const VARIANTS = {
 } as const;
 
 /**
- * A `<button>`, or with `href` a `Link` (internal) or `<a>`.
+ * A `<button>` (`type="button"` unless one is passed), or with `href` a `Link` (internal) or `<a>`.
  * `className` is merged with `cn`, so a consumer's padding or radius overrides the size preset.
  */
 export function Button({
@@ -65,8 +67,9 @@ export function Button({
   }
 
   const Component = (as || "button") as React.ElementType<PolymorphicProps>;
+  // a plain `<button>` never submits a form by accident; a caller's `type` still wins
   return (
-    <Component className={classes} {...props}>
+    <Component type={as ? undefined : "button"} className={classes} {...props}>
       {children}
     </Component>
   );

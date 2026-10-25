@@ -1,3 +1,5 @@
+/** Route `/dashboard/`: the static shell over the trips home. */
+
 import TripsHome from "./TripsHome";
 
 /**

@@ -1,5 +1,7 @@
 "use client";
 
+/** A trip's card in the trips list. */
+
 import { useEffect, useId, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";

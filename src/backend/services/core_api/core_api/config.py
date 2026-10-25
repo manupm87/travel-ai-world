@@ -1,12 +1,19 @@
+"""core_api settings: shared and DynamoDB ones, the table, Google, access, metrics."""
+
 from functools import lru_cache
-from typing import Literal
+from typing import ClassVar, Literal
 
 from pydantic import Field
+from pydantic_settings import SettingsConfigDict
 from travel_common.config import CommonSettings
 from travel_common.dynamodb import DynamoSettings
 
 
 class CoreSettings(CommonSettings, DynamoSettings):
+    model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", case_sensitive=True, extra="ignore"
+    )
+
     PROJECT_NAME: str = "Kyrian World — Core API"
 
     # the one table (ADR 0023); the default names no real table, so a laptop without
@@ -18,11 +25,18 @@ class CoreSettings(CommonSettings, DynamoSettings):
     # trip_created events on the application log, on Lambda too; opt-in
     BUSINESS_EVENTS_ENABLED: bool = False
     METRICS_CITY_SLUGS: list[str] = Field(
-        default_factory=lambda: ["budapest"], max_length=100
+        default_factory=lambda: [
+            "berlin",
+            "bologna",
+            "budapest",
+            "los-angeles",
+            "madrid",
+            "miami",
+        ],
+        max_length=100,
     )
 
     GOOGLE_CLIENT_ID: str = ""
-    GOOGLE_CLIENT_SECRET: str = ""
 
     # who may use the app (ADR 0026): "open" is every signed-in account, "allowlist"
     # only admins and invited emails; ai_api asks GET /users/me/access and refuses the same

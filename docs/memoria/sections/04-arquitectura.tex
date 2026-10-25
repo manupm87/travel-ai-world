@@ -41,13 +41,13 @@ Lambda; §\ref{sec:coste}) puede atender cualquier turno sin almacén de sesione
 \begin{figure*}[tp]
 \centering
 \includegraphics[width=\textwidth]{figs/aws-actual.pdf}
-\caption{Arquitectura desplegada en AWS (\code{infra/aws}). Todo es gestionado y de pago por uso: no hay máquinas, VPC, NAT ni balanceadores. Comparte disposición con la arquitectura objetivo (Fig.~\ref{fig:objetivo}) para facilitar la comparación.}\label{fig:aws}
+\caption{Arquitectura desplegada en AWS. Todo es gestionado y de pago por uso: no hay máquinas, VPC, NAT ni balanceadores. Comparte disposición con la arquitectura objetivo (Fig.~\ref{fig:objetivo}) para facilitar la comparación.}\label{fig:aws}
 \end{figure*}
 
 \subsection{Decisiones de arquitectura}\label{sec:decisiones}
 
-La Tabla~\ref{tab:decisiones} resume las decisiones con más impacto. Esas y el resto, 36 en total,
-están documentadas en el repositorio con las alternativas descartadas y el criterio empleado.
+La Tabla~\ref{tab:decisiones} resume las decisiones con más impacto, con la alternativa descartada
+y el motivo de cada una.
 
 \begin{table}[t]
 \centering\scriptsize
@@ -168,7 +168,7 @@ propuesta para esa fase y la Tabla~\ref{tab:objetivo} resume qué cambia y por q
 \toprule
 \textbf{Actual} & \textbf{Objetivo} & \textbf{Motivo} \\
 \midrule
-Lambda + Web Adapter & EKS (pods de \code{core-api} y \code{ai-api}) tras un ALB & Sin arranques en frío (hoy, el 10,7\,\% de las invocaciones de \code{ai\_api}), sin el salto del adaptador, escalado por réplicas y despliegues graduales \\
+Lambda + Web Adapter & EKS (pods de \code{core-api} y \code{ai-api}) tras un balanceador de aplicaciones (ALB) & Sin arranques en frío (hoy, el 10,7\,\% de las invocaciones de \code{ai\_api}), sin el salto del adaptador, escalado por réplicas y despliegues graduales \\
 Sin VPC & VPC en 3 zonas: subredes públicas (ALB) y privadas (EKS, datos) & Servicios y base de datos sin exposición pública; \emph{endpoints} privados hacia Bedrock, S3 y ECR \\
 DynamoDB & Aurora PostgreSQL multizona & Modelo relacional para usuarios, viajes, accesos e informes; transacciones y consultas \emph{ad hoc} \\
 Agente en el contenedor & Bedrock AgentCore Runtime + Gateway (MCP) & Agente gestionado con sesiones aisladas; herramientas extraídas como Lambdas o servicios internos, reutilizables desde otros canales \\
@@ -197,7 +197,7 @@ un asistente generalista) pueden reutilizarlas.
 \textbf{Entornos y desarrollo local.} Cada entorno vive en su propia cuenta con la misma
 definición de Terraform, y las imágenes se promueven de uno a otro por su \emph{digest}, de modo
 que lo que se prueba en preproducción es exactamente lo que llega a producción. En local, un
-clúster kind reproduce los mismos espacios de nombres, políticas de red y cuentas de servicio,
+clúster de Kubernetes en Docker (kind) reproduce los mismos espacios de nombres, políticas de red y cuentas de servicio,
 con PostgreSQL en un contenedor, de forma que la segregación que se valida en el portátil es la
 misma que la del despliegue.
 

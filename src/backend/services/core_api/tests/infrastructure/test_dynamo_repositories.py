@@ -6,6 +6,7 @@ from decimal import Decimal
 from typing import Any
 
 import pytest
+from botocore.exceptions import ClientError, EndpointConnectionError
 from core_api.domain.models import (
     AccessGrant,
     Activity,
@@ -13,6 +14,7 @@ from core_api.domain.models import (
     Trip,
     User,
 )
+from core_api.infrastructure.dynamo import repositories
 from core_api.infrastructure.dynamo.repositories import (
     MAX_TRIP_BYTES,
     DynamoAccessGrantRepository,
@@ -22,7 +24,12 @@ from core_api.infrastructure.dynamo.repositories import (
 from core_api.infrastructure.dynamo.table import DynamoTable
 from core_api.pagination import Page
 from travel_common.dynamodb import from_item
-from travel_common.exceptions import BadRequest, Conflict, UnprocessableEntity
+from travel_common.exceptions import (
+    BadRequest,
+    Conflict,
+    ProviderUnavailable,
+    UnprocessableEntity,
+)
 
 CARD: dict[str, Any] = {"id": "osm:node/1", "score": 0.25, "note": None, "tags": []}
 
@@ -338,3 +345,108 @@ async def test_a_trip_too_large_for_one_item_is_refused(trips: DynamoTripReposit
     small.description = "x" * (MAX_TRIP_BYTES + 1)
     with pytest.raises(UnprocessableEntity, match="too large"):
         await trips.save(small)
+
+
+class _Client:
+    """The real (moto) client, with chosen operations replaced."""
+
+    def __init__(self, real: Any, **replaced: Any) -> None:
+        self._real = real
+        self._replaced = replaced
+
+    def __getattr__(self, name: str) -> Any:
+        return self._replaced.get(name) or getattr(self._real, name)
+
+
+def _throttled(**_: Any) -> Any:
+    raise ClientError(
+        {"Error": {"Code": "ProvisionedThroughputExceededException"}}, "GetItem"
+    )
+
+
+def _unreachable(**_: Any) -> Any:
+    raise EndpointConnectionError(endpoint_url="http://dynamodb")
+
+
+@pytest.mark.parametrize(
+    ("operation", "failure"),
+    [
+        ("get_item", _throttled),
+        ("get_item", _unreachable),
+        ("put_item", _throttled),
+        ("query", _unreachable),
+    ],
+    ids=["read-throttled", "read-unreachable", "write-throttled", "query-unreachable"],
+)
+async def test_a_dynamodb_failure_is_provider_unavailable(
+    table: DynamoTable, operation: str, failure: Any
+):
+    owner = uuid.uuid4()
+    await DynamoTripRepository(table).add(a_trip(owner))
+    broken = DynamoTripRepository(
+        DynamoTable(_Client(table.client, **{operation: failure}), table.name)
+    )
+
+    with pytest.raises(ProviderUnavailable) as caught:
+        if operation == "put_item":
+            await broken.add(a_trip(owner))
+        elif operation == "query":
+            await broken.list_for(owner)
+        else:
+            await broken.get(owner, uuid.uuid4())
+
+    assert caught.value.__cause__ is not None
+    assert caught.value.__cause__ is not caught.value
+
+
+@pytest.fixture
+def no_backoff(monkeypatch: pytest.MonkeyPatch) -> None:
+    async def instantly(_: float) -> None:
+        return None
+
+    monkeypatch.setattr(repositories.asyncio, "sleep", instantly)
+
+
+async def test_unprocessed_batch_items_are_retried(
+    table: DynamoTable, users: DynamoUserRepository, no_backoff: None
+):
+    ada = await users.add(User(email="ada@example.com"))
+    trips = DynamoTripRepository(table)
+    for _ in range(3):
+        await trips.add(a_trip(ada.id))
+    calls: list[int] = []
+
+    def once_throttled(**kwargs: Any) -> Any:
+        pending = kwargs["RequestItems"][table.name]
+        calls.append(len(pending))
+        if len(calls) == 1:
+            table.client.batch_write_item(RequestItems={table.name: pending[:1]})
+            return {"UnprocessedItems": {table.name: pending[1:]}}
+        return table.client.batch_write_item(**kwargs)
+
+    patched = DynamoUserRepository(
+        DynamoTable(_Client(table.client, batch_write_item=once_throttled), table.name)
+    )
+
+    await patched.delete(ada)
+
+    assert calls == [4, 3], "the second call sends only what the first left"
+    assert keys_of(table) == set()
+
+
+async def test_a_batch_that_stays_throttled_is_provider_unavailable(
+    table: DynamoTable, users: DynamoUserRepository, no_backoff: None
+):
+    ada = await users.add(User(email="ada@example.com"))
+
+    def always_throttled(**kwargs: Any) -> Any:
+        return {"UnprocessedItems": kwargs["RequestItems"]}
+
+    patched = DynamoUserRepository(
+        DynamoTable(
+            _Client(table.client, batch_write_item=always_throttled), table.name
+        )
+    )
+
+    with pytest.raises(ProviderUnavailable, match="kept throttling"):
+        await patched.delete(ada)

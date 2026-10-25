@@ -276,7 +276,92 @@
             "mode": "palette-classic"
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "berlin"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Berlín"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "bologna"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Bolonia"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "budapest"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Budapest"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "los-angeles"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Los Ángeles"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "madrid"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Madrid"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "miami"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Miami"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "other"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Otros destinos"
+              }
+            ]
+          }
+        ]
       },
       "targets": [
         {

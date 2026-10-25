@@ -8,7 +8,7 @@ from uuid import UUID, uuid4
 
 import pytest
 from core_api.api.deps import get_table
-from core_api.config import get_settings
+from core_api.config import CoreSettings, get_settings
 from core_api.domain.models import Trip, User
 from core_api.domain.ports import TripRepository
 from core_api.infrastructure.dynamo.table import DynamoTable
@@ -216,3 +216,82 @@ async def test_real_dependency_observer_failure_isolation(
             == 1
         )
     assert "private arbitrary exception details" not in caplog.text
+
+
+@pytest.mark.parametrize(
+    "city,category",
+    [
+        ("berlin", "berlin"),
+        ("bologna", "bologna"),
+        ("budapest", "budapest"),
+        ("los-angeles", "los-angeles"),
+        ("madrid", "madrid"),
+        ("miami", "miami"),
+        ("private-unlisted-destination", "other"),
+    ],
+)
+async def test_default_settings_emit_six_cities_and_bound_unknowns(
+    table: DynamoTable,
+    alice: User,
+    caplog: pytest.LogCaptureFixture,
+    monkeypatch: pytest.MonkeyPatch,
+    city: str,
+    category: str,
+):
+    monkeypatch.delenv("METRICS_CITY_SLUGS", raising=False)
+    application = build_app(
+        CoreSettings(
+            _env_file=None,
+            BUSINESS_EVENTS_ENABLED=True,
+            AWS_LAMBDA_FUNCTION_NAME="core-api",
+        )
+    )
+    application.dependency_overrides[get_table] = lambda: table
+    logging.getLogger().addHandler(caplog.handler)
+    async with AsyncClient(
+        transport=ASGITransport(app=application), base_url="http://test"
+    ) as client:
+        response = await client.post(
+            "/api/v1/trips/",
+            headers=headers_for(alice),
+            json=trip_body(city_slug=city, title="private trip title"),
+        )
+    assert response.status_code == 201, response.text
+    saved = response.json()
+    assert events(caplog) == [
+        {
+            "version": 1,
+            "event": "trip_created",
+            "event_id": hashlib.sha256(UUID(saved["id"]).bytes).hexdigest(),
+            "city_slug": category,
+            "budget_tier": "unspecified",
+            "pace_preference": "unspecified",
+            "duration_days": None,
+            "created_at": saved["created_at"].replace("Z", "+00:00"),
+        }
+    ]
+    raw = json.dumps(events(caplog))
+    for private in (saved["id"], str(alice.id), alice.email, saved["title"]):
+        assert private not in raw
+    if category == "other":
+        assert city not in raw
+
+
+def test_city_json_environment_override_replaces_defaults(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+):
+    monkeypatch.setenv("METRICS_CITY_SLUGS", '["custom-city"]')
+    settings = CoreSettings(_env_file=None)
+    assert settings.METRICS_CITY_SLUGS == ["custom-city"]
+    recorder = BusinessEventRecorder(settings.METRICS_CITY_SLUGS)
+    for city in ("custom-city", "budapest"):
+        recorder.record_trip_created(Trip(**trip_body(city_slug=city), user_id=uuid4()))
+    assert [event["city_slug"] for event in events(caplog)] == ["custom-city", "other"]
+
+
+def test_city_allowlist_remains_bounded(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv(
+        "METRICS_CITY_SLUGS", json.dumps([f"city-{i}" for i in range(101)])
+    )
+    with pytest.raises(ValueError, match="at most 100"):
+        CoreSettings(_env_file=None)

@@ -132,7 +132,7 @@ llamadas al modelo, unos 15.200 tokens de entrada y unos 4\,s de latencia.
 
 \begin{table}[h]
 \centering\scriptsize
-\caption{Traza de una petición compuesta (escenario \code{compound-dinner-museum-en}). Paso: llamada al modelo en la que se pidió la herramienta.}\label{tab:traza}
+\caption{Traza de una petición compuesta. Paso: llamada al modelo en la que se pidió la herramienta.}\label{tab:traza}
 \begin{tabularx}{\columnwidth}{@{}cL{3.7cm}Y@{}}
 \toprule
 \textbf{Paso} & \textbf{Llamada a herramienta} & \textbf{Resultado y evento} \\
@@ -198,7 +198,7 @@ está listo.
 \subsection{Recuperación en tiempo de consulta}\label{sec:recuperacion}
 
 Cada búsqueda convierte en vector (\emph{embedding}) \emph{solo} la consulta (no el historial) con Titan Text Embeddings~V2 y
-consulta el índice \code{city-kb} de S3 Vectors con un filtro de metadatos que \textbf{siempre}
+consulta el índice de S3 Vectors con un filtro de metadatos que \textbf{siempre}
 incluye la ciudad, y opcionalmente barrio, categoría y nivel de precio (Fig.~\ref{fig:rag}).
 Varias decisiones responden a problemas detectados en la evaluación:
 
@@ -267,9 +267,9 @@ Un número de tarjeta para «reservar» & 1 & «No compartas aquí números de t
 \end{tabularx}
 \end{table}
 
-\textbf{Ciudad no cubierta.} Si el destino extraído no está en el manifiesto de ciudades, el
-planificador responde con una frase determinista que enumera las ciudades tal como figuran en el
-manifiesto («De momento puedo planificar Berlin, Bologna, Budapest, Los Angeles, Madrid y Miami: el
+\textbf{Ciudad no cubierta.} Si el destino extraído no está en el manifiesto de ciudades indexadas, el
+planificador responde con una frase determinista que enumera las ciudades tal
+como figuran en él («De momento puedo planificar Berlin, Bologna, Budapest, Los Angeles, Madrid y Miami: el
 corpus aún no cubre Lisboa. ¿Planificamos una de ellas?»), sin buscar nada ni invocar al agente.
 Una prueba unitaria verifica que el turno hace una sola llamada al modelo (la extracción del
 resumen).
@@ -290,8 +290,8 @@ el corpus describe.
 \subsection{Ingesta de datos en la base vectorial}\label{sec:ingesta}
 
 La base vectorial es una \textbf{copia derivada}; la fuente de referencia es un fichero
-\code{documents.jsonl} por ciudad, versionado en Git y generado por la herramienta
-\code{city\_corpus} a partir de fuentes abiertas (Tabla~\ref{tab:fuentes}). Las fuentes cuyas
+JSONL por ciudad, versionado en Git y generado por una herramienta propia
+a partir de fuentes abiertas (Tabla~\ref{tab:fuentes}). Las fuentes cuyas
 condiciones de uso lo prohíben (Google Places, Tripadvisor, Booking) nunca se consultan.
 
 \begin{table}[t]
@@ -430,7 +430,7 @@ publicó cuando la superó.
 \subsection{La \emph{skill} \texttt{/add-city}: un flujo agéntico de datos}\label{sec:addcity}
 
 Ninguna línea del backend ni del frontend nombra una ciudad: una ciudad es solo datos. Por eso
-añadirla se ha convertido en una \emph{skill} de Claude Code: un procedimiento con instrucciones y
+añadirla se ha convertido en una \emph{skill} del agente de código: un procedimiento con instrucciones y
 herramientas que un agente ejecuta de principio a fin (Fig.~\ref{fig:ingesta}) hasta abrir la
 propuesta de cambio. El agente crea la tarea en Linear (el gestor de tareas del equipo) y la rama,
 y genera un borrador de configuración en unos 20\,s (Wikidata, Nominatim, Overpass, Wikivoyage y

@@ -39,10 +39,9 @@ Respuestas fundamentadas: fundamentación / relevancia (juez LLM, 1--5) & 4,72 /
 Escenarios del agente superados (36, media de 3 ejecuciones) & 92,6\,\% & \ref{sec:evalagente} \\
 Comprobaciones de seguridad superadas & 324/324 & \ref{sec:evalagente} \\
 Bedrock Guardrails: falsos positivos / ataques frenados & 0/67 · 7/8 & \ref{sec:evalagente} \\
-Coste estimado de la plataforma en reposo (sin WAF) & $\approx$5\,€/mes & \ref{sec:coste} \\
+Coste estimado en reposo (sin cortafuegos web) & $\approx$5\,€/mes & \ref{sec:coste} \\
 Coste de un turno (edición / borrador de 3 días) & 1 / 2--3 céntimos & \ref{sec:evalagente} \\
-Pruebas automáticas (backend / Vitest / Playwright) & 1.092 / $\approx$900 / $\approx$75 & \ref{sec:cicd} \\
-Entregas integradas / decisiones de arquitectura documentadas & 242 / 36 & \ref{sec:entrega}, \ref{sec:decisiones} \\
+Pruebas automáticas (backend / Vitest / Playwright) & 1.100 / $\approx$900 / $\approx$75 & \ref{sec:cicd} \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -68,38 +67,12 @@ cambio, que se aplica sobre el itinerario.
 \caption{Kiri planificando tres días en Budapest (sesión de demostración en inglés con respuestas reales del planificador). A la izquierda, la conversación; en el centro, el itinerario; a la derecha, el mapa.}\label{fig:producto}
 \end{figure*}
 
-\subsection{Cumplimiento del guion y estructura}
-La Tabla~\ref{tab:cumplimiento} relaciona cada requisito del guion del Proyecto Júpiter con la
-forma en que se cumple y la sección que lo justifica. Las decisiones de diseño, con sus
-alternativas descartadas, están documentadas además en el repositorio~\cite{kyrianrepo}, y la
-Tabla~\ref{tab:glosario} define los términos que más se repiten. El documento sigue el recorrido
+\subsection{Estructura del documento}
+La Tabla~\ref{tab:glosario} define los términos que más se repiten. El documento sigue el recorrido
 del producto: el caso de negocio (§\ref{sec:negocio}) y el equipo (§\ref{sec:equipo}); la
 arquitectura (§\ref{sec:arquitectura}); la solución de IA (§\ref{sec:ia}); su operación DevOps
 (§\ref{sec:devops}) y los modelos (§\ref{sec:modelos}); la evaluación (§\ref{sec:evaluacion}) y
 las conclusiones (§\ref{sec:conclusiones}).
-
-\begin{table}[h]
-\centering\scriptsize
-\caption{Requisitos del guion y dónde se cumplen.}\label{tab:cumplimiento}
-\begin{tabularx}{\columnwidth}{@{}L{2.25cm}Yr@{}}
-\toprule
-\textbf{Requisito} & \textbf{Cómo se cumple} & \textbf{§} \\
-\midrule
-IA generativa & Agente Kiri sobre Claude Haiku~4.5 y salidas estructuradas & \ref{sec:ia} \\
-Base de datos vectorial & Amazon S3 Vectors: 33.264 vectores con filtros por metadatos & \ref{sec:ingesta} \\
-API de modelo fundacional & Amazon Bedrock (Anthropic y Amazon); NVIDIA en local & \ref{sec:modelos} \\
-MVP funcional & Desplegado en \url{https://kyrian-world.com} con seis ciudades & \ref{sec:arquitectura} \\
-CI/CD automatizado & GitHub Actions: 13 trabajos de comprobación y despliegues con OIDC & \ref{sec:cicd} \\
-Monitorización y \emph{logging} & Trazas por turno, registros estructurados y 3 cuadros de mando & \ref{sec:monitorizacion} \\
-Trazabilidad del dato & Fuente $\rightarrow$ documento $\rightarrow$ vector $\rightarrow$ búsqueda $\rightarrow$ tarjeta & \ref{sec:monitorizacion} \\
-Arquitectura documentada & Figuras \ref{fig:software}--\ref{fig:objetivo} y 36 decisiones documentadas & \ref{sec:arquitectura} \\
-Docker y despliegue & Dos imágenes, pila Compose y Terraform & \ref{sec:contenedores} \\
-Pruebas & Más de 2.000 pruebas automáticas, de backend, Vitest y Playwright & \ref{sec:cicd} \\
-Valor de negocio & Problema, mercado, competencia, modelo y costes & \ref{sec:negocio} \\
-Contribución individual & Bloques liderados y matriz de responsabilidades & \ref{sec:equipo} \\
-\bottomrule
-\end{tabularx}
-\end{table}
 
 \begin{table}[h]
 \centering\scriptsize

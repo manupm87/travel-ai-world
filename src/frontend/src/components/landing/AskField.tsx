@@ -1,5 +1,7 @@
 "use client";
 
+/** The landing's ask field, which opens the planner. */
+
 import { Suspense, useState, useSyncExternalStore } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";

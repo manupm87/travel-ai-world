@@ -1,5 +1,7 @@
 "use client";
 
+/** The admin console's frame: the section sidebar (a tab strip on a phone) and the content. */
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -8,6 +10,7 @@ import {
   LayoutDashboard,
   ListOrdered,
   Map as MapIcon,
+  Scale,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -17,7 +20,7 @@ import type { Translations } from "@/i18n/types";
 import { cn } from "@/utils/cn";
 
 type Section = keyof Translations["admin"]["nav"] &
-  ("overview" | "turns" | "trips" | "users" | "access" | "quality");
+  ("overview" | "turns" | "trips" | "users" | "access" | "quality" | "judge");
 
 interface Entry {
   id: Section;
@@ -34,6 +37,7 @@ const ENTRIES: Entry[] = [
   { id: "users", href: "/admin/users/", icon: Users, matches: ["/admin/users"] },
   { id: "access", href: "/admin/access/", icon: KeyRound, matches: ["/admin/access"] },
   { id: "quality", href: "/admin/quality/", icon: Gauge, matches: ["/admin/quality"] },
+  { id: "judge", href: "/admin/judge/", icon: Scale, matches: ["/admin/judge", "/admin/judge/run"] },
 ];
 
 /** The entry a path belongs to, trailing slash or not. */

@@ -1,5 +1,7 @@
 "use client";
 
+/** The trip's stay. */
+
 import { BedDouble, ExternalLink, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { useLanguage } from "@/context/LanguageContext";

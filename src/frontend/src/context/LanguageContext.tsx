@@ -1,5 +1,7 @@
 "use client";
 
+/** The language context: the active language and its translations. */
+
 import {
   createContext,
   useContext,

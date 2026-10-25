@@ -91,7 +91,8 @@ CloudFront ([README](README.md#static-export-config-nextconfigts)).
   every turn sends the brief, the itinerary snapshot, `session_id` and the page's language. A price
   is a tier (`€`/`€€`/`€€€`), never a number. Assistant text renders through
   `components/planner/MarkdownContent.tsx`; raw HTML is never rendered (no `rehype-raw`).
-- **Admin console**: it only reads, except the access list (`/admin/access/`). Nothing on
+- **Admin console**: it only reads, except the access list (`/admin/access/`) and the
+  evaluation runs `/admin/judge/` starts (ADR 0039), which write only themselves. Nothing on
   `/admin/trip/` writes, and nothing may be added that does.
 
 ### Design
@@ -110,7 +111,7 @@ CloudFront ([README](README.md#static-export-config-nextconfigts)).
 src/app/               routes: static shells + client pages; globals.css (tokens), layout.tsx
   (marketing)/         public: the landing `/`, auth/callback/
   (app)/               signed in: dashboard/ (the home), plan/ (the planner), trip/ (old links)
-  (admin)/admin/       the console: overview, turns/, turn/, trips/, trip/, users/, access/, quality/
+  (admin)/admin/       the console: overview, turns/, turn/, trips/, trip/, users/, access/, quality/, judge/
 src/components/        by feature: ui/ (primitives), layout/, landing/, common/ (AskComposer), auth/,
                        trips/, kiri/, planner/ (v2/ is the planner page), admin/
 src/hooks/             async state and page logic (usePlanner + plannerReducer, useTrips…); admin/
@@ -135,7 +136,7 @@ in `services/trips.ts::saveDraftAsTrip` and comes back through `services/tripDra
   `renderWithProviders` (`src/test/render.tsx`: the real language and theme providers); build data
   with the typed builders in `src/test/fixtures.ts` and the shared fixtures in `src/test/fixtures/`
   (checked with `satisfies`). Assert on roles, accessible names, `data-*` state and the `en.ts`
-  copy, never on class names. Do not mock `Card`, `Section`, `Container`, `next/link`, nor
+  copy, never on class names. Do not mock `Card`, `Container`, `next/link`, nor
   `lucide-react` icon by icon.
 - **E2E**: Playwright, three configs over `e2e/`: `just test-e2e` (`next dev` on :3000),
   `just test-e2e-static` (`next build` on :3100, CI's `frontend` job) and `just test-e2e-stack`

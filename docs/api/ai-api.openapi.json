@@ -62,6 +62,187 @@
         "title": "AdminUsageResponse",
         "type": "object"
       },
+      "AgreementReportResponse": {
+        "description": "How a `golden` run's verdicts agree with the expected ones.",
+        "properties": {
+          "cases": {
+            "title": "Cases",
+            "type": "integer"
+          },
+          "disagreements": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Disagreements",
+            "type": "array"
+          },
+          "exact_perturbed": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exact Perturbed"
+          },
+          "exact_real": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exact Real"
+          },
+          "gap_accuracy": {
+            "title": "Gap Accuracy",
+            "type": "number"
+          },
+          "groundedness": {
+            "$ref": "#/components/schemas/ScoreAgreementResponse"
+          },
+          "judging": {
+            "$ref": "#/components/schemas/SpendResponse"
+          },
+          "low_agreement": {
+            "title": "Low Agreement",
+            "type": "number"
+          },
+          "low_kappa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Low Kappa"
+          },
+          "relevance": {
+            "$ref": "#/components/schemas/ScoreAgreementResponse"
+          }
+        },
+        "required": [
+          "cases",
+          "groundedness",
+          "relevance",
+          "low_kappa",
+          "low_agreement",
+          "gap_accuracy",
+          "exact_real",
+          "exact_perturbed",
+          "disagreements",
+          "judging"
+        ],
+        "title": "AgreementReportResponse",
+        "type": "object"
+      },
+      "AnswerEvalEvent": {
+        "discriminator": {
+          "mapping": {
+            "error": "#/components/schemas/ErrorEvent",
+            "progress": "#/components/schemas/EvalProgressEvent",
+            "report": "#/components/schemas/EvalReportEvent"
+          },
+          "propertyName": "type"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/EvalProgressEvent"
+          },
+          {
+            "$ref": "#/components/schemas/EvalReportEvent"
+          },
+          {
+            "$ref": "#/components/schemas/ErrorEvent"
+          }
+        ]
+      },
+      "AnswerEvalRequest": {
+        "properties": {
+          "set": {
+            "enum": [
+              "questions",
+              "golden"
+            ],
+            "title": "Set",
+            "type": "string"
+          }
+        },
+        "required": [
+          "set"
+        ],
+        "title": "AnswerEvalRequest",
+        "type": "object"
+      },
+      "AnswerReportResponse": {
+        "description": "The scores of a `questions` run; answerable questions only, but `unanswerable`.",
+        "properties": {
+          "answering": {
+            "$ref": "#/components/schemas/SpendResponse"
+          },
+          "by_city": {
+            "items": {
+              "$ref": "#/components/schemas/MeansResponse"
+            },
+            "title": "By City",
+            "type": "array"
+          },
+          "by_language": {
+            "items": {
+              "$ref": "#/components/schemas/MeansResponse"
+            },
+            "title": "By Language",
+            "type": "array"
+          },
+          "judging": {
+            "$ref": "#/components/schemas/SpendResponse"
+          },
+          "overall": {
+            "$ref": "#/components/schemas/MeansResponse"
+          },
+          "turned_down": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Turned Down",
+            "type": "array"
+          },
+          "unanswerable": {
+            "title": "Unanswerable",
+            "type": "integer"
+          },
+          "unanswerable_acknowledged": {
+            "title": "Unanswerable Acknowledged",
+            "type": "integer"
+          },
+          "worst": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Worst",
+            "type": "array"
+          }
+        },
+        "required": [
+          "overall",
+          "by_city",
+          "by_language",
+          "unanswerable",
+          "unanswerable_acknowledged",
+          "turned_down",
+          "worst",
+          "answering",
+          "judging"
+        ],
+        "title": "AnswerReportResponse",
+        "type": "object"
+      },
       "BriefEvent": {
         "properties": {
           "brief": {
@@ -394,6 +575,8 @@
         "properties": {
           "afternoon": {
             "items": {
+              "maxLength": 200,
+              "minLength": 1,
               "type": "string"
             },
             "maxItems": 20,
@@ -402,6 +585,8 @@
           },
           "evening": {
             "items": {
+              "maxLength": 200,
+              "minLength": 1,
               "type": "string"
             },
             "maxItems": 20,
@@ -410,6 +595,8 @@
           },
           "morning": {
             "items": {
+              "maxLength": 200,
+              "minLength": 1,
               "type": "string"
             },
             "maxItems": 20,
@@ -418,6 +605,8 @@
           },
           "night": {
             "items": {
+              "maxLength": 200,
+              "minLength": 1,
               "type": "string"
             },
             "maxItems": 20,
@@ -579,6 +768,370 @@
         "title": "ErrorEvent",
         "type": "object"
       },
+      "EvalItemResponse": {
+        "description": "One graded question, or one golden case with the verdict expected of it.",
+        "properties": {
+          "answer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer"
+          },
+          "answerable": {
+            "title": "Answerable",
+            "type": "boolean"
+          },
+          "city": {
+            "title": "City",
+            "type": "string"
+          },
+          "defect": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Defect"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "expected": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExpectedVerdictResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "lang": {
+            "title": "Lang",
+            "type": "string"
+          },
+          "origin": {
+            "anyOf": [
+              {
+                "enum": [
+                  "real",
+                  "perturbed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Origin"
+          },
+          "passages": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Passages",
+            "type": "array"
+          },
+          "query": {
+            "title": "Query",
+            "type": "string"
+          },
+          "verdict": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VerdictResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "why": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Why"
+          }
+        },
+        "required": [
+          "key",
+          "city",
+          "id",
+          "lang",
+          "query",
+          "answerable",
+          "passages",
+          "answer",
+          "verdict",
+          "error",
+          "expected",
+          "origin",
+          "defect",
+          "why"
+        ],
+        "title": "EvalItemResponse",
+        "type": "object"
+      },
+      "EvalProgressEvent": {
+        "description": "One item graded: `done` of `total` so far.",
+        "properties": {
+          "done": {
+            "title": "Done",
+            "type": "integer"
+          },
+          "item": {
+            "$ref": "#/components/schemas/EvalItemResponse"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "type": {
+            "const": "progress",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "done",
+          "total",
+          "item"
+        ],
+        "title": "EvalProgressEvent",
+        "type": "object"
+      },
+      "EvalReportEvent": {
+        "description": "The run as stored once every item is graded; the last event before `[DONE]`.",
+        "properties": {
+          "run": {
+            "$ref": "#/components/schemas/EvalRunResponse"
+          },
+          "type": {
+            "const": "report",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "run"
+        ],
+        "title": "EvalReportEvent",
+        "type": "object"
+      },
+      "EvalRunDetailResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/EvalItemResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "run": {
+            "$ref": "#/components/schemas/EvalRunResponse"
+          }
+        },
+        "required": [
+          "run",
+          "items"
+        ],
+        "title": "EvalRunDetailResponse",
+        "type": "object"
+      },
+      "EvalRunPageResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/EvalRunResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "EvalRunPageResponse",
+        "type": "object"
+      },
+      "EvalRunResponse": {
+        "properties": {
+          "agreement": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AgreementReportResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "answer_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer Model"
+          },
+          "answers": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AnswerReportResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "failed": {
+            "title": "Failed",
+            "type": "integer"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "graded": {
+            "title": "Graded",
+            "type": "integer"
+          },
+          "index": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Index"
+          },
+          "judge_model": {
+            "title": "Judge Model",
+            "type": "string"
+          },
+          "judge_prompt": {
+            "title": "Judge Prompt",
+            "type": "string"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "set": {
+            "enum": [
+              "questions",
+              "golden"
+            ],
+            "title": "Set",
+            "type": "string"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "running",
+              "done",
+              "failed",
+              "interrupted"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Usd"
+          }
+        },
+        "required": [
+          "run_id",
+          "set",
+          "status",
+          "started_at",
+          "finished_at",
+          "answer_model",
+          "judge_model",
+          "judge_prompt",
+          "index",
+          "total",
+          "graded",
+          "failed",
+          "usd",
+          "answers",
+          "agreement",
+          "error"
+        ],
+        "title": "EvalRunResponse",
+        "type": "object"
+      },
       "EventMarkResponse": {
         "description": "One SSE event as it left; `count` collapses consecutive text deltas.",
         "properties": {
@@ -636,6 +1189,29 @@
           "rank"
         ],
         "title": "ExpectedRankResponse",
+        "type": "object"
+      },
+      "ExpectedVerdictResponse": {
+        "properties": {
+          "acknowledges_gap": {
+            "title": "Acknowledges Gap",
+            "type": "boolean"
+          },
+          "groundedness": {
+            "title": "Groundedness",
+            "type": "integer"
+          },
+          "relevance": {
+            "title": "Relevance",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "groundedness",
+          "relevance",
+          "acknowledges_gap"
+        ],
+        "title": "ExpectedVerdictResponse",
         "type": "object"
       },
       "HTTPValidationError": {
@@ -758,6 +1334,8 @@
           "stay_card_id": {
             "anyOf": [
               {
+                "maxLength": 200,
+                "minLength": 1,
                 "type": "string"
               },
               {
@@ -800,6 +1378,39 @@
           "cost_usd"
         ],
         "title": "KindStatsResponse",
+        "type": "object"
+      },
+      "MeansResponse": {
+        "properties": {
+          "answers": {
+            "title": "Answers",
+            "type": "integer"
+          },
+          "groundedness": {
+            "title": "Groundedness",
+            "type": "number"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "low_share": {
+            "title": "Low Share",
+            "type": "number"
+          },
+          "relevance": {
+            "title": "Relevance",
+            "type": "number"
+          }
+        },
+        "required": [
+          "label",
+          "answers",
+          "groundedness",
+          "relevance",
+          "low_share"
+        ],
+        "title": "MeansResponse",
         "type": "object"
       },
       "ModelStatsResponse": {
@@ -1506,6 +2117,7 @@
         "description": "An activity taken out of a slot.",
         "properties": {
           "card_id": {
+            "maxLength": 200,
             "minLength": 1,
             "title": "Card Id",
             "type": "string"
@@ -1758,11 +2370,69 @@
         "title": "RetrievedDocResponse",
         "type": "object"
       },
+      "ScoreAgreementResponse": {
+        "properties": {
+          "confusion": {
+            "items": {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            "title": "Confusion",
+            "type": "array"
+          },
+          "exact": {
+            "title": "Exact",
+            "type": "number"
+          },
+          "kappa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kappa"
+          },
+          "mean_expected": {
+            "title": "Mean Expected",
+            "type": "number"
+          },
+          "mean_judge": {
+            "title": "Mean Judge",
+            "type": "number"
+          },
+          "score": {
+            "title": "Score",
+            "type": "string"
+          },
+          "within_one": {
+            "title": "Within One",
+            "type": "number"
+          }
+        },
+        "required": [
+          "score",
+          "exact",
+          "within_one",
+          "kappa",
+          "confusion",
+          "mean_expected",
+          "mean_judge"
+        ],
+        "title": "ScoreAgreementResponse",
+        "type": "object"
+      },
       "SelectAction": {
         "description": "Cards chosen in a carousel the server sent earlier (`group_id`).\n\nA group whose id names a slot (`slot:<day>:<part>`) places the pick on\nits own. A `found:` group does not: its cards arrived unplaced, so the\npage names the day and the part the traveller chose in `slot` (ADR 0018).\n`null` for every placed group.",
         "properties": {
           "card_ids": {
             "items": {
+              "maxLength": 200,
+              "minLength": 1,
               "type": "string"
             },
             "maxItems": 20,
@@ -2099,6 +2769,48 @@
           "results"
         ],
         "title": "SpanResponse",
+        "type": "object"
+      },
+      "SpendResponse": {
+        "properties": {
+          "input_tokens": {
+            "title": "Input Tokens",
+            "type": "integer"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "output_tokens": {
+            "title": "Output Tokens",
+            "type": "integer"
+          },
+          "usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Usd"
+          }
+        },
+        "required": [
+          "model",
+          "input_tokens",
+          "output_tokens",
+          "usd"
+        ],
+        "title": "SpendResponse",
         "type": "object"
       },
       "TextEvent": {
@@ -3013,6 +3725,42 @@
         "title": "ValidationError",
         "type": "object"
       },
+      "VerdictResponse": {
+        "properties": {
+          "acknowledges_gap": {
+            "title": "Acknowledges Gap",
+            "type": "boolean"
+          },
+          "groundedness": {
+            "title": "Groundedness",
+            "type": "integer"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "relevance": {
+            "title": "Relevance",
+            "type": "integer"
+          },
+          "unsupported_claims": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unsupported Claims",
+            "type": "array"
+          }
+        },
+        "required": [
+          "groundedness",
+          "relevance",
+          "acknowledges_gap",
+          "unsupported_claims",
+          "reason"
+        ],
+        "title": "VerdictResponse",
+        "type": "object"
+      },
       "WarnOp": {
         "properties": {
           "code": {
@@ -3068,6 +3816,124 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/ai/admin/answer-eval": {
+      "post": {
+        "description": "Run the answer evaluation or the judge validation, streamed (ADR 0039).\n\n`questions`: the 126 evaluation questions answered by the production model\nand graded by the judge (about 0.6 USD, a few minutes); `golden`: the judge\nalone over the labelled golden set (cents). Events are `progress` per item,\nthen `report`, then `[DONE]`; a failure mid-run is an `error` event. The run\nis stored as it goes. 409 while another run is in progress; 503 for\n`questions` when retrieval is off.",
+        "operationId": "run_answer_eval_api_v1_ai_admin_answer_eval_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswerEvalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "text/event-stream": {}
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Run Answer Eval",
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/api/v1/ai/admin/answer-evals": {
+      "get": {
+        "description": "The latest evaluation runs, newest first.",
+        "operationId": "list_answer_evals_api_v1_ai_admin_answer_evals_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvalRunPageResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Answer Evals",
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/api/v1/ai/admin/answer-evals/{run_id}": {
+      "get": {
+        "description": "One run with every item it graded, in the order of their keys.",
+        "operationId": "read_answer_eval_api_v1_ai_admin_answer_evals__run_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvalRunDetailResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Answer Eval",
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
     "/api/v1/ai/admin/retrieval-eval": {
       "post": {
         "description": "Recall@5, recall@10 and MRR of the index over every city's 20 questions.\n\nThe run `just eval-retrieval` does: 8 searches at a time, a few seconds and a\nfew hundred Titan tokens. Nothing is stored. 503 when retrieval is off.",

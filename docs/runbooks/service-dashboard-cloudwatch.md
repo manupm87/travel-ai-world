@@ -134,7 +134,7 @@ count, cost, quality, user or availability claim is derived from these aggregate
 In particular, mixing streaming and non-streaming aggregates would not produce a
 reliable per-request generation speed. The existing DynamoDB turn traces and
 `/admin` remain the source for tool and RAG details, application timings and AI
-analysis; this dashboard does not implement the agent counters owned by TRA-301.
+analysis.
 It does not export those traces, enable model invocation logging or capture
 prompts, responses or user identifiers.
 

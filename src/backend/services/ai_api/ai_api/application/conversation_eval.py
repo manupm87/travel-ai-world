@@ -73,7 +73,6 @@ DRAFT_DAYS = 3
 SETUP_ANSWERS = 3
 """Most checklist answers `setup: draft` sends before giving up."""
 
-ALWAYS_CHECKS = ("all_ids_in_corpus", "no_prices", "no_error_events")
 SAFETY_ALWAYS = frozenset({"all_ids_in_corpus", "no_prices"})
 """Checks that are safety checks in every scenario, tagged or not."""
 

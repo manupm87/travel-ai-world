@@ -1,7 +1,7 @@
 # AWS (Lambda + API Gateway + Cognito + DynamoDB, behind CloudFront)
 
-Read [`infra/README.md`](../README.md) first: images, secrets and state are the same for both
-clouds. This folder is the **v3 shape** of [ADR 0009](../../docs/architecture/adr/0009-lambda-cognito-budget.md)
+Read [`infra/README.md`](../README.md) first: it covers images, secrets and state.
+This folder is the **v3 shape** of [ADR 0009](../../docs/architecture/adr/0009-lambda-cognito-budget.md)
 (drawn in [`docs/architecture/aws-architecture.drawio.svg`](../../docs/architecture/aws-architecture.drawio.svg)):
 the same two container images run as **Lambda functions** behind an **API Gateway REST API**, the
 browser signs in through a **Cognito user pool**, and **CloudFront** is the single public origin
@@ -19,8 +19,8 @@ removes it.
 
 | Function | Image | Where | Receives |
 |---|---|---|---|
-| `core-api` | `core-api` | outside the VPC (DynamoDB through IAM, HTTPS) | `CORE_TABLE`, `AUTH_MODE=cognito` + `COGNITO_*`, `BACKEND_CORS_ORIGINS`, `ACCESS_MODE` + `DEFAULT_DAILY_TOKEN_LIMIT` |
-| `ai-api` | `ai-api` | outside the VPC (Bedrock, NVIDIA, `core_api` through CloudFront) | `LLM_PROVIDER` (`bedrock` by default) + `BEDROCK_*`, `NVIDIA_*` (fallback), `AUTH_MODE=cognito` + `COGNITO_*`, `CORE_API_URL=https://<domain>`, `RETRIEVAL_ENABLED` + `VECTOR_*` + `EMBEDDINGS_*`, `INTERACTIONS_TABLE`, `ACCESS_CONTROL_ENABLED=true` |
+| `core-api` | `core-api` | outside any VPC (DynamoDB through IAM, HTTPS) | `CORE_TABLE`, `AUTH_MODE=cognito` + `COGNITO_*`, `BACKEND_CORS_ORIGINS`, `ACCESS_MODE` + `DEFAULT_DAILY_TOKEN_LIMIT`, `BUSINESS_EVENTS_ENABLED`, `ACCESS_LOG_ENABLED` |
+| `ai-api` | `ai-api` | outside any VPC (Bedrock, NVIDIA, `core_api` through CloudFront) | `LLM_PROVIDER` (`bedrock` by default) + `BEDROCK_*`, `NVIDIA_*` (fallback), `AUTH_MODE=cognito` + `COGNITO_*`, `CORE_API_URL=https://<domain>`, `RETRIEVAL_ENABLED` + `VECTOR_*` + `EMBEDDINGS_*`, `INTERACTIONS_TABLE`, `ACCESS_CONTROL_ENABLED=true`, `ACCESS_LOG_ENABLED` |
 
 Request path: `https://<domain>/api/v1/...` → CloudFront (`/api/*`, no cache, `Authorization`
 forwarded) → API Gateway (Cognito authorizer, then `/api/v1/ai/{proxy+}` streamed to `ai-api`,
@@ -130,7 +130,7 @@ terraform validate
    and run the "Deploy frontend" workflow (or push to `main`). It builds with
    `NEXT_PUBLIC_API_URL=https://<domain>`, syncs `out/` to the bucket and invalidates CloudFront.
 
-Later backend deploys: the "Deploy backend" workflow with `cloud=aws`. It assumes the bootstrap's
+Later backend deploys: the "Deploy backend" workflow. It assumes the bootstrap's
 role through OIDC, copies the images that "Backend images" pushed to GHCR into ECR with `crane`
 (same digest, nothing rebuilt), initialises the same S3 backend, pins the functions to the new
 image digests, and applies; there is no migrate step. It needs the secrets `AWS_REGION`, `AWS_ROLE_TO_ASSUME`, the
@@ -193,22 +193,6 @@ ID token carries the group, and `core_api` mirrors it as `role=admin`. No servic
    `Deploy backend` run with `apply=true` do it.
 5. The person signs out and in again: the ID token they hold was issued before the change.
 
-**Trips saved before the admin index.** GSI2 is sparse: only trip items that carry
-`GSI2PK`/`GSI2SK` are listed, so trips saved before the index existed are missing from
-`/admin/trips` until they are backfilled. Once, after the apply that creates GSI2 and the backend
-deploy that writes it, from a laptop with the SSO session and no `DYNAMODB_ENDPOINT_URL`:
-
-```bash
-just aws-login
-export CORE_TABLE=$(terraform output -raw core_table_name) AWS_REGION=eu-west-1
-just backfill-trip-index --dry-run                      # how many trips lack the keys
-just backfill-trip-index                                # scanned=<n> updated=<n> skipped=<n>
-```
-
-It is idempotent (a second run reports `scanned=0`) and needs `dynamodb:Scan` and
-`dynamodb:UpdateItem` on the table, which the SSO permission set (`AdministratorAccess`) has
-([core_api README](../../src/backend/services/core_api/README.md#ops-commands)).
-
 Removing a name from the list and applying takes the group away; the role follows at the next
 sign-in. A user added to the group by hand in the console is not in the list and Terraform leaves
 them alone, so do not: the list is the source of truth.
@@ -229,6 +213,10 @@ prompts are processed in EU Regions. There is no API key: the function's role si
   through the profile (`bedrock:InferenceProfileArn` condition). Any other model is denied.
 - **Changing a model.** Set the variable to another `eu.` profile id
   (`aws bedrock list-inference-profiles --region eu-west-1`) and apply; the policy follows it.
+- **The judge.** `bedrock_judge_model` (Amazon Nova Pro, `eu.amazon.nova-pro-v1:0`) grades the
+  chat model's answers when an administrator runs the answer evaluation from `/admin/judge/`
+  (ADR 0039). The role may invoke it the same way and the function gets it as `JUDGE_MODEL`.
+  This account already invokes it from `just eval-answers`.
 - **Rollback to NVIDIA.** `llm_provider = "nvidia"` and apply. `NVIDIA_API_KEY` stays in the
   function for that reason.
 - **Checking it.** Each answer writes one `Bedrock usage model=... input_tokens=... output_tokens=...`
@@ -335,14 +323,3 @@ curl -H "Authorization: Bearer $TOKEN" "$(terraform output -raw api_gateway_invo
   `/404.html`, 404) is missing, or `404.html` is not at the root of the bucket.
 - An API call answers 404 with HTML → the API returned 403 (someone else's resource, an
   authorizer deny); the distribution-wide error response maps it. API 404s stay JSON.
-
-## Taking a function out of a VPC
-
-A single apply cannot drop `vpc_config` from a function and destroy its security group, subnets
-and VPC in the same run: Terraform reports `Error: Cycle` between the function update and the
-destroys. Apply in two steps, locally, with both images pinned to digests already in ECR
-(`-var core_api_image=... -var ai_api_image=...`; a stale `terraform.tfvars` would deploy an image
-that no longer exists): `terraform apply -target=aws_lambda_function.<function>` first, check that
-the function answers from outside the VPC, then the plain `terraform apply`. An RDS instance needs
-deletion protection off (`aws rds modify-db-instance ... --no-deletion-protection
---apply-immediately`) before Terraform can destroy it; its final snapshot is deleted by hand.

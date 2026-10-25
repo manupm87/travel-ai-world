@@ -1,5 +1,7 @@
 "use client";
 
+/** The planner's trip panel: the overview, a day or an activity. */
+
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { HEADER_SLOT_ID } from "@/components/layout/Header";

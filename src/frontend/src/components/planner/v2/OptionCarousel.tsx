@@ -1,5 +1,7 @@
 "use client";
 
+/** A carousel of option cards. */
+
 import { useRef, useState, type KeyboardEvent } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";

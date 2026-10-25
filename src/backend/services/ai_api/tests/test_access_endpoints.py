@@ -10,6 +10,7 @@ from ai_api.api.deps import (
     get_check_access,
     get_retriever,
 )
+from ai_api.application import tracing
 from ai_api.application.access import CheckAccess
 from ai_api.config import get_settings
 from ai_api.domain.usage import Entitlement
@@ -145,13 +146,25 @@ async def test_the_token_is_checked_before_core_api_is_asked(
     assert gateway.tokens == []
 
 
+class FrozenDatetime(datetime):
+    """`datetime` whose `now` is always noon of `TODAY`, UTC."""
+
+    @classmethod
+    def now(cls, tz=None):  # type: ignore[override]
+        return cls(TODAY.year, TODAY.month, TODAY.day, 12, tzinfo=tz or UTC)
+
+
 async def test_under_budget_the_turn_runs_and_is_counted(
+    monkeypatch: pytest.MonkeyPatch,
     gated: AsyncClient,
     auth_headers,
     provider: FakeProvider,
     gateway: FakeAccessGateway,
     usage_store: InMemoryUsageStore,
 ):
+    # The turn's trace takes its day from the tracer's clock.
+    monkeypatch.setattr(tracing, "datetime", FrozenDatetime)
+
     response = await gated.post(PLANNER_URL, json=TURN, headers=auth_headers)
 
     assert response.status_code == 200
@@ -162,7 +175,7 @@ async def test_under_budget_the_turn_runs_and_is_counted(
     assert calls > 0
     [counter] = usage_store.days.values()
     assert (counter.subject, counter.tokens, counter.turns) == ("1", 5 * calls, 1)
-    assert counter.day == datetime.now(UTC).date().isoformat()
+    assert counter.day == TODAY.isoformat()
 
 
 async def test_the_turn_that_crosses_the_limit_finishes_and_the_next_is_refused(
@@ -250,15 +263,22 @@ async def test_usage_me_answers_over_the_limit_too(
 
 
 async def test_usage_me_without_access_control_has_no_limit(
-    client: AsyncClient, auth_headers
+    client: AsyncClient,
+    auth_headers,
+    gateway: FakeAccessGateway,
+    usage_store: InMemoryUsageStore,
 ):
+    check = CheckAccess(gateway, usage_store, ttl_seconds=0, today=lambda: TODAY)
+    app.dependency_overrides[get_check_access] = lambda: check
+
     response = await client.get(USAGE_URL, headers=auth_headers)
 
     assert response.status_code == 200
     body = response.json()
     assert body["daily_token_limit"] is None
     assert (body["used_tokens"], body["turns"]) == (0, 0)
-    assert body["day"] == datetime.now(UTC).date().isoformat()
+    assert body["day"] == TODAY.isoformat()
+    assert gateway.tokens == []  # access control off: core_api is never asked
 
 
 async def test_usage_me_requires_authentication(client: AsyncClient):

@@ -13,6 +13,7 @@ from travel_common.security import principal_from_token
 
 from ai_api.application.access import CheckAccess
 from ai_api.application.card_detail import CardDetailLookup
+from ai_api.application.eval_runs import EvalRuns
 from ai_api.application.plan_trip import PlanTrip
 from ai_api.application.record_trace import RecordTrace
 from ai_api.application.tracing import TurnTracer
@@ -20,6 +21,7 @@ from ai_api.config import AISettings, get_settings
 from ai_api.domain.models import City, GenerationParams
 from ai_api.domain.ports import (
     AccessGateway,
+    EvalStore,
     InputGuard,
     LLMProvider,
     PhotoFinder,
@@ -33,6 +35,7 @@ from ai_api.domain.tracing import Kind
 from ai_api.domain.usage import Entitlement
 from ai_api.infrastructure.bedrock_guard import NullInputGuard
 from ai_api.infrastructure.core_api_client import CoreApiClient
+from ai_api.infrastructure.dynamo_eval import NullEvalStore
 from ai_api.infrastructure.dynamo_traces import NullTraceLog
 from ai_api.infrastructure.dynamo_usage import NullUsageStore
 from ai_api.infrastructure.providers import ChatProvider, planner_cities
@@ -162,6 +165,42 @@ def get_usage_store(request: Request) -> UsageStore:
     """The daily token counters built in `lifespan` (ADR 0026); zeros without."""
     store: UsageStore | None = getattr(request.app.state, "usage_store", None)
     return store if store is not None else NullUsageStore()
+
+
+def get_eval_store(request: Request) -> EvalStore:
+    """The evaluation runs' store built in `lifespan` (ADR 0039); none without."""
+    store: EvalStore | None = getattr(request.app.state, "eval_store", None)
+    return store if store is not None else NullEvalStore()
+
+
+def get_judge(request: Request) -> LLMProvider:
+    judge: LLMProvider | None = getattr(request.app.state, "judge", None)
+    if judge is None:
+        raise ProviderUnavailable("The answer judge is not configured")
+    return judge
+
+
+def get_eval_answerer(request: Request) -> LLMProvider | None:
+    """The Bedrock model the answer evaluation grades; `None` before `lifespan`."""
+    return getattr(request.app.state, "eval_answerer", None)
+
+
+def get_eval_runs(
+    store: EvalStore = Depends(get_eval_store),
+    judge: LLMProvider = Depends(get_judge),
+    answerer: LLMProvider | None = Depends(get_eval_answerer),
+    retriever: Retriever | None = Depends(get_retriever),
+    settings: AISettings = Depends(get_settings),
+) -> EvalRuns:
+    return EvalRuns(
+        store,
+        judge=judge,
+        judge_model=settings.JUDGE_MODEL,
+        answerer=answerer,
+        answer_model=settings.BEDROCK_CHAT_MODEL,
+        retriever=retriever,
+        index=f"{settings.VECTOR_BUCKET}/{settings.VECTOR_INDEX}",
+    )
 
 
 def get_record_trace(

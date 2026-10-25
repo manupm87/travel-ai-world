@@ -1,5 +1,7 @@
 "use client";
 
+/** The planner's trip header: title, dates and actions. */
+
 import { useId } from "react";
 import { Button } from "@/components/ui/Button";
 import { useLanguage } from "@/context/LanguageContext";

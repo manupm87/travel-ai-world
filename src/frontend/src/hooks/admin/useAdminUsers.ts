@@ -1,5 +1,7 @@
 "use client";
 
+/** Every account, for the admin console. */
+
 import { useCallback, useMemo } from "react";
 import { listAdminUsers, type AdminUser } from "@/services/admin";
 import { useCursorList } from "./useCursorList";

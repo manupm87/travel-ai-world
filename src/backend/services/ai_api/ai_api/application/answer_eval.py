@@ -8,11 +8,18 @@ it; the judge reads the question, the passages and the answer and returns a
 
 import asyncio
 import json
-from collections.abc import Callable, Sequence
+from collections.abc import (
+    AsyncGenerator,
+    Callable,
+    Coroutine,
+    Iterable,
+    Sequence,
+)
+from contextlib import aclosing
 from dataclasses import dataclass
 from importlib.resources import files
 from statistics import fmean
-from typing import cast
+from typing import Any, cast
 
 from pydantic import BaseModel, Field
 from travel_common.exceptions import DomainError
@@ -25,9 +32,6 @@ from ai_api.application.structured import complete_json
 from ai_api.domain.models import Message, RetrievalFilters, Usage
 from ai_api.domain.ports import LLMProvider, Retriever
 from ai_api.prompts import JUDGE_PROMPT, format_context, judge_request, prompt_version
-
-JUDGE_MODEL = "eu.amazon.nova-pro-v1:0"
-"""Amazon Nova Pro: another family than the answering Claude, so no self-grading."""
 
 CONCURRENCY = 4
 """Questions in flight at once: two model calls each."""
@@ -70,6 +74,8 @@ class Graded:
     item: Item
     passages: tuple[str, ...]
     """The ids of the passages the answer was given, best first."""
+    context: str
+    """Those passages as the model and the judge read them."""
     answer: str
     verdict: Verdict
     answer_usage: Usage
@@ -152,14 +158,13 @@ async def grade(
         chat_messages(item.lang, EMPTY_ITINERARY, passages, (), item.query),
         usage=answer_usage,
     )
+    context = format_context(passages)
     judge_usage = Usage()
     verdict = await complete_json(
         judge,
         [
             Message("system", JUDGE_PROMPT),
-            Message(
-                "user", judge_request(item.query, format_context(passages), answer)
-            ),
+            Message("user", judge_request(item.query, context, answer)),
         ],
         Verdict,
         name="judge",
@@ -169,11 +174,28 @@ async def grade(
     return Graded(
         item,
         tuple(d.id for d in passages),
+        context,
         answer,
         verdict,
         answer_usage,
         judge_usage,
     )
+
+
+def _grader(
+    retriever: Retriever, answerer: LLMProvider, judge: LLMProvider, concurrency: int
+) -> Callable[[Item], Coroutine[Any, Any, Graded | Failure]]:
+    """Grade one item at most `concurrency` at a time; a failed one is a `Failure`."""
+    gate = asyncio.Semaphore(concurrency)
+
+    async def one(item: Item) -> Graded | Failure:
+        async with gate:
+            try:
+                return await grade(item, retriever, answerer, judge)
+            except DomainError as exc:
+                return Failure(item, exc.message)
+
+    return one
 
 
 async def run(
@@ -188,16 +210,36 @@ async def run(
 
     A question whose answer or verdict fails is a `Failure`, not a lost run.
     """
-    gate = asyncio.Semaphore(concurrency)
-
-    async def one(item: Item) -> Graded | Failure:
-        async with gate:
-            try:
-                return await grade(item, retriever, answerer, judge)
-            except DomainError as exc:
-                return Failure(item, exc.message)
-
+    one = _grader(retriever, answerer, judge, concurrency)
     return list(await asyncio.gather(*(one(item) for item in items)))
+
+
+async def stream(
+    items: Sequence[Item],
+    retriever: Retriever,
+    answerer: LLMProvider,
+    judge: LLMProvider,
+    *,
+    concurrency: int = CONCURRENCY,
+) -> AsyncGenerator[Graded | Failure]:
+    """`run`, but each result as soon as it is graded, in no set order."""
+    one = _grader(retriever, answerer, judge, concurrency)
+    async with aclosing(as_finished(one(item) for item in items)) as results:
+        async for result in results:
+            yield result
+
+
+async def as_finished[T](
+    work: Iterable[Coroutine[Any, Any, T]],
+) -> AsyncGenerator[T]:
+    """Each result as its coroutine finishes; leaving early cancels the rest."""
+    tasks = [asyncio.ensure_future(job) for job in work]
+    try:
+        for finished in asyncio.as_completed(tasks):
+            yield await finished
+    finally:
+        for task in tasks:
+            task.cancel()
 
 
 def _means(label: str, graded: Sequence[Graded]) -> Means:
@@ -217,7 +259,7 @@ def _by(graded: Sequence[Graded], key: Callable[[Graded], str]) -> list[Means]:
     ]
 
 
-def _spend(usages: Sequence[Usage]) -> Spend:
+def spend(usages: Sequence[Usage]) -> Spend:
     model = next((u.model for u in usages if u.model), None)
     tokens_in = sum(u.input_tokens or 0 for u in usages)
     tokens_out = sum(u.output_tokens or 0 for u in usages)
@@ -247,8 +289,8 @@ def summarize(results: Sequence[Graded | Failure]) -> AnswerReport:
             key=lambda g: (g.verdict.groundedness + g.verdict.relevance, g.item.id),
         )[:WORST],
         failures=[r for r in results if isinstance(r, Failure)],
-        answering=_spend([g.answer_usage for g in graded]),
-        judging=_spend([g.judge_usage for g in graded]),
+        answering=spend([g.answer_usage for g in graded]),
+        judging=spend([g.judge_usage for g in graded]),
         judge_prompt=prompt_version(JUDGE_PROMPT),
     )
 

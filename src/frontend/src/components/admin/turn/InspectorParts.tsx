@@ -1,5 +1,7 @@
 "use client";
 
+/** Small pieces the turn inspector's sections share. */
+
 import type { LucideIcon } from "lucide-react";
 import { Fragment, type ReactNode } from "react";
 import { cn } from "@/utils/cn";

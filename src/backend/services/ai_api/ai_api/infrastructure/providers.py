@@ -7,11 +7,12 @@ the concrete adapters.
 from travel_common.dynamodb import dynamodb_client
 
 from ai_api.config import AISettings
-from ai_api.domain.ports import InputGuard, TraceLog, UsageStore
+from ai_api.domain.ports import EvalStore, InputGuard, TraceLog, UsageStore
 from ai_api.infrastructure.bedrock_embedder import TitanEmbedder
 from ai_api.infrastructure.bedrock_guard import BedrockInputGuard, NullInputGuard
 from ai_api.infrastructure.bedrock_provider import BedrockProvider
 from ai_api.infrastructure.cities import City, load_cities, select_cities
+from ai_api.infrastructure.dynamo_eval import DynamoEvalStore, NullEvalStore
 from ai_api.infrastructure.dynamo_traces import DynamoTraceLog, NullTraceLog
 from ai_api.infrastructure.dynamo_usage import DynamoUsageStore, NullUsageStore
 from ai_api.infrastructure.nvidia_provider import NvidiaProvider
@@ -25,6 +26,30 @@ def build_llm_provider(settings: AISettings) -> ChatProvider:
     if settings.LLM_PROVIDER == "bedrock":
         return BedrockProvider.from_settings(settings)
     return NvidiaProvider.from_settings(settings)
+
+
+def build_judge_provider(settings: AISettings) -> BedrockProvider:
+    """The answer evaluation's judge: Bedrock, `JUDGE_MODEL` at `JUDGE_TEMPERATURE`."""
+    return BedrockProvider.from_settings(
+        settings.model_copy(
+            update={
+                "BEDROCK_CHAT_MODEL": settings.JUDGE_MODEL,
+                "CHAT_TEMPERATURE": settings.JUDGE_TEMPERATURE,
+            }
+        )
+    )
+
+
+def build_eval_answerer(
+    settings: AISettings, provider: ChatProvider
+) -> BedrockProvider:
+    """The model whose answers the evaluation grades: production's Bedrock model.
+
+    The chat's own provider when it is Bedrock; a Bedrock one beside it otherwise.
+    """
+    if isinstance(provider, BedrockProvider):
+        return provider
+    return BedrockProvider.from_settings(settings)
 
 
 def build_input_guard(settings: AISettings) -> InputGuard:
@@ -74,6 +99,20 @@ def build_usage_store(settings: AISettings) -> UsageStore:
     if not settings.INTERACTIONS_TABLE:
         return NullUsageStore()
     return DynamoUsageStore(
+        dynamodb_client(settings.DYNAMODB_ENDPOINT_URL, settings.AWS_REGION),
+        settings.INTERACTIONS_TABLE,
+        settings.INTERACTION_TTL_DAYS,
+    )
+
+
+def build_eval_store(settings: AISettings) -> EvalStore:
+    """The admin's evaluation runs, kept in the interactions table (ADR 0039).
+
+    Nothing is kept when `INTERACTIONS_TABLE` is empty.
+    """
+    if not settings.INTERACTIONS_TABLE:
+        return NullEvalStore()
+    return DynamoEvalStore(
         dynamodb_client(settings.DYNAMODB_ENDPOINT_URL, settings.AWS_REGION),
         settings.INTERACTIONS_TABLE,
         settings.INTERACTION_TTL_DAYS,

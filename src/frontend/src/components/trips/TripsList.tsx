@@ -1,5 +1,7 @@
 "use client";
 
+/** The trips home's list of trips, grouped by phase. */
+
 import { Fragment, useEffect, useRef, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { interpolate } from "@/i18n/interpolate";

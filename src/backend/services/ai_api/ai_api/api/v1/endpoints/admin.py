@@ -1,28 +1,34 @@
-"""Admin routes over the turn traces, the daily token counters and retrieval quality.
+"""Admin routes over the turn traces, the daily token counters and the evaluations.
 
 Administrators only. Every route logs one audit line, `admin_read subject=… route=…
-target=…`, before it reads anything (the same line `core_api`'s admin routes log).
+target=…`, before it reads anything (the same line `core_api`'s admin routes log). The
+answer evaluation is the one route that writes, its own runs (ADR 0039), and logs
+`admin_write` instead.
 """
 
 import logging
 from datetime import UTC, date, datetime
 
 from fastapi import APIRouter, Depends, Query, Request
+from fastapi.responses import StreamingResponse
 from travel_common.exceptions import BadRequest, EntityNotFound, Forbidden
 from travel_common.principal import Principal
 
 from ai_api.api.deps import (
     get_check_access,
     get_current_user,
+    get_eval_runs,
     get_trace_log,
     get_usage_store,
     require_retriever,
 )
 from ai_api.application import retrieval_eval, trace_stats
 from ai_api.application.access import CheckAccess
+from ai_api.application.eval_runs import EvalRuns
 from ai_api.config import AISettings, get_settings
 from ai_api.domain.ports import Retriever, TraceLog, UsageStore
 from ai_api.domain.tracing import Kind, Status, TurnFilters
+from ai_api.infrastructure.sse import sse_events
 from ai_api.schemas.admin import (
     ExpectedRankResponse,
     RetrievalEvalResponse,
@@ -31,6 +37,11 @@ from ai_api.schemas.admin import (
     TraceStatsResponse,
     TurnDetailResponse,
     TurnPageResponse,
+)
+from ai_api.schemas.answer_eval import (
+    AnswerEvalRequest,
+    EvalRunDetailResponse,
+    EvalRunPageResponse,
 )
 from ai_api.schemas.usage import AdminUsageItem, AdminUsageResponse
 
@@ -41,6 +52,15 @@ MAX_ADMIN_PAGE = 200
 MAX_STATS_DAYS = 31
 """Most day partitions one stats request reads."""
 
+EVAL_HISTORY = 30
+"""Runs the evaluation history lists, newest first."""
+
+SSE_HEADERS = {
+    "Cache-Control": "no-cache",
+    "Connection": "keep-alive",
+    "X-Accel-Buffering": "no",
+}
+
 
 async def require_admin(principal: Principal = Depends(get_current_user)) -> Principal:
     """The caller, when they are an administrator (the Cognito group `admin`)."""
@@ -49,14 +69,23 @@ async def require_admin(principal: Principal = Depends(get_current_user)) -> Pri
     return principal
 
 
+WRITES = frozenset({"run_answer_eval"})
+"""Routes that write (their own evaluation runs): audited as `admin_write`."""
+
+
 async def audit_admin_read(
     request: Request, principal: Principal = Depends(require_admin)
 ) -> Principal:
-    """The admin behind the request, after one audit line for the read."""
+    """The admin behind the request, after one audit line for the read or write."""
+    route = getattr(request.scope.get("route"), "name", "")
+    action = "admin_write" if route in WRITES else "admin_read"
     params = request.path_params
-    target = params.get("turn_id") or params.get("session_id") or "-"
+    target = (
+        params.get("turn_id") or params.get("session_id") or params.get("run_id") or "-"
+    )
     logger.info(
-        "admin_read subject=%s route=%s target=%s",
+        "%s subject=%s route=%s target=%s",
+        action,
         principal.subject,
         request.url.path,
         target,
@@ -205,3 +234,40 @@ async def run_retrieval_eval(
         ],
         missing_from_index=report.missing_from_index,
     )
+
+
+@router.post(
+    "/answer-eval",
+    response_class=StreamingResponse,
+    responses={200: {"content": {"text/event-stream": {}}}},
+)
+async def run_answer_eval(
+    body: AnswerEvalRequest, runs: EvalRuns = Depends(get_eval_runs)
+):
+    """Run the answer evaluation or the judge validation, streamed (ADR 0039).
+
+    `questions`: the 126 evaluation questions answered by the production model
+    and graded by the judge (about 0.6 USD, a few minutes); `golden`: the judge
+    alone over the labelled golden set (cents). Events are `progress` per item,
+    then `report`, then `[DONE]`; a failure mid-run is an `error` event. The run
+    is stored as it goes. 409 while another run is in progress; 503 for
+    `questions` when retrieval is off.
+    """
+    started = await runs.start(body.set)
+    return StreamingResponse(
+        sse_events(runs.events(started)),
+        media_type="text/event-stream",
+        headers=SSE_HEADERS,
+    )
+
+
+@router.get("/answer-evals", response_model=EvalRunPageResponse)
+async def list_answer_evals(runs: EvalRuns = Depends(get_eval_runs)):
+    """The latest evaluation runs, newest first."""
+    return EvalRunPageResponse(items=await runs.history(EVAL_HISTORY))
+
+
+@router.get("/answer-evals/{run_id}", response_model=EvalRunDetailResponse)
+async def read_answer_eval(run_id: str, runs: EvalRuns = Depends(get_eval_runs)):
+    """One run with every item it graded, in the order of their keys."""
+    return await runs.detail(run_id)

@@ -1,5 +1,7 @@
 "use client";
 
+/** One turn, for the turn inspector. */
+
 import { useEffect, useState } from "react";
 import { getTurn, type TurnDetail } from "@/services/admin";
 import { isAbortError } from "@/services/http";

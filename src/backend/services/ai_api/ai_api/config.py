@@ -27,7 +27,7 @@ class AISettings(CommonSettings, DynamoSettings):
     # Model-agnostic: any chat model on build.nvidia.com works here. Models get
     # retired without notice (they answer 410): check the catalogue when the
     # planner starts answering SERVICE_UNAVAILABLE.
-    NVIDIA_CHAT_MODEL: str = "z-ai/glm-5.3-flash"
+    NVIDIA_CHAT_MODEL: str = "nvidia/nemotron-3-super-120b-a12b"
     # Reasoning models think before answering; hidden reasoning costs tokens
     # and seconds and never reaches the browser, so it is off by default.
     NVIDIA_THINKING: bool = False
@@ -57,6 +57,12 @@ class AISettings(CommonSettings, DynamoSettings):
     CHAT_MAX_TOKENS: int = 4096
     CHAT_TEMPERATURE: float = 0.7
     CHAT_TOP_P: float = 0.95
+
+    # The answer evaluation's judge (ADR 0039), always on Bedrock: another
+    # family than the answering Claude, so no model grades itself, at
+    # temperature 0 so a verdict repeats.
+    JUDGE_MODEL: str = "eu.amazon.nova-pro-v1:0"
+    JUDGE_TEMPERATURE: float = 0.0
 
     # Where core_api lives, for the access check (ADR 0026).
     CORE_API_URL: str = "http://localhost:8000"

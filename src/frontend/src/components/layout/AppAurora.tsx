@@ -1,5 +1,7 @@
 "use client";
 
+/** The aurora background for the one signed-in route that has it. */
+
 import { usePathname } from "next/navigation";
 import { Aurora } from "./Aurora";
 

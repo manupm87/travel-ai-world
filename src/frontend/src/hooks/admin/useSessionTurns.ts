@@ -1,5 +1,7 @@
 "use client";
 
+/** The turns of one planner session. */
+
 import { useEffect, useState } from "react";
 import { listSessionTurns, type TurnSummary } from "@/services/admin";
 import { isAbortError } from "@/services/http";

@@ -1,6 +1,6 @@
 # 0007 — AWS is the deployment cloud; SSO locally, OIDC in CI, state in S3
 
-**Status:** Accepted
+**Status:** Accepted (`infra/gcp` removed by [0038](0038-retire-gcp-and-the-vector-store-spike.md))
 **Date:** 2026-09-15
 
 ## Context
@@ -20,7 +20,8 @@ restricted as Secrets Manager.
 
 - **AWS** (`infra/aws/`: ECS Fargate ×2 + RDS + ALB + ECR + Secrets Manager) is the cloud we
   deploy to. `infra/gcp/` stays in the repo and in CI's `infra-validate` matrix as a documented
-  alternative, but it is not applied and does not drive tooling decisions.
+  alternative, but it is not applied and does not drive tooling decisions. (Removed by
+  [ADR 0038](0038-retire-gcp-and-the-vector-store-spike.md).)
 - **Devcontainer tooling**: AWS CLI v2, Terraform (pinned minor), `crane` (registry-to-registry
   image copy, so no Docker daemon is needed inside the container) and the Session Manager plugin
   (`aws ecs execute-command`). No SAM, CDK, Copilot or Docker-in-Docker.

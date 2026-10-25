@@ -6,11 +6,14 @@ Steps:
 
 1. Identify the section and key name to add (ask the user if not provided).
 2. Update `src/i18n/types.ts` — add the key to the appropriate interface. Prefer arrays or
-   `Record<Union, string>` over numbered keys (`trust1`, `trust2`) or `switch` statements in components.
+   `Record<Union, string>` over numbered keys or `switch` statements in components: the turn
+   statuses are `admin.turns.statuses: { ok: string; error: string; cancelled: string }`, read as
+   `t.admin.turns.statuses[turn.status]`, not `statusOk`, `statusError`, ...
 3. Update `src/i18n/en.ts` — add the English string.
 4. Update `src/i18n/es.ts` — add the Spanish string.
 5. Use the key in the component via `const { t } = useLanguage()` and `t.section.key`.
-   Placeholders: write `"Your {duration}-Day Journey"` and render with `interpolate(t.section.key, { duration })`.
+   Placeholders: write `"{trips} trips, {stickers} stickers"` (`nav.suitcaseCount`) and render
+   with `interpolate(t.nav.suitcaseCount, { trips: trips.length, stickers })`.
 6. Run `npm run test:unit -- src/i18n` — `i18n.test.ts` fails if a locale is missing the key.
 
 Rules:

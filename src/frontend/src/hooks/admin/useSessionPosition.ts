@@ -1,5 +1,7 @@
 "use client";
 
+/** A turn's position in its planner session. */
+
 import { useMemo } from "react";
 import type { TurnSummary } from "@/services/admin";
 import { useSessionTurns } from "./useSessionTurns";

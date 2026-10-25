@@ -1,5 +1,7 @@
 "use client";
 
+/** What an account that is not on the access list sees. */
+
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { KeyRound } from "lucide-react";

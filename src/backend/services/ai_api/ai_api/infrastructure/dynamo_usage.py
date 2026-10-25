@@ -17,7 +17,7 @@ from collections.abc import Callable
 from datetime import date, timedelta
 from typing import Any
 
-from botocore.exceptions import ClientError
+from botocore.exceptions import BotoCoreError, ClientError
 from travel_common.dynamodb import DynamoDBClient, call
 from travel_common.exceptions import ProviderUnavailable
 
@@ -94,8 +94,12 @@ class DynamoUsageStore:
     async def _call(self, fn: Callable[..., Any], /, **kwargs: Any) -> Any:
         try:
             return await call(fn, TableName=self._table, **kwargs)
-        except ClientError as error:
-            code = error.response.get("Error", {}).get("Code", "Unknown")
+        except (ClientError, BotoCoreError) as error:
+            code = (
+                error.response.get("Error", {}).get("Code", "Unknown")
+                if isinstance(error, ClientError)
+                else type(error).__name__
+            )
             raise ProviderUnavailable(f"Usage store unavailable ({code})") from error
 
 

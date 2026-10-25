@@ -1,7 +1,8 @@
 # `.devcontainer` — Development Container
 
-A reproducible VS Code environment for the monorepo: Node 24, Python 3.12 (via `uv`), `just`,
-`gh`, ripgrep/fd/jq, AWS CLI v2 + Terraform + `crane` + Session Manager plugin, Claude Code
+The project's development environment (on Windows, macOS and Linux alike): a reproducible VS Code
+environment for the monorepo: Node 24, Python 3.12 (via `uv`), `just`,
+`gh`, ripgrep/fd/jq, AWS CLI v2 + Terraform + `crane`, Claude Code
 (plus optional agent CLIs), Playwright's Chromium and DynamoDB Local; there is no SQL database.
 **It does not run the application**: you start the services yourself
 with the same `just` recipes everyone uses.
@@ -11,7 +12,7 @@ with the same `just` recipes everyone uses.
 | Service | Notes |
 |---|---|
 | `devcontainer` | your terminal; the repo is mounted at `/workspace` |
-| `dynamodb` | DynamoDB Local, in memory, reached as `dynamodb:8000` (`DYNAMODB_ENDPOINT_URL`; no host port): `core_api`'s table |
+| `dynamodb` | DynamoDB Local (`amazon/dynamodb-local`, a pinned tag), in memory, reached as `dynamodb:8000` (`DYNAMODB_ENDPOINT_URL`; no host port): `core_api`'s table |
 
 `src/backend/.venv`, `src/frontend/node_modules` and `src/frontend/.next` are named Docker volumes, so the
 host's copies (with their platform-specific binaries) are never touched.
@@ -24,17 +25,26 @@ migrations: `core_api` creates its DynamoDB table in DynamoDB Local when it star
 
 The `devcontainer` service exports `DYNAMODB_ENDPOINT_URL=http://dynamodb:8000`, which takes
 precedence over the services' `.env` files, so `just dev-core` and `just dev-ai` reach DynamoDB
-Local with no edits. The remaining keys (`SECRET_KEY`, `GOOGLE_*`, `NVIDIA_API_KEY`) still have
-to be filled in the `.env` files, as in the [local-dev runbook](../docs/runbooks/local-dev.md).
+Local with no edits (the client signs local requests with dummy keys, so no `just aws-login` is
+needed for it). `just setup` writes the `SECRET_KEY`; every other key is optional, as in the
+[local-dev runbook](../docs/runbooks/local-dev.md).
 
 ## Use
 
+Prerequisites: Docker Desktop (on Windows with the WSL 2 backend), VS Code and its Dev Containers
+extension.
+
 1. VS Code → "Dev Containers: Reopen in Container" and wait for `post-create.sh` to finish.
-2. Fill in the secrets in `src/backend/services/core_api/.env`, `src/backend/services/ai_api/.env`
-   and `src/frontend/.env.local`.
-3. In three terminals: `just dev-core`, `just dev-ai`, `just dev-frontend`. Ports 8000, 8001
-   and 3000 are forwarded; open <http://localhost:3000>.
-4. `just lint`, `just test`, `just test-e2e`, `just contracts` work as documented.
+2. In three terminals: `just dev-core`, `just dev-ai`, `just dev-frontend`. Ports 8000, 8001
+   and 3000 are forwarded; open <http://localhost:3000> and sign in with
+   `just dev-token you@example.com --browser` (no Google client needed). The optional keys
+   (Google, NVIDIA, AWS) are in the [local-dev runbook](../docs/runbooks/local-dev.md).
+3. `just lint`, `just test`, `just test-e2e`, `just contracts` work as documented.
+
+On a Windows host the repo is bind-mounted from NTFS, so file watching and git are slower than in
+WSL; the dependency folders are named volumes, which keeps installs and builds fast. Git checks the
+files out with LF endings (`.gitattributes`), so the shell scripts run in the container whatever
+the host's `core.autocrlf`.
 
 The planner map (MapLibre) needs WebGL 2, which headless Chromium provides through
 SwiftShader. VS Code forwards the host's Wayland socket (WSLg) into the container as
@@ -45,8 +55,7 @@ If you start Chromium by hand, do the same: `env -u WAYLAND_DISPLAY npx playwrig
 
 Closing the VS Code window stops the compose stack (`shutdownAction: stopCompose`); the
 dependency volumes persist between sessions, and DynamoDB Local starts empty each time. To wipe
-the volumes: `docker compose -f .devcontainer/docker-compose.yml down -v` on the host (it also
-removes a stray `postgres_data` volume, which nothing uses).
+the volumes: `docker compose -f .devcontainer/docker-compose.yml down -v` on the host.
 
 ## AWS
 
@@ -56,9 +65,8 @@ else (no Docker daemon, no SAM/CDK):
 | Tool | Why | Pinned in |
 |---|---|---|
 | `aws` (CLI v2) | `sts`, `ecr`, `lambda`, `logs`, `cognito-idp`, `s3vectors`, SSO login | latest at build |
-| `terraform` | `infra/aws/` (`just infra-fmt`, `just infra-validate aws`, plan/apply) | `TERRAFORM_VERSION` build arg |
+| `terraform` | `infra/aws/` (`just infra-fmt`, `just infra-validate aws`, plan/apply) | `TERRAFORM_VERSION` build arg (1.16, the same minor as `terraform_version` in CI) |
 | `crane` | copy the GHCR images into ECR without a Docker daemon | `CRANE_VERSION` build arg |
-| `session-manager-plugin` | unused: the functions run on Lambda (ADR 0009), with no instance to open a session on | latest at build |
 
 **Authentication is IAM Identity Center (SSO), never access keys.** The compose file sets
 `AWS_PROFILE=travel-ai-world`; `post-create.sh` seeds `~/.aws/config` from
@@ -102,7 +110,7 @@ nothing here.
 ## VS Code extensions
 
 `devcontainer.json` installs only extensions tied to the project's tooling: Claude Code, Python +
-Pylance + Ruff, ESLint + Prettier + Tailwind, Vitest + Playwright, Terraform, TOML/YAML, draw.io (`docs/architecture/*.drawio.svg`),
+Pylance + Ruff, ESLint + Tailwind, Vitest + Playwright, Terraform, TOML/YAML, draw.io (`docs/architecture/*.drawio.svg`),
 GitHub Actions, `just` syntax and Mermaid preview. Personal ones (Copilot, Gemini Code Assist,
 GitLens, ...) go in **your** VS Code user settings so they follow you into every devcontainer:
 

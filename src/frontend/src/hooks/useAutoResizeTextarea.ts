@@ -1,5 +1,7 @@
 "use client";
 
+/** Grows a textarea with its content. */
+
 import { useCallback, useEffect, useRef } from "react";
 
 /**

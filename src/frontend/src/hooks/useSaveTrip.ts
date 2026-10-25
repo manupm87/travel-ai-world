@@ -1,5 +1,7 @@
 "use client";
 
+/** Saves the planner's draft as a trip. */
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";

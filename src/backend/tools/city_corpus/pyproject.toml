@@ -1,4 +1,4 @@
-# City knowledge-base corpus: Wikivoyage and Wikipedia → documents.jsonl,
+# City knowledge-base corpus: open sources (Wikivoyage, Wikipedia, OpenStreetMap, Wikidata, Open-Meteo) and curated files → documents.jsonl,
 # the source of truth that the indexer embeds. A workspace member so it shares the
 # lockfile, the virtualenv and the lint policy; scripts, not an installable package.
 # Run it from this directory:
@@ -7,7 +7,7 @@
 [project]
 name = "city-corpus"
 version = "0.1.1"
-description = "Kyrian World city corpus: licence-clean Wikivoyage and Wikipedia documents as JSONL"
+description = "Kyrian World city corpus: licence-clean open-source and curated documents as JSONL"
 requires-python = ">=3.12"
 dependencies = [
     "httpx>=0.28.1",

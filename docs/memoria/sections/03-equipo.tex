@@ -3,11 +3,10 @@
 \kyrian{} es el trabajo de cuatro personas que se repartieron el proyecto por bloques: cada
 miembro lideró al menos uno de principio a fin y colaboró en los de los demás. La
 Tabla~\ref{tab:raci} detalla quién fue responsable de cada componente y quién contribuyó, agrupando
-los componentes por área; su última fila resume la participación de cada miembro como la
-proporción de componentes en los que intervino, contando igual la responsabilidad y la
+los componentes por área; su última fila resume la participación de cada miembro como su parte
+del total de intervenciones de la matriz, con el mismo peso para la responsabilidad y la
 contribución, y la Fig.~\ref{fig:fases} muestra cómo se fue repartiendo el trabajo a lo
-largo del proyecto. Todo el equipo se apoyó en asistentes de programación (sobre todo Claude Code,
-el asistente de programación de Anthropic); la autoría que se recoge aquí refleja quién especificó,
+largo del proyecto. Todo el equipo desarrolló con agentes de código; la autoría que se recoge aquí refleja quién especificó,
 dirigió, revisó e integró cada parte.
 
 \begin{table}[!h]
@@ -60,7 +59,7 @@ Observabilidad: trazas, registros, cuadros de mando y alertas & R & & C & \\
 \caption{Fases del proyecto y bloques liderados por cada miembro. Las dos decisiones que más cambiaron el sistema fueron pasar de contenedores a \emph{serverless} y de un planificador por intenciones a un agente con herramientas (§\ref{sec:evalagente}).}\label{fig:fases}
 \end{figure}
 
-Cada miembro lideró un bloque del proyecto:
+Bloques que lideró cada miembro:
 \begin{itemize}
   \item \textbf{David Baos}: la observabilidad de la plataforma (cuadros de mando de
         CloudWatch, registros de acceso estructurados y métricas de negocio sobre los registros de
@@ -74,9 +73,9 @@ Cada miembro lideró un bloque del proyecto:
         frente a la competencia (§\ref{sec:negocio}); el entorno de desarrollo local en
         contenedor, la primera fuente de datos y la primera infraestructura como código; el borde
         HTTPS del frontend (S3, CloudFront, Route~53 y ACM); las salidas estructuradas nativas que
-        usan el agente y los pasos deterministas del planificador, y alertas de CloudWatch
+        usan el agente y los pasos deterministas del planificador, y las alertas de CloudWatch
         configuradas en la consola.
-  \item \textbf{Manuel Pérez}: la arquitectura de software y de nube y su infraestructura como
-        código, el agente Kiri con sus herramientas y \emph{guardrails} y la ingesta de datos con su
-        puerta de calidad y \code{/add-city}.
+  \item \textbf{Manuel Pérez}: la arquitectura de software y de nube con su IaC, el
+        planificador web, el servicio de datos, la CI/CD, el agente Kiri con sus herramientas y
+        \emph{guardrails} y la ingesta de datos con su puerta de calidad y \code{/add-city}.
 \end{itemize}
