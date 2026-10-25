@@ -8,6 +8,7 @@ from travel_common.exceptions import Unauthorized
 from travel_common.principal import Principal, Role
 from travel_common.security import (
     create_access_token,
+    decode_access_token,
     principal_from_token,
     verify_token,
 )
@@ -53,8 +54,10 @@ def test_token_without_a_required_claim_is_rejected(missing: str):
     del claims[missing]
     token = jwt.encode(claims, settings.SECRET_KEY, settings.ALGORITHM)
 
+    # decode_access_token directly: _claims_from_local would also reject a missing
+    # `sub`, so going through principal_from_token would not test the `require` list
     with pytest.raises(Unauthorized):
-        principal_from_token(token, settings)
+        decode_access_token(token, settings)
 
 
 def test_a_non_hmac_algorithm_is_refused_at_start():
