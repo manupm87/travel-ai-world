@@ -143,8 +143,7 @@ async def planner(
     )
     tracer = new_tracer("planner", request, principal, settings)
     _describe(tracer, turn, covered)
-    with use_tracer(tracer):
-        events = record(tracer, plan_trip(turn))
+    events = record(tracer, plan_trip(turn))
     return StreamingResponse(
         sse_events(events),
         media_type="text/event-stream",
