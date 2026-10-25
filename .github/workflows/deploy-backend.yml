@@ -123,6 +123,10 @@ jobs:
           done
 
       - uses: hashicorp/setup-terraform@v4
+        with:
+          # the minor the devcontainer pins (.devcontainer/Dockerfile): CI and
+          # local applies write the same state
+          terraform_version: "~1.16.0"
 
       # TF_INIT_ARGS: the partial S3 backend config set above
       - run: terraform init -input=false ${TF_INIT_ARGS}

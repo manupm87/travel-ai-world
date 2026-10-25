@@ -12,7 +12,7 @@ with the same `just` recipes everyone uses.
 | Service | Notes |
 |---|---|
 | `devcontainer` | your terminal; the repo is mounted at `/workspace` |
-| `dynamodb` | DynamoDB Local, in memory, reached as `dynamodb:8000` (`DYNAMODB_ENDPOINT_URL`; no host port): `core_api`'s table |
+| `dynamodb` | DynamoDB Local (`amazon/dynamodb-local`, a pinned tag), in memory, reached as `dynamodb:8000` (`DYNAMODB_ENDPOINT_URL`; no host port): `core_api`'s table |
 
 `src/backend/.venv`, `src/frontend/node_modules` and `src/frontend/.next` are named Docker volumes, so the
 host's copies (with their platform-specific binaries) are never touched.
@@ -65,7 +65,7 @@ else (no Docker daemon, no SAM/CDK):
 | Tool | Why | Pinned in |
 |---|---|---|
 | `aws` (CLI v2) | `sts`, `ecr`, `lambda`, `logs`, `cognito-idp`, `s3vectors`, SSO login | latest at build |
-| `terraform` | `infra/aws/` (`just infra-fmt`, `just infra-validate aws`, plan/apply) | `TERRAFORM_VERSION` build arg |
+| `terraform` | `infra/aws/` (`just infra-fmt`, `just infra-validate aws`, plan/apply) | `TERRAFORM_VERSION` build arg (1.16, the same minor as `terraform_version` in CI) |
 | `crane` | copy the GHCR images into ECR without a Docker daemon | `CRANE_VERSION` build arg |
 
 **Authentication is IAM Identity Center (SSO), never access keys.** The compose file sets

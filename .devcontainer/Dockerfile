@@ -6,8 +6,10 @@ FROM mcr.microsoft.com/devcontainers/base:ubuntu
 # Set it to the empty string to install none.
 ARG EXTRA_AGENT_CLIS="@openai/codex @google/gemini-cli @github/copilot"
 
-# Cloud tooling (see infra/aws/README.md). Terraform is pinned to the minor the
-# Terraform files require; crane copies GHCR images into ECR without a Docker daemon.
+# Cloud tooling (see infra/aws/README.md). Terraform is pinned to the same minor
+# as CI (`terraform_version` in .github/workflows/pr.yml and deploy-backend.yml),
+# since both write the same state; crane copies GHCR images into ECR without a
+# Docker daemon.
 ARG TERRAFORM_VERSION=1.16
 ARG CRANE_VERSION=0.22.1
 
