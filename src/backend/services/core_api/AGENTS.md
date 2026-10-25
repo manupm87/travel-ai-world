@@ -122,10 +122,6 @@ infrastructure/dynamo/  the only adapter: table.py, keys.py, codec.py, repositor
   The profile and its `EMAIL#` item are written in one transaction (an email change moves it).
 - **No cascades in the database**: deleting a user deletes every item under `USER#<id>` (batches
   of 25, unprocessed items retried with backoff) and the `EMAIL#` item.
-- **The retired chat's items stay** (ADR 0027): `THREAD#` items under `USER#<id>` and their
-  `MSG#` items under `THREAD#<id>` remain in the production table. Nothing reads or writes
-  them; deleting a user takes the `THREAD#` items with everything else under `USER#<id>` and
-  leaves the `MSG#` partitions.
 - **A trip over 350 KB** (its JSON) is `UnprocessableEntity("This trip is too large")`.
 - **No migrations.** A schema change is a change to the dataclass and, if needed, the codec
   (`infrastructure/dynamo/codec.py`); **items already written must stay readable** — a field missing

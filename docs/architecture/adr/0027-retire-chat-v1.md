@@ -61,7 +61,8 @@ they expire (`INTERACTION_TTL_DAYS`, 90 days).
   items under `THREAD#<id>` written until now are left as they are: no migration, no one-off
   script. Nothing reads or writes them. Deleting a user still removes everything under
   `USER#<id>`, the `THREAD#` items included, but no longer the `MSG#` partitions: those stay
-  until someone deletes them by hand.
+  until someone deletes them by hand. (They were deleted from production on 2026-10-25: 5
+  `THREAD#` and 18 `MSG#` items.)
 - Two routers, four use cases and three ports fewer (`ConversationGateway`,
   `ChatThreadRepository`, `ChatMessageRepository`); the access check, the traces and
   `RecordTrace` serve the planner alone, and the planner is the only route that calls the chat
