@@ -1,5 +1,7 @@
 """POST /auth/google: the use case behind it, with the identity provider faked."""
 
+import uuid
+
 import pytest
 from core_api.api.deps import get_identity_verifier
 from core_api.auth.google import ExternalIdentity
@@ -12,7 +14,7 @@ from travel_common.exceptions import Unauthorized
 from travel_common.principal import Principal, Role
 from travel_common.security import create_access_token, principal_from_token
 
-from tests.conftest import make_user
+from tests.conftest import headers_for, make_user
 
 AUTH_URL = "/api/v1/auth/google"
 
@@ -116,6 +118,29 @@ async def test_no_user_is_created_when_the_credential_is_rejected(
 async def test_a_local_token_must_name_a_uuid(client: AsyncClient):
     """A local token whose `sub` is not a UUID (an integer id, say) is a 401."""
     principal = Principal(subject="42", email="old@example.com", role=Role.USER)
+    token = create_access_token(principal, get_settings())
+
+    response = await client.get(
+        "/api/v1/users/me", headers={"Authorization": f"Bearer {token}"}
+    )
+
+    assert response.status_code == 401
+
+
+async def test_a_token_for_a_deactivated_account_is_refused(client: AsyncClient):
+    """A deactivated account loses access before its local token expires."""
+    user = await make_user("off@example.com", is_active=False)
+
+    response = await client.get("/api/v1/users/me", headers=headers_for(user))
+
+    assert response.status_code == 401
+    assert response.json()["detail"]["message"] == "Inactive user account"
+
+
+async def test_a_token_for_an_account_that_does_not_exist_is_refused(
+    client: AsyncClient,
+):
+    principal = Principal(subject=str(uuid.uuid4()), email="gone@example.com")
     token = create_access_token(principal, get_settings())
 
     response = await client.get(
