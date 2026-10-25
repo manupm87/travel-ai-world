@@ -1,4 +1,5 @@
-# Keep actions, npm and Python dependencies current with one PR per ecosystem per week.
+# Keep actions, npm, Python, Docker image and Terraform provider versions current
+# with one PR per ecosystem per week.
 version: 2
 updates:
   - package-ecosystem: github-actions
@@ -39,3 +40,23 @@ updates:
     groups:
       python-minor-and-patch:
         update-types: ["minor", "patch"]
+  - package-ecosystem: docker
+    # Dockerfile base images and `COPY --from` tags (uv, the Lambda adapter)
+    directories: ["/src/backend", "/.devcontainer"]
+    schedule:
+      interval: weekly
+    groups:
+      docker-minor-and-patch:
+        update-types: ["minor", "patch"]
+  - package-ecosystem: terraform
+    directories: ["/infra/aws", "/infra/aws/bootstrap"]
+    schedule:
+      interval: weekly
+    groups:
+      terraform-minor-and-patch:
+        update-types: ["minor", "patch"]
+    ignore:
+      # The bootstrap root still runs the AWS provider 5.x line; moving it to 6
+      # is a reviewed change of its own, not a weekly bump.
+      - dependency-name: hashicorp/aws
+        update-types: ["version-update:semver-major"]
