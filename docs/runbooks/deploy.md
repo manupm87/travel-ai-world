@@ -66,9 +66,7 @@ Nothing reaches AWS from a merge alone except the frontend. After `main` changes
 
 `core_api` stores everything in one DynamoDB table (`travel-ai-core`,
 [ADR 0023](../architecture/adr/0023-dynamodb-data-store.md)); there is no relational database and
-no migration step. Trips saved before the admin index (GSI2) are stamped once with the idempotent
-`just backfill-trip-index` (see the
-[AWS README](../../infra/aws/README.md#making-someone-an-administrator)).
+no migration step.
 
 ## Frontend on AWS (S3 + CloudFront)
 

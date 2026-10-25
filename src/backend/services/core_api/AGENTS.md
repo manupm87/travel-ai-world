@@ -13,7 +13,7 @@ services/*.py           use cases; raise travel_common.exceptions.*; never impor
 domain/ports.py         repository protocols the services depend on
 domain/models.py        plain dataclasses + their rules (check_invariants, phase, ensure_editable)
       ↑
-infrastructure/dynamo/  the only adapter: table.py, keys.py, codec.py, repositories.py, backfill.py
+infrastructure/dynamo/  the only adapter: table.py, keys.py, codec.py, repositories.py
 ```
 
 - **Only `infrastructure/dynamo/` imports boto3/botocore**, and nothing imports `devtools`
@@ -115,7 +115,7 @@ infrastructure/dynamo/  the only adapter: table.py, keys.py, codec.py, repositor
   the admin list needs must be added to `non_key_attributes` in `infra/aws/dynamodb.tf` too.
   Index pages go by cursor (`_index_page`: base64url of `LastEvaluatedKey`; a cursor that is not
   one this index issued is `BadRequest`). A trip item without `GSI2PK` is absent from the admin
-  list until it is saved again or `backfill-trip-index` stamps it.
+  list until it is saved again.
 - **Optimistic concurrency**: profile and trip carry `version`; creates are conditional on
   `attribute_not_exists(PK)`, changes on `version = :expected`. A failed condition is `Conflict`
   (409, "changed by another request, reload and retry"; a taken email: "email already registered").
@@ -162,11 +162,6 @@ infrastructure/dynamo/  the only adapter: table.py, keys.py, codec.py, repositor
   (`added_by = "devtools"`). Both honour `DYNAMODB_ENDPOINT_URL` like the service; `token` refuses
   in Cognito mode. Nothing in the service imports `devtools` (`tests/test_import_boundaries.py`
   checks it).
-- **One-off table operations live in `ops.py`** (the CLI) with the algorithm in the adapter
-  (`infrastructure/dynamo/backfill.py`): `python -m core_api.ops backfill-trip-index [--dry-run]`
-  (`just backfill-trip-index`) writes `GSI2PK`/`GSI2SK` on trip items that lack them, with the
-  helpers `trip_item` uses (`keys.TRIPS_GSI2PK`, `keys.trip_gsi2_sk`). Idempotent, conditional
-  on `attribute_not_exists(GSI2PK)`; exits 1 on a `DomainError`. Nothing in the service imports it.
 
 ## Commands
 
@@ -176,7 +171,6 @@ uv run uvicorn core_api.main:app --reload --port 8000
 uv run python -m core_api.devtools token you@example.com   # local JWT for that account (just dev-token)
 uv run python -m core_api.devtools token you@example.com --admin   # ... as an administrator
 uv run python -m core_api.devtools grant you@example.com --limit 50000   # on the access list (just dev-grant)
-uv run python -m core_api.ops backfill-trip-index --dry-run         # one-off GSI2 backfill (just backfill-trip-index)
 uv run pytest                      # moto in process, no database
 ```
 

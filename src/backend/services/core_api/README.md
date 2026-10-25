@@ -39,25 +39,6 @@ default). It only matters with `ACCESS_MODE="allowlist"` in `.env`; the default 
 A local table without GSI2 (ADR 0024) keeps that schema: restart DynamoDB Local (or delete the
 table) so the service creates it again with both indexes.
 
-### Ops commands
-
-One-off operations on the table, from a shell (`core_api/ops.py`; nothing in the running service
-imports it). They read the same settings as the service: with `DYNAMODB_ENDPOINT_URL` they target
-DynamoDB Local; without it, the real `CORE_TABLE` in `AWS_REGION` through the SSO session
-(`just aws-login`).
-
-```bash
-just backfill-trip-index --dry-run   # scanned=<n> would_update=<n> skipped=0, writes nothing
-just backfill-trip-index             # scanned=<n> updated=<n> skipped=<n>
-```
-
-`backfill-trip-index` writes `GSI2PK`/`GSI2SK` on every trip item that lacks them (trips saved
-before the admin index existed), exactly as `trip_item` writes them, so `GET /api/v1/admin/trips`
-lists it. It scans for trip items without `GSI2PK` and updates each one on the condition that it
-still has none: a trip saved meanwhile stamps itself and counts as `skipped`. Running it again
-finds nothing. It exits 1 with the reason on stderr when DynamoDB refuses a call. On AWS it runs
-once, after the apply that creates GSI2 ([infra/aws/README.md](../../../../infra/aws/README.md#making-someone-an-administrator)).
-
 ## Endpoints (`/api/v1`)
 
 | Method | Path | Auth | Notes |
@@ -115,11 +96,10 @@ Errors: `{"detail": {"message": "...", "error_code": "NOT_FOUND" | "FORBIDDEN" |
 ```text
 core_api/
 ├── main.py            create_app(...) with a lifespan that opens the table (app.state.table)
-├── config.py          CoreSettings(CommonSettings, DynamoSettings): CORE_TABLE, GOOGLE_*
+├── config.py          CoreSettings(CommonSettings, DynamoSettings): CORE_TABLE, GOOGLE_CLIENT_ID
 ├── domain/            models.py (dataclasses + rules), ports.py (repository protocols), enums.py
 ├── infrastructure/dynamo/
-│                      table.py (spec, DynamoTable, open_table), keys.py, codec.py, repositories.py,
-│                      backfill.py (the one-off GSI2 backfill behind `ops`)
+│                      table.py (spec, DynamoTable, open_table), keys.py, codec.py, repositories.py
 ├── services/          trip_service.py, trip_children.py (every nested collection), user_service.py,
 │                      auth_service.py (Authenticate: both modes; SignIn: local issuer),
 │                      access_service.py (the access list: resolve, ensure_allowed, upsert, remove)
@@ -133,7 +113,6 @@ core_api/
 ├── auth/principal.py  AccountPrincipal = Principal + the account's UUID
 ├── schemas/           Pydantic models; XUpdate = partial(XBase) (_partial.py); formats in _types.py
 ├── devtools.py        dev-only: a local JWT for an account (never imported by the service)
-├── ops.py             one-off table operations: backfill-trip-index (never imported by the service)
 └── pagination.py      Page(skip, limit)
 ```
 

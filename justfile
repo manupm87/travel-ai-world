@@ -196,9 +196,6 @@ dev-token email *flags="":
 dev-grant email *flags="":
     @cd {{core}} && uv run --quiet python -m core_api.devtools grant {{email}} {{flags}}
 
-# Write the admin index keys (GSI2) on trips saved without them; idempotent, --dry-run counts
-backfill-trip-index *flags="":
-    @cd {{core}} && uv run --quiet python -m core_api.ops backfill-trip-index {{flags}}
 
 # Production static export of the frontend
 build:
