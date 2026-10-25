@@ -69,9 +69,8 @@ The shared cards select raw field names before applying display names; keep
 The collapsed academic appendix quotes the supplied TFM memory, cutoff 24 October 2026, sections
 8.2–8.4 and table 34. The source is `docs/memoria/main.pdf`; values are native
 Markdown text, deliberately disconnected from the time picker and datasource.
-The corpus has 33,264 documents across six cities. Destination labels support
-all six slugs, but events expose only the allowlist in effect when they were
-created. Deploying an expanded allowlist does not recover historical `other`
+The corpus has 33,264 documents across six cities. Historical destinations use the reviewed inline city aggregates. Original
+events expose only the allowlist in effect when they were created. Deploying an expanded allowlist does not recover historical `other`
 destinations. The 623 historical AI turns and
 USD 2.05 AI cost have a different scope from live core HTTP requests and total
 AWS billing. Update or remove static evidence if the memory is revised; never
