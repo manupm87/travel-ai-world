@@ -45,7 +45,7 @@ async def read_trip(trip: Trip = Depends(get_owned_trip)):
 
 @router.patch("/{trip_id}", response_model=TripResponse)
 async def update_trip(
-    trip_in: TripUpdate,  # type: ignore[valid-type]
+    trip_in: TripUpdate,  # type: ignore[valid-type]  # built at runtime by partial()
     trip: Trip = Depends(get_owned_trip),
     service: TripService = Depends(get_trip_service),
 ):

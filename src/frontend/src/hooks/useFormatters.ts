@@ -1,5 +1,7 @@
 "use client";
 
+/** The date and money formatters for the active language. */
+
 import { useMemo } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import {

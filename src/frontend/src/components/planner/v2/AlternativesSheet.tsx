@@ -1,5 +1,7 @@
 "use client";
 
+/** The "Change" sheet: other options for a slot of the itinerary. */
+
 import { useEffect, useId, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";

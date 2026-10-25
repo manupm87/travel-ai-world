@@ -1,5 +1,7 @@
 "use client";
 
+/** The admin console's table, with typed columns. */
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";

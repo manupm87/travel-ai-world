@@ -169,7 +169,7 @@ data "aws_cloudfront_cache_policy" "caching_optimized" {
 resource "aws_cloudfront_distribution" "frontend" {
   enabled             = true
   is_ipv6_enabled     = true
-  comment             = "Travel AI World Frontend — ${var.domain_name}"
+  comment             = "Kyrian World Frontend — ${var.domain_name}"
   default_root_object = "index.html"
   price_class         = var.cloudfront_price_class
   aliases             = [var.domain_name, "www.${var.domain_name}"]

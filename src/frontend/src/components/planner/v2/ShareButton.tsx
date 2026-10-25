@@ -1,5 +1,7 @@
 "use client";
 
+/** The button that copies the trip's link. */
+
 import { useEffect, useRef, useState } from "react";
 import { Check, Share2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";

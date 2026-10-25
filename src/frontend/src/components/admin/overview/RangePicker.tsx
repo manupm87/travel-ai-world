@@ -1,5 +1,7 @@
 "use client";
 
+/** The overview's range: the last 7 or 30 days, kept in `?range=`. */
+
 import { useLanguage } from "@/context/LanguageContext";
 import { cn } from "@/utils/cn";
 

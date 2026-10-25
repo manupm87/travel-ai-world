@@ -1,7 +1,4 @@
-# ==============================================================================
-# Docker Build Ignore File
-# Keeps the Docker image context small and secure.
-# ==============================================================================
+# Build context of src/backend/Dockerfile: keeps the image context small and free of secrets.
 
 # Git
 .git
@@ -22,7 +19,6 @@ __pycache__/
 *$py.class
 .pytest_cache/
 .ruff_cache/
-.mypy_cache/
 .coverage
 coverage.xml
 
@@ -40,6 +36,7 @@ env/
 
 # Tests and Docs (keep tests out of the build context; every package has a tests/)
 **/tests/
+**/conftest.py
 docs/
 *.md
 !README.md
@@ -53,10 +50,6 @@ docs/
 docker-compose.yml
 .dockerignore
 Dockerfile
-
-# Local DBs
-*.db
-*.sqlite3
 
 # Scripts (dev-only tooling) and tool output (the corpus data)
 scripts/

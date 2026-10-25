@@ -1,3 +1,5 @@
+"""Liveness always answers; readiness is 503 when DynamoDB cannot serve."""
+
 from core_api.api.deps import get_table
 from core_api.infrastructure.dynamo.table import DynamoTable
 from core_api.main import app

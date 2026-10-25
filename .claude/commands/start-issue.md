@@ -16,10 +16,10 @@ Steps:
    ```
 
    The branch-name hook rejects anything outside `<type>/TRA-<n>-<slug>`; fix the name, never the hook.
-5. If the issue is not already in progress, move it with `mcp__linear__update_issue` (state "In Progress")
+5. If the issue is not already in progress, move it with `mcp__linear__save_issue` (state "In Progress")
    and assign it to the current user if unassigned.
 6. Summarise the issue (goal, acceptance criteria, open questions) in a few lines and propose the
    first steps. Do not start coding until the user confirms the plan, unless they asked for it.
 
 When the PR is opened later: its body includes `Closes TRA-<n>`, and its URL is posted on the issue
-with `mcp__linear__create_comment`.
+with `mcp__linear__save_comment`.

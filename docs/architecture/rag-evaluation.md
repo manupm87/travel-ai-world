@@ -332,3 +332,98 @@ agree.** The three disagreements:
 So read these scores as an upper bound, relevance most of all (4.98 leaves no room to move).
 Agreement was not measured with κ; the memoria's proposed criterion (judge ≥ 4/5, κ ≥ 0.6 against
 50 labelled answers) is met on the first half only.
+
+### Running it from the admin console
+
+`/admin/judge/` runs the same evaluation (**Grade the answers**) and the judge check below
+(**Check the judge**) against the deployed index and models, streams each graded answer and keeps
+every run for the table's 90 days, with each answer, verdict and unsupported claim
+([ADR 0039](adr/0039-answer-judge-in-the-admin-console.md)). One run at a time.
+
+A run on 2026-10-25 (same models, judge prompt `f7a13e321bf8`, the index after the ENHANCED
+rebuild): 125 of 126 answered and graded, one failure (`budapest/public-transport`: the model gave
+no usable answer). Groundedness **4.83**, relevance **4.97** over 119 answerable questions, one
+under 3 (`miami/kids-rain`), 6 of 6 unanswerable ones acknowledged, 9 answerable ones turned down.
+Its cost was not recorded: the script stopped while printing the report on a Windows console
+(fixed since). The same run from the admin console minutes later answered all 126: groundedness
+**4.79**, relevance **5.00**, 1 of 120 under 3, 6 of 6 acknowledged, 9 turned down, **0.59 USD** and
+two minutes.
+
+## The golden set: how far the judge can be trusted
+
+`ai_api/data/eval_judge_golden.jsonl` holds **50 answers with the verdict the rubric gives them**.
+Each case freezes the question, the passages exactly as the judge reads them and the answer, so
+a check calls only the judge (`just eval-answers --golden`, or **Check the judge** in the admin):
+0.10 USD and under a minute, the same whatever the index or the answering model do.
+
+**What is in it.** All 50 come from the 2026-10-25 run above.
+
+- **34 real answers.** They are stratified, not sampled at random, because almost every answer
+  scores 5:
+  - the 6 unanswerable questions;
+  - the 9 answerable ones turned down;
+  - every other answer the judge scored 3 or less, or under 5 in relevance;
+  - 7 of the 14 scored 4 in groundedness;
+  - the romantic-sunset question from the hand check above;
+  - one 5/5 answer per city, and the rest at random.
+- **16 perturbed copies** of other 5/5 answers, each with one known defect:
+
+  | Defect | Cases |
+  |---|---:|
+  | An invented price, opening time, address or figure | 7 |
+  | A wrong currency | 1 |
+  | A contradiction of the passage | 2 |
+  | The answer to another question | 2 |
+  | A false "I don't have that" | 2 |
+  | General claims not flagged as such | 1 |
+  | A partial answer | 1 |
+
+  Without them the expected scores would all be 5 and kappa could not be computed.
+
+**How it was labelled.** Claude read every case against its passages and labelled it under the
+judge's rubric, applied literally. A second, blind pass was then made by another model instance
+from a shuffled file without origins or defects. Before reconciliation the two passes agreed on:
+
+- groundedness: 45 of 50 exactly, weighted κ 0.98;
+- relevance: 46 of 50, κ 0.97;
+- the gap flag: 50 of 50.
+
+The 8 disagreements were settled case by case, and `why` records each label. The labels are
+therefore careful readings of the rubric, not independent human judgments. The team reviews them
+before any figure is quoted as a human validation.
+
+**Result: Nova Pro, judge prompt `f7a13e321bf8`.**
+
+| Score | Exact | Within 1 | κ (quadratic) | Mean expected | Mean judge |
+|---|---:|---:|---:|---:|---:|
+| Groundedness | 56% | 82% | **0.61** | 3.72 | 4.04 |
+| Relevance | 78% | 90% | **0.64** | 4.52 | 4.72 |
+
+- **Either score under 3:** 80% agreement, κ **0.52**.
+- **A second check from the admin console** gave κ 0.63, 0.66 and 0.57. Nova Pro at temperature
+  0 is not fully deterministic, so read each κ as ±0.05.
+- **Gap flag:** 100% as expected.
+- **Every field as expected:** 44% of the real answers and 44% of the perturbed ones.
+
+**Reading.**
+
+- **Agreement.** It reaches the report's bar (κ ≥ 0.6) on both scores, barely, and not on the
+  bad-answer line.
+- **The judge is lenient on groundedness.** Its mean is 0.32 above the expected one, and the
+  failures are the same kind of failure:
+  - An invented price or time placed in parentheses is graded fully supported (Szimpla's entry
+    fee and its hours).
+  - So is a "meal included" that the passage's "show only" contradicts (Corral de la Morería).
+  - When the judge does see an unsupported specific, it scores 4 instead of the rubric's cap of
+    2: the Parliament's prices turned into euros in both languages, the "€€" of a bath, the
+    invented height of the Reichstag dome.
+- **It reads "an honest gap is relevant" too broadly.** Refusing a question the passages answer
+  scores relevance 5 and 3, and an answer that never names the street asked for scores 5.
+- **One verdict is too harsh.** It gives 1/3 to a rainy-day answer that flags its general advice,
+  which the rubric does not count against it.
+- **What it does well.** It catches every answer to another question and every contradiction (at
+  2 rather than 1), and it never misreads the gap flag.
+
+So the groundedness means above are an upper bound, and the number of bad answers is a lower
+bound. The next change to the judge, a prompt that has it list each specific before scoring or a
+stronger model, is measured on this set first.

@@ -1,5 +1,7 @@
 "use client";
 
+/** The account's trips, for the trips home. */
+
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { type ApiError, isAbortError, toApiError, UnauthorizedError } from "@/services/http";

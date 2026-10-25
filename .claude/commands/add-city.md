@@ -62,7 +62,7 @@ Steps:
    just corpus <slug>
    ```
 
-   Builds `data/<slug>/` (5–10 min cold: serial, polite requests to Wikimedia and Overpass, all
+   Builds `data/<slug>/` (25–55 min cold, most of it the hotel photo stage: serial, polite requests to Wikimedia and Overpass, all
    cached in `.cache/`), then runs the readiness report and rewrites the cities manifest and its
    `ai_api` copy. The report is the definition of done: it exits 1 with the failing lines. Read
    `data/<slug>/report.md` and iterate on the TOML until every check passes:
@@ -103,7 +103,23 @@ Steps:
      PR, not a reason to list a reseller.
    Rebuild after adding it (`just corpus <slug>`); the report's Tours section lists what landed.
 
-5. **Smoke the planner.** Needs `NVIDIA_API_KEY` in `src/backend/services/ai_api/.env`; no AWS.
+5. **Curated hotel photos (when the report's "Notable hotels without a photo" table lists chain
+   hotels).** `curated/<slug>/hotels.toml`, following the README's "Hotel photos file" and the
+   runbook, step 5:
+   - Open each hotel's page on **its own group's website** in a browser (`/check-site` drives the
+     Playwright MCP), take the picture it shows of itself (the hero or the first gallery image, read
+     off the rendered DOM) and check it is that hotel, not a brand banner or another house.
+   - Add an entry with `match`, `image_url`, `credit` = the group's bare domain, `source_url` = the
+     page you read it on and `checked` = today. Never booking.com, Expedia, Tripadvisor or Google.
+     A hotel whose page shows only brand imagery gets no entry: write it in the header comment with
+     the reason.
+   - Look over the `sleep` documents' `image_url`s once: replace a wrong picture with an entry, or
+     take the hotel out with `drop = true` when it publishes no picture of its own.
+   - Work top down (five-star and well-known brands first) and stop when the list stops being names
+     a traveller knows. Rebuild afterwards (`just corpus <slug>`); the gate does not fail on this
+     list.
+
+6. **Smoke the planner.** Needs `NVIDIA_API_KEY` in `src/backend/services/ai_api/.env`; no AWS.
 
    ```bash
    just planner-smoke <slug> es
@@ -117,19 +133,19 @@ Steps:
    like a route. A failing run is a corpus problem first (go back to step 3), a prompt problem
    second (that is a separate ticket, not this one).
 
-6. **PR.** First write the city's 20 retrieval questions,
+7. **PR.** First write the city's 20 retrieval questions,
    `src/backend/services/ai_api/ai_api/data/eval_questions/<slug>.jsonl` (`just test-ai` fails
    without them; recipe in the runbook, step 7, "Evaluation questions": 12 en + 8 es with 3 twins,
    expected ids found by the entity's name in the corpus, never by running the question). Commit
-   `cities/<slug>.toml`, `data/<slug>/` (documents, manifest, report), the curated
-   file if any, `data/cities.json` and `src/backend/services/ai_api/ai_api/data/cities.json` (CI
+   `cities/<slug>.toml`, `data/<slug>/` (documents, manifest, report),
+   `curated/<slug>/tours.toml` (and `hotels.toml` when there is one), `data/cities.json` and `src/backend/services/ai_api/ai_api/data/cities.json` (CI
    fails when the two copies differ) and the questions. Run `just lint`, `just test-corpus`,
    `just test-ai`, `just docs-check`. The PR
    body follows `.github/pull_request_template.md`, carries `Closes TRA-<n>`, the report's
    Readiness table, both smoke summaries and the deviations. Comment the PR URL on the issue. Merge
    when CI is green (squash).
 
-7. **After the merge, hand over.** Tell Manuel the two things only he can do, in this order:
+8. **After the merge, hand over.** Tell Manuel the two things only he can do, in this order:
    1. `just aws-login && just index <slug>` — embeds the corpus and upserts it into the shared
       S3 Vectors index; it prunes only that city's stale vectors, other cities are untouched.
       `just index <slug> --dry-run` first parses and measures without touching AWS. Right after,

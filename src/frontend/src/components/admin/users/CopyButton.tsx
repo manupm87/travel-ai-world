@@ -1,5 +1,7 @@
 "use client";
 
+/** A button that copies a value to the clipboard. */
+
 import { Check, Copy } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";

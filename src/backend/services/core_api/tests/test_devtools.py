@@ -1,5 +1,6 @@
 """`python -m core_api.devtools`: local-mode tokens and grants from a shell."""
 
+import json
 from typing import Any
 
 import pytest
@@ -248,3 +249,20 @@ def test_cli_refuses_a_negative_limit():
         devtools.build_parser().parse_args(
             ["grant", "you@example.com", "--limit", "-1"]
         )
+
+
+async def test_the_browser_line_stores_the_session_the_frontend_reads(
+    users: DynamoUserRepository, alice: User
+):
+    token = await devtools.mint_token(users, alice.email, settings)
+
+    line = devtools.browser_snippet(token, settings)
+
+    assert f"localStorage.setItem('travel_ai_token', \"{token}\")" in line
+    stored = line.split("'travel_ai_user', ")[1].split("); location")[0]
+    assert json.loads(json.loads(stored)) == {
+        "id": str(alice.id),
+        "email": alice.email,
+        "name": "alice",
+    }
+    assert line.endswith("location.reload()")

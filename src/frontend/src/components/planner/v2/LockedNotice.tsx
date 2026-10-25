@@ -1,5 +1,7 @@
 "use client";
 
+/** The notice on a trip that is ongoing or over, which can no longer be planned. */
+
 import { Lock } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import type { TripPhase } from "@/types/trip";

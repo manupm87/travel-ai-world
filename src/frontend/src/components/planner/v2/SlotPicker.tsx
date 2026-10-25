@@ -1,5 +1,7 @@
 "use client";
 
+/** Picks the day and the part of the day an option goes to. */
+
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { interpolate } from "@/i18n";

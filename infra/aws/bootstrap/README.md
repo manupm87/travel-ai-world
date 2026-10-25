@@ -1,6 +1,6 @@
 # AWS bootstrap (apply once)
 
-The three things that must exist **before** [`infra/aws/`](../README.md) can use its S3 backend
+The four things that must exist **before** [`infra/aws/`](../README.md) can use its S3 backend
 and before GitHub Actions can deploy without stored credentials
 ([ADR 0007](../../../docs/architecture/adr/0007-aws-cloud-and-auth.md)):
 
@@ -11,9 +11,10 @@ and before GitHub Actions can deploy without stored credentials
 | IAM role `travel-ai-github-deploy` | trust: `repo:manupm87/travel-ai-world:environment:aws` | `deploy-backend.yml` |
 | IAM role `travel-ai-github-ecr-public-pull` | trust: `repo:manupm87/travel-ai-world:*` | `_build-image.yml`, the Compose e2e (ECR Public pull token only) |
 
-The role has `PowerUserAccess` plus IAM on roles named `travel-ai-*` (meant for the two Lambda
-execution roles; the pattern also matches this role itself, so it can change its own policies),
-nothing else. This root keeps **local state** (`terraform.tfstate`, ignored by
+The deploy role has `PowerUserAccess` plus IAM on roles named `travel-ai-*` (meant for the roles
+the main root creates: the two Lambda execution roles and the optional
+`travel-ai-grafana-business-logs`; the pattern also matches this role itself, so it can change its
+own policies), nothing else. The ECR Public pull role can only fetch an ECR Public pull token. This root keeps **local state** (`terraform.tfstate`, ignored by
 git; it holds no secrets). Do not add anything else here: it is not applied by CI.
 
 ```bash

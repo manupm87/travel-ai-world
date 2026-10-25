@@ -1,5 +1,7 @@
 "use client";
 
+/** The turns explorer: a day's turns, filtered from the URL. */
+
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 import { AdminHeading, AdminLoadState, LoadMore } from "@/components/admin/AdminStates";

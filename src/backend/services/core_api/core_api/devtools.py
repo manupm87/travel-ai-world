@@ -1,4 +1,4 @@
-"""Developer-only commands: `token <email> [--admin]` and `grant <email> [--limit N]`.
+"""Developer-only commands: `token <email> [--admin] [--browser]` and `grant <email> [--limit N]`.
 
 They mint tokens and create accounts, so nothing in the web process imports this
 module (a test checks it); run as `python -m core_api.devtools`.
@@ -6,11 +6,12 @@ module (a test checks it); run as `python -m core_api.devtools`.
 
 import argparse
 import asyncio
+import json
 import sys
 
 from travel_common.exceptions import DomainError, Forbidden
 from travel_common.principal import Principal, Role
-from travel_common.security import create_access_token
+from travel_common.security import create_access_token, principal_from_token
 
 from core_api.config import CoreSettings, get_settings
 from core_api.domain.models import AccessGrant, User
@@ -62,6 +63,24 @@ async def _mint_with_own_table(
     return await mint_token(DynamoUserRepository(table), email, settings, admin=admin)
 
 
+def browser_snippet(token: str, settings: CoreSettings) -> str:
+    """A line for the browser's DevTools console that stores the session and reloads.
+
+    The keys are the frontend's (`src/frontend/src/services/session.ts`).
+    """
+    principal = principal_from_token(token, settings)
+    profile = {
+        "id": principal.subject,
+        "email": principal.email,
+        "name": principal.email.split("@")[0],
+    }
+    return (
+        f"localStorage.setItem('travel_ai_token', {json.dumps(token)}); "
+        f"localStorage.setItem('travel_ai_user', {json.dumps(json.dumps(profile))}); "
+        "location.reload()"
+    )
+
+
 GRANTED_BY = "devtools"
 """`added_by` of a grant written from a shell: no administrator was involved."""
 
@@ -105,6 +124,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="make the account an administrator before minting",
     )
+    token.add_argument(
+        "--browser",
+        action="store_true",
+        help="print a DevTools console line that signs the browser in, not the bare JWT",
+    )
     grant = commands.add_parser(
         "grant", help="put an email on the access list of the local table"
     )
@@ -138,7 +162,7 @@ def main(argv: list[str] | None = None) -> int:
     except DomainError as exc:
         print(f"error: {exc.message}", file=sys.stderr)
         return 1
-    print(token)
+    print(browser_snippet(token, get_settings()) if namespace.browser else token)
     return 0
 
 

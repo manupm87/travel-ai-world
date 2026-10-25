@@ -37,6 +37,7 @@ def graded(
     return ev.Graded(
         item=item,
         passages=("d1",),
+        context="the passage",
         answer=f"answer to {item.id}",
         verdict=ev.Verdict(
             groundedness=g,
@@ -112,6 +113,28 @@ async def test_a_question_the_judge_cannot_grade_is_a_failure() -> None:
     assert isinstance(results[0], ev.Failure)
     assert results[0].item == QUESTION
     assert isinstance(results[1], ev.Graded)
+
+
+async def test_stream_yields_every_question_once_with_its_judged_context() -> None:
+    judge = FakeProvider(replies=[verdict(), verdict(relevance=2)])
+    other = ev.Item("budapest", "other", "es", "¿Algo más?", True)
+
+    results = [
+        r
+        async for r in ev.stream(
+            [QUESTION, other],
+            FakeRetriever([BATHS]),
+            FakeProvider(replies=["a", "b"]),
+            judge,
+            concurrency=1,
+        )
+    ]
+
+    assert sorted(r.item.id for r in results) == ["baths", "other"]
+    assert all(isinstance(r, ev.Graded) for r in results)
+    first = results[0]
+    assert isinstance(first, ev.Graded)
+    assert "Gellért Baths, open 6:00-20:00." in first.context
 
 
 def test_the_report_keeps_unanswerable_and_turned_down_apart() -> None:

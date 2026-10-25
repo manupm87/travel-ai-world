@@ -1,6 +1,8 @@
+"""Request and response bodies of accounts and of the local Google sign-in."""
+
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from travel_common.principal import Role
 
 
@@ -16,8 +18,9 @@ class UserUpdate(BaseModel):
     editable.
     """
 
-    name: str | None = None
-    picture: str | None = None
+    name: str | None = Field(None, max_length=255)
+    # a URL; long enough for any avatar link, short of bloating the profile item
+    picture: str | None = Field(None, max_length=2048)
 
 
 class UserRoleUpdate(BaseModel):

@@ -1,8 +1,8 @@
 # 0004 — Source under `src/`, infrastructure under `infra/`, one ignore file
 
-> **Updated by [ADR 0028](0028-retire-the-legacy-scraper.md)** (`tools/scraper` removed).
+> **Updated by [ADR 0028](0028-retire-the-legacy-scraper.md)** (`tools/scraper` removed) **and [ADR 0038](0038-retire-gcp-and-the-vector-store-spike.md)** (`infra/gcp` removed: one cloud folder, `infra/aws/`).
 
-**Status:** Accepted (updated by [0028](0028-retire-the-legacy-scraper.md))
+**Status:** Accepted (updated by [0028](0028-retire-the-legacy-scraper.md) and [0038](0038-retire-gcp-and-the-vector-store-spike.md))
 **Date:** 2026-09-07
 
 ## Context

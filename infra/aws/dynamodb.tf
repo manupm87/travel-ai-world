@@ -47,8 +47,7 @@ resource "aws_dynamodb_table" "core" {
     projection_type = "ALL"
   }
 
-  # Sparse: a trip saved without GSI2 keys appears in it once it is saved again,
-  # or after `just backfill-trip-index` (core_api/ops.py).
+  # Sparse: a trip item without GSI2 keys appears in it once it is saved again.
   global_secondary_index {
     name            = "GSI2"
     hash_key        = "GSI2PK"

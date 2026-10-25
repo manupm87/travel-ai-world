@@ -1,3 +1,5 @@
+"""Liveness and readiness probes; readiness asks DynamoDB for the table."""
+
 from fastapi import APIRouter, Depends
 
 from core_api.api.deps import get_table

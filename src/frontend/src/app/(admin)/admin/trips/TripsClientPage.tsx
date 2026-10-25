@@ -1,5 +1,7 @@
 "use client";
 
+/** The admin trips list: every saved trip with its owner. */
+
 import { AdminHeading, AdminLoadState, LoadMore } from "@/components/admin/AdminStates";
 import { DataTable } from "@/components/admin/DataTable";
 import { phaseTone, Pill } from "@/components/admin/Pill";

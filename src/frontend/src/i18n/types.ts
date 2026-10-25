@@ -36,8 +36,6 @@ export interface Translations {
     suitcaseCountOne: string;
     /** The phone menu's account row. */
     account: string;
-    /** The header's language button: "Language: {language}" */
-    languageCurrent: string;
   };
   common: {
     loading: string;
@@ -136,12 +134,10 @@ export interface Translations {
         missing: string;
         missingOne: string;
         toDecide: string;
-        budget: string;
       };
       lost: { title: string; safe: string; retry: string };
       /** The open suitcase while the turn packs. */
       suitcase: {
-        label: string;
         list: string;
         wardrobe: string;
         options: string;
@@ -525,6 +521,7 @@ export interface Translations {
       users: string;
       access: string;
       quality: string;
+      judge: string;
     };
     /** Any `/admin/` URL opened by an account that is not an administrator. */
     gate: {
@@ -773,6 +770,186 @@ export interface Translations {
       /** Expected documents missing from the index. */
       missing: string;
     };
+    /** The LLM judge (`/admin/judge/`): answer grading, judge validation and their runs. */
+    judge: {
+      title: string;
+      subtitle: string;
+      runQuestions: string;
+      runGolden: string;
+      running: string;
+      /** One panel per evaluation: what it measures and what a run takes. */
+      launch: {
+        questions: { name: string; method: string; measures: string; models: string; size: string; duration: string; cost: string };
+        golden: { name: string; method: string; measures: string; models: string; size: string; duration: string; cost: string };
+        facts: { models: string; size: string; duration: string; cost: string };
+        /** `{result}`: the last run's headline figures. */
+        lastRun: string;
+        neverRun: string;
+      };
+      /** The rubric, folded under the panels. */
+      rubric: {
+        title: string;
+        groundedness: string;
+        relevance: string;
+        gap: string;
+      };
+      /** The panel of the run in progress. */
+      liveTitle: {
+        questions: string;
+        golden: string;
+      };
+      /** `{time}` since the run started. */
+      elapsed: string;
+      tallies: {
+        groundedness: string;
+        relevance: string;
+        low: string;
+        agree: string;
+      };
+      liveColumns: {
+        question: string;
+        groundedness: string;
+        relevance: string;
+        gap: string;
+      };
+      /** A golden case's score: `{expected}` then the judge's `{judge}`. */
+      versus: string;
+      /** Beside the live table of a golden run: how to read its scores. */
+      versusHint: string;
+      yes: string;
+      no: string;
+      /** `{done}` of `{total}` items graded. */
+      progress: string;
+      progressLabel: string;
+      /** A 409: another run is in progress. */
+      busy: string;
+      /** A run that stopped mid-stream; `{message}`. */
+      stopped: string;
+      /** Announced when a run ends; `{status}`. */
+      done: string;
+      /** While a run streams: leaving the page stops it. */
+      keepOpen: string;
+      /** Asked before an in-app link leaves a running run. */
+      leaveConfirm: string;
+      /** A stream that ended without its report. */
+      cut: string;
+      /** The live list of the run in progress. */
+      live: string;
+      sets: {
+        questions: string;
+        golden: string;
+      };
+      statuses: {
+        running: string;
+        done: string;
+        failed: string;
+        interrupted: string;
+      };
+      history: {
+        title: string;
+        caption: string;
+        empty: string;
+        columns: {
+          started: string;
+          set: string;
+          status: string;
+          judge: string;
+          score: string;
+          cost: string;
+        };
+        /** The result column of a `questions` run; `{g}`, `{r}`. */
+        answersScore: string;
+        /** The result column of a `golden` run; `{kappa}`. */
+        goldenScore: string;
+      };
+      kpis: {
+        label: string;
+        groundedness: string;
+        relevance: string;
+        low: string;
+        unanswerable: string;
+        cost: string;
+        cases: string;
+        kappaGroundedness: string;
+        kappaRelevance: string;
+        lowKappa: string;
+        gap: string;
+      };
+      /** `{acknowledged}` of `{total}`. */
+      unanswerableValue: string;
+      /** A `questions` run; `{answer}`, `{judge}`, `{prompt}`, `{time}`. */
+      metaAnswers: string;
+      /** A `golden` run; `{judge}`, `{prompt}`, `{time}`. */
+      metaGolden: string;
+      caption: string;
+      columns: {
+        set: string;
+        answers: string;
+        groundedness: string;
+        relevance: string;
+        low: string;
+      };
+      all: string;
+      languages: {
+        en: string;
+        es: string;
+      };
+      agreement: {
+        caption: string;
+        columns: {
+          score: string;
+          exact: string;
+          withinOne: string;
+          kappa: string;
+          meanExpected: string;
+          meanJudge: string;
+        };
+        scores: {
+          groundedness: string;
+          relevance: string;
+        };
+        /** The confusion matrix of `{score}`. */
+        matrix: string;
+        /** A matrix row or column header; `{n}`. */
+        expectedScore: string;
+        judgeScore: string;
+        /** `{real}` and `{perturbed}` are shares. */
+        origin: string;
+        /** How to read kappa. */
+        kappaNote: string;
+        /** A kappa that cannot be computed. */
+        undefined: string;
+      };
+      worst: string;
+      turnedDown: string;
+      disagreements: string;
+      none: string;
+      item: {
+        expected: string;
+        judge: string;
+        /** `{g}` groundedness, `{r}` relevance. */
+        scores: string;
+        gapYes: string;
+        gapNo: string;
+        unsupported: string;
+        answer: string;
+        passages: string;
+        why: string;
+        /** `{defect}`. */
+        defect: string;
+        /** `{error}`. */
+        error: string;
+        unanswerable: string;
+      };
+      openRun: string;
+      back: string;
+      notFound: string;
+      /** The detail page's heading; `{time}`. */
+      runTitle: string;
+      /** `{count}` items. */
+      items: string;
+      onlyProblems: string;
+    };
     trips: {
       title: string;
       caption: string;
@@ -825,19 +1002,6 @@ export interface Translations {
       title: string;
       back: string;
       notFound: string;
-      summary: string;
-      id: string;
-      ts: string;
-      kind: string;
-      status: string;
-      city: string;
-      model: string;
-      tokens: string;
-      latency: string;
-      cost: string;
-      context: string;
-      spans: string;
-      timeline: string;
       export: string;
       /** The inspector's left column: what the traveller saw. */
       traveller: {
@@ -861,7 +1025,6 @@ export interface Translations {
         /** "{count} cards" and its singular. */
         cards: string;
         cardOne: string;
-        warnings: string;
         noAnswer: string;
       };
       /** The numbered marks: "Go to {section}". */
@@ -1014,8 +1177,6 @@ export interface Translations {
   };
   theme: {
     toggle: string;
-    light: string;
-    dark: string;
     /** The menu's heading over the three choices. */
     label: string;
     /** The three choices, short. */

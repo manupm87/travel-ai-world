@@ -1,8 +1,9 @@
 # AGENTS.md — ai_api
 
 Read [`backend/AGENTS.md`](../../AGENTS.md) first. `ai_api` owns everything that talks to language
-models and retrieval. It has **no database** beyond the append-only trace log (ADR 0024) and the
-daily token counters kept in the same table (ADR 0026), and never imports `core_api`. Endpoints,
+models and retrieval. It has **no database** beyond the append-only trace log (ADR 0024), the
+daily token counters (ADR 0026) and the admin's evaluation runs (ADR 0039), all in the same table,
+and never imports `core_api`. Endpoints,
 settings and the evaluations are described in [`README.md`](README.md).
 
 ## Layout (ports and adapters)
@@ -12,8 +13,9 @@ domain/         Message, ChatRole, Document, RetrievalFilters, GenerationParams,
                 agent.py: ToolSpec, ToolCall, ToolResult, AgentMessage and the converse stream items
                 TextDelta, ToolCallReady, StepEnd (ADR 0032)
                 + Protocols: LLMProvider (stream + complete + converse), Embedder, Retriever (search + fetch), WeatherForecast,
-                PhotoFinder, SitePreviewFinder, TraceLog, UsageStore, AccessGateway, InputGuard
+                PhotoFinder, SitePreviewFinder, TraceLog, UsageStore, EvalStore, AccessGateway, InputGuard
                 (check → GuardVerdict)
+                evaluation.py: EvalRunRecord, EvalItemRecord, EvalRunDetail (the admin's evaluation runs, ADR 0039)
                 usage.py: DailyUsage, Entitlement, resets_at (ADR 0026)
                 tracing.py: TurnTrace, Span, RetrievedDoc, EventMark, TurnContext (ADR 0024) and the read models
                 TurnSummary, TurnDetail, TurnFilters, TurnPage
@@ -24,7 +26,9 @@ application/    use cases (PlanTrip in plan_trip.py, CardDetailLookup in card_de
                 prices), photos.py (the placeholder), language.py, retrieval_eval.py (recall@k / MRR over the
                 20 questions per city of data/eval_questions/), answer_eval.py (the chat's answers to those
                 questions and to data/eval_unanswerable.jsonl, graded by a judge model; the chat prompt is
-                `plan_trip.chat_messages`, a grounded-answer prompt outside the agent),
+                `plan_trip.chat_messages`, a grounded-answer prompt outside the agent), judge_validation.py
+                (the judge alone over data/eval_judge_golden.jsonl: agreement and Cohen's kappa),
+                eval_runs.py (EvalRuns: the admin's runs of those two, stored and streamed, ADR 0039),
                 conversation_eval.py (scripted multi-turn scenarios of data/eval_conversations/ played against
                 `PlanTrip`, the page's side mirrored by `ClientState` from `plannerReducer.ts`, graded on the
                 itinerary and texts they leave). Depend on domain
@@ -40,19 +44,23 @@ infrastructure/ adapters: nvidia_provider.py, bedrock_provider.py, bedrock_embed
                 cities.py + data/cities.json (the cities manifest the corpus tool writes; PLANNER_CITIES narrows it),
                 commons_photos.py (a Wikimedia Commons photo near a venue and naming it),
                 site_previews.py (the og:image a venue publishes on its own site, ADR 0021;
+                every hop, the image's included, must be http(s) on the scheme's default port
+                to a name whose every resolved address is public (`is_public_address`);
                 its `GROUP_DOMAINS` — the hotel groups a brand domain may redirect to — is a copy
                 of the corpus tool's `config/hotel_groups.py`, kept in step by hand),
                 bedrock_guard.py (BedrockInputGuard: ApplyGuardrail on the traveller's message, fail open;
                 NullInputGuard when BEDROCK_GUARDRAIL_ID is empty),
                 sse.py, retry.py, core_api_client.py (AccessGateway),
-                dynamo_traces.py, dynamo_usage.py (the daily token counters, same table)
+                dynamo_traces.py, dynamo_usage.py (the daily token counters, same table),
+                dynamo_eval.py (the admin's evaluation runs and their lock, same table)
 api/            deps.py (per-request wiring; process resources come from app.state), v1/endpoints/{planner,usage,admin,health}.py
 schemas/        chat.py (ChatMessage, the transcript's limits), planner.py (PlannerTurn request, PlannerCity, CardDetail), planner_events.py
-                (SSE v2 events, ADR 0015), admin.py (trace pages, detail and stats responses), usage.py
+                (SSE v2 events, ADR 0015), admin.py (trace pages, detail and stats responses), answer_eval.py
+                (the evaluation runs, their items and stream events), usage.py
 config.py       AISettings: LLM_PROVIDER, NVIDIA_*, BEDROCK_*, CHAT_*, RETRIEVAL_*, VECTOR_*, EMBEDDINGS_*, PLANNER_*,
-                OPEN_METEO_*, PHOTOS_ENABLED, COMMONS_*, SITE_PREVIEW_*, INTERACTION*, TRACE_PAYLOAD_BYTES,
+                JUDGE_*, OPEN_METEO_*, PHOTOS_ENABLED, COMMONS_*, SITE_PREVIEW_*, INTERACTION*, TRACE_PAYLOAD_BYTES,
                 ACCESS_CONTROL_ENABLED, ACCESS_CACHE_SECONDS
-openapi.py      puts the planner's stream models into the OpenAPI document (no route declares them)
+openapi.py      puts the stream models (the planner's, the evaluation runs') into the OpenAPI document
 main.py         lifespan builds the provider and the retriever once (providers.build_*) and closes them
 indexing.py     CLI that fills the vector index from a corpus JSONL (just index); never runs in a request
 prompts.py      every prompt string (RAG context template, format_context, the planner's prompts)
@@ -80,14 +88,21 @@ testing.py      FakeProvider, FakeEmbedder, FakeRetriever, KeywordRetriever (tf-
   `GET /sessions/{session_id}`, `GET /stats?start&end` (≤ 31 days, `application/trace_stats.py`,
   pure; the metric definitions are in its docstring and the README). The router depends on
   `audit_admin_read` → `require_admin` (`Forbidden` unless `principal.is_admin`), which logs
-  `admin_read subject=… route=… target=…` before any read. The reads are `TraceLog` methods
+  `admin_read subject=… route=… target=…` before any read (`admin_write` for `POST /answer-eval`). The reads are `TraceLog` methods
   (`list_day`, `list_subject`, `list_session`, `get`, `iter_range`), implemented by
   `DynamoTraceLog`, `NullTraceLog` (finds nothing) and `testing.InMemoryTraceLog`
   (`testing.make_trace(**overrides)` builds a trace for tests). New fields on `TurnTrace` go to
   `TurnSummary` and `schemas/admin.py` too, then `just contracts`. `POST /retrieval-eval`
   runs `application/retrieval_eval.run` over every city with the app's retriever
   (`deps.require_retriever`: 503 when retrieval is off) and answers the report; it stores and
-  traces nothing and counts no tokens against anyone.
+  traces nothing and counts no tokens against anyone. `POST /answer-eval` is the one admin route
+  that writes, and only its own runs (ADR 0039): `application/eval_runs.EvalRuns` stores the run
+  `running`, streams `progress` per item through `sse_events`, then writes the run `done` or
+  `failed` before `report`; 409 while another run is in progress. The judge is
+  `deps.get_judge` (`providers.build_judge_provider`: Bedrock, `JUDGE_MODEL`), the answering
+  model `deps.get_eval_answerer` (production's Bedrock model whatever `LLM_PROVIDER` says), the
+  store `deps.get_eval_store` (`DynamoEvalStore`, `NullEvalStore`, `testing.InMemoryEvalStore`).
+  Runs are not traced and count no tokens against anyone.
 - **Access and the daily token quota (ADR 0026).** A route that spends tokens declares
   `dependencies=[Depends(require_budget)]`; a planner read declares `require_access`
   (`api/deps.py`). A new route under `/planner` needs one of the two; admin and health

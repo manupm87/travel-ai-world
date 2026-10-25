@@ -2,12 +2,14 @@
 """Mechanical documentation checks; the PR template covers the rest.
 
 Required files exist, every ADR has a Status line and an index entry, every `just`
-recipe named in an AGENTS.md or CLAUDE.md exists, relative links resolve (no anchors).
+recipe named in an AGENTS.md, CLAUDE.md, slash command or runbook exists, relative
+links resolve (percent-decoded, no anchors).
 """
 
 import re
 import sys
 from pathlib import Path
+from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -31,17 +33,18 @@ REQUIRED = [
     "src/backend/services/ai_api/.env.example",
     "src/backend/tools/city_corpus/README.md",
     "src/backend/tools/city_corpus/AGENTS.md",
-    "src/backend/tools/vector_store_bench/README.md",
-    "src/backend/tools/vector_store_bench/AGENTS.md",
     "src/frontend/README.md",
     "src/frontend/AGENTS.md",
     "src/frontend/.env.example",
     "infra/README.md",
-    "infra/gcp/README.md",
     "infra/aws/README.md",
     "docs/api/core-api.openapi.json",
     "docs/api/ai-api.openapi.json",
 ]
+
+# Copies, caches and installs rather than the repository's own docs; `worktrees`
+# covers the agent checkouts under .claude/worktrees/.
+SKIPPED_PARTS = {".git", ".venv", "node_modules", ".terraform", ".cache", "worktrees"}
 
 LINK_RE = re.compile(r"\[[^\]]*\]\(([^)\s#]+)(?:#[^)]*)?\)")
 JUST_RE = re.compile(r"`just ([a-z][a-z0-9-]*)")
@@ -50,25 +53,28 @@ JUST_RE = re.compile(r"`just ([a-z][a-z0-9-]*)")
 RECIPE_RE = re.compile(r"^([a-z][a-z0-9-]*)(?:\s+[^:\n]*)?:(?!=)", re.M)
 
 
-def main() -> int:
+def main(root: Path = ROOT) -> int:
     problems: list[str] = []
 
     for rel in REQUIRED:
-        if not (ROOT / rel).exists():
+        if not (root / rel).exists():
             problems.append(f"missing required file: {rel}")
 
-    recipes = set(RECIPE_RE.findall((ROOT / "justfile").read_text()))
+    recipes = set(RECIPE_RE.findall((root / "justfile").read_text()))
     docs = [
         p
-        for p in ROOT.rglob("*.md")
-        if "node_modules" not in p.parts and ".venv" not in p.parts
+        for p in root.rglob("*.md")
+        if not SKIPPED_PARTS.intersection(p.relative_to(root).parts)
     ]
 
     for doc in docs:
         text = doc.read_text(encoding="utf-8")
-        rel = doc.relative_to(ROOT)
+        rel = doc.relative_to(root)
 
-        if doc.name == "AGENTS.md" or doc.name == "CLAUDE.md":
+        if doc.name in {"AGENTS.md", "CLAUDE.md"} or rel.parent.as_posix() in {
+            ".claude/commands",
+            "docs/runbooks",
+        }:
             for recipe in JUST_RE.findall(text):
                 if recipe not in recipes:
                     problems.append(
@@ -78,18 +84,18 @@ def main() -> int:
         for target in LINK_RE.findall(text):
             if target.startswith(("http://", "https://", "mailto:")):
                 continue
-            resolved = (doc.parent / target).resolve()
+            resolved = (doc.parent / unquote(target)).resolve()
             if not resolved.exists():
                 problems.append(f"{rel}: broken link -> {target}")
 
-    adr_dir = ROOT / "docs" / "architecture" / "adr"
+    adr_dir = root / "docs" / "architecture" / "adr"
     index = (
         (adr_dir / "README.md").read_text() if (adr_dir / "README.md").exists() else ""
     )
     for adr in sorted(adr_dir.glob("[0-9][0-9][0-9][0-9]-*.md")):
         text = adr.read_text(encoding="utf-8")
         if not re.search(r"^\*\*Status:?\*\*|^Status:", text, re.M):
-            problems.append(f"{adr.relative_to(ROOT)}: no Status line")
+            problems.append(f"{adr.relative_to(root)}: no Status line")
         if adr.name not in index:
             problems.append(f"docs/architecture/adr/README.md: {adr.name} not listed")
 

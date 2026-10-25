@@ -15,7 +15,10 @@ from ai_api.infrastructure.core_api_client import CoreApiClient
 from ai_api.infrastructure.dynamo_traces import spec as interactions_spec
 from ai_api.infrastructure.open_meteo import OpenMeteoForecast
 from ai_api.infrastructure.providers import (
+    build_eval_answerer,
+    build_eval_store,
     build_input_guard,
+    build_judge_provider,
     build_llm_provider,
     build_retriever,
     build_trace_log,
@@ -54,6 +57,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.photos = photos
     app.state.previews = previews
     app.state.cities = planner_cities(settings)
+    judge = build_judge_provider(settings)
+    eval_answerer = build_eval_answerer(settings, provider)
+    app.state.judge = judge
+    app.state.eval_answerer = eval_answerer
+    app.state.eval_store = build_eval_store(settings)
     app.state.trace_log = build_trace_log(settings)
     usage_store = build_usage_store(settings)
     app.state.usage_store = usage_store
@@ -66,6 +74,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         yield
     finally:
         await provider.aclose()
+        await judge.aclose()
+        if eval_answerer is not provider:
+            await eval_answerer.aclose()
         if retriever is not None:
             await retriever.aclose()
         await weather.aclose()

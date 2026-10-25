@@ -19,6 +19,8 @@ wikipedia_lang = "en"
 osm_area = "Testville"
 country = "Testland"
 country_code = "TL"
+centre = [2.0, 3.0]
+timezone = "Europe/Testville"
 districts = ["Old Town"]
 
 [bbox]
@@ -80,8 +82,8 @@ def test_minimal_file_fills_defaults(tmp_path: Path) -> None:
     assert city.slug == "testville"
     assert city.aliases == ()
     assert city.district_admin_level == 9
-    assert city.centre == (0.0, 0.0)
-    assert city.timezone == "UTC"
+    assert city.centre == (2.0, 3.0)
+    assert city.timezone == "Europe/Testville"
     assert (city.country, city.country_code) == ("Testland", "TL")
     assert city.wikivoyage[0].include_subpages is True
     assert city.wikipedia_categories[0].require_coordinates is True
@@ -148,6 +150,27 @@ def test_strict_loading(tmp_path: Path, change: tuple[str, str], message: str) -
     with pytest.raises(CityConfigError, match=re.escape(message)) as excinfo:
         load_city(_write(tmp_path, MINIMAL.replace(old, new)))
     assert "testville.toml" in str(excinfo.value)
+
+
+@pytest.mark.parametrize(
+    ("line", "key"),
+    [
+        ("centre = [2.0, 3.0]\n", "centre"),
+        ('timezone = "Europe/Testville"\n', "timezone"),
+    ],
+)
+def test_a_city_without_its_centre_or_timezone_is_refused(
+    tmp_path: Path, line: str, key: str
+) -> None:
+    """No silent (0, 0) in the Gulf of Guinea, no silent UTC."""
+    with pytest.raises(CityConfigError, match=f"missing key\\(s\\) {key}"):
+        load_city(_write(tmp_path, MINIMAL.replace(line, "")))
+
+
+def test_every_committed_city_sets_its_centre_and_timezone() -> None:
+    for city in load_cities(CITIES_DIR).values():
+        assert city.centre != (0.0, 0.0), city.slug
+        assert city.timezone and city.timezone != "UTC", city.slug
 
 
 def test_missing_required_key_is_named(tmp_path: Path) -> None:

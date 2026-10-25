@@ -1,3 +1,5 @@
+/** The map's pins and bounds, from the itinerary. */
+
 import type { ItineraryDraft, OptionGroupState } from "@/hooks/plannerReducer";
 import { DAY_PARTS, type DayPart, type Slot } from "@/types/planner";
 

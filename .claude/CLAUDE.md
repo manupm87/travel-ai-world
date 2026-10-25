@@ -14,11 +14,11 @@ This file adds only what is specific to Claude Code.
   `/deliver-issue TRA-<n>` runs `.claude/workflows/kyrian-wave.js` — Opus implements in a worktree,
   three Sonnet reviewers read the diff, Opus fixes and watches CI. Runbook: `docs/runbooks/agent-delivery.md`.
 - **Linear** is the issue tracker: the `linear` MCP server in `.mcp.json` (OAuth through `/mcp`,
-  no token in the repo; tools `mcp__linear__get_issue`, `list_issues`, `update_issue`, `create_comment`, ...).
+  no token in the repo; tools `mcp__linear__get_issue`, `list_issues`, `save_issue`, `save_comment`, ...).
   Start every task with `/start-issue TRA-<n>`: it reads the issue and creates the branch. When the
   PR is open, comment its URL on the issue; the PR body carries `Closes TRA-<n>`.
 - **Branch names are checked by a hook** (`.claude/hooks/check-branch-name.sh`, wired in
-  `.claude/settings.json`): `git checkout -b` / `git switch -c` with a name outside
+  `.claude/settings.json`): `git checkout -b` / `git switch -c` / `git worktree add -b` with a name outside
   `<type>/TRA-<n>-<slug>` is denied. Do not work around it; get the issue key instead.
 - **Design file** `docs/design/ideas.pen`: read or edit **only** with the Pencil MCP tools (`mcp_pencil_*`).
 - **Browser checks**: `/check-site` (Playwright MCP from `.mcp.json`, or `just test-e2e`).

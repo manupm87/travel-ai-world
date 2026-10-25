@@ -31,7 +31,7 @@ uvicorn on `AWS_LWA_PORT=8000` and waits for the readiness path before the first
 | Image | `AWS_LWA_INVOKE_MODE` | `AWS_LWA_READINESS_CHECK_PATH` |
 |---|---|---|
 | `core-api` | `buffered` | `/api/v1/health/` |
-| `ai-api` | `response_stream` (the SSE chat streams end to end) | `/api/v1/ai/health/` |
+| `ai-api` | `response_stream` (the planner's SSE stream arrives end to end) | `/api/v1/ai/health/` |
 
 The values are baked into the image (one tiny stage per service in the `Dockerfile`), so
 Terraform does not have to repeat them; the function's own environment can still override them.
@@ -88,7 +88,7 @@ never crosses origins, so CORS is not involved and the e2e suite can run against
 
 | nginx `location` | Goes to | Notes |
 |---|---|---|
-| `/api/v1/ai/` | `ai_api` | buffering off, 300 s read timeout: the chat streams as SSE |
+| `/api/v1/ai/` | `ai_api` | buffering off, 300 s read timeout: the planner streams as SSE |
 | `/api/` | `core_api` | only the API path reaches the backend, like the gateway in prod |
 | `/` | `/usr/share/nginx/html` (bind mount of `src/frontend/out`, read-only) | `try_files $uri $uri/index.html $uri.html =404`, `error_page 404 /404.html` |
 
@@ -128,23 +128,22 @@ Without a Google client, sign in with a minted token instead (next section).
 
 ### End-to-end tests against the stack
 
-The stack is the only local mode with a backend, so the signed-in Playwright suite
-(`src/frontend/e2e/trips.spec.ts`: the trips list and the planner, over trips the suite creates
-through the API) runs against it. Two commands: mint a token, run the suite.
+The stack's `ai_api` runs with `RETRIEVAL_ENABLED` off and dummy AWS keys, so its planner answers
+503: the signed-in Playwright specs mock `/ai/planner` in the browser and need only `core_api`.
+Mint a token, run the suite:
 
 ```bash
 just stack-up
-E2E_TOKEN=$(just dev-token you@example.com) just test-e2e-stack    # or, inside the container:
-E2E_TOKEN=$(docker compose exec -T core_api python -m core_api.devtools token you@example.com) just test-e2e-stack
+E2E_TOKEN=$(just dev-token you@example.com) just test-e2e-stack
 ```
 
-`just dev-token` runs `python -m core_api.devtools token <email>` with the host's
-`services/core_api/.env` (the Compose stack publishes DynamoDB Local on :8002, the `.env`'s
-`DYNAMODB_ENDPOINT_URL`, so the same `.env` reaches it), creating the account when it is new; the container form needs no Python on the host
-and is what CI uses. Either way the
-token is the HS256 JWT `POST /auth/google` would issue, signed with the stack's `SECRET_KEY`. The
-suite writes it into `localStorage` before the first navigation and is skipped without
-`E2E_TOKEN` (`docs/runbooks/local-dev.md#end-to-end-tests`).
+`just dev-token` runs on the host with `services/core_api/.env`, whose `SECRET_KEY` the stack
+also reads and whose `DYNAMODB_ENDPOINT_URL` (`:8002`) is where the stack publishes DynamoDB Local.
+Without Python on the host, mint it in the container instead:
+`docker compose -f src/backend/docker-compose.yml exec -T core_api python -m core_api.devtools token you@example.com`.
+Either way the token is the HS256 JWT `POST /auth/google` would issue; the suite writes it into
+`localStorage` before the first navigation and skips the signed-in specs without `E2E_TOKEN`
+([local-dev runbook](local-dev.md#end-to-end-tests)).
 
 **In CI** the `e2e-stack` job of `.github/workflows/pr.yml` (path-filtered on `src/**`, the
 `justfile` and the workflows) is where the stack is proven, because the devcontainer has no
@@ -167,6 +166,6 @@ build in under a minute from the cached dependency layer, so it uses no registry
 - `core_api` restarts in a loop → it cannot reach DynamoDB Local or create its table; `just docker-logs core_api`.
 - A Lambda function never becomes ready → the readiness path answered non-2xx; check the function
   logs for the adapter's line and the app's startup errors (`SECRET_KEY`/`COGNITO_*`, database).
-- Chat answers arrive all at once → a proxy is buffering; nginx config sets `proxy_buffering off`
+- Planner answers arrive all at once → a proxy is buffering; nginx config sets `proxy_buffering off`
   and the app sends `X-Accel-Buffering: no`.
 - `ai_api` answers 503 on `/api/v1/ai/health/provider` → the active provider is not configured (`NVIDIA_API_KEY`, or `BEDROCK_CHAT_MODEL` with `LLM_PROVIDER=bedrock`).

@@ -1,5 +1,7 @@
 "use client";
 
+/** The auth context: the session, sign-in and sign-out for React. */
+
 import {
   createContext,
   useCallback,

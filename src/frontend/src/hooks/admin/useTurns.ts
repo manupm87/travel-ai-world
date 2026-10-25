@@ -1,5 +1,7 @@
 "use client";
 
+/** The turns that match the explorer's filters. */
+
 import { useCallback } from "react";
 import { listTurns, type TurnQuery, type TurnSummary } from "@/services/admin";
 import { useCursorList } from "./useCursorList";

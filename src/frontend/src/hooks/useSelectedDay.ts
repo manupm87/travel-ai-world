@@ -1,5 +1,7 @@
 "use client";
 
+/** The day the planner shows. */
+
 import { useState, type Dispatch, type SetStateAction } from "react";
 import type { ItineraryDraft } from "./plannerReducer";
 

@@ -1,5 +1,7 @@
 "use client";
 
+/** The app-wide error boundary. */
+
 import { useEffect } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { Button } from "@/components/ui/Button";

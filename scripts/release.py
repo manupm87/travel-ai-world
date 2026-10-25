@@ -3,7 +3,8 @@
 
     python3 scripts/release.py bump [patch|minor|major] [--no-commit]
         On a feature branch: bump the version in every manifest, re-lock the
-        backend workspace and commit. Refuses to run on main.
+        backend workspace and the frontend's package-lock.json, and commit.
+        Refuses to run on main.
 
     python3 scripts/release.py publish [--draft] [--prerelease]
         On a clean, up-to-date main: tag vX.Y.Z and create the GitHub release
@@ -84,6 +85,29 @@ def set_version(path: Path, old: str, new: str) -> bool:
     return True
 
 
+def relock_frontend(frontend: Path) -> Path | None:
+    """Rewrite package-lock.json after a version change; None when npm is missing.
+
+    The lockfile repeats the version (top level and `packages[""]`); npm rewrites
+    it, never a hand edit.
+    """
+    if not shutil.which("npm"):
+        return None
+    subprocess.run(
+        [  # noqa: S607
+            "npm",
+            "install",
+            "--package-lock-only",
+            "--ignore-scripts",
+            "--no-audit",
+            "--no-fund",
+        ],
+        cwd=frontend,
+        check=True,
+    )
+    return frontend / "package-lock.json"
+
+
 def cmd_bump(args: argparse.Namespace) -> int:
     branch = current_branch()
     if branch in {"main", "master"}:
@@ -110,6 +134,16 @@ def cmd_bump(args: argparse.Namespace) -> int:
         print("  ok    src/backend/uv.lock re-locked")
     else:
         print("  warn  uv not found: run `uv lock` in src/backend before committing")
+
+    lock = relock_frontend(SOURCE_OF_TRUTH.parent)
+    if lock:
+        changed.append(lock)
+        print("  ok    src/frontend/package-lock.json re-locked")
+    else:
+        print(
+            "  warn  npm not found: run `npm install --package-lock-only` in "
+            "src/frontend before committing"
+        )
 
     if args.no_commit:
         print("files updated, no commit created (--no-commit)")

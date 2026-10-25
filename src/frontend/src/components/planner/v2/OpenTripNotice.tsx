@@ -1,5 +1,7 @@
 "use client";
 
+/** The notice while `/plan/?trip=` opens a saved trip, or when it cannot. */
+
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";

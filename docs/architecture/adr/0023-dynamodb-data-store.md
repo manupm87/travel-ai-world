@@ -136,6 +136,6 @@ TTL on `expires_at`, no point-in-time recovery.
 - **Supersedes** the data part of ADR 0009 (RDS, the `ai` database with `pgvector`, the
   `migrate` command, `core_api` inside the VPC). The rest of ADR 0009 stands.
 - **2026-09-23:** RDS, the VPC and the copy command removed, in two applies
-  ([infra/aws/README.md](../../../infra/aws/README.md#taking-a-function-out-of-a-vpc)). The
+  (a targeted apply of each function first to break a Terraform cycle, then the plain apply). The
   final snapshot was deleted rather than kept 30 days: every row lives in DynamoDB, which has
   point-in-time recovery.

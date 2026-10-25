@@ -1,3 +1,5 @@
+"""Request and response bodies of a trip's itinerary days."""
+
 import datetime as dt
 from uuid import UUID
 

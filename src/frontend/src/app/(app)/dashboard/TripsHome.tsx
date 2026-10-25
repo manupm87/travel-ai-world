@@ -1,5 +1,7 @@
 "use client";
 
+/** The trips home: the ask field over the account's trips. */
+
 import { AskComposer } from "@/components/common/AskComposer";
 import { TripsList } from "@/components/trips/TripsList";
 import { Button } from "@/components/ui/Button";

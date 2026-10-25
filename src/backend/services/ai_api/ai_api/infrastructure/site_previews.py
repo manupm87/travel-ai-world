@@ -5,12 +5,13 @@ site's link preview (`og:image`), credited with its bare domain. It is fetched l
 kept in memory for a day, never stored in the licence-clean corpus.
 """
 
+import asyncio
 import ipaddress
 import logging
 import re
 import socket
 import time
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable, Sequence
 from html.parser import HTMLParser
 from urllib.parse import urljoin, urlsplit, urlunsplit
 
@@ -25,9 +26,18 @@ logger = logging.getLogger(__name__)
 MAX_REDIRECTS = 3
 """Hops a lookup follows; the client never follows redirects itself.
 
-Every hop passes `fetchable` first, so a redirect cannot lead where the first URL was
-not allowed to go.
+Every hop passes `fetchable` and the resolved-address check first, so a redirect cannot
+lead where the first URL was not allowed to go.
 """
+
+RESOLVE_TIMEOUT_SECONDS = 5.0
+"""How long a host's name may take to resolve before the lookup gives up on it."""
+
+DEFAULT_PORTS = {"http": 80, "https": 443}
+"""The only port each scheme may name: a venue's site never needs another."""
+
+Resolver = Callable[[str], Awaitable[Sequence[str]]]
+"""A host name to the addresses it resolves to; raises `OSError` when it cannot."""
 
 DENIED_HOSTS = (
     "wikipedia.org",
@@ -124,8 +134,10 @@ class SitePreviews:
         cache_seconds: int = 86400,
         cache_size: int = 2000,
         clock: Callable[[], float] = time.monotonic,
+        resolve: Resolver | None = None,
     ) -> None:
         self._client = client
+        self._resolve = resolve or resolve_host
         self._max_bytes = max_bytes
         self._cache_seconds = cache_seconds
         self._cache_size = cache_size
@@ -214,6 +226,8 @@ class SitePreviews:
         """
         url = image
         for _ in range(MAX_REDIRECTS + 1):
+            if not await self._may_connect(url):
+                return False
             response = await self._client.head(url)
             if response.is_redirect:
                 url = urljoin(url, response.headers.get("location", ""))
@@ -239,6 +253,8 @@ class SitePreviews:
         """
         url = site_url
         for _ in range(MAX_REDIRECTS + 1):
+            if not await self._may_connect(url):
+                return None
             async with self._client.stream("GET", url) as response:
                 if response.is_redirect:
                     location = response.headers.get("location", "")
@@ -254,6 +270,29 @@ class SitePreviews:
                 body = await read_limited(response, self._max_bytes)
                 return str(response.url), body, response.charset_encoding or "utf-8"
         return None
+
+    async def _may_connect(self, url: str) -> bool:
+        """Whether the URL names its scheme's default port and a public host.
+
+        Checked right before each request, redirects included: a public-looking
+        name may point at the local network, the cloud's metadata service or
+        this machine, so every address it resolves to must be public. A name
+        that does not resolve is refused too.
+        """
+        if not on_default_port(url):
+            logger.info("Site preview refused %r, on a port of its own", url)
+            return False
+        host = urlsplit(url).hostname or ""
+        try:
+            async with asyncio.timeout(RESOLVE_TIMEOUT_SECONDS):
+                addresses = await self._resolve(host)
+        except (OSError, UnicodeError, TimeoutError) as exc:
+            logger.info("Site preview could not resolve %r: %s", host, exc)
+            return False
+        if addresses and all(is_public_address(a) for a in addresses):
+            return True
+        logger.info("Site preview refused %r, which resolves to %s", host, addresses)
+        return False
 
     def _cached(self, site_url: str) -> Photo | _Missing | None:
         entry = self._cache.get(site_url)
@@ -277,7 +316,8 @@ def fetchable(site_url: str) -> bool:
 
     Only plain http(s) to a public named host: no credentials in the URL, no
     IP literal, no host of the local network, and none of the encyclopaedias
-    that are never the venue's own site.
+    that are never the venue's own site. The port and where the name resolves
+    are checked right before each request (`SitePreviews._may_connect`).
     """
     try:
         parsed = urlsplit(site_url)
@@ -306,6 +346,46 @@ def fetchable(site_url: str) -> bool:
         return False
     return not any(
         host == denied or host.endswith(f".{denied}") for denied in DENIED_HOSTS
+    )
+
+
+def on_default_port(url: str) -> bool:
+    """Whether the URL names no port, or its scheme's own (80 for http, 443 for https)."""
+    try:
+        parsed = urlsplit(url)
+        return parsed.port in (None, DEFAULT_PORTS.get(parsed.scheme))
+    except ValueError:
+        return False
+
+
+async def resolve_host(host: str) -> list[str]:
+    """Every address the system resolver gives for `host`, IPv4 and IPv6."""
+    infos = await asyncio.get_running_loop().getaddrinfo(
+        host, None, type=socket.SOCK_STREAM
+    )
+    return [str(info[4][0]) for info in infos]
+
+
+def is_public_address(address: str) -> bool:
+    """Whether an address is reachable on the public internet and nothing else.
+
+    Private, loopback, link-local, shared, reserved, unspecified and multicast
+    addresses are refused, in IPv4 and IPv6 alike; an IPv4 address mapped into
+    IPv6 is judged as the IPv4 one.
+    """
+    try:
+        ip = ipaddress.ip_address(address)
+    except ValueError:
+        return False
+    if isinstance(ip, ipaddress.IPv6Address) and ip.ipv4_mapped is not None:
+        ip = ip.ipv4_mapped
+    return ip.is_global and not (
+        ip.is_private
+        or ip.is_loopback
+        or ip.is_link_local
+        or ip.is_reserved
+        or ip.is_unspecified
+        or ip.is_multicast
     )
 
 

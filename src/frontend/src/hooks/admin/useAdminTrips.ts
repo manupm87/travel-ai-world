@@ -1,5 +1,7 @@
 "use client";
 
+/** Every saved trip, for the admin trips list. */
+
 import { useCallback } from "react";
 import { listAdminTrips, type AdminTripSummary } from "@/services/admin";
 import { useCursorList } from "./useCursorList";

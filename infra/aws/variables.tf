@@ -66,6 +66,17 @@ variable "bedrock_chat_model" {
   }
 }
 
+variable "bedrock_judge_model" {
+  description = "Bedrock EU cross-Region inference profile of the answer evaluation's judge, run from the admin console (ADR 0039). Another family than the chat model, so no model grades itself."
+  type        = string
+  default     = "eu.amazon.nova-pro-v1:0"
+
+  validation {
+    condition     = startswith(var.bedrock_judge_model, "eu.")
+    error_message = "Use an EU geographic inference profile (eu. prefix): the IAM policy derives the foundation model from it."
+  }
+}
+
 variable "retrieval_enabled" {
   description = "Whether ai_api grounds its answers in the vector store (fill it first with just index). False turns the planner off: it answers 503 without the corpus."
   type        = bool
@@ -225,4 +236,28 @@ variable "grafana_cloud_logs_reader" {
     )
     error_message = "Use a 12-digit Grafana AWS account ID and a non-empty exact external ID, or null."
   }
+}
+
+variable "access_logs_enabled" {
+  description = "Enable bounded HTTP access logs in both APIs; existing log retention applies."
+  type        = bool
+  default     = true
+}
+
+variable "access_logs_dashboard_enabled" {
+  description = "Create the access log dashboard. Opening/refreshing it runs billable Logs Insights scans."
+  type        = bool
+  default     = true
+}
+
+variable "service_dashboard_enabled" {
+  description = "Create the native CloudWatch service dashboard. Standard CloudWatch dashboard pricing applies."
+  type        = bool
+  default     = true
+}
+
+variable "infrastructure_dashboard_enabled" {
+  description = "Create the native DynamoDB, CloudFront and Lambda infrastructure dashboard; verify the account dashboard free-tier allowance."
+  type        = bool
+  default     = true
 }

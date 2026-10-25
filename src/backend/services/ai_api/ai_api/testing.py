@@ -26,6 +26,7 @@ from ai_api.domain.agent import (
     ToolCallReady,
     ToolSpec,
 )
+from ai_api.domain.evaluation import EvalItemRecord, EvalRunDetail, EvalRunRecord
 from ai_api.domain.models import (
     City,
     Document,
@@ -245,6 +246,7 @@ class FakeRetriever:
         *,
         limit: int = 5,
         filters: RetrievalFilters | None = None,
+        usage: Usage | None = None,
     ) -> list[Document]:
         self.searches.append((query, limit, filters))
         if self.fail_with is not None:
@@ -293,6 +295,7 @@ class KeywordRetriever:
         *,
         limit: int = 5,
         filters: RetrievalFilters | None = None,
+        usage: Usage | None = None,
     ) -> list[Document]:
         self.searches.append((query, limit, filters))
         words = [w for w in WORDS.findall(query.lower()) if len(w) >= MIN_QUERY_WORD]
@@ -505,6 +508,53 @@ class InMemoryUsageStore:
     async def list_day(self, day: date) -> list[DailyUsage]:
         self._check()
         return [u for u in self.days.values() if u.day == day.isoformat()]
+
+    def _check(self) -> None:
+        if self.fail_with is not None:
+            raise self.fail_with
+
+
+class InMemoryEvalStore:
+    """The evaluation runs in dicts; `fail_with` makes every call raise."""
+
+    def __init__(self, fail_with: Exception | None = None) -> None:
+        self.runs: dict[str, EvalRunRecord] = {}
+        self.items: dict[str, dict[str, EvalItemRecord]] = {}
+        self.lock: tuple[str, datetime, bool] | None = None
+        """The run holding the lock, when it took it, and whether it gave it back."""
+        self.fail_with = fail_with
+
+    async def save_run(self, run: EvalRunRecord) -> None:
+        self._check()
+        self.runs[run.run_id] = run
+
+    async def add_items(self, run_id: str, items: Sequence[EvalItemRecord]) -> None:
+        self._check()
+        self.items.setdefault(run_id, {}).update({i.key: i for i in items})
+
+    async def list_runs(self, limit: int) -> list[EvalRunRecord]:
+        self._check()
+        newest = sorted(self.runs.values(), key=lambda r: r.started_at, reverse=True)
+        return newest[:limit]
+
+    async def get(self, run_id: str) -> EvalRunDetail | None:
+        self._check()
+        run = self.runs.get(run_id)
+        if run is None:
+            return None
+        return EvalRunDetail(run, list(self.items.get(run_id, {}).values()))
+
+    async def claim(self, run_id: str, now: datetime, stale_before: datetime) -> bool:
+        self._check()
+        if self.lock and not self.lock[2] and self.lock[1] >= stale_before:
+            return False
+        self.lock = (run_id, now, False)
+        return True
+
+    async def release(self, run_id: str) -> None:
+        self._check()
+        if self.lock and self.lock[0] == run_id:
+            self.lock = (run_id, self.lock[1], True)
 
     def _check(self) -> None:
         if self.fail_with is not None:

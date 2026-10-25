@@ -1,5 +1,7 @@
 "use client";
 
+/** The ask field shared by the landing and the trips home. */
+
 import {
   useEffect,
   useRef,

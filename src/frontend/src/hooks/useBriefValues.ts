@@ -1,5 +1,7 @@
 "use client";
 
+/** The brief's fields as the reader reads them. */
+
 import { useLanguage } from "@/context/LanguageContext";
 import { useFormatters } from "@/hooks/useFormatters";
 import { interpolate } from "@/i18n";

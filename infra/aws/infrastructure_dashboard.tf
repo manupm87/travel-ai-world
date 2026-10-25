@@ -12,12 +12,6 @@ resource "aws_cloudwatch_dashboard" "infrastructure" {
   })
 }
 
-variable "infrastructure_dashboard_enabled" {
-  description = "Create the native DynamoDB, CloudFront and Lambda infrastructure dashboard; verify the account dashboard free-tier allowance."
-  type        = bool
-  default     = true
-}
-
 output "infrastructure_dashboard_url" {
   description = "AWS console URL for the infrastructure dashboard."
   value       = var.infrastructure_dashboard_enabled ? "https://${var.region}.console.aws.amazon.com/cloudwatch/home?region=${var.region}#dashboards:name=${aws_cloudwatch_dashboard.infrastructure[0].dashboard_name}" : null

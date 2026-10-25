@@ -11,7 +11,7 @@ from ai_api.api.deps import (
     get_weather,
 )
 from ai_api.domain.agent import ToolCall
-from ai_api.domain.models import Photo
+from ai_api.domain.models import Document, Photo, RetrievalFilters, Usage
 from ai_api.main import app
 from ai_api.testing import (
     FakePhotoFinder,
@@ -335,6 +335,24 @@ ASTORIA = "wv:en:Budapest/Belváros#sleep:danubius-hotel-astoria"
 PARLIAMENT = "wv:en:Budapest/Belváros#see:parliament"
 ANNA_CAFE = "wv:en:Budapest/Belváros#eat:anna-cafe"
 SZIMPLA = "wv:en:Budapest/Erzsébetváros#drink:szimpla-kert-mozi"
+
+
+class EmbeddingRetriever(FakeRetriever):
+    """Reports one embedding token per word of the query, as an embedder would."""
+
+    async def search(
+        self,
+        query: str,
+        *,
+        limit: int = 5,
+        filters: RetrievalFilters | None = None,
+        usage: Usage | None = None,
+    ) -> list[Document]:
+        if usage is not None:
+            usage.input_tokens = (usage.input_tokens or 0) + len(query.split())
+        return await super().search(query, limit=limit, filters=filters, usage=usage)
+
+
 ONE_DAY = {
     "destination": "Budapest",
     "origin": "Madrid",
@@ -372,7 +390,7 @@ async def test_a_draft_turn_leaves_one_trace_with_its_steps(
             }
         ),
     ]
-    app.dependency_overrides[get_retriever] = lambda: FakeRetriever(
+    app.dependency_overrides[get_retriever] = lambda: EmbeddingRetriever(
         documents_from_corpus(FIXTURE)
     )
     app.dependency_overrides[get_photos] = lambda: None
@@ -410,6 +428,12 @@ async def test_a_draft_turn_leaves_one_trace_with_its_steps(
         "candidates:1:evening",
     }
     assert all(s.results for s in searches if s.payload["purpose"] != "climate")
+    # Each search records the tokens its query cost to embed; the turn sums them.
+    queried = [s for s in searches if s.name.startswith("search:")]
+    assert all(
+        s.payload["embed_tokens"] == len(s.payload["query"].split()) for s in queried
+    )
+    assert trace.embed_tokens == sum(s.payload["embed_tokens"] for s in queried) > 0
     used = {r.doc_id for s in searches for r in s.results if r.used}
     assert {ASTORIA, PARLIAMENT, ANNA_CAFE, SZIMPLA} <= used
     assert trace.docs_used >= 4

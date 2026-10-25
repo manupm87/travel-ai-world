@@ -1,3 +1,5 @@
+/** Short names for the parts of a turn the inspector renders. */
+
 import type { TurnDetail } from "@/services/admin";
 
 /** One step of a turn, as the admin API returns it. */
@@ -6,8 +8,6 @@ export type SpanKind = Span["kind"];
 export type Phase = Span["phase"];
 /** One document a retrieval returned. */
 export type RetrievedDoc = Span["results"][number];
-/** One SSE mark of the turn's timeline. */
-export type EventMark = TurnDetail["timeline"][number];
 export type TurnContext = TurnDetail["context"];
 
 /** The phone sheet's four tabs; every section of the inspector lives under one. */

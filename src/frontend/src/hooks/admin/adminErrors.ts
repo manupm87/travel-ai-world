@@ -1,3 +1,5 @@
+/** The errors the admin console's reads can fail with. */
+
 import { ApiError, UnauthorizedError } from "@/services/http";
 import { clearSession } from "@/services/session";
 

@@ -339,7 +339,9 @@ def test_unknown_city_is_an_error(tmp_path: Path) -> None:
     def nothing(request: httpx.Request) -> httpx.Response:
         return httpx.Response(200, json={"search": []})
 
-    client = ApiClient(tmp_path, transport=httpx.MockTransport(nothing))
+    client = ApiClient(
+        tmp_path, transport=httpx.MockTransport(nothing), sleep=lambda _: None
+    )
     with pytest.raises(DiscoveryError, match="no item labelled"):
         discover(client, "Nowhere")
 
@@ -414,7 +416,9 @@ def test_a_wikidata_api_error_is_a_discovery_error(tmp_path: Path) -> None:
             200, json={"error": {"code": "toomanyvalues", "info": "Too many values"}}
         )
 
-    client = ApiClient(tmp_path, transport=httpx.MockTransport(broken))
+    client = ApiClient(
+        tmp_path, transport=httpx.MockTransport(broken), sleep=lambda _: None
+    )
     with pytest.raises(DiscoveryError, match=r"Wikidata: .*toomanyvalues"):
         discover(client, "Bologna")
 

@@ -1,5 +1,7 @@
 "use client";
 
+/** The MapLibre map behind the trip: pins, route line and camera. */
+
 import { useEffect, useRef, useState } from "react";
 import {
   Map as MapLibreMap,
@@ -26,11 +28,9 @@ export const STYLE_URLS = {
 /**
  * MapLibre's worker, copied into `public/maplibre/` by `scripts/copy-maplibre-worker.mjs`:
  * under Turbopack MapLibre's `import.meta.url` lookup loads the page instead and the
- * map stays blank. The prefix mirrors `basePath`, which only production builds set.
+ * map stays blank.
  */
-export const WORKER_URL = `${
-  process.env.NODE_ENV === "production" ? (process.env.NEXT_PUBLIC_BASE_PATH ?? "") : ""
-}/maplibre/maplibre-gl-worker.js`;
+export const WORKER_URL = "/maplibre/maplibre-gl-worker.js";
 
 /** Told to MapLibre once per page, before the first map is built. */
 let workerConfigured = false;

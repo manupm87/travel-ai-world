@@ -1,5 +1,7 @@
 "use client";
 
+/** The header's account menu, or its sign-in button. */
+
 import { useCallback, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";

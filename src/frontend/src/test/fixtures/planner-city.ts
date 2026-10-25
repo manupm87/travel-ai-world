@@ -1,3 +1,5 @@
+/** Planner city fixtures. */
+
 import { commonsPhoto } from "@/data/planner-demo/session";
 import type { PlannerCity } from "@/types/planner";
 

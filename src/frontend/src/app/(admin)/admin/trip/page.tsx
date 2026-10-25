@@ -1,3 +1,5 @@
+/** Route `/admin/trip/`: the static shell over one saved trip. */
+
 import { Suspense } from "react";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import TripClientPage from "./TripClientPage";

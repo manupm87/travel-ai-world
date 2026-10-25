@@ -1,5 +1,7 @@
 "use client";
 
+/** The dialog that renames a trip. */
+
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { Loader2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";

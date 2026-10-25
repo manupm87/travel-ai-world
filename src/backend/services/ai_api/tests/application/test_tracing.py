@@ -3,7 +3,12 @@
 import asyncio
 
 import pytest
-from ai_api.application.structured import complete_json
+from ai_api.application.structured import (
+    INVALID_ANSWER_MESSAGE,
+    NotJson,
+    complete_json,
+    extract_json,
+)
 from ai_api.application.tracing import (
     NullTracer,
     TurnTracer,
@@ -365,6 +370,54 @@ async def test_complete_json_fails_once_and_marks_the_use_case_fallback():
     assert span.payload["attempts"] == 1
     assert len(provider.completions) == 1
     assert t.finish("error").fallbacks == 1
+
+
+@pytest.mark.parametrize("reply", ['Sure: {"value": 1}', "[1, 2]", "not json"])
+async def test_complete_json_rejects_a_native_answer_that_is_not_a_bare_object(reply):
+    """The native mode tolerates no prose around the JSON, and no other JSON."""
+    t = tracer()
+    provider = FakeProvider(replies=[reply], supports_structured_outputs=True)
+
+    with pytest.raises(ProviderUnavailable) as raised:
+        await complete_json(
+            provider, [Message("user", "q")], Answer, name="extract", tracer=t
+        )
+
+    [span] = t.spans
+    assert raised.value.message == INVALID_ANSWER_MESSAGE
+    assert span.payload["validation_error"]
+    assert span.payload["fallback_used"] is False
+    assert span.payload["output"] == reply
+
+
+class UnavailableProvider(FakeProvider):
+    async def complete(self, *args: object, **kwargs: object) -> str:
+        raise ProviderUnavailable("bedrock down")
+
+
+async def test_complete_json_lets_a_provider_failure_through_marked_for_fallback():
+    t = tracer()
+    provider = UnavailableProvider(supports_structured_outputs=True)
+
+    with pytest.raises(ProviderUnavailable, match="bedrock down"):
+        await complete_json(
+            provider,
+            [Message("user", "q")],
+            Answer,
+            name="extract",
+            tracer=t,
+            fallback_on_error=True,
+        )
+
+    [span] = t.spans
+    assert span.level == "error" and span.payload["fallback_used"] is True
+    assert span.payload["validation_error"] is None
+
+
+@pytest.mark.parametrize("text", ["no braces here", "here: {1: 2}", "} before {"])
+def test_extract_json_refuses_text_without_a_json_object(text):
+    with pytest.raises(NotJson):
+        extract_json(text)
 
 
 async def test_complete_json_uses_tolerant_prompt_for_unsupported_provider():

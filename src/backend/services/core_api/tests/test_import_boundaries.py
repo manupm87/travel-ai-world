@@ -1,7 +1,7 @@
 """Who may import what, checked on the source (ADR 0023).
 
 `boto3`/`botocore` appear only in `infrastructure/dynamo/`, and nothing in the web
-process imports the shell-only `core_api.devtools` or `core_api.ops`.
+process imports the shell-only `core_api.devtools`.
 """
 
 import ast
@@ -42,11 +42,6 @@ def test_only_the_adapter_talks_to_dynamodb():
 
 def test_the_service_never_imports_devtools():
     offenders = _offenders(("core_api.devtools",), ("devtools.py",))
-    assert offenders == [], offenders
-
-
-def test_the_service_never_imports_ops():
-    offenders = _offenders(("core_api.ops",), ("ops.py",))
     assert offenders == [], offenders
 
 

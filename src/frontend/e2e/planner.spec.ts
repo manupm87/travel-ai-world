@@ -377,7 +377,7 @@ test.describe("Planner page — /plan/", () => {
       .toEqual(titles);
     await expect(page.getByText("Hotel Rum Budapest").first()).toBeVisible();
 
-    await request.delete(`/api/v1/trips/${tripId}`, {
+    await request.delete(`${process.env.E2E_API_URL ?? ""}/api/v1/trips/${tripId}`, {
       headers: { authorization: `Bearer ${TOKEN}` },
     });
   });

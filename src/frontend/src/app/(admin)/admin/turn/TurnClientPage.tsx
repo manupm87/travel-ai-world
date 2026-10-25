@@ -1,5 +1,7 @@
 "use client";
 
+/** The turn inspector page: one turn, its neighbours in the session and its JSON export. */
+
 import { ArrowLeft, Download } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";

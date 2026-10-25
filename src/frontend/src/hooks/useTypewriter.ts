@@ -1,5 +1,7 @@
 "use client";
 
+/** Types one phrase after another, for an animated placeholder. */
+
 import { useEffect, useState, useSyncExternalStore } from "react";
 
 interface TypewriterOptions {

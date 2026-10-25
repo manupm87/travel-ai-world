@@ -1,0 +1,81 @@
+\section{Equipo y contribución individual}\label{sec:equipo}
+
+\kyrian{} es el trabajo de cuatro personas que se repartieron el proyecto por bloques: cada
+miembro lideró al menos uno de principio a fin y colaboró en los de los demás. La
+Tabla~\ref{tab:raci} detalla quién fue responsable de cada componente y quién contribuyó, agrupando
+los componentes por área; su última fila resume la participación de cada miembro como su parte
+del total de intervenciones de la matriz, con el mismo peso para la responsabilidad y la
+contribución, y la Fig.~\ref{fig:fases} muestra cómo se fue repartiendo el trabajo a lo
+largo del proyecto. Todo el equipo desarrolló con agentes de código; la autoría que se recoge aquí refleja quién especificó,
+dirigió, revisó e integró cada parte.
+
+\begin{table}[!h]
+\centering\scriptsize
+\caption{Matriz de responsabilidad por componente, agrupada por área (R: responsable; C: contribuye). DB: David Baos; JC: Joaquín Castro Salas; AD: Alexander De Sousa; MP: Manuel Pérez.}\label{tab:raci}
+\begin{tabularx}{\columnwidth}{@{}Ycccc@{}}
+\toprule
+\textbf{Componente} & \textbf{DB} & \textbf{JC} & \textbf{AD} & \textbf{MP} \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Producto y negocio}} \\
+Idea del producto y estudio de mercado & & & R & \\
+Planificador web: interfaz, mapa y administración & & C & & R \\
+Diseño visual en torno a Kiri & & R & & \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Inteligencia artificial}} \\
+Agente Kiri: herramientas, \emph{guardrails} y salidas estructuradas & & & C & R \\
+Recuperación (RAG) con Bedrock y S3 Vectors & & R & & C \\
+Ingesta de datos: corpus, puerta de calidad y ciudades & C & C & C & R \\
+Evaluación: recuperación, respuestas y agente & & R & & C \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Arquitectura y nube}} \\
+Arquitectura de software y nube & & & & R \\
+Servicio de datos: usuarios, viajes, acceso y cuota & & C & & R \\
+Infraestructura en AWS con Terraform & C & & C & R \\
+Borde HTTPS del frontend & & & R & \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{DevOps y operación}} \\
+Entorno de desarrollo local en contenedor & & & R & C \\
+Monorepo y CI/CD & & C & & R \\
+Observabilidad: trazas, registros, cuadros de mando y alertas & R & & C & \\
+\midrule
+\textbf{Participación} & \textbf{11\,\%} & \textbf{26\,\%} & \textbf{26\,\%} & \textbf{37\,\%} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\resizebox{\linewidth}{!}{\begin{tikzpicture}[x=1cm,y=1cm,
+  ph/.style={box,font=\scriptsize,text width=2.45cm,minimum height=0.55cm,fill=klight},
+  tx/.style={font=\scriptsize,text width=2.5cm,align=left,anchor=north}]
+\draw[arr,line width=1pt] (-1.4,0) -- (7.0,0);
+\node[ph] (p1) at (0,0) {\textbf{Exploración}\\marzo--6 sep.};
+\node[ph] (p2) at (2.8,0) {\textbf{Nueva arquitectura}\\7--20 sep.};
+\node[ph] (p3) at (5.6,0) {\textbf{Producto}\\21 sep.--octubre};
+\node[tx] at (0,-0.5) {JC: backend inicial y primer \emph{chatbot}\\AD: idea, estudio de mercado, primera fuente de datos, \emph{devcontainer} e IaC\\MP: web y frontend};
+\node[tx] at (2.8,-0.5) {JC: Bedrock y recuperación RAG\\AD: HTTPS del frontend\\MP: dos servicios, \emph{serverless}, corpus y planificador};
+\node[tx] at (5.6,-0.5) {DB: observabilidad\\JC: diseño visual y evaluación\\AD: salidas estructuradas y alertas\\MP: datos, trazas, acceso y agente};
+\end{tikzpicture}}
+\caption{Fases del proyecto y bloques liderados por cada miembro. Las dos decisiones que más cambiaron el sistema fueron pasar de contenedores a \emph{serverless} y de un planificador por intenciones a un agente con herramientas (§\ref{sec:evalagente}).}\label{fig:fases}
+\end{figure}
+
+Bloques que lideró cada miembro:
+\begin{itemize}
+  \item \textbf{David Baos}: la observabilidad de la plataforma (cuadros de mando de
+        CloudWatch, registros de acceso estructurados y métricas de negocio sobre los registros de
+        producción).
+
+  \item \textbf{Joaquín Castro Salas}: la recuperación aumentada (integración con Bedrock y
+        S3 Vectors), la evaluación de la recuperación y de las respuestas con un juez LLM (un
+        modelo de lenguaje que puntúa las respuestas), la evaluación del agente y el diseño visual
+        de la interfaz en torno a Kiri.
+  \item \textbf{Alexander De Sousa}: la idea de \kyrian{} y el estudio de mercado que la sitúa
+        frente a la competencia (§\ref{sec:negocio}); el entorno de desarrollo local en
+        contenedor, la primera fuente de datos y la primera infraestructura como código; el borde
+        HTTPS del frontend (S3, CloudFront, Route~53 y ACM); las salidas estructuradas nativas que
+        usan el agente y los pasos deterministas del planificador, y las alertas de CloudWatch
+        configuradas en la consola.
+  \item \textbf{Manuel Pérez}: la arquitectura de software y de nube con su IaC, el
+        planificador web, el servicio de datos, la CI/CD, el agente Kiri con sus herramientas y
+        \emph{guardrails} y la ingesta de datos con su puerta de calidad y \code{/add-city}.
+\end{itemize}

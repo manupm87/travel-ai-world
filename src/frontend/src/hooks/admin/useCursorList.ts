@@ -1,5 +1,7 @@
 "use client";
 
+/** A cursor-paged list, read a page at a time. */
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { isAbortError } from "@/services/http";
 import { toAdminError, type AdminError } from "./adminErrors";

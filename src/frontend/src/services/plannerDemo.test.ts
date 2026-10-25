@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   BATHS,
   BRIEF_AFTER_FIRST_MESSAGE,
@@ -309,6 +309,41 @@ describe("streamDemoTurn", () => {
       if (out.length === 2) controller.abort();
     }
     expect(out).toHaveLength(2);
+  });
+
+  describe("with real delays", () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("leaves no abort listener behind once a pause is over", async () => {
+      vi.useFakeTimers();
+      const controller = new AbortController();
+      let listeners = 0;
+      const add = controller.signal.addEventListener.bind(controller.signal);
+      const remove = controller.signal.removeEventListener.bind(controller.signal);
+      vi.spyOn(controller.signal, "addEventListener").mockImplementation((...args) => {
+        listeners += 1;
+        add(...args);
+      });
+      vi.spyOn(controller.signal, "removeEventListener").mockImplementation((...args) => {
+        listeners -= 1;
+        remove(...args);
+      });
+
+      const stream = streamDemoTurn(turn({ message: USER_MESSAGES.opening }), {
+        signal: controller.signal,
+      });
+      for (let i = 0; i < 5; i++) {
+        const next = stream.next();
+        await vi.advanceTimersByTimeAsync(1_000);
+        await next;
+      }
+
+      expect(listeners).toBe(0);
+      controller.abort();
+      await stream.return();
+    });
   });
 });
 

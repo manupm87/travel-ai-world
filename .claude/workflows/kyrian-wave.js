@@ -29,7 +29,7 @@ Ground rules (the repo's AGENTS.md files apply; these are the ones a wave trips 
   Frontend work needs the worktree's own node_modules: cd src/frontend && npm ci. Backend work: uv sync.
 - Never touch .claude/, docs/api/, src/frontend/src/types/generated/ or lockfiles.
 - Every commit is conventional and ends with the trailer line:
-  Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+  Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 - Push with: git push -u origin ${branch}
 - Your final text is data for the orchestrator, not a message for a person.`
 

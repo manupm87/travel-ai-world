@@ -1,0 +1,17 @@
+\begin{tikzpicture}[x=1cm,y=1cm,
+  r/.style={box,font=\tiny,text width=2.2cm,minimum height=0.95cm,inner sep=2pt},
+  rd/.style={data,font=\tiny,text width=2.2cm,minimum height=0.95cm,inner sep=2pt},
+  ra/.style={ai,font=\tiny,text width=2.2cm,minimum height=0.95cm,inner sep=2pt},
+  rg/.style={box,draw=korange,fill=orange!10,font=\tiny,text width=2.2cm,minimum height=0.95cm,inner sep=2pt}]
+\node[ra] (q) at (0,0) {\textbf{1. Consulta}\\escrita por el agente o por plantilla (``dinner restaurant \{tema\}'')};
+\node[rd] (emb) at (2.75,0) {\textbf{2. Embedding}\\Titan V2, 1.024 d, solo la consulta};
+\node[rd] (s3v) at (5.5,0) {\textbf{3. S3 Vectors}\\\code{city = …} [+ barrio, categoría, precio]; ENHANCED; top-30};
+\node[r] (lad) at (5.5,-1.45) {\textbf{4. Escalera}\\si faltan: barrio+precio $\rightarrow$ ciudad+precio $\rightarrow$ ciudad};
+\node[r] (rank) at (2.75,-1.45) {\textbf{5. Reordenar}\\sin duplicados, con foto y nombrados primero};
+\node[ra] (pick) at (0,-1.45) {\textbf{6. El modelo elige}\\ids + motivo ($\leq$140 car.)};
+\node[rg] (keep) at (0,-2.9) {\textbf{7. Solo ids conocidos}\\los no recuperados se descartan y se cuentan};
+\node[rd] (card) at (2.75,-2.9) {\textbf{8. Tarjeta}\\reconstruida desde metadatos: foto, coordenadas, fuente, licencia};
+\node[ext,font=\tiny,text width=2.2cm,minimum height=0.95cm] (ui) at (5.5,-2.9) {\textbf{9. Navegador}\\evento \code{options} o \code{itinerary\_patch}};
+\draw[arr] (q)--(emb); \draw[arr] (emb)--(s3v); \draw[arr] (s3v)--(lad); \draw[arr] (lad)--(rank);
+\draw[arr] (rank)--(pick); \draw[arr] (pick)--(keep); \draw[arr] (keep)--(card); \draw[arr] (card)--(ui);
+\end{tikzpicture}

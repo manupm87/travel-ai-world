@@ -1,5 +1,7 @@
 "use client";
 
+/** Today's token use per account, against each one's limit. */
+
 import { useId, useMemo, useState } from "react";
 import { AdminLoadState } from "@/components/admin/AdminStates";
 import { DataTable } from "@/components/admin/DataTable";

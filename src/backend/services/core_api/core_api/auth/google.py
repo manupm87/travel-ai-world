@@ -62,6 +62,10 @@ class GoogleTokenInfoVerifier:
         if data.get("aud") != self._client_id:
             logger.warning("Google token audience mismatch: %s", data.get("aud"))
             raise Unauthorized("Token audience mismatch")
+        # accounts are matched by email, so only an address Google verified may sign in
+        if data.get("email_verified") not in (True, "true"):
+            logger.warning("Google token email is not verified")
+            raise Unauthorized("Google email is not verified")
         try:
             return ExternalIdentity(
                 subject=str(data["sub"]),

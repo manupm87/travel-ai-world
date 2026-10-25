@@ -1,5 +1,7 @@
 "use client";
 
+/** An activity's page in the trip panel: photo, article, contact and directions. */
+
 import { useEffect, useRef } from "react";
 import { ExternalLink, MapPin, Phone, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/Card";

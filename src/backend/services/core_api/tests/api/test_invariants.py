@@ -92,6 +92,45 @@ async def test_child_date_ranges_are_ordered(
     assert response.status_code == 422
 
 
+async def test_journey_times_need_an_offset_on_create(client: AsyncClient, alice: User):
+    """A naive time next to an aware one could not be compared: 422, not 500."""
+    headers = headers_for(alice)
+    trip = await _trip(client, headers)
+
+    response = await client.post(
+        f"{TRIPS_URL}{trip['id']}/transportations/",
+        json={
+            "departure_time": "2027-05-10T10:00:00Z",
+            "arrival_time": "2027-05-10T12:00:00",
+        },
+        headers=headers,
+    )
+
+    assert response.status_code == 422
+
+
+async def test_journey_times_need_an_offset_on_patch(client: AsyncClient, alice: User):
+    headers = headers_for(alice)
+    trip = await _trip(client, headers)
+    journey = await client.post(
+        f"{TRIPS_URL}{trip['id']}/transportations/",
+        json={"departure_time": "2027-05-10T10:00:00+02:00"},
+        headers=headers,
+    )
+    assert journey.status_code == 201, journey.text
+    url = f"{TRIPS_URL}{trip['id']}/transportations/{journey.json()['id']}"
+
+    naive = await client.patch(
+        url, json={"arrival_time": "2027-05-10T12:00:00"}, headers=headers
+    )
+    aware = await client.patch(
+        url, json={"arrival_time": "2027-05-10T12:00:00+02:00"}, headers=headers
+    )
+
+    assert naive.status_code == 422
+    assert aware.status_code == 200, aware.text
+
+
 @pytest.mark.parametrize(
     "fields",
     BAD_TRIP_FIELDS,

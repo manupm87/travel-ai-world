@@ -1,5 +1,7 @@
 "use client";
 
+/** The demo-mode banner. */
+
 import { useState } from "react";
 import { FlaskConical, X } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";

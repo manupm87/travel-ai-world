@@ -1,5 +1,5 @@
 {
-  "name": "Travel AI World",
+  "name": "Kyrian World",
   "dockerComposeFile": "docker-compose.yml",
   "service": "devcontainer",
   "workspaceFolder": "/workspace",
@@ -29,7 +29,6 @@
         "ms-python.python",
         "ms-python.vscode-pylance",
         "charliermarsh.ruff",
-        "esbenp.prettier-vscode",
         "dbaeumer.vscode-eslint",
         "bradlc.vscode-tailwindcss",
         "vitest.explorer",
@@ -46,18 +45,6 @@
         "python.defaultInterpreterPath": "/workspace/src/backend/.venv/bin/python",
         "[python]": {
           "editor.defaultFormatter": "charliermarsh.ruff"
-        },
-        "[typescript]": {
-          "editor.defaultFormatter": "esbenp.prettier-vscode"
-        },
-        "[typescriptreact]": {
-          "editor.defaultFormatter": "esbenp.prettier-vscode"
-        },
-        "[json]": {
-          "editor.defaultFormatter": "esbenp.prettier-vscode"
-        },
-        "[markdown]": {
-          "editor.defaultFormatter": "esbenp.prettier-vscode"
         },
         "terminal.integrated.defaultProfile.linux": "zsh"
       }

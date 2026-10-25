@@ -4,6 +4,73 @@
  */
 
 export interface paths {
+    "/api/v1/ai/admin/answer-eval": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Run Answer Eval
+         * @description Run the answer evaluation or the judge validation, streamed (ADR 0039).
+         *
+         *     `questions`: the 126 evaluation questions answered by the production model
+         *     and graded by the judge (about 0.6 USD, a few minutes); `golden`: the judge
+         *     alone over the labelled golden set (cents). Events are `progress` per item,
+         *     then `report`, then `[DONE]`; a failure mid-run is an `error` event. The run
+         *     is stored as it goes. 409 while another run is in progress; 503 for
+         *     `questions` when retrieval is off.
+         */
+        post: operations["run_answer_eval_api_v1_ai_admin_answer_eval_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ai/admin/answer-evals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Answer Evals
+         * @description The latest evaluation runs, newest first.
+         */
+        get: operations["list_answer_evals_api_v1_ai_admin_answer_evals_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ai/admin/answer-evals/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Answer Eval
+         * @description One run with every item it graded, in the order of their keys.
+         */
+        get: operations["read_answer_eval_api_v1_ai_admin_answer_evals__run_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ai/admin/retrieval-eval": {
         parameters: {
             query?: never;
@@ -307,6 +374,59 @@ export interface components {
             /** Items */
             items: components["schemas"]["AdminUsageItem"][];
         };
+        /**
+         * AgreementReportResponse
+         * @description How a `golden` run's verdicts agree with the expected ones.
+         */
+        AgreementReportResponse: {
+            /** Cases */
+            cases: number;
+            /** Disagreements */
+            disagreements: string[];
+            /** Exact Perturbed */
+            exact_perturbed: number | null;
+            /** Exact Real */
+            exact_real: number | null;
+            /** Gap Accuracy */
+            gap_accuracy: number;
+            groundedness: components["schemas"]["ScoreAgreementResponse"];
+            judging: components["schemas"]["SpendResponse"];
+            /** Low Agreement */
+            low_agreement: number;
+            /** Low Kappa */
+            low_kappa: number | null;
+            relevance: components["schemas"]["ScoreAgreementResponse"];
+        };
+        AnswerEvalEvent: components["schemas"]["EvalProgressEvent"] | components["schemas"]["EvalReportEvent"] | components["schemas"]["ErrorEvent"];
+        /** AnswerEvalRequest */
+        AnswerEvalRequest: {
+            /**
+             * Set
+             * @enum {string}
+             */
+            set: "questions" | "golden";
+        };
+        /**
+         * AnswerReportResponse
+         * @description The scores of a `questions` run; answerable questions only, but `unanswerable`.
+         */
+        AnswerReportResponse: {
+            answering: components["schemas"]["SpendResponse"];
+            /** By City */
+            by_city: components["schemas"]["MeansResponse"][];
+            /** By Language */
+            by_language: components["schemas"]["MeansResponse"][];
+            judging: components["schemas"]["SpendResponse"];
+            overall: components["schemas"]["MeansResponse"];
+            /** Turned Down */
+            turned_down: string[];
+            /** Unanswerable */
+            unanswerable: number;
+            /** Unanswerable Acknowledged */
+            unanswerable_acknowledged: number;
+            /** Worst */
+            worst: string[];
+        };
         /** BriefEvent */
         BriefEvent: {
             brief: components["schemas"]["TripBrief"];
@@ -490,6 +610,119 @@ export interface components {
             type: "error";
         };
         /**
+         * EvalItemResponse
+         * @description One graded question, or one golden case with the verdict expected of it.
+         */
+        EvalItemResponse: {
+            /** Answer */
+            answer: string | null;
+            /** Answerable */
+            answerable: boolean;
+            /** City */
+            city: string;
+            /** Defect */
+            defect: string | null;
+            /** Error */
+            error: string | null;
+            expected: components["schemas"]["ExpectedVerdictResponse"] | null;
+            /** Id */
+            id: string;
+            /** Key */
+            key: string;
+            /** Lang */
+            lang: string;
+            /** Origin */
+            origin: ("real" | "perturbed") | null;
+            /** Passages */
+            passages: string[];
+            /** Query */
+            query: string;
+            verdict: components["schemas"]["VerdictResponse"] | null;
+            /** Why */
+            why: string | null;
+        };
+        /**
+         * EvalProgressEvent
+         * @description One item graded: `done` of `total` so far.
+         */
+        EvalProgressEvent: {
+            /** Done */
+            done: number;
+            item: components["schemas"]["EvalItemResponse"];
+            /** Total */
+            total: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "progress";
+        };
+        /**
+         * EvalReportEvent
+         * @description The run as stored once every item is graded; the last event before `[DONE]`.
+         */
+        EvalReportEvent: {
+            run: components["schemas"]["EvalRunResponse"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "report";
+        };
+        /** EvalRunDetailResponse */
+        EvalRunDetailResponse: {
+            /** Items */
+            items: components["schemas"]["EvalItemResponse"][];
+            run: components["schemas"]["EvalRunResponse"];
+        };
+        /** EvalRunPageResponse */
+        EvalRunPageResponse: {
+            /** Items */
+            items: components["schemas"]["EvalRunResponse"][];
+        };
+        /** EvalRunResponse */
+        EvalRunResponse: {
+            agreement: components["schemas"]["AgreementReportResponse"] | null;
+            /** Answer Model */
+            answer_model: string | null;
+            answers: components["schemas"]["AnswerReportResponse"] | null;
+            /** Error */
+            error: string | null;
+            /** Failed */
+            failed: number;
+            /** Finished At */
+            finished_at: string | null;
+            /** Graded */
+            graded: number;
+            /** Index */
+            index: string | null;
+            /** Judge Model */
+            judge_model: string;
+            /** Judge Prompt */
+            judge_prompt: string;
+            /** Run Id */
+            run_id: string;
+            /**
+             * Set
+             * @enum {string}
+             */
+            set: "questions" | "golden";
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "running" | "done" | "failed" | "interrupted";
+            /** Total */
+            total: number;
+            /** Usd */
+            usd: number | null;
+        };
+        /**
          * EventMarkResponse
          * @description One SSE event as it left; `count` collapses consecutive text deltas.
          */
@@ -511,6 +744,15 @@ export interface components {
             doc_id: string;
             /** Rank */
             rank: number | null;
+        };
+        /** ExpectedVerdictResponse */
+        ExpectedVerdictResponse: {
+            /** Acknowledges Gap */
+            acknowledges_gap: boolean;
+            /** Groundedness */
+            groundedness: number;
+            /** Relevance */
+            relevance: number;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -548,6 +790,19 @@ export interface components {
             kind: string;
             /** Turns */
             turns: number;
+        };
+        /** MeansResponse */
+        MeansResponse: {
+            /** Answers */
+            answers: number;
+            /** Groundedness */
+            groundedness: number;
+            /** Label */
+            label: string;
+            /** Low Share */
+            low_share: number;
+            /** Relevance */
+            relevance: number;
         };
         /** ModelStatsResponse */
         ModelStatsResponse: {
@@ -882,6 +1137,23 @@ export interface components {
             /** Used */
             used: boolean;
         };
+        /** ScoreAgreementResponse */
+        ScoreAgreementResponse: {
+            /** Confusion */
+            confusion: number[][];
+            /** Exact */
+            exact: number;
+            /** Kappa */
+            kappa: number | null;
+            /** Mean Expected */
+            mean_expected: number;
+            /** Mean Judge */
+            mean_judge: number;
+            /** Score */
+            score: string;
+            /** Within One */
+            within_one: number;
+        };
         /**
          * SelectAction
          * @description Cards chosen in a carousel the server sent earlier (`group_id`).
@@ -1011,6 +1283,17 @@ export interface components {
             seq: number;
             /** T0 Ms */
             t0_ms: number;
+        };
+        /** SpendResponse */
+        SpendResponse: {
+            /** Input Tokens */
+            input_tokens: number;
+            /** Model */
+            model: string | null;
+            /** Output Tokens */
+            output_tokens: number;
+            /** Usd */
+            usd: number | null;
         };
         /** TextEvent */
         TextEvent: {
@@ -1305,6 +1588,19 @@ export interface components {
             /** Error Type */
             type: string;
         };
+        /** VerdictResponse */
+        VerdictResponse: {
+            /** Acknowledges Gap */
+            acknowledges_gap: boolean;
+            /** Groundedness */
+            groundedness: number;
+            /** Reason */
+            reason: string;
+            /** Relevance */
+            relevance: number;
+            /** Unsupported Claims */
+            unsupported_claims: string[];
+        };
         /** WarnOp */
         WarnOp: {
             /**
@@ -1330,6 +1626,90 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    run_answer_eval_api_v1_ai_admin_answer_eval_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnswerEvalRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_answer_evals_api_v1_ai_admin_answer_evals_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvalRunPageResponse"];
+                };
+            };
+        };
+    };
+    read_answer_eval_api_v1_ai_admin_answer_evals__run_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvalRunDetailResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     run_retrieval_eval_api_v1_ai_admin_retrieval_eval_post: {
         parameters: {
             query?: never;

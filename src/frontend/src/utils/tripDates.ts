@@ -13,11 +13,15 @@ export const DATE_OPTIONS: Intl.DateTimeFormatOptions = {
   timeZone: "UTC",
 };
 
-/** `YYYY-MM-DD` at UTC midnight, so no timezone can shift a day. */
+/**
+ * `YYYY-MM-DD` at UTC midnight, so no timezone can shift a day; `null` for another format or
+ * a day the calendar does not have (`2026-02-30`).
+ */
 export function parseIsoDate(iso: string): number | null {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
   if (!match) return null;
-  return Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  const ms = Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  return new Date(ms).toISOString().slice(0, 10) === iso ? ms : null;
 }
 
 /** The ISO date of day `day` (1-based) of a trip starting on `start`. */

@@ -1,5 +1,7 @@
 "use client";
 
+/** The trip's route legs. */
+
 import { ExternalLink, Plane } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { useLanguage } from "@/context/LanguageContext";

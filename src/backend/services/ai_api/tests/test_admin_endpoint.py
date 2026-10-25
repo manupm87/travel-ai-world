@@ -1,16 +1,25 @@
-"""`/api/v1/ai/admin`: the turn traces and the retrieval evaluation, for
-administrators only."""
+"""`/api/v1/ai/admin`: the turn traces, the retrieval evaluation and the answer
+evaluation's runs, for administrators only."""
 
+import json
 import logging
 from datetime import UTC, datetime
+from typing import Any
 
 import pytest
-from ai_api.api.deps import get_retriever
-from ai_api.application import retrieval_eval
+from ai_api.api.deps import (
+    get_eval_answerer,
+    get_eval_store,
+    get_judge,
+    get_retriever,
+)
+from ai_api.application import judge_validation, retrieval_eval
 from ai_api.domain.models import Document
 from ai_api.main import app
 from ai_api.testing import (
+    FakeProvider,
     FakeRetriever,
+    InMemoryEvalStore,
     InMemoryTraceLog,
     make_trace,
     settings_for_tests,
@@ -308,3 +317,157 @@ async def test_the_retrieval_eval_needs_retrieval(
     response = await client.post(EVAL, headers=admin)
 
     assert response.status_code == 503
+
+
+ANSWER_EVAL = f"{BASE}/answer-eval"
+
+GOLDEN_CASE = judge_validation.Case(
+    id="budapest/baths~price",
+    city="budapest",
+    lang="en",
+    query="Which bath?",
+    answerable=True,
+    passages=("wv:bath",),
+    context="Gellért Baths, open 6:00-20:00.",
+    answer="The Gellért Baths, 30 EUR.",
+    origin="perturbed",
+    defect="invented-price",
+    expected=judge_validation.Expected(2, 5, False),
+    why="The price is not in the passage.",
+)
+
+JUDGED = json.dumps(
+    {
+        "groundedness": 2,
+        "relevance": 5,
+        "acknowledges_gap": False,
+        "unsupported_claims": ["30 EUR"],
+        "reason": "Invented price.",
+    }
+)
+
+
+@pytest.fixture
+def eval_store(monkeypatch: pytest.MonkeyPatch) -> InMemoryEvalStore:
+    """A golden set of one case, judged by a fake, kept in memory."""
+    monkeypatch.setattr(judge_validation, "load_cases", lambda: [GOLDEN_CASE])
+    store = InMemoryEvalStore()
+    app.dependency_overrides[get_eval_store] = lambda: store
+    app.dependency_overrides[get_judge] = lambda: FakeProvider(replies=[JUDGED])
+    app.dependency_overrides[get_eval_answerer] = lambda: None
+    app.dependency_overrides[get_retriever] = lambda: None
+    return store
+
+
+def sse(body: str) -> list[dict[str, Any] | str]:
+    out: list[dict[str, Any] | str] = []
+    for line in body.split("\n"):
+        if line.startswith("data: "):
+            data = line[6:]
+            out.append(data if data == "[DONE]" else json.loads(data))
+    return out
+
+
+async def test_a_golden_run_streams_progress_then_the_stored_report(
+    client: AsyncClient, admin: dict[str, str], eval_store: InMemoryEvalStore
+):
+    response = await client.post(ANSWER_EVAL, json={"set": "golden"}, headers=admin)
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/event-stream")
+    events = sse(response.text)
+    assert events[-1] == "[DONE]"
+    progress, report = events[0], events[1]
+    assert isinstance(progress, dict) and isinstance(report, dict)
+    assert progress["type"] == "progress"
+    assert (progress["done"], progress["total"]) == (1, 1)
+    assert progress["item"]["verdict"]["unsupported_claims"] == ["30 EUR"]
+    assert report["type"] == "report"
+    run = report["run"]
+    assert run["status"] == "done"
+    assert run["agreement"]["groundedness"]["exact"] == 1.0
+    assert eval_store.runs[run["run_id"]].status == "done"
+
+
+async def test_runs_are_listed_and_open_with_their_items(
+    client: AsyncClient, admin: dict[str, str], eval_store: InMemoryEvalStore
+):
+    await client.post(ANSWER_EVAL, json={"set": "golden"}, headers=admin)
+    [run_id] = eval_store.runs
+
+    listed = await client.get(f"{BASE}/answer-evals", headers=admin)
+    opened = await client.get(f"{BASE}/answer-evals/{run_id}", headers=admin)
+
+    assert [r["run_id"] for r in listed.json()["items"]] == [run_id]
+    body = opened.json()
+    assert body["run"]["set"] == "golden"
+    assert [i["key"] for i in body["items"]] == ["budapest/baths~price"]
+    assert body["items"][0]["expected"]["groundedness"] == 2
+
+
+async def test_a_second_run_while_one_runs_is_a_conflict(
+    client: AsyncClient, admin: dict[str, str], eval_store: InMemoryEvalStore
+):
+    await eval_store.claim("busy", datetime.now(UTC), datetime.now(UTC))
+
+    response = await client.post(ANSWER_EVAL, json={"set": "golden"}, headers=admin)
+
+    assert response.status_code == 409
+
+
+async def test_a_questions_run_without_retrieval_is_503(
+    client: AsyncClient, admin: dict[str, str], eval_store: InMemoryEvalStore
+):
+    response = await client.post(ANSWER_EVAL, json={"set": "questions"}, headers=admin)
+
+    assert response.status_code == 503
+
+
+async def test_an_unknown_run_is_404(
+    client: AsyncClient, admin: dict[str, str], eval_store: InMemoryEvalStore
+):
+    response = await client.get(f"{BASE}/answer-evals/nope", headers=admin)
+
+    assert response.status_code == 404
+
+
+@pytest.mark.parametrize(
+    ("method", "url"),
+    [
+        ("post", ANSWER_EVAL),
+        ("get", f"{BASE}/answer-evals"),
+        ("get", f"{BASE}/answer-evals/r1"),
+    ],
+)
+async def test_the_answer_eval_routes_are_for_admins_only(
+    client: AsyncClient,
+    auth_headers: dict[str, str],
+    eval_store: InMemoryEvalStore,
+    method: str,
+    url: str,
+):
+    response = await client.request(
+        method, url, json={"set": "golden"}, headers=auth_headers
+    )
+
+    assert response.status_code == 403
+    assert eval_store.runs == {}
+
+
+async def test_starting_a_run_is_audited_as_a_write(
+    client: AsyncClient,
+    admin: dict[str, str],
+    eval_store: InMemoryEvalStore,
+    caplog: pytest.LogCaptureFixture,
+):
+    with caplog.at_level(logging.INFO, logger="ai_api.api.v1.endpoints.admin"):
+        await client.post(ANSWER_EVAL, json={"set": "golden"}, headers=admin)
+        await client.get(f"{BASE}/answer-evals", headers=admin)
+
+    lines = [
+        r.getMessage() for r in caplog.records if "subject=admin-1" in r.getMessage()
+    ]
+    assert lines == [
+        f"admin_write subject=admin-1 route={ANSWER_EVAL} target=-",
+        f"admin_read subject=admin-1 route={BASE}/answer-evals target=-",
+    ]

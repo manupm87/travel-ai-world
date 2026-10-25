@@ -1,5 +1,7 @@
 "use client";
 
+/** Keeps a scrolling list at its bottom while it grows. */
+
 import { useCallback, useLayoutEffect, useRef } from "react";
 
 /** Distance from the bottom (px) within which the list keeps following. */

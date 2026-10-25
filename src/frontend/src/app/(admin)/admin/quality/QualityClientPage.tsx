@@ -1,5 +1,7 @@
 "use client";
 
+/** The retrieval evaluation page: runs it on demand and shows the scores and the misses. */
+
 import { AdminHeading, AdminLoadState } from "@/components/admin/AdminStates";
 import { DataTable } from "@/components/admin/DataTable";
 import { Button } from "@/components/ui/Button";

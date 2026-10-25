@@ -11,7 +11,7 @@ from ai_api.domain.usage import DailyUsage
 from ai_api.infrastructure.dynamo_traces import DynamoTraceLog, spec
 from ai_api.infrastructure.dynamo_usage import DynamoUsageStore, NullUsageStore
 from ai_api.testing import make_trace
-from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError, EndpointConnectionError
 from travel_common.dynamodb import dynamodb_client, ensure_table
 from travel_common.exceptions import ProviderUnavailable
 from travel_common.testing import mock_dynamodb
@@ -161,6 +161,20 @@ async def test_a_dynamodb_failure_is_provider_unavailable(client: Any):
         await store.get("sub-1", DAY)
 
     assert isinstance(raised.value.__cause__, ClientError)
+
+
+class Unreachable:
+    """A client whose every call fails to connect, as when DynamoDB Local is down."""
+
+    def get_item(self, **kwargs: Any) -> Any:
+        raise EndpointConnectionError(endpoint_url="http://localhost:8002")
+
+
+async def test_an_unreachable_dynamodb_is_provider_unavailable():
+    store = DynamoUsageStore(Unreachable(), "table")
+
+    with pytest.raises(ProviderUnavailable, match="EndpointConnectionError"):
+        await store.get("sub-1", DAY)
 
 
 async def test_the_null_store_counts_nothing():

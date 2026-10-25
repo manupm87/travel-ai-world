@@ -16,12 +16,6 @@ resource "aws_cloudwatch_dashboard" "service" {
   })
 }
 
-variable "service_dashboard_enabled" {
-  description = "Create the native CloudWatch service dashboard. Standard CloudWatch dashboard pricing applies."
-  type        = bool
-  default     = true
-}
-
 output "service_dashboard_url" {
   description = "CloudWatch console URL for the native service dashboard; requires AWS console access."
   value       = var.service_dashboard_enabled ? "https://${var.region}.console.aws.amazon.com/cloudwatch/home?region=${var.region}#dashboards:name=${aws_cloudwatch_dashboard.service[0].dashboard_name}" : null

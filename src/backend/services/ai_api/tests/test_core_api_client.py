@@ -59,6 +59,15 @@ async def test_access_reraises_core_apis_refusals(status, error):
         await _client(handler).access("tok")
 
 
+@pytest.mark.parametrize("body", [["not", "an", "object"], "a string", None])
+async def test_a_refusal_whose_body_is_not_an_object_keeps_its_error(body):
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(403, json=body)
+
+    with pytest.raises(Forbidden, match="core_api answered 403"):
+        await _client(handler).access("tok")
+
+
 async def test_access_is_provider_unavailable_when_core_api_cannot_answer():
     def bad_gateway(request: httpx.Request) -> httpx.Response:
         return httpx.Response(502, text="nope")

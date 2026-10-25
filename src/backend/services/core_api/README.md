@@ -10,7 +10,7 @@ them and this service upserts the account from the claims.
 ## Run
 
 ```bash
-cp .env.example .env       # AUTH_MODE=local: SECRET_KEY, GOOGLE_* (Cognito mode: COGNITO_*)
+cp .env.example .env       # AUTH_MODE=local: SECRET_KEY (`just setup` writes it); GOOGLE_CLIENT_ID only for the real Google button
 just dynamodb-local        # from the repo root, in another terminal: DynamoDB on :8002
 uv run python -m core_api.devtools token you@example.com # optional: a local JWT for that account (see below)
 uv run uvicorn core_api.main:app --reload --port 8000    # http://localhost:8000/docs
@@ -39,25 +39,6 @@ default). It only matters with `ACCESS_MODE="allowlist"` in `.env`; the default 
 A local table without GSI2 (ADR 0024) keeps that schema: restart DynamoDB Local (or delete the
 table) so the service creates it again with both indexes.
 
-### Ops commands
-
-One-off operations on the table, from a shell (`core_api/ops.py`; nothing in the running service
-imports it). They read the same settings as the service: with `DYNAMODB_ENDPOINT_URL` they target
-DynamoDB Local; without it, the real `CORE_TABLE` in `AWS_REGION` through the SSO session
-(`just aws-login`).
-
-```bash
-just backfill-trip-index --dry-run   # scanned=<n> would_update=<n> skipped=0, writes nothing
-just backfill-trip-index             # scanned=<n> updated=<n> skipped=<n>
-```
-
-`backfill-trip-index` writes `GSI2PK`/`GSI2SK` on every trip item that lacks them (trips saved
-before the admin index existed), exactly as `trip_item` writes them, so `GET /api/v1/admin/trips`
-lists it. It scans for trip items without `GSI2PK` and updates each one on the condition that it
-still has none: a trip saved meanwhile stamps itself and counts as `skipped`. Running it again
-finds nothing. It exits 1 with the reason on stderr when DynamoDB refuses a call. On AWS it runs
-once, after the apply that creates GSI2 ([infra/aws/README.md](../../../../infra/aws/README.md#making-someone-an-administrator)).
-
 ## Endpoints (`/api/v1`)
 
 | Method | Path | Auth | Notes |
@@ -67,7 +48,7 @@ once, after the apply that creates GSI2 ([infra/aws/README.md](../../../../infra
 | `GET` | `/users/me/access` | Bearer (invited or not) | `{allowed, daily_token_limit}`: whether the account may use the app and its daily token limit (`null` = unlimited) ([ADR 0026](../../../../docs/architecture/adr/0026-access-list-and-daily-token-quota.md)) |
 | `GET` | `/users/` | Admin | List users, by email |
 | `GET` | `/users/{id}` | Admin | Profiles are not public; ids are UUIDs |
-| `PATCH/DELETE` | `/users/{id}` | Bearer (owner) | Only your own account (403 otherwise); `PATCH` changes `name` and `picture` only (the email and `is_active` are not editable); delete takes the account's trips with it |
+| `PATCH/DELETE` | `/users/{id}` | Bearer (owner) | Only your own account (403 otherwise); `PATCH` changes `name` (≤ 255 chars) and `picture` (≤ 2048) only (the email and `is_active` are not editable); delete takes the account's trips with it |
 | `PATCH` | `/users/{id}/role` | Admin | Local mode only (absent when `AUTH_MODE=cognito`: the pool's `admin` group is the role there) |
 | `GET/POST` | `/trips/` | Bearer | Only the caller's trips |
 | `GET/PATCH/DELETE` | `/trips/{id}` | Bearer (owner) | 404 for another user's trip; response embeds every child and its derived `phase`; `PATCH` is 409 `TRIP_LOCKED` once the trip is ongoing or past, `DELETE` never is |
@@ -92,7 +73,8 @@ Every trip collection offers `GET /` (paginated with `skip`/`limit`), `POST /`, 
 A child that exists under another trip answers 404, never 403, so ids leak nothing
 ([ADR 0005](../../../../docs/architecture/adr/0005-trip-aggregate-nested-resources.md)).
 Writes that lose a race (someone saved the same trip or profile in between) answer 409
-`CONFLICT`: reload and retry.
+`CONFLICT`: reload and retry. When DynamoDB itself fails (throttling, unreachable), any route answers 503
+`SERVICE_UNAVAILABLE`.
 
 A trip is **one city** and its `phase` (`upcoming | ongoing | past`) is derived from its dates,
 never stored; everything inside an ongoing or past trip is read-only
@@ -115,11 +97,10 @@ Errors: `{"detail": {"message": "...", "error_code": "NOT_FOUND" | "FORBIDDEN" |
 ```text
 core_api/
 ├── main.py            create_app(...) with a lifespan that opens the table (app.state.table)
-├── config.py          CoreSettings(CommonSettings, DynamoSettings): CORE_TABLE, GOOGLE_*
+├── config.py          CoreSettings(CommonSettings, DynamoSettings): CORE_TABLE, GOOGLE_CLIENT_ID
 ├── domain/            models.py (dataclasses + rules), ports.py (repository protocols), enums.py
 ├── infrastructure/dynamo/
-│                      table.py (spec, DynamoTable, open_table), keys.py, codec.py, repositories.py,
-│                      backfill.py (the one-off GSI2 backfill behind `ops`)
+│                      table.py (spec, DynamoTable, open_table), keys.py, codec.py, repositories.py
 ├── services/          trip_service.py, trip_children.py (every nested collection), user_service.py,
 │                      auth_service.py (Authenticate: both modes; SignIn: local issuer),
 │                      access_service.py (the access list: resolve, ensure_allowed, upsert, remove)
@@ -131,9 +112,9 @@ core_api/
 ├── api/v1/resources.py  CHILD_RESOURCES + child_router(): the nested CRUD collections
 ├── auth/google.py     IdentityVerifier port + GoogleTokenInfoVerifier adapter (local mode)
 ├── auth/principal.py  AccountPrincipal = Principal + the account's UUID
+├── observability/     business_metrics.py (local /metrics, ADR 0030), business_events.py (log events, ADR 0031)
 ├── schemas/           Pydantic models; XUpdate = partial(XBase) (_partial.py); formats in _types.py
-├── devtools.py        dev-only: a local JWT for an account (never imported by the service)
-├── ops.py             one-off table operations: backfill-trip-index (never imported by the service)
+├── devtools.py        dev-only: `token` (a local JWT for an account), `grant` (the access list); never imported by the service
 └── pagination.py      Page(skip, limit)
 ```
 
@@ -149,7 +130,9 @@ For agents: [`AGENTS.md`](AGENTS.md).
 
 `METRICS_ENABLED` defaults to false and is always refused on Lambda. When enabled
 locally, `GET /metrics` exposes `trips_created_total` after successful new-trip
-persistence, using `METRICS_CITY_SLUGS` and the fallback `other`. This machine
+persistence, using `METRICS_CITY_SLUGS` and the fallback `other`. The configurable
+JSON list defaults to the six corpus slugs: `berlin`, `bologna`, `budapest`,
+`los-angeles`, `madrid` and `miami` (at most 100 entries). This machine
 endpoint has no bearer authentication and is excluded from OpenAPI; bind to
 loopback on a trusted laptop and run exactly one worker. Updates and deletes
 do not increment it, and app restarts reset it. See the
@@ -170,6 +153,9 @@ to the existing application log group after a successful trip creation.
 Versioned events include bounded city/budget/pace categories, nullable explicit
 duration, saved timestamp and a hashed deduplication key, excluding raw UUIDs,
 emails and free text. Each observer fails independently; metrics remain absent
-on Lambda. Updates/deletes produce no creation event and no backfill runs.
+on Lambda. Core Lambda derives its sorted city allowlist from corpus TOML
+filenames in Terraform, with a planning guard of 1 to 100 entries. After deployment, only new creations use those categories; existing
+`other` events remain grouped and cannot be split by the dashboard.
+Updates/deletes produce no creation event and no backfill runs.
 See the [production setup and cost/privacy limits](../../../../docs/runbooks/business-statistics-cloudwatch.md)
 and [ADR 0031](../../../../docs/architecture/adr/0031-production-business-events.md).

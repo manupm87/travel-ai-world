@@ -13,8 +13,8 @@ google_client_secret = "replace-me"
 
 # The frontend (CloudFront + S3) and the API share this domain; it must be a
 # public hosted zone in this account with the ACM certificate in us-east-1.
-domain_name          = "www.example.com"
-frontend_bucket_name = "www.example.com"
+domain_name          = "example.com"
+frontend_bucket_name = "example.com"
 
 # Optional: the Cognito managed-login host (the certificate must cover it).
 # cognito_subdomain = "auth"   # "" keeps the pool's default *.amazoncognito.com host
