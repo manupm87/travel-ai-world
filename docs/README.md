@@ -10,6 +10,7 @@
 | [runbooks/](runbooks/local-dev.md) | How to run, ship and observe: [local-dev](runbooks/local-dev.md), [docker](runbooks/docker.md), [deploy](runbooks/deploy.md), [release](runbooks/release.md), [add-city](runbooks/add-city.md), [access](runbooks/access.md), [agent-delivery](runbooks/agent-delivery.md); CloudWatch: [service dashboard](runbooks/service-dashboard-cloudwatch.md), [infrastructure dashboard](runbooks/infrastructure-dashboard-cloudwatch.md), [access logs](runbooks/access-logs-cloudwatch.md), [business statistics](runbooks/business-statistics-cloudwatch.md); [frontend-https-aws](runbooks/frontend-https-aws.md) is the console view of the Terraform-managed frontend |
 | [api/](api/) | Generated OpenAPI documents (`core-api`, `ai-api`) — source of the frontend's types |
 | [design/](design/) | [`kyrian-world.md`](design/kyrian-world.md), the design reference (palette, type, Kiri); `ideas.pen`, the Pencil design file |
+| [Guion PJ IA.pdf](Guion%20PJ%20IA.pdf) | The course brief (Spanish) the project report follows |
 | [memoria/](memoria/README.md) | The project report (LaTeX, Spanish, two columns): business case, team, current and target AWS architecture, AI agent and RAG, data quality, DevOps, evaluation |
 
 Conventions: `README.md` files are for people (what it is, how to run it); `AGENTS.md` files are for

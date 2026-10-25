@@ -28,7 +28,7 @@ travel-ai-world/
 ├── scripts/         # check_docs.py (docs CI) · release.py (version bump + GitHub release)
 ├── .github/         # PR checks, image publishing, frontend deploy (S3 + CloudFront), manual backend deploy
 ├── .devcontainer/   # VS Code container: toolchain + DynamoDB Local
-├── .claude/         # Claude Code: CLAUDE.md (imports AGENTS.md) and slash commands
+├── .claude/         # Claude Code: CLAUDE.md (imports AGENTS.md), slash commands, branch-name hook, kyrian-wave workflow
 ├── justfile         # the one task runner for humans, CI and agents
 ├── AGENTS.md        # rules for coding agents
 └── README.md
@@ -85,7 +85,7 @@ Runbooks: [docker](docs/runbooks/docker.md) · [deploy](docs/runbooks/deploy.md)
 
 - [x] Landing page, EN/ES i18n, light/dark theme
 - [x] Google sign-in (Cognito in production), saved trips listed on the home and reopened in the planner
-- [x] Backend split into `core_api` and `ai_api` with a shared library; AI chat streaming
+- [x] Backend split into `core_api` and `ai_api` with a shared library; the planner streams over SSE
 - [x] CI/CD: path-filtered checks, contract checks, image publishing, S3 + CloudFront deploy, Terraform
 - [x] Trips backed by `core_api`: one city each, a phase derived from the dates, read-only once they start (ADR 0019)
 - [x] Structured itineraries from the planner (typed SSE, ADR 0015), saved through `core_api`

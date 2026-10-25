@@ -6,7 +6,8 @@ tool-specific files (`.claude/CLAUDE.md`, `.claude/commands/`) only add what the
 
 The nearest `AGENTS.md` to the file you are editing wins:
 [`src/backend/AGENTS.md`](src/backend/AGENTS.md) · [`src/backend/services/core_api/AGENTS.md`](src/backend/services/core_api/AGENTS.md) ·
-[`src/backend/services/ai_api/AGENTS.md`](src/backend/services/ai_api/AGENTS.md) · [`src/frontend/AGENTS.md`](src/frontend/AGENTS.md)
+[`src/backend/services/ai_api/AGENTS.md`](src/backend/services/ai_api/AGENTS.md) · [`src/frontend/AGENTS.md`](src/frontend/AGENTS.md) ·
+[`src/backend/tools/city_corpus/AGENTS.md`](src/backend/tools/city_corpus/AGENTS.md)
 
 ## What this is
 
@@ -165,5 +166,5 @@ Runbook (brief template, how to run and resume a wave, what the human does):
 - Auth flow, planner flow, service-to-service calls → `docs/architecture/overview.md`
 - Local dev, Docker, deploy, release, agent delivery → `docs/runbooks/`
 - API contracts (generated) → `docs/api/*.openapi.json` and `src/frontend/src/types/generated/`
-- Cloud deployment → `infra/README.md`, then `infra/<cloud>/README.md`
+- Cloud deployment → `infra/README.md`, then `infra/aws/README.md`
 - Design file `docs/design/ideas.pen` → only through Pencil MCP tools (Claude); never open with file tools.
