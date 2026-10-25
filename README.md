@@ -36,26 +36,27 @@ travel-ai-world/
 
 ## Quick start
 
-Prerequisites: Node.js 24 (`src/frontend/.nvmrc`), Python 3.12 (`src/backend/.python-version`) +
-[uv](https://github.com/astral-sh/uv) and [just](https://just.systems) (Windows: `winget install
-Casey.Just`, then run the recipes from Git Bash). Nothing else is needed to run the app and its
-tests: no Google client, no API key, no AWS account (those only add the real Google button and the
-live planner, see the runbook).
+**The development environment is the devcontainer** (Windows, macOS or Linux): Docker Desktop
+(on Windows with the WSL 2 backend), VS Code and its Dev Containers extension. Open the repo →
+"Reopen in Container". It brings the whole toolchain (Node 24, Python 3.12 + uv, just, AWS CLI,
+Terraform, Playwright's Chromium) and DynamoDB Local, and runs `just setup` on first creation.
+Then, in three terminals of the container:
 
 ```bash
-just setup          # .env files from templates + uv sync + npm install
-# put the same SECRET_KEY in src/backend/services/{core_api,ai_api}/.env
-just dynamodb-local # terminal 1: in-memory DynamoDB :8002 (the devcontainer brings its own)
-just dev-core       # terminal 2: core_api  http://localhost:8000/docs
-just dev-ai         # terminal 3: ai_api    http://localhost:8001/api/v1/ai/docs
-just dev-frontend   # terminal 4: frontend  http://localhost:3000
-just dev-token you@example.com   # sign in without Google (how: the runbook)
+just dev-core       # core_api  http://localhost:8000/docs
+just dev-ai         # ai_api    http://localhost:8001/api/v1/ai/docs
+just dev-frontend   # frontend  http://localhost:3000
+just dev-token you@example.com --browser   # sign in without Google: paste the line in DevTools
 just lint · just test · just contracts · just docs-check
-just stack-up       # Docker: the frontend export + both APIs on one origin http://localhost:8080 (as in prod)
 ```
 
-`just` alone lists every recipe. Step by step, including the optional variables:
-[local development runbook](docs/runbooks/local-dev.md).
+Nothing else is needed to run the app and its tests: no Google client, no API key, no AWS account
+(those only add the real Google button and the live planner). Without the container, the same
+recipes run on the host with Node 24, Python 3.12 + uv and just installed, plus a fourth terminal
+for `just dynamodb-local`; on Windows from Git Bash, never PowerShell. Docker Compose
+(`just stack-up`, the stack as deployed on one origin) runs on the host, since the container has no
+Docker. Step by step: [local development runbook](docs/runbooks/local-dev.md). `just` alone lists
+every recipe.
 
 ## How it works
 

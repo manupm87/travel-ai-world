@@ -180,7 +180,8 @@ test.describe("Trips: listed on the home, lived in the planner", () => {
 
   test.beforeAll(async ({ playwright }, testInfo) => {
     api = await playwright.request.newContext({
-      baseURL: testInfo.project.use.baseURL,
+      // the API's own origin when it is not the page's (the dev servers: E2E_API_URL=http://localhost:8000)
+      baseURL: process.env.E2E_API_URL ?? testInfo.project.use.baseURL,
       extraHTTPHeaders: { authorization: `Bearer ${TOKEN}` },
     });
     upcomingId = await createTrip(api, { title: UPCOMING, startsIn: 30, days: 3 });

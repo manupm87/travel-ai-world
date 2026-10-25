@@ -15,7 +15,8 @@ PLAYWRIGHT_BASE_URL=https://kyrian-world.com npx playwright test   # against the
 Most specs mock the API with `page.route` and fake the session, so they need no backend. The
 signed-in specs that hit a real core_api (`trips.spec.ts`, `planner.spec.ts`) skip themselves
 without `E2E_TOKEN`; run them against the stack, or against `just dev-core` + `just dev-frontend`
-with `PLAYWRIGHT_BASE_URL=http://localhost:3000`:
+with `PLAYWRIGHT_BASE_URL=http://localhost:3000 E2E_API_URL=http://localhost:8000` (the
+devcontainer's way, since it has no Docker; details in `docs/runbooks/local-dev.md#end-to-end-tests`):
 
 ```bash
 just stack-up

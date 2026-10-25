@@ -1,25 +1,56 @@
 # Runbook — local development
 
-## Prerequisites
+**The local environment is the devcontainer**; the host works too, with the same `just` recipes.
+Either way, nothing but the toolchain is needed for the app and its tests: no database server, no
+Google client, no API key and no AWS account. Those are optional and only add the real Google
+button and the live planner ([below](#optional-the-live-planner)).
 
-- Node.js 24 (`src/frontend/.nvmrc`), Python 3.12 (`src/backend/.python-version`),
-  [uv](https://github.com/astral-sh/uv) and [just](https://just.systems). On Windows:
-  `winget install Casey.Just` and run the recipes from Git Bash or WSL (they are POSIX shell).
-- Nothing else for the app and its tests: no database server (DynamoDB is `just dynamodb-local`,
-  moto in memory), no Google client, no API key and no AWS account. Those are optional and only add
-  the real Google button and the live planner ([below](#optional-the-live-planner)).
-- Docker only for the Compose modes ([which mode](#which-mode)).
+## Devcontainer (the default)
 
-## First run
+Prerequisites: Docker Desktop (on Windows with the WSL 2 backend), VS Code and its Dev Containers
+extension.
+
+1. Open the repo in VS Code → "Reopen in Container". The first creation builds the image and runs
+   `.devcontainer/post-create.sh`: `just setup` (below) and Playwright's Chromium.
+2. In three terminals of the container:
+
+   ```bash
+   just dev-core      # http://localhost:8000/docs (creates its table in DynamoDB Local at start)
+   just dev-ai        # http://localhost:8001/api/v1/ai/docs
+   just dev-frontend  # http://localhost:3000
+   ```
+
+The container brings DynamoDB Local (`dynamodb:8000`, in memory) and points
+`DYNAMODB_ENDPOINT_URL` at it, so there is no `just dynamodb-local`; ports 3000, 8000 and 8001 are
+forwarded to the host. It has no Docker daemon: the Compose modes ([which mode](#which-mode)) run
+on the host. Toolchain, volumes and AWS sign-in: [`.devcontainer/README.md`](../../.devcontainer/README.md).
+
+## On the host (without the container)
+
+Prerequisites: Node.js 24 (`src/frontend/.nvmrc`), Python 3.12 (`src/backend/.python-version`),
+[uv](https://github.com/astral-sh/uv) and [just](https://just.systems). On Windows:
+`winget install Casey.Just` and run every recipe from **Git Bash** (or WSL): they are POSIX shell,
+and PowerShell is not supported.
 
 ```bash
-just setup
+just setup           # once
+just dynamodb-local  # :8002, moto in memory: tables and items vanish when it stops
+just dev-core        # http://localhost:8000/docs
+just dev-ai          # http://localhost:8001/api/v1/ai/docs
+just dev-frontend    # http://localhost:3000
 ```
+
+Four terminals: the template's `DYNAMODB_ENDPOINT_URL=http://localhost:8002` points both services
+at `just dynamodb-local` (leave it empty only on AWS). Against a local endpoint the DynamoDB client
+signs with fixed dummy keys, so no AWS profile is needed for it.
+
+## `just setup` and the env files
 
 It copies the three env files from their templates (`core_api/.env`, `ai_api/.env`,
 `src/frontend/.env.local`), installs every dependency and writes one random `SECRET_KEY` into
 both backend `.env` files: the two services verify the same tokens, so the value must match (the
-recipe warns when it does not). The template values run everything below as they are.
+recipe warns when it does not). The template values run everything here as they are. Tests need
+none of this: they use `travel_common.testing.mock_dynamodb()` (moto in process) and a test key.
 
 | Optional variable | File | Adds |
 |---|---|---|
@@ -27,22 +58,6 @@ recipe warns when it does not). The template values run everything below as they
 | `NVIDIA_API_KEY`, `RETRIEVAL_ENABLED=true` | `ai_api/.env` | the live planner, with an AWS session ([below](#optional-the-live-planner)) |
 | `INTERACTIONS_TABLE=travel-ai-local-interactions` | `ai_api/.env` | turn traces and token counters in the local DynamoDB (the admin console's turns) |
 | `ACCESS_CONTROL_ENABLED=true`, `ACCESS_MODE=allowlist` | `ai_api/.env`, `core_api/.env` | the access list and the daily quota ([access runbook](access.md)) |
-
-## Run
-
-Four terminals (three inside the devcontainer, which brings its own DynamoDB Local):
-
-```bash
-just dynamodb-local  # :8002, moto in memory: tables and items vanish when it stops
-just dev-core        # http://localhost:8000/docs (creates its table on the endpoint at start)
-just dev-ai          # http://localhost:8001/api/v1/ai/docs
-just dev-frontend    # http://localhost:3000
-```
-
-The services reach DynamoDB through `DYNAMODB_ENDPOINT_URL` (the template's
-`http://localhost:8002`; leave it empty only on AWS). Against a local endpoint the client signs
-with fixed dummy keys, so no AWS profile is needed. Tests need none of this: they use
-`travel_common.testing.mock_dynamodb()` (moto in process).
 
 ## Signing in without Google
 
@@ -104,7 +119,7 @@ checking a change end to end, not for editing.
 
 ## End-to-end tests
 
-Once per machine (the devcontainer does it for you): `cd src/frontend && npx playwright install chromium`.
+On the host, once per machine (the devcontainer does it for you): `cd src/frontend && npx playwright install chromium`.
 Three Playwright configs share `src/frontend/e2e/`:
 
 | Recipe | Serves | Runs | Where |
@@ -118,15 +133,21 @@ The signed-in suite needs a token and creates the trips it works on through the 
 
 ```bash
 just stack-up                                   # needs Docker
-E2E_TOKEN=$(docker compose -f src/backend/docker-compose.yml exec -T core_api python -m core_api.devtools token you@example.com) just test-e2e-stack
+E2E_TOKEN=$(just dev-token you@example.com) just test-e2e-stack
 cd src/frontend && npx playwright show-report   # after a failure
 ```
 
-The token is minted inside the `core_api` container, which holds the stack's `SECRET_KEY` and
-reaches its DynamoDB Local. `E2E_EMAIL` overrides the profile's email (it defaults to the token's
-`email` claim). Without Docker (the devcontainer has none) the same spec runs against the dev servers:
-`PLAYWRIGHT_BASE_URL=http://localhost:3000 E2E_TOKEN=$(just dev-token you@example.com) just test-e2e-stack`
-with `just dev-core` and `just dev-frontend` running; the Compose origin itself is proven in CI.
+`E2E_EMAIL` overrides the profile's email (it defaults to the token's `email` claim). Without
+Docker (the devcontainer has none) the same suite runs against the dev servers, with `just dev-core`,
+`just dev-ai` and `just dev-frontend` running and the template's `NEXT_PUBLIC_AI_API_URL`;
+`E2E_API_URL` tells the specs where `core_api` is, since it is not the page's origin there:
+
+```bash
+PLAYWRIGHT_BASE_URL=http://localhost:3000 E2E_API_URL=http://localhost:8000 \
+  E2E_TOKEN=$(just dev-token you@example.com) just test-e2e-stack
+```
+
+The Compose origin itself is proven in CI.
 
 ## Before pushing
 
@@ -136,11 +157,3 @@ just test            # no .env, database or network needed
 just contracts       # only if you changed a schema or a route
 just docs-check
 ```
-
-## Devcontainer
-
-Open the repo in VS Code → "Reopen in Container". It starts a terminal container and DynamoDB
-Local, runs `just setup` and installs Playwright's Chromium on first creation, and forwards ports
-3000, 8000 and 8001; you then run `just dev-core`, `just dev-ai` and `just dev-frontend` as above
-(no `just dynamodb-local`: the compose file points `DYNAMODB_ENDPOINT_URL` at its own DynamoDB
-Local). Details: [`.devcontainer/README.md`](../../.devcontainer/README.md).

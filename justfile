@@ -5,7 +5,8 @@
 #   just setup      first-time setup
 #   just dev-core   run core_api with hot reload
 #
-# Recipes are POSIX shell. On Windows run them from Git Bash (bundled with Git
+# The development environment is the devcontainer (.devcontainer/). On a host,
+# recipes are POSIX shell: on Windows run them from Git Bash (bundled with Git
 # for Windows) or WSL; PowerShell is not supported.
 
 set shell := ["bash", "-euo", "pipefail", "-c"]

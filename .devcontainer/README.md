@@ -1,6 +1,7 @@
 # `.devcontainer` — Development Container
 
-A reproducible VS Code environment for the monorepo: Node 24, Python 3.12 (via `uv`), `just`,
+The project's development environment (on Windows, macOS and Linux alike): a reproducible VS Code
+environment for the monorepo: Node 24, Python 3.12 (via `uv`), `just`,
 `gh`, ripgrep/fd/jq, AWS CLI v2 + Terraform + `crane`, Claude Code
 (plus optional agent CLIs), Playwright's Chromium and DynamoDB Local; there is no SQL database.
 **It does not run the application**: you start the services yourself
@@ -30,12 +31,20 @@ needed for it). `just setup` writes the `SECRET_KEY`; every other key is optiona
 
 ## Use
 
+Prerequisites: Docker Desktop (on Windows with the WSL 2 backend), VS Code and its Dev Containers
+extension.
+
 1. VS Code → "Dev Containers: Reopen in Container" and wait for `post-create.sh` to finish.
-2. Fill in the secrets in `src/backend/services/core_api/.env`, `src/backend/services/ai_api/.env`
-   and `src/frontend/.env.local`.
-3. In three terminals: `just dev-core`, `just dev-ai`, `just dev-frontend`. Ports 8000, 8001
-   and 3000 are forwarded; open <http://localhost:3000>.
-4. `just lint`, `just test`, `just test-e2e`, `just contracts` work as documented.
+2. In three terminals: `just dev-core`, `just dev-ai`, `just dev-frontend`. Ports 8000, 8001
+   and 3000 are forwarded; open <http://localhost:3000> and sign in with
+   `just dev-token you@example.com --browser` (no Google client needed). The optional keys
+   (Google, NVIDIA, AWS) are in the [local-dev runbook](../docs/runbooks/local-dev.md).
+3. `just lint`, `just test`, `just test-e2e`, `just contracts` work as documented.
+
+On a Windows host the repo is bind-mounted from NTFS, so file watching and git are slower than in
+WSL; the dependency folders are named volumes, which keeps installs and builds fast. Git checks the
+files out with LF endings (`.gitattributes`), so the shell scripts run in the container whatever
+the host's `core.autocrlf`.
 
 The planner map (MapLibre) needs WebGL 2, which headless Chromium provides through
 SwiftShader. VS Code forwards the host's Wayland socket (WSLg) into the container as

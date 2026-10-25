@@ -49,7 +49,9 @@ just corpus-discover "<City>"  # draft a new city's TOML; the whole flow: docs/r
 just aws-login      # AWS via IAM Identity Center (devcontainer); never access keys
 ```
 
-Windows: `winget install Casey.Just` and run the recipes from Git Bash or WSL (they are POSIX shell).
+The reference environment is the devcontainer (`.devcontainer/`, which brings DynamoDB Local);
+on a host, add `just dynamodb-local`. Windows hosts: `winget install Casey.Just` and run the recipes
+from Git Bash or WSL (they are POSIX shell, never PowerShell). Steps: `docs/runbooks/local-dev.md`.
 Tests need no `.env`, no database and no network: DynamoDB is moto in process and core_api's
 `conftest.py` sets a test `SECRET_KEY`.
 
