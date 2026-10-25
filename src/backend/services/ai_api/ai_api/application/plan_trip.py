@@ -46,6 +46,7 @@ from ai_api.domain.models import (
     Message,
     Photo,
     RetrievalFilters,
+    Usage,
 )
 from ai_api.domain.ports import (
     InputGuard,
@@ -1699,7 +1700,11 @@ class PlanTrip:
             k=limit,
             ladder_step=ladder_step,
         ) as span:
-            found = await self._retriever.search(asked, limit=limit, filters=filters)
+            usage = Usage()
+            found = await self._retriever.search(
+                asked, limit=limit, filters=filters, usage=usage
+            )
+            span.payload["embed_tokens"] = usage.input_tokens or 0
             turn.tracer.retrieved(span, found)
         return found
 

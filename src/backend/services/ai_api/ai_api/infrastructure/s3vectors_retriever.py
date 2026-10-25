@@ -14,7 +14,7 @@ from botocore.exceptions import BotoCoreError, ClientError
 from travel_common.exceptions import ProviderUnavailable
 
 from ai_api.config import AISettings
-from ai_api.domain.models import Document, RetrievalFilters
+from ai_api.domain.models import Document, RetrievalFilters, Usage
 from ai_api.domain.ports import Embedder
 from ai_api.infrastructure.s3vectors import S3VectorsClient, build_client, vector_key
 
@@ -69,8 +69,9 @@ class S3VectorsRetriever:
         *,
         limit: int = 5,
         filters: RetrievalFilters | None = None,
+        usage: Usage | None = None,
     ) -> list[Document]:
-        vector = await self._embedder.embed_query(query)
+        vector = await self._embedder.embed_query(query, usage=usage)
         request: dict[str, Any] = {
             "vectorBucketName": self._bucket,
             "indexName": self._index,

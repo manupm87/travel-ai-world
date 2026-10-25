@@ -123,7 +123,13 @@ class Retriever(Protocol):
         *,
         limit: int = 5,
         filters: RetrievalFilters | None = None,
-    ) -> list[Document]: ...
+        usage: Usage | None = None,
+    ) -> list[Document]:
+        """The passages closest to `query`, at most `limit`.
+
+        When `usage` is given, the tokens spent embedding the query are added to it.
+        """
+        ...
 
     async def fetch(self, ids: Sequence[str]) -> list[Document]:
         """The documents with these ids, in no particular order.

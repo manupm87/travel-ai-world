@@ -179,7 +179,7 @@ sparse). Every item has `expires_at` (`INTERACTION_TTL_DAYS`, 90 by default).
 - **Caps and privacy.** 8 KB per text field (`TRACE_PAYLOAD_BYTES`, cut on a UTF-8 boundary), 200
   steps, 500 event marks, 200 sources, `truncated=true` beyond. The subject only, never the email.
 - **Cost** comes from `application/pricing.py` (versioned); a model without a public price (NVIDIA)
-  costs `null`. Embedding tokens are not measured: `Retriever.search` reports none.
+  costs `null`. Embedding tokens are what the embedder reports for each search's query.
 - **Locally.** Empty `INTERACTIONS_TABLE` records nothing. Set it (`travel-ai-local-interactions`)
   with `DYNAMODB_ENDPOINT_URL` pointing at `just dynamodb-local` and `just dev-ai` creates the table
   at start-up; Compose (`just docker-up`) sets both for you.
