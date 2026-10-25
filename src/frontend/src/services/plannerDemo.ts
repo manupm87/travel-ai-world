@@ -296,12 +296,11 @@ export function demoEventsFor(turn: PlannerTurn): PlannerEvent[] {
 /** Resolves after `ms`, or at once on abort; the abort listener goes when the timer fires. */
 function sleep(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise((resolve) => {
-    let id: ReturnType<typeof setTimeout> | undefined;
     const onAbort = () => {
       clearTimeout(id);
       resolve();
     };
-    id = setTimeout(() => {
+    const id = setTimeout(() => {
       signal?.removeEventListener("abort", onAbort);
       resolve();
     }, ms);
