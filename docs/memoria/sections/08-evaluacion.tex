@@ -164,12 +164,12 @@ referencia (\emph{golden set}) de 50 respuestas con su veredicto esperado: 34 re
 del modelo de producción, elegidas por estratos, y 16 copias con un defecto introducido a
 propósito (un precio, horario o dirección inventados, una divisa equivocada, una contradicción
 con el pasaje, la respuesta a otra pregunta o un falso «no lo sé»). Frente a esas etiquetas, el
-juez alcanza una kappa de Cohen ponderada de 0,61 a 0,63 en fundamentación y de 0,62 a 0,66 en
-relevancia según la ejecución, por encima del umbral de 0,6, pero de 0,52 a 0,57 en la línea de
-«alguna nota por debajo de 3». Es indulgente: deja pasar datos concretos inventados y, cuando los
-detecta, puntúa 4 en lugar del 2 que fija la rúbrica, así que las medias de fundamentación son
-una cota superior. Ambas evaluaciones se lanzan desde la consola de administración, que guarda
-cada ejecución. La evaluación cuesta unos 0,6\,\$ por ejecución y la comprobación del juez,
+juez alcanza una kappa de Cohen ponderada de 0,61 a 0,63 en fundamentación y de 0,64 a 0,66 en
+relevancia según la ejecución (acuerdo sustancial, $\geq$0,6), y de 0,52 a 0,57 (sin ponderar) en la
+marca «alguna nota por debajo de 3». Detecta todas las respuestas a otra pregunta y todas las
+contradicciones; su sesgo es la indulgencia (ante un dato concreto sin respaldo tiende a puntuar 4
+en vez de 2), así que las medias de fundamentación son una cota superior. La evaluación y la
+comprobación del juez se lanzan desde la consola de administración, que guarda cada ejecución. La evaluación cuesta unos 0,6\,\$ por ejecución y la comprobación del juez,
 unos 0,10\,\$.
 
 \subsection{Calidad del agente}\label{sec:evalagente}
@@ -217,7 +217,7 @@ expect: [ \{slot\_lacks: day 2, evening, title\_contains "Alabárdos"\},\\
 
 Con el modelo de producción (Claude Haiku~4.5), el agente supera de media \textbf{33,3 de 36
 escenarios (92,6\,\%)}, 577 de 585 comprobaciones (99\,\%) y \textbf{324 de 324 de seguridad}, con
-295 llamadas al modelo en 108 ejecuciones. La variación entre repeticiones es pequeña: cada ejecución completa supera 33 o 34 escenarios, y 33 de los 36 pasan en las tres. La Fig.~\ref{fig:evolucion} justifica la decisión de
+295 llamadas al modelo en 108 ejecuciones de escenario. La variación entre repeticiones es pequeña: cada ejecución completa supera 33 o 34 escenarios, y 33 de los 36 pasan en las tres. La Fig.~\ref{fig:evolucion} justifica la decisión de
 pasar a un agente: con el mismo modelo (Nemotron) y los mismos 32 escenarios, el planificador
 anterior, basado en intenciones, superaba el 44,8\,\% y el agente el 91,7\,\%. La versión
 intermedia, con el agente solo después del borrador, ya subía al 66,7\,\%; llevarlo también a la

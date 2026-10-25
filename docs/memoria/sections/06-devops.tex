@@ -26,7 +26,7 @@ las herramientas.
 
 \subsection{Contenedores}\label{sec:contenedores}
 
-Un único \code{Dockerfile} multietapa genera las dos imágenes del backend (argumento
+Un único \code{Dockerfile} multietapa y comentado genera las dos imágenes del backend (argumento
 \code{SERVICE}): una etapa instala las dependencias con \code{uv} a partir del \emph{lockfile}, sin
 paquetes de desarrollo, y la final parte de \code{python:3.12-slim}, se ejecuta con un usuario sin
 privilegios e incluye una comprobación de salud. La misma imagen sirve para Docker Compose y para
@@ -82,7 +82,7 @@ Tabla~\ref{tab:tests} reparte las más de 2.000 pruebas automáticas por paquete
 
 \begin{table}[h]
 \centering\scriptsize
-\caption{Pruebas automáticas por paquete (funciones o casos de prueba; los parametrizados cuentan una vez).}\label{tab:tests}
+\caption{Pruebas automáticas por paquete: unitarias y de integración (backend, Vitest) y de extremo a extremo (Playwright); los casos parametrizados cuentan una vez.}\label{tab:tests}
 \begin{tabularx}{\columnwidth}{@{}L{2.2cm}rY@{}}
 \toprule
 \textbf{Paquete} & \textbf{Pruebas} & \textbf{Qué cubren} \\
@@ -98,7 +98,7 @@ Frontend (Playwright) & $\approx$75 & Flujos en desarrollo, sitio estático y pi
 \end{table}
 
 El despliegue separa construir de promover (llevar a producción una imagen ya construida): cada \emph{merge} que toca el backend construye imágenes en GHCR (el registro de
-contenedores de GitHub); el despliegue del backend (manual) las copia a ECR (el de AWS) con \code{crane}, fija el \emph{digest} en
+contenedores de GitHub); el flujo de despliegue del backend, que lanza una persona, las copia a ECR (el de AWS) con \code{crane}, fija el \emph{digest} en
 Terraform y aplica el plan solo si se pide. El frontend se publica automáticamente. Es una
 decisión deliberada: el frontend practica despliegue continuo, porque publicarlo no cambia
 infraestructura; el backend practica \emph{entrega} continua, porque cada \emph{merge} deja una
@@ -228,7 +228,7 @@ Resumen & -- & Tokens, coste, latencia, documentos recuperados y usados, ids des
 
 \subsection{Reproducibilidad}
 
-Todos los resultados de evaluación de esta memoria se pueden regenerar desde el repositorio con las mismas recetas
+Todos los resultados de evaluación de esta memoria se pueden regenerar desde el repositorio~\cite{kyrianrepo} (servicios y \code{Dockerfile} en \code{src/backend}, Terraform en \code{infra/aws}, CI/CD y despliegue en \code{.github/workflows}, guías en \code{docs/runbooks}) con las mismas recetas
 (\code{index} y las evaluaciones requieren una sesión de AWS; la del agente, Bedrock o una clave de NVIDIA):
 
 \noindent\colorbox{klight}{\parbox{\dimexpr\columnwidth-2\fboxsep}{\ttfamily\scriptsize

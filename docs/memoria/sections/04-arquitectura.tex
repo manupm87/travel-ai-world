@@ -25,6 +25,10 @@ importa código del otro, regla que se comprueba en cada revisión. Internamente
 arquitectura hexagonal: casos de uso que dependen de \emph{puertos} (\code{LLMProvider},
 \code{Retriever}, \code{InputGuard}) con adaptadores intercambiables (Bedrock o NVIDIA; S3 Vectors
 o un recuperador por palabras clave para pruebas), como muestra la Fig.~\ref{fig:software}.
+\textbf{Dependencias.} En ejecución, \code{ai\_api} depende de Bedrock (Haiku~4.5, Titan~V2 y
+Guardrails), S3 Vectors, \code{core\_api} (acceso y cuota), Open-Meteo y Wikimedia Commons;
+\code{core\_api}, de DynamoDB y Cognito; el mapa, de OpenFreeMap. Las fuentes del corpus solo se
+usan al construirlo, y las librerías se fijan en un \emph{lockfile} por ecosistema.
 
 \begin{figure}[t]
 \centering

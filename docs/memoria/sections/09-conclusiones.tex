@@ -8,8 +8,7 @@ medible:
   \item \textbf{O1, fundamentación}: ningún lugar llega al itinerario sin un documento del corpus
         detrás. Está garantizado por construcción (herramientas que solo aceptan ids conocidos y
         tarjetas reconstruidas desde el corpus) y verificado en las 324 comprobaciones de seguridad
-        de la evaluación del agente; las respuestas fundamentadas en el corpus obtienen además un
-        4,72/5 del juez.
+        de la evaluación del agente; las respuestas fundamentadas en el corpus obtienen además un 4,72/5 de un juez validado frente a un conjunto de referencia.
   \item \textbf{O2, edición conversacional}: el agente con herramientas duplicó los escenarios
         superados frente al planificador por intenciones (del 44,8 al 91,7\,\%) y, con el modelo de
         producción, supera el 92,6\,\%; en producción, la capa de identificadores conocidos
@@ -38,13 +37,12 @@ puertas automáticas y decisiones irreversibles reservadas a personas.
   \item \textbf{Recuperación híbrida y reescritura de consultas}: las intenciones sin palabras
         clave («niños y lluvia») son el principal margen de mejora; combinar búsqueda léxica y
         vectorial, o reformular la consulta con el modelo, es el siguiente paso, ya previsto en la
-        arquitectura objetivo (OpenSearch Serverless, Fig.~\ref{fig:objetivo}) para cuando se
-        superen unos 50.000 documentos.
+        arquitectura objetivo (OpenSearch Serverless, Fig.~\ref{fig:objetivo}) uno de los dos criterios fijados para revisar la base vectorial (§\ref{sec:spike}).
   \item \textbf{Evaluación continua y más amplia}: llevar la evaluación del agente y la del juez a
         la CI con un presupuesto acotado; extender el juez de fundamentación a las respuestas del
         propio agente y repetir la evaluación sobre la pila completa (base vectorial y
-        Bedrock Guardrails); y mejorar el juez sobre el conjunto de referencia ya construido (que
-        enumere cada dato concreto antes de puntuar, o un modelo más capaz), con revisión humana
+        Bedrock Guardrails); y mejorar el juez, medido sobre el conjunto de referencia ya construido (pidiéndole que
+        enumere cada dato concreto antes de puntuar, o con un modelo más capaz), con revisión humana
         de sus etiquetas.
   \item \textbf{Evaluación con usuarios}: un estudio con usuarios reales (tasa de éxito, tiempo y
         cuestionario de usabilidad SUS, \emph{System Usability Scale}) completaría las métricas automáticas.
