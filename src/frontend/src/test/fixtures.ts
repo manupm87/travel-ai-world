@@ -11,7 +11,6 @@ import type {
 } from "@/types/trip";
 import type { TripSummary } from "@/types/trip-summary";
 
-
 const budapest = { lat: 47.4979, lng: 19.0402 };
 
 export function makeItineraryDay(overrides: Partial<ItineraryDay> = {}): ItineraryDay {
