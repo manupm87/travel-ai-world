@@ -130,7 +130,9 @@ For agents: [`AGENTS.md`](AGENTS.md).
 
 `METRICS_ENABLED` defaults to false and is always refused on Lambda. When enabled
 locally, `GET /metrics` exposes `trips_created_total` after successful new-trip
-persistence, using `METRICS_CITY_SLUGS` and the fallback `other`. This machine
+persistence, using `METRICS_CITY_SLUGS` and the fallback `other`. The configurable
+JSON list defaults to the six corpus slugs: `berlin`, `bologna`, `budapest`,
+`los-angeles`, `madrid` and `miami` (at most 100 entries). This machine
 endpoint has no bearer authentication and is excluded from OpenAPI; bind to
 loopback on a trusted laptop and run exactly one worker. Updates and deletes
 do not increment it, and app restarts reset it. See the
@@ -151,6 +153,9 @@ to the existing application log group after a successful trip creation.
 Versioned events include bounded city/budget/pace categories, nullable explicit
 duration, saved timestamp and a hashed deduplication key, excluding raw UUIDs,
 emails and free text. Each observer fails independently; metrics remain absent
-on Lambda. Updates/deletes produce no creation event and no backfill runs.
+on Lambda. Core Lambda explicitly configures the same six city slugs in
+Terraform. After deployment, only new creations use those categories; existing
+`other` events remain grouped and cannot be split by the dashboard.
+Updates/deletes produce no creation event and no backfill runs.
 See the [production setup and cost/privacy limits](../../../../docs/runbooks/business-statistics-cloudwatch.md)
 and [ADR 0031](../../../../docs/architecture/adr/0031-production-business-events.md).

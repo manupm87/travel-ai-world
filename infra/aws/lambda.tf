@@ -55,6 +55,9 @@ resource "aws_lambda_function" "core_api" {
     variables = merge(local.backend_env, {
       CORE_TABLE              = aws_dynamodb_table.core.name
       BUSINESS_EVENTS_ENABLED = tostring(var.business_events_enabled)
+      METRICS_CITY_SLUGS = jsonencode([
+        "berlin", "bologna", "budapest", "los-angeles", "madrid", "miami"
+      ])
       # The access list and the default daily quota (ADR 0026).
       ACCESS_MODE               = var.access_mode
       DEFAULT_DAILY_TOKEN_LIMIT = tostring(var.default_daily_token_limit)

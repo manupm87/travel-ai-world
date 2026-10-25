@@ -3,7 +3,7 @@ services:
   core_api:
     environment:
       METRICS_ENABLED: "true"
-      METRICS_CITY_SLUGS: '["budapest"]'
+      METRICS_CITY_SLUGS: '["berlin", "bologna", "budapest", "los-angeles", "madrid", "miami"]'
       WEB_CONCURRENCY: "1"
     # Replace the base binding: the unauthenticated scrape is local only.
     ports: !override

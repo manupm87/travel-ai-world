@@ -25,7 +25,15 @@ class CoreSettings(CommonSettings, DynamoSettings):
     # trip_created events on the application log, on Lambda too; opt-in
     BUSINESS_EVENTS_ENABLED: bool = False
     METRICS_CITY_SLUGS: list[str] = Field(
-        default_factory=lambda: ["budapest"], max_length=100
+        default_factory=lambda: [
+            "berlin",
+            "bologna",
+            "budapest",
+            "los-angeles",
+            "madrid",
+            "miami",
+        ],
+        max_length=100,
     )
 
     GOOGLE_CLIENT_ID: str = ""

@@ -6,9 +6,15 @@ dashboards are CloudWatch's, independent of Grafana; they are listed in the
 
 `trips_created_total{city_slug="budapest"}` counts a new trip only after
 `TripService.create` successfully persists it. Updates, child changes and deletes
-do not increment it. Other destinations share `city_slug="other"`; change
-`METRICS_CITY_SLUGS` (JSON list, at most 100 entries) before starting the app to
-allow more cities. There are no account, session or trip labels.
+do not increment it. The default allowlist covers the six corpus cities:
+`berlin`, `bologna`, `budapest`, `los-angeles`, `madrid` and `miami`. Other
+destinations share `city_slug="other"`. Override `METRICS_CITY_SLUGS` (JSON list,
+at most 100 entries) before starting the app to customize it. There are no
+account, session or trip labels.
+
+For production events, the six-city configuration takes effect only after
+deployment and only for new trip creations. Existing `other` events cannot be
+separated retrospectively; no historical database scan or backfill runs.
 
 For Compose, edit `services.core_api.environment.METRICS_CITY_SLUGS` in
 `docker-compose.metrics.yml`: the overlay value overrides `.env`. For a direct
