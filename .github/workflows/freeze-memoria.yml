@@ -1,0 +1,33 @@
+name: Freeze memoria
+
+# The project report in docs/memoria is submitted and must not change. A public
+# user-owned repository cannot restrict paths with push rules, so this job fails
+# any PR that touches the folder and the protect-main ruleset requires it.
+# To unfreeze, drop the required check from the ruleset or delete this file.
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  pull-requests: read
+
+jobs:
+  memoria:
+    name: Memoria is frozen
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Refuse changes under docs/memoria
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          touched=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" \
+            --jq '.[] | select((.filename | startswith("docs/memoria/")) or ((.previous_filename // "") | startswith("docs/memoria/"))) | .filename')
+          if [ -n "$touched" ]; then
+            echo "::error::docs/memoria is frozen after submission; this PR changes:"
+            echo "$touched"
+            exit 1
+          fi
+          echo "docs/memoria untouched"

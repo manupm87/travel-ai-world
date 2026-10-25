@@ -11,7 +11,7 @@
 | [api/](api/) | Generated OpenAPI documents (`core-api`, `ai-api`) — source of the frontend's types |
 | [design/](design/) | [`kyrian-world.md`](design/kyrian-world.md), the design reference (palette, type, Kiri); `ideas.pen`, the Pencil design file |
 | [Guion PJ IA.pdf](Guion%20PJ%20IA.pdf) | The course brief (Spanish) the project report follows |
-| [memoria/](memoria/README.md) | The project report (LaTeX, Spanish, two columns): business case, team, current and target AWS architecture, AI agent and RAG, data quality, DevOps, evaluation |
+| [memoria/](memoria/README.md) | The project report (LaTeX, Spanish, two columns): business case, team, current and target AWS architecture, AI agent and RAG, data quality, DevOps, evaluation. Frozen since submission: `.github/workflows/freeze-memoria.yml` fails any PR that touches it |
 
 Conventions: `README.md` files are for people (what it is, how to run it); `AGENTS.md` files are for
 coding agents (rules, commands, where things live). Both live next to the code they describe.
