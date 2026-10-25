@@ -39,7 +39,7 @@ just dev-frontend   # Next.js   :3000
 just dynamodb-local # in-memory DynamoDB :8002 (moto) for dev-core/dev-ai without Docker
 just lint           # ruff (backend, scripts) + pyright (backend) + eslint
 just test           # every backend package + frontend unit tests
-just test-core / test-ai / test-common / test-corpus / test-frontend / test-e2e
+just test-core / test-ai / test-common / test-corpus / test-frontend / test-scripts / test-e2e
 just contracts      # export OpenAPI docs + regenerate frontend types (run after changing any schema/route)
 just docs-check     # documentation hygiene
 just docker-up      # backend only: proxy :8080 + core_api + ai_api + DynamoDB Local (no Node)

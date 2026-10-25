@@ -53,23 +53,23 @@ JUST_RE = re.compile(r"`just ([a-z][a-z0-9-]*)")
 RECIPE_RE = re.compile(r"^([a-z][a-z0-9-]*)(?:\s+[^:\n]*)?:(?!=)", re.M)
 
 
-def main() -> int:
+def main(root: Path = ROOT) -> int:
     problems: list[str] = []
 
     for rel in REQUIRED:
-        if not (ROOT / rel).exists():
+        if not (root / rel).exists():
             problems.append(f"missing required file: {rel}")
 
-    recipes = set(RECIPE_RE.findall((ROOT / "justfile").read_text()))
+    recipes = set(RECIPE_RE.findall((root / "justfile").read_text()))
     docs = [
         p
-        for p in ROOT.rglob("*.md")
-        if not SKIPPED_PARTS.intersection(p.relative_to(ROOT).parts)
+        for p in root.rglob("*.md")
+        if not SKIPPED_PARTS.intersection(p.relative_to(root).parts)
     ]
 
     for doc in docs:
         text = doc.read_text(encoding="utf-8")
-        rel = doc.relative_to(ROOT)
+        rel = doc.relative_to(root)
 
         if doc.name in {"AGENTS.md", "CLAUDE.md"} or rel.parent.as_posix() in {
             ".claude/commands",
@@ -88,14 +88,14 @@ def main() -> int:
             if not resolved.exists():
                 problems.append(f"{rel}: broken link -> {target}")
 
-    adr_dir = ROOT / "docs" / "architecture" / "adr"
+    adr_dir = root / "docs" / "architecture" / "adr"
     index = (
         (adr_dir / "README.md").read_text() if (adr_dir / "README.md").exists() else ""
     )
     for adr in sorted(adr_dir.glob("[0-9][0-9][0-9][0-9]-*.md")):
         text = adr.read_text(encoding="utf-8")
         if not re.search(r"^\*\*Status:?\*\*|^Status:", text, re.M):
-            problems.append(f"{adr.relative_to(ROOT)}: no Status line")
+            problems.append(f"{adr.relative_to(root)}: no Status line")
         if adr.name not in index:
             problems.append(f"docs/architecture/adr/README.md: {adr.name} not listed")
 

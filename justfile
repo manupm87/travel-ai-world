@@ -115,8 +115,8 @@ lint-frontend:
 format:
     cd {{backend}} && uv run ruff format . ../../scripts && uv run ruff check --fix . ../../scripts
 
-# All tests: backend packages + frontend unit tests
-test: test-backend test-frontend
+# All tests: backend packages + frontend unit tests + repo scripts
+test: test-backend test-frontend test-scripts
 
 # Every backend package
 test-backend: test-common test-core test-ai test-corpus
@@ -136,6 +136,10 @@ test-ai:
 # city_corpus tests (fixtures only, no network)
 test-corpus:
     cd {{corpus}} && uv run pytest -q
+
+# Repo scripts (check_docs, release, branch-name hook): stdlib unittest, no network
+test-scripts:
+    python3 -m unittest discover -s scripts -p 'test_*.py'
 
 # Frontend unit tests (vitest)
 test-frontend:

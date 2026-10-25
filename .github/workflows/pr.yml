@@ -64,6 +64,7 @@ jobs:
             backend:
               - 'src/backend/**'
               - 'scripts/**'
+              - '.claude/hooks/**'
               - 'justfile'
               - '.github/**'
             frontend:
@@ -97,6 +98,7 @@ jobs:
       - uses: ./.github/actions/setup-uv
       - uses: extractions/setup-just@v4
       - run: just lint-backend
+      - run: just test-scripts
 
   backend-common:
     name: travel_common tests
