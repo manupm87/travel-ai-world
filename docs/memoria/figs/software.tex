@@ -29,10 +29,10 @@
 \draw[arr] (fe.south -| aibox.north) -- node[lbl,right]{SSE} (aibox.north);
 \draw[arr] (aibox.west |- rp) -- node[lbl,above]{HTTP} node[lbl,below]{acceso} (corebox.east |- rp);
 % común y datos
-\node[box,font=\scriptsize,text width=8.1cm,minimum height=0.45cm] (common) at (4.2,-1.25) {\textbf{travel\_common}: identidad, errores de dominio, verificación de tokens, logs de acceso};
+\node[box,font=\scriptsize,text width=8.1cm,minimum height=0.45cm] (common) at (4.2,-1.25) {\textbf{travel\_common}: identidad, errores de dominio, verificación de tokens, registros de acceso};
 \draw[darr] (common.north -| corebox.south) -- (corebox.south);
 \draw[darr] (common.north -| aibox.south) -- (aibox.south);
-\node[data,font=\scriptsize,text width=3.1cm,minimum height=0.6cm] (corpus) at (1.8,-2.15) {\textbf{city\_corpus} (sin conexión): fuentes abiertas $\rightarrow$ JSONL};
+\node[data,font=\scriptsize,text width=3.1cm,minimum height=0.6cm] (corpus) at (1.8,-2.15) {\textbf{city\_corpus} (fuera de línea): fuentes abiertas $\rightarrow$ JSONL};
 \node[data,font=\scriptsize,text width=3.1cm,minimum height=0.6cm] (idx) at (6.3,-2.15) {\textbf{indexador}: Titan V2 $\rightarrow$ S3 Vectors};
 \draw[arr] (corpus) -- node[lbl,above]{Git} (idx);
 \end{tikzpicture}

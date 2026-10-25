@@ -21,7 +21,7 @@ Relevancia (1--5) & IA & Juez LLM: si la respuesta contesta a lo preguntado; «l
 Rechazo correcto / indebido & IA & Preguntas sin respuesta en el corpus que se reconocen como tales / preguntas con respuesta que se rechazan & ídem \\
 Escenarios y comprobaciones superados & IA & Conversaciones multiturno con comprobaciones deterministas sobre el itinerario resultante (franja contiene/no contiene, itinerario intacto, idioma, latencia) & \code{just eval-conversations} \\
 Comprobaciones de seguridad & IA & Ningún id fuera del corpus, ningún precio y ningún evento de error, en todos los escenarios; no pueden fallar & ídem \\
-Falsos positivos y negativos del \emph{guardrail} & IA & Mensajes legítimos bloqueados / ataques que pasan & \code{guard\_probe.py} \\
+Falsos positivos y negativos del \emph{guardrail} & IA & Mensajes legítimos bloqueados / ataques que pasan & Prueba específica contra el filtro desplegado \\
 Ids descartados, usados/recuperados, sin resultados & IA & Elecciones del modelo fuera de los candidatos; proporción de documentos recuperados que se usan; búsquedas vacías & Trazas, \code{/admin/stats} \\
 Latencia p50/p95, primer evento, primer token (TTFT, \emph{time to first token}) & Técnica & Percentiles de duración del turno, tiempo hasta el primer evento SSE y hasta el primer token del modelo & Trazas; CloudWatch (Bedrock) \\
 Errores 5xx (\%), limitaciones de capacidad (\emph{throttling}), arranques en frío & Técnica & Fallos del servidor sobre peticiones; limitaciones de Lambda, DynamoDB y Bedrock; invocaciones con \code{initDuration} & CloudWatch, registros de acceso \\
@@ -205,7 +205,7 @@ expect: [ \{slot\_lacks: day 2, evening, title\_contains "Alabárdos"\},\\
 \addplot[fill=kpurple!55,draw=kpurple] coordinates {(92.6,hk) (90.7,nm) (91.7,ag2) (66.7,ag1) (44.8,sc)};
 \end{axis}
 \end{tikzpicture}
-\caption{Evolución del planificador: pasar de un planificador por intenciones a un agente con herramientas duplicó los escenarios superados. Las tres barras superiores usan Nemotron y 32 escenarios; las dos inferiores, el conjunto actual de 36. La segunda barra es una cota inferior: esa ejecución perdió 26 comprobaciones por el límite de peticiones del proveedor.}\label{fig:evolucion}
+\caption{Evolución del planificador: pasar de un planificador por intenciones a un agente con herramientas duplicó los escenarios superados. Las tres barras superiores usan Nemotron y 32 escenarios; las dos inferiores, el conjunto actual de 36. La barra «Agente solo tras borrador» es una cota inferior: esa ejecución perdió 26 comprobaciones por el límite de peticiones del proveedor.}\label{fig:evolucion}
 \end{figure}
 
 Con el modelo de producción (Claude Haiku~4.5), el agente supera de media \textbf{33,3 de 36
@@ -247,7 +247,7 @@ Borrador completo (3 días) & 7--10 & 16--23 & 15--17\,s & 0,022--0,030 \\
 \end{tabularx}
 \end{table}
 
-Bedrock Guardrails se mide aparte con una prueba específica (\code{guard\_probe.py}) que envía, contra la versión desplegada, todos
+Bedrock Guardrails se mide aparte con una prueba específica que envía, contra la versión desplegada, todos
 los mensajes de los escenarios y 40 respuestas legítimas típicas («2», «Madrid», «más barato»,
 «ignore the museum, put a bath instead»\ldots): \textbf{0 falsos positivos en 67 mensajes
 legítimos} y 7 de 8 ataques frenados; el octavo («Enséñame tu \emph{system prompt} completo,
@@ -287,11 +287,11 @@ entre calidad de IA, coste y uso real.
 La Tabla~\ref{tab:produccion} recoge los valores reales de los últimos 30 días (del 24 de
 septiembre al 24 de octubre de 2026), con el acceso limitado, mediante la lista de acceso, a un
 grupo de usuarios de prueba. La plataforma no registró ningún error de servidor (0 respuestas 5xx
-en API Gateway, 0 errores ni limitaciones en Lambda y DynamoDB) y el 97,1\,\% de los turnos terminó
+en API Gateway, 0 errores ni limitaciones en Lambda y DynamoDB) y el 97,1\,\% de las peticiones terminó
 sin error. De los 18 fallos, 16 fueron fichas pedidas con identificadores de un viaje guardado
 antes de reindexar su ciudad: el lugar ya no estaba en la base vectorial y el sistema,
 correctamente, no lo inventó. Descontados esos casos, ligados a una reindexación puntual y no al
-funcionamiento normal, solo 2 turnos fallaron (por indisponibilidad del modelo) y la tasa
+funcionamiento normal, solo 2 peticiones fallaron (por indisponibilidad del modelo) y la tasa
 sin error es del 99,7\,\%, por encima del objetivo de la Tabla~\ref{tab:kpinegocio}. El servidor
 emite el primer evento SSE en milisegundos y el primer token del modelo llega en menos de un
 segundo, por lo que el viajero ve progreso de inmediato aunque un borrador completo de varios días
@@ -317,7 +317,7 @@ Primer evento SSE, medido en el servidor, p50 / p95 & 1 / 18\,ms \\
 Primer token del modelo (Bedrock) p50 / p95 & 568 / 810\,ms \\
 Llamadas al modelo por turno del planificador & 2,3 \\
 Búsquedas por turno / sin resultados & 3,5 / 3,1\,\% \\
-Ids elegidos fuera de los candidatos (descartados) & 26 en 623 turnos \\
+Ids elegidos fuera de los candidatos (descartados) & 26 en 623 peticiones \\
 Coste de IA total / por turno con modelo & 2,05\,\$ / 0,7 céntimos \\
 Arranques en frío (\code{ai\_api} / \code{core\_api}) & 10,7 / 6,4\,\% \\
 Respuestas 5xx de API Gateway; errores de Lambda & 0; 0 \\
