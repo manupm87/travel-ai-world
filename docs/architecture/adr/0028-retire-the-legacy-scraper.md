@@ -1,6 +1,6 @@
 # 0028 — The legacy scraper leaves the tree
 
-**Status:** Accepted
+**Status:** Accepted (what it kept, removed by [0038](0038-retire-gcp-and-the-vector-store-spike.md))
 **Date:** 2026-10-03
 
 Updates [ADR 0004](0004-repository-layout.md), which made the scraper a workspace member.

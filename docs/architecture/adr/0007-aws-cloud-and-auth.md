@@ -1,6 +1,6 @@
 # 0007 — AWS is the deployment cloud; SSO locally, OIDC in CI, state in S3
 
-**Status:** Accepted
+**Status:** Accepted (`infra/gcp` removed by [0038](0038-retire-gcp-and-the-vector-store-spike.md))
 **Date:** 2026-09-15
 
 ## Context
