@@ -10,8 +10,15 @@ import asyncio
 import logging
 import re
 import unicodedata
-from collections.abc import AsyncIterator, Callable, Iterable, Mapping, Sequence
-from contextlib import suppress
+from collections.abc import (
+    AsyncGenerator,
+    AsyncIterator,
+    Callable,
+    Iterable,
+    Mapping,
+    Sequence,
+)
+from contextlib import aclosing, suppress
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 from typing import Literal, cast
@@ -622,9 +629,12 @@ class PlanTrip:
             events = self._on_remove(turn, action)
         else:
             events = self._guarded(turn)
+        progress = self._with_progress(turn, events)
         try:
-            async for event in self._with_progress(turn, events):
-                yield event
+            # closed with the turn, so its task is cancelled now, not when collected
+            async with aclosing(progress):
+                async for event in progress:
+                    yield event
         finally:
             city = resolve_city(turn.brief.destination, self._cities)
             tracer.city = city.slug if city is not None else tracer.city
@@ -632,7 +642,7 @@ class PlanTrip:
 
     async def _with_progress(
         self, turn: Turn, events: AsyncIterator[PlannerEvent]
-    ) -> AsyncIterator[PlannerEvent]:
+    ) -> AsyncGenerator[PlannerEvent]:
         """The turn's events with its progress between them.
 
         A phase often starts right before a slow model call, so the turn runs as
