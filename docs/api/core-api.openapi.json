@@ -4117,6 +4117,7 @@
           "name": {
             "anyOf": [
               {
+                "maxLength": 255,
                 "type": "string"
               },
               {
@@ -4128,6 +4129,7 @@
           "picture": {
             "anyOf": [
               {
+                "maxLength": 2048,
                 "type": "string"
               },
               {

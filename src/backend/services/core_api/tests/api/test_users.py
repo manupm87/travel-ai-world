@@ -1,5 +1,6 @@
 """Accounts: owners manage their own; administrators see and promote everyone."""
 
+import pytest
 from core_api.domain.models import User
 from core_api.infrastructure.dynamo.repositories import DynamoUserRepository
 from httpx import AsyncClient
@@ -52,6 +53,19 @@ async def test_owner_updates_own_account_only(
     assert mine.status_code == 200
     assert mine.json()["name"] == "Alice L."
     assert theirs.status_code == 403
+
+
+@pytest.mark.parametrize(
+    "body",
+    [{"name": "x" * 256}, {"picture": "https://p.example/" + "a" * 2048}],
+    ids=["long-name", "long-picture"],
+)
+async def test_profile_fields_are_bounded(client: AsyncClient, alice: User, body: dict):
+    response = await client.patch(
+        f"{USERS_URL}{alice.id}", json=body, headers=headers_for(alice)
+    )
+
+    assert response.status_code == 422
 
 
 async def test_role_change_is_admin_only(client: AsyncClient, admin: User, alice: User):
