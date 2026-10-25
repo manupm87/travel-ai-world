@@ -110,7 +110,7 @@ nothing here.
 ## VS Code extensions
 
 `devcontainer.json` installs only extensions tied to the project's tooling: Claude Code, Python +
-Pylance + Ruff, ESLint + Prettier + Tailwind, Vitest + Playwright, Terraform, TOML/YAML, draw.io (`docs/architecture/*.drawio.svg`),
+Pylance + Ruff, ESLint + Tailwind, Vitest + Playwright, Terraform, TOML/YAML, draw.io (`docs/architecture/*.drawio.svg`),
 GitHub Actions, `just` syntax and Mermaid preview. Personal ones (Copilot, Gemini Code Assist,
 GitLens, ...) go in **your** VS Code user settings so they follow you into every devcontainer:
 
