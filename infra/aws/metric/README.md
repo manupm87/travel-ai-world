@@ -29,11 +29,23 @@ not a Prometheus scrape or the local dashboard's counters. The production dashbo
 to 24 hours and combines six summary cards, hourly activity, destination,
 budget and pace distributions, and a visible summary table. Its six cards
 share one result through Grafana's Dashboard datasource, keeping a complete
-refresh to five CloudWatch queries. The cards distinguish no events from
+refresh to four CloudWatch queries plus one inline CSV query with no AWS call.
+The destination chart is a fixed recovered inventory snapshot, while budget
+and pace describe creation events in the selected period. Do not sum those
+sources. The cards distinguish no events from
 missing duration; destination groups include `other`, not distinct real cities.
 Use a shorter range when sufficient: the wider default can scan more bytes
 even with fewer queries. Keep manual refresh and the summary source panel
 (ID `100`) expanded; no new service, permission or database scan is needed.
+
+The destination chart requires an existing Infinity datasource at import.
+Its portable CSV contains only `city,trips` headers, so it shows no invented
+counts. Populate it with reviewed city/count aggregates only and update text
+panel `43` with the capture, fixed creation cutoff and source. Keep raw records,
+production counts and capture metadata out of the repository. The snapshot
+excludes deleted trips, is not a transactional creation history, does not follow
+the time picker and does not correct old CloudWatch events. Its original
+one-off database read has its own cost; viewing the CSV adds no AWS queries.
 
 Use Docker Compose 2.24.4 or newer (`!override` support). From the repository
 root, prepare the service `.env` files as described in the backend README and

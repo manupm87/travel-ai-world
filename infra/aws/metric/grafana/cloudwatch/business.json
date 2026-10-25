@@ -23,6 +23,14 @@
       "type": "datasource",
       "pluginId": "cloudwatch",
       "pluginName": "CloudWatch"
+    },
+    {
+      "name": "DS_INFINITY",
+      "label": "Infinity existente",
+      "description": "Datasource Infinity para CSV agregado inline; no consulta AWS.",
+      "type": "datasource",
+      "pluginId": "yesoreyeram-infinity-datasource",
+      "pluginName": "Infinity"
     }
   ],
   "__requires": [
@@ -31,6 +39,12 @@
       "id": "cloudwatch",
       "name": "CloudWatch",
       "version": "1.0.0"
+    },
+    {
+      "type": "datasource",
+      "id": "yesoreyeram-infinity-datasource",
+      "name": "Infinity",
+      "version": "3.0.0"
     }
   ],
   "templating": {
@@ -79,7 +93,7 @@
       },
       "options": {
         "mode": "markdown",
-        "content": "## El pulso de los viajes\nActividad registrada al crear viajes · **Producción** · **Actualización manual**"
+        "content": "### Actividad del periodo y destinos históricos\nTarjetas y preferencias: eventos seleccionados. Destinos: instantánea fija del inventario conservado, pendiente de cargar en esta plantilla."
       }
     },
     {
@@ -369,7 +383,7 @@
     },
     {
       "id": 5,
-      "title": "Grupos de destino",
+      "title": "Grupos en eventos",
       "type": "stat",
       "gridPos": {
         "x": 16,
@@ -584,7 +598,7 @@
     },
     {
       "id": 21,
-      "title": "02 · Perfil al crear el viaje",
+      "title": "02 · Destinos históricos y preferencias del periodo",
       "type": "row",
       "collapsed": false,
       "gridPos": {
@@ -597,133 +611,83 @@
     },
     {
       "id": 40,
-      "title": "Destinos registrados",
-      "type": "bargauge",
+      "type": "barchart",
+      "title": "Destinos · histórico recuperado",
+      "description": "Instantánea fija de viajes conservados en la captura y creados antes del corte documentado. No cambia con el selector temporal ni debe sumarse a los eventos. Captura, corte y fuente pendientes de cargar en esta plantilla. Lectura no transaccional; excluye eliminados.",
       "gridPos": {
         "x": 0,
-        "y": 18,
+        "y": 21,
         "w": 8,
         "h": 8
       },
       "datasource": {
-        "type": "cloudwatch",
-        "uid": "${DS_CLOUDWATCH}"
-      },
-      "description": "Solo aparecen destinos de la lista permitida. «Otros destinos» agrupa todas las demás ciudades; no permite conocer su desglose.",
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "noValue": "Sin eventos",
-          "decimals": 0,
-          "color": {
-            "mode": "palette-classic"
-          },
-          "min": 0,
-          "mappings": []
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "budapest"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Budapest"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "other"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Otros destinos"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "unspecified"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Sin especificar"
-              }
-            ]
-          }
-        ]
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_INFINITY}"
       },
       "targets": [
         {
           "refId": "A",
-          "id": "",
-          "datasource": {
-            "type": "cloudwatch",
-            "uid": "${DS_CLOUDWATCH}"
-          },
-          "queryMode": "Logs",
-          "logsMode": "Insights",
-          "queryLanguage": "CWLI",
-          "logsQueryScope": "logGroupName",
-          "region": "$region",
-          "logGroups": [
+          "type": "csv",
+          "source": "inline",
+          "format": "table",
+          "parser": "backend",
+          "data": "city,trips\n",
+          "columns": [
             {
-              "arn": "$core_log_group",
-              "name": "$core_log_group"
+              "selector": "city",
+              "text": "Ciudad",
+              "type": "string"
+            },
+            {
+              "selector": "trips",
+              "text": "Viajes",
+              "type": "number"
             }
-          ],
-          "expression": "parse @message \"business_event=*\" as payload\n| fields jsonParse(payload) as e\n| filter e.event = \"trip_created\" and e.version = 1 and ispresent(e.event_id)\n| stats latest(e.city_slug) as city_slug, latest(e.budget_tier) as budget_tier, latest(e.pace_preference) as pace_preference, latest(e.duration_days) as duration_days, max(@timestamp) as ts by e.event_id\n| stats count(*) as viajes by city_slug\n| sort viajes desc",
-          "statsGroups": [
-            "city_slug"
           ]
         }
       ],
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "orientation": "horizontal",
-        "displayMode": "basic",
-        "showUnfilled": false,
-        "valueMode": "color",
-        "namePlacement": "left",
-        "sizing": "manual",
-        "text": {
-          "titleSize": 14,
-          "valueSize": 24
-        },
-        "minVizHeight": 32,
-        "maxVizHeight": 44,
-        "textMode": "value_and_name"
-      },
-      "transformations": [
-        {
-          "id": "rowsToFields",
-          "options": {
-            "mappings": [
-              {
-                "fieldName": "city_slug",
-                "handlerKey": "field.name"
-              },
-              {
-                "fieldName": "viajes",
-                "handlerKey": "field.value"
-              }
-            ]
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#56C8E8"
+          },
+          "unit": "short",
+          "decimals": 0,
+          "min": 0,
+          "noValue": "Pendiente de cargar",
+          "custom": {
+            "axisLabel": "Viajes conservados",
+            "axisPlacement": "auto",
+            "fillOpacity": 85,
+            "gradientMode": "none",
+            "lineWidth": 0,
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
           }
-        }
-      ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "xField": "Ciudad",
+        "showValue": "always",
+        "groupWidth": 0.7,
+        "barWidth": 0.8,
+        "barRadius": 0.12,
+        "fullHighlight": false,
+        "legend": {
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelRotation": 0
+      }
     },
     {
       "id": 41,
@@ -731,7 +695,7 @@
       "type": "bargauge",
       "gridPos": {
         "x": 8,
-        "y": 18,
+        "y": 21,
         "w": 8,
         "h": 8
       },
@@ -885,7 +849,7 @@
       "type": "bargauge",
       "gridPos": {
         "x": 16,
-        "y": 18,
+        "y": 21,
         "w": 8,
         "h": 8
       },
@@ -1039,7 +1003,7 @@
       "type": "table",
       "gridPos": {
         "x": 0,
-        "y": 26,
+        "y": 29,
         "w": 24,
         "h": 5
       },
@@ -1240,17 +1204,33 @@
       "transparent": true,
       "gridPos": {
         "x": 0,
-        "y": 31,
+        "y": 34,
         "w": 24,
         "h": 8
       },
       "options": {
         "mode": "markdown",
-        "content": "### Si ves «Sin eventos»\nNo hay creaciones registradas en el periodo seleccionado, o hay que revisar la captura. Comprueba el rango de fechas, el grupo de registros y los errores de consulta. **No prueba que la API esté caída ni que no existan viajes en la base de datos.** Puedes crear un viaje real y actualizar después.\n\n### Qué cuenta y qué no\nSolo nuevas creaciones desde la activación del registro, deduplicadas dentro del periodo y la retención disponible. Cambiar o eliminar un viaje no modifica su evento. La duración media incluye el cero explícito y omite la ausencia de duración. «Sin duración» y cobertura 0 % significan cosas diferentes a cero días. El historial usa la última observación del evento, no las fechas del viaje.\n\n### Coste y acceso\n**Actualización manual · 5 consultas a CloudWatch por carga completa.** Las tarjetas comparten el resumen; no añaden consultas independientes. El rango inicial es 24 horas: si necesitas reducir datos escaneados, selecciona una hora. Menos consultas no garantiza menor coste con un rango mayor. Cada consulta puede escanear otros registros del grupo; Grafana Free no elimina los cargos de AWS. No se han añadido servicios, alertas ni lecturas de la base de datos.\n\nLa retención limita el historial (14 días por defecto). Un fallo de registro puede perder una creación; este panel no es un registro contable. El lector de Grafana tiene acceso al grupo de registros completo, no solo a estos campos. No se muestran identificadores de viaje ni información personal en estas visualizaciones."
+        "content": "### Si ves «Sin eventos»\nNo hay creaciones registradas en el periodo seleccionado, o hay que revisar la captura. Comprueba el rango de fechas, el grupo de registros y los errores de consulta. **No prueba que la API esté caída ni que no existan viajes en la base de datos.** Puedes crear un viaje real y actualizar después.\n\n### Qué cuenta y qué no\nActividad, tarjetas, presupuesto y ritmo: solo nuevas creaciones desde la activación del registro, deduplicadas dentro del periodo y la retención disponible. Cambiar o eliminar un viaje no modifica su evento. La duración media incluye el cero explícito y omite la ausencia de duración. «Sin duración» y cobertura 0 % significan cosas diferentes a cero días. El historial usa la última observación del evento, no las fechas del viaje.\n\n### Coste y acceso\n**Actualización manual · 4 consultas a CloudWatch por carga completa; un CSV inline sin consulta AWS.** Las tarjetas comparten el resumen; no añaden consultas independientes. El rango inicial es 24 horas: si necesitas reducir datos escaneados, selecciona una hora. Menos consultas no garantiza menor coste con un rango mayor. Cada consulta puede escanear otros registros del grupo; Grafana Free no elimina los cargos de AWS. La visualización no añade servicios, alertas ni lecturas de la base de datos; la captura histórica original es una lectura puntual separada.\n\nLa retención limita el historial (14 días por defecto). Un fallo de registro puede perder una creación; este panel no es un registro contable. El lector de Grafana tiene acceso al grupo de registros completo, no solo a estos campos. No se muestran identificadores de viaje ni información personal en estas visualizaciones.\n\n**Destinos recuperados:** instantánea fija del inventario conservado al capturar; el corte es independiente del intervalo seleccionado. No corrige los eventos antiguos ni se suma a ellos. El CSV inline no consulta AWS al visualizarse; la lectura original de DynamoDB tiene su propio coste."
+      }
+    },
+    {
+      "id": 43,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 18,
+        "w": 24,
+        "h": 3
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "**Destinos · INSTANTÁNEA PENDIENTE DE CARGAR.** Captura, corte de creación y fuente: pendientes. Inventario conservado al capturar, excluye eliminados; no cambia con el intervalo. **Presupuesto y ritmo:** eventos de creación del periodo seleccionado. Son fuentes distintas y no deben sumarse."
       }
     }
   ],
-  "description": "Actividad y perfil de nuevas creaciones de viajes. Seis indicadores comparten un resumen y cinco consultas de CloudWatch alimentan el panel completo. Actualización manual, sin reconstrucción histórica.",
+  "description": "Eventos de creación y destinos históricos recuperados como instantánea fija. Seis indicadores comparten un resumen; cuatro consultas CloudWatch y un CSV inline sin consulta AWS. Actualización manual.",
   "timepicker": {
     "refresh_intervals": [],
     "time_options": [
@@ -1262,5 +1242,13 @@
       "7d"
     ]
   },
-  "graphTooltip": 1
+  "graphTooltip": 1,
+  "links": [
+    {
+      "title": "Histórico conservado · detalle",
+      "type": "link",
+      "url": "/d/kyrian-trip-history",
+      "targetBlank": false
+    }
+  ]
 }
