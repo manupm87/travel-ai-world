@@ -15,7 +15,7 @@ class CommonSettings(BaseSettings):
     API_V1_STR: str = "/api/v1"
 
     # explicit origins, never "*": the app sets allow_credentials=True
-    BACKEND_CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:5173"]
+    BACKEND_CORS_ORIGINS: list[str] = ["http://localhost:3000"]
 
     # token issuer (ADR 0009): "local" is core_api's HS256 sign-in (development),
     # "cognito" a user pool's RS256 ID tokens verified against COGNITO_JWKS (deployed)
