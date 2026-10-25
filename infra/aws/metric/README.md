@@ -13,7 +13,8 @@ at most 100 entries) before starting the app to customize it. There are no
 account, session or trip labels.
 
 For production events, the six-city configuration takes effect only after
-deployment and only for new trip creations. Existing `other` events cannot be
+deployment and only for new trip creations. Terraform derives the production
+allowlist from corpus TOML filenames and requires 1 to 100 entries. Existing `other` events cannot be
 separated retrospectively; no historical database scan or backfill runs.
 
 For Compose, edit `services.core_api.environment.METRICS_CITY_SLUGS` in

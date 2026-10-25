@@ -6,6 +6,11 @@
 # (ADR 0007).
 
 locals {
+  metrics_city_slugs = sort([
+    for city_file in fileset("${path.module}/../../src/backend/tools/city_corpus/cities", "*.toml") :
+    trimsuffix(city_file, ".toml")
+  ])
+
   # Both functions in Cognito mode (cognito.tf), CORS for any extra origin.
   backend_env = merge(local.cognito_backend_env, {
     BACKEND_CORS_ORIGINS = var.backend_cors_origins
@@ -55,13 +60,18 @@ resource "aws_lambda_function" "core_api" {
     variables = merge(local.backend_env, {
       CORE_TABLE              = aws_dynamodb_table.core.name
       BUSINESS_EVENTS_ENABLED = tostring(var.business_events_enabled)
-      METRICS_CITY_SLUGS = jsonencode([
-        "berlin", "bologna", "budapest", "los-angeles", "madrid", "miami"
-      ])
+      METRICS_CITY_SLUGS      = jsonencode(local.metrics_city_slugs)
       # The access list and the default daily quota (ADR 0026).
       ACCESS_MODE               = var.access_mode
       DEFAULT_DAILY_TOKEN_LIMIT = tostring(var.default_daily_token_limit)
     })
+  }
+
+  lifecycle {
+    precondition {
+      condition     = length(local.metrics_city_slugs) > 0 && length(local.metrics_city_slugs) <= 100
+      error_message = "The metrics city allowlist must contain between 1 and 100 corpus cities."
+    }
   }
 
   depends_on = [aws_cloudwatch_log_group.core_api, aws_iam_role_policy_attachment.core_api_basic]

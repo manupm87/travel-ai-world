@@ -153,8 +153,8 @@ to the existing application log group after a successful trip creation.
 Versioned events include bounded city/budget/pace categories, nullable explicit
 duration, saved timestamp and a hashed deduplication key, excluding raw UUIDs,
 emails and free text. Each observer fails independently; metrics remain absent
-on Lambda. Core Lambda explicitly configures the same six city slugs in
-Terraform. After deployment, only new creations use those categories; existing
+on Lambda. Core Lambda derives its sorted city allowlist from corpus TOML
+filenames in Terraform, with a planning guard of 1 to 100 entries. After deployment, only new creations use those categories; existing
 `other` events remain grouped and cannot be split by the dashboard.
 Updates/deletes produce no creation event and no backfill runs.
 See the [production setup and cost/privacy limits](../../../../docs/runbooks/business-statistics-cloudwatch.md)
