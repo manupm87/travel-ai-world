@@ -4,7 +4,8 @@ output "ecr_repository_urls" {
 }
 
 output "aws_region" {
-  value = var.region
+  description = "AWS region of the deployment."
+  value       = var.region
 }
 
 output "api_url" {
@@ -23,11 +24,13 @@ output "core_api_function_name" {
 }
 
 output "ai_api_function_name" {
-  value = aws_lambda_function.ai_api.function_name
+  description = "Name of the ai_api Lambda function."
+  value       = aws_lambda_function.ai_api.function_name
 }
 
 output "core_table_name" {
-  value = aws_dynamodb_table.core.name
+  description = "Name of the core_api DynamoDB table."
+  value       = aws_dynamodb_table.core.name
 }
 
 output "grafana_business_logs_role_arn" {

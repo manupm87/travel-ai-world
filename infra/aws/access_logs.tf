@@ -1,16 +1,4 @@
 # One structured application record per request in the existing Lambda groups.
-variable "access_logs_enabled" {
-  description = "Enable bounded HTTP access logs in both APIs; existing log retention applies."
-  type        = bool
-  default     = true
-}
-
-variable "access_logs_dashboard_enabled" {
-  description = "Create the access log dashboard. Opening/refreshing it runs billable Logs Insights scans."
-  type        = bool
-  default     = true
-}
-
 resource "aws_cloudwatch_dashboard" "access_logs" {
   count          = var.access_logs_dashboard_enabled ? 1 : 0
   dashboard_name = "${var.name_prefix}-access-logs"

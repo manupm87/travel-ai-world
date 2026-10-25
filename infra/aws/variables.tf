@@ -226,3 +226,27 @@ variable "grafana_cloud_logs_reader" {
     error_message = "Use a 12-digit Grafana AWS account ID and a non-empty exact external ID, or null."
   }
 }
+
+variable "access_logs_enabled" {
+  description = "Enable bounded HTTP access logs in both APIs; existing log retention applies."
+  type        = bool
+  default     = true
+}
+
+variable "access_logs_dashboard_enabled" {
+  description = "Create the access log dashboard. Opening/refreshing it runs billable Logs Insights scans."
+  type        = bool
+  default     = true
+}
+
+variable "service_dashboard_enabled" {
+  description = "Create the native CloudWatch service dashboard. Standard CloudWatch dashboard pricing applies."
+  type        = bool
+  default     = true
+}
+
+variable "infrastructure_dashboard_enabled" {
+  description = "Create the native DynamoDB, CloudFront and Lambda infrastructure dashboard; verify the account dashboard free-tier allowance."
+  type        = bool
+  default     = true
+}
