@@ -1,7 +1,7 @@
 \begin{tikzpicture}[x=1cm,y=1cm]
 \node[draw=kgray,rounded corners=4pt,dashed,minimum width=6.35cm,minimum height=2.75cm] (host) at (3.05,0.05) {};
 \node[font=\tiny\bfseries,color=kgray,anchor=north west] at (-0.1,1.42) {Docker Compose (\code{.devcontainer})};
-\node[box,font=\tiny,text width=3.45cm,minimum height=1.45cm,align=left] (dc) at (1.85,0.4) {\textbf{devcontainer} (Ubuntu)\\Node 24 · Python 3.12 + uv\\Terraform · AWS CLI · gh · just\\crane · Chromium (Playwright)\\Claude Code (+ Codex, Gemini)};
+\node[box,font=\tiny,text width=3.45cm,minimum height=1.45cm,align=left] (dc) at (1.85,0.4) {\textbf{devcontainer} (Ubuntu)\\Node 24 · Python 3.12 + uv\\Terraform · AWS CLI · gh · just\\crane · Chromium (Playwright)\\Agentes de código de terminal};
 \node[data,font=\tiny,text width=1.75cm,minimum height=1.45cm] (dyn) at (5.0,0.4) {\textbf{DynamoDB Local}\\en memoria};
 \node[box,font=\tiny,text width=5.95cm,minimum height=0.45cm,fill=gray!8] (vol) at (3.05,-0.85) {9 volúmenes: \code{.venv}, \code{node\_modules}, sesiones de agentes, caché SSO};
 \node[aws,font=\tiny,text width=1.3cm,minimum height=1.45cm] (sso) at (7.25,0.4) {\textbf{IAM Identity Center} (SSO)};
