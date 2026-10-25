@@ -103,12 +103,12 @@ broadening to all logs/metrics.
 
 Import [`business.json`](../../infra/aws/metric/grafana/cloudwatch/business.json)
 in Grafana Cloud, choosing the reviewed CloudWatch datasource in the import
-picker. This JSON contains placeholders rather than live datasource/account
+picker and an existing Infinity datasource for the inline historical CSV. This JSON contains placeholders rather than live datasource/account
 identifiers. Set **Grupo core_api** to the exact `core_api_log_group_name` output
 and **Región** to the deployed region (default `eu-west-1`). The textbox avoids
 an automatic query enumerating every log group.
 
-All panels summarize the selected window; the default is the last 24 hours.
+Activity cards, budget, pace and the hourly series summarize the selected window; the default is the last 24 hours. Destinations show a fixed recovered inventory snapshot, independent of the time picker. The portable CSV has headers only: populate reviewed city/count aggregates and update panel 43 with capture time, creation cutoff and source. The snapshot excludes deleted trips, is not transactional and must not be added to creation events.
 Refresh manually and choose one hour when a smaller scan is sufficient. Six
 cards show creations, mean explicit duration, creations with duration, duration
 coverage, recorded destination groups and the last observed creation. The
@@ -157,10 +157,12 @@ categories explicitly; it cannot reconstruct the destinations folded into `other
 
 ## Cost control and rollback
 
-A complete dashboard load or refresh runs **five** Logs Insights queries:
-one summary, three category distributions and one hourly series. The six
+A complete dashboard load or refresh runs **four** Logs Insights queries:
+one summary, budget and pace distributions, and one hourly series. The fixed
+destination CSV uses Infinity inline and makes no AWS query; the original
+one-off database read has its own cost. The six
 summary cards reuse source panel `100` without new backend queries. The shared
-source remains expanded and visible. Five queries reduce the number of scans
+source remains expanded and visible. Four queries reduce the number of scans
 compared with seven over the same window, but the 24-hour default scans a wider
 window than one hour; fewer queries alone do not guarantee lower cost.
 Filtering to business events does not prevent scanning other lines in the group.
