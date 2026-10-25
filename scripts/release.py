@@ -3,7 +3,8 @@
 
     python3 scripts/release.py bump [patch|minor|major] [--no-commit]
         On a feature branch: bump the version in every manifest, re-lock the
-        backend workspace and commit. Refuses to run on main.
+        backend workspace and the frontend's package-lock.json, and commit.
+        Refuses to run on main.
 
     python3 scripts/release.py publish [--draft] [--prerelease]
         On a clean, up-to-date main: tag vX.Y.Z and create the GitHub release
@@ -110,6 +111,28 @@ def cmd_bump(args: argparse.Namespace) -> int:
         print("  ok    src/backend/uv.lock re-locked")
     else:
         print("  warn  uv not found: run `uv lock` in src/backend before committing")
+
+    # package-lock.json repeats the version; npm rewrites it, never a hand edit
+    if shutil.which("npm"):
+        subprocess.run(
+            [  # noqa: S607
+                "npm",
+                "install",
+                "--package-lock-only",
+                "--ignore-scripts",
+                "--no-audit",
+                "--no-fund",
+            ],
+            cwd=SOURCE_OF_TRUTH.parent,
+            check=True,
+        )
+        changed.append(SOURCE_OF_TRUTH.parent / "package-lock.json")
+        print("  ok    src/frontend/package-lock.json re-locked")
+    else:
+        print(
+            "  warn  npm not found: run `npm install --package-lock-only` in "
+            "src/frontend before committing"
+        )
 
     if args.no_commit:
         print("files updated, no commit created (--no-commit)")
