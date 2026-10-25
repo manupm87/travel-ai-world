@@ -2,12 +2,14 @@
 """Mechanical documentation checks; the PR template covers the rest.
 
 Required files exist, every ADR has a Status line and an index entry, every `just`
-recipe named in an AGENTS.md, CLAUDE.md, slash command or runbook exists, relative links resolve (no anchors).
+recipe named in an AGENTS.md, CLAUDE.md, slash command or runbook exists, relative
+links resolve (percent-decoded, no anchors).
 """
 
 import re
 import sys
 from pathlib import Path
+from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -82,7 +84,7 @@ def main() -> int:
         for target in LINK_RE.findall(text):
             if target.startswith(("http://", "https://", "mailto:")):
                 continue
-            resolved = (doc.parent / target).resolve()
+            resolved = (doc.parent / unquote(target)).resolve()
             if not resolved.exists():
                 problems.append(f"{rel}: broken link -> {target}")
 
