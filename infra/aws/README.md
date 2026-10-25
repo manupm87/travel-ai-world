@@ -1,7 +1,7 @@
 # AWS (Lambda + API Gateway + Cognito + DynamoDB, behind CloudFront)
 
-Read [`infra/README.md`](../README.md) first: images, secrets and state are the same for both
-clouds. This folder is the **v3 shape** of [ADR 0009](../../docs/architecture/adr/0009-lambda-cognito-budget.md)
+Read [`infra/README.md`](../README.md) first: it covers images, secrets and state.
+This folder is the **v3 shape** of [ADR 0009](../../docs/architecture/adr/0009-lambda-cognito-budget.md)
 (drawn in [`docs/architecture/aws-architecture.drawio.svg`](../../docs/architecture/aws-architecture.drawio.svg)):
 the same two container images run as **Lambda functions** behind an **API Gateway REST API**, the
 browser signs in through a **Cognito user pool**, and **CloudFront** is the single public origin
@@ -19,8 +19,8 @@ removes it.
 
 | Function | Image | Where | Receives |
 |---|---|---|---|
-| `core-api` | `core-api` | outside the VPC (DynamoDB through IAM, HTTPS) | `CORE_TABLE`, `AUTH_MODE=cognito` + `COGNITO_*`, `BACKEND_CORS_ORIGINS`, `ACCESS_MODE` + `DEFAULT_DAILY_TOKEN_LIMIT` |
-| `ai-api` | `ai-api` | outside the VPC (Bedrock, NVIDIA, `core_api` through CloudFront) | `LLM_PROVIDER` (`bedrock` by default) + `BEDROCK_*`, `NVIDIA_*` (fallback), `AUTH_MODE=cognito` + `COGNITO_*`, `CORE_API_URL=https://<domain>`, `RETRIEVAL_ENABLED` + `VECTOR_*` + `EMBEDDINGS_*`, `INTERACTIONS_TABLE`, `ACCESS_CONTROL_ENABLED=true` |
+| `core-api` | `core-api` | outside any VPC (DynamoDB through IAM, HTTPS) | `CORE_TABLE`, `AUTH_MODE=cognito` + `COGNITO_*`, `BACKEND_CORS_ORIGINS`, `ACCESS_MODE` + `DEFAULT_DAILY_TOKEN_LIMIT`, `BUSINESS_EVENTS_ENABLED`, `ACCESS_LOG_ENABLED` |
+| `ai-api` | `ai-api` | outside any VPC (Bedrock, NVIDIA, `core_api` through CloudFront) | `LLM_PROVIDER` (`bedrock` by default) + `BEDROCK_*`, `NVIDIA_*` (fallback), `AUTH_MODE=cognito` + `COGNITO_*`, `CORE_API_URL=https://<domain>`, `RETRIEVAL_ENABLED` + `VECTOR_*` + `EMBEDDINGS_*`, `INTERACTIONS_TABLE`, `ACCESS_CONTROL_ENABLED=true`, `ACCESS_LOG_ENABLED` |
 
 Request path: `https://<domain>/api/v1/...` → CloudFront (`/api/*`, no cache, `Authorization`
 forwarded) → API Gateway (Cognito authorizer, then `/api/v1/ai/{proxy+}` streamed to `ai-api`,
@@ -319,14 +319,3 @@ curl -H "Authorization: Bearer $TOKEN" "$(terraform output -raw api_gateway_invo
   `/404.html`, 404) is missing, or `404.html` is not at the root of the bucket.
 - An API call answers 404 with HTML → the API returned 403 (someone else's resource, an
   authorizer deny); the distribution-wide error response maps it. API 404s stay JSON.
-
-## Taking a function out of a VPC
-
-A single apply cannot drop `vpc_config` from a function and destroy its security group, subnets
-and VPC in the same run: Terraform reports `Error: Cycle` between the function update and the
-destroys. Apply in two steps, locally, with both images pinned to digests already in ECR
-(`-var core_api_image=... -var ai_api_image=...`; a stale `terraform.tfvars` would deploy an image
-that no longer exists): `terraform apply -target=aws_lambda_function.<function>` first, check that
-the function answers from outside the VPC, then the plain `terraform apply`. An RDS instance needs
-deletion protection off (`aws rds modify-db-instance ... --no-deletion-protection
---apply-immediately`) before Terraform can destroy it; its final snapshot is deleted by hand.

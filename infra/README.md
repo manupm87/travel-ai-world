@@ -6,7 +6,7 @@ Nothing is created until you run `terraform apply`.
 | Folder | What it holds |
 |---|---|
 | [`aws/`](aws/README.md) | Lambda ×2 + API Gateway REST + Cognito + DynamoDB + ECR + S3 Vectors, behind CloudFront (S3 frontend, WAF); no VPC. One public origin: the CloudFront domain, with `/api/*` routed to the gateway |
-| [`aws/bootstrap/`](aws/bootstrap/README.md) | Applied once: the remote state bucket, the GitHub OIDC provider and the CI role |
+| [`aws/bootstrap/`](aws/bootstrap/README.md) | Applied once: the remote state bucket, the GitHub OIDC provider, the CI deploy role and the ECR Public pull role |
 
 Google Cloud only hosts the **Google OAuth client** (created by hand in the console, not in
 Terraform): Cognito uses it as its identity provider, and the local Google button uses it directly.
