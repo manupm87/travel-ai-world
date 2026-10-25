@@ -245,6 +245,7 @@ class FakeRetriever:
         *,
         limit: int = 5,
         filters: RetrievalFilters | None = None,
+        usage: Usage | None = None,
     ) -> list[Document]:
         self.searches.append((query, limit, filters))
         if self.fail_with is not None:
@@ -293,6 +294,7 @@ class KeywordRetriever:
         *,
         limit: int = 5,
         filters: RetrievalFilters | None = None,
+        usage: Usage | None = None,
     ) -> list[Document]:
         self.searches.append((query, limit, filters))
         words = [w for w in WORDS.findall(query.lower()) if len(w) >= MIN_QUERY_WORD]

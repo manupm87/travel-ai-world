@@ -1,5 +1,7 @@
 "use client";
 
+/** The sign-in dialog. */
+
 import { useId, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { GoogleLogin } from "@react-oauth/google";

@@ -51,4 +51,5 @@ async def domain_error_handler(_: Request, exc: DomainError) -> JSONResponse:
 
 
 def register_error_handlers(app: FastAPI) -> None:
+    # Starlette types handlers for a plain Exception; this one takes the subclass
     app.add_exception_handler(DomainError, domain_error_handler)  # type: ignore[arg-type]

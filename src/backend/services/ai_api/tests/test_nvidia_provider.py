@@ -47,6 +47,24 @@ def _provider(handler, retries: int = 0, **kwargs) -> NvidiaProvider:
     )
 
 
+def _unconfigured() -> NvidiaProvider:
+    """A provider without a key whose client fails the test on any request.
+
+    A refused request would also end as `ProviderUnavailable`, so only a client
+    that is never called shows the guard answered first.
+    """
+
+    def never(request: httpx.Request) -> httpx.Response:
+        pytest.fail(f"unexpected request {request.url}")
+
+    return NvidiaProvider(
+        api_key="",
+        base_url="https://nvidia.test/v1",
+        model="m",
+        client=httpx.AsyncClient(transport=httpx.MockTransport(never)),
+    )
+
+
 async def _collect(provider: NvidiaProvider) -> list[str]:
     return [d async for d in provider.stream([Message("user", "hi")])]
 
@@ -185,9 +203,7 @@ async def test_gives_up_after_last_retry_without_leaking_the_upstream_body():
 
 
 async def test_unconfigured_provider_refuses_immediately():
-    provider = NvidiaProvider(
-        api_key="", base_url="https://x", model="m", client=httpx.AsyncClient()
-    )
+    provider = _unconfigured()
 
     with pytest.raises(ProviderUnavailable):
         await _collect(provider)
@@ -328,9 +344,7 @@ async def test_complete_gives_up_after_the_last_retry():
 
 
 async def test_complete_refuses_when_the_provider_is_not_configured():
-    provider = NvidiaProvider(
-        api_key="", base_url="https://x", model="m", client=httpx.AsyncClient()
-    )
+    provider = _unconfigured()
 
     with pytest.raises(ProviderUnavailable):
         await provider.complete([Message("user", "x")])
@@ -556,12 +570,7 @@ async def test_converse_does_not_retry_after_the_first_item():
 
 
 async def test_converse_refuses_when_the_provider_is_not_configured():
-    provider = NvidiaProvider(
-        api_key="",
-        base_url="https://nvidia.test/v1",
-        model="m",
-        client=httpx.AsyncClient(),
-    )
+    provider = _unconfigured()
 
     with pytest.raises(ProviderUnavailable):
         await _converse(provider)

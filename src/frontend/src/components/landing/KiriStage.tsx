@@ -1,5 +1,7 @@
 "use client";
 
+/** Kiri's entrance on the landing. */
+
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { Kiri, type KiriState } from "@/components/kiri/Kiri";

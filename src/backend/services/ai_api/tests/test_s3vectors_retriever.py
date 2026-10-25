@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 from ai_api.config import AISettings
-from ai_api.domain.models import Document, RetrievalFilters
+from ai_api.domain.models import Document, RetrievalFilters, Usage
 from ai_api.infrastructure.providers import build_retriever
 from ai_api.infrastructure.s3vectors import vector_key
 from ai_api.infrastructure.s3vectors_retriever import (
@@ -75,6 +75,14 @@ async def test_embeds_the_question_and_queries_the_index():
         "returnMetadata": True,
         "returnDistance": True,
     }
+
+
+async def test_reports_the_tokens_spent_embedding_the_question():
+    usage = Usage()
+
+    await _retriever(FakeClient([GELLERT])).search("baths in Buda", usage=usage)
+
+    assert usage.input_tokens == 3 and usage.model == "fake-embedder"
 
 
 def _match(n: int) -> dict[str, Any]:

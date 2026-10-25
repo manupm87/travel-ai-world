@@ -1,5 +1,7 @@
 "use client";
 
+/** The brief's checklist: what the planner knows and what it still lacks. */
+
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";

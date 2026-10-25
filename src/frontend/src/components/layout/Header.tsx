@@ -1,5 +1,7 @@
 "use client";
 
+/** The global header. */
+
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";

@@ -1,3 +1,5 @@
+"""Request and response bodies of an itinerary day's meals."""
+
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict

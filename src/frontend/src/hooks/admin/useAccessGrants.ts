@@ -1,5 +1,7 @@
 "use client";
 
+/** The access list: its grants and their writes. */
+
 import { useCallback } from "react";
 import {
   deleteAccessGrant,

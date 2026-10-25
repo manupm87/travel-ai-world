@@ -1,5 +1,7 @@
 "use client";
 
+/** Shared pieces of the admin pages: the heading row, the load states and "Load more". */
+
 import type { ReactNode } from "react";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { Button } from "@/components/ui/Button";

@@ -1,3 +1,5 @@
+"""core_api settings: shared and DynamoDB ones, the table, Google, access, metrics."""
+
 from functools import lru_cache
 from typing import ClassVar, Literal
 

@@ -1,3 +1,5 @@
+/** The Spanish copy. */
+
 import type { Translations } from "./types";
 
 const es: Translations = {

@@ -17,7 +17,7 @@ from decimal import Decimal
 from typing import Any
 
 from boto3.dynamodb.types import TypeDeserializer, TypeSerializer
-from botocore.exceptions import ClientError
+from botocore.exceptions import BotoCoreError, ClientError
 from travel_common.dynamodb import DynamoDBClient, TableSpec, call
 from travel_common.exceptions import BadRequest, ProviderUnavailable
 
@@ -194,8 +194,12 @@ class DynamoTraceLog:
         """A read on the table; a DynamoDB failure is `ProviderUnavailable`."""
         try:
             return await call(fn, TableName=self._table, **kwargs)
-        except ClientError as error:
-            code = error.response.get("Error", {}).get("Code", "Unknown")
+        except (ClientError, BotoCoreError) as error:
+            code = (
+                error.response.get("Error", {}).get("Code", "Unknown")
+                if isinstance(error, ClientError)
+                else type(error).__name__
+            )
             raise ProviderUnavailable(f"Trace store unavailable ({code})") from error
 
 

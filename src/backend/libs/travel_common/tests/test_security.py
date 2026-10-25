@@ -2,11 +2,13 @@
 
 import jwt
 import pytest
+from pydantic import ValidationError
 from travel_common.config import CommonSettings
 from travel_common.exceptions import Unauthorized
 from travel_common.principal import Principal, Role
 from travel_common.security import (
     create_access_token,
+    decode_access_token,
     principal_from_token,
     verify_token,
 )
@@ -39,6 +41,28 @@ def test_token_without_role_claim_is_rejected():
 
     with pytest.raises(Unauthorized):
         principal_from_token(token, settings)
+
+
+@pytest.mark.parametrize("missing", ["exp", "sub"], ids=["no-expiry", "no-subject"])
+def test_token_without_a_required_claim_is_rejected(missing: str):
+    claims: dict[str, object] = {
+        "sub": "1",
+        "email": "ada@example.com",
+        "role": "user",
+        "exp": 4_102_444_800,
+    }
+    del claims[missing]
+    token = jwt.encode(claims, settings.SECRET_KEY, settings.ALGORITHM)
+
+    # decode_access_token directly: _claims_from_local would also reject a missing
+    # `sub`, so going through principal_from_token would not test the `require` list
+    with pytest.raises(Unauthorized):
+        decode_access_token(token, settings)
+
+
+def test_a_non_hmac_algorithm_is_refused_at_start():
+    with pytest.raises(ValidationError):
+        CommonSettings.model_validate({"SECRET_KEY": "x", "ALGORITHM": "none"})
 
 
 def test_garbage_token_is_rejected():

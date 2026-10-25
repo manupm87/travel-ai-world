@@ -63,7 +63,7 @@ services:
   # In-memory DynamoDB for `just dev-core` / `just dev-ai` and the tests
   # (reached as dynamodb:8000; no host port).
   dynamodb:
-    image: amazon/dynamodb-local:latest
+    image: amazon/dynamodb-local:3.3.2
     restart: unless-stopped
     command: ["-jar", "DynamoDBLocal.jar", "-sharedDb", "-inMemory"]
 

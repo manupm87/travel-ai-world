@@ -17,7 +17,7 @@ from ai_api.infrastructure.dynamo_traces import (
 )
 from ai_api.testing import InMemoryTraceLog, make_trace
 from boto3.dynamodb.types import TypeDeserializer
-from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError, EndpointConnectionError
 from travel_common.dynamodb import dynamodb_client, ensure_table
 from travel_common.exceptions import BadRequest, ProviderUnavailable
 from travel_common.testing import mock_dynamodb
@@ -354,4 +354,18 @@ async def test_a_dynamodb_failure_is_provider_unavailable():
     log = DynamoTraceLog(Throttled(), TABLE)
 
     with pytest.raises(ProviderUnavailable, match="ProvisionedThroughput"):
+        await log.list_session("sess-1", None, 10)
+
+
+class Unreachable:
+    """A client whose every read fails to connect, as when DynamoDB Local is down."""
+
+    def query(self, **kwargs: Any) -> Any:
+        raise EndpointConnectionError(endpoint_url="http://localhost:8002")
+
+
+async def test_an_unreachable_dynamodb_is_provider_unavailable():
+    log = DynamoTraceLog(Unreachable(), TABLE)
+
+    with pytest.raises(ProviderUnavailable, match="EndpointConnectionError"):
         await log.list_session("sess-1", None, 10)

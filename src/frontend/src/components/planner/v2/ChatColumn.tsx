@@ -1,5 +1,7 @@
 "use client";
 
+/** The planner's chat column. */
+
 import { Fragment, useState } from "react";
 import { RotateCcw } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";

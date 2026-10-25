@@ -1,5 +1,7 @@
 "use client";
 
+/** Forwards the old `/trip/?id=` links to the planner. */
+
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import LoadingSpinner from "@/components/common/LoadingSpinner";

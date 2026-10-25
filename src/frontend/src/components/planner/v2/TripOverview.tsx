@@ -1,5 +1,7 @@
 "use client";
 
+/** The whole-trip overview: the destination, the trip's photos and its days. */
+
 import { ExternalLink } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useFormatters } from "@/hooks/useFormatters";

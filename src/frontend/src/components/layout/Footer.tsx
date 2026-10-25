@@ -1,5 +1,7 @@
 "use client";
 
+/** The global footer. */
+
 import { useLanguage } from "@/context/LanguageContext";
 import { interpolate } from "@/i18n/interpolate";
 import { Container } from "@/components/ui/Container";

@@ -4,6 +4,7 @@
     uv run python tests/manual/converse_probe.py --model minimaxai/minimax-m3
 
 Run by path, not as a module (see `planner_smoke.py`). Asks the NVIDIA model
+(`--model`, by default the configured `NVIDIA_CHAT_MODEL`)
 for the weather with one `get_weather` tool offered, prints every streamed
 item, then answers the call and prints the second step. A model belongs in
 `nvidia_provider.TOOL_USE_MODELS` only when the first step ends with a
@@ -99,7 +100,7 @@ async def run(model: str) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Probe a model's tool calls.")
-    parser.add_argument("--model", default="z-ai/glm-5.3-flash")
+    parser.add_argument("--model", default=AISettings().NVIDIA_CHAT_MODEL)
     return asyncio.run(run(parser.parse_args(argv).model))
 
 

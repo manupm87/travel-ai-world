@@ -6,7 +6,7 @@ from collections.abc import Sequence
 
 import pytest
 from ai_api.application import retrieval_eval as ev
-from ai_api.domain.models import Document, RetrievalFilters
+from ai_api.domain.models import Document, RetrievalFilters, Usage
 from ai_api.infrastructure.cities import load_cities
 from ai_api.testing import FakeRetriever
 from travel_common.exceptions import EntityNotFound
@@ -64,6 +64,7 @@ class _SlowFirst(FakeRetriever):
         *,
         limit: int = 5,
         filters: RetrievalFilters | None = None,
+        usage: Usage | None = None,
     ) -> list[Document]:
         await asyncio.sleep(0.01 * (10 - int(query)))
         return [_doc(f"d{query}", "madrid")]

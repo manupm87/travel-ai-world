@@ -243,7 +243,7 @@ file (the free walking tours and the notable paid ones, read on the operators' o
 
 ## Tours file
 
-`curated/<city>/tours.toml` is the only hand-written input. One `[[tour]]` per public, scheduled tour:
+`curated/<city>/tours.toml` is hand-written, like `hotels.toml` below. One `[[tour]]` per public, scheduled tour:
 
 ```toml
 [[tour]]
@@ -354,7 +354,8 @@ steps here do:
      with `require_coordinates`, `Palaces`, `Towers`, `Thermal baths`, `Synagogues`, …), page counts as
      comments. Add the city's own categories by hand (`Category:` pages on Wikipedia).
 2. Resolve every `# review` line, rename the file to `cities/<slug>.toml` (the `slug` must match the
-   file name; drafts are ignored by the build) and delete what you do not want. A city with no
+   file name; drafts are ignored by the build) and delete what you do not want; `centre` and
+   `timezone` are required (a file without them is refused, never read as (0, 0) and UTC). A city with no
    Wikivoyage article or no standard category gets an empty `wikivoyage = []` / `categories = []` that
    still loads: fill them by hand. Unknown keys, a guide name that is not in `districts`, or a slug/file-name mismatch stop the build with the file and key.
 3. For a new Wikivoyage language, add its section names to `SECTION_CATEGORIES` and its listing
@@ -362,7 +363,7 @@ steps here do:
 4. `just corpus <slug>`: it builds, runs the readiness report and rewrites the cities
    manifest (with its `ai_api` copy). Iterate on the configuration until the gate passes, then
    commit `cities/<slug>.toml`, `data/<slug>/` (documents, manifest, report), `data/cities.json` and
-   `src/backend/services/ai_api/ai_api/data/cities.json`. Optional curated tours go in
+   `src/backend/services/ai_api/ai_api/data/cities.json`. Curated tours (required by the gate: at least 3) go in
    `curated/<slug>/tours.toml` (or the path in `curated_tours`), and curated hotel photos in
    `curated/<slug>/hotels.toml` (or `curated_hotels`) — the report's "Notable hotels without a
    photo" list says which hotels want one.

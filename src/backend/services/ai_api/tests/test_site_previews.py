@@ -1,6 +1,7 @@
 """SitePreviews against a mocked HTTP transport: no network, no key."""
 
 import logging
+import socket
 
 import httpx
 import pytest
@@ -8,6 +9,7 @@ from ai_api.infrastructure.commons_photos import USER_AGENT
 from ai_api.infrastructure.site_previews import (
     MAX_REDIRECTS,
     SitePreviews,
+    is_public_address,
     registrable_domain,
 )
 from ai_api.testing import settings_for_tests
@@ -47,7 +49,30 @@ def _gets(seen: list[httpx.Request]) -> list[httpx.Request]:
     return [r for r in seen if r.method == "GET"]
 
 
+PUBLIC_ADDRESS = "93.184.215.14"
+
+
+async def _public(host: str) -> list[str]:
+    """A resolver that puts every name on the public internet."""
+    return [PUBLIC_ADDRESS]
+
+
+def _resolving(addresses: dict[str, list[str]]):
+    """A resolver answering these hosts, public for the rest, and the names asked."""
+    asked: list[str] = []
+
+    async def resolve(host: str) -> list[str]:
+        asked.append(host)
+        found = addresses.get(host, [PUBLIC_ADDRESS])
+        if not found:
+            raise socket.gaierror(socket.EAI_NONAME, "Name or service not known")
+        return found
+
+    return resolve, asked
+
+
 def _previews(handler, **kwargs) -> SitePreviews:
+    kwargs.setdefault("resolve", _public)
     return SitePreviews(
         httpx.AsyncClient(
             transport=httpx.MockTransport(handler), follow_redirects=False
@@ -217,6 +242,144 @@ async def test_a_url_that_is_not_a_venues_public_site_makes_no_request(url) -> N
 
     assert await _previews(handler).preview(url) is None
     assert seen == []
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://samm.example:8443/",
+        "http://samm.example:9001/2018-06-01/runtime/invocation/next",
+        "http://samm.example:443/",
+        "https://samm.example:80/",
+    ],
+)
+async def test_a_port_other_than_the_schemes_own_makes_no_request(url) -> None:
+    handler, seen = _serving(_html(f'<meta property="og:image" content="{IMAGE}">'))
+
+    assert await _previews(handler).preview(url) is None
+    assert seen == []
+
+
+@pytest.mark.parametrize(
+    "url", ["https://restaurantesamm.com:443/", "http://restaurantesamm.com:80/"]
+)
+async def test_the_schemes_own_port_may_be_written_out(url) -> None:
+    handler, seen = _serving(_html(f'<meta property="og:image" content="{IMAGE}">'))
+
+    assert await _previews(handler).preview(url) is not None
+    assert len(_gets(seen)) == 1
+
+
+async def test_a_redirect_to_another_port_stops_there() -> None:
+    handler, seen = _serving(
+        _html(f'<meta property="og:image" content="{IMAGE}">'),
+        final_url="https://restaurantesamm.com:8443/",
+    )
+
+    assert await _previews(handler).preview(SITE) is None
+    assert [str(r.url) for r in seen] == [SITE]
+
+
+@pytest.mark.parametrize(
+    "addresses",
+    [
+        ["127.0.0.1"],
+        ["10.0.0.5"],
+        ["172.16.3.4"],
+        ["192.168.1.1"],
+        ["169.254.169.254"],
+        ["100.64.0.1"],
+        ["0.0.0.0"],  # noqa: S104 -- an address the resolver may answer, not a bind
+        ["240.0.0.1"],
+        ["224.0.0.251"],
+        ["::1"],
+        ["fe80::1"],
+        ["fc00::1"],
+        ["ff02::1"],
+        ["::ffff:127.0.0.1"],
+        # one private address among public ones is enough to refuse the name
+        [PUBLIC_ADDRESS, "10.0.0.5"],
+        [],
+    ],
+)
+async def test_a_name_that_resolves_off_the_public_internet_makes_no_request(
+    addresses,
+) -> None:
+    """`127.0.0.1.nip.io` and friends pass every check on the name itself."""
+    handler, seen = _serving(_html(f'<meta property="og:image" content="{IMAGE}">'))
+    resolve, asked = _resolving({"restaurantesamm.com": addresses})
+
+    assert await _previews(handler, resolve=resolve).preview(SITE) is None
+    assert seen == []
+    assert asked == ["restaurantesamm.com"]
+
+
+async def test_a_name_that_does_not_resolve_makes_no_request() -> None:
+    handler, seen = _serving(_html(f'<meta property="og:image" content="{IMAGE}">'))
+
+    async def failing(host: str) -> list[str]:
+        raise socket.gaierror(socket.EAI_NONAME, "Name or service not known")
+
+    assert await _previews(handler, resolve=failing).preview(SITE) is None
+    assert seen == []
+
+
+async def test_a_redirect_to_a_name_that_resolves_privately_stops_there() -> None:
+    """Every hop is resolved again: the first name may be public, the next not."""
+    handler, seen = _serving(
+        _html(f'<meta property="og:image" content="{IMAGE}">'),
+        final_url="https://www.restaurantesamm.com/",
+    )
+    resolve, asked = _resolving({"www.restaurantesamm.com": ["10.0.0.5"]})
+
+    assert await _previews(handler, resolve=resolve).preview(SITE) is None
+    assert [str(r.url) for r in seen] == [SITE]
+    assert asked == ["restaurantesamm.com", "www.restaurantesamm.com"]
+
+
+async def test_an_image_on_a_name_that_resolves_privately_gets_no_head() -> None:
+    image = "https://cdn.samm.example/sala.jpg"
+    handler, seen = _serving(_html(f'<meta property="og:image" content="{image}">'))
+    resolve, _ = _resolving({"cdn.samm.example": ["169.254.169.254"]})
+
+    assert await _previews(handler, resolve=resolve).preview(SITE) is None
+    assert [r.method for r in seen] == ["GET"]
+
+
+async def test_an_image_redirect_to_a_name_that_resolves_privately_is_refused() -> None:
+    seen: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request)
+        if request.method == "HEAD":
+            return httpx.Response(
+                302, headers={"location": "https://internal.samm.example/sala.jpg"}
+            )
+        return httpx.Response(
+            200,
+            text=_html(f'<meta property="og:image" content="{IMAGE}">'),
+            headers={"content-type": "text/html"},
+        )
+
+    resolve, _ = _resolving({"internal.samm.example": ["10.1.2.3"]})
+
+    assert await _previews(handler, resolve=resolve).preview(SITE) is None
+    assert [r.method for r in seen] == ["GET", "HEAD"]
+
+
+@pytest.mark.parametrize(
+    ("address", "public"),
+    [
+        (PUBLIC_ADDRESS, True),
+        ("2606:2800:220:1:248:1893:25c8:1946", True),
+        ("::ffff:93.184.215.14", True),
+        ("127.0.0.1", False),
+        ("fe80::1%eth0", False),
+        ("not an address", False),
+    ],
+)
+def test_is_public_address(address, public) -> None:
+    assert is_public_address(address) is public
 
 
 async def test_a_redirect_to_a_host_that_may_not_be_fetched_stops_there() -> None:

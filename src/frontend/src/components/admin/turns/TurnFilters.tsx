@@ -1,5 +1,7 @@
 "use client";
 
+/** The turns explorer's filters and their URL form. */
+
 import { useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { displayName } from "@/hooks/admin/useAdminUsers";

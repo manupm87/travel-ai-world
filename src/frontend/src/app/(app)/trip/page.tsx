@@ -1,3 +1,5 @@
+/** Route `/trip/`: the static shell that forwards old links to the planner. */
+
 import { Suspense } from "react";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import TripRedirect from "./TripRedirect";

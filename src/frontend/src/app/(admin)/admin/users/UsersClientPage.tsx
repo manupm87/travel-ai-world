@@ -1,5 +1,7 @@
 "use client";
 
+/** The admin users list: every account with its role and token subject. */
+
 import Link from "next/link";
 import { AdminHeading, AdminLoadState } from "@/components/admin/AdminStates";
 import { DataTable } from "@/components/admin/DataTable";

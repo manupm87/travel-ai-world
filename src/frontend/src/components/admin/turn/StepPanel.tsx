@@ -1,5 +1,7 @@
 "use client";
 
+/** One trace step's payload, under its waterfall row. */
+
 import { ArrowDownRight } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { JsonView } from "./InspectorParts";

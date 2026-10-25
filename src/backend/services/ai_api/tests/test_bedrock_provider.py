@@ -194,19 +194,15 @@ async def test_no_retry_after_the_first_delta():
     assert len(client.calls) == 1
 
 
-async def test_complete_joins_text_blocks_and_honours_the_model_override():
+async def test_complete_joins_text_blocks():
     client = FakeClient(
         {"output": {"message": {"content": [{"text": "Viaje"}, {"text": " a Madrid"}]}}}
     )
     provider = _provider(client)
 
-    title = await provider.complete(
-        [Message("user", "título")], model="eu.amazon.nova-lite-v1:0", max_tokens=32
-    )
+    answer = await provider.complete([Message("user", "título")])
 
-    assert title == "Viaje a Madrid"
-    assert client.calls[0]["modelId"] == "eu.amazon.nova-lite-v1:0"
-    assert client.calls[0]["inferenceConfig"]["maxTokens"] == 32
+    assert answer == "Viaje a Madrid"
 
 
 async def test_complete_maps_failures_to_provider_unavailable():

@@ -1,5 +1,7 @@
 "use client";
 
+/** One saved trip, for the planner to reopen. */
+
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { type ApiError, isAbortError, toApiError, UnauthorizedError } from "@/services/http";

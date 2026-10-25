@@ -1,5 +1,7 @@
 "use client";
 
+/** The theme context: dark, light or the system's. */
+
 import {
   createContext,
   useContext,

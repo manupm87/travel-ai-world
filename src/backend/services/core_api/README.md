@@ -10,7 +10,7 @@ them and this service upserts the account from the claims.
 ## Run
 
 ```bash
-cp .env.example .env       # AUTH_MODE=local: SECRET_KEY (`just setup` writes it), GOOGLE_CLIENT_ID optional
+cp .env.example .env       # AUTH_MODE=local: SECRET_KEY (`just setup` writes it); GOOGLE_CLIENT_ID only for the real Google button
 just dynamodb-local        # from the repo root, in another terminal: DynamoDB on :8002
 uv run python -m core_api.devtools token you@example.com # optional: a local JWT for that account (see below)
 uv run uvicorn core_api.main:app --reload --port 8000    # http://localhost:8000/docs
@@ -48,7 +48,7 @@ table) so the service creates it again with both indexes.
 | `GET` | `/users/me/access` | Bearer (invited or not) | `{allowed, daily_token_limit}`: whether the account may use the app and its daily token limit (`null` = unlimited) ([ADR 0026](../../../../docs/architecture/adr/0026-access-list-and-daily-token-quota.md)) |
 | `GET` | `/users/` | Admin | List users, by email |
 | `GET` | `/users/{id}` | Admin | Profiles are not public; ids are UUIDs |
-| `PATCH/DELETE` | `/users/{id}` | Bearer (owner) | Only your own account (403 otherwise); `PATCH` changes `name` and `picture` only (the email and `is_active` are not editable); delete takes the account's trips with it |
+| `PATCH/DELETE` | `/users/{id}` | Bearer (owner) | Only your own account (403 otherwise); `PATCH` changes `name` (≤ 255 chars) and `picture` (≤ 2048) only (the email and `is_active` are not editable); delete takes the account's trips with it |
 | `PATCH` | `/users/{id}/role` | Admin | Local mode only (absent when `AUTH_MODE=cognito`: the pool's `admin` group is the role there) |
 | `GET/POST` | `/trips/` | Bearer | Only the caller's trips |
 | `GET/PATCH/DELETE` | `/trips/{id}` | Bearer (owner) | 404 for another user's trip; response embeds every child and its derived `phase`; `PATCH` is 409 `TRIP_LOCKED` once the trip is ongoing or past, `DELETE` never is |
@@ -73,7 +73,8 @@ Every trip collection offers `GET /` (paginated with `skip`/`limit`), `POST /`, 
 A child that exists under another trip answers 404, never 403, so ids leak nothing
 ([ADR 0005](../../../../docs/architecture/adr/0005-trip-aggregate-nested-resources.md)).
 Writes that lose a race (someone saved the same trip or profile in between) answer 409
-`CONFLICT`: reload and retry.
+`CONFLICT`: reload and retry. When DynamoDB itself fails (throttling, unreachable), any route answers 503
+`SERVICE_UNAVAILABLE`.
 
 A trip is **one city** and its `phase` (`upcoming | ongoing | past`) is derived from its dates,
 never stored; everything inside an ongoing or past trip is read-only
@@ -111,8 +112,9 @@ core_api/
 ├── api/v1/resources.py  CHILD_RESOURCES + child_router(): the nested CRUD collections
 ├── auth/google.py     IdentityVerifier port + GoogleTokenInfoVerifier adapter (local mode)
 ├── auth/principal.py  AccountPrincipal = Principal + the account's UUID
+├── observability/     business_metrics.py (local /metrics, ADR 0030), business_events.py (log events, ADR 0031)
 ├── schemas/           Pydantic models; XUpdate = partial(XBase) (_partial.py); formats in _types.py
-├── devtools.py        dev-only: a local JWT for an account (never imported by the service)
+├── devtools.py        dev-only: `token` (a local JWT for an account), `grant` (the access list); never imported by the service
 └── pagination.py      Page(skip, limit)
 ```
 

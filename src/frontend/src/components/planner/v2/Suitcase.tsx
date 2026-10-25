@@ -1,5 +1,7 @@
 "use client";
 
+/** The suitcase that holds the trip's days while the planner packs it. */
+
 import { useEffect, useState } from "react";
 import { Check, MapPin } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
@@ -143,13 +145,13 @@ export function Suitcase({
           <div className="suitcase-ext flex items-center justify-center">
             <KiriFace scale={6} />
             {brief.destination && (
-              <span className="absolute top-3 right-4 flex rotate-6 items-center gap-1.5 rounded-md bg-[#EFEDE7] px-2.5 py-1 text-[13px] font-semibold text-sticker-ink shadow-[0_6px_12px_-6px_rgba(0,0,0,0.6)]">
-                <span className="h-2 w-2 rounded-full border-2 border-[#6E8F83]" />
+              <span className="absolute top-3 right-4 flex rotate-6 items-center gap-1.5 rounded-md bg-sticker-paper px-2.5 py-1 text-[13px] font-semibold text-sticker-ink shadow-[0_6px_12px_-6px_rgba(0,0,0,0.6)]">
+                <span className="h-2 w-2 rounded-full border-2 border-sticker-pine" />
                 {brief.destination}
               </span>
             )}
             {packing.warned && (
-              <span className="absolute bottom-3 left-4 -rotate-6 rounded-lg bg-sticker-overweight px-2.5 py-1 text-xs font-bold text-sticker-ink shadow-[0_0_0_2px_#EFEDE7]">
+              <span className="absolute bottom-3 left-4 -rotate-6 rounded-lg bg-sticker-overweight px-2.5 py-1 text-xs font-bold text-sticker-ink shadow-[0_0_0_2px_var(--color-sticker-paper)]">
                 {t.plan.packing.stickers.overloaded_day}
               </span>
             )}

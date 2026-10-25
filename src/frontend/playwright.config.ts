@@ -1,9 +1,10 @@
-import { defineConfig, devices } from "@playwright/test";
-
 /**
  * Playwright config for the E2E tests, against `npm run dev` on :3000 by default.
  * Another deployment: `PLAYWRIGHT_BASE_URL=https://<domain> npx playwright test`.
  */
+
+import { defineConfig, devices } from "@playwright/test";
+
 const baseURL =
   process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
 

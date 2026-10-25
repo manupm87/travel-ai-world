@@ -1306,15 +1306,27 @@ async def test_progress_reaches_the_page_while_the_model_is_still_thinking():
 async def test_closing_the_stream_early_stops_the_turn():
     use_case, provider, _ = planner()
     release = asyncio.Event()
+    asked = asyncio.Event()
+    cancelled = asyncio.Event()
 
     async def never(*_args: object, **_kwargs: object) -> str:
-        await release.wait()
+        asked.set()
+        try:
+            await release.wait()
+        except asyncio.CancelledError:
+            cancelled.set()
+            raise
         return "{}"
 
     provider.complete = never  # type: ignore[method-assign]
     stream = use_case(turn("Budapest"))
     await stream.__anext__()
-    await stream.aclose()  # must not hang on the blocked model call
+    await asyncio.wait_for(asked.wait(), timeout=1)
+
+    # Closing must not wait on the blocked model call, and must cancel it.
+    await asyncio.wait_for(stream.aclose(), timeout=1)
+
+    assert cancelled.is_set()
 
 
 async def test_a_city_outside_the_corpus_is_listed_first_and_then_explained():

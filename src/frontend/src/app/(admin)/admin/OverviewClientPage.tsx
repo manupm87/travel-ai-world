@@ -1,5 +1,7 @@
 "use client";
 
+/** The admin overview: the range's figures, the daily chart and the breakdowns. */
+
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, type ReactNode } from "react";
 import { AdminHeading, AdminLoadState } from "@/components/admin/AdminStates";

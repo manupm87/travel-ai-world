@@ -1,5 +1,7 @@
 "use client";
 
+/** The turn inspector's city-kb panel: one per search. */
+
 import { BookOpen, Check, Minus } from "lucide-react";
 import { useMemo } from "react";
 import { Pill } from "@/components/admin/Pill";

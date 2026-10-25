@@ -1,5 +1,7 @@
 "use client";
 
+/** Finishes a Cognito sign-in on `/auth/callback/`. */
+
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";

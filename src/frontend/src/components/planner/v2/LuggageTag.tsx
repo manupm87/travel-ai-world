@@ -1,5 +1,7 @@
 "use client";
 
+/** The brief as a luggage tag. */
+
 import { ListChecks } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { interpolate } from "@/i18n";

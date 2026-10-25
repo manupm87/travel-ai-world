@@ -148,6 +148,8 @@ _REQUIRED_KEYS = {
     "osm_area",
     "country",
     "country_code",
+    "centre",
+    "timezone",
 }
 
 
@@ -283,7 +285,7 @@ def parse_city(data: dict[str, Any], where: str = "<city>") -> CityConfig:
             )
         hero = HeroPhoto(file=file_name, credit=credit)
 
-    centre_values = data.get("centre", [0.0, 0.0])
+    centre_values = data["centre"]
     if not isinstance(centre_values, list) or len(centre_values) != 2:
         raise CityConfigError(f"{where} centre: expected [lat, lon]")
     centre = (float(centre_values[0]), float(centre_values[1]))
@@ -306,7 +308,7 @@ def parse_city(data: dict[str, Any], where: str = "<city>") -> CityConfig:
         district_guides=guides,
         district_wikidata=district_wikidata,
         centre=centre,
-        timezone=data.get("timezone", "UTC"),
+        timezone=data["timezone"],
         curated_tours=curated_tours,
         curated_hotels=curated_hotels,
         hero=hero,

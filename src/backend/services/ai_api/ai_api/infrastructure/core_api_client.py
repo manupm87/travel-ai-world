@@ -97,7 +97,8 @@ class CoreApiClient:
 
 def _detail(resp: httpx.Response) -> str:
     try:
-        detail = resp.json().get("detail")
+        body = resp.json()
+        detail = body.get("detail") if isinstance(body, dict) else None
     except ValueError:
         detail = None
     return str(detail) if detail else f"core_api answered {resp.status_code}"

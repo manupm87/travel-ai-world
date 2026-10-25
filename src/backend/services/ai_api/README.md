@@ -89,7 +89,7 @@ missing). Only `CHAT_TEMPERATURE` is sent (Claude 4.5+ refuses `top_p` alongside
 the same `RetryPolicy` as NVIDIA and happen only before the first delta.
 `BedrockProvider.complete()` returns one non-streamed answer (the planner's structured calls);
 it sends native JSON Schema through Converse `outputConfig.textFormat`. Invalid structured answers
-fail once and let the planner's deterministic fallback take over. Its `model=` override is unused. The final stream event's token usage is logged
+fail once and let the planner's deterministic fallback take over. The final stream event's token usage is logged
 (`Bedrock usage ...`) so costs can be reconciled with Cost Explorer.
 
 ## Retrieval (`RETRIEVAL_ENABLED`)
@@ -179,7 +179,7 @@ sparse). Every item has `expires_at` (`INTERACTION_TTL_DAYS`, 90 by default).
 - **Caps and privacy.** 8 KB per text field (`TRACE_PAYLOAD_BYTES`, cut on a UTF-8 boundary), 200
   steps, 500 event marks, 200 sources, `truncated=true` beyond. The subject only, never the email.
 - **Cost** comes from `application/pricing.py` (versioned); a model without a public price (NVIDIA)
-  costs `null`. Embedding tokens are not measured: `Retriever.search` reports none.
+  costs `null`. Embedding tokens are what the embedder reports for each search's query.
 - **Locally.** Empty `INTERACTIONS_TABLE` records nothing. Set it (`travel-ai-local-interactions`)
   with `DYNAMODB_ENDPOINT_URL` pointing at `just dynamodb-local` and `just dev-ai` creates the table
   at start-up; Compose (`just docker-up`) sets both for you.

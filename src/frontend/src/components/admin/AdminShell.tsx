@@ -1,5 +1,7 @@
 "use client";
 
+/** The admin console's frame: the section sidebar (a tab strip on a phone) and the content. */
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {

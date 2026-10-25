@@ -35,6 +35,10 @@
   --color-sticker-overweight: #D08C73;
   --color-sticker-book: #9DBDB0;
   --color-sticker-ink: #24160F;
+  --color-sticker-paper: #EFEDE7;
+  --color-sticker-pine: #6E8F83;
+  --color-scrim: #000000;
+  --color-sheen: #FFFFFF;
   --kiri-clay: #C8876E;
   --kiri-light: #DDA58F;
   --kiri-dark: #9C6250;
@@ -140,6 +144,10 @@
   --color-sticker-overweight: var(--color-sticker-overweight);
   --color-sticker-book: var(--color-sticker-book);
   --color-sticker-ink: var(--color-sticker-ink);
+  --color-sticker-paper: var(--color-sticker-paper);
+  --color-sticker-pine: var(--color-sticker-pine);
+  --color-scrim: var(--color-scrim);
+  --color-sheen: var(--color-sheen);
   --color-kiri-clay: var(--kiri-clay);
   --color-glass-bg: var(--glass-bg);
   --color-glass-border: var(--glass-border);

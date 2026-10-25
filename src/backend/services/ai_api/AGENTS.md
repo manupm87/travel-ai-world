@@ -40,6 +40,8 @@ infrastructure/ adapters: nvidia_provider.py, bedrock_provider.py, bedrock_embed
                 cities.py + data/cities.json (the cities manifest the corpus tool writes; PLANNER_CITIES narrows it),
                 commons_photos.py (a Wikimedia Commons photo near a venue and naming it),
                 site_previews.py (the og:image a venue publishes on its own site, ADR 0021;
+                every hop, the image's included, must be http(s) on the scheme's default port
+                to a name whose every resolved address is public (`is_public_address`);
                 its `GROUP_DOMAINS` — the hotel groups a brand domain may redirect to — is a copy
                 of the corpus tool's `config/hotel_groups.py`, kept in step by hand),
                 bedrock_guard.py (BedrockInputGuard: ApplyGuardrail on the traveller's message, fail open;

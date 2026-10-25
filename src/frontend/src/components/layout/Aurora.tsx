@@ -1,3 +1,5 @@
+/** The drifting aurora background. */
+
 import { cn } from "@/utils/cn";
 
 interface AuroraProps {

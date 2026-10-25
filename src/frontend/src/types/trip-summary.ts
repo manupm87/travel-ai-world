@@ -1,3 +1,5 @@
+/** The trip summary view model. */
+
 import type { TripPhase } from "@/types/trip";
 
 /**

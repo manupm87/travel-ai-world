@@ -1,5 +1,7 @@
 "use client";
 
+/** The planner's failure card. */
+
 import { RotateCcw } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { Kiri } from "@/components/kiri/Kiri";

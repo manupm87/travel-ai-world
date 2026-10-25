@@ -4,6 +4,7 @@ The real Budapest sample carries the metadata shape `indexing.metadata_for`
 produces; synthetic documents cover the edge cases it does not.
 """
 
+import json
 from pathlib import Path
 
 import pytest
@@ -177,6 +178,31 @@ class TestMissingOrMalformedExtra:
     def test_extra_that_is_not_an_object(self) -> None:
         card = card_from_document(_doc(category="see", name="Place", extra="[1, 2, 3]"))
         assert card.subtitle is None
+
+
+class TestHotelStars:
+    """`rating_text`: a whole number of stars from 0 to 5, nothing else."""
+
+    @pytest.mark.parametrize(
+        ("stars", "expected"),
+        [
+            (4, "4★"),
+            (4.0, "4★"),
+            (0, "0★"),
+            (5, "5★"),
+            (3.5, None),
+            (6, None),
+            (9, None),
+            (-1, None),
+            (True, None),
+            ("4", None),
+            (None, None),
+        ],
+    )
+    def test_rating_text(self, stars: object, expected: str | None) -> None:
+        extra = json.dumps({"stars": stars})
+        card = card_from_document(_doc(category="sleep", name="Hotel", extra=extra))
+        assert card.rating_text == expected
 
 
 class TestSourceDisplayNames:

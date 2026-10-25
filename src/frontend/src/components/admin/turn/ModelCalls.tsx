@@ -1,5 +1,7 @@
 "use client";
 
+/** The turn inspector's model calls panel. */
+
 import { Cpu } from "lucide-react";
 import { useId, useRef, useState, type KeyboardEvent } from "react";
 import { Pill } from "@/components/admin/Pill";

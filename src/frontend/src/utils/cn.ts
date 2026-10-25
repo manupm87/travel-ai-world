@@ -1,3 +1,5 @@
+/** Class name joining with Tailwind conflict resolution. */
+
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 

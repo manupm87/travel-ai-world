@@ -1,5 +1,7 @@
 "use client";
 
+/** One saved trip, for the admin trip page. */
+
 import { useCallback, useEffect, useState } from "react";
 import { isTripId } from "@/hooks/useTrip";
 import { getAdminTrip, type AdminTrip } from "@/services/admin";

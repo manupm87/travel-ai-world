@@ -1,5 +1,7 @@
 "use client";
 
+/** The dialog that confirms removing an email from the access list. */
+
 import { useEffect, useId, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";

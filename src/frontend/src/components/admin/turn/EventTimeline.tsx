@@ -1,5 +1,7 @@
 "use client";
 
+/** The turn inspector's SSE timeline. */
+
 import { Send } from "lucide-react";
 import { useMemo } from "react";
 import { Pill } from "@/components/admin/Pill";

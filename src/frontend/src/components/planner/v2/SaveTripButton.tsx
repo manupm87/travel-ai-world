@@ -1,5 +1,7 @@
 "use client";
 
+/** The planner's "Save trip" button. */
+
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { useLanguage } from "@/context/LanguageContext";

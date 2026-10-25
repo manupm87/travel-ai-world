@@ -1,59 +1,17 @@
-import type {
-  Accommodation,
-  Activity,
-  ItineraryDay,
-  Meal,
-  Transportation,
-  Trip,
-} from "@/types/trip";
-import type { TripSummary } from "@/types/trip-summary";
-
 /**
  * Typed fixture builders: each returns a complete, valid object, so tests pass only the fields
  * that matter. A whole `TripResponse` (the wire shape) is `fixtures/trip-budapest.ts`.
  */
 
+import type {
+  Accommodation,
+  ItineraryDay,
+  Transportation,
+  Trip,
+} from "@/types/trip";
+import type { TripSummary } from "@/types/trip-summary";
+
 const budapest = { lat: 47.4979, lng: 19.0402 };
-
-export function makeActivity(overrides: Partial<Activity> = {}): Activity {
-  return {
-    id: "act-parliament",
-    sourceRef: "wv:en:Budapest/Lipótváros#see:parliament",
-    card: null,
-    partOfDay: "morning",
-    time: "10:00",
-    title: "Hungarian Parliament Building",
-    description: "The river front from the Pest side.",
-    category: "see",
-    place: {
-      name: "Hungarian Parliament Building",
-      address: "Kossuth Lajos tér 1-3",
-      city: "Budapest",
-      coordinates: budapest,
-    },
-    ...overrides,
-  };
-}
-
-export function makeMeal(overrides: Partial<Meal> = {}): Meal {
-  return {
-    id: "meal-menza",
-    sourceRef: "wv:en:Budapest/Terézváros#eat:menza",
-    card: null,
-    partOfDay: "evening",
-    time: "19:00",
-    type: "dinner",
-    restaurantName: "Menza",
-    cuisine: "Retro Hungarian",
-    place: {
-      name: "Menza",
-      address: "Liszt Ferenc tér 2",
-      city: "Budapest",
-      coordinates: budapest,
-    },
-    ...overrides,
-  };
-}
 
 export function makeItineraryDay(overrides: Partial<ItineraryDay> = {}): ItineraryDay {
   return {

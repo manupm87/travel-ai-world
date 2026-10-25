@@ -1,3 +1,5 @@
+/** Route `/admin/`: the static shell over the overview. */
+
 import { Suspense } from "react";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import OverviewClientPage from "./OverviewClientPage";

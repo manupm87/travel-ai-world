@@ -1,5 +1,7 @@
 "use client";
 
+/** One saved trip as the admin sees it: header, overview and the session's turns. */
+
 import { X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { DayCard } from "@/components/planner/v2/DayCard";

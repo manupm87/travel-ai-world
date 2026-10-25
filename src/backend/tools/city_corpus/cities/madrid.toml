@@ -6,7 +6,6 @@ name = "Madrid"
 aliases = ["madrid"]
 language = "en"
 wikipedia_lang = "en"
-curated_tours = "curated/madrid/tours.toml"
 # OpenStreetMap relation of the city (Wikidata P402): selects the area for the boundaries and the place queries.
 osm_relation = 5326784
 # Only used when `osm_relation` is unset.

@@ -1,5 +1,7 @@
 "use client";
 
+/** The chip that echoes a pick from a carousel in the chat. */
+
 import { Check } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { interpolate } from "@/i18n";

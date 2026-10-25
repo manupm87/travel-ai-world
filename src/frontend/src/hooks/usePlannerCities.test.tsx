@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
-import { ApiError } from "@/services/http";
+import { ApiError, UnauthorizedError } from "@/services/http";
 import { listCities } from "@/services/planner";
+import { clearSession } from "@/services/session";
 import { BOLOGNA, BUDAPEST } from "@/test/fixtures/planner-city";
 import { findCity, usePlannerCities } from "./usePlannerCities";
 
@@ -9,11 +10,16 @@ vi.mock("@/services/planner", () => ({
   listCities: vi.fn(),
 }));
 
+vi.mock("@/services/session", () => ({
+  clearSession: vi.fn(),
+}));
+
 const listCitiesMock = vi.mocked(listCities);
 
 describe("usePlannerCities", () => {
   beforeEach(() => {
     listCitiesMock.mockReset();
+    vi.mocked(clearSession).mockReset();
   });
 
   it("loads the cities once and reports them", async () => {
@@ -34,6 +40,27 @@ describe("usePlannerCities", () => {
 
     await waitFor(() => expect(result.current.status).toBe("error"));
     expect(result.current.cities).toEqual([]);
+  });
+
+  it("clears the session on a 401 and keeps the default copy", async () => {
+    listCitiesMock.mockRejectedValue(new UnauthorizedError("expired"));
+
+    const { result } = renderHook(() => usePlannerCities());
+
+    await waitFor(() => expect(result.current.status).toBe("error"));
+    expect(clearSession).toHaveBeenCalledTimes(1);
+  });
+
+  it("aborts the request when it unmounts", () => {
+    listCitiesMock.mockReturnValue(new Promise(() => {}));
+
+    const { unmount } = renderHook(() => usePlannerCities());
+    const signal = listCitiesMock.mock.calls[0]?.[0]?.signal;
+    expect(signal?.aborted).toBe(false);
+
+    unmount();
+
+    expect(signal?.aborted).toBe(true);
   });
 });
 

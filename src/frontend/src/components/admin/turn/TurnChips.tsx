@@ -1,5 +1,7 @@
 "use client";
 
+/** The six figures over the turn inspector. */
+
 import type { ReactNode } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useFormatters } from "@/hooks/useFormatters";

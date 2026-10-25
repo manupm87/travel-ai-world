@@ -1,3 +1,5 @@
+/** The overview's figures, computed from a range's stats. */
+
 import type { Formatters } from "@/hooks/useFormatters";
 import { interpolate } from "@/i18n";
 import type { Translations } from "@/i18n/types";

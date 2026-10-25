@@ -1,3 +1,5 @@
+/** Route `/auth/callback/`: where the Cognito managed login returns. */
+
 import { Suspense } from "react";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { AuthCallback } from "@/components/auth/AuthCallback";

@@ -16,7 +16,7 @@ from typing import Any, Union, get_args, get_origin, get_type_hints
 
 from travel_common.dynamodb import from_item, to_item
 
-JSON_FIELDS = frozenset({"card", "sources"})
+JSON_FIELDS = frozenset({"card"})
 """Fields kept as a JSON string, untouched by DynamoDB's type mapping."""
 
 CENTS = Decimal("0.01")
@@ -55,6 +55,7 @@ def decode[E](cls: type[E], data: dict[str, Any]) -> E:
     """Build `cls` from plain values; unknown keys (PK, SK, ...) are ignored."""
     hints = _hints(cls)
     kwargs: dict[str, Any] = {}
+    # `E` is unbounded, so the checker cannot see it is a dataclass; callers pass one
     for f in fields(cls):  # type: ignore[arg-type]
         if f.name not in data:
             if f.default is MISSING and f.default_factory is MISSING:

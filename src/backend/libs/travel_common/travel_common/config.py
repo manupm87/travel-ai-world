@@ -6,6 +6,7 @@ from typing import ClassVar, Literal
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 AuthMode = Literal["local", "cognito"]
+LocalAlgorithm = Literal["HS256", "HS384", "HS512"]
 
 
 class CommonSettings(BaseSettings):
@@ -14,7 +15,7 @@ class CommonSettings(BaseSettings):
     API_V1_STR: str = "/api/v1"
 
     # explicit origins, never "*": the app sets allow_credentials=True
-    BACKEND_CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:5173"]
+    BACKEND_CORS_ORIGINS: list[str] = ["http://localhost:3000"]
 
     # token issuer (ADR 0009): "local" is core_api's HS256 sign-in (development),
     # "cognito" a user pool's RS256 ID tokens verified against COGNITO_JWKS (deployed)
@@ -22,7 +23,8 @@ class CommonSettings(BaseSettings):
 
     # local mode; SECRET_KEY must match in every service that verifies tokens
     SECRET_KEY: str = ""
-    ALGORITHM: str = "HS256"
+    # HMAC only: anything else ("none" included) is refused at start
+    ALGORITHM: LocalAlgorithm = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
     # cognito mode; COGNITO_JWKS is the pool's jwks.json, inlined by Terraform at

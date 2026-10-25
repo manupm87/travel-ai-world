@@ -1,3 +1,5 @@
+"""The opt-in access log: one bounded event per request, never request data."""
+
 import asyncio
 import json
 import logging

@@ -43,4 +43,12 @@ describe('Button', () => {
     expect(button).toHaveClass('px-5', 'py-3.5', 'rounded-xl')
     expect(button).not.toHaveClass('px-9', 'py-4', 'rounded-lg')
   })
+
+  it('is type="button" by default, so it never submits a form by accident', () => {
+    const { rerender } = render(<Button>Plain</Button>)
+    expect(screen.getByRole('button')).toHaveAttribute('type', 'button')
+
+    rerender(<Button type="submit">Send</Button>)
+    expect(screen.getByRole('button')).toHaveAttribute('type', 'submit')
+  })
 })

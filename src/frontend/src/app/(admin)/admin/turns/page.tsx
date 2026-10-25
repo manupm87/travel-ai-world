@@ -1,3 +1,5 @@
+/** Route `/admin/turns/`: the static shell over the turns explorer. */
+
 import { Suspense } from "react";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import TurnsClientPage from "./TurnsClientPage";

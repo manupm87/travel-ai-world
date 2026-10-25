@@ -8,7 +8,7 @@ from datetime import date
 import pytest
 from ai_api.main import app
 from ai_api.openapi import stream_components
-from ai_api.schemas.planner import PlannerTurn
+from ai_api.schemas.planner import MAX_CARD_ID_CHARS, PlannerTurn
 from ai_api.schemas.planner_events import (
     BRIEF_FIELDS,
     DoneEvent,
@@ -234,6 +234,55 @@ def test_planner_turn_rejects_an_unknown_action():
                 "language": "en",
             }
         )
+
+
+LONG_ID = "x" * (MAX_CARD_ID_CHARS + 1)
+SLOT = {"day": 1, "part": "morning"}
+
+
+def _turn(action=None, itinerary=None) -> dict:
+    return {
+        "message": None if action else "hi",
+        "action": action,
+        "history": [],
+        "brief": None,
+        "itinerary": itinerary,
+        "exclude_card_ids": [],
+        "trip_id": None,
+        "session_id": None,
+        "language": "en",
+    }
+
+
+def _itinerary(stay=None, morning=()) -> dict:
+    slots = {"morning": list(morning), "afternoon": [], "evening": [], "night": []}
+    return {"stay_card_id": stay, "days": [{"day": 1, "slots": slots}]}
+
+
+@pytest.mark.parametrize(
+    "turn",
+    [
+        _turn({"type": "remove", "slot": SLOT, "card_id": LONG_ID}),
+        _turn({"type": "select", "group_id": "g", "card_ids": [LONG_ID], "slot": None}),
+        _turn(itinerary=_itinerary(stay=LONG_ID)),
+        _turn(itinerary=_itinerary(morning=[LONG_ID])),
+    ],
+)
+def test_every_card_id_a_turn_carries_has_the_id_length_bound(turn):
+    with pytest.raises(ValidationError):
+        PlannerTurn.model_validate(turn)
+
+
+def test_a_card_id_at_the_bound_is_accepted():
+    at_bound = "x" * MAX_CARD_ID_CHARS
+    turn = PlannerTurn.model_validate(
+        _turn(
+            {"type": "remove", "slot": SLOT, "card_id": at_bound},
+            _itinerary(stay=at_bound, morning=[at_bound]),
+        )
+    )
+
+    assert turn.itinerary is not None and turn.itinerary.stay_card_id == at_bound
 
 
 def test_openapi_document_carries_the_stream_models():

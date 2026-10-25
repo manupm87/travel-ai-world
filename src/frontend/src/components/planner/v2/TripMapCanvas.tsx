@@ -1,5 +1,7 @@
 "use client";
 
+/** The MapLibre map behind the trip: pins, route line and camera. */
+
 import { useEffect, useRef, useState } from "react";
 import {
   Map as MapLibreMap,

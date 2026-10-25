@@ -1,5 +1,7 @@
 "use client";
 
+/** The turn inspector: the traveller view and the trace, side by side or in a sheet. */
+
 import { BookOpen, ChevronLeft, ChevronRight, Layers } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useLanguage } from "@/context/LanguageContext";

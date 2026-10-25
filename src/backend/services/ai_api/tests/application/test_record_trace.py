@@ -8,7 +8,7 @@ from datetime import UTC, date, datetime
 import pytest
 from ai_api.application.record_trace import RecordTrace
 from ai_api.application.tracing import TurnTracer, current_tracer
-from ai_api.domain.tracing import TurnTrace
+from ai_api.domain.tracing import Status, TurnTrace
 from ai_api.schemas.planner_events import (
     OptionCard,
     PlannerEvent,
@@ -210,6 +210,47 @@ async def test_a_client_that_goes_away_leaves_a_cancelled_trace():
     assert first.type == "text"
     [trace] = log.traces
     assert trace.status == "cancelled"
+
+
+async def test_an_unexpected_error_is_recorded_as_internal_then_propagates():
+    log = InMemoryTraceLog()
+
+    async def failing() -> AsyncIterator[PlannerEvent]:
+        yield text("x")
+        raise RuntimeError("a bug")
+
+    with pytest.raises(RuntimeError, match="a bug"):
+        await collect(RecordTrace(log, InMemoryUsageStore())(tracer(), failing()), [])
+
+    [trace] = log.traces
+    assert trace.status == "error" and trace.error_code == "INTERNAL"
+    assert trace.timeline[-1].type == "error"
+
+
+class UnfinishableTracer(TurnTracer):
+    """A tracer that cannot close a cancelled turn's trace."""
+
+    def finish(self, status: Status, error_code: str | None = None) -> TurnTrace:
+        if status == "cancelled":
+            raise RuntimeError("cannot finish")
+        return super().finish(status, error_code)
+
+
+async def test_a_cancelled_turn_that_cannot_be_recorded_closes_quietly(caplog):
+    log = InMemoryTraceLog()
+    events = RecordTrace(log, InMemoryUsageStore())(
+        UnfinishableTracer("planner", "/api/v1/ai/planner", "sub-1"),
+        stream(text("a"), text("b"), done()),
+    )
+
+    await anext(events)
+    await events.aclose()  # raises nothing
+
+    assert log.traces == []
+    assert any(
+        r.getMessage().startswith("Cancelled turn") and "not recorded" in r.message
+        for r in caplog.records
+    )
 
 
 async def test_a_failing_log_never_breaks_the_stream():
