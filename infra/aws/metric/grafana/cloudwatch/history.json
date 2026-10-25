@@ -1,0 +1,305 @@
+{
+  "uid": "kyrian-trip-history",
+  "title": "Kyrian World · Histórico por ciudad",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "refresh": "",
+  "timezone": "browser",
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "tags": [
+    "kyrian",
+    "negocio",
+    "historico",
+    "instantanea"
+  ],
+  "__inputs": [
+    {
+      "name": "DS_INFINITY",
+      "label": "Infinity existente",
+      "description": "Datasource Infinity para CSV agregado inline; no consulta AWS.",
+      "type": "datasource",
+      "pluginId": "yesoreyeram-infinity-datasource",
+      "pluginName": "Infinity"
+    }
+  ],
+  "__requires": [
+    {
+      "type": "datasource",
+      "id": "yesoreyeram-infinity-datasource",
+      "name": "Infinity",
+      "version": "3.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "barchart",
+      "name": "Bar chart",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "stat",
+      "name": "Stat",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "table",
+      "name": "Table",
+      "version": ""
+    }
+  ],
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  },
+  "links": [
+    {
+      "title": "Observatorio · eventos de producción",
+      "type": "link",
+      "url": "/d/kyrian-tfm-observatory",
+      "targetBlank": false
+    }
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "HISTÓRICO · VIAJES CONSERVADOS",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 7
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "## Destinos del proyecto\n**INSTANTÁNEA · PENDIENTE DE CARGAR**\n\nCaptura: pendiente · Corte de creación: pendiente · Fuente y alcance: pendientes.\n\nEste panel mostrará un agregado fijo de los viajes conservados, separado de los eventos de producción. El selector temporal no modifica estos datos."
+      }
+    },
+    {
+      "id": 2,
+      "type": "barchart",
+      "title": "Viajes conservados por ciudad",
+      "description": "Instantánea fija de viajes conservados en la captura y creados antes del corte documentado. No cambia con el selector temporal ni debe sumarse a los eventos.",
+      "gridPos": {
+        "x": 0,
+        "y": 7,
+        "w": 16,
+        "h": 10
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_INFINITY}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "type": "csv",
+          "source": "inline",
+          "format": "table",
+          "parser": "backend",
+          "data": "city,trips\n",
+          "columns": [
+            {
+              "selector": "city",
+              "text": "Ciudad",
+              "type": "string"
+            },
+            {
+              "selector": "trips",
+              "text": "Viajes",
+              "type": "number"
+            }
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#56C8E8"
+          },
+          "unit": "short",
+          "decimals": 0,
+          "min": 0,
+          "noValue": "Pendiente de cargar",
+          "custom": {
+            "axisLabel": "Viajes conservados",
+            "axisPlacement": "auto",
+            "fillOpacity": 85,
+            "gradientMode": "none",
+            "lineWidth": 0,
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "xField": "Ciudad",
+        "showValue": "always",
+        "groupWidth": 0.7,
+        "barWidth": 0.8,
+        "barRadius": 0.12,
+        "fullHighlight": false,
+        "legend": {
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelRotation": 0
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Total de viajes conservados",
+      "description": "Instantánea fija de viajes conservados en la captura y creados antes del corte documentado. No cambia con el selector temporal ni debe sumarse a los eventos. Suma exclusiva de la columna Viajes.",
+      "gridPos": {
+        "x": 16,
+        "y": 7,
+        "w": 8,
+        "h": 10
+      },
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 2,
+          "withTransforms": false,
+          "hide": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "min": 0,
+          "noValue": "Pendiente de cargar",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#56C8E8"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "sum"
+          ],
+          "fields": "/^Viajes$/"
+        },
+        "orientation": "horizontal",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 4,
+      "type": "table",
+      "title": "Desglose histórico por ciudad",
+      "description": "Instantánea fija de viajes conservados en la captura y creados antes del corte documentado. No cambia con el selector temporal ni debe sumarse a los eventos.",
+      "gridPos": {
+        "x": 0,
+        "y": 17,
+        "w": 24,
+        "h": 9
+      },
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 2,
+          "withTransforms": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "left",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": false
+          },
+          "noValue": "Pendiente de cargar"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Viajes"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "custom.align",
+                "value": "right"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "md",
+        "footer": {
+          "show": false
+        }
+      }
+    },
+    {
+      "id": 5,
+      "type": "text",
+      "title": "Cómo interpretar esta instantánea",
+      "gridPos": {
+        "x": 0,
+        "y": 26,
+        "w": 24,
+        "h": 6
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "**Inventario conservado, no historial completo de creaciones.** Solo incluye viajes presentes al capturar los datos y anteriores al corte indicado. Excluye los eliminados; una lectura no transaccional puede observar registros en distintos instantes.\n\n**No se suma a los eventos de producción:** puede haber solapamiento. No corrige los eventos antiguos «Otros destinos» de CloudWatch. No sigue el selector temporal ni los cambios posteriores de la base de datos.\n\n**Consulta puntual:** este panel lee un CSV agregado inline. No ejecuta consultas AWS al visualizarlo ni escaneos periódicos de DynamoDB; la lectura original sí tiene su coste."
+      }
+    }
+  ]
+}

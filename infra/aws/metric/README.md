@@ -17,6 +17,13 @@ deployment and only for new trip creations. Terraform derives the production
 allowlist from corpus TOML filenames and requires 1 to 100 entries. Existing `other` events cannot be
 separated retrospectively; no historical database scan or backfill runs.
 
+For a separate, manually captured inventory of retained trips by city, import
+`grafana/cloudwatch/history.json` with an existing Infinity datasource. Its
+[import and snapshot instructions](grafana/cloudwatch/history.md#retained-trips-by-city)
+describe the fixed creation cutoff, aggregate-only CSV and distinction from
+creation events. The portable template has no production counts and performs no
+database read; an authorized one-off capture must populate it separately.
+
 For Compose, edit `services.core_api.environment.METRICS_CITY_SLUGS` in
 `docker-compose.metrics.yml`: the overlay value overrides `.env`. For a direct
 uvicorn run, change the value in core_api's `.env` instead.
