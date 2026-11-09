@@ -24,9 +24,9 @@
     "@react-oauth/google": "^0.13.5",
     "clsx": "^2.1.1",
     "jwt-decode": "^4.0.0",
-    "lucide-react": "^1.51.0",
-    "maplibre-gl": "^6.11.2",
-    "next": "16.4.3",
+    "lucide-react": "^1.70.0",
+    "maplibre-gl": "^6.16.0",
+    "next": "16.4.5",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "react-markdown": "^10.1.0",
@@ -34,22 +34,22 @@
     "tailwind-merge": "^3.7.0"
   },
   "devDependencies": {
-    "@playwright/mcp": "^0.0.82",
-    "@playwright/test": "^1.63.0",
-    "@tailwindcss/postcss": "^4.3.3",
+    "@playwright/mcp": "^0.0.84",
+    "@playwright/test": "^1.65.0",
+    "@tailwindcss/postcss": "^4.3.5",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@types/node": "^24.19.1",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "@vitejs/plugin-react": "^6.1.1",
+    "@vitejs/plugin-react": "^6.2.1",
     "eslint": "^9.39.5",
-    "eslint-config-next": "16.4.3",
+    "eslint-config-next": "16.4.5",
     "jsdom": "^30.1.1",
     "openapi-typescript": "^7.13.0",
     "serve": "14.2.6",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.9.3",
-    "vitest": "^5.0.3"
+    "vitest": "^5.1.0"
   }
 }
